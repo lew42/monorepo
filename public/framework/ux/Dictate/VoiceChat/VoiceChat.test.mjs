@@ -96,6 +96,19 @@ test("the bar's own controls write the chat's settings too, and the browser's me
 	t.eq(r.barge.on, true, "on again");
 });
 
+test("the bar's switch does not keep an override equal to the class value (step 2a review, carried to step 4)", t => {
+	reset();
+	const r = recite(), vc = new VoiceChat({ recite: r });
+	r.barge.set_threshold("0.6");   // differs from the class default (0.35): kept
+	t.eq(vc.overrides, { Interrupt: { config: { threshold: 0.6 } } });
+	r.barge.set_threshold("0.35");   // back to the class value: dropped, not stored as "0.35 on purpose"
+	t.eq(vc.overrides, {}, "no override left: this chat now just follows the class");
+	r.barge.set_on(false);   // differs from the class default (true): kept
+	t.eq(vc.overrides, { Interrupt: { enabled: false } });
+	r.barge.set_on(true);   // back to the class value: dropped
+	t.eq(vc.overrides, {});
+});
+
 test("what the browser remembered becomes this chat's overrides, not the class", t => {
 	reset();
 	const r = recite(); r.barge.threshold = 0.5; r.barge.on = false;

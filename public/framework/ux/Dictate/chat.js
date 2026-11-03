@@ -259,6 +259,19 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	// The browser's remembered barge-in values are read before it starts, because its first attach writes the class values.
 	Recite.shared.voice_chat ??= new VoiceChat({ recite: Recite.shared, mic: panel.dictate, overrides: Interrupt.snapshot(Recite.shared) });   // ux/Dictate/VoiceChat/readme.md
 	panel.voice_chat = Recite.shared.voice_chat;
+	// Chat settings (chat-settings-session): one Recite per page, so this wiring is done once no matter how many chat() mounts share it.
+	if (!panel.voice_chat._settings_wired){
+		panel.voice_chat._settings_wired = true;
+		let save_timer = null;
+		const save_plugins = () => {
+			clearTimeout(save_timer);
+			save_timer = setTimeout(() => {
+				if (!owner.ctl.session) return;
+				Session.settings({ session: owner.ctl.session, plugins: panel.voice_chat.overrides }).catch(e => quiet_note("the chat settings were not saved", e));
+			}, 400);
+		};
+		for (const row of panel.voice_chat.plugins) row.on("change", save_plugins);
+	}
 	Recite.shared.on_read = ev => report.read(ev);   // cutting in, 2026-11-03: a note for the assistant's next turn, never a prompt (ext/Chat/v2/report.js, kind "context")
 
 	// The phantom gate's one source of duration/word-probability: the last FINAL Whisper reply this mic heard, read
@@ -366,6 +379,9 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		if (!(was === null && watching)) panel.reset();
 		if (!owner.ctl.session){ maybe_offer(); return; }
 		watching_since = Date.now();   // lines older than this are history, not an answer just now
+		// This session's own Chat settings (a brand-new session has none yet, so this reads as the defaults — the same as
+		// New session's reset): core/Session/readme.md, "Session.settings".
+		Session.get(owner.ctl.session).then(rec => panel.voice_chat?.load_grouped(rec.plugins ?? {})).catch(e => quiet_note("the chat settings were not loaded for this session", e));
 		report.init(owner.ctl.session);   // the page's own errors reach the assistants too (ext/Chat/v2/report.js): a log line, never a wake-up
 		stop_watch = Session.watch(owner.ctl.file, draw, { on_history: lines => panel.$thread?.hold_history?.(lines, draw), on_status: (kind, d) => {
 			// The poll reads the session file every 1.5 s; its trouble is the Wire light's, so a dead file cannot pass for "no answer yet".

@@ -59,6 +59,21 @@ export const start = ({ path = location.pathname, host = location.host, card, fr
 /** Continue any session by id; its assistants wake if they slept. */
 export const resume = session => post("resume", { session });
 
+/** This session's own record, including its Chat settings plugin overrides (`plugins`, rebuilt from the session's own
+ *  session.jsonl: Servex/agents/Sessions.js `plugins_of`, chat-settings-session). */
+export async function get(session){
+	let res;
+	try { res = await fetch(servex_url(`/api/session/${session}`)); }
+	catch (e){ throw new Error(`Servex is not reachable for session/${session} (${e?.message || "network error"})`); }
+	const out = await res.json().catch(() => ({ ok: false, error: `HTTP ${res.status}` }));
+	if (!out.ok) throw new Error(`Servex refused session/${session}: ${out.error ?? "HTTP " + res.status}`);
+	return out;
+}
+
+/** The session's knobs (gap_ms, every, tail, assistant), and its Chat settings plugin overrides, `plugins` — same shape
+ *  VoiceChat.overrides gives: {Name: {enabled?, config?}}. `plugins: null` resets them (Reset to default). */
+export const settings = ({ session, ...rest }) => post("settings", { session, ...rest });
+
 /** The sessions started on, or passing through, `page`, newest first. */
 export async function recent(page = location.pathname, { limit = 10, host = location.host } = {}){
 	const q = new URLSearchParams({ page, limit, host });

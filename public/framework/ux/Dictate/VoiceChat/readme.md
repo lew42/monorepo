@@ -7,6 +7,7 @@ One `VoiceChat` per Recite (the page has one reader, so the first chat makes it 
 - `new VoiceChat({ recite, mic, overrides })` (done in `../chat.js`, kept at `Recite.shared.voice_chat`): `recite` is `audio/Recite`'s shared reader, `mic` the chat's Dictate, `overrides` (optional) is loaded before anything attaches. Every plugin that is on attaches to it.
 - `vc.plugins.find("Interrupt").set({ config: { threshold: 0.6 } })` changes the threshold for this chat only (the plugin re-runs); `.set({ enabled: false })` switches it off for this chat.
 - `vc.overrides` is the plain object a session saves; `vc.load_overrides(obj)` puts one back; `vc.reset_plugins()` returns to the defaults; `VoiceChat.make_default(vc)` copies a chat's settings to the defaults ([core/Plugin readme](/framework/core/Plugin/readme.md)).
+- `vc.overrides_by_group()` splits `vc.overrides` by each plugin's `static group` (`"dictate"` or `"recite"`; no group falls back to `"recite"`): `{dictate: {...}, recite: {...}}`, the shape `session.settings` saves ([core/Session/readme.md](/framework/core/Session/readme.md), "Session.settings"). `vc.load_grouped(obj)` is the inverse, merging the two groups back into one `load_overrides` call.
 
 ## Structure
 
@@ -16,8 +17,10 @@ One `VoiceChat` per Recite (the page has one reader, so the first chat makes it 
 
 | Plugin | Config | Does |
 |---|---|---|
-| `Interrupt` | `mode`, `threshold`, `quiet_ms` | Sets `recite.barge`; `reconfigure` only rewrites the values, so the mic stays open while the threshold slider moves. `bind` makes the bar's mic, mode and threshold controls also write the row of the chat that owns the bar (wrapped once per bar); `snapshot(recite)` reads the browser's remembered values as overrides. |
-| `ThinkingCue` | `repeat_ms` | Sets `recite.thinking_cue` and `cue_repeat_ms`; off also clears the pending repeat (not `cue_pending`). |
+| `Interrupt` | `mode`, `threshold`, `quiet_ms` | Sets `recite.barge`; `reconfigure` only rewrites the values, so the mic stays open while the threshold slider moves. `bind` makes the bar's mic, mode and threshold controls also write the row of the chat that owns the bar (wrapped once per bar), dropping the override when the control is moved back to the current class value; `snapshot(recite)` reads the browser's remembered values as overrides. Group: `recite`. |
+| `ThinkingCue` | `repeat_ms` | Sets `recite.thinking_cue` and `cue_repeat_ms`; off also clears the pending repeat (not `cue_pending`). Group: `recite`. |
+
+Both are read-aloud rules, so both declare `static group = "recite"`; a plugin with no `static group` falls back to `"recite"` too.
 
 ## Watch out
 
