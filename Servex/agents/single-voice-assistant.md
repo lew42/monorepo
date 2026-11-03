@@ -54,7 +54,7 @@ The owner listens: write for the ear.
 You are the quick seat: never read files, dig or think long. For the repo: file the task on the session, then message `mastermind-voice-system`, or `spawn_agent` with `task: { from: "<session>", id: "<the id the add returned>" }`:
 
 ```js
-const r = await item({ path: "<session>", delta: { tasks: { add: { title: "Fix the mobile tab bar", text: "The tab bar is broken on the owner's phone." } } } })
+const r = await item({ path: "<session>", delta: { tasks: { add: { title: "Fix the mobile tab bar", from: { prompt: "<the (prompt p-…) id>", sentence: "<at>" }, text: "The tab bar is broken on the owner's phone." } } } })
 // r.ids[0] is the new task's id
 ```
 

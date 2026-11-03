@@ -725,6 +725,27 @@ export async function move_item({ from, id, to, by = "agent", module, entry = nu
 	return { from: moved_from, to: url, file: nf };
 }
 
+/* ASK 1 (ask1-origin, 2026-11-03): a task's `from` (who or what asked, here `{prompt, sentence}` for a voice-filed task) and `text`
+ * (the raw words), read straight off disk — never through Task.FIELDS, so a plain task's `text` need not be a recognized field to
+ * travel. Scans every line that addresses `id` (a `tasks.add`, a bare `{"tasks":{id:…}}`, or a bare `{"id":…}`) and keeps the last
+ * value of each key written, the same "last line wins" rule replay uses. Returns {from, text} (either may be undefined), or null
+ * when `id` is never addressed. Called before a handoff moves the task (Agents.js spawn()), so Servex's own first-turn line can
+ * quote the owner's words instead of only a path. */
+export function task_origin(from, id){
+	const pf = resolve_file(from, true);
+	if (!pf || !fs.existsSync(pf)) return null;
+	let out = null;
+	for (const l of parse_lines(pf)){
+		const adds = is_plain(l.tasks) ? [].concat(l.tasks.add ?? []).filter(a => is_plain(a) && a.id === id) : [];
+		const bodies = [...adds, ...(is_plain(l.tasks) && is_plain(l.tasks[id]) ? [l.tasks[id]] : []), ...(is_plain(l[id]) ? [l[id]] : [])];
+		for (const b of bodies){
+			if (b.from === undefined && b.text === undefined) continue;
+			out = { ...out, ...(b.from !== undefined ? { from: b.from } : {}), ...(b.text !== undefined ? { text: b.text } : {}) };
+		}
+	}
+	return out;
+}
+
 /* Requests are logged items (Servex/agents/doc/messaging.md). After a write: each new request goes to its receiver, and each
  * request this write completed goes back to whoever asked (`from`), with its outcome. A completion is a `complete` line on a nested
  * child ({"<id>": {"complete": …}}, or a target of [<id>]), or on a request that has its own folder (the file's own root). */
