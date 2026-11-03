@@ -1721,7 +1721,7 @@ export default class Sessions {
 	}
 }
 
-/* A reply that says nothing: `(listening)`, only punctuation, or a short filler line ("Go ahead, listening.", "Filed.", "No question is open."); a single-seat cue turn drops it too. */
+/* A reply that says nothing: `(listening)`, only punctuation, a stray stringified `undefined`/`null`, or a short filler line ("Go ahead, listening.", "Filed.", "No question is open."); a single-seat cue turn drops it too. */
 const FILLER = /^(?:keep going|go (?:on|ahead)|i'?m (?:here|listening)|still (?:here|listening|with you)|noted|got it|take your time|mm-?hm+|ok(?:ay)?|listening|sure|filed|done|understood|waiting|silent|no question(?: is)?(?: open)?|nothing(?: is)?(?: open)?|nothing to (?:say|add|reply)|no reply)\b[\s,.!-]*(?:(?:i'?m |i am )?(?:still )?(?:listening|here|with you)[\s,.!-]*)?$/i;
 export const is_filler = text => { const t = String(text ?? "").trim(); return !/[\p{L}\p{N}]/u.test(t) || /^\(listening\)/i.test(t) || /^(?:undefined|null)[\s,.!-]*$/i.test(t) || (t.length <= 40 && FILLER.test(t)); };
 
