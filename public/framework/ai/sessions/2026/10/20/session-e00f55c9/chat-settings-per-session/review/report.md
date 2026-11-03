@@ -1,39 +1,67 @@
 verdict: fix
-1. [fix] Requirements 1, 3, 5 are not met and 2 and 4 are only partly met: the diff is step 1 only (core/Plugin overrides, load_overrides, reset_plugins, make_default; the demo; one doc). There are no Voice Chat plugins, no Chat settings panel, no Make default button in Chat, and no page-side save or load. The plan names these as steps 2 to 5; they are the owner's core asks.
-2. [fix] Stale: `plan.md` Status says step 1 "Merges after qf-1 lands", but qf-1 has landed (merge d5af6b3c0 is in this worktree). Update it so a fresh agent knows step 1 is ready to merge.
-3. [fix] Evidence noise in the task folder: `shots/` holds 10 pages, but only `shots/127-0-0-1-62246-framework-core-Plugin/` shows this diff. Seven of the others are 404 pages (`/public/framework/...` URLs, layout.json widest_text sample "404 — nothing matches") and three are unrelated session pages. A fresh agent cannot tell which page is the evidence.
-4. [fix] Wrapping: on the Plugin demo, `Make default` and `Reset to default` buttons wrap to 2 lines at 1200, 1920 and 3440 (layout.json `wraps`, button lines 2). A short button label should stay on one line.
-5. [note] The framework readme line 30 and `ux/Dictate/readme.md` line 89 say nothing about per-instance overrides or Make default; the core/Plugin readme does. Fine to link there, but the one-line index entry is now incomplete.
-6. [note] The Plugin page is 70 to 79% empty at 1920 and 3440 (layout.json empty 0.70 and 0.79), which is normal for a prose page.
+1. [fix] `core/readme.md` (the core module index) has no line for the new `Settings` module: Plugin is at line 56, Settings is missing. `public/framework/readme.md` and `core/files.jsonl` do list it (law 10, index everything).
+2. [fix] `core/Settings/readme.md:29` says "12 tests (31 checks)", but `Settings.test.mjs` has 13 `test(` calls, and `plan.md` Status also says 13. The new grouped-load test was never counted, so the readme is stale.
+3. [note] The shots (14:23) are older than the review fixes in this diff (bf6abb46f and 99d86e58d, diff 14:25). They still show the 60 px slider, "this session" in muted text, "The JSON on the right" and the code sample cut off at the right. So I judged the slider room, the "Editing:" line and the wording fixes from the diff, not the pixels. A re-shoot after the fix commits would settle them.
+4. [note] The code sample in the diff (`page.js:366-373`) still runs to about 60 characters per line (`fields: [{ key: "volume", label: "Volume", type: "slider",`). At 400 it will probably still clip. The shot is too old to say.
+5. [note] The select row puts its help text under the dropdown in a nested column (`Settings.js:142`). At 400 that pushes "follows the system" under the bottom bar (400.png, last band). It works, but the help text would read better on its own full-width line, like the other fields' help.
+
+Widths given: 400, 1200, 1920, 3440 for `/framework/core/Settings/` (a new page), plus single 1920 shots of `/framework/` and `/framework/core/Plugin/`.
 
 ## Requirements
-Widths given: 400, 1200, 1920, 3440 (Plugin page only; the other 9 shot folders are unrelated).
-- 1 "the dictation and recite rules and thresholds as plugins you can switch on and off" — no — the diff touches no Dictate or Recite code, only core/Plugin and `settings-plugins.md`
-- 2 "registered at the class level, toggled and configured per instance" — partly — `inst.plugins` and `overrides` work and `node core/Plugin/Plugin.test.mjs` passes. Nothing in Voice Chat uses them yet.
-- 3 "one Chat settings panel (the gear), with Recite's settings in it" — no — not built (step 3)
-- 4 "settings persist with the session; a new session starts from the defaults" — partly — `overrides` is JSON-safe, and `plan.md` says the Servex store exists in another worktree. This diff has no page-side load or save.
-- 5 "a 'Make default' button" — partly — `Host.make_default` and a demo button on the core/Plugin page (shots/.../framework-core-Plugin/1200.png). There is no button in Chat.
-- class live-instances page — yes — `core/Plugin/page.js` demo shows an instance's overrides, Make default and Reset
-## Page structure
-- page — yes — the Plugin page has a title, a use block and a "Try it" section (sheet.png)
-## Navigation
-- techniques: the framework sidebar and a right AI drawer; nothing new was added — n/a for the rest
-## Layout
-- no — shots/.../Plugin/400.png: the code block and demo stack in one column; the diff's additions do not break it
-## Sizing
-- yes — widest_text 368 at 400 and 592 to 714 at wider widths; no overflow_x
-## Wrapping
-- no — the two demo buttons wrap to 2 lines (finding 4); tab_rows 0
-## Spacing and padding
-- yes — layout.json bands show even shares (0.04 to 0.31 at 400); no band is unusually padded
-## Colour and contrast
-- yes — sheet.png: the code block is light on dark and the buttons are readable
-## Flow
-- yes — sheet.png: the page reads top-down, from the intro to Try it to One instance
-## Words
-- plain sentences, the reader's terms: yes — the readme Use block explains overrides, load_overrides, reset_plugins and make_default
-- nothing stale: no — `plan.md` Status (finding 2)
+- Step 3 of the brief (merge 4): "Build a settings system for the long term, `core/Settings`" — yes — `core/Settings/Settings.js` plus 13 tests, and the page demo.
+- "It sits between the data and the UI: `settings.render()` draws the panel" — yes — `Settings.js:121` `render()`; 1920.png band 6 shows its rows.
+- "Field types: toggle, slider, number, dropdown" — yes — `Settings.js:128-152` has all four (plus text); 400.png shows Notify, Volume, Retries and Theme.
+- "It decides how often to save" — yes — the save policies `each` / `{debounce_ms}` / `manual` (`Settings.js:95`) and three tests for them.
+- "Any Item can have one" — partly — it is a plain `Events(Object)` with an injected `persist`, so any Item could hold one, but nothing attaches it to Item yet. Step 4 does that, so this is correct staging.
+- "groups `settings.dictate` and `settings.recite`" — yes — the `groups:` option and `s.dictate` / `s.recite`, with tests `own: groups…` and `make_default recurses…`.
+- "Make the panel say which one you're editing" — yes, in code — `render()` prints "Editing: " + level in bold (`Settings.js:161`). The shot predates it (finding 3).
+- "Every slider says what its two ends do" — yes — the `low`/`high` end texts (`Settings.js:133,137`); 1920.png shows "quiet … loud".
+- The five owner asks: none ticked — correct. This is merge 4 of 7, and `plan.md` Status says so.
+- Show the class and its live instances — yes — `/framework/core/Settings/` shows a live instance with `settings.own` updating beside it (1920.png band 6).
+- A fresh agent can continue — yes — `plan.md` Status now records the step 3 worktree, commit, test count and the next step. This fixes the last round's finding 3.
 
-## Index and handover
-- new files are indexed: yes — `settings-plugins.md` is linked from `ux/Dictate/readme.md` line 89; the readme Structure section lists the new methods and the test file
-- fresh agent can continue from the task folder: mostly — `plan.md` Status names the worktrees, commits and open steps, apart from the stale clause in finding 2
+## Page structure
+- page 1 (the title says what it is) — yes — 1920.png top band: "Settings", then a one-sentence definition.
+- page 2 (the one takeaway shows first) — yes — the definition, then the code, then "Try it".
+- page 3 (show, don't tell) — yes — a live panel with the JSON beside it.
+- page 4 (the long form is nested) — yes — the readme sits in `md.details` at the end.
+
+## Navigation
+- navigation 1 (techniques used) — the sidebar (core tree) at 1200+, the bottom rail at 400, and the AI side panel.
+- sidebar: the page is reachable and marked — yes — 1920.png: "Settings" is highlighted under Core, after Test.
+- bottom rail — yes — 400.png bottom band.
+- tabs — n/a
+
+## Layout
+- layout 1 (the right page layout for the content) — yes — `layout.json` reports layout "standard", a single text column.
+- layout 2 (the two demo panes sit side by side, then stack) — yes — 1920.png band 6 shows them side by side; at 400 they stack (layout.json: flex band, 408 px).
+- layout 3 (a wide screen is used) — n/a — this is a reading page, and the text column is held to a measure on purpose.
+
+## Sizing
+- sizing 1 (the text column holds a readable measure) — yes — widest_text 584 px at 1200, 627 px at 1920, 705 px at 3440.
+- sizing 2 (controls get room for their job) — yes in code, no in the shot — the slider was 60 px at 1920 (1920.png band 6). The diff now gives it `flex 1 1 6em; minWidth 6em` and caps the label at `0 1 6em` (finding 3).
+- sizing 3 (empty space) — yes — empty 0.68 at 1920 and 0.78 at 3440 is the side margin of a measured column, not a broken layout.
+
+## Wrapping
+- wrapping 1 (no horizontal overflow) — yes — overflow_x false at 400.
+- wrapping 2 (code fits its box) — no in the shot, probably still at 400 — finding 4.
+- wrapping 3 (rows wrap cleanly) — yes — a help text takes `flex 1 1 100%` and drops to its own line.
+
+## Spacing and padding
+- spacing 1 (left edges line up) — yes — left_stack: h1 16 and p 16 at 400.
+- spacing 2 (row rhythm) — yes in code — the row min-height went from 2.75em to 2.25em. In the old shot the rows sat about 68 px apart.
+- spacing 3 (panel padding) — yes — the `surface pad` panes, 1920.png band 6.
+
+## Colour and contrast
+- colour 1 (the text has contrast) — yes — dark text on light surfaces; the muted end texts are still legible at 1920.
+- colour 2 (the accent is used for state only) — yes — the orange is on the checkbox and the slider thumb only.
+
+## Flow
+- flow 1 (reads top-down in the order things are learned) — yes — what it is, the code, try it, groups, readme.
+- flow 2 (the demo shows its effect live) — yes — the JSON pane updates on change, and the groups are wired to `refresh`.
+
+## Words
+- content 1 (plain sentences) — yes — the page's first sentence defines every term it uses.
+- content 2 (names match the code) — yes — `defaults`, `own`, `get`, `set`, `persist`, `render()` and `settings.own` are the real names, which is what the owner asked for.
+- content 3 (no claim the layout breaks) — yes in code — "beside it" replaces "on the right" (`page.js:376`).
+- content 4 (the docs match the code) — no — the readme's test count is stale (finding 2), and core/readme.md has no index line for Settings (finding 1).

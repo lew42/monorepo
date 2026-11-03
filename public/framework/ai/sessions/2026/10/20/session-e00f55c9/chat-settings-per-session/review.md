@@ -1,25 +1,18 @@
-verdict: fix
-1. [fix] Stale and dangerous: `ux/Dictate/doc/settings-plugins.md:16` still says "Delete/ignore `ux/Dictate/VoiceChat/VoiceChat.js`", but that path is now the new core/Plugin-based class this diff adds. A fresh agent following the doc could delete live code. Reword it to say the old branch's registry is gone and the new `VoiceChat/` is the port, and link `VoiceChat/readme.md`.
-2. [fix] Contradiction: `ux/Dictate/readme.md:101` says "one `VoiceChat` per chat", and the `VoiceChat.js:1` header and the `VoiceChat.test.mjs:1` header say "one instance per open chat", but `chat.js:246` and `VoiceChat/readme.md:3` make ONE per Recite, shared by every chat on the page. Make all four say "one per Recite (one per page)".
-3. [fix] Stale: `settings-plugins.md` ("The per-instance settings" section) and `plan.md` step 1 ("re-runs detach then attach … a plugin never needs its own settings-changed code") no longer tell the whole story: core/Plugin now calls `reconfigure(inst)` when a plugin has one (`Plugin.js:198`). Add one clause to each, so the next plugin port knows to use `reconfigure` for anything that holds a mic or a timer open.
-4. [note] Requirements: this is merge 3 (step 2, first group). Asks 1 and 2 are only partly met (2 of the ~6 plugins, and no panel yet). Asks 3, 4 and 5 are not started on the page side. `plan.md` Status says so honestly and ticks nothing, so this is correct staging, not a miss.
-5. [note] Two sets of defaults: `Interrupt.defaults` (`Interrupt.js:333`) repeats BargeIn's own field initializers (`BargeIn.js:29-46`) and its `static label/defaults`. If either one changes, `snapshot()` turns the difference into a phantom override. Later, read the defaults from `BargeIn` instead.
-6. [note] `Interrupt.attach` sets `b.on = true` without BargeIn's `set_on` side effect (`if state === "heard" → "off"`, `BargeIn.js:322`). After a detach that happened while reading was paused, re-attaching could leave `state` at "heard". Probably harmless, because `detach` → `sync` resumes reading. Worth a test.
-7. [note] The bar's toggle writes an override even when it matches the class (`set_on(true)` → `{Interrupt:{enabled:true}}`, `Interrupt.js:360`). The plugin then stops following a later Make default for that switch. That matters once step 5 is built.
-8. [note] On the chat page, `Plugin.store` is still the node `Map` (only `core/Plugin/page.js:6` swaps in localStorage), so `VoiceChat.make_default` would not survive a reload. This is expected until the page side of step 5 is built; record it in the plan.
-9. [note] `core/files.jsonl`, `core/Plugin/files.jsonl` and `ux/Dictate/files.jsonl` each gain a `failures.jsonl … gone` line that this task did not cause (an indexer churning on a test artifact). It is noise in the diff; worth finding the writer.
+verdict: pass
+1. [note] `agent working` comes from `Recite.cue_pending` alone, which `Recite.js:287` sets only while Recite is `auto`. With read-aloud off, the line goes from `sending` straight back to empty while the agent works. plan.md says this, so the next step can add the `stream` source the brief allowed for.
+2. [note] The comment at `ux/Dictate/chat.js:291` says "one ChatStatus per page", but the block runs once per `chat()` call. Each chat adds a `Recite.on` and a `floor.on_mic` listener that is never removed. `floor` is page-global, so a second chat on the same page would also show `listening` for the first chat's mic. This is harmless with one chat per page; the comment should say what actually happens.
+3. [note] The test command in `ux/Dictate/doc/settings.md` ("Status line", last line) is `node ux/Dictate/ChatStatus.test.mjs`. From the repo root it is `node public/framework/ux/Dictate/ChatStatus.test.mjs`, which is how the test file's own header says it.
+4. [note] The new `changed()` calls in `audio/Recite/Recite.js` (`expect_reply`, `start_thinking`, `cancel_cue`) also wake ReciteBubble's `sync()` and ReciteHighlight's `tick()`. Both are cheap redraws, and `cancel_cue` fires only when the value flips, but `audio/Recite/readme.md` doesn't say that `on()` now fires for the cue too.
 
 ## Requirements
-Widths given: none (no shots for this diff; the page code changed only in `chat.js` wiring).
-- 1 "the dictation and recite rules and thresholds as plugins you can switch on and off" — partly — Interrupt and ThinkingCue are plugins with switches and config (`VoiceChat/plugins/`). Send on sentence end, word highlight, tap to pause and the timings remain (plan.md Status).
-- 2 "registered at the class level, toggled and configured per instance" — yes for the two built — `plugins/index.js` registers once; tests "one chat's threshold is its own" and "load_overrides" pass (12/12 VoiceChat, 30/30 core/Plugin, run by me).
-- 3 "one Chat settings panel (the gear), with Recite's settings in it" — no — not in this diff (step 3)
-- 4 "settings persist with the session; a new session starts from the defaults" — no on the page side — `vc.overrides` is the payload and the Servex side exists elsewhere; nothing loads or saves it yet
-- 5 "a 'Make default' button" — no — `VoiceChat.make_default` works in tests; there is no button in Chat
-- class live-instances page — no — the `VoiceChat` class has no page showing its live instance and its overrides; the core/Plugin demo covers the mechanism. [note] for now; once the panel exists, it is that view.
+- Step 6, "a status line beside the mic shows the phase, named as the code names it (listening, sending, agent working, speaking)": yes. `ChatStatus.js` uses exactly those four words in that order, and `minion-settings-build-step6/status-agent-working-360.png` shows "agent working" between the mic and the gear.
+- Brief: "never a new copy of state; no polling": yes. The four sources are read live. Change signals come from `Recite.on`, the new `floor.on_mic` and the page's `sending_poke`. There is no `setInterval`.
+- Brief: "`ext/Chat` imports nothing from `ux/`": yes. `Composer.js` only draws an empty span (`mic.status_el`), and `chat.js` binds it.
+- Brief: "must not push the composer wider at 360; may truncate": yes. `Chat.css` sets `max-inline-size: 9em` with an ellipsis, and the 360 shot does not overflow.
+- Brief: "tests first": yes. `ChatStatus.test.mjs` passes 3/3 when re-run here (9 checks).
+- Brief, docs (laws 9, 10): yes. There is a "Status line" section in `doc/settings.md`, an index line in `ux/Dictate/readme.md` and a Step 6 line in plan.md. Small gaps are in notes 3 and 4.
+- New class (`ChatStatus`), "a page that shows its live instances": no. It holds one derived word and no state the owner would want to watch, so this is not a fix.
+- Can a fresh agent continue from this folder? Yes. plan.md's Step 6 line names the worktree, the files, the shots and what is left. The worktree branch's commit hash is not recorded in plan.md; it is 05f5b079a.
 
 ## Words
-- plain sentences, the reader's terms: yes — `VoiceChat/readme.md` has Use, Structure, a plugin table and Watch out, in plain words
-- nothing stale: no — findings 1, 2, 3
-- new files indexed: yes — `VoiceChat/` is in `ux/Dictate/files.jsonl` and linked from `ux/Dictate/readme.md:101`; `plugins/files.jsonl` lists all three
-- a fresh agent can continue from the task folder: yes — `plan.md` Status names the worktree, the commits, the four plugins still to port, "do not port Interrupt or ThinkingCue again", and the open steps 3–5
+- The four words match the code and the owner's list. The doc section is plain and says where each phase is read from: yes.
