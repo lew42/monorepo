@@ -45,6 +45,47 @@ export class Plugin extends Events(Object) {
 		else Plugin.detach_instance(rec, this);
 	}
 
+	// What this instance changed against the class: a plain {Name: {enabled?, config?}} that survives JSON, so it can be saved
+	// with a session and handed back to load_overrides. A plugin this instance left alone is not in it.
+	get overrides(){
+		const out = {};
+		for (const row of this.plugins) {
+			const rec = row.record, o = {}, on = this._plugin_overrides?.get(rec), cfg = row.own("config");
+			if (on !== undefined) o.enabled = on;
+			if (cfg && Object.keys(cfg).length) o.config = { ...cfg };
+			if (Object.keys(o).length) out[rec.name] = o;
+		}
+		return out;
+	}
+
+	// Replace every override with `obj`: a listed plugin takes its value, an unlisted one goes back to the class. A plugin
+	// whose state does not change is not touched, so loading the same overrides twice runs nothing.
+	load_overrides(obj = {}){
+		const Host = this.constructor, rows = [...this.plugins], was = new Map();
+		for (const row of rows) {   // config first, so an attach that follows reads the new values
+			const rec = row.record, cfg = obj[rec.name]?.config, next = cfg && Object.keys(cfg).length ? { ...cfg } : null;
+			if (JSON.stringify(row.own("config") ?? null) === JSON.stringify(next)) continue;
+			was.set(rec, rec.attached.has(this));
+			row.put("config", next);
+			row.emit_safely("change", "config", row.get_one("config"));
+		}
+		for (const row of rows) {
+			const rec = row.record, enabled = obj[rec.name]?.enabled, before = rec.attached.has(this);
+			if (enabled === undefined) {
+				if (this._plugin_overrides?.delete(rec)) row.put("enabled", null);
+				if (rec.on) Host.attach_instance(rec, this); else Host.detach_instance(rec, this);
+			} else {
+				this.toggle_plugin(rec, enabled);
+				row.put("enabled", rec.attached.has(this));
+			}
+			if (was.get(rec) && before && rec.attached.has(this)) Host.rerun_instance(rec, this);   // same on/off, new config
+			if (rec.attached.has(this) !== before) row.emit_safely("change", "enabled", row.get_one("enabled"));
+		}
+		return this;
+	}
+
+	reset_plugins(){ return this.load_overrides({}); }
+
 	// ── class-level events. "new" walks the class chain: parents' listeners first, then each subclass's own.
 	static get events(){
 		if (!Object.hasOwn(this, own_events)) Object.defineProperty(this, own_events, { value: {}, writable: true });
@@ -107,7 +148,7 @@ export class Plugin extends Events(Object) {
 		const name = p.name || "plugin", key = `plugin.${this.name}.${name}`;
 		const saved = Plugin.store.get(key), defaults = p.defaults ?? {};
 		const { on: default_on = true, ...config_defaults } = defaults;
-		rec = { plugin: p, name, key, on: false, fn: null, live: new Set(), attached: new WeakSet(), n: 0,
+		rec = { plugin: p, name, key, on: false, fn: null, live: new Set(), seen: new WeakSet(), attached: new WeakSet(), n: 0,
 			wanted: wanted_on ?? saved?.on ?? default_on, config: { ...config_defaults, ...saved?.config } };
 		this.records.set(p, rec);
 		if (!Plugin.hosts.includes(this)) Plugin.hosts.push(this);
@@ -143,6 +184,49 @@ export class Plugin extends Events(Object) {
 		if (typeof rec.plugin.detach !== "function" || rec.plugin.detach === Plugin.detach) return;
 		rec.attached.delete(inst);
 		rec.plugin.detach(inst);
+	}
+
+	// New config for a live instance: detach then attach, so the plugin re-reads it (a plugin with no real detach is left as is).
+	static rerun_instance(rec, inst){
+		if (!rec.attached.has(inst)) return;
+		this.detach_instance(rec, inst);
+		this.attach_instance(rec, inst);
+	}
+
+	// The class config changed in `keys`: re-run every live instance that follows the class for those fields (not `except`).
+	static reconfigure_live(rec, keys, except){
+		for (const ref of [...rec.live]) {
+			const inst = ref.deref();
+			if (!inst || inst === except) continue;
+			const own = inst._plugins?.find(rec.name)?.own("config");
+			if (own && keys.some(k => k in own)) continue;
+			this.rerun_instance(rec, inst);
+		}
+	}
+
+	// "Make default": copy what `inst` changed into the class records and the store, so the next page load keeps it. The
+	// instance then has nothing left to override. Other live instances re-run if they follow the class; one with its own
+	// override on that plugin keeps it.
+	static make_default(inst){
+		const overrides = inst.overrides;
+		for (const row of inst.plugins) {
+			const rec = row.record, o = overrides[rec.name];
+			if (!o) continue;
+			inst._plugin_overrides?.delete(rec);
+			row.put("enabled", null);
+			row.put("config", null);
+			const old = rec.config, changed = [];
+			if (o.config) {
+				rec.config = { ...old, ...o.config };
+				for (const k of Object.keys(o.config)) if (JSON.stringify(old[k]) !== JSON.stringify(rec.config[k])) changed.push(k);
+				rec.row?.put("config", rec.config);
+				rec.row?.emit_safely("change", "config", rec.config);
+			}
+			if (o.enabled !== undefined && o.enabled !== rec.on) o.enabled ? this.enable(rec) : this.disable(rec);
+			else if (o.enabled !== undefined) rec.wanted = o.enabled;
+			this.store.set(rec.key, { on: rec.on, config: rec.config });
+			if (changed.length) this.reconfigure_live(rec, changed, inst);
+		}
 	}
 
 	// An instance that switched this plugin on/off for ITSELF (Plugin#toggle_plugin) keeps that wish: a class-wide
