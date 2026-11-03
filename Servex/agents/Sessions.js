@@ -15,9 +15,7 @@ import { structure } from "../../public/framework/ext/Refine/structure.js";
 import WakePolicy from "./WakePolicy.js";
 import * as PromptLines from "./PromptLines.js";
 import ChatWriter from "./ChatWriter.js";
-import Session from "../../public/framework/core/Session/Session.js";
-import { VoiceChat } from "../../public/framework/ux/Dictate/VoiceChat/VoiceChat.js";
-import "../../public/framework/ux/Dictate/VoiceChat/plugins/index.js";   // registers Interrupt, ThinkingCue and their `static group` (both "recite" today)
+import Session from "../../public/framework/core/Session/Session.js";   // plugins_of() replays a session's own session.jsonl; Servex must not import ux/ files
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(HERE, "../..");
@@ -256,17 +254,15 @@ export function checked_plugins(value){
 	return out;
 }
 
-/* Which session.settings GROUP a plugin's overrides belong to (core/Session/readme.md, "Session.settings"): read from the
- * plugin's own `static group` (VoiceChat.js's `overrides_by_group()` does the same split in the browser). A name core/Plugin
- * has never heard of (a test fixture, a plugin not yet ported) goes under "recite", the same fallback VoiceChat uses. */
-export function plugin_group(name){
-	for (const rec of VoiceChat.records.values()) if (rec.name === name) return rec.plugin.group === "dictate" ? "dictate" : "recite";
-	return "recite";
-}
-export function group_plugins(plugins){
-	const out = { dictate: {}, recite: {} };
-	for (const [name, o] of Object.entries(plugins)) out[plugin_group(name)][name] = o;
-	return out;
+/* The GROUPED shape a session's Chat settings are saved in: {dictate: {Name: {enabled?, config?}}, recite: {...}} — the
+ * page computes this split itself (`VoiceChat.overrides_by_group()`, by each plugin's own `static group`; Servex has no
+ * opinion on which plugin belongs to which group, and must not import ux/ files to find out). Each group is checked the
+ * same way a flat `plugins` object always was (`checked_plugins`); an unknown top-level key is refused. */
+export function checked_plugin_groups(value){
+	const bad = why => Object.assign(new Error(`plugins ${why}`), { status: 400 });
+	if (!value || typeof value !== "object" || Array.isArray(value)) throw bad("must be an object of {dictate, recite}");
+	for (const k of Object.keys(value)) if (!["dictate", "recite"].includes(k)) throw bad(`has an unknown group "${k}"`);
+	return { dictate: checked_plugins(value.dictate ?? {}), recite: checked_plugins(value.recite ?? {}) };
 }
 
 export default class Sessions {
@@ -394,13 +390,15 @@ export default class Sessions {
 
 	/* The knobs of one session (dictation widget settings panel): POST /api/session/settings {session, gap_ms?, every?, tail?, assistant?, plugins?};
 	 * null drops a knob back to the default; `tail: true` makes the smart seat follow its own session.jsonl (`tail_log`). Returns the knobs now in force.
-	 * `plugins` is a session's Chat-settings plugin overrides, plain {Name: {enabled?, config?}} (checked_plugins, unchanged): since chat-settings-session,
-	 * it is no longer kept on `s` (sessions.json) — it is split by each plugin's group (`group_plugins`) and appended as ONE `{"settings":{dictate,recite}}`
-	 * line to the session's OWN session.jsonl (core/Session/readme.md, "Session.settings"), the same file `write()` already appends to for everything
-	 * else. `plugins: null` (Reset to default) appends both groups empty. GET /api/session/<id> (below) rebuilds the flat shape from the replay. */
+	 * `plugins` here is the GROUPED shape the page already computed (`VoiceChat.overrides_by_group()`): {dictate: {...}, recite: {...}} — Servex
+	 * only checks each group (`checked_plugin_groups`, nothing smarter: one splitter, done in the browser, not duplicated here) and appends it AS
+	 * GIVEN, ONE `{"settings":{dictate,recite}}` line, to the session's OWN session.jsonl (core/Session/readme.md, "Session.settings"), the same
+	 * file `write()` already appends to for everything else. `plugins: null` (Reset to default) appends both groups empty. The RESPONSE's own
+	 * `plugins`, and GET /api/session/<id> below, are the FLAT {Name: {enabled?, config?}} shape instead (`plugins_of`) — the one the page reads
+	 * back, merged from the replay, never the grouped shape it posted. */
 	settings({ session, gap_ms, every, tail, assistant, plugins } = {}){
 		const s = this.get(session);
-		const next_plugins = plugins === undefined || plugins === null ? plugins : checked_plugins(plugins);   // checked first, written last (below)
+		const next_plugins = plugins === undefined || plugins === null ? plugins : checked_plugin_groups(plugins);   // checked first, written last (below)
 		if (assistant !== undefined){
 			if (assistant !== null && !ASSISTANTS.includes(assistant)) throw Object.assign(new Error(`assistant must be ${ASSISTANTS.join(", ")} or null`), { status: 400 });
 			const before = this.assistant_of(s);
@@ -414,14 +412,15 @@ export default class Sessions {
 		const next = this.waker.checked(s.id, patch);
 		Object.keys(next).length ? s.wake = next : delete s.wake;
 		if (next_plugins === null) this.append(this.disk(s.file), { settings: { dictate: {}, recite: {} } });
-		else if (next_plugins !== undefined) this.append(this.disk(s.file), { settings: group_plugins(next_plugins) });
+		else if (next_plugins !== undefined) this.append(this.disk(s.file), { settings: next_plugins });
 		this.save();
 		return { ok: true, ...this.waker.knobs(s.id), ...(s.tail ? { tail: true } : {}), ...(s.assistant ? { assistant: s.assistant } : {}),
 			...(next_plugins !== undefined ? { plugins: this.plugins_of(s) } : {}) };
 	}
 
 	/* A session's plugin overrides, rebuilt from the replay of its own session.jsonl (never cached on `s`): the two groups'
-	 * `own` merged flat, the same {Name: {enabled?, config?}} shape `plugins` always had, so the page needs no new shape. */
+	 * `own` merged into ONE FLAT {Name: {enabled?, config?}} object — the GET shape, the opposite direction from what
+	 * `settings()` above takes in (grouped). The page never needs to know which group a plugin is in to read this back. */
 	plugins_of(s){
 		let lines;
 		try { lines = fs.readFileSync(this.disk(s.file), "utf8").split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
@@ -1791,8 +1790,9 @@ export default class Sessions {
 		router.get("/api/session/:id", cors, (req, res) => {
 			const s = this.map[req.params.id];
 			if (!s) return res.status(404).json({ ok: false, error: "no such session" });
+			const { plugins: _old, ...rest } = s;   // a session saved before chat-settings-session may still carry a stale sessions.json `plugins`; never let it through
 			const plugins = this.plugins_of(s);   // rebuilt from session.jsonl, not sessions.json: chat-settings-session
-			res.json({ ok: true, ...s, ...(Object.keys(plugins).length ? { plugins } : {}) });
+			res.json({ ok: true, ...rest, ...(Object.keys(plugins).length ? { plugins } : {}) });
 		});
 	}
 }

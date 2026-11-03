@@ -1,7 +1,9 @@
 /* node Servex/agents/Sessions.plugins.test.mjs — a voice session's Chat-settings plugin overrides (saved as session.settings
  * groups in its OWN session.jsonl, since chat-settings-session: core/Session/readme.md, "Session.settings"), and the shared
  * defaults ("Make default"): POST /api/session/settings {session, plugins}, POST /api/session/defaults {plugins}. Plain node,
- * a scratch repo. */
+ * a scratch repo. `settings()`'s own `plugins` param is the GROUPED shape the page sends ({dictate, recite}, step-4 review
+ * fix 3: one splitter, in the browser — Servex never guesses a plugin's group); its RESPONSE and `plugins_of()` give back
+ * the flat {Name: {enabled?, config?}} shape instead, the one the page reads. */
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -24,20 +26,34 @@ const make = file => {
 await check("a session's plugin overrides are saved in its OWN session.jsonl, read back, and survive a reload", () => {
 	const s = make(), a = s.create({ path: "/a/", fresh: true });
 	assert.deepEqual(s.plugins_of(s.map[a.session]), {}, "a new session has none: it starts from the defaults");
-	const over = { Interrupt: { enabled: false }, SendTiming: { config: { pause_send_ms: 1500 } } };   // both fall back to the "recite" group: neither is a known dictate plugin
-	const r = s.settings({ session: a.session, plugins: over });
-	assert.deepEqual(r.plugins, over, "the response carries them, rebuilt from the replay");
-	assert.deepEqual(s.plugins_of(s.map[a.session]), over, "GET /api/session/<id> rebuilds the same shape, so a phone reads them too");
+	const grouped = { recite: { Interrupt: { enabled: false }, SendTiming: { config: { pause_send_ms: 1500 } } } };   // the page's own split (VoiceChat.overrides_by_group)
+	const r = s.settings({ session: a.session, plugins: grouped });
+	assert.deepEqual(r.plugins, grouped.recite, "the response is the FLAT shape, rebuilt from the replay, not what was posted");
+	assert.deepEqual(s.plugins_of(s.map[a.session]), grouped.recite, "GET /api/session/<id> rebuilds the same flat shape, so a phone reads them too");
 	assert.equal(s.map[a.session].plugins, undefined, "not kept on the sessions.json record any more");
 	const t = make(s.file);   // a fresh Sessions instance, same sessions.json (simulates a Servex restart)
-	assert.deepEqual(t.plugins_of(t.map[a.session]), over, "still there after a Servex restart: the session's own session.jsonl, not sessions.json");
+	assert.deepEqual(t.plugins_of(t.map[a.session]), grouped.recite, "still there after a Servex restart: the session's own session.jsonl, not sessions.json");
 	assert.deepEqual(s.settings({ session: a.session, plugins: null }).plugins, {}, "null clears (Reset to default)");
 	assert.deepEqual(s.plugins_of(s.map[a.session]), {});
 });
 
-await check("plugins are checked: a plain object of {enabled?: boolean, config?: object}, nothing else", () => {
+await check("posting grouped plugins writes both groups exactly as given", () => {
+	const s = make(), a = s.create({ path: "/a/", fresh: true });
+	const grouped = { dictate: { Whisper: { config: { lang: "en" } } }, recite: { Interrupt: { enabled: false } } };
+	s.settings({ session: a.session, plugins: grouped });
+	assert.deepEqual(s.plugins_of(s.map[a.session]), { ...grouped.dictate, ...grouped.recite }, "both groups landed, flat-merged on read");
+});
+
+await check("plugins are checked per group: a plain object of {enabled?: boolean, config?: object}, nothing else", () => {
 	const s = make(), a = s.create({ path: "/a/", fresh: true });
 	for (const bad of ["x", [], { P: true }, { P: { enabled: "yes" } }, { P: { config: [] } }, { P: { config: { f: { deep: 1 } } } }, { "__proto__x": 1 }])
+		assert.throws(() => s.settings({ session: a.session, plugins: { recite: bad } }), /plugins/, JSON.stringify(bad));
+	assert.deepEqual(s.plugins_of(s.map[a.session]), {}, "a refused write leaves nothing behind");
+});
+
+await check("an unknown top-level group is refused: plugins must be {dictate, recite}, not a flat {Name: ...} or anything else", () => {
+	const s = make(), a = s.create({ path: "/a/", fresh: true });
+	for (const bad of [{ Interrupt: { enabled: false } }, { sing: {} }, "x", []])
 		assert.throws(() => s.settings({ session: a.session, plugins: bad }), /plugins/, JSON.stringify(bad));
 	assert.deepEqual(s.plugins_of(s.map[a.session]), {}, "a refused write leaves nothing behind");
 });
@@ -45,16 +61,10 @@ await check("plugins are checked: a plain object of {enabled?: boolean, config?:
 await check("other settings are not disturbed by plugins, and the other way round", () => {
 	const s = make(), a = s.create({ path: "/a/", fresh: true });
 	s.settings({ session: a.session, assistant: "single" });
-	s.settings({ session: a.session, plugins: { P: { enabled: true } } });
+	s.settings({ session: a.session, plugins: { recite: { P: { enabled: true } } } });
 	assert.equal(s.map[a.session].assistant, "single");
 	s.settings({ session: a.session, every: 2 });
 	assert.deepEqual(s.plugins_of(s.map[a.session]), { P: { enabled: true } });
-});
-
-await check("group_plugins splits by each plugin's static group; an unknown name falls back to recite", async () => {
-	const { group_plugins } = await import("./Sessions.js");
-	assert.deepEqual(group_plugins({ Interrupt: { enabled: false }, Unknown: { config: { x: 1 } } }),
-		{ dictate: {}, recite: { Interrupt: { enabled: false }, Unknown: { config: { x: 1 } } } });
 });
 
 await check("Make default is shared: stored once on Servex, read back, survives a reload, null clears", () => {

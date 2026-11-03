@@ -49,6 +49,14 @@ class Session extends Task                       // ../Task/Task.js (Task extend
 - **Times are the lines' own.** While a line replays, `Task.clock` holds its `at`/`ts`, so a nested task's `completed_at` and duration are when it happened, not when the log was read.
 - **Test:** `node Session.test.mjs` (tasks, progress, replay, `Day`); `node session-task.test.mjs` (a Session is a Task, `tasks.add` with a string or an object, totals from the children). Demo page: `page.js`.
 
+## Session.settings
+
+`session.settings` is a [`core/Settings`](/framework/core/Settings/readme.md) instance, not a plain object: two groups, `dictate` and `recite` (named after the classes they belong to — [`VoiceChat`](/framework/ux/Dictate/VoiceChat/readme.md)'s plugin overrides, split by each plugin's own `static group`), plus the flat fields of `static SETTINGS` (`name`, `model`, `effort`, `notify`) at the top level.
+
+- **Read with `.get(key)`**, never a bare property: `session.settings.get("model")`, `session.settings.dictate.own` (the group's own overrides, plain `{Name: {enabled?, config?}}`).
+- **A `{"settings":{…}}` line replaces only the top-level key it names** — a whole group (`dictate` or `recite`), or one flat field — and leaves everything else as it was; a later line for the same key wins. Replay merges this shallow onto a raw object first (so the keys the line never mentions survive) and then loads the WHOLE accumulated object into `settings` (`core/Settings.load()` itself replaces everything it is given).
+- **Session never persists this itself.** Replay only calls `settings.load(...)`; saving is Servex's job (`Servex/agents/Sessions.js` `settings()` appends the line; [ux/Dictate/doc/settings.md](/framework/ux/Dictate/doc/settings.md) is the Chat-settings side of the same mechanism, including who reads and writes each group).
+
 ## How work gets into a session
 
 **An AI adds a task.** `item({path: "<session url>", delta: {"tasks": {"add": "Fix the tab bar"}}})` (a string, or an object with fields).
