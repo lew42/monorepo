@@ -510,7 +510,10 @@ export default class Recite extends Part {
 			reported.add(c.reply);
 			this.report_read(this.at, this.at - this.group_start(this.at), "cut", Recite.heard_words(c));
 		}
-		for (let i = 0; i < this.chunks.length; i++){
+		// From `this.at` on, never from 0: everything before it already finished playing (chunks stay in the array
+		// until a full stop(), readme.md), so a reply fully heard minutes ago must never be reported "skipped"
+		// (review finding 1, 2026-11-03).
+		for (let i = this.at; i < this.chunks.length; i++){
 			const c = this.chunks[i];
 			if (reported.has(c.reply)) continue;
 			reported.add(c.reply);

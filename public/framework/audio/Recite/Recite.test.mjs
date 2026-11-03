@@ -93,13 +93,39 @@ if (Recite) test("Recite + BargeIn: real speech cancels the whole queue at once,
 	const read = []; r.on_read = ev => read.push(ev);
 	await r.play(1, 1.5);   // simulate: partway into reply one's second sentence
 	r.barge.owner_spoke("wait, hold on");   // a wire line, real speech, not a question
-	t.eq(r.state, "idle", "the instant he speaks, reading stops — the whole queue is gone, not held for quiet");
+	t.eq(r.state, "idle", "the instant you speak, reading stops — the whole queue is gone, not held for quiet");
 	t.eq(r.chunks.length, 0, "the reply in progress AND the one queued behind it are both dropped");
 	await new Promise(res => setTimeout(res, 50));
 	t.eq(r.state, "idle", "and it never resumes on its own");
 	t.eq(read.length, 2, "both replies were reported through on_read: the one playing (cut) and the one queued (skipped)");
 	t.eq(read[0].heard, "cut", "the reply that was playing is reported cut, not skipped");
 	t.eq(read[1].heard, "skipped", "the one that never started is reported skipped");
+	return r;
+});
+
+// cancel_unheard() must never report an EARLIER, fully-played reply as "skipped" — chunks stay in the array until a
+// full stop() (readme.md), so looping from index 0 told the assistant a reply it heard in full minutes ago was
+// never heard (review finding 1, 2026-11-03).
+if (Recite) test("Recite + BargeIn: cancel_unheard() does not report a reply already played to the end", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	r.queue("A first reply, heard in full.");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.state, "playing", "the first reply started");
+	r.ended();   // its one sentence finishes: Recite.at now points past it, chunks[0] stays in the array
+	t.eq(r.state, "idle", "nothing queued after it: idle, waiting");
+
+	r.queue("A second reply, cut off mid-way. It has two sentences.");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.at, 1, "playing the second reply's first sentence — chunk 0 (the first reply) is still in the array");
+
+	const read = []; r.on_read = ev => read.push(ev);
+	r.barge.owner_spoke("hold on a second");
+	t.eq(r.state, "idle", "cancelled");
+	t.eq(read.length, 1, "only the SECOND reply is reported — the first, already heard in full, is not");
+	t.eq(read[0].heard, "cut", "and it is reported cut, not skipped, since it was the one playing");
 	return r;
 });
 
