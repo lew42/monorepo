@@ -22,3 +22,6 @@
 {"log":{"at":"2026-11-02T13:52:44-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-02T14:52:47-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-02T15:55:10-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T16:56:39-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T17:58:13-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T18:58:16-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
