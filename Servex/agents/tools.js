@@ -215,8 +215,8 @@ function session_tools(agents){
 		tool("say",
 			"THE SINGLE SEAT'S ONLY REPLY (ask2a-say-tools): queue one reply for the owner. It is not spoken at once — it waits behind"
 			+ " the gate (`say_gate_ms`: 1500ms by default once the floor has been done that whole time, 600ms after a question, 3000ms"
-			+ " after a long burst of 5+ owner sentences since the last reply), and a NEW owner sentence cancels the wait so the say"
-			+ " stays queued. If a newer `say` lands first, the newer one is released and this one waits its own gate (newest first)."
+			+ " after a long burst of more than 5 owner sentences since the last reply), and a NEW owner sentence cancels the wait so the"
+			+ " say stays queued. If a newer `say` lands first, the newer one is released and this one waits its own gate (newest first)."
 			+ " Returns `{id}` — keep it to `retract_say` before release, if you change your mind.",
 			{ text: { type: "string", description: "What to say — the owner's ear: plain, one or two short sentences." },
 				re: { type: "string", description: "The `at` of the owner line this answers, if any." } },
@@ -226,9 +226,10 @@ function session_tools(agents){
 				return JSON.stringify(s ? sessions().queue_say(s, args) : { ok: false, why: "say is for the single seat only; no session found for this caller" });
 			}),
 		tool("nothing",
-			"End this turn with no reply and write nothing anywhere (ask2a-say-tools) — the single seat's default for a sentence that"
-			+ " is only filed, never answered. Ending the turn with plain text instead still writes nothing TO THE OWNER, but leaves a"
-			+ " muted `skip` line for debugging; calling this tool explicitly skips even that.",
+			"End this turn with no reply — the single seat's default for a sentence that is only filed, never answered. This tool is a"
+			+ " pure no-op: it writes nothing itself, same as simply ending the turn with no text at all. Ending the turn with PLAIN TEXT"
+			+ " instead still reaches nobody, but `heard()` writes a muted `skip` line for debugging in that case — call this, or say"
+			+ " nothing, to avoid even that.",
 			{}, [],
 			() => JSON.stringify({ ok: true })),
 		tool("retract_say",

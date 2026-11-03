@@ -72,8 +72,9 @@ const env = (name, dflt) => { const n = Number(process.env[name]); return proces
  * voice-assistant role, woken per sentence to write one {place} line (THE DEFAULT: the owner, 2026-11-01, "the fast assistant
  * might be doing half of the work... turning it off isn't going to fix anything... put them to work"; then 2026-11-02: "I think
  * that we'll just have one assistant... that's the way we'll go for now", so the file now says `off`); `fast` = the old
- * session-fast chatter; `single` = ONE agent (role `single-voice-assistant`) in the smart seat and no fast one, fed every sentence at once and
- * answering only on a pause cue (ux/Dictate/doc/single-voice-assistant.md); `off` = NO fast seat (a test or an emergency switch; then `say()` files a Question per "?" sentence in
+ * session-fast chatter; `single` = ONE agent (role `single-voice-assistant`) in the smart seat and no fast one, fed every sentence at once;
+ * plain text from it is never a reply (ask2a-say-tools, 2026-11-03) — only its `say` tool, released once the floor has been "done" for
+ * its gate, ever reaches the owner (ux/Dictate/doc/single-voice-assistant.md; tools and gate: Servex/agents/readme.md); `off` = NO fast seat (a test or an emergency switch; then `say()` files a Question per "?" sentence in
  * code, which it never does while a seat is on, so the two never both file one). Read once at boot, first match wins:
  *   1. %LOCALAPPDATA%\lew42\servex\session-assistant.txt (HOME/session-assistant.txt): the word off, fast, voice or single. This is the
  *      switch that survives a restart, because sustain.mjs relaunches Servex through WMI and pins only SERVEX_HOME and
