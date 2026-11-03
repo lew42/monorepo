@@ -96,6 +96,19 @@ test("the bar's own controls write the chat's settings too, and the browser's me
 	t.eq(r.barge.on, true, "on again");
 });
 
+test("the bar's switch does not keep an override equal to the class value (step 2a review, carried to step 4)", t => {
+	reset();
+	const r = recite(), vc = new VoiceChat({ recite: r });
+	r.barge.set_threshold("0.6");   // differs from the class default (0.35): kept
+	t.eq(vc.overrides, { Interrupt: { config: { threshold: 0.6 } } });
+	r.barge.set_threshold("0.35");   // back to the class value: dropped, not stored as "0.35 on purpose"
+	t.eq(vc.overrides, {}, "no override left: this chat now just follows the class");
+	r.barge.set_on(false);   // differs from the class default (true): kept
+	t.eq(vc.overrides, { Interrupt: { enabled: false } });
+	r.barge.set_on(true);   // back to the class value: dropped
+	t.eq(vc.overrides, {});
+});
+
 test("what the browser remembered becomes this chat's overrides, not the class", t => {
 	reset();
 	const r = recite(); r.barge.threshold = 0.5; r.barge.on = false;
@@ -118,6 +131,18 @@ test("moving the threshold does not close and reopen the mic: only the values ch
 	t.eq([r.barge.on, r.barge.syncs], [true, syncs], "still on, and the mic was not told to sync");
 	row(vc, "ThinkingCue").set({ config: { repeat_ms: 4000 } });
 	t.eq(r.cue_repeat_ms, 4000, "the cue delay changes without a detach");
+});
+
+test("overrides_by_group splits by each plugin's static group; load_grouped is the inverse", t => {
+	reset();
+	const r = recite(), vc = new VoiceChat({ recite: r });
+	row(vc, "Interrupt").set({ config: { threshold: 0.6 } });
+	row(vc, "ThinkingCue").set({ enabled: false });
+	t.eq(Interrupt.group, "recite", "both shipped plugins are read-aloud");
+	t.eq(vc.overrides_by_group(), { dictate: {}, recite: { Interrupt: { config: { threshold: 0.6 } }, ThinkingCue: { enabled: false } } });
+	const vb = new VoiceChat({ recite: recite() });
+	vb.load_grouped(vc.overrides_by_group());
+	t.eq(vb.overrides, vc.overrides, "load_grouped merges the two groups back into one load_overrides call");
 });
 
 test("two chats on one Recite wrap the bar controls once; the newest chat owns them", t => {

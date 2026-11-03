@@ -4,6 +4,7 @@ import { VoiceChat } from "../VoiceChat.js";
 // The values go straight onto the object, never through BargeIn.remember(): they belong to the chat, not the browser.
 export default class Interrupt {
 	static label = "Interrupt";
+	static group = "recite";   // read-aloud: session.settings.recite
 	static description = "Stop reading aloud when you start talking.";
 	static defaults = { on: true, mode: "volume", threshold: 0.35, quiet_ms: 2500 };
 	static fields = [
@@ -32,9 +33,30 @@ export default class Interrupt {
 		if (b.$interrupt_wrapped) return;
 		b.$interrupt_wrapped = true;
 		const row = () => b.$interrupt_chat.plugins.find(this.name);
+		/* The bar's switch must not keep an override equal to the current class value (chat-settings-session step 4, carried
+		 * from the step 2a review): otherwise a later "Make default" elsewhere never shows up on THIS chat, because its own
+		 * override still pins the old number even though the owner never deliberately chose to diverge. `own(v)` already
+		 * applied the real change straight onto the host; this only decides what gets REMEMBERED as this chat's override. */
+		const apply = patch => {
+			const r = row(), rec = r.record;
+			if ("enabled" in patch){
+				/* `overrides` (core/Plugin) reads "enabled" off `_plugin_overrides` (a Map kept by toggle_plugin), not the row's
+				 * own data — so dropping it needs the same undo `load_overrides` uses for an unlisted plugin, not a bare put(). */
+				if (patch.enabled === rec.on){
+					if (r.host._plugin_overrides?.delete(rec)) r.put("enabled", null);
+					if (rec.on) r.host.constructor.attach_instance(rec, r.host); else r.host.constructor.detach_instance(rec, r.host);
+				} else r.set({ enabled: patch.enabled });
+				r.emit_safely("change", "enabled", r.get_one("enabled"));
+				return;
+			}
+			const [key, val] = Object.entries(patch.config)[0], left = { ...r.own("config") };
+			if (val === rec.config[key]) delete left[key]; else left[key] = val;
+			r.put("config", Object.keys(left).length ? left : null);
+			r.emit_safely("change", "config", r.get_one("config"));
+		};
 		for (const [method, write] of [["set_on", v => ({ enabled: !!v })], ["set_mode", v => ({ config: { mode: v } })], ["set_threshold", v => ({ config: { threshold: Number(v) } })]]) {
 			const own = b[method]?.bind(b);
-			if (own) b[method] = v => { own(v); row().set(write(v)); };
+			if (own) b[method] = v => { own(v); apply(write(v)); };
 		}
 	}
 
