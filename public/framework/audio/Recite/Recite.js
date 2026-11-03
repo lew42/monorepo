@@ -499,8 +499,12 @@ export default class Recite extends Part {
 	cancel_unheard(){
 		this.barge.cancel_resume();
 		clearTimeout(this.wait_timer);
+		const held_at = this.wait_at;   // read before clearing: start_or_hold() set only `wait_at`, never `this.at` —
+		                                // `this.at` still sits on the LAST chunk that actually played (finish()), so
+		                                // the skip loop must start at `wait_at` while held, not that stale `this.at`
+		                                // (review finding 1, 2026-11-03)
 		this.wait_at = this.quiet_since_wait = null;
-		const was_going = ["playing", "loading", "heard"].includes(this.state) && this.chunks[this.at];
+		const was_going = held_at == null && ["playing", "loading", "heard"].includes(this.state) && this.chunks[this.at];
 		this.token++;
 		this.audio?.pause();
 		globalThis.speechSynthesis?.cancel();
@@ -510,10 +514,10 @@ export default class Recite extends Part {
 			reported.add(c.reply);
 			this.report_read(this.at, this.at - this.group_start(this.at), "cut", Recite.heard_words(c));
 		}
-		// From `this.at` on, never from 0: everything before it already finished playing (chunks stay in the array
-		// until a full stop(), readme.md), so a reply fully heard minutes ago must never be reported "skipped"
-		// (review finding 1, 2026-11-03).
-		for (let i = this.at; i < this.chunks.length; i++){
+		// Start at `wait_at` when nothing was playing (everything from there on is still unheard); otherwise at
+		// `this.at` (everything before it already finished playing, and chunks stay in the array until a full
+		// stop(), readme.md) — either way, never from 0, or a reply fully heard minutes ago gets reported "skipped".
+		for (let i = held_at ?? this.at; i < this.chunks.length; i++){
 			const c = this.chunks[i];
 			if (reported.has(c.reply)) continue;
 			reported.add(c.reply);
