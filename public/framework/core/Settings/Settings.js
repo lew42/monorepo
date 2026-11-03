@@ -109,14 +109,14 @@ export class Settings extends Events(Object) {
 			const value = this.get(f.key);
 			const set = v => this.set(f.key, v);
 			return label.c("flex v-center gap", () => {
-				span(f.label ?? f.key).style("flex", "0 1 10em");
+				span(f.label ?? f.key).style("flex", "0 1 6em");
 				if (f.type === "toggle") {
 					const box = input().attr("type", "checkbox");
 					box.el.checked = !!value;
 					box.el.addEventListener("change", e => set(e.target.checked));
 				} else if (f.type === "slider") {
 					if (f.low != null) span.c("muted", f.low);
-					const range = input().style("flex", "1 1 8em").attr("type", "range").attr("min", f.min).attr("max", f.max).attr("step", f.step ?? 1).attr("value", value);
+					const range = input().style("flex", "1 1 6em").style("minWidth", "6em").attr("type", "range").attr("min", f.min).attr("max", f.max).attr("step", f.step ?? 1).attr("value", value);
 					const val = span.c("muted", String(value));
 					range.el.addEventListener("input", e => { set(+e.target.value); val.el.textContent = e.target.value; });
 					if (f.high != null) span.c("muted", f.high);
