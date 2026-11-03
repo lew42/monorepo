@@ -264,3 +264,118 @@ test("the server shim: Server/Events.js is a Plugin that keeps assign, then new,
 	t.eq(order, ["new:7", "initialize:7"], "assign, new event, initialize");
 	t.ok(new Sock({}) instanceof Plugin, "it is a Plugin");
 });
+
+// ── per-instance config, overrides, load_overrides, reset_plugins, make_default (chat-settings-per-session, step 1)
+const cfg_calls = [];
+class Tuned {
+	static defaults = { on: true, level: 1, pause: 200 };
+	static fields = [{ key: "level", kind: "slider" }, { key: "pause", kind: "number" }];
+	static attach(inst){ cfg_calls.push(["attach", inst.tag, JSON.stringify(inst.plugins.find("Tuned").get("config"))]); }
+	static detach(inst){ cfg_calls.push(["detach", inst.tag]); }
+}
+
+test("a config change on a live instance row detaches then attaches, so the plugin re-reads its config", t => {
+	cfg_calls.length = 0;
+	class C1 extends Plugin {}
+	C1.use(Tuned);
+	const a = new C1({ tag: "a" }), b = new C1({ tag: "b" });
+	cfg_calls.length = 0;
+	a.plugins.find("Tuned").set({ config: { level: 5 } });
+	t.eq(cfg_calls, [["detach", "a"], ["attach", "a", '{"level":5,"pause":200}']], "only a re-ran, in order, and read its new level");
+	t.eq(b.plugins.find("Tuned").get("config"), { level: 1, pause: 200 }, "the other instance is untouched");
+	t.eq(C1.plugins.find("Tuned").get("config"), { level: 1, pause: 200 }, "the class row is unchanged");
+});
+
+test("an instance stores only the fields it changed: the rest follow the class, also when the class changes later", t => {
+	class C2 extends Plugin {}
+	C2.use(Tuned);
+	const a = new C2({ tag: "a" });
+	const row = a.plugins.find("Tuned");
+	row.set({ config: { level: 5 } });
+	t.eq(row.get("config"), { level: 5, pause: 200 }, "merged read: own level, class pause");
+	C2.plugins.find("Tuned").set({ config: { pause: 300 } });
+	t.eq(row.get("config"), { level: 5, pause: 300 }, "a later class change of another field shows through");
+});
+
+test("a class config change re-attaches live instances that did not override that field, and skips the ones that did", t => {
+	cfg_calls.length = 0;
+	class C3 extends Plugin {}
+	C3.use(Tuned);
+	const plain = new C3({ tag: "plain" }), own = new C3({ tag: "own" });
+	own.plugins.find("Tuned").set({ config: { level: 9 } });
+	cfg_calls.length = 0;
+	C3.plugins.find("Tuned").set({ config: { level: 2 } });
+	t.eq(cfg_calls, [["detach", "plain"], ["attach", "plain", '{"level":2,"pause":200}']], "plain re-ran with the new level; own kept level 9 and was not touched");
+});
+
+test("overrides is a plain object of what this instance changed, and nothing for the rest", t => {
+	class C4 extends Plugin {}
+	C4.use(Tuned, Spy);
+	const a = new C4({ tag: "a" });
+	t.eq(a.overrides, {}, "a new instance has no overrides");
+	a.plugins.find("Tuned").set({ config: { level: 5 } });
+	a.plugins.find("Spy").set({ enabled: false });
+	t.eq(a.overrides, { Tuned: { config: { level: 5 } }, Spy: { enabled: false } }, "only what was changed");
+	t.eq(JSON.parse(JSON.stringify(a.overrides)), a.overrides, "plain data: it survives JSON, so it can be saved");
+});
+
+test("load_overrides replaces all overrides: a listed one changes, an unlisted one goes back to the class", t => {
+	cfg_calls.length = 0; calls.length = 0;
+	class C5 extends Plugin {}
+	C5.use(Tuned, Spy);
+	const a = new C5({ tag: "a" });
+	a.plugins.find("Tuned").set({ config: { level: 5 } });
+	cfg_calls.length = 0; calls.length = 0;
+	a.load_overrides({ Spy: { enabled: false } });
+	t.eq(calls, [["detach", "Spy", "a"]], "Spy switched off");
+	t.eq(cfg_calls, [["detach", "a"], ["attach", "a", '{"level":1,"pause":200}']], "Tuned went back to the class config, re-run once");
+	t.eq(a.overrides, { Spy: { enabled: false } }, "overrides are exactly what was loaded");
+	calls.length = 0; cfg_calls.length = 0;
+	a.load_overrides({ Spy: { enabled: false } });
+	t.eq([calls.length, cfg_calls.length], [0, 0], "loading the same overrides again re-runs nothing");
+});
+
+test("reset_plugins puts an instance back to the class state", t => {
+	calls.length = 0;
+	class C6 extends Plugin {}
+	C6.use(Tuned, Spy);
+	const a = new C6({ tag: "a" });
+	a.plugins.find("Spy").set({ enabled: false });
+	a.plugins.find("Tuned").set({ config: { level: 7 } });
+	a.reset_plugins();
+	t.eq(a.overrides, {}, "no overrides left");
+	t.eq(a.plugins.find("Spy").get("enabled"), true, "Spy is back on");
+	t.eq(a.plugins.find("Tuned").get("config"), { level: 1, pause: 200 }, "Tuned is back on the class config");
+});
+
+test("make_default copies one instance's overrides to the class and the store; its own overrides are then empty", t => {
+	Plugin.store = new Map();
+	class C7 extends Plugin {}
+	C7.use(Tuned, Spy);
+	const a = new C7({ tag: "a" });
+	a.plugins.find("Tuned").set({ config: { level: 5 } });
+	a.plugins.find("Spy").set({ enabled: false });
+	C7.make_default(a);
+	t.eq(a.overrides, {}, "a has nothing left to override");
+	t.eq(a.plugins.find("Tuned").get("config"), { level: 5, pause: 200 }, "a still reads level 5, now from the class");
+	t.eq(a.plugins.find("Spy").get("enabled"), false, "and Spy is still off, now from the class");
+	t.eq(Plugin.store.get("plugin.C7.Tuned"), { on: true, config: { level: 5, pause: 200 } }, "saved for the next page load");
+	t.eq(Plugin.store.get("plugin.C7.Spy").on, false, "Spy's default is saved off");
+	calls.length = 0; cfg_calls.length = 0;
+	const fresh = new C7({ tag: "fresh" });
+	t.eq(cfg_calls, [["attach", "fresh", '{"level":5,"pause":200}']], "a new instance starts from the new default");
+	t.eq(calls.length, 0, "and without the plugin that is now off by default");
+});
+
+test("make_default re-runs other live instances that follow the class, and leaves the ones with their own override", t => {
+	Plugin.store = new Map();
+	class C8 extends Plugin {}
+	C8.use(Tuned);
+	const src = new C8({ tag: "src" }), follower = new C8({ tag: "follower" }), mine = new C8({ tag: "mine" });
+	mine.plugins.find("Tuned").set({ config: { level: 9 } });
+	src.plugins.find("Tuned").set({ config: { level: 5 } });
+	cfg_calls.length = 0;
+	C8.make_default(src);
+	t.eq(cfg_calls, [["detach", "follower"], ["attach", "follower", '{"level":5,"pause":200}']], "follower re-ran with level 5; src already read 5 so it did not re-run; mine kept level 9");
+	t.eq(mine.overrides, { Tuned: { config: { level: 9 } } }, "mine still has its override");
+});

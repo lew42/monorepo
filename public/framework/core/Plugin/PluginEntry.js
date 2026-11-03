@@ -9,14 +9,18 @@ export class PluginEntry extends Item {
 
 	// An INSTANCE row (Plugin.add_instance_row) starts unset: until this instance overrides it, "enabled" and
 	// "config" read the class row's live values (rec.on / rec.config) instead of this row's own null.
+	// "config" is the class config with only this instance's own fields on top, so a later class change of another field shows through.
 	get_one(key){
 		const stored = super.get_one(key);
-		if (this.instance && stored == null) {
-			if (key === "enabled") return this.record?.on;
-			if (key === "config") return this.record?.config;
+		if (this.instance) {
+			if (key === "enabled" && stored == null) return this.record?.on;
+			if (key === "config") return { ...this.record?.config, ...stored };
 		}
 		return stored;
 	}
+
+	// What this row itself holds (null until overridden), without the class fallback: the saved override.
+	own(key){ return super.get_one(key); }
 
 	// A row is active when it is on and the row above it (the plugin it is a sub-plugin of) is active.
 	get active(){ return !!this.get_one("enabled") && this.up?.active !== false; }
@@ -51,11 +55,18 @@ export class PluginEntry extends Item {
 	}
 
 	set_config(value){
-		const rec = this.record, config = { ...this.get_one("config"), ...value };
+		const rec = this.record;
+		if (this.instance) {   // only the changed fields are kept; the plugin re-reads them through a detach then attach
+			this.put("config", { ...this.own("config"), ...value });
+			if (rec) this.host.constructor.rerun_instance(rec, this.host);
+			return;
+		}
+		const old = this.get_one("config"), config = { ...old, ...value };
 		this.put("config", config);
-		if (this.instance) return;   // an instance override is not a saved class preference
 		if (rec) rec.config = config;
 		this.save_row();
+		const changed = Object.keys(value).filter(k => JSON.stringify(old?.[k]) !== JSON.stringify(config[k]));
+		if (rec && changed.length) this.host.reconfigure_live(rec, changed);
 	}
 
 	// Only a change made through a CLASS row is saved; a use() in code and an instance override are not preferences.
