@@ -196,6 +196,8 @@ THE BOX GROWS UP TO A CEILING, THEN SCROLLS (one-dictation, 2026-10-01 — the o
 
 ## Settings panel
 
+The gear is "Chat settings" (2026-11-03): `mic.chat_settings?.()` (set by `ux/Dictate/chat.js`) wins over `settings_panel()`, which is now only the "Dictate: Whisper" section. The send rows (`send_mode`, `sentences_per_send`, `send_on_period/question/comma`) moved to the SendAfter plugin, which sets them on the mic instance; `cut_re()` reads the per-mic value before `SETTINGS`. See `ux/Dictate/doc/settings.md`.
+
 THE SETTINGS GRID: one small input per setting in SETTINGS. A change writes the object at once, is
 
 

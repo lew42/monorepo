@@ -1,4 +1,5 @@
 import { View, div, span, button, select, option, textarea, label, input } from "../../core/View/View.js";
+import PERSONAS from "./personas.js";
 import track from "../../core/track/track.js";
 import Part, { PartView } from "../Part.js";
 
@@ -109,15 +110,7 @@ export default class Voice extends Part {
 track(Voice);
 
 /** A few personas: a recite-server voice id and a speed each (the 54 ids: GET /recite/voices). */
-Voice.PERSONAS = [
-	{ name: "Heart", id: "af_heart", rate: 1 },
-	{ name: "Bella", id: "af_bella", rate: 1 },
-	{ name: "Nicole", id: "af_nicole", rate: 1 },
-	{ name: "Puck", id: "am_puck", rate: 1 },
-	{ name: "Fenrir", id: "am_fenrir", rate: 1 },
-	{ name: "George", id: "bm_george", rate: 1 },
-	{ name: "Emma", id: "bf_emma", rate: 1 },
-];
+Voice.PERSONAS = PERSONAS;
 
 /**
  * `Voice.Controls` — the text box + Speak/Pause/Stop buttons + a voice

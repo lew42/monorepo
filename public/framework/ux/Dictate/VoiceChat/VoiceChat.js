@@ -32,4 +32,35 @@ export class VoiceChat extends Plugin {
 	load_grouped(obj = {}){ return this.load_overrides({ ...(obj.dictate ?? {}), ...(obj.recite ?? {}) }); }
 }
 
+// A plugin's value as the class holds it now (class values differ from what the plugin ships with only after "Make default"): {Name: {enabled?, config?}}.
+VoiceChat.class_values = function(){
+	const out = {};
+	for (const rec of this.records.values()) {
+		const { on: default_on = true, ...config_defaults } = rec.plugin.defaults ?? {}, o = {}, config = {};
+		for (const k of Object.keys(rec.config)) if (JSON.stringify(rec.config[k]) !== JSON.stringify(config_defaults[k])) config[k] = rec.config[k];
+		if (Object.keys(config).length) o.config = config;
+		if (rec.on !== default_on) o.enabled = rec.on;
+		if (Object.keys(o).length) out[rec.name] = o;
+	}
+	return out;
+};
+
+// The inverse, at page start: shared defaults ({Name: {enabled?, config?}}) become the class values; every chat that follows the class re-runs.
+VoiceChat.apply_defaults = function(plugins = {}){
+	for (const rec of this.records.values()) {
+		const o = plugins[rec.name];
+		if (!o) continue;
+		const changed = [];
+		if (o.config) {
+			const old = rec.config;
+			rec.config = { ...old, ...o.config };
+			for (const k of Object.keys(o.config)) if (JSON.stringify(old[k]) !== JSON.stringify(rec.config[k])) changed.push(k);
+			rec.row?.put("config", rec.config);
+			rec.row?.emit_safely("change", "config", rec.config);
+		}
+		if (o.enabled !== undefined && o.enabled !== rec.on) o.enabled ? this.enable(rec) : this.disable(rec);
+		if (changed.length) this.reconfigure_live(rec, changed, null);
+	}
+};
+
 export default VoiceChat;

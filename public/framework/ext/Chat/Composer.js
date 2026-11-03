@@ -59,7 +59,7 @@ export function composer({
 
 			if (with_mic){
 				const $menu_btn = button.c("chatbox-compose-more chatbox-compose-menu").attr("type", "button")
-					.attr("title", "dictation settings").attr("aria-label", "dictation settings").click(() => open_menu());
+					.attr("title", "Chat settings").attr("aria-label", "Chat settings").click(() => open_menu());
 				$menu_btn.el.innerHTML = GEAR;
 			}
 			if (with_mic && revise) $raw_btn = button.c("chatbox-compose-more chatbox-compose-raw").attr("type", "button")
@@ -89,12 +89,12 @@ export function composer({
 		box.className = "chatbox-compose-menu-panel";
 		box.hidden = true;
 		box.setAttribute("role", "dialog");
-		box.setAttribute("aria-label", "dictation settings");
+		box.setAttribute("aria-label", "Chat settings");
 		const head = document.createElement("div");
 		head.className = "chatbox-compose-menu-head";
 		const title = document.createElement("div");
 		title.className = "chatbox-compose-menu-title";
-		title.textContent = "Dictation settings";
+		title.textContent = "Chat settings";
 		const close = document.createElement("button");
 		close.type = "button";
 		close.className = "chatbox-compose-menu-close";
@@ -104,7 +104,7 @@ export function composer({
 		const body = document.createElement("div");
 		body.className = "chatbox-compose-menu-body";
 		if ($info) body.append($info);
-		if (mic) body.append(mic.settings_panel());
+		if (mic) body.append(mic.chat_settings?.() ?? mic.settings_panel());   // chat.js hands the panel in (ext/Chat imports nothing from ux/)
 		box.append(head, body);
 		box.addEventListener("keydown", e => { if (e.key === "Escape") close_menu(); });
 		document.body.append(box);

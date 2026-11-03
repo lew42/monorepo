@@ -2,7 +2,17 @@
 
 **The `assistant` setting has a fourth value, `single`** (one agent per session instead of the fast + smart pair), at boot (`session-assistant.txt`) or per session (`POST /api/session/settings {session, assistant}`): [single-voice-assistant.md](single-voice-assistant.md).
 
-One panel, the old one: `ComposerMic.settings_panel()` in `ext/Chat/Mic.js`, opened by the composer's gear (`ext/Chat/Composer.js`, "Dictation settings"). On the sheet the composer's row is hidden by the dictation bar, so the bar has its own ⚙ (`DictationBar.js`, `.dictation-bar-gear`) that presses the hidden gear: same panel, never a second one.
+## Chat settings (2026-11-03)
+
+The gear is titled **Chat settings**. `ux/Dictate/ChatSettings.js` builds the panel; `chat.js` hands it to the mic as `mic.chat_settings()`, and `Composer.build_menu` uses `mic.chat_settings?.() ?? mic.settings_panel()` (ext/Chat imports nothing from ux/).
+
+- **Header:** "Editing: This session", or "Editing: Defaults (new sessions start from these)" while no session exists (then edits are saved as the defaults after 400 ms).
+- **Buttons:** **Make default** (`VoiceChat.make_default(vc)`, then `ChatDefaults.set` POSTs the changed values to `/api/session/defaults`, with `localStorage` `chat.settings.defaults` as the fallback) and **Reset to default** (`vc.reset_plugins()`, then saves `plugins: null` for the session).
+- **Sections, in order:** Dictate: Whisper (the rest of `mic.settings_panel()`), Sending to the LLM (SendAfter), Recite: read aloud (ReadAloud, ThinkingCue), Interruption (Interrupt). Each plugin field renders through `core/Settings` whose get/set go through the plugin row, with its data path (`Interrupt.threshold`) in small type.
+- **Defaults flow:** at page start `chat.js` reads `/api/session/defaults` once (`ChatDefaults.get`) and `VoiceChat.apply_defaults` sets it as the class level; a session's own overrides sit on top and load from its `session.jsonl` on open or switch, then the open panel redraws.
+- **Limits:** the shared VoiceChat's mic is the first chat's mic; the defaults POST is unit-tested with a fake fetch (`ChatDefaults.test.mjs`), not run against a live Servex.
+
+The Whisper part is still the old `ComposerMic.settings_panel()` in `ext/Chat/Mic.js` (without the four send rows, now SendAfter), opened by the composer's gear (`ext/Chat/Composer.js`). On the sheet the composer's row is hidden by the dictation bar, so the bar has its own ⚙ (`DictationBar.js`, `.dictation-bar-gear`) that presses the hidden gear: same panel, never a second one.
 
 ## The knobs that matter
 

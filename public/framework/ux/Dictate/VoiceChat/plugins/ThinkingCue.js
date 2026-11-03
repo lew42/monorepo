@@ -6,7 +6,7 @@ export default class ThinkingCue {
 	static group = "recite";   // read-aloud: session.settings.recite
 	static description = "Play a soft tone while a reply is on its way.";
 	static defaults = { on: true, repeat_ms: 2000 };
-	static fields = [{ key: "repeat_ms", kind: "number", min: 500, max: 10000, step: 100, label: "Tone repeats after (ms)" }];
+	static fields = [{ key: "repeat_ms", type: "number", min: 500, max: 10000, step: 100, label: "Tone repeats after (ms)", help: "Lower: the tone repeats sooner. Higher: a longer gap between tones." }];
 
 	static attach(vc){
 		vc.recite.thinking_cue = true;
