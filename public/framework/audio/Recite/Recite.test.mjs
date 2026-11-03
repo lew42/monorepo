@@ -530,6 +530,48 @@ if (Recite) test("Recite: a thinking cue is skipped while a reply is already pla
 	return r;
 });
 
+// A `{thinking:{by:"smart",done:true}}` line closes the cue the same way a reply does — the server writes this
+// when the delegated answer lands (ask10, 2026-11-03), so Recite must react to it even with no reply text at all.
+if (Recite) test("Recite: a thinking line with done:true closes the cue with no reply needed", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	r.cue_repeat_ms = 20;
+	const cues = []; const real_trace = r.trace.bind(r); r.trace = (kind, fields) => { if (kind === "thinking cue") cues.push(kind); real_trace(kind, fields); };
+
+	r.from_wire({ kind: "line", line: { thinking: { by: "smart" } } });
+	t.eq(cues.length, 1, "the cue plays once");
+	t.ok(r.cue_pending, "and is waiting for the answer");
+
+	r.from_wire({ kind: "line", line: { thinking: { by: "smart", done: true } } });
+	t.ok(!r.cue_pending, "done:true closes it, with no reply text ever having arrived");
+	const n = cues.length;
+	await new Promise(res => setTimeout(res, 50));
+	t.eq(cues.length, n, "and it never beeps again");
+	return r;
+});
+
+// play_cue() logs ctx.state (so a silent phone shows WHY) and resumes a suspended context before the tone —
+// a context made with no tap starts "suspended" and nothing is heard otherwise (thinking-sound doc, cause 2).
+if (Recite) test("Recite: play_cue logs the AudioContext state and resumes a suspended one", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	let resumed = false;
+	r.cue_ctx = {
+		state: "suspended", currentTime: 0,
+		resume(){ resumed = true; this.state = "running"; return Promise.resolve(); },
+		createOscillator(){ return { frequency: {}, connect(){}, start(){}, stop(){} }; },
+		createGain(){ return { gain: { setValueAtTime(){}, exponentialRampToValueAtTime(){} }, connect(){} }; },
+	};
+	const fields = []; const real_trace = r.trace.bind(r); r.trace = (kind, f) => { if (kind === "thinking cue") fields.push(f); real_trace(kind, f); };
+	const had = globalThis.AudioContext;
+	globalThis.AudioContext = function(){};   // node has none; play_cue must still reach the ctx.state check, not bail out early
+	try { r.play_cue(); } finally { if (had === undefined) delete globalThis.AudioContext; else globalThis.AudioContext = had; }
+	t.eq(fields[0]?.ctx, "suspended", "the trace line names the context's state before resuming");
+	t.ok(resumed, "a suspended context is resumed before the tone plays");
+	return r;
+});
+
 // The setting itself: false turns the cue off entirely.
 if (Recite) test("Recite: thinking_cue = false turns the cue off", async t => {
 	const r = new Recite({ voice: fake_voice });

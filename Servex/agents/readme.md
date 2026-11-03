@@ -108,7 +108,7 @@ Test: `node Servex/agents/close-loop.test.mjs` (temp task dirs, no live Servex).
 - **The roles, one readme each** (what each does, its model, when to use it; the text Servex gives an agent before its first turn): [`roles/readme.md`](./roles/readme.md).
 - Names and aliases for roles and ids: [`doc/names.md`](./doc/names.md).
 - Landing nag, next-step wake, compaction policy: [`doc/lifecycle.md`](./doc/lifecycle.md).
-- **The single seat's only reply** — `say`, `nothing`, `retract_say`, the gate that releases a queued say, boot-env only for now: [`doc/say-tools.md`](./doc/say-tools.md). Its brief: [`single-voice-assistant.md`](./single-voice-assistant.md); tests: `say-tools.test.mjs` (the tools and gate), `single-brief.test.mjs` (the brief's own words, its real opening prompt, and a replayed real session).
+- **The single seat's only reply** — `say`, `nothing`, `retract_say`, the gate that releases a queued say, boot-env only for now: [`doc/say-tools.md`](./doc/say-tools.md) (also the thinking sound: when the server writes `{thinking}`/`{thinking,done}`, and `SERVEX_SESSION_THINKING_OPEN_MS`). Its brief: [`single-voice-assistant.md`](./single-voice-assistant.md); tests: `say-tools.test.mjs` (the tools and gate), `single-brief.test.mjs` (the brief's own words, its real opening prompt, and a replayed real session), `Sessions.single.test.mjs` (the thinking sound).
 
 ## Files
 

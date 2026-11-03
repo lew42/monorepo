@@ -286,6 +286,10 @@ export default class Sessions {
 			 * mark), or `hold_max_ms` passed with no such event (the browser engine has no level meter).
 			 * `thoughts` holds those lines; `held` (below, the floor) holds a fast REPLY. */
 			single_pause_ms: env("SERVEX_SESSION_SINGLE_PAUSE_MS", 1000), answer_quiet_ms: env("SERVEX_SESSION_ANSWER_QUIET_MS", 2500), hold_max_ms: env("SERVEX_SESSION_HOLD_MAX_MS", 8000),
+			/* THINKING SOUND (ask10): how long an open cue (`s.thinking_open`) is honoured before a later, unrelated
+			 * hand-off is allowed to open a fresh one anyway — a bit past Recite's own 60 s give-up (`cue_max_ms`),
+			 * so a cue the phone already stopped playing never silently blocks the next one forever. */
+			thinking_open_ms: env("SERVEX_SESSION_THINKING_OPEN_MS", 70000),
 			/* THE SAY GATE (ask2a-say-tools, Servex/agents/single-voice-assistant.md "next step"): how long a queued `say` waits, once the
 			 * floor has been "done" this whole time, before it is released as the reply. Three bands, picked in `say_gate_ms()`: a question
 			 * gets the owner an answer fastest; a long burst (more than 5 owner sentences since the last release) gets the longest, so the
@@ -818,6 +822,7 @@ export default class Sessions {
 		if (!String(text ?? "").trim()) return { ok: false, why: "say needs text" };
 		const id = "say-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
 		(s.says ??= []).push({ id, text: String(text), re, queued_at: Date.now() });
+		s.turn_said = true;   // a say is queued this turn: a later hand-off call in the same turn plays no thinking cue (thinking-sound, ask10)
 		this.schedule_say_release(s);
 		return { id };
 	}
@@ -878,6 +883,7 @@ export default class Sessions {
 		s.says = rest;
 		if (!newest) return;
 		const re = newest.re ?? s.smart_re;
+		if (s.thinking_open){ this.write(s, { thinking: { at: now_ms(), by: "smart", done: true } }); s.thinking_open = false; }   // the answer landed: stop the cue (thinking-sound, ask10)
 		this.write(s, this.reply_line(s, { role: "smart", agent_id: s.smart, text: newest.text, re }));
 		this.reply_closes_prompt(s);
 		s.smart_said_re = re ?? now_ms();
@@ -1725,9 +1731,44 @@ export default class Sessions {
 		const who = this.by_agent.get(agent.id), s = who && this.map[who.id];
 		if (!s) return;
 		if (event.type === "delta" && !event.nested) return who.role === "smart" && this.single_seat(s) ? undefined : this.streaming(s, who.role, agent.id, event.text);   // single: its reply is one short paragraph, shown whole at the turn's end, so filler can be dropped before anyone sees it
-		if (event.type === "tool" && !event.nested) return this.streaming(s, who.role, agent.id, null);   // text before a tool call was thinking aloud
+		/* THINKING SOUND, closing: the delegate's answer can land as an `agent_msg` — a message FROM another agent
+		 * (`send_to_agent`, a mastermind reporting back), queued onto this seat's turn — well before that turn's own
+		 * `result` fires. Three senders are never the delegate: `"owner"` (every normal sentence, including the
+		 * owner's own next one in tail mode, `Servex/Follow.js`'s `"servex-follow"`), `"host"` (a fresh agent's very
+		 * first prompt), and anything starting `"servex"` (Servex's own spend/compact/landing nudges, `Agents.js`).
+		 * Only an actual other agent's message closes the cue. */
+		if (event.type === "agent_msg"){
+			if (who.role === "smart" && this.single_seat(s) && s.thinking_open && event.from && event.from !== "owner" && event.from !== "host" && !/^servex/i.test(event.from)){
+				s.thinking_open = false;
+				this.write(s, { thinking: { at: now_ms(), by: "smart", done: true } });
+			}
+			return;
+		}
+		if (event.type === "tool" && !event.nested){
+			// THINKING SOUND (ask10): the single seat's first hand-off call in a turn marks itself, so the owner's
+			// phone can beep at once, without waiting on the model to say so. Never twice in one turn, and never
+			// when a `say` was already queued or released in this same turn — the owner is about to hear a spoken
+			// hand-off ("I've asked the mastermind") instead, and a beep on top of that would be a second signal
+			// for the same thing. The answer itself still arrives later, the normal way: the delegate's work wakes
+			// this seat again and it `say`s the real reply (release_say marks `done`), or its own `agent_msg` closes
+			// the cue directly, above. An open cue never blocks a hand-off from a LATER turn (`s.turn_id`, bumped
+			// at every turn's end below): "once per turn" means once per turn, not once until closed. It also
+			// expires after `thinking_open_ms` regardless, in case a turn never properly ends.
+			const open_stale = s.thinking_open && (Date.now() - (s.thinking_open_at ?? 0) > this.thinking_open_ms || s.thinking_turn_id !== (s.turn_id ?? 0));
+			if (who.role === "smart" && this.single_seat(s) && !s.turn_said && is_handoff(event) && (!s.thinking_open || open_stale)){
+				s.thinking_open = true;
+				s.thinking_open_at = Date.now();
+				s.thinking_turn_id = s.turn_id ?? 0;
+				this.write(s, { thinking: { at: now_ms(), by: "smart" } });
+			}
+			return this.streaming(s, who.role, agent.id, null);   // text before a tool call was thinking aloud
+		}
 		if (event.type !== "result") return;
 		this.streaming(s, who.role, agent.id, null);
+		// THINKING SOUND: every turn's end, interrupted or not, bumps the turn id and clears `turn_said` — the ONE
+		// place this resets, not one hand-kept flag per wake path, and it must run even when the turn was cut short
+		// (`event.stopped`, below), or an interrupted hand-off turn would leave the NEXT turn still "mid-turn".
+		if (who.role === "smart" && this.single_seat(s)){ s.turn_said = false; s.turn_id = (s.turn_id ?? 0) + 1; }
 		if (event.stopped) return;
 		/* THE SINGLE SEAT FILES SILENTLY (ask2a-say-tools): plain text is NEVER a reply, cue open or not -- only `say` (queued,
 		 * released through `release_say`) ever becomes something the owner hears or sees. A turn that ends in plain text
@@ -1890,6 +1931,14 @@ export const is_filler = text => { const t = String(text ?? "").trim(); return !
 /* The fast assistant's "this is a new topic" marker (`session-fast.md`): always the first
  * thing in its reply, stripped off by `heard()` above before anything else reads the text. */
 const NEW_PARAGRAPH = /^\(new paragraph\)\s*/i;
+
+/* A tool call that hands the turn off to a MASTERMIND — the thinking-sound trigger (ask10, as the brief named it:
+ * "spawn_agent, a message to the mastermind, or an ask_*"): the single seat's first one of these in a turn marks
+ * the session as "working" at once. `spawn_agent` and every `ask_*` always count (they only ever reach into the
+ * repo or another agent for real work); `send_to_agent`'s own `to=` argument is checked, so a message to some
+ * other, unrelated agent does not beep. */
+const HANDOFF_TOOL = /(?:^|__)(?:spawn_agent|ask_mastermind|ask_manager|ask_module|ask_expert|ask_directory)$/;
+const is_handoff = event => HANDOFF_TOOL.test(event.name ?? "") || (/(?:^|__)send_to_agent$/.test(event.name ?? "") && /(?:^|\s)(?:to|id)=\S*mastermind/i.test(event.input ?? ""));
 
 /* A JSON body: the one express already parsed, else read here (64 kB at most). Layers.js has the same. */
 function body(req){

@@ -86,7 +86,7 @@ ever appeared — no error, no clue why.
 
 **The assistant's voice coming back through the mic as your words** (why the existing guards do not stop it; the proposed fix, 2026-11-03): [`doc/echo-and-turn-taking.md`](doc/echo-and-turn-taking.md).
 
-**The thinking sound never plays; two ways to signal "working on it"** (the single seat never fires it, the tone's AudioContext is probably suspended; a code-written "..." marker plus a triple bleep, proposed 2026-11-03): [`doc/thinking-sound.md`](doc/thinking-sound.md).
+**The thinking sound: triple bleep built, code marks the hand-off** (ask10, 2026-11-03 — `Sessions.js` marks a hand-off to a mastermind itself and closes it on the real reply or the delegate's own message, `play_cue()` plays three bleeps and resumes a suspended AudioContext; the "..." row on Chat V3 is still proposed): [`doc/thinking-sound.md`](doc/thinking-sound.md).
 
 **The gear panel, organized into Recite and Dictate plugin groups** (reusing the paused `dictate-plugins` branch, on `core/Plugin`, with the settings table to build from): [`doc/settings-plugins.md`](doc/settings-plugins.md).
 
