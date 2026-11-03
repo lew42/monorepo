@@ -6,7 +6,7 @@ Brief: [requirements.md](requirements.md). Older plan (census of 21 features, 29
 
 `core/Plugin` already lets a **class** list plugins and switch them on and off. This adds a second level: a **Voice Chat instance** (one per open chat) keeps only its *overrides* (which plugins it switched, which values it changed) and reads everything else from the class. The overrides are a small plain object. That object is what is saved on the voice session, loaded when the session is opened, and copied to the class defaults by "Make default". A new session is an instance with no overrides, so it starts from the defaults.
 
-## Step 1: instance-level plugins in core/Plugin (merge 2; built, in review)
+## Step 1: instance-level plugins in core/Plugin (merge 2, landed d09621cc5)
 
 Built on qf-1's per-instance rows (`inst.plugins`, a List of `PluginEntry`, one per class plugin; `enabled`/`config` stay null until this instance overrides them, then read the class record). On top of that (commit a9a75d7df, 28 tests in `core/Plugin/Plugin.test.mjs`):
 
@@ -25,7 +25,7 @@ Host.make_default(inst)            // copy inst.overrides into the class records
 
 Reference only (not merged): my first draft used `plugin_state`/`set_plugin` on branch `task/chat-settings-per-session` (worktree qf-4); those names do not exist.
 
-## Step 2: Voice Chat on core/Plugin (merges 3, 4, 5)
+## Step 2: Voice Chat on core/Plugin (merge 3 is Interrupt and ThinkingCue; then one merge per plugin)
 
 Merge A (`worktree/dictate-plugins`, `ux/Dictate/VoiceChat/`) is ported, not merged as is: its own registry (`VoiceChat.use/host/set/try/store`) is replaced by core/Plugin.
 
@@ -69,6 +69,6 @@ Two buttons at the top of the Features section: **Make default** (`VoiceChat.mak
 - Servex half of steps 4 and 5: built in worktree/chat-settings-servex (commits 9a39ff44a and the one after): per-session `plugins` via POST /api/session/settings, shared defaults via /api/session/defaults, 4 tests. The page does not use them yet.
 - Make default also saves the defaults on Servex (vscode-mastermind, 2026-11-03): done on the Servex side; the page side will read it at load, with localStorage as the fallback (not built yet).
 - qf-1 landed on michael/dev (bc4147365, 2026-11-03).
-- Step 1 remainder: built on qf-1 in worktree/chat-settings-plugins (a9a75d7df and after): overrides, load_overrides, reset_plugins, Host.make_default, a config change re-runs detach then attach; 28 core/Plugin tests; page demo and docs. Ready to merge after its review.
-- Step 2, first group (Interrupt, ThinkingCue, the VoiceChat class, chat.js wiring, 10 tests): built in worktree/chat-settings-voicechat, stacked on step 1; merges after step 1. Still to port: send on each sentence end, word highlight, tap to pause, timings.
-- Open: step 2 remainder, step 3 (Chat settings panel), page side of 4 and 5 (load, save, Make default, Reset to default). None of the five asks is ticked.
+- Step 1 remainder: built on qf-1 in worktree/chat-settings-plugins (a9a75d7df and after): overrides, load_overrides, reset_plugins, Host.make_default, a config change re-runs detach then attach; 28 core/Plugin tests; page demo and docs. Merged as d09621cc5 (merge 2).
+- Step 2, first group (merge 3): the VoiceChat class, Interrupt and ThinkingCue as plugins, `chat.js` makes one VoiceChat per Recite (the page has one reader). 12 VoiceChat tests, 30 core/Plugin tests. core/Plugin gained two small things for it: a plugin may define `reconfigure(inst)` (a threshold slider must not close and reopen the mic) and a constructor arg `overrides` is loaded before attach (no moment of Interrupt on when the browser had it off). Built in worktree/chat-settings-voicechat, in review.
+- Step 2 plugins still to port from Merge A (`worktree/dictate-plugins`, c7330581d), one merge each, in value order: send on each sentence end, word highlight, tap to pause, timings. Do NOT port Interrupt or ThinkingCue again. Then step 3 (Chat settings panel), and the page side of 4 and 5 (load, save, Make default, Reset to default). None of the five asks is ticked.
