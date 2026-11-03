@@ -25,18 +25,24 @@ export class Plugin extends Events(Object) {
 
 	// Per-INSTANCE plugin switches: one row per class-level plugin, `enabled`/`config` unset until this instance
 	// overrides them (PluginEntry.get_one falls back to the class row's rec.on / rec.config while unset).
+	// The row list is kept live: Plugin.record() pushes a row here for any plugin the class gains afterwards.
 	get plugins(){
 		if (!Object.hasOwn(this, "_plugins")) {
 			Object.defineProperty(this, "_plugins", { value: new List(), writable: true });
-			for (const rec of this.constructor.records.values()) this.constructor.add_instance_row(this, rec);
+			const Host = this.constructor;
+			if (!Object.hasOwn(Host, "_plugin_instances")) Object.defineProperty(Host, "_plugin_instances", { value: new Set(), writable: true });
+			Host._plugin_instances.add(new WeakRef(this));
+			for (const rec of Host.records.values()) Host.add_instance_row(this, rec);
 		}
 		return this._plugins;
 	}
 
-	// Switching THIS instance only: attach/detach runs just on `this`, the class-wide hook is untouched.
+	// Switching THIS instance only: attach/detach runs just on `this`, the class-wide hook is untouched, and this
+	// instance's own wish is remembered so a later class-wide enable()/disable() never overrides it (see those).
 	toggle_plugin(rec, on){
-		if (on) { const run = Plugin.runner(rec.plugin); run?.(this); }
-		else rec.plugin.detach?.(this);
+		(this._plugin_overrides ??= new Map()).set(rec, on);
+		if (on) Plugin.attach_instance(rec, this);
+		else Plugin.detach_instance(rec, this);
 	}
 
 	// ── class-level events. "new" walks the class chain: parents' listeners first, then each subclass's own.
@@ -101,11 +107,12 @@ export class Plugin extends Events(Object) {
 		const name = p.name || "plugin", key = `plugin.${this.name}.${name}`;
 		const saved = Plugin.store.get(key), defaults = p.defaults ?? {};
 		const { on: default_on = true, ...config_defaults } = defaults;
-		rec = { plugin: p, name, key, on: false, fn: null, live: new Set(), n: 0,
+		rec = { plugin: p, name, key, on: false, fn: null, live: new Set(), attached: new WeakSet(), n: 0,
 			wanted: wanted_on ?? saved?.on ?? default_on, config: { ...config_defaults, ...saved?.config } };
 		this.records.set(p, rec);
 		if (!Plugin.hosts.includes(this)) Plugin.hosts.push(this);
 		if (this._list) this.add_row(rec);
+		if (Object.hasOwn(this, "_plugin_instances")) for (const ref of this._plugin_instances) { const inst = ref.deref(); if (inst) this.add_instance_row(inst, rec); }
 		return rec;
 	}
 
@@ -116,21 +123,46 @@ export class Plugin extends Events(Object) {
 			: typeof p === "function" && !p.prototype ? p : null;
 	}
 
+	// Attach/detach are per (rec, instance): `rec.attached` makes both idempotent, so a plugin with no real
+	// detach is never run twice on the same instance across a use() -> unuse() -> use() cycle.
+	static attach_instance(rec, inst){
+		if (rec.attached.has(inst)) return;
+		const run = this.runner(rec.plugin);
+		if (!run) return;
+		rec.attached.add(inst);
+		rec.live.add(new WeakRef(inst));
+		run(inst);
+	}
+
+	static detach_instance(rec, inst){
+		if (!rec.attached.has(inst)) return;
+		if (typeof rec.plugin.detach !== "function") return;   // irreversible: stays "attached" so a later enable never runs attach twice
+		rec.attached.delete(inst);
+		rec.plugin.detach(inst);
+	}
+
+	// An instance that switched this plugin on/off for ITSELF (Plugin#toggle_plugin) keeps that wish: a class-wide
+	// enable()/disable() never overrides an explicit per-instance override, it only moves the instances left unset.
+	static overridden(rec, inst, value){ return inst._plugin_overrides?.get(rec) === value; }
+
 	static enable(rec){
 		rec.wanted = true;
 		if (rec.on) return;
-		const p = rec.plugin, run = this.runner(p);
-		if (!run) { console.warn(`Plugin ${rec.name} must be a function or have attach(instance) or setup(instance)`); return; }
+		const Host = this;
 		rec.fn = function(inst){
-			rec.live.add(new WeakRef(inst));
 			if (++rec.n % 256 === 0) for (const ref of rec.live) if (!ref.deref()) rec.live.delete(ref);
-			return run.call(this, inst);
+			if (Host.overridden(rec, inst, false)) return;   // this instance switched itself off: stays off
+			Host.attach_instance(rec, inst);
 		};
 		this.on("new", rec.fn);
 		rec.on = true;
 		rec.row?.sync(true);
-		// Re-attach to every instance this plugin reached before (a disable() kept them tracked, never cleared).
-		for (const ref of rec.live) { const inst = ref.deref(); if (inst) run(inst); }
+		// Re-attach to every instance this plugin reached before (a disable() kept them tracked, never cleared),
+		// skipping one that switched itself off on its own.
+		for (const ref of rec.live) {
+			const inst = ref.deref();
+			if (inst && !this.overridden(rec, inst, false)) this.attach_instance(rec, inst);
+		}
 	}
 
 	static disable(rec){
@@ -138,7 +170,11 @@ export class Plugin extends Events(Object) {
 		if (!rec.on) return;
 		this.off("new", rec.fn);
 		rec.on = false;
-		for (const ref of rec.live) { const inst = ref.deref(); if (inst) rec.plugin.detach?.(inst); }
+		// Leave alone an instance that switched itself on: the class going off is not its own wish.
+		for (const ref of rec.live) {
+			const inst = ref.deref();
+			if (inst && !this.overridden(rec, inst, true)) this.detach_instance(rec, inst);
+		}
 		rec.row?.sync(false);
 	}
 

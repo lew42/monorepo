@@ -174,8 +174,39 @@ test("a per-instance switch: enabled is unset and follows the class row, off/on 
 	calls.length = 0;
 	row.set({ enabled: true });
 	t.eq(calls, [["attach", "Spy", "a"]], "on: reattached this instance only");
+	calls.length = 0;
 	H11.unuse(Spy);
-	t.eq(row.get("enabled"), true, "its own explicit true no longer follows the class row once off");
+	t.eq(calls.length, 0, "the instance's own 'on' wins: the class going off does not detach it");
+	t.eq(row.get("enabled"), true, "row shows the real, still-attached state");
+	H11.use(Spy);
+	t.eq(calls.length, 0, "already attached: re-enabling the class does not attach it a second time");
+});
+
+test("attach is idempotent per (instance, plugin): use -> unuse -> use never attaches the same live instance twice", t => {
+	calls.length = 0;
+	class H15 extends Plugin {}
+	H15.use(Spy);               // Spy has detach, but Other (used below) does not
+	const live = new H15({ tag: "live" });
+	calls.length = 0;
+	H15.unuse(Spy); H15.use(Spy);
+	t.eq(calls, [["detach", "Spy", "live"], ["attach", "Spy", "live"]], "one real detach, then one re-attach — not a duplicate attach");
+	calls.length = 0;
+	class H16 extends Plugin {}
+	H16.use(Other);              // Other has no detach: disable() can't undo the first attach
+	const live2 = new H16({ tag: "live2" });
+	calls.length = 0;
+	H16.unuse(Other); H16.use(Other);
+	t.eq(calls.length, 0, "no real detach ran, so attach_instance's own guard skips the second attach");
+});
+
+test("inst.plugins picks up a plugin the class gains after the row list was first read", t => {
+	class H17 extends Plugin {}
+	H17.use(Spy);
+	const inst = new H17({ tag: "late" });
+	t.eq(inst.plugins.length, 1, "one row before Other is added");
+	H17.use(Other);
+	t.eq(inst.plugins.length, 2, "Other's row appeared on the already-read instance list");
+	t.eq(inst.plugins.find("Other").get("enabled"), true, "unset: follows the class row");
 });
 
 test("the item-tool delta shape works on both Host.plugins and inst.plugins", t => {
