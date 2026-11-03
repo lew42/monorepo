@@ -22,8 +22,9 @@ A new task or topic starts a card (title two to five words, `where`: `inside`, `
 await item({ path: "<session>", delta: { messages: { "<message>": { title: "Tab bar and logo" } } } })
 ```
 
-A card of your own, not tied to a message: the same `add`, plus `icon` (one Material Symbols name) — never a `type`, it is a plain field. `item({ path: "<session>", delta: { messages: { add: { icon: "task", title: "Call the vet" } } } })`.
-Append to it: `messages: { "<id>": { content: { add: { title: "..." } } } }`.
+A card of your own, not tied to a message: `item({ path: "<session>", delta: { messages: { add: { icon: "task", title: "Call the vet" } } } })` — append to it with `messages: { "<id>": { content: { add: { title: "..." } } } }`.
+"Upgrading" any message (even the title-rewrite just above) into a card is the same call: set `icon`/`title` on its id.
+Never pass `type` — `icon`/`title`/`content` are plain fields on any message, not a shape of their own.
 
 Move a sentence you already cleaned, no `text`:
 

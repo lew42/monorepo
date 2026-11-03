@@ -11,7 +11,15 @@
  * invented — a card IS a Message with icon/title/content set, Law 6).
  *
  * Step 3: upgrading an EXISTING message (one with neither icon nor title) into a card, by setting them in place — on a
- * scratch copy of a real recorded session, v-z0jonhy (the pattern single-brief.test.mjs uses for a real session replay). */
+ * scratch copy of a real recorded session, v-z0jonhy (the pattern single-brief.test.mjs uses for a real session replay).
+ *
+ * Step 4: "or a ref to an existing item" (requirements ask 3, the owner's first bullet, review finding 3): a card's
+ * `content` is a plain List (`List.prototype.of = Item`), so `content:{add:{type:"Ref",…}}` hydrates through the same
+ * generic path `tasks.add`'s own Refs already use (core/Item/Ref.js) — proven here end to end, including resolving it.
+ *
+ * Scratch sessions live under the real store (`public/framework/ai/sessions/…`), not an OS temp dir: `run_item` (review
+ * note 7) resolves every `path` against `public/framework/...` (`page_tools.js`'s `resolve()`), so it cannot address a
+ * folder outside the repo at all — there is no "accept a temp dir" form to switch to. Cleaned up in `finally` either way. */
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -88,6 +96,21 @@ try {
 			assert.equal(up.icon, "call");
 		});
 	} finally { fs.rmSync(DIR2, { recursive: true, force: true }); }
+
+	// ── Step 4: "or a ref to an existing item" — content:{add:{type:"Ref", path}} points at another item in the same file ─────
+	const task = await run_item({ path: URL_, delta: { tasks: { add: { title: "Book the follow-up" } } } }, { caller: "t" });
+	check("a real item to ref to: a task added on the session's own root", () => assert.ok(task.ok && task.ids?.length === 1, task.why));
+	r = await run_item({ path: URL_, delta: { messages: { [card_id]: { content: { add: { type: "Ref", path: `tasks.${task.ids[0]}` } } } } } }, { caller: "t" });
+	check("a Ref added to a card's content", () => assert.ok(r.ok, r.why));
+	{
+		const m = replay_messages(FILE).find(x => x.id === card_id), ref = [...m.content].at(-1);
+		check("…hydrates as the real core Ref (not a plain Item copy of the task)", () => assert.equal(ref.constructor.name, "Ref"));
+		const target = await ref.resolve();
+		check("…and resolves to the actual task, in the same file", () => {
+			assert.ok(target, "resolve() found it");
+			assert.equal(target.get_one("title"), "Book the follow-up");
+		});
+	}
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
 
 console.log(`card-messages.test.mjs: ${checks} checks passed`);

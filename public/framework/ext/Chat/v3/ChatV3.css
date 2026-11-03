@@ -13,6 +13,11 @@
 	.chat-v3-head { display: flex; align-items: baseline; gap: .5rem; }
 	.chat-v3-title { margin: 0; font-size: 1rem; flex: 1; min-width: 0; }
 	.chat-v3-head:not(:has(.chat-v3-title)) { justify-content: flex-end; }
+	.chat-v3-icon { font-size: 1.1em; align-self: center; flex: none; }   /* a card's own icon (ask3-cards-by-id), beside its title */
+
+	/* A card's content (ask3-cards-by-id): whatever was appended or ref'd under it, one line each. */
+	.chat-v3-content { display: flex; flex-direction: column; gap: .2rem; margin-top: .2rem; }
+	.chat-v3-content-line { font-size: .9em; padding-left: .6rem; border-left: 2px solid color-mix(in srgb, currentColor 14%, transparent); }
 
 	/* The words still being spoken (the guess at the end) are draft ink, dimmed but readable on a phone in daylight (the owner, 2026-11-01: "far too dim").
 	   Everything written to the file is final ink. The pair --draft-ink / --final-ink lives in framework.css. */
@@ -30,7 +35,10 @@
 	.chat-v3-raw { display: flex; flex-direction: column; gap: .25rem; }
 	.chat-v3-raw-line { margin: 0; padding-left: .6rem; border-left: 2px solid color-mix(in srgb, currentColor 18%, transparent); font-size: .85em; color: color-mix(in srgb, currentColor 65%, transparent); }
 
-	.chat-v3-reply { display: flex; gap: .5rem; align-items: baseline; padding-top: .35rem; border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent); }
+	.chat-v3-reply { display: flex; flex-direction: column; gap: .3rem; padding-top: .35rem; border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent); }
+	.chat-v3-reply:not(.is-card) { flex-direction: row; align-items: baseline; }
+	.chat-v3-reply.is-card .chat-v3-head { gap: .4rem; }
+	.chat-v3-reply.is-card .chat-v3-title { font-size: .95rem; }
 	.chat-v3-reply-text { min-width: 0; overflow-wrap: anywhere; }
 	.chat-v3-reply-text > * { margin-block: 0; }
 	.chat-v3-reply-text :is(h1, h2, h3, h4) { font-size: 1.05em; margin-block: .5em .2em; line-height: 1.3; }   /* a heading in a reply is a label, not a page title */

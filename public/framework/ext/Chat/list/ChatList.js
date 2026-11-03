@@ -54,6 +54,9 @@ export default class ChatList extends JSONL {
 		return el;
 	}
 
+	// `m.title`/`m.icon`/`m.content` are Message's own fields (core/Session/Chat/Message.js), so a card — fresh or an upgraded
+	// Prompt/Reply/note — draws its title and icon the same way regardless of kind (review finding 1, ask3-cards-by-id): the
+	// getters already answer `null`/`""` for a plain message, never the stringified word "undefined".
 	fill(el, m){
 		const kind = m instanceof Prompt ? "prompt" : m instanceof Reply ? "reply" : "note";
 		el.className = `chatlist-msg is-${kind}`;
@@ -61,9 +64,20 @@ export default class ChatList extends JSONL {
 		el.replaceChildren();
 		const who = document.createElement("div"); who.className = "chatlist-who";
 		who.textContent = kind === "prompt" ? "You" : kind === "reply" ? `${m.by} assistant${m.level ? " · " + (this.constructor.LEVELS[m.level] ?? m.level) : ""}` : m.by ?? "note";
+		el.append(who);
+		if (m.icon) { const i = document.createElement("span"); i.className = "material-icons icon chatlist-icon"; i.textContent = m.icon; el.append(i); }
+		if (m.title) { const t = document.createElement("strong"); t.textContent = m.title; el.append(t); }
 		const text = document.createElement("div"); text.className = "chatlist-text md";
-		if (kind === "prompt" && m.title) { const t = document.createElement("strong"); t.textContent = m.title; el.append(who, t); } else el.append(who);
 		md_into(text, kind === "prompt" ? (m.text || m.cleaned) : m.text);
 		el.append(text);
+		if (m.content?.length){
+			const list = document.createElement("div"); list.className = "chatlist-content";
+			for (const c of m.content){
+				const line = document.createElement("div"); line.className = "chatlist-content-line";
+				line.textContent = c?.get_one?.("title") ?? c?.get_one?.("text") ?? "";
+				list.append(line);
+			}
+			el.append(list);
+		}
 	}
 }

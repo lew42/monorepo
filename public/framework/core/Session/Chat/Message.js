@@ -9,11 +9,19 @@ export class Message extends Item {
 	/* The chat's own type names, filled by each subclass's file. Looked up BEFORE the global registry, because "Prompt" means the chat
 	   message here (./Prompt.js) and the Prompt task (core/Task/Prompt.js) in Item.types. A name not here falls back to Item.hydrate's rule. */
 	static TYPES = {};
+	/** A type found here builds that class; `"Ref"` is the one name let through from the GLOBAL registry on purpose (the chat's
+	    own documented exception — core/Session/Chat/readme.md). Anything else — no `type` at all, or one nobody registered for
+	    the chat (a guessed `"Card"`, `"Note"`, `"Task card"` — review finding 2) — builds a plain Message instead of falling
+	    through to `Item.hydrate`'s own generic-Item fallback, which has none of this class's `text`/`title`/`icon` getters: that
+	    gap is exactly how the owner's card came back titled the literal word "undefined" (ask3-cards-by-id). Consulting the WHOLE
+	    global registry for an unknown name (an earlier version of this fix did) is its own trap: `ext/editor/blocks.js` registers
+	    an unrelated `Card` globally (a Panel block, `words: "flex v gap pad surface"`), and a page that happens to have loaded it
+	    would hydrate a card message as THAT class instead — caught by `ChatV3.test.mjs`'s live DOM check, never by a node test
+	    with no other module loaded. The guessed word itself is not kept; a view (or a reader) should never need it. */
 	static hydrate(json, seen){
-		const Class = json && Message.TYPES[json.type];
-		if (!Class) return super.hydrate(json, seen);
-		const { type, ...rest } = json;
-		return Item.hydrate.call(Class, rest, seen);   // no type: Item.hydrate builds `this`, the chat's class
+		const type = json?.type, Known = type ? (Message.TYPES[type] ?? (type === "Ref" ? Item.types.get("Ref") : null)) : null;
+		const { type: _drop, ...rest } = json ?? {};
+		return Item.hydrate.call(Known ?? Message, rest, seen);
 	}
 	/** "owner" | "smart" | "fast" | "system": who wrote it. */
 	get by(){ return this.get_one("by") ?? null; }
@@ -43,6 +51,3 @@ export default Message;
 
 Item.register(Message, "Message");
 Message.TYPES.Message = Message;
-// "Card" is not its own class: an agent naturally guesses `type: "Card"` for "a card" (the owner got a literal "undefined" when
-// that guess fell through to a generic, Message-less Item — ask3-cards-by-id, the bug this alias and the page_tools.js fix close).
-Message.TYPES.Card = Message;

@@ -16,7 +16,7 @@ import LineKey from "/framework/core/Item/LineKey.js";
 import { md_into } from "../md.js";
 import ReciteBubble from "/framework/audio/Recite/ReciteBubble.js";
 import * as Wire from "/framework/ext/Session/Session.js";
-import { owning_prompt, paragraphs, paragraph_groups } from "./placement.js";
+import { owning_prompt, paragraphs, paragraph_groups, note_view } from "./placement.js";
 View.stylesheet(import.meta, "ChatV3.css");
 View.stylesheet(import.meta, "../bubbles.css");
 
@@ -73,14 +73,16 @@ export default class ChatV3 extends JSONL {
 		const id = one && typeof one === "object" ? one.id : one;
 		return id != null ? this.session.find(id) : null;
 	}
-	// The card a changed node belongs to, for a live redraw: a Reply's Prompt, a Sentence's Prompt, a root as itself, or (a Task/Question
-	// nested under a Prompt's task) the message Prompt whose `prompt` link names that task's top-level ancestor.
+	// The card a changed node belongs to, for a live redraw: a Reply's Prompt, a Sentence's Prompt, a root as itself, a card's own
+	// `content` member (its `.parent` IS the root Message — List.js's `child.parent = this.owner`, ask3-cards-by-id), or (a
+	// Task/Question nested under a Prompt's task) the message Prompt whose `prompt` link names that task's top-level ancestor.
 	card_for(node){
 		if (!node) return null;
 		if (node instanceof Reply) return this.owning_prompt(node);
 		const roots = this.card_roots();
 		if (roots.includes(node)) return node;
 		if (node instanceof Sentence) return roots.find(p => p instanceof Prompt && p.sentences.includes(node.id)) ?? null;
+		if (roots.includes(node.parent)) return node.parent;
 		const tasks = this.task_roots();
 		let n = node;
 		while (n && !tasks.includes(n)) n = n.parent;
@@ -151,10 +153,17 @@ export default class ChatV3 extends JSONL {
 
 	fill(node){ return node instanceof Prompt ? this.prompt(node) : this.note(node); }
 
-	// A plain Message (a note, e.g. Servex saying an assistant could not be reached): its own small card, no replies, no nesting.
+	// A plain Message (a note, e.g. Servex saying an assistant could not be reached — or a card: icon/title/content set, fresh
+	// or upgraded, ask3-cards-by-id): its own small card, no replies, no nesting. `note_view` (placement.js, DOM-free) is the
+	// one place that decides what to show — never the stringified word "undefined" for a field a member does not have.
 	note(m){
-		div.c("chat-v3-head", () => h3.c("chat-v3-title is-untitled", ChatV3.first_words(m.text)));
-		md_into(div.c("chat-v3-text md").el, m.text);
+		const { title, icon: icon_name, text, content } = note_view(m);
+		div.c("chat-v3-head", () => {
+			if (icon_name) icon(icon_name).ac("chat-v3-icon");
+			h3.c("chat-v3-title" + (title ? "" : " is-untitled"), title || ChatV3.first_words(text));
+		});
+		if (text) md_into(div.c("chat-v3-text md").el, text);
+		if (content.length) div.c("chat-v3-content", () => content.forEach(line => div.c("chat-v3-content-line", line)));
 	}
 
 	prompt(p){
@@ -188,8 +197,14 @@ export default class ChatV3 extends JSONL {
 	}
 
 	// One assistant Reply: plain markdown text on the left, no avatar. Small and overridable (V2 adds its ✓/🧠 marks, step 2).
+	// An upgraded Reply (title/icon set on it, same as any Message — review finding 4) draws its title and icon above the text,
+	// the same head `note()` draws: setting those two fields must change what the owner sees, not just the data.
 	reply(r){
-		const box = div.c("chat-v3-reply", () => { md_into(div.c("chat-v3-reply-text md").el, r.text); }).attr("data-id", r.id);
+		const { title, icon: icon_name, text } = note_view(r);
+		const box = div.c("chat-v3-reply" + (title || icon_name ? " is-card" : ""), () => {
+			if (title || icon_name) div.c("chat-v3-head", () => { if (icon_name) icon(icon_name).ac("chat-v3-icon"); if (title) h3.c("chat-v3-title", title); });
+			md_into(div.c("chat-v3-reply-text md").el, text);
+		}).attr("data-id", r.id);
 		ReciteBubble.mount(box.el, { text: () => r.text });   // play / pause / back 10 s for this reply (Chat V2 draws replies through here too)
 	}
 
