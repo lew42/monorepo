@@ -15,6 +15,37 @@
 6. **Keep the raw words.** Every sentence keeps its raw Whisper text next to its cleaned text. The cleaned version is shown, and tapping a message shows the raw (no "show raw" button).
 7. **Where every request came from is recorded.** The path is: raw sentences → the cleaned Prompt → the task → the mastermind. A mastermind that gets a task can read the verbatim words that caused it.
 
+## Top priority: answer the most recent thing first (the owner, 2026-11-03, about 14:15)
+- **Order replies by priority, which is relevance, which is mostly recency.**
+  - Answer the newest thing first, as directly as possible: a question just asked comes before anything older.
+  - Older items aren't dropped. They're worked on silently and come back later, in priority order, one at a time.
+- **A queued `say` can go stale.** If the owner keeps talking, a queued `say` may never get its turn.
+  - The page tells the agent when it may speak (a "you may speak" cue).
+  - The agent can then retract or replace what it had queued, instead of reading out a reply to something said ten minutes ago.
+  - Today's read-aloud queue plays oldest first, which is the wrong order after a long dictation.
+- **Silent work and spoken words are separate.** Most of the agent's work is silent. It works while the owner talks, on each sentence as it arrives, and never interjects.
+- **A noise-free chat.** No messages like "I've passed that along": doing it is the job, and saying so is noise.
+  - Results of background work go where they belong (the answer onto its question card).
+  - They aren't dumped into the chat while the owner is talking about something else.
+  - Everything the agent adds is about what the owner said most recently.
+- **Recommend and proceed; don't ask.** Ask the owner only when an action is dangerous, permanent or destructive. Otherwise pick the best option and go.
+- **Keep a short ranked list of open items.** It can be the session's own tasks and question cards. When there's a pause, the next best item is next.
+
+## Changing the voice agent's brief is high-risk
+- The brief (`Servex/agents/single-voice-assistant.md`) is interpreted, not executed. Too much instruction gets the agent stuck in a rut; too little leaves it lost.
+- **Don't add a line just because the owner said something, and don't remove one either.** For each change, write down the risk of adding it and the risk of leaving it out. Then test it on a real or replayed session before it lands.
+
+## Seeing behind the scenes: a log mode (a separate task, after the settings work)
+- A setting (with a level) that shows what's happening behind the scenes:
+  - Whisper;
+  - the thresholds;
+  - each tool call, including `nothing`;
+  - sends and replies.
+
+  These appear as small, muted lines in the chat, in time order.
+- **They are not persisted.** They're added to the messages *view* as temporary rows, not to `session.messages`, which saves every add to disk.
+- Off by default.
+
 ## How the voice agent works
 - **Silent by default, busy the whole time.** It gets every sentence as soon as Whisper ends it: send per sentence is the default. It works through tools without speaking:
   - placing and cleaning the words;
