@@ -240,4 +240,4 @@ public/framework/ext/Chat/v3/fixture/live-*.jsonl
 public/framework/ai/sessions/session-twins.json
 # the session-folder finder's saved map (core/Session/SessionFolders.mjs): a cache of what each day folder holds, checked against the folders on every read
 public/framework/ai/sessions/session-folders.json
-public/framework/ai/sessions/session-folders.json.*.tmp
+public/framework/ai/sessions/session-folders.json.tmp-*

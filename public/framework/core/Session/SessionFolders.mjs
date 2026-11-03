@@ -100,7 +100,7 @@ export default class SessionFolders {
 	}
 	save(){
 		const days = {}; for (const [day, rec] of this.days) days[day] = { mt: rec.mt, names: Object.fromEntries(rec.names) };
-		const tmp = `${this.file}.${process.pid}.tmp`;
+		const tmp = `${this.file}.tmp-${process.pid}`;   // ".tmp-" is the name Server/watch.js ignores
 		try { fs.writeFileSync(tmp, JSON.stringify({ v: 1, at: new Date().toISOString(), days, quiet: Object.fromEntries(this.quiet) })); fs.renameSync(tmp, this.file); }
 		catch { try { fs.rmSync(tmp, { force: true }); } catch {} }   // a cache: another process writing it at the same moment is fine
 	}
