@@ -122,7 +122,52 @@ check("words mode ignores a Whisper phantom phrase", r3.during === "playing" && 
 let r4 = await interrupt("words", "the weather today is rather mild");
 check("words mode ignores Recite's own voice coming back (echo)", r4.after === "playing", r4);
 let r5 = await interrupt("words", "wait, can you stop for a second");
-check("words mode pauses when Whisper hears real words", r5.during === "playing" && r5.after === "heard", r5);
+check("words mode cancels outright when Whisper hears real words (cutting in, 2026-11-03: no auto-resume by default)", r5.during === "playing" && r5.after === "idle", r5);
+
+// 5b. cutting in (2026-11-03): real words through the own-mic trigger() path cancel the WHOLE queue (not just the
+// playing reply) and report both through on_read, with no auto-resume.
+whisper_says = "wait, can you stop for a second";
+await fresh();
+const cut_report = await page.evaluate(async () => {
+	const r = window.r, b = r.barge, sleep = ms => new Promise(x => setTimeout(x, ms));
+	const read = []; r.on_read = ev => read.push(ev);
+	r.queue("The weather today is rather mild.");
+	r.queue("Something else, queued behind it.");
+	await sleep(900);
+	b.mode = "words"; b.on = true; b.listen_ms = 200; b.state = "listening";
+	b.mic = { snapshot: () => new Float32Array(10), cut(){}, wav: () => new Blob(["x"]), stop(){} };
+	b.recent_peak = 0.9;
+	const done = b.trigger();
+	b.peak = 0.9;   // trigger() zeroes it synchronously; set it before the await settles, like the other interrupt() cases
+	await done;
+	await sleep(500);
+	return { state: r.state, chunks: r.chunks.length, read };
+});
+check("cutting in: the trigger path cancels every queued reply, not just the one playing", cut_report.chunks === 0, cut_report);
+check("cutting in: both replies were reported through on_read", cut_report.read.length === 2 && cut_report.read[0].heard === "cut" && cut_report.read[1].heard === "skipped", cut_report.read);
+check("cutting in: it stays idle — no auto-resume by default", cut_report.state === "idle", cut_report.state);
+
+// 5c. the start grace: a chunk's own first word, right after it starts (quiet when it began), does not trip the
+// fast volume trigger — but real Whisper-confirmed words still cut in (the stopgap for the stutter).
+await fresh();
+const grace = await page.evaluate(async () => {
+	const r = window.r, b = r.barge, sleep = ms => new Promise(x => setTimeout(x, ms));
+	r.queue("A sentence that just started playing.");   // barge.on is still false here (fresh()): queue()'s own state
+	// changes call barge.sync(), which would try to open a REAL mic the instant barge.on is true — set it after,
+	// once playback has settled, same order the other interrupt() cases use
+	await sleep(250);   // past the 150 ms render stub: the chunk is actually playing now, grace just started
+	b.grace_ms = 300; b.on = true; b.mode = "volume"; b.hold_ms = 10; b.state = "listening";
+	const before = r.state;
+	b.hear(0.9);   // loud, but within the grace and the owner was quiet when it began
+	await sleep(40);
+	const during_grace = r.state;
+	await sleep(400);   // past the grace window now
+	b.hear(0.9); await sleep(20); b.hear(0.9);   // two frames, hold_ms apart: hear() only checks the clock on each new frame
+	await sleep(40);
+	return { before, during_grace, after_grace: r.state };
+});
+check("the start grace: a loud frame right after a quiet start does not trigger the fast pause", grace.before === "playing" && grace.during_grace === "playing", grace);
+check("once the grace has passed, the same loud level does trigger it", grace.after_grace !== "playing", grace);
 
 // 6. the setting is remembered and the plugin shape is there
 const shape = await page.evaluate(async () => {
