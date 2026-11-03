@@ -27,7 +27,8 @@ import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, r
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
 import { server as sdk_server } from "./tools.js";   // cycle with tools.js is fine: used only at call time
 const MAIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");   // Servex runs from the main tree
-import { page_tools, move_item } from "./page_tools.js";
+import { page_tools, move_item, task_origin } from "./page_tools.js";
+import { handoff_note } from "./handoff-note.js";
 
 /* The in-process caller is the agent itself: its own task.jsonl (its task dir), or null; the item tool files a reference there. */
 function agent_log(agent){
@@ -225,6 +226,8 @@ export class Agents {
 		const session_id = !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
 		/* EVERY SPAWN HAS A TASK DIR (2026-10-18): a bare spawn gets one here, `task: false` opts out (default_task below). */
 		if ((spec.task === undefined || (spec.task && !spec.task.dir)) && !again){ const task = this.default_task(spec, id); if (task) spec = { ...spec, task: { ...task, ...(spec.task || {}) } }; }   // a handoff `task: {from, id}` with no dir lands in the default folder
+		// ASK 1 (ask1-origin): read BEFORE open_task triggers the handoff's move_item (unawaited, racing the rest of this function) — the task still lives at `spec.task.from` right now.
+		const origin = !again && spec.task?.from && spec.task?.id ? task_origin(spec.task.from, spec.task.id) : null;
 		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, role: spec.role, by: spec.parent, model, effort: spec.effort ?? role_defaults(spec.role).effort ?? null, role_readme: role_readme_path(spec.role), worktree: worktree_of(spec.cwd), parent_session: spec.parent ? spec.parent_session ?? this.session_of(spec.parent) : null, parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
 		if (spec.task && !again && spec.parent) this.follow_child(spec.parent, spec.task.dir, id);
 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
@@ -244,7 +247,7 @@ export class Agents {
 		}
 		const base = dir ? `${first_prompt(dir)}\n\n${opened}` : opened;
 		const prompt = spec.task
-			? `${base}\n\nYour task is already open at ${path.relative(process.cwd(), SessionRecord.log_or_old(path.resolve(spec.task.dir))).split(path.sep).join("/")}; don't run new-task, log there.${past_work ? ` Your past-work.md is beside the brief (${past_work}): read it first.` : ""}`
+			? `${base}\n\nYour task is already open at ${path.relative(process.cwd(), SessionRecord.log_or_old(path.resolve(spec.task.dir))).split(path.sep).join("/")}; don't run new-task, log there.${past_work ? ` Your past-work.md is beside the brief (${past_work}): read it first.` : ""}${handoff_note(origin)}`
 			: base;
 		const agent = new this.constructor.Agent({
 			...role_defaults(spec.role), ...spec, id, prompt, provider,
