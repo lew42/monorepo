@@ -7,10 +7,27 @@ The owner's asks behind this diff, carried only as spawn titles until now:
    - Drop only when the clip is short, its weakest word's probability is low, or it echoes what Recite just read (`should_drop_phantom` in `ux/Dictate/phantom-gate.js`, called from `deliver()` in `chat.js`).
    - Every drop is logged to `ai/whisper/bucket.jsonl`.
    - It reuses `BargeIn.noise`/`echo`, not a second blocklist.
-3. **Whisper's own flags cut hallucination at the source.** Acceptance: `-mc 0 --suppress-nst` in whisper-server's launch args (`Servex/Servex.js`'s `whisper()`), live (whisper-server stopped and started once, not just a Servex restart — see finding below). — commit `f17abf06787d`.
+3. **Whisper's own flags cut hallucination at the source.** Acceptance: `-mc 0 --suppress-nst` in whisper-server's launch args (`Servex/Servex.js`'s `whisper()`), live (whisper-server stopped and started once, not just a Servex restart — see `review.md`). — commit `f17abf06787d`.
 4. **The minion findings on mingled chat and the reply path are logged.** Acceptance: the prompt-merge-window cause (`Sessions.js:548`), the reply-path investigation and the eyeballs-scope note are each written up and linked. — [minion-mingled-chat](../../session-f5eadae9/minion-mingled-chat/), [minion-minion-reply-path](../../session-f5eadae9/minion-minion-reply-path/), [minion-minion-eyeballs-scope](../../session-f5eadae9/minion-minion-eyeballs-scope/).
    - **"It replied far too often"** (ask 4, `owner-feedback-2026-11-03.md`: "listening", "nothing is open", "no open questions", said even after being told to only listen) — `Servex/agents/single-voice-assistant.md` is rewritten so the silence rule is said once, dropping the repeated "write only '-'" fallback and the pause section's "No real question: end the turn empty" — commit `bb38c2edb`.
-5. **A settings-by-plugin design doc.** Acceptance: a short `doc/*.md` describing how a plugin's own settings are declared and read, linked from its module's readme. — [minion-settings-design](../../session-f5eadae9/minion-settings-design/). The doc itself is `ux/Dictate/doc/settings-plugins.md`, and it lands with `worktree/qf-1` (commit `ea40784c6`), not in this diff.
+5. **A settings-by-plugin design doc.** Acceptance: a short `doc/*.md` describing how a plugin's own settings are declared and read, linked from its module's readme. — [minion-settings-design](../../session-f5eadae9/minion-settings-design/). The doc itself is `ux/Dictate/doc/settings-plugins.md`, and it lands with `worktree/qf-1` (commit `ea40784c6`), not in this diff — `mastermind-voice-system` merges qf-1 right after this task.
+
+## Owner feedback 2026-11-03: status
+
+Every ask in `owner-feedback-2026-11-03.md`, tracked against its own task:
+
+| # | Ask | Status | Task |
+|---|---|---|---|
+| 1 | Replies go via the item tool | planned | `p7p1ixrp` — not started |
+| 2 | Where each request came from is recorded (placement/cleaning) | investigated: every place/clean succeeded | `l2ccgdxy` — done |
+| 3 | Origin recorded end to end (raw → cleaned → task → mastermind) | planned: `from:{prompt,sentence}` on `tasks.add` and `spawn` | `dpsp54uf` — not started |
+| 4 | It replied far too often | brief unprimed (commit `bb38c2edb`); cue-text audit + batching at the pause + a `listen()` tool planned | `pgwjbatr` — partly done |
+| 5 | One list (chat as one stored list) | confirmed: ChatV3 draws `session.messages`; being settled with ask 1 | `abt7o4r0` |
+| 6 | Less jumping | cause being confirmed in ChatV3's redraw | `t9w15ewb` — not fixed |
+| 7 | Tap to expand, no show-raw button | planned | `j4aatgso` — not started |
+| 8 | View modes | maybe | `skixe7xs` — not started |
+
+Cost: measured $0.047/sentence; batching (ask 4) is the planned way to bring it down.
 
 ## Review fixes (this task, `minion-minion-qf9-fixes`, worktree `qf-9`)
 
