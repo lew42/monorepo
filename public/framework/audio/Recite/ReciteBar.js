@@ -40,7 +40,7 @@ export default class ReciteBar extends View {
 		this.$mic = button.c("audio-recite-btn", () => { this.$mic_icon = icon("hearing"); }).attr("title", "Pause when I talk (barge-in) — off: manual playback only").click(() => r.barge.set_on(!r.barge.on));
 		this.$mode = button.c("audio-recite-btn", () => { this.$mode_icon = icon("graphic_eq"); }).click(() => r.barge.set_mode(r.barge.mode === "words" ? "volume" : "words"));
 		this.$threshold = input.c("audio-recite-threshold").attr("type", "range").attr("min", "0.05").attr("max", "0.95").attr("step", "0.05")
-			.attr("value", String(r.barge.threshold)).attr("title", "Interrupt sensitivity: how loud a sound must be to pause the reading. Left = almost any sound pauses it (its own voice leaking into the mic too), right = only loud talking does (the bar behind it is the mic level)")
+			.attr("value", String(r.barge.threshold)).attr("title", "How loud counts as you talking. Left = almost any sound does: replies wait until you are quiet, and any sound pauses the reading (its own voice leaking into the mic too). Right = only loud talking does: replies start over you (the bar behind it is the mic level)")
 			.on("input", e => r.barge.set_threshold(e.target.value));
 	}
 
