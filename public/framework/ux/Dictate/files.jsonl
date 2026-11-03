@@ -77,3 +77,9 @@
 {"file":"VoiceChat/"}
 {"file":"failures.jsonl","gone":true}
 {"file":"failures.jsonl"}
+{"file":"ChatDefaults.js"}
+{"file":"ChatDefaults.test.mjs"}
+{"file":"ChatSettings.js"}
+{"file":"ChatSettings.test.mjs"}
+{"file":"ChatStatus.js"}
+{"file":"ChatStatus.test.mjs"}

@@ -127,3 +127,5 @@
 {"file":"data/","gone":true}
 {"file":"failures.jsonl","gone":true}
 {"file":"Servex/"}
+{"file":"data/"}
+{"file":"failures.jsonl"}
