@@ -760,7 +760,10 @@ function notify_requests(live, at, body, requests, by){
 	}
 	for (const t of done){
 		const from = t?.get_one("from");
-		if (!from || from === by || from === "owner" || t.state !== "complete") continue;   // the owner sees it on the page
+		// `from` is overloaded (ask1-origin, 2026-11-03): the asker's agent id for a request (always a string), but also a plain
+		// object ({prompt, sentence}) on a voice-filed task. Only a string can ever be a "who asked" — an object is never the asker,
+		// never a notice target, and must never reach hooks.answered as `to` (it would fail silently or notify the wrong thing).
+		if (typeof from !== "string" || from === by || from === "owner" || t.state !== "complete") continue;   // the owner sees it on the page
 		Promise.resolve(hooks.answered({ to: from, by, id: t.id, title: t.get_one("title") ?? t.id, outcome: t.get_one("outcome") ?? null, path: t === live ? (live.get_one("path") ?? app_path(path.dirname(at.file))) : app_path(path.dirname(at.file)) })).catch(() => {});
 	}
 }

@@ -1,5 +1,6 @@
-// Ask 1 (ask1-origin, 2026-11-03): a task filed with `tasks.add` on a session carries `from: {prompt, sentence}` and raw `text`;
-// it survives Task.replay, a reference lands in session.messages, and the fields outlive a handoff move. `node Servex/agents/ask1-origin.test.mjs`.
+// task_origin() / handoff_note() (ask1-origin, 2026-11-03): a task filed with `tasks.add` on a session carries `from: {prompt,
+// sentence}` and raw `text`; it survives Task.replay, a Ref lands in session.messages after the owner's own bubble, and the
+// fields outlive a handoff move. `node Servex/agents/task-origin.test.mjs`.
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
