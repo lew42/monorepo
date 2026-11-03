@@ -14,6 +14,9 @@
 4. After `single_pause_ms` of quiet (default 1000, `SERVEX_SESSION_SINGLE_PAUSE_MS`), only when the agent is idle (a busy one is retried), Servex sends `(pause: reply now only if a question is open)` and opens the cue. That turn's text becomes the reply (one short paragraph; [reply-pacing.md](reply-pacing.md)); an empty answer is dropped. A new sentence cancels the timer.
 5. Heavy work: the agent files a task on the session and spawns a helper with `spawn_agent task: {from, id}`; it does no digging and has no `eval`.
 
+## The voice style the brief enforces (the owner, 2026-11-03)
+Written into the brief's "How you talk" and "Reply only on a pause cue" sections: replies very small (one paragraph at most); one item at a time, never several at once; several ways forward are named briefly and the owner picks; no filler on a pause cue ("nothing is open" is a defect: stay silent); an unclear or echo-like fragment ("proceed with this") is never a command, ask one short question first; feedback about the voice system itself is filed as a task and handed to `mastermind-voice-system`, short term, so the experience keeps being refined. These are prompt rules only: nothing in `Sessions.js` enforces them yet (a reply that is only filler is still written; an empty one is dropped).
+
 ## Where each piece is
 - Role row `single-voice-assistant`: `Servex/agents/roles.js`; model tier `voice_single` (Sonnet, effort low): `Servex/agents/tiers.js`.
 - The proof: `Servex/agents/Sessions.single.test.mjs` (plain node, no model). It runs every `js` example in the brief for real against a temp session file, then replays the file the way Chat V3 reads it (cleaned words, title, paragraphs, raw kept).
