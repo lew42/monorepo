@@ -152,6 +152,72 @@ await check("text is never a reply, cue open or not; an empty turn writes nothin
 	assert.ok(!s.map[made.session].cue_open, "the cue still closes at the result");
 });
 
+// ask10: the thinking sound — code marks a hand-off, not the model (public/framework/ux/Dictate/doc/thinking-sound.md).
+await check("a hand-off tool call writes one thinking line; a second hand-off in the same turn writes no more", async () => {
+	sent.length = 0;
+	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
+	s.say({ session: made.session, path: "/a/", text: "Ask the mastermind about the tab bar.", via: "voice", floor: "speaking" });
+	await tick();
+	const id = s.map[made.session].smart, agent = { id };
+	const thinking = () => lines(file).filter(l => l.thinking);
+	s.heard({ type: "tool", name: "spawn_agent" }, agent);
+	assert.equal(thinking().length, 1, "the first hand-off writes the open line");
+	assert.deepEqual(thinking()[0].thinking, { by: "smart" });
+	s.heard({ type: "tool", name: "ask_mastermind" }, agent);
+	assert.equal(thinking().length, 1, "a second hand-off in the same turn writes nothing more");
+	s.heard({ type: "tool", name: "read_file" }, agent);
+	assert.equal(thinking().length, 1, "a plain tool call is not a hand-off");
+});
+
+await check("a say queued before the hand-off suppresses the thinking line, but the answer still arrives", async () => {
+	sent.length = 0;
+	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
+	s.say({ session: made.session, path: "/a/", text: "Ask the mastermind, but tell me first.", via: "voice", floor: "speaking" });
+	await tick();
+	const id = s.map[made.session].smart, agent = { id };
+	const thinking = () => lines(file).filter(l => l.thinking);
+	const replies = () => lines(file).filter(l => l.chat?.from?.kind === "assistant");
+	s.queue_say(s.map[made.session], { text: "I've asked the mastermind." });   // spoken hand-off, said first in this turn
+	s.heard({ type: "tool", name: "spawn_agent" }, agent);
+	assert.equal(thinking().length, 0, "no beep: the seat already said it is handing off");
+	s.release_say(s.map[made.session]);
+	assert.equal(replies().length, 1, "the spoken hand-off itself is delivered");
+	assert.equal(replies()[0].chat.text, "I've asked the mastermind.");
+	// the delegate's own work lands later as a fresh say, in a new turn — the answer still reaches the owner
+	s.map[made.session].turn_said = false;
+	s.queue_say(s.map[made.session], { text: "The tab bar bug is fixed." });
+	s.release_say(s.map[made.session]);
+	assert.equal(replies().length, 2, "the delegated answer is delivered too, not lost");
+	assert.equal(replies()[1].chat.text, "The tab bar bug is fixed.");
+});
+
+await check("release_say closes an open thinking line with a done:true line", async () => {
+	sent.length = 0;
+	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
+	s.say({ session: made.session, path: "/a/", text: "Ask the mastermind about the logo.", via: "voice", floor: "speaking" });
+	await tick();
+	const id = s.map[made.session].smart, agent = { id };
+	const thinking = () => lines(file).filter(l => l.thinking);
+	s.heard({ type: "tool", name: "spawn_agent" }, agent);
+	assert.equal(thinking().length, 1, "the open line is written");
+	s.queue_say(s.map[made.session], { text: "The new logo is ready." });
+	s.release_say(s.map[made.session]);
+	assert.equal(thinking().length, 2, "a done line closes it");
+	assert.deepEqual(thinking()[1].thinking, { by: "smart", done: true });
+	assert.ok(!s.map[made.session].thinking_open, "the session no longer thinks it is open");
+});
+
+await check("release_say with no thinking line open never writes a spurious done line", async () => {
+	sent.length = 0;
+	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
+	s.say({ session: made.session, path: "/a/", text: "Just answer directly.", via: "voice", floor: "speaking" });
+	await tick();
+	const thinking = () => lines(file).filter(l => l.thinking);
+	s.queue_say(s.map[made.session], { text: "Sure." });
+	s.release_say(s.map[made.session]);
+	assert.equal(thinking().length, 0, "no hand-off ever happened: no thinking line at all");
+});
+
 // 5 + 6. the brief and Chat V3
 const BRIEF = path.join(ROOT, "Servex/agents/single-voice-assistant.md");
 const brief = fs.existsSync(BRIEF) ? fs.readFileSync(BRIEF, "utf8") : "";

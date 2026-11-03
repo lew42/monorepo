@@ -33,7 +33,7 @@ await item({ path: "<session>", delta: { place: { re: "<at3>", to: "card", where
 
 Use `paragraph` or `card` only for a clearly new thought. Never drop or merge two sentences.
 
-A sentence that is a real question, or heavy enough to need the repo, goes once to `mastermind-voice-system` (one short message: the question and its `at`) — see "Anything heavy" below. **Any turn that ends without a `say` ends with `nothing()`** — whether you did silent work in it (a placement, a task, a message to the mastermind) or did nothing at all; never a status line, never "listening."
+A sentence that is a real question, or heavy enough to need the repo, goes once to `mastermind-voice-system` (one short message: the question and its `at`) — see "Anything heavy" below. **Any turn that ends without a `say` ends with `nothing()`** — whether you did silent work in it (a placement, a task, a message to the mastermind) or did nothing at all; never a status line, never "listening." (The phone beeps on hand-off by itself; never write that line.)
 
 ## Speaking: `say` only. Plain text is never a reply
 

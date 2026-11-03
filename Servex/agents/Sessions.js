@@ -789,6 +789,7 @@ export default class Sessions {
 (sentence)` + (line.prompt ? `
 (prompt ${line.prompt})` : "") + (mid ? `
 (message ${mid})` : ""));
+		s.turn_said = false;   // a fresh turn: no say queued or released in it yet (thinking-sound, ask10)
 		this.close_prompt_later(s);
 		this.single_cue(s);
 		return { ok: true, at: line.at, answered_by: [{ kind: "assistant", id: "smart", agent: s.smart }] };
@@ -803,6 +804,7 @@ export default class Sessions {
 			if (!this.single_seat(s) || !this.awake(s, "smart")) return;
 			if (this.servex.agents.live.get(s.smart)?.state === "working") return void timers.set(s.id, setTimeout(fire, this.single_pause_ms).unref());
 			s.cue_open = true;
+			s.turn_said = false;   // a fresh turn: no say queued or released in it yet (thinking-sound, ask10)
 			this.send(s, "smart", "(pause)");
 		};
 		const t = setTimeout(fire, this.single_pause_ms);
@@ -818,6 +820,7 @@ export default class Sessions {
 		if (!String(text ?? "").trim()) return { ok: false, why: "say needs text" };
 		const id = "say-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
 		(s.says ??= []).push({ id, text: String(text), re, queued_at: Date.now() });
+		s.turn_said = true;   // a say is queued this turn: a later hand-off call in the same turn plays no thinking cue (thinking-sound, ask10)
 		this.schedule_say_release(s);
 		return { id };
 	}
@@ -878,6 +881,7 @@ export default class Sessions {
 		s.says = rest;
 		if (!newest) return;
 		const re = newest.re ?? s.smart_re;
+		if (s.thinking_open){ this.write(s, { thinking: { at: now_ms(), by: "smart", done: true } }); s.thinking_open = false; }   // the answer landed: stop the cue (thinking-sound, ask10)
 		this.write(s, this.reply_line(s, { role: "smart", agent_id: s.smart, text: newest.text, re }));
 		this.reply_closes_prompt(s);
 		s.smart_said_re = re ?? now_ms();
@@ -1725,7 +1729,19 @@ export default class Sessions {
 		const who = this.by_agent.get(agent.id), s = who && this.map[who.id];
 		if (!s) return;
 		if (event.type === "delta" && !event.nested) return who.role === "smart" && this.single_seat(s) ? undefined : this.streaming(s, who.role, agent.id, event.text);   // single: its reply is one short paragraph, shown whole at the turn's end, so filler can be dropped before anyone sees it
-		if (event.type === "tool" && !event.nested) return this.streaming(s, who.role, agent.id, null);   // text before a tool call was thinking aloud
+		if (event.type === "tool" && !event.nested){
+			// THINKING SOUND (ask10): the single seat's first hand-off call in a turn marks itself, so the owner's
+			// phone can beep at once, without waiting on the model to say so. Never twice in one turn, and never
+			// when a `say` was already queued or released in this same turn — the owner is about to hear a spoken
+			// hand-off ("I've asked the mastermind") instead, and a beep on top of that would be a second signal
+			// for the same thing. The answer itself still arrives later, the normal way: the delegate's work wakes
+			// this seat again and it `say`s the real reply, which release_say() marks `done` (above).
+			if (who.role === "smart" && this.single_seat(s) && !s.turn_said && HANDOFF_TOOL.test(event.name ?? "") && !s.thinking_open){
+				s.thinking_open = true;
+				this.write(s, { thinking: { at: now_ms(), by: "smart" } });
+			}
+			return this.streaming(s, who.role, agent.id, null);   // text before a tool call was thinking aloud
+		}
 		if (event.type !== "result") return;
 		this.streaming(s, who.role, agent.id, null);
 		if (event.stopped) return;
@@ -1890,6 +1906,10 @@ export const is_filler = text => { const t = String(text ?? "").trim(); return !
 /* The fast assistant's "this is a new topic" marker (`session-fast.md`): always the first
  * thing in its reply, stripped off by `heard()` above before anything else reads the text. */
 const NEW_PARAGRAPH = /^\(new paragraph\)\s*/i;
+
+/* A tool call that hands the turn off to someone else (a mastermind, another agent) — the thinking-sound
+ * trigger (ask10): the single seat's first one of these in a turn marks the session as "working" at once. */
+const HANDOFF_TOOL = /^(?:spawn_agent|send_to_agent|ask_mastermind|ask_manager|ask_module|ask_expert|ask_directory)$/;
 
 /* A JSON body: the one express already parsed, else read here (64 kB at most). Layers.js has the same. */
 function body(req){

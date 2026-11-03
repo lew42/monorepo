@@ -47,7 +47,7 @@ export default class Recite extends Part {
 	echo_guard_ms = 1500;   // echo: how long after playback stops BargeIn still treats the mic as likely hearing its own voice (a raised threshold, a fuzzy text match against what was just read)
 	echo_guard_until = null;   // echo: performance.now() the guard above expires at; set by set() whenever "playing" ends
 	thinking_cue = true;    // a short, subtle tone fired by start_thinking() (the voice agent's long-lookup signal), repeated every cue_repeat_ms until the reply starts; false turns it off
-	cue_repeat_ms = 2000;   // thinking cue: the gap between repeats while the agent is still working
+	cue_repeat_ms = 6000;   // thinking cue: the gap between repeats while the agent is still working (three bleeps per repeat, 2026-11-03)
 	cue_max_ms = 60000;     // thinking cue: gives up this long after the thinking line, if no reply ever arrives
 	cue_timer = null;       // thinking cue: the timer for the next repeat
 	cue_pending = false;    // thinking cue: true from the owner's line landing on the wire until the reply starts, the cue gives up, or a fresh line replaces it
@@ -96,6 +96,8 @@ export default class Recite extends Part {
 			a.play().then(() => {
 				a.pause(); a.muted = false; this.unlocked = true; this.trace("unlocked by a tap");
 				kinds.forEach(k => document.removeEventListener(k, unlock, true));
+				const Ctx = globalThis.AudioContext ?? globalThis.webkitAudioContext;   // the thinking cue's own context: made (or resumed) on a real tap, so it is never left "suspended" when a reply first needs it (ask10, 2026-11-03)
+				if (typeof Ctx === "function") try { (this.cue_ctx ??= new Ctx()).resume().catch(() => {}); } catch {}
 				if (this.state === "paused" && /tap/.test(this.error)) this.resume();   // the reply the browser refused
 			}, e => { a.muted = false; this.trace("unlock refused", { error: e?.name }); }).finally(() => { this.unlocking = false; });
 		};
@@ -332,7 +334,7 @@ export default class Recite extends Part {
 			if (!Recite.AGENT_ID.test(chat.from.id ?? "")) return;   // "fast", "revise" (every voice revision), "card": not an agent update, ignored exactly as before this task (review finding, read-aloud-b 2026-11-02 — revise posts on every dictated sentence, the very flood this task was meant to stop)
 			return this.agent_update(chat.text, chat.at, chat.from.id);
 		}
-		if (line.thinking?.by === "smart"){ if (this.auto) this.start_thinking(); return; }   // the voice agent's own "long lookup" signal: the only thing that plays the cue
+		if (line.thinking?.by === "smart"){ if (line.thinking.done) this.cancel_cue(); else if (this.auto) this.start_thinking(); return; }   // the voice agent's own "long lookup" signal: the only thing that plays the cue; `done` closes it (ask10, 2026-11-03)
 		const add = Object.values(line).find(v => v?.replies?.add)?.replies.add;
 		if (add){
 			if (add.by === "smart"){ const out = this.final(add.text, add.id); this.flush_updates(); return out; }
@@ -379,23 +381,30 @@ export default class Recite extends Part {
 		if (was) this.changed();
 	}
 
-	/** A short generated tone, never Kokoro speech — cheap, and never competes with recite-server for the reply
-	 *  itself. Skipped while a reply is already playing, so it never talks over it. Always traced, so a test (and
-	 *  the Whisper log) sees it fire even where AudioContext does not exist (node, or a locked-down browser). */
+	/** Three short generated bleeps, never Kokoro speech — cheap, and never competes with recite-server for the
+	 *  reply itself. Skipped while a reply is already playing, so it never talks over it. Always traced (with the
+	 *  context's state), so a test (and the Whisper log) sees it fire even where AudioContext does not exist (node,
+	 *  or a locked-down browser), and a silent phone shows WHY (a context made with no tap stays "suspended" until
+	 *  resumed — the thinking-sound doc's cause 2; `resume()` here, and again in `unlock_on_tap()`, is the fix). */
 	play_cue(){
 		if (this.state === "playing") return;
-		this.trace("thinking cue");
 		const Ctx = globalThis.AudioContext ?? globalThis.webkitAudioContext;
-		if (typeof Ctx !== "function") return;
+		if (typeof Ctx !== "function"){ this.trace("thinking cue", { ctx: "none" }); return; }
 		try {
 			const ctx = this.cue_ctx ??= new Ctx();
-			const osc = ctx.createOscillator(), gain = ctx.createGain();
-			osc.frequency.value = 660;
-			gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-			gain.gain.exponentialRampToValueAtTime(0.1, ctx.currentTime + 0.02);
-			gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
-			osc.connect(gain); gain.connect(ctx.destination);
-			osc.start(); osc.stop(ctx.currentTime + 0.2);
+			this.trace("thinking cue", { ctx: ctx.state });
+			if (ctx.state === "suspended") ctx.resume().catch(() => {});
+			const bleeps = 3, bleep_s = 0.12, gap_s = 0.08;
+			for (let i = 0; i < bleeps; i++){
+				const t0 = ctx.currentTime + i * (bleep_s + gap_s);
+				const osc = ctx.createOscillator(), gain = ctx.createGain();
+				osc.frequency.value = 660;
+				gain.gain.setValueAtTime(0.0001, t0);
+				gain.gain.exponentialRampToValueAtTime(0.3, t0 + 0.02);
+				gain.gain.exponentialRampToValueAtTime(0.0001, t0 + bleep_s);
+				osc.connect(gain); gain.connect(ctx.destination);
+				osc.start(t0); osc.stop(t0 + bleep_s + 0.02);
+			}
 		} catch (e){ this.trace("thinking cue failed", { error: String(e?.message ?? e).slice(0, 120) }); }
 	}
 
