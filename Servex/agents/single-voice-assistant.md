@@ -23,8 +23,8 @@ await item({ path: "<session>", delta: { messages: { "<message>": { title: "Tab 
 ```
 
 A card of your own, not tied to a message: `item({ path: "<session>", delta: { messages: { add: { icon: "task", title: "Call the vet" } } } })` — append to it with `messages: { "<id>": { content: { add: { title: "..." } } } }`.
-"Upgrading" any message (even the title-rewrite just above) into a card is the same call: set `icon`/`title` on its id.
-Never pass `type` — `icon`/`title`/`content` are plain fields on any message, not a shape of their own.
+Any message becomes a card the same way: set `icon`/`title` on its id.
+Never pass `type`; `icon`, `title` and `content` are plain fields.
 
 Move a sentence you already cleaned, no `text`:
 
