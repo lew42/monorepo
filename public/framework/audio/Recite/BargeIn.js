@@ -30,6 +30,11 @@ export default class BargeIn extends Part {
 	mode = "volume";      // what pauses reading: "volume" (loud, then check) or "words" (only real words from Whisper); remembered as "barge_mode"
 	threshold = 0.35;     // on MicStream's shown level, 0..1 (the meter's own scale)
 	hold_ms = 250;
+	quick_hold_ms = 120;   // cutting in (2026-11-03): the hold used instead of hold_ms when the owner was ALREADY talking as the chunk began (no grace to wait out) — a reply that starts over the owner must die fast
+	grace_ms = 1000;       // cutting in: for this long after a chunk starts, the fast volume trigger is blocked (the chunk's own first word tripping the mic, then stopping it — the stutter) — but only when the owner was quiet when it began; skipped entirely if they were already talking (quick_hold_ms applies instead)
+	chunk_at = 0;          // cutting in: performance.now() the current chunk started playing (Recite.chunk_started())
+	last_speech_at = -Infinity;   // cutting in: performance.now() of the last frame loud enough to count as the owner talking — the one-second hold reads this, not the instantaneous level (review finding 5, 2026-11-03)
+	chunk_grace_skip = false;   // cutting in: true when the owner was already talking as the chunk began — no grace, quick_hold_ms applies
 	listen_ms = 1500;
 	check = true;         // false: any loud sound pauses, with no Whisper check
 	state = "off";        // off | listening | checking | heard
@@ -116,24 +121,56 @@ export default class BargeIn extends Part {
 	 *  now covering the chat-mic path too, since that is the normal one on a phone — but only for a line that came
 	 *  from speech: a TYPED line (`via === "text"`) is skipped, since `recent_peak` is a mic reading and decays to
 	 *  under `near_silent` after about 5 s of a quiet mic, which a typed line says nothing about (review finding 1,
-	 *  2026-11-02). Each is logged and dropped, never acted on. Otherwise, also runs while already paused by an
-	 *  earlier barge-in (`recite.state === "heard"`) — a SECOND line ("wait… / what about the other one?") must
-	 *  still get its own question check, or it would otherwise resume and talk over the new answer; `heard_speech`
-	 *  just pushes the quiet window out when it isn't a question. */
+	 *  2026-11-02). Each is logged and dropped, never acted on. Otherwise cancels the whole queue at once (`cut()`,
+	 *  cutting in 2026-11-03) — a reply held by turn-taking (`wait_at`, never started) counts as "reading" too, so
+	 *  real speech dropped the moment it is confirmed, not only once something is already playing. */
 	owner_spoke(text, via){
 		this.spoke?.(text);
 		if (BargeIn.noise(text)){ this.recite.trace("barge: phantom phrase dropped", { text: String(text).slice(0, 80) }); return; }
 		if (this.recite.echo_active() && this.echo(text)){ this.recite.trace("barge: echo dropped", { text: String(text).slice(0, 80) }); return; }
 		if (text && via !== "text" && this.recent_peak < this.near_silent){ this.recite.trace("barge: near-silent dropped", { text: String(text).slice(0, 80), peak: this.recent_peak }); return; }
-		if (this.recite.state === "playing" || this.recite.state === "loading") this.recite.pause("heard");
-		else if (this.recite.state !== "heard") return;
-		this.heard_speech(text);
+		const reading = ["playing", "loading", "heard"].includes(this.recite.state) || this.recite.wait_at != null;
+		if (!reading) return;
+		this.cut(text);
+	}
+
+	/** Real owner speech just confirmed (the wire line, or the own-mic Whisper check): cancel the whole queue at
+	 *  once (cutting in, 2026-11-03) — no auto-resume, unless `resume_after_cut` is on, which keeps the old manners
+	 *  (pause, drop only on a question, otherwise resume once quiet). `close_mic`: trigger()'s own-mic path owns the
+	 *  mic once real words are heard (play() reopens it); a wire line never does. */
+	cut(text, { close_mic = false } = {}){
+		if (close_mic && this.mic) this.close();
+		this.heard = text;
+		this.note = "heard: " + text;
+		if (this.recite.resume_after_cut){
+			if (this.recite.state === "playing" || this.recite.state === "loading") this.recite.pause("heard");
+			else if (this.recite.state !== "heard") return;   // only a wait_at hold, with nothing playing: nothing to pause into "heard"
+			this.state = "heard";
+			if (/\?\s*$/.test(text)){
+				this.note = "heard a question: " + text;
+				this.cancel_resume();
+				this.recite.drop_heard();
+				this.sync();
+			} else this.schedule_resume();
+		} else {
+			this.cancel_resume();
+			this.recite.cancel_unheard();
+			this.state = "off";
+			this.sync();
+		}
+		this.recite.changed();
 	}
 
 	/** True while the owner is making sound loud enough to count as talking, by the same threshold the fast barge-in
 	 *  check uses. Recite asks this before it starts a freshly queued reply, so it never talks over the owner
 	 *  (turn-taking, dictation-v3 2026-11-01): it waits for quiet instead of starting, or interrupting. */
-	speaking(){ return this.on && this.level > this.effective_threshold(); }
+	speaking(){ return this.level > this.effective_threshold(); }   // not gated on `on` any more (cutting in, 2026-11-03): Recite.start_or_hold() must hold for quiet whether or not the interrupt ear is on, and the level keeps running either way through the chat's own mic (use_mic())
+
+	/** How long since the owner was last loud enough to count as talking (`last_speech_at`, updated every frame in
+	 *  `hear()`) — never "are they loud THIS INSTANT" (`speaking()`), which would read quiet the moment after a
+	 *  word ends, with no hold at all (review finding 5, 2026-11-03). Named `silence_ms`, not `quiet_ms` — that
+	 *  name is already a field (the resume-after-a-barge-in wait, above). */
+	silence_ms(){ return performance.now() - this.last_speech_at; }
 
 	/** The loudness floor a sound must clear to count as the owner talking: raised by `echo_threshold_mult` while
 	 *  `recite.echo_active()` (playing, or just stopped), so the read-aloud voice itself and a cough right after it
@@ -141,24 +178,6 @@ export default class BargeIn extends Part {
 	effective_threshold(){
 		const base = Math.max(this.threshold, this.noise_floor * 1.15);
 		return this.recite.echo_active() ? base * this.echo_threshold_mult : base;
-	}
-
-	/** Real speech was heard (this mic's own check, or the chat's own line): note it, and decide what happens to the
-	 *  paused reply. A question ("...?") means a new answer is coming, so the paused reply is dropped outright
-	 *  (recite.drop_heard() — only its own chunks; anything else already queued behind it keeps its place and still
-	 *  plays). Anything else schedules an auto-resume once things go quiet (schedule_resume). */
-	heard_speech(text, { close_mic = false } = {}){
-		if (close_mic && this.mic) this.close();   // close() resets state to "off"; set it below, after
-		this.heard = text;
-		this.note = "heard: " + text;
-		this.state = "heard";
-		if (/\?\s*$/.test(text)){
-			this.note = "heard a question: " + text;
-			this.cancel_resume();          // state is "off" before drop_heard() runs, so its own sync() sees the right state
-			this.recite.drop_heard();
-			this.sync();                   // belt and suspenders: drop_heard()'s own set() already calls this when it goes idle
-		} else this.schedule_resume();
-		this.recite.changed();
 	}
 
 	/** (Re)starts the quiet timer; each call while still "heard" pushes it further out (hear(), below), so the owner
@@ -198,9 +217,15 @@ export default class BargeIn extends Part {
 		this.recite.changed();
 	}
 
+	/** Recite.play()/speak_browser() calls this the instant a chunk actually starts: the start grace (cutting in,
+	 *  2026-11-03) times from here, and remembers whether the owner was already talking as it began (then there is
+	 *  no grace to give — quick_hold_ms applies instead, in hear()). */
+	chunk_started(){ this.chunk_at = performance.now(); this.chunk_grace_skip = this.speaking(); }
+
 	/** One level frame (about every 8 ms). */
 	hear(shown){
 		this.level = shown;
+		if (shown > this.effective_threshold()) this.last_speech_at = performance.now();   // the one-second hold (Recite.start_or_hold/check_wait) counts from here, not from "is it loud THIS INSTANT" — tracked whatever this.state is, so a reply arriving the moment after the owner stops still waits
 		this.recent_peak = Math.max(shown, this.recent_peak * 0.995);   // a decaying max, not a point sample: owner_spoke() reads it well after the loud instant has passed
 		this.noise_floor *= 0.9993;
 		if (this.state === "checking") this.peak = Math.max(this.peak, shown);
@@ -209,12 +234,14 @@ export default class BargeIn extends Part {
 			else if (shown > this.effective_threshold()) this.schedule_resume();   // still talking: push the quiet window out
 			return;
 		}
-		if (this.state !== "listening" || this.recite.state !== "playing") return;
+		if (this.state !== "listening" || !["playing", "loading"].includes(this.recite.state)) return;
 		const now = performance.now();
 		if (shown > this.effective_threshold()){
+			if (!this.chunk_grace_skip && now - this.chunk_at < this.grace_ms) return;   // the chunk's own first word, right after it started quiet: wait out the grace, don't even arm the hold
 			this.quiet_since = null;
 			this.loud_since ??= now;
-			if (now - this.loud_since >= this.hold_ms) this.trigger();
+			const hold = this.chunk_grace_skip ? this.quick_hold_ms : this.hold_ms;   // already talking when it began: no grace was given, so cut fast
+			if (now - this.loud_since >= hold) this.trigger();
 		} else {
 			this.loud_since = null;
 			this.quiet_since ??= now;
@@ -249,7 +276,7 @@ export default class BargeIn extends Part {
 			if (this.recite.state === "heard") this.recite.resume();
 		} else {
 			if (words) this.recite.pause("heard");   // real words, only now: reading kept going through the check
-			this.heard_speech(text, { close_mic: true });   // the mic is yours now (dictate) unless it was a question; play reopens it
+			this.cut(text, { close_mic: true });   // the mic is yours now (dictate) unless resume_after_cut is on and it was a question; play reopens it
 		}
 		this.recite.changed();
 	}
