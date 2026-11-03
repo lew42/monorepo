@@ -176,7 +176,7 @@ export default class DatedFiles extends Dated {
 			try { for (const e of fs.readdirSync(dir, { withFileTypes: true })) if (e.isDirectory()) have.add(R.rel(path.join(dir, e.name))); } catch {}
 		}
 		const moves = this.misfiled({ since: DatedFiles.LOCAL_DAY_SINCE }).moves.filter(m => m.source !== "folder birth time"), stale = [...latest.values()].filter(r => r.path && !fs.existsSync(path.isAbsolute(r.path) ? r.path : R.abs(r.path))).map(r => r.path);
-		const twins = this.folders().twins().map(t => ({ id: t.id, home: R.rel(t.home), others: t.others.map(o => R.rel(o)) }));
+		const twins = this.session_folders().twins().map(t => ({ id: t.id, home: R.rel(t.home), others: t.others.map(o => R.rel(o)) }));
 		return { ok: !moves.length && !stale.length && !twins.length, folders: have.size, rows: latest.size, misfiled: moves.map(m => m.old), stale, twins: twins.length, twin_examples: twins.slice(0, 5) };
 	}
 
@@ -200,10 +200,10 @@ export default class DatedFiles extends Dated {
 	 *  Doc: public/framework/ai/sessions/doc/one-folder.md. */
 	session_dir(id, day = new Date()){
 		const t = typeof day === "string" ? new Date(day + "T12:00:00") : day;
-		return this.folders().home(id, this.day_dir(t));
+		return this.session_folders().home(id, this.day_dir(t));
 	}
 	/** The finder of this collection's store. */
-	folders(){ return SessionFolders.at(DatedFiles.abs(this.root)); }
+	session_folders(){ return SessionFolders.at(DatedFiles.abs(this.root)); }
 	/** The full session id a folder says it holds, or null (SessionFolders.owner: the claim rule, in one place). */
 	static owner(dir){ return SessionFolders.owner(dir); }
 	/** Where a new task folder goes: inside its session when one is given, else straight under the day. Absolute, not created. `parent` is resolved by the caller. */
