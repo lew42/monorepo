@@ -78,3 +78,14 @@
 {"finding":{"at":"2026-11-03T13:53:02-06:00","n":5,"kind":"note","text":"The framework readme line 30 and `ux/Dictate/readme.md` line 89 say nothing about per-instance overrides or Make default; the core/Plugin readme does. Fine to link there, but the one-line index entry is now incomplete."}}
 {"finding":{"at":"2026-11-03T13:53:02-06:00","n":6,"kind":"note","text":"The Plugin page is 70 to 79% empty at 1920 and 3440 (layout.json empty 0.70 and 0.79), which is normal for a prose page."}}
 {"phase":{"at":"2026-11-03T13:53:02-06:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0.5537018000000001,"model":"claude-sonnet-5-5"}}
+{"phase":{"at":"2026-11-03T13:54:21-06:00","n":2,"kind":"answers","status":"start"}}
+{"answer":{"at":"2026-11-03T13:54:21-06:00","n":1,"reply":"noted: this is merge 2 of 5 by design (plan.md Status says so); steps 2 to 5 are separate reviewed merges and no owner ask is ticked."}}
+{"answer":{"at":"2026-11-03T13:54:21-06:00","n":2,"reply":"fixed: plan.md Status now says qf-1 landed and step 1 is ready to merge."}}
+{"answer":{"at":"2026-11-03T13:54:21-06:00","n":3,"reply":"fixed: the nine unrelated shot folders (stale 404 pages from the log sweep) are removed; only shots/...core-Plugin remains."}}
+{"answer":{"at":"2026-11-03T13:54:21-06:00","n":4,"reply":"fixed: the Make default and Reset to default buttons are nowrap and the row wraps as a whole."}}
+{"answer":{"at":"2026-11-03T13:54:21-06:00","n":5,"reply":"fixed: the framework readme core/Plugin line now names per-instance overrides and make_default."}}
+{"answer":{"at":"2026-11-03T13:54:21-06:00","n":1,"reply":"declined: this is merge 2 of 5 by design (plan.md Status says so); steps 2 to 5 are separate reviewed merges, each leaving Voice Chat working, and no owner ask is ticked."}}
+{"answer":{"at":"2026-11-03T13:54:21-06:00","n":3,"reply":"fixed: the nine unrelated shot folders are removed; only shots/...core-Plugin remains."}}
+{"answer":{"at":"2026-11-03T13:54:21-06:00","n":4,"reply":"fixed: the Make default and Reset to default buttons are nowrap, the row wraps as a whole."}}
+{"answer":{"at":"2026-11-03T13:54:21-06:00","n":5,"reply":"noted: the framework readme core/Plugin line now names per-instance overrides and make_default."}}
+{"phase":{"at":"2026-11-03T13:54:21-06:00","n":2,"kind":"answers","status":"done"}}
