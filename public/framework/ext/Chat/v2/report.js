@@ -36,8 +36,10 @@ export function context(text){ post(current_session, "context", text); }
 /** The plain sentence for a `Recite.on_read` event (audio/Recite's `cancel_unheard()`, cutting in 2026-11-03):
  *  pure, so it is testable with no fetch and no session — `read(ev)` below posts what this returns. */
 export function read_note(ev){
+	// "about": Recite.heard_words() is the cut sentence's own first few words, not where the audio really stopped
+	// (no word timer exists) — review finding 11, 2026-11-03.
 	return ev.heard === "cut"
-		? `(cut off after "${ev.words}"; the rest was not heard — treat it as unsaid)`
+		? `(cut off about "${ev.words}"; in the sentence starting there, the rest was not heard — treat it as unsaid)`
 		: `(a reply was skipped, never heard: it queued behind a reply you then cancelled)`;
 }
 /** A reply was cut short or skipped before it was heard: filed as `context`, same as `context()` above — a note
