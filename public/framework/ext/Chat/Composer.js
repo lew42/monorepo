@@ -56,6 +56,12 @@ export function composer({
 				on_error: e => console.warn("[dictate] composer:", e),
 				on_clean_failed: why => note("clean-up isn't answering - will send raw (" + why + ")"),
 			}).ac("chatbox-mic");
+			if (mic){   // an empty line beside the mic; chat.js fills it later (ux/Dictate/ChatStatus.js; ext/Chat imports nothing from ux/)
+				const status = mic.status_el = document.createElement("span");
+				status.className = "chatbox-compose-status muted";
+				status.setAttribute("aria-live", "polite");
+				mic.el.after(status);
+			}
 
 			if (with_mic){
 				const $menu_btn = button.c("chatbox-compose-more chatbox-compose-menu").attr("type", "button")

@@ -41,3 +41,7 @@ A voice session's plugin switches and values — a [`VoiceChat`](/framework/ux/D
 - **The shared defaults** ("Make default") are unchanged by this step: one more object of the flat shape in `session-defaults.json` beside `sessions.json` (`POST`/`GET /api/session/defaults`), the page side still not wired to read it (queued).
 
 Tests: `node Servex/agents/Sessions.plugins.test.mjs` (rewritten for the new storage), `node public/framework/ux/Dictate/VoiceChat/VoiceChat.test.mjs` (`overrides_by_group`/`load_grouped`), `node public/framework/core/Session/Session.test.mjs` (`session.settings` groups).
+
+## Status line
+
+One small muted word beside the mic in the composer, `aria-live="polite"`, empty when nothing is happening. [`ChatStatus.js`](../ChatStatus.js) (`phase()`, `subscribe(fn)`, `bind(el)`) shows the FIRST true of: `speaking` (Recite `state` is playing or loading), `agent working` (`Recite.cue_pending`: the owner's line landed, no reply yet), `sending` (a post is out and its line is not on the wire: the `sending` list in `chat.js`, minus echoed or late entries), `listening` (`floor.owner` is set). It copies no state: `chat.js` hands in the four reads, and three change signals: `Recite.on` (which now also fires when `cue_pending` flips), `floor.on_mic`, and the page's own post callbacks. `ext/Chat/Composer.js` draws the empty span (`mic.status_el`, `.chatbox-compose-status` in `Chat.css`, truncates rather than widen the row) and `chat.js` binds it; `ext/Chat` imports nothing from `ux/`. Test: `node public/framework/ux/Dictate/ChatStatus.test.mjs`.

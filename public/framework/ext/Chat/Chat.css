@@ -116,6 +116,10 @@
 	}
 	.chatbox-mic .ux-dictate-info { min-width: 0; }
 
+	/* The status line beside the mic (ux/Dictate/ChatStatus.js): one small word, truncates rather than widen the row. */
+	.chatbox-compose-status { flex: 0 1 auto; min-inline-size: 0; max-inline-size: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.75em; }
+	.chatbox-compose-status:empty { display: none; }
+
 	.chatbox-compose-send,
 	.chatbox-compose-more {
 		flex: none;
