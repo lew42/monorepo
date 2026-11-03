@@ -169,7 +169,7 @@ await check("a hand-off tool call writes one thinking line; a second hand-off in
 	assert.equal(thinking().length, 1, "a plain tool call is not a hand-off");
 });
 
-// The real path, driven end to end — no hand-resetting flags (review round 2, finding 3): turn 1 says the
+// The real path, driven end to end — no hand-resetting flags: turn 1 says the
 // hand-off and calls it, turn 1 ends empty (nothing()), the delegate's own message lands as a real `agent_msg`
 // event (the actual wake a `send_to_agent` reply produces — Agents.js emits it before the seat's next turn even
 // starts), and that next turn answers with its own `say`, released the normal way.
@@ -198,10 +198,10 @@ await check("a say queued before the hand-off suppresses the thinking line, but 
 	assert.equal(replies()[1].chat.text, "The tab bar bug is fixed.");
 });
 
-// Deliverable 4 (review round 2, finding 1): when nothing was ever said and the hand-off left the cue open, the
-// delegate's OWN message (an `agent_msg` from someone other than the owner) closes it directly — the owner's own
-// sentences (`from: "owner"`) must never be mistaken for that.
-await check("an agent_msg from the delegate closes an open thinking line; one from the owner never does", async () => {
+// The delegate's OWN message closes an open cue; nothing else does — not the owner's own sentences (including a
+// tail-mode seat's own line arriving as `from: "servex-follow"`), and not any of Servex's own nudges (`from`
+// starting "servex": spend/compact/landing-check).
+await check("a servex nudge and an owner line (including tail mode) never close the cue; the delegate's own message does", async () => {
 	sent.length = 0;
 	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
 	s.say({ session: made.session, path: "/a/", text: "Ask the mastermind about the logo.", via: "voice", floor: "speaking" });
@@ -212,10 +212,33 @@ await check("an agent_msg from the delegate closes an open thinking line; one fr
 	assert.equal(thinking().length, 1, "the open line is written");
 	s.heard({ type: "agent_msg", from: "owner", text: "also, how's the logo" }, agent);
 	assert.equal(thinking().length, 1, "the owner's own message never closes it");
+	s.heard({ type: "agent_msg", from: "servex-follow", text: "on /a/ at …: also, how's the logo" }, agent);   // tail mode's own echo of the owner's next sentence
+	assert.equal(thinking().length, 1, "nor does a tail-mode echo of the owner's own line");
+	s.heard({ type: "agent_msg", from: "servex", text: "Servex: $1 spent since your last result." }, agent);
+	assert.equal(thinking().length, 1, "nor a spend nudge");
+	s.heard({ type: "agent_msg", from: "servex-landing-check", text: "landing-check: …" }, agent);
+	assert.equal(thinking().length, 1, "nor a landing-check nudge");
 	s.heard({ type: "agent_msg", from: "mastermind-voice-system", text: "The new logo is ready." }, agent);
 	assert.equal(thinking().length, 2, "the delegate's own message closes it");
 	assert.deepEqual({ by: thinking()[1].thinking.by, done: thinking()[1].thinking.done }, { by: "smart", done: true });
 	assert.ok(!s.map[made.session].thinking_open);
+});
+
+// "Once per turn" must mean per turn: a cue an earlier turn left open must not block a hand-off in a NEW turn,
+// even before thinking_open_ms has passed — tied to the turn id, bumped at every turn's end (including a
+// `stopped` — interrupted — turn, so an interrupted hand-off turn does not leave the next turn still "mid-turn").
+await check("a new turn's hand-off beeps again even with an old turn's cue still open, well under thinking_open_ms", async () => {
+	sent.length = 0;
+	const s = make({ thinking_open_ms: 10 * 60000 }), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
+	s.say({ session: made.session, path: "/a/", text: "Ask the mastermind about the logo.", via: "voice", floor: "speaking" });
+	await tick();
+	const id = s.map[made.session].smart, agent = { id };
+	const thinking = () => lines(file).filter(l => l.thinking);
+	s.heard({ type: "tool", name: "spawn_agent" }, agent);
+	s.heard({ type: "result", stopped: true }, agent);   // the turn is interrupted, not a normal result — must still end the turn
+	assert.equal(thinking().length, 1, "still open: no answer ever came");
+	s.heard({ type: "tool", name: "ask_mastermind" }, agent);   // a brand new turn's own hand-off
+	assert.equal(thinking().length, 2, "a new turn beeps again, long before thinking_open_ms would have expired it");
 });
 
 // Finding 2: a hand-off that never gets answered (the turn ends with nothing(), the brief's own instruction)

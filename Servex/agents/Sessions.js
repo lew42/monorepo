@@ -1731,12 +1731,14 @@ export default class Sessions {
 		const who = this.by_agent.get(agent.id), s = who && this.map[who.id];
 		if (!s) return;
 		if (event.type === "delta" && !event.nested) return who.role === "smart" && this.single_seat(s) ? undefined : this.streaming(s, who.role, agent.id, event.text);   // single: its reply is one short paragraph, shown whole at the turn's end, so filler can be dropped before anyone sees it
-		/* THINKING SOUND, closing (ask10, review round 2): the delegate's answer can land as an `agent_msg` — a message FROM
-		 * another agent (`send_to_agent`, a mastermind reporting back), queued onto this seat's turn — well before that
-		 * turn's own `result` fires. `from: "owner"` is every normal sentence (Sessions.send() above); `from: "host"` is the
-		 * very first prompt a fresh agent gets. Neither closes the cue; anything else is someone else's work landing. */
+		/* THINKING SOUND, closing: the delegate's answer can land as an `agent_msg` — a message FROM another agent
+		 * (`send_to_agent`, a mastermind reporting back), queued onto this seat's turn — well before that turn's own
+		 * `result` fires. Three senders are never the delegate: `"owner"` (every normal sentence, including the
+		 * owner's own next one in tail mode, `Servex/Follow.js`'s `"servex-follow"`), `"host"` (a fresh agent's very
+		 * first prompt), and anything starting `"servex"` (Servex's own spend/compact/landing nudges, `Agents.js`).
+		 * Only an actual other agent's message closes the cue. */
 		if (event.type === "agent_msg"){
-			if (who.role === "smart" && this.single_seat(s) && s.thinking_open && event.from && event.from !== "owner" && event.from !== "host"){
+			if (who.role === "smart" && this.single_seat(s) && s.thinking_open && event.from && event.from !== "owner" && event.from !== "host" && !/^servex/i.test(event.from)){
 				s.thinking_open = false;
 				this.write(s, { thinking: { at: now_ms(), by: "smart", done: true } });
 			}
@@ -1749,19 +1751,24 @@ export default class Sessions {
 			// hand-off ("I've asked the mastermind") instead, and a beep on top of that would be a second signal
 			// for the same thing. The answer itself still arrives later, the normal way: the delegate's work wakes
 			// this seat again and it `say`s the real reply (release_say marks `done`), or its own `agent_msg` closes
-			// the cue directly, above. `thinking_open` is also treated as stale past `thinking_open_ms` (a bit past
-			// Recite's own 60 s cap): an unanswered hand-off must not block the beep on a LATER, unrelated one
-			// forever (review round 2, finding 2).
-			const open_stale = s.thinking_open && Date.now() - (s.thinking_open_at ?? 0) > this.thinking_open_ms;
+			// the cue directly, above. An open cue never blocks a hand-off from a LATER turn (`s.turn_id`, bumped
+			// at every turn's end below): "once per turn" means once per turn, not once until closed. It also
+			// expires after `thinking_open_ms` regardless, in case a turn never properly ends.
+			const open_stale = s.thinking_open && (Date.now() - (s.thinking_open_at ?? 0) > this.thinking_open_ms || s.thinking_turn_id !== (s.turn_id ?? 0));
 			if (who.role === "smart" && this.single_seat(s) && !s.turn_said && is_handoff(event) && (!s.thinking_open || open_stale)){
 				s.thinking_open = true;
 				s.thinking_open_at = Date.now();
+				s.thinking_turn_id = s.turn_id ?? 0;
 				this.write(s, { thinking: { at: now_ms(), by: "smart" } });
 			}
 			return this.streaming(s, who.role, agent.id, null);   // text before a tool call was thinking aloud
 		}
 		if (event.type !== "result") return;
 		this.streaming(s, who.role, agent.id, null);
+		// THINKING SOUND: every turn's end, interrupted or not, bumps the turn id and clears `turn_said` — the ONE
+		// place this resets, not one hand-kept flag per wake path, and it must run even when the turn was cut short
+		// (`event.stopped`, below), or an interrupted hand-off turn would leave the NEXT turn still "mid-turn".
+		if (who.role === "smart" && this.single_seat(s)){ s.turn_said = false; s.turn_id = (s.turn_id ?? 0) + 1; }
 		if (event.stopped) return;
 		/* THE SINGLE SEAT FILES SILENTLY (ask2a-say-tools): plain text is NEVER a reply, cue open or not -- only `say` (queued,
 		 * released through `release_say`) ever becomes something the owner hears or sees. A turn that ends in plain text
@@ -1769,7 +1776,6 @@ export default class Sessions {
 		 * `nothing` tool, or no text at all) writes nothing at all (requirement 1), handled by the `!text` check below. */
 		if (who.role === "smart" && this.single_seat(s)){
 			delete s.cue_open;
-			s.turn_said = false;   // a fresh turn starts next, however it gets woken (say, pause cue, or an agent_msg landing: review round 2, finding 3) — the ONE place this resets, not one hand-kept flag per wake path
 			const text = String(event.text ?? agent.last_text ?? "").trim();
 			if (!text) return;
 			return this.write(s, { skip: { at: now_ms(), role: who.role, text } });
@@ -1930,7 +1936,7 @@ const NEW_PARAGRAPH = /^\(new paragraph\)\s*/i;
  * "spawn_agent, a message to the mastermind, or an ask_*"): the single seat's first one of these in a turn marks
  * the session as "working" at once. `spawn_agent` and every `ask_*` always count (they only ever reach into the
  * repo or another agent for real work); `send_to_agent`'s own `id=` argument is checked, so a message to some
- * other, unrelated agent does not beep (review round 2, finding 6 — the brief never asked for that). */
+ * other, unrelated agent does not beep. */
 const HANDOFF_TOOL = /^(?:spawn_agent|ask_mastermind|ask_manager|ask_module|ask_expert|ask_directory)$/;
 const is_handoff = event => HANDOFF_TOOL.test(event.name ?? "") || (event.name === "send_to_agent" && /\bid=\S*mastermind\S*/i.test(event.input ?? ""));
 

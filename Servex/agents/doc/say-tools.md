@@ -40,3 +40,16 @@ reply — never a second, almost-the-same copy of that shape.
 Tests: [`say-tools.test.mjs`](../say-tools.test.mjs) (the tools and the gate) · [`single-brief.test.mjs`](../single-brief.test.mjs)
 (the brief itself — its own words, the real opening prompt a seat is spawned with, and a replayed real session driven through the
 real `say`/`nothing`/`retract_say` handlers, with a narration attempt checked to be a muted skip, never a reply).
+
+## The thinking sound (ask10, 2026-11-03)
+
+`heard()` writes `{"thinking":{"by":"smart"}}` on the single seat's first hand-off call in a turn (`spawn_agent`, any `ask_*`, or
+`send_to_agent` whose own `id` names a mastermind) — the phone's three-bleep cue (`audio/Recite/readme.md`) fires on this line, not
+on anything the model says. It closes two ways: `release_say` writes `{"thinking":{"by":"smart","done":true}}` the moment a real
+reply is written (the hand-off sentence itself, or the delegate's answer landing later as a fresh `say`); or an `agent_msg` from
+the delegate itself (never from `"owner"`, `"host"`, or anything starting `"servex"` — a nudge or a tail-mode echo) closes it
+directly. Never twice in one turn, and never when a `say` was already queued or released earlier in the same turn. A cue from an
+EARLIER turn never blocks a new turn's own hand-off (`s.turn_id`, bumped at every turn's end, interrupted or not); it also expires
+after `SERVEX_SESSION_THINKING_OPEN_MS` (default 70000) regardless, in case a turn never properly ends. Detail and the Recite
+side: [`ux/Dictate/doc/thinking-sound.md`](/framework/ux/Dictate/doc/thinking-sound.md). Tests: the ask10 checks in
+[`Sessions.single.test.mjs`](../Sessions.single.test.mjs).
