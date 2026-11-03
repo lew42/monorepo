@@ -37,4 +37,6 @@ emoji becomes a tap-back reaction, anything else a chat line, threaded when it a
 of its own defaults to `s.smart_re` (the owner's latest sentence), the same fallback `heard()` always used for a dual-seat smart
 reply — never a second, almost-the-same copy of that shape.
 
-Tests: [`say-tools.test.mjs`](../say-tools.test.mjs).
+Tests: [`say-tools.test.mjs`](../say-tools.test.mjs) (the tools and the gate) · [`single-brief.test.mjs`](../single-brief.test.mjs)
+(the brief itself — its own words, the real opening prompt a seat is spawned with, and a replayed real session driven through the
+real `say`/`nothing`/`retract_say` handlers, with a narration attempt checked to be a muted skip, never a reply).
