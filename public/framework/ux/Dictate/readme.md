@@ -1,5 +1,7 @@
 # Dictate — a mic button that always shows what is happening
 
+**Voice Chat's guiding principles and direction (read first; the owner, 2026-11-03):** never interrupt, never assume the screen is seen, the messages list is the one truth, silent by default with a `say` tool, settings per session: [`doc/principles.md`](doc/principles.md).
+
 **How a chat is made, mic to screen** (the pipeline, the two views, the class sketch, the colours, the item tool; one file:line per stage): [`doc/pipeline.md`](doc/pipeline.md).
 
 **The green check and the brain icon look out of sync?** What triggers each one, by file:line, and the one real mismatch between V1 and v2 (not just timing): [`doc/status-icons.md`](doc/status-icons.md).
