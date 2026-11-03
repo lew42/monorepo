@@ -16,7 +16,6 @@ import { role_readme_path } from "../Servex/agents/roles.js";
 
 const SELF_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const slash = p => String(p).replaceAll("\\", "/");
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const E00 = "e00f55c9-bad4-4ee2-899e-d629ea1eede6";
 
 export default class ChildLinks {
