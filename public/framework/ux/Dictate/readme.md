@@ -102,7 +102,7 @@ ever appeared — no error, no clue why.
 
 **Per-chat plugins (Interrupt, Thinking cue; more to come):** [`VoiceChat/readme.md`](VoiceChat/readme.md), one `VoiceChat` per Recite (one per page, shared by every chat on it) on `core/Plugin`.
 
-**Settings panel:** the ⚙ beside ⌨ on the sheet's bar (and the gear on a plain composer) opens "Dictation settings": the send delay (2 s) and the smart assistant's batch seconds and sentences; values live in `localStorage` key `chat.mic.settings.4` (`ext/Chat/Mic.js` `SETTINGS`): [`doc/settings.md`](doc/settings.md).
+**Settings panel:** the ⚙ beside ⌨ on the sheet's bar (and the gear on a plain composer) opens "Chat settings" (built by [`ChatSettings.js`](ChatSettings.js); defaults read and saved by [`ChatDefaults.js`](ChatDefaults.js)): the Whisper knobs, what to send after, read aloud, and interruption, for this session or as the defaults; values live in `localStorage` key `chat.mic.settings.4` (`ext/Chat/Mic.js` `SETTINGS`): [`doc/settings.md`](doc/settings.md).
 
 **A Whisper hallucination ("Thank you.", "you"…) never reaches the chat:** `chat.js`'s `deliver()` gates every send on the same checks `audio/Recite/BargeIn` already had, before it posts, not after: [`doc/phantom-gate.md`](doc/phantom-gate.md).
 

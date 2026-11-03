@@ -17,6 +17,8 @@ One `VoiceChat` per Recite (the page has one reader, so the first chat makes it 
 
 | Plugin | Config | Does |
 |---|---|---|
+| `SendAfter` | `after` (`sentence`, `two`, `pause`, `clause`) | Writes the mic INSTANCE (`sentences_per_send`, `send_mode`, `send_on_period/question/comma`); `detach` puts back what it found. Group: `dictate`. |
+| `ReadAloud` | `voice` (on = auto-read) | Calls `recite.set_voice` and `set_auto`; `bind` makes the bar's 🗣 button write this chat's row; `snapshot(recite)` reads the browser's remembered voice and auto. The voice list is `audio/Voice/personas.js`. Group: `recite`. |
 | `Interrupt` | `mode`, `threshold`, `quiet_ms` | Sets `recite.barge`; `reconfigure` only rewrites the values, so the mic stays open while the threshold slider moves. `bind` makes the bar's mic, mode and threshold controls also write the row of the chat that owns the bar (wrapped once per bar), dropping the override when the control is moved back to the current class value; `snapshot(recite)` reads the browser's remembered values as overrides. Group: `recite`. |
 | `ThinkingCue` | `repeat_ms` | Sets `recite.thinking_cue` and `cue_repeat_ms`; off also clears the pending repeat (not `cue_pending`). Group: `recite`. |
 
@@ -24,8 +26,8 @@ Both are read-aloud rules, so both declare `static group = "recite"`; a plugin w
 
 ## Watch out
 
-- Values go straight onto the host object, never through `remember()` (the browser's memory): they belong to the chat. The settings are saved with the session (`ux/Dictate/doc/settings.md`): opening a session replaces the browser's remembered barge-in values with the session's own, and a session with none starts from the class defaults. The bar's own controls still also write `remember()` until the Chat settings panel (plan step 5) replaces them.
-- Read `Interrupt.snapshot(recite)` BEFORE `new VoiceChat(...)` and pass it as `overrides`: the first attach writes the class values onto the host.
+- Values go straight onto the host object, never through `remember()` (the browser's memory): they belong to the chat. The settings are saved with the session (`ux/Dictate/doc/settings.md`): opening a session replaces the browser's remembered barge-in values with the session's own, and a session with none starts from the class defaults. The bar's mic, mode and threshold controls still also write `remember()`; the voice select is gone from the bar (the Chat settings panel's Voice field replaces it).
+- Read `Interrupt.snapshot(recite)` and `ReadAloud.snapshot(recite)` BEFORE `new VoiceChat(...)` and pass it as `overrides`: the first attach writes the class values onto the host.
 - One Recite means one set of read-aloud settings on a page: two chats on a page share one VoiceChat, they do not each get their own.
 - A plugin's `detach` must be safe when it was never attached.
 - `audio/Recite` imports nothing from `ux/`; the hosts are handed in.
