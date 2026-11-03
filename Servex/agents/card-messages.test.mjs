@@ -13,9 +13,9 @@
  * Step 3: upgrading an EXISTING message (one with neither icon nor title) into a card, by setting them in place — on a
  * scratch copy of a real recorded session, v-z0jonhy (the pattern single-brief.test.mjs uses for a real session replay).
  *
- * Step 4: "or a ref to an existing item" (requirements ask 3, the owner's first bullet, review finding 3): a card's
- * `content` is a plain List (`List.prototype.of = Item`), so `content:{add:{type:"Ref",…}}` hydrates through the same
- * generic path `tasks.add`'s own Refs already use (core/Item/Ref.js) — proven here end to end, including resolving it.
+ * Step 4: "or a ref to an existing item" (requirements ask 3, the owner's first bullet): a card's `content` is a plain
+ * List (`List.prototype.of = Item`), so `content:{add:{type:"Ref",…}}` hydrates through the same generic path `tasks.add`'s
+ * own Refs already use (core/Item/Ref.js) — proven here end to end, including resolving it.
  *
  * Scratch sessions live under the real store (`public/framework/ai/sessions/…`), not an OS temp dir: `run_item` (review
  * note 7) resolves every `path` against `public/framework/...` (`page_tools.js`'s `resolve()`), so it cannot address a
@@ -71,7 +71,22 @@ try {
 	check("rewriting the card's title in place", () => assert.ok(r.ok, r.why));
 	read = await run_item({ path: URL_ }, { caller: "t" });
 	last = read.state.messages.last.find(m => m.id === card_id);
-	check("…the rewrite is what a read-by-id answers", () => assert.equal(last.title, "Call the vet about the limp"));
+	check("…the rewrite is what a read-by-id answers, with the content as its actual line, not a bare count", () => {
+		assert.equal(last.title, "Call the vet about the limp");
+		assert.deepEqual(last.content, ["Ask about the limp"]);
+	});
+
+	// A bare `{"<id>":{}}` is a query: the whole list is already in memory, so a card past the last-20 window answers
+	// the same way a recent one does; a non-empty sub (a title, a content add) still runs as a write.
+	for (let i = 0; i < 22; i++) await run_item({ path: URL_, delta: { messages: { add: { title: `filler ${i}` } } } }, { caller: "t" });
+	const past_window = await run_item({ path: URL_ }, { caller: "t" });
+	check("the card is now past the last-20 window", () => assert.ok(!past_window.state.messages.last.some(m => m.id === card_id)));
+	const by_id = await run_item({ path: URL_, delta: { messages: { [card_id]: {} } } }, { caller: "t" });
+	check("…and is still readable by id, past that window, at no extra cost (the list is already in memory)", () => {
+		assert.ok(by_id.ok, by_id.why);
+		assert.equal(by_id.answer.messages[card_id].title, "Call the vet about the limp");
+		assert.deepEqual(by_id.answer.messages[card_id].content, ["Ask about the limp"]);
+	});
 
 	// ── Step 3: upgrade an ORDINARY message (no icon, no title) into a card, on a real recorded session ──────────────────
 	const SRC = path.join(ROOT, "public/framework/ai/sessions/2026/11/03/v-z0jonhy/session.jsonl");

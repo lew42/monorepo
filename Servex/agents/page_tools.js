@@ -10,6 +10,7 @@ import Item from "../../public/framework/core/Item/Item.js";
 import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
 import ChatWriter from "./ChatWriter.js";
 import LogLine from "../../Server/LogLine.mjs";
+import { note_view } from "../../public/framework/ext/Chat/v3/placement.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..");
@@ -880,6 +881,16 @@ function own_cost(dir){
 		through: m.last_at ?? null, read_to: m.cursor?.main?.off ?? null, at } : null;
 }
 
+// One chat message, as `item()` answers it: `note_view` (ext/Chat/v3/placement.js, shared with the views, Law 6) gives the
+// title/icon/content a card draws — content as its actual lines (a Ref's own label, not a bare count) — and `text` keeps the
+// `said` fallback (a Prompt's words as dictated) the views don't need. `?? ""`, never `||`: a member with neither `text` nor
+// `said` (an unregistered type, a core Ref) answers "", never the stringified word "undefined".
+function message_view(m){
+	const { title, icon, content } = note_view(m);
+	return { id: m.id, type: m.wire(), by: m.by ?? null, at: m.at ?? null, text: String(m.said ?? m.text ?? "").slice(0, 300),
+		...(title ? { title } : {}), ...(icon ? { icon } : {}), ...(content.length ? { content } : {}) };
+}
+
 /* A session's whole picture (2026-10-23, "session data, complete"; core/Session/readme.md, "What item() answers"):
  * its own cost (own_cost), its child sessions nested with their costs, the tasks' costs, its span, and task counts. */
 export function session_state(task, tasks = []){
@@ -905,12 +916,10 @@ export function session_state(task, tasks = []){
 		biggest, children: [...entries, ...unlinked], agents: agents.length,
 		// Its own turns bucketed by the task open at the time (Task.attribute); null when no per-turn record exists (a VS Code tab today).
 		by_task: (turns => turns.length ? task.attribute(turns) : null)(task.constructor.turns_resolver?.(uuid) ?? []), data: { ...task.data }, tasks,
-		// The chat (core/Session/Chat): how many messages, and the last 20, each {id, type, by, at, text, title?, icon?, content?}
-		// (a Prompt's text is its words as said; a card is any message with icon/title set). `?? ""`, never `||`: a member with
-		// neither `text` nor `said` (an unregistered type, a core Ref) must answer "", never the stringified word "undefined".
-		...(task._messages?.length ? { messages: { count: task._messages.length, last: task._messages.messages.slice(-20).map(m => ({
-			id: m.id, type: m.wire(), by: m.by ?? null, at: m.at ?? null, text: String(m.said ?? m.text ?? "").slice(0, 300),
-			...(m.title ? { title: m.title } : {}), ...(m.icon ? { icon: m.icon } : {}), ...(m.content?.length ? { content: m.content.length } : {}) })) } } : {}) };
+		// The chat (core/Session/Chat): how many messages, and the last 20 (message_view, above); an older one is read by id
+		// through the query path (`walk_queries`'s "messages" branch, below) — the whole list is already in memory, so a lookup
+		// by id costs nothing extra over this slice.
+		...(task._messages?.length ? { messages: { count: task._messages.length, last: task._messages.messages.slice(-20).map(message_view) } } : {}) };
 }
 
 /* The child sessions as a tree, from the entries (Task.sessions_below: a Session entry at any depth of the task tree, under its cause).
@@ -1023,6 +1032,16 @@ function walk_queries(node, delta, trail = "", out = { answer: {}, queried: fals
 			for (const [id, sub] of Object.entries(arg)){
 				const kid = is_plain(sub) ? node._tasks?.find(id) : null;
 				if (kid) into(kid, sub, `${here}.${id}`, a => ((out.answer.tasks ??= {})[id] = a));
+				else out.other.push(`${here}.${id}`);
+			}
+		// A chat message read by id (`{"messages":{"<id>":{}}}`, bare — a message has no other query to ask): the list is
+		// already fully in memory (`session_state`'s own `.last` only slices the answer, never the store), so one older than
+		// the last 20 costs nothing extra to find. Anything but an EMPTY `sub` is a write (a title, a content add, …), not a
+		// query — left to `out.other` so it still runs as one, the same way an unrecognized `tasks.<id>` sub-key does.
+		} else if (key === "messages" && is_plain(arg) && !LIST_VERBS.some(v => v in arg) && node._messages){
+			for (const [id, sub] of Object.entries(arg)){
+				const kid = is_plain(sub) && !Object.keys(sub).length ? node._messages.find(id) : null;
+				if (kid){ out.queried = true; (out.answer.messages ??= {})[id] = message_view(kid); }
 				else out.other.push(`${here}.${id}`);
 			}
 		} else if (is_plain(arg) && node._tasks?.find(key)) into(node._tasks.find(key), arg, here, a => (out.answer[key] = a));

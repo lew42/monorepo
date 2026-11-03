@@ -10,6 +10,7 @@ import Message from "/framework/core/Session/Chat/Message.js";
 import Prompt from "/framework/core/Session/Chat/Prompt.js";
 import Reply from "/framework/core/Session/Chat/Reply.js";
 import Ref from "/framework/core/Item/Ref.js";
+import List from "/framework/core/List/List.js";
 import { DefaultView } from "/framework/ux/Content/Object/DefaultView.js";
 import { note_view } from "../v3/placement.js";
 import { md_into } from "../md.js";
@@ -23,10 +24,26 @@ export default class ChatList extends JSONL {
 
 	// { url: the session.jsonl url, $box: the View to draw into }
 	read(entries){
-		if (!this.listening){ this.listening = true; this.session.on("delta", (line, from) => { if (from instanceof Message) this.dirty.add(from); }); }
+		if (!this.listening){ this.listening = true; this.session.on("delta", (line, from) => { const m = this.owning_message(line, from); if (m) this.dirty.add(m); }); }
 		for (const line of entries) if (line && typeof line === "object" && (line.messages || line.sentences || line.session || line.tasks)) this.session.replay_line(line);
 		this.paint();
 		return this;
+	}
+
+	// A list's own "add" bubbles with `from` = the LIST itself (List.announce), so the actual member is resolved from the
+	// line's `add` payload (same shape ChatV3.added_member reads).
+	added_member(line, from){
+		if (!(from instanceof List)) return from;
+		const added = line?.add, one = Array.isArray(added) ? added.at(-1) : added;
+		const id = one && typeof one === "object" ? one.id : one;
+		return id != null ? this.session.find(id) : null;
+	}
+	// The card a changed node belongs to, for a live redraw: a field set lands directly on the Message, but a `content`
+	// member's `.parent` IS the Message that owns it (List.js: `child.parent = this.owner`) — the same walk ChatV3.card_for() does.
+	owning_message(line, from){
+		let n = this.added_member(line, from);
+		while (n && !(n instanceof Message)) n = n.parent;
+		return n ?? null;
 	}
 	live(){ super.live(() => {}); return this; }
 	reset(){ this.session = new Session(); this.els.clear(); this.dirty.clear(); this.listening = false; this.$box?.el.replaceChildren(); return super.reset?.() ?? this; }

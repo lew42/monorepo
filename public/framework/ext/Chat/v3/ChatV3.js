@@ -197,8 +197,8 @@ export default class ChatV3 extends JSONL {
 	}
 
 	// One assistant Reply: plain markdown text on the left, no avatar. Small and overridable (V2 adds its ✓/🧠 marks, step 2).
-	// An upgraded Reply (title/icon set on it, same as any Message — review finding 4) draws its title and icon above the text,
-	// the same head `note()` draws: setting those two fields must change what the owner sees, not just the data.
+	// A Reply with `title`/`icon` set on it (the same two fields any Message has) draws them above the text, the same head
+	// `note()` draws.
 	reply(r){
 		const { title, icon: icon_name, text } = note_view(r);
 		const box = div.c("chat-v3-reply" + (title || icon_name ? " is-card" : ""), () => {

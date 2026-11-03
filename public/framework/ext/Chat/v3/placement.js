@@ -35,11 +35,11 @@ export function paragraphs(sentence_items, clean = {}, gap_ms = PARAGRAPH_GAP_MS
 	return paragraph_groups(sentence_items, gap_ms).map(group => group.map(s => clean[s.id] ?? s.text).join(" "));
 }
 
-/** What a plain Message (`note()`'s root, or an upgraded Reply) draws — review finding 1/2 (ask3-cards-by-id): a member with
- *  neither `title` nor `icon` set draws its text and nothing else; a card (icon/title set, by a fresh add or an upgrade) draws
- *  its title and icon; `content` (a List of plain Items, or Refs — "or a ref to an existing item", requirements ask 3) draws
- *  one line each. Guarded with `??`/`? :`, never `||`, so a member missing a field answers "" or `null`, never the stringified
- *  word "undefined" — the exact bug the owner hit. DOM-free so it is testable without a browser. */
+/** What a plain Message (`note()`'s root, or an upgraded Reply) draws: a member with neither `title` nor `icon` set draws its
+ *  text and nothing else; a card (icon/title set, by a fresh add or an upgrade) draws its title and icon; `content` (a List
+ *  of plain Items, or Refs — "a ref to an existing item") draws one line each, the Ref's own `label()` when it has no title
+ *  or text of its own. Guarded with `??`/`? :`, never `||`, so a member missing a field answers "" or `null`, never the
+ *  stringified word "undefined". DOM-free so it is testable without a browser. */
 export function note_view(m){
 	const title = m?.title ? String(m.title) : null, icon = m?.icon ? String(m.icon) : null;
 	const content = [...(m?.content ?? [])].map(c => c?.get_one?.("title") ?? c?.get_one?.("text") ?? c?.label?.() ?? null).filter(Boolean).map(String);
