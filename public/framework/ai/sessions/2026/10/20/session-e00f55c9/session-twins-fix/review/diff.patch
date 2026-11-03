@@ -1,12 +1,11 @@
 diff --git a/.gitignore b/.gitignore
-index 1f2c2b746..52373734c 100644
+index cc24b117f..b753084ae 100644
 --- a/.gitignore
 +++ b/.gitignore
-@@ -230,3 +230,9 @@ public/framework/core/Test/save-results.jsonl
+@@ -236,3 +236,8 @@ public/framework/ext/Chat/v2/fixture/live-*.jsonl
+ # ChatV3.test.mjs does the same beside the v3 fixture
+ public/framework/ext/Chat/v3/fixture/live-*.jsonl
  
- # ChatV2.test.mjs writes a per-run live copy of its fixture and deletes it at the end; a killed run would leave it
- public/framework/ext/Chat/v2/fixture/live-*.jsonl
-+
 +# the twin check (Server/SessionConsolidate.mjs --check --write, run daily by Servex/TaskLoop.js): rebuilt from the folders each run, so machine state
 +public/framework/ai/sessions/session-twins.json
 +# the session-folder finder's saved map (core/Session/SessionFolders.mjs): a cache of what each day folder holds, checked against the folders on every read
@@ -50,10 +49,10 @@ index 130527d6d..b0fc80795 100644
  
  	/** A refiner's module name → a real module folder (repo-relative), or null (site-wide, unknown, or no such folder). */
 diff --git a/Server/ChildLinks.mjs b/Server/ChildLinks.mjs
-index 0ba3978d3..c97f2889d 100644
+index 0ba3978d3..69fb88131 100644
 --- a/Server/ChildLinks.mjs
 +++ b/Server/ChildLinks.mjs
-@@ -11,6 +11,7 @@ import fs from "node:fs";
+@@ -11,11 +11,11 @@ import fs from "node:fs";
  import path from "node:path";
  import { fileURLToPath, pathToFileURL } from "node:url";
  import SessionRecord from "./SessionRecord.mjs";
@@ -61,7 +60,12 @@ index 0ba3978d3..c97f2889d 100644
  import { role_readme_path } from "../Servex/agents/roles.js";
  
  const SELF_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-@@ -23,15 +24,15 @@ export default class ChildLinks {
+ const slash = p => String(p).replaceAll("\\", "/");
+-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+ const E00 = "e00f55c9-bad4-4ee2-899e-d629ea1eede6";
+ 
+ export default class ChildLinks {
+@@ -23,15 +23,17 @@ export default class ChildLinks {
  	/** The cached session folders of a root: Map<id | id8, dir>. Rebuilt when a lookup misses and the cache is older than 10 s. */
  	static cache = new Map();
  
@@ -73,6 +77,8 @@ index 0ba3978d3..c97f2889d 100644
  		const map = new Map(), rec = new SessionRecord({ root });
 -		const line1 = f => { try { return JSON.parse(fs.readFileSync(f, "utf8").split("\n", 1)[0]); } catch { return null; } };
 +		// Which folder is a session's: the store's one finder (core/Session/SessionFolders.mjs). It counts here when it holds a record.
++		// Since 2026-11-01 a tab-era task filed flat under a day (line 1 {"assign"} with no agent) no longer stands for the tab's session:
++		// 69 tab ids pointed at one of their own task folders that way (checked one by one, session-twins-fix); they now resolve to nothing.
 +		for (const { id, dir } of SessionFolders.at(path.join(root, "public/framework/ai/sessions")).homes()) if (SessionRecord.file(dir)){ map.set(id, dir); if (!map.has(id.slice(0, 8))) map.set(id.slice(0, 8), dir); }
  		for (const dir of rec.day_children()){
 -			const f = SessionRecord.file(dir), l = f && line1(f), name = path.basename(dir);
@@ -159,10 +165,10 @@ index 523821032..13cad42ca 100644
  	home({ slug, session_id, parent, day } = {}){
  		if (!/^[a-z0-9][a-z0-9._-]*$/i.test(slug ?? "")) throw new Error("a slug is [a-z0-9-], got " + JSON.stringify(slug));
 diff --git a/Server/SessionConsolidate.mjs b/Server/SessionConsolidate.mjs
-index 82d8f3bf9..84aba96e3 100644
+index 7d5d43b18..104330494 100644
 --- a/Server/SessionConsolidate.mjs
 +++ b/Server/SessionConsolidate.mjs
-@@ -1,56 +1,60 @@
+@@ -1,24 +1,31 @@
  #!/usr/bin/env node
 -// Server/SessionConsolidate.mjs — one session, one folder. Finds every folder that holds one session and folds the others into
 -// the oldest one (the day it began), with a manifest of every move, append and rewrite. Doc: public/framework/core/Session/doc/identity.md
@@ -210,10 +216,7 @@ index 82d8f3bf9..84aba96e3 100644
  import fs from "node:fs";
  import os from "node:os";
  import path from "node:path";
- import crypto from "node:crypto";
--import { pathToFileURL } from "node:url";
- 
- const args = process.argv.slice(2), flag = n => args.includes(n), val = n => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : null; };
+@@ -30,28 +37,26 @@ const args = process.argv.slice(2), flag = n => args.includes(n), val = n => { c
  const ID = args.find(a => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(a));
  const REPO = path.resolve(val("--repo") ?? path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), ".."));
  const slash = p => p.split(path.sep).join("/");
@@ -253,7 +256,7 @@ index 82d8f3bf9..84aba96e3 100644
  		const cards = path.join(this.repo, "public/framework/ai");
  		for (const y of fs.readdirSync(cards).filter(n => /^\d{4}$/.test(n))) for (const m of ls(path.join(cards, y))) for (const d of ls(path.join(cards, y, m))){
  			const dir = path.join(cards, y, m, d, short);
-@@ -59,48 +63,63 @@ export default class SessionConsolidate {
+@@ -60,48 +65,63 @@ export default class SessionConsolidate {
  		return out;
  	}
  
@@ -339,8 +342,8 @@ index 82d8f3bf9..84aba96e3 100644
  		for (const s of plan.steps){
  			if (s.do === "move"){
  				fs.renameSync(abs(s.from), abs(s.to));
-@@ -110,29 +129,68 @@ export default class SessionConsolidate {
- 					if (t.includes(from_url)) fs.writeFileSync(f, t.split(from_url).join(to_url));
+@@ -111,29 +131,69 @@ export default class SessionConsolidate {
+ 					if (t.includes(from_url)) Runtime.safe_write(f, t.split(from_url).join(to_url));
  				}
  			}
 +			else if (s.do === "replace"){ keep_aside(s.to); fs.renameSync(abs(s.from), abs(s.to)); }   // the home's staler copy goes aside too
@@ -368,13 +371,13 @@ index 82d8f3bf9..84aba96e3 100644
  		const changed = [];
 -		for (const d of ["public", "Server", "Servex", ".claude"]) for (const f of walk(path.join(this.repo, d), [".md", ".js", ".mjs", ".html"])){
 -			const t = fs.readFileSync(f, "utf8");
--			if (t.includes(from)){ fs.writeFileSync(f, t.split(from).join(to)); changed.push(rel(f)); }
+-			if (t.includes(from)){ Runtime.safe_write(f, t.split(from).join(to)); changed.push(rel(f)); }
 +		if (!pairs.length) return changed;
 +		for (const d of ["public", "Server", "Servex", ".claude"]) for (const f of walk(path.join(repo, d), [".md", ".js", ".mjs", ".html"])){
 +			if (path.basename(f) === "CLAUDE.md") continue;
 +			let t = fs.readFileSync(f, "utf8"), was = t;
 +			for (const [from, to] of pairs) if (t.includes(from)) t = t.split(from).join(to);
-+			if (t !== was){ fs.writeFileSync(f, t); changed.push(slash(path.relative(repo, f))); }
++			if (t !== was){ Runtime.safe_write(f, t); changed.push(slash(path.relative(repo, f))); }
  		}
  		return changed;
  	}
@@ -402,29 +405,30 @@ index 82d8f3bf9..84aba96e3 100644
 +		return { run, folded: done.length, held: held.map(h => ({ session: h.session, why: h.held })), relinked, groups: done };
 +	}
 +
-+	/** The twin check: every session held twice now, and (with `write`) the ids not in the last list. File: sessions/session-twins.json. */
++	/** The twin check: every session held twice now, and the ids not in the last list (sessions/session-twins.json, kept with `write`).
++	 *  With no last list yet (`first`), nothing counts as new: the twins found then are the ones from before the check existed. */
 +	static async check(repo = REPO, { write = false } = {}){
 +		const { default: SessionFolders } = await import("../public/framework/core/Session/SessionFolders.mjs");
 +		const file = path.join(repo, STORE, "session-twins.json"), twins = SessionFolders.at(path.join(repo, STORE)).twins();
-+		let last = []; try { last = JSON.parse(fs.readFileSync(file, "utf8")).ids ?? []; } catch {}
-+		const was = new Set(last), ids = twins.map(t => t.id), fresh = twins.filter(t => !was.has(t.id));
++		let last = null; try { last = JSON.parse(fs.readFileSync(file, "utf8")).ids ?? []; } catch {}
++		const first = last === null, was = new Set(last ?? []), ids = twins.map(t => t.id), fresh = first ? [] : twins.filter(t => !was.has(t.id));
 +		const rel = p => slash(path.relative(path.join(repo, STORE), p));
 +		if (write) fs.writeFileSync(file, JSON.stringify({ at: new Date().toISOString(), count: ids.length, ids }) + "\n");
-+		return { ok: !ids.length, count: ids.length, new: fresh.length, examples: fresh.concat(twins).slice(0, 5).map(t => ({ id: t.id, home: rel(t.home), others: t.others.map(rel) })) };
++		return { ok: !ids.length, first, count: ids.length, new: fresh.length, examples: fresh.concat(twins).slice(0, 5).map(t => ({ id: t.id, home: rel(t.home), others: t.others.map(rel) })) };
 +	}
  }
  
  function ls(d){ try { return fs.readdirSync(d).filter(n => /^\d{2}$/.test(n)); } catch { return []; } }
-@@ -145,14 +203,36 @@ function walk(dir, exts = null){
+@@ -146,14 +206,36 @@ function walk(dir, exts = null){
  }
  
  if (process.argv[1] && path.resolve(process.argv[1]).endsWith(path.join("Server", "SessionConsolidate.mjs"))){
 -	if (!ID) { console.error("usage: node Server/SessionConsolidate.mjs <session uuid> [--apply --manifest <file.json>] [--repo <path>]"); process.exit(1); }
-+	const out = val("--manifest"), write_manifest = m => { fs.writeFileSync(out, JSON.stringify(m, null, 1)); console.log(`manifest ${out}`); };
++	const out = val("--manifest"), write_manifest = m => { Runtime.safe_write(out, JSON.stringify(m, null, 1)); console.log(`manifest ${out}`); };
 +	if (flag("--check")){
 +		const r = await SessionConsolidate.check(REPO, { write: flag("--write") });
 +		if (flag("--json")) console.log(JSON.stringify(r));
-+		else console.log(r.ok ? "ok: every session has one folder" : `${r.count} sessions are held by more than one folder (${r.new} new since the last check). Fold them: node Server/SessionConsolidate.mjs --all, then --all --apply --manifest <file.json>\n` + r.examples.map(e => `  ${e.id}  ${e.home}  +  ${e.others.join(", ")}`).join("\n"));
++		else console.log(r.ok ? "ok: every session has one folder" : `${r.count} sessions are held by more than one folder (${r.first ? "the first check: none counted as new" : r.new + " new since the last check"}). Fold them: node Server/SessionConsolidate.mjs --all, then --all --apply --manifest <file.json>\n` + r.examples.map(e => `  ${e.id}  ${e.home}  +  ${e.others.join(", ")}`).join("\n"));
 +		process.exit(r.ok ? 0 : 1);
 +	}
 +	if (flag("--all")){
@@ -452,7 +456,7 @@ index 82d8f3bf9..84aba96e3 100644
 -		const out = val("--manifest"); if (!out) { console.error("--apply needs --manifest <file.json>"); process.exit(1); }
 +		if (!out) { console.error("--apply needs --manifest <file.json>"); process.exit(1); }
  		const manifest = c.apply(plan);
--		fs.writeFileSync(out, JSON.stringify(manifest, null, 1));
+-		Runtime.safe_write(out, JSON.stringify(manifest, null, 1));
 -		console.log(`applied; manifest ${out}; originals copied to ${manifest.moved_aside}`);
 +		write_manifest(manifest);
 +		console.log(`applied; originals copied to ${manifest.moved_aside}`);
@@ -513,6 +517,19 @@ index a04cbb073..f4d207780 100644
  | `home({slug, session_id, parent, day})`, `make(dir)` | where a new task goes; make it, refusing a folder that already holds a record | `TaskDirs.dir/make` (`node Server/TaskDirs.mjs --new`) |
  | `day_folders()`, `start(dir)`, `misfiled({since})` | every day folder; a folder's own start time; folders under the wrong day | `TaskDirs.list`, `SessionDayMove` (keeps apply/undo and its manifest) |
  | `session_row(dir)`, `sync(dir)`, `watch()` | the row built from the record (id, path, url, title, state open/done); written when new or changed; `fs.watch` on the store | tests; start-up call pending |
+diff --git a/Server/readme.md b/Server/readme.md
+index 150fc53ef..838bea6df 100644
+--- a/Server/readme.md
++++ b/Server/readme.md
+@@ -50,7 +50,7 @@ The owner-facing server also starts `whisper-server` for dictation on its own 
+ - `Server/Council.mjs` — Feedback Council collector and runner; off switch `COUNCIL=off`.
+ - `node Server/ReadmeOrphans.mjs` — lists every directory with a readme that the readme above it never names (the readme chain cannot reach it); the page-nav twin is `OrphanCheck.mjs`.
+ - `node Server/SessionIdentity.mjs <session uuid>` — read-only: which transcripts, folders, cost lines and child agents belong to one session; TrackingCheck's check 6 runs it; test `SessionIdentity.test.mjs` ([core/Session/doc/identity.md](../public/framework/core/Session/doc/identity.md)).
+-- `node Server/SessionConsolidate.mjs <session uuid> [--apply --manifest <file>]` — one session, one folder: folds a session's second folders into the oldest, with a dry run, a manifest and a moved-aside copy; `session-dir-clash.test.mjs` tests the folder lookup (`DatedFiles.session_dir`). `Servex/agents/turn-costs.test.mjs` tests a session's own turns.
++- `node Server/SessionConsolidate.mjs <session uuid> | --all | --check [--write] [--json]`, plus `[--apply --manifest <file>]` — one session, one folder: folds a session's second folders into one home (the oldest day, then the folder holding most), with a dry run, a manifest and a moved-aside copy; `--all` folds every session held twice, `--check` reports twins (run daily by `Servex/TaskLoop.js`). `session-dir-clash.test.mjs` tests the folder lookup (`DatedFiles.session_dir`), `session-twins.test.mjs` the twin check and the finder. `Servex/agents/turn-costs.test.mjs` tests a session's own turns.
+ - `node Server/DoneCheck.mjs [--dry|--list]` — Haiku check of completed owner asks, "marked done, not done" ([completion](../public/framework/core/Task/doc/completion.md)).
+ - `node Server/CloseoutWalk.mjs <session> [--dry|--apply|--counts]` — walks a session's open owner asks to done, stopped, or deferred with a home (same doc).
+ - `node Server/NavCheck.mjs <worktree>` — the click test: every page a branch adds must have an `a[href]` on its parent page, loaded headless; `merge.mjs` runs it and refuses an unlinked page, `--no-nav "why"` overrides ([`doc/nav-check.md`](./doc/nav-check.md)).
 diff --git a/Server/session-dir-clash.test.mjs b/Server/session-dir-clash.test.mjs
 index 6cd79b740..e5e8a6ec9 100644
 --- a/Server/session-dir-clash.test.mjs
@@ -599,7 +616,7 @@ index 000000000..58621fc9d
 +} finally { DatedFiles.ROOT = ROOT; fs.rmSync(TMP, { recursive: true, force: true }); }
 +console.log(`${n} passing${bad.length ? `, ${bad.length} failing` : ""}`); if (bad.length) process.exit(1);
 diff --git a/Servex/TaskLoop.js b/Servex/TaskLoop.js
-index f564a2e15..6a614083b 100644
+index fe5647fd3..217ab3ffe 100644
 --- a/Servex/TaskLoop.js
 +++ b/Servex/TaskLoop.js
 @@ -90,6 +90,7 @@ export default class TaskLoop {
@@ -610,13 +627,14 @@ index f564a2e15..6a614083b 100644
              this.handover_daily();
              this.undone_asks_daily();
              await this.read_inboxes(this.servex.agents.registry_list(), this.clock()).catch(e => this.servex.say?.(`task-loop: inbox sweep failed: ${e.message || e}`));
-@@ -152,6 +153,23 @@ export default class TaskLoop {
+@@ -152,6 +153,25 @@ export default class TaskLoop {
          }));
      }
  
 +    /* twins-daily, 2026-11-01 (session-twins-fix): once per local day, the twin check (node Server/SessionConsolidate.mjs --check --write --json):
 +     * does any session have two folders? It keeps the list in ai/sessions/session-twins.json (gitignored) and says how many ids are new since
 +     * the last run; a new one is a writer that went around the one finder (core/Session/SessionFolders.mjs), so it posts ONE owner_note risk.
++     * The first run (no list yet) counts none as new and posts one "twin check started" note with the count instead.
 +     * "Done today" = the file's mtime is today, so a restart never repeats it. Doc: public/framework/ai/sessions/doc/one-folder.md */
 +    twins_daily(){
 +        const file = path.join(this.root, "public", "framework", "ai", "sessions", "session-twins.json");
@@ -627,13 +645,25 @@ index f564a2e15..6a614083b 100644
 +            this.twins_busy = false;
 +            let r = null; try { r = JSON.parse(String(out).trim().split("\n").pop()); } catch {}
 +            if (!r) return this.servex?.log?.append("servex", { type: "task-loop-error", error: "twins: " + String(err?.message || err || "no answer") }).catch(() => {});
-+            if (r.new) this.servex?.cards?.owner_note?.({ title: `${r.new} sessions got a second folder`, text: `${r.count} sessions are held by more than one folder, ${r.new} new since the last check (e.g. ${r.examples[0]?.others?.[0] ?? "?"}). A writer went around SessionFolders; fold them with node Server/SessionConsolidate.mjs --all --apply --manifest <file>.`, kind: "risk", links: ["/framework/ai/sessions/doc/one-folder.md"], by: "task-loop" })?.catch?.(() => {});
++            if (r.first && r.count) this.servex?.cards?.owner_note?.({ title: `Twin check started: ${r.count} sessions have two folders`, text: `The daily check found ${r.count} sessions held by more than one folder, left from before the one finder (2026-11-01). From tomorrow it reports only new ones. Fold these: node Server/SessionConsolidate.mjs --all --apply --manifest <file>.`, kind: "risk", links: ["/framework/ai/sessions/doc/one-folder.md"], by: "task-loop" })?.catch?.(() => {});
++            else if (r.new) this.servex?.cards?.owner_note?.({ title: `${r.new} sessions got a second folder`, text: `${r.count} sessions are held by more than one folder, ${r.new} new since the last check (e.g. ${r.examples[0]?.others?.[0] ?? "?"}). A writer went around SessionFolders; fold them with node Server/SessionConsolidate.mjs --all --apply --manifest <file>.`, kind: "risk", links: ["/framework/ai/sessions/doc/one-folder.md"], by: "task-loop" })?.catch?.(() => {});
 +        });
 +    }
 +
      /* handover-daily, 2026-10-17: once per UTC day, run Server/HandoverNow.mjs --write so the NOW block at the top of handover.md stays computed.
       * "Done today" = the date in the block's own "computed <date>" stamp (the file is hand-edited too, so its mtime says nothing); a restart never repeats it.
       * LogSweeper (ALLOW) commits handover.md. Doc: Servex/doc/task-loop.md */
+diff --git a/Servex/doc/task-loop.md b/Servex/doc/task-loop.md
+index 057a81a5f..19e089748 100644
+--- a/Servex/doc/task-loop.md
++++ b/Servex/doc/task-loop.md
+@@ -106,4 +106,6 @@ what a real run would do without stopping anything.
+ 
+ **Done (2026-10-17): `TaskLoop.handover_daily()`** sits beside `follow_up_daily()` in the same tick. Once per UTC day (the date in the NOW block's own `## NOW (computed <date>` stamp in `handover.md` is not today; the file's mtime would not do, since people edit it too) it runs `node Server/HandoverNow.mjs --write`, which rewrites only the computed block. `LogSweeper.ALLOW` commits `handover.md` on its next sweep. A failure is logged as `task-loop-error`. Test: `node Servex/TaskLoop-handover.test.mjs`.
+ 
++**Done (2026-11-01): `TaskLoop.twins_daily()`** sits beside them. Once per local day (the mtime of `ai/sessions/session-twins.json` is not today) it runs `node Server/SessionConsolidate.mjs --check --write --json`: is any session held by two folders? It keeps the list in `session-twins.json` (gitignored) and, when an id is new since the last run, posts one `owner_note` risk (a writer went around `SessionFolders`). The first run counts none as new and posts one "twin check started" note with the count. A failure is logged as `task-loop-error`. Servex must restart to pick it up. Page: [one folder per session](/framework/ai/sessions/doc/one-folder.md).
++
+ **Done (2026-10-17): `TaskLoop.undone_asks_daily()`** sits beside them. Once per UTC day (the `generated_at` in `ai/asks/undone.json` is not today) it runs `node Server/UndoneAsks.mjs --json`; `LogSweeper.ALLOW` commits `undone.json`. Page: [undone asks](/framework/ai/asks/undone/). `needs_restart`: Servex must restart to pick it up.
 diff --git a/public/framework/ai/AISession/AISessionIndex.mjs b/public/framework/ai/AISession/AISessionIndex.mjs
 index 04c6c9752..7a351a134 100644
 --- a/public/framework/ai/AISession/AISessionIndex.mjs
@@ -705,7 +735,7 @@ index 04c6c9752..7a351a134 100644
  			try { await fsp.rename(tmp, file); } catch { await new Promise(r => setTimeout(r, 50)); await fsp.rename(tmp, file); }
 diff --git a/public/framework/ai/sessions/doc/one-folder.md b/public/framework/ai/sessions/doc/one-folder.md
 new file mode 100644
-index 000000000..c892851dd
+index 000000000..38866d523
 --- /dev/null
 +++ b/public/framework/ai/sessions/doc/one-folder.md
 @@ -0,0 +1,57 @@
@@ -758,11 +788,11 @@ index 000000000..c892851dd
 +
 +Code: [`core/Session/SessionFolders.mjs`](/framework/core/Session/SessionFolders.mjs) (node only). **When two folders hold one id**, the home is the oldest day (the day it began), then the folder holding the most (a task subfolder, then a record, then `index.json`, then `cache.jsonl`), then the name. Every writer gets the same answer, so a twin never grows while it waits to be folded.
 +
-+**Why a cached path can no longer come back.** The finder checks its answer on disk on every call: a folder that moved or was removed is never returned, so no writer `mkdir`s it back (what happened on 2026-10-09, when a running Servex kept writing into renamed folders). Its memory, `sessions/session-folders.json` (gitignored), is only a starting point: every day folder is listed again on each lookup that misses, and a day whose mtime moved is read again in full. Speed on the live store (13,547 folders): a hit under 2 ms, a miss about 40 ms, a cold start 4 to 17 s depending on load, then 62 ms from the saved map.
++**Why a cached path can no longer come back.** The finder checks its answer on disk on every call: a folder that moved or was removed is never returned, so no writer `mkdir`s it back (what happened on 2026-10-09, when a running Servex kept writing into renamed folders). Its memory, `sessions/session-folders.json` (gitignored), is only a starting point: every day folder is listed again on each lookup that misses, and a day whose mtime moved is read again in full. An old flat `sessions/<uuid>/` folder (none are left today) is still moved into its day by `Session.locate`, which `AISession.save()` calls before it writes the cache; `AISessionIndex` no longer does that move itself. Speed on the live store (13,547 folders): a hit under 2 ms, a miss about 40 ms, a cold start 4 to 17 s depending on load, then 62 ms from the saved map.
 +
 +## The twin check, and the fold
 +
-+- **Check:** `node Server/SessionConsolidate.mjs --check` exits 1 and lists any session held by two folders. Servex runs it once a day (`TaskLoop.twins_daily`, `--write` keeps the list in `sessions/session-twins.json`) and posts one risk note when an id is new since the last run: a new twin means a writer went around the finder. `DatedFiles.sessions.check()` reports `twins` too.
++- **Check:** `node Server/SessionConsolidate.mjs --check` exits 1 and lists any session held by two folders. Servex runs it once a day (`TaskLoop.twins_daily`, `--write` keeps the list in `sessions/session-twins.json`) and posts one risk note when an id is new since the last run: a new twin means a writer went around the finder. The first run has no list to compare with, so it counts none as new and posts one "twin check started" note with the count. `DatedFiles.sessions.check()` reports `twins` too.
 +- **Fold:** `node Server/SessionConsolidate.mjs --all` (dry run), then `--all --apply --manifest <file.json>`. Task folders move into the home; `index.json` and `cache.jsonl` keep the fresher copy; other logs are appended without duplicates; every original is copied to `%LOCALAPPDATA%/lew42/servex/moved-aside/<run>/` first; a `redirect` line in `task-moves.jsonl` keeps old URLs working.
 +- **Today (2026-11-01):** 1,408 sessions are held twice, nearly all left from the 2026-10-09 rename (a uuid folder holding a stale `cache.jsonl` beside the slug). All 1,408 can be folded. Proved on a copy of their folders: 0 twins after, 1,408 session ids before and after, **0 of 16,445 lines lost** (15,019 found again, 1,412 older cache summaries and 13 older index snapshots where a fresher copy stays, 1 repeated line-1 marker): [fold-proof.json](/framework/ai/sessions/2026/10/20/session-e00f55c9/session-twins-fix/fold-proof.json).
 +- **Run the fold only after** this code is live in Servex and the dev server (`node Servex/sustain.mjs --restart`, then the dev server's restart), so no old process still holds a folder map.
@@ -780,10 +810,10 @@ index 7d447aa39..d050b5737 100644
  
  | Kind | Folder name | Files | Written by |
 diff --git a/public/framework/core/Session/Session.js b/public/framework/core/Session/Session.js
-index e7c0092c7..1d7919a09 100644
+index df980691d..1686a24cb 100644
 --- a/public/framework/core/Session/Session.js
 +++ b/public/framework/core/Session/Session.js
-@@ -141,32 +141,32 @@ export default class Session extends Task {
+@@ -166,32 +166,32 @@ export default class Session extends Task {
  	// Sync: the dated folder when the day is known, else the old flat one.
  	static dir_url(id, day = this.days.get(id)){ return new URL(day ? `./${day}/${this.slugs.get(id) ?? id}/` : `./${id}/`, this.root_url()); }
  
@@ -836,7 +866,7 @@ index e7c0092c7..1d7919a09 100644
  		const flat = new URL(`./${id}/`, root), exists = u => fs.stat(u).then(() => true, () => false);
  		let day = this.day(first_at);
  		if (!day && await exists(flat)){      // an old flat folder: its own cache knows the day
-@@ -176,11 +176,9 @@ export default class Session extends Task {
+@@ -201,11 +201,9 @@ export default class Session extends Task {
  			if (!day) return flat;
  		}
  		day ??= this.day(new Date());
@@ -853,10 +883,10 @@ index e7c0092c7..1d7919a09 100644
  }
 diff --git a/public/framework/core/Session/SessionFolders.mjs b/public/framework/core/Session/SessionFolders.mjs
 new file mode 100644
-index 000000000..757722e93
+index 000000000..d1cde7628
 --- /dev/null
 +++ b/public/framework/core/Session/SessionFolders.mjs
-@@ -0,0 +1,151 @@
+@@ -0,0 +1,157 @@
 +// SessionFolders — the ONE answer to "which folder holds session X" in a dated store (<root>/YYYY/MM/DD/<folder>/). Node only.
 +// Every writer asks it: DatedFiles.session_dir (TaskDirs, open_task, the SessionStart hook), Session.locate (AISession.save, the page
 +// tool, PromptLog), AISessionIndex, ChildLinks, AskIndex, TaskMove, SessionConsolidate. Doc: public/framework/ai/sessions/doc/one-folder.md.
@@ -971,19 +1001,25 @@ index 000000000..757722e93
 +		return out;
 +	}
 +
-+	/** Every folder that holds `id` on disk now, the home first: the oldest day (the day the session began), then the most it holds, then the name. */
-+	all(id){
-+		if (!UUID.test(id ?? "")) return [];
-+		const check = () => this.listed(id).map(r => path.join(this.root, r)).filter(dir => { const o = SessionFolders.owner(dir); return o === id || (o === null && ID8.exec(path.basename(dir))?.[1] === id.slice(0, 8)); });
-+		let found = this.days.size ? check() : [];
-+		if (!found.length || found.length !== this.listed(id).length){ this.refresh(); found = check(); }   // a miss or a stale entry: read the disk again
++	/** The folders that hold `id`, checked on disk, the home first: the oldest day (the day the session began), then the most it holds, then the name. */
++	found(id){
++		const out = this.listed(id).map(r => path.join(this.root, r)).filter(dir => { const o = SessionFolders.owner(dir); return o === id || (o === null && ID8.exec(path.basename(dir))?.[1] === id.slice(0, 8)); });
 +		const day = dir => path.relative(this.root, path.dirname(dir)).split(path.sep).join("/");
-+		const w = new Map(found.map(d => [d, found.length > 1 ? SessionFolders.weight(d) : 0]));
-+		return found.sort((a, b) => day(a).localeCompare(day(b)) || w.get(b) - w.get(a) || path.basename(a).localeCompare(path.basename(b)));
++		const w = new Map(out.map(d => [d, out.length > 1 ? SessionFolders.weight(d) : 0]));
++		return out.sort((a, b) => day(a).localeCompare(day(b)) || w.get(b) - w.get(a) || path.basename(a).localeCompare(path.basename(b)));
 +	}
 +
-+	/** The session's folder, or null. */
-+	of(id){ return this.all(id)[0] ?? null; }
++	/** Every folder that holds `id` on disk now, the home first. Reads the disk first (a folder made since the last read is in it). */
++	all(id){ return UUID.test(id ?? "") ? this.refresh().found(id) : []; }
++
++	/** The session's folder, or null. Fast: what the map knows, each answer checked on disk; the disk is read again on a miss, or when a known
++	 *  folder has gone. (A second folder made since the last read is not looked for here: every writer still gets the same, oldest known home,
++	 *  and the twin check finds the second one.) */
++	of(id){
++		if (!UUID.test(id ?? "")) return null;
++		const known = this.days.size ? this.listed(id).length : 0, found = known ? this.found(id) : [];
++		return (found.length && found.length === known ? found : this.refresh().found(id))[0] ?? null;
++	}
 +
 +	/** of(id), else where a new folder goes on `day` ("YYYY/MM/DD" or an absolute day folder): `name` if given, else session-<id8>, else (when
 +	 *  another id holds session-<id8> that day: two ids can share their first 8 hex) the full uuid. Absolute; never made here. */
@@ -998,16 +1034,68 @@ index 000000000..757722e93
 +	twins(){
 +		this.refresh();
 +		const out = [];
-+		for (const [id, set] of this.ids) if (set.size > 1){ const [home, ...others] = this.all(id); if (others.length) out.push({ id, home, others }); }
++		for (const [id, set] of this.ids) if (set.size > 1){ const [home, ...others] = this.found(id); if (others.length) out.push({ id, home, others }); }
 +		return out.sort((a, b) => a.home.localeCompare(b.home));
 +	}
 +
 +	/** Every session in the store once, at its home: [{id, dir}]. */
 +	homes(){
 +		this.refresh();
-+		return [...this.ids].filter(([, set]) => set.size).map(([id, set]) => ({ id, dir: set.size === 1 ? path.join(this.root, [...set][0]) : this.of(id) })).filter(r => r.dir);
++		return [...this.ids].filter(([, set]) => set.size).map(([id, set]) => ({ id, dir: set.size === 1 ? path.join(this.root, [...set][0]) : this.found(id)[0] })).filter(r => r.dir);
 +	}
 +}
+diff --git a/public/framework/core/Session/SessionFolders.test.mjs b/public/framework/core/Session/SessionFolders.test.mjs
+new file mode 100644
+index 000000000..0ebfdfddd
+--- /dev/null
++++ b/public/framework/core/Session/SessionFolders.test.mjs
+@@ -0,0 +1,46 @@
++// SessionFolders, the store's one finder: one instance on a scratch store, the top of its work, and the cases its saved map could get wrong.
++// `node public/framework/core/Session/SessionFolders.test.mjs`. Doc: public/framework/ai/sessions/doc/one-folder.md.
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import SessionFolders from "./SessionFolders.mjs";
++
++const A = "a0a0a0a0-0001-4a19-9b01-000000000001", B = "b0b0b0b0-0002-4a19-9b01-000000000002";
++const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "session-folders-"));
++const put = (rel, file, obj) => { const d = path.join(ROOT, rel); fs.mkdirSync(d, { recursive: true }); if (file) fs.writeFileSync(path.join(d, file), JSON.stringify(obj) + "\n"); return d; };
++const fresh = () => { SessionFolders.stores.delete(path.resolve(ROOT)); return SessionFolders.at(ROOT); };   // a new process: only the saved map is remembered
++try {
++	const slug = put("2026/10/03/a-slug", "session.jsonl", { session: { id: A } });
++	let s = SessionFolders.at(ROOT);
++	assert.equal(s.of(A), slug, "a slug folder is found by the id on its line 1");
++	assert.equal(s.home(B, "2026/11/01"), path.join(ROOT, "2026/11/01/session-b0b0b0b0"), "an id with no folder gets session-<id8> on the day asked");
++	assert.ok(!fs.existsSync(path.join(ROOT, "2026/11/01")), "home() never makes a folder");
++
++	const later = put("2026/10/05/session-a0a0a0a0", "cache.jsonl", { summary: { v: 2, id: A } });
++	assert.deepEqual(s.all(A), [slug, later], "two folders: the oldest day is the home");
++	assert.deepEqual(s.twins().map(t => [t.id, t.home, t.others]), [[A, slug, [later]]], "twins() names it");
++	fs.rmSync(later, { recursive: true });
++	assert.deepEqual(s.twins(), [], "folded: no twin");
++
++	// The saved map: a new process starts from session-folders.json and still sees what changed on disk since.
++	assert.ok(fs.existsSync(path.join(ROOT, "session-folders.json")), "the map is saved");
++	fs.renameSync(slug, path.join(ROOT, "2026/10/03/renamed"));
++	assert.equal(fresh().of(A), path.join(ROOT, "2026/10/03/renamed"), "a folder renamed between processes is found under its new name");
++	fs.rmSync(path.join(ROOT, "2026/10/03/renamed"), { recursive: true });
++	put("2026/10/03/renamed", "session.jsonl", { session: { id: B } });   // the same name made again, now holding another session
++	s = fresh();
++	assert.equal(s.of(A), null, "the old id is not found in a folder that now holds another");
++	assert.equal(s.of(B), path.join(ROOT, "2026/10/03/renamed"), "the new id is");
++
++	const quiet = put("2026/10/07/session-c0c0c0c0");   // a folder made before anything says whose it is
++	assert.equal(s.of("c0c0c0c0-0003-4a19-9b01-000000000003"), quiet, "an empty session-<id8> is the asker's");
++	const D = "d0d0d0d0-0004-4a19-9b01-000000000004", named = put("2026/10/07/named-later");
++	assert.equal(s.of(D), null);
++	fs.writeFileSync(path.join(named, "page.jsonl"), JSON.stringify({ session: D }) + "\n");   // its claim arrives later, as a new file
++	assert.equal(fresh().of(D), named, "a folder that named no id is read again once it changed");
++
++	assert.equal(SessionFolders.owner(put("2026/09/04/flat-task", "session.jsonl", { assign: { session_id: A, tab: "monorepo" } })), null, "a tab-era task (assign, no agent) is not a session's folder");
++	assert.equal(SessionFolders.owner(put("2026/10/16/voice-x", "session.jsonl", { assign: { session_id: A, agent: "mastermind-voice-x" } })), A, "a Servex record (assign with an agent) is");
++	console.log("SessionFolders: 15 checks pass");
++} finally { fs.rmSync(ROOT, { recursive: true, force: true }); }
 diff --git a/public/framework/core/Session/doc/identity.md b/public/framework/core/Session/doc/identity.md
 index 21e32e63e..d6825ce7a 100644
 --- a/public/framework/core/Session/doc/identity.md
@@ -1034,10 +1122,10 @@ index 21e32e63e..d6825ce7a 100644
  - ⬜ Find why the SDK's `total_cost_usd` runs 1.3 to 1.7 times the `AISession` price of the same transcript (likely the cache-write price or the model's rate), and why a turn near a renewal lands on the session before. Numbers above; one session pair is enough to test.
  - ⬜ Give every Servex child a `task_dir` (or link it by `parent_session` alone), so `minion-process-page` and its kind are reachable from the parent's record.
 diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
-index 62b097149..91f4968b1 100644
+index 2445d2195..27137d155 100644
 --- a/public/framework/core/Session/readme.md
 +++ b/public/framework/core/Session/readme.md
-@@ -29,8 +29,10 @@ class Session extends Task                       // ../Task/Task.js (Task extend
+@@ -32,8 +32,10 @@ class Session extends Task                       // ../Task/Task.js (Task extend
    static root_url(): URL    // ../../ai/sessions/ ; subclasses override
    static day(first_at)      // "YYYY/MM/DD" via Day.path, or null
    static dir_url(id, day?)  // sync: the dated folder, else the old flat <id>/
@@ -1050,7 +1138,7 @@ index 62b097149..91f4968b1 100644
  
  // Day.js: class Day, static of(t) "YYYY-MM-DD", path(t) "YYYY/MM/DD" - the owner's LOCAL day, never UTC
  ```
-@@ -94,9 +96,9 @@ A session's `tasks` is the one list of everything to be done: prompts, tasks and
+@@ -97,9 +99,9 @@ A session's `tasks` is the one list of everything to be done: prompts, tasks and
  **References.**
  - A session is named by its **session id**: its page is `/framework/ai/sessions/<id>/`, and a child names its parent by `parent_session`.
  - A task is named by its **path**: `{"task": "<folder url>"}`.

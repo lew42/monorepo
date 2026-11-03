@@ -1,5 +1,5 @@
 diff --git a/.claude/skills/voice-mastermind/SKILL.md b/.claude/skills/voice-mastermind/SKILL.md
-index cfcd2e7eb..1128536cd 100644
+index cfcd2e7eb..7c40dce52 100644
 --- a/.claude/skills/voice-mastermind/SKILL.md
 +++ b/.claude/skills/voice-mastermind/SKILL.md
 @@ -11,8 +11,9 @@ Load the `mastermind` skill first; everything there holds (one task dir per effo
@@ -11,8 +11,9 @@ index cfcd2e7eb..1128536cd 100644
  - **Real work is a minion's.** A build, a fix, a review or a long read goes to a `mastermind` spawned at the work's path and named for its job, or to a minion (`spawn_agent`) with a brief, or to the module's inbox (`module_inbox`) when it is an ask for later. You stay free to answer the next question. Report each landing in one sentence when it arrives, or when asked.
  - **Log everything.** Every question and every answer is a `chat` line in your task.jsonl (`from: "owner (voice)"` / `from: "voice-mastermind"`); every minion an `agent` line; each landing a `log` line with its link; so later sessions and the per-module asks lists see what was said and done.
  - **Stay hands-free.** You do not edit files yourself beyond your own task log; you do not restart servers; you do not spawn more than the budget and `usage-now` allow, and you say when you are holding back for pace.
+-- **Answer inside the tool's one-minute window.** The voice client drops the session if a reply takes longer (it did, 2026-10-15). Reply within the minute with an ack and where the work is routed; never block on a minion. Carry each minion's result to the next ask. (The directives for the voice agent live only in the MCP's own description, `Servex/ext/remote/RemoteMCP.js`, never here.)
 +- **Say first.** Each question's message asks for ONE plain sentence before any tool call (the answer, or what you are doing and how long); that sentence is streamed to the voice agent as you write it, then the full answer goes to the reply file the message names. Follow the message's wording.
- - **Answer inside the tool's one-minute window.** The voice client drops the session if a reply takes longer (it did, 2026-10-15). Reply within the minute with an ack and where the work is routed; never block on a minion. Carry each minion's result to the next ask. (The directives for the voice agent live only in the MCP's own description, `Servex/ext/remote/RemoteMCP.js`, never here.)
++- **Answer fast; the voice agent waits only a few seconds.** `ask_mastermind` waits about 8 s (`REMOTE_MCP_WAIT_MS`), then hands the voice agent a ticket with your first sentence, and the rest reaches it by itself. A call it waits on much longer is dropped (it was, 2026-10-15). Say what you are doing and where the work is routed; never block on a minion. Carry each minion's result to the next ask. (The directives for the voice agent live only in the MCP's own description, `Servex/ext/remote/RemoteMCP.js`, never here.)
 diff --git a/Servex/ext/remote/RemoteMCP.js b/Servex/ext/remote/RemoteMCP.js
 index 653b916b5..17bb70d25 100644
 --- a/Servex/ext/remote/RemoteMCP.js
@@ -532,7 +533,7 @@ index aed92b891..a8076937b 100644
  fs.rmSync(root, { recursive: true, force: true });
  console.log("ok", log.length, "calls");
 diff --git a/Servex/ext/remote/doc/cloud-voice-agent.md b/Servex/ext/remote/doc/cloud-voice-agent.md
-index c878c6268..c31f2fd05 100644
+index c878c6268..b4b22ae15 100644
 --- a/Servex/ext/remote/doc/cloud-voice-agent.md
 +++ b/Servex/ext/remote/doc/cloud-voice-agent.md
 @@ -63,6 +63,12 @@ What the check showed (session `cloud-voice-session-system-test`):
@@ -548,6 +549,15 @@ index c878c6268..c31f2fd05 100644
  ## Caveats
  
  - Never call `restart_servex` or stop Servex during a call: it drops your own connection.
+@@ -89,6 +95,6 @@ More: [voice-logging.md](voice-logging.md) (how the logging works), [remote-tool
+ - **Speed of the ask flow is the top priority** ("definitely"). The agent says "hold on", waits for `ask_mastermind` up to its timeout, and the mastermind often takes longer than that.
+ - **Worth double checking:** when the owner speaks during that wait, the MCP call is interrupted. Does its answer ever arrive? Can Servex tell whether an answer was received, and queue it so it always arrives? The async ask (landed 18:33) routes a cancelled ask's answer to `updates`; a real interrupt from the voice app is untested.
+ - **Caveat, fixed 2026-10-20:** an interrupted ask could lose its answer (the app cancels with `notifications/cancelled`, which was ignored, and a returned answer went into a dead response). Now every answer is also put in the inbox, a cancel stops the wait, and a restart sweep delivers unsent replies. Details: [remote-tools.md](remote-tools.md); task [voice-20261020](/framework/ai/sessions/2026/10/20/voice-20261020/).
+-- **Alternative workflow to try:** never wait. Fire the ask (`wait: false`), go back to listening, offer a guess ("I've asked Servex; I'd guess…"), and deliver the answer when `updates` brings it.
++- **Alternative workflow to try** (superseded 2026-11-01 by "Asking without waiting" above: the ask waits a few seconds and the answer then arrives by itself): never wait. Fire the ask (`wait: false`), go back to listening, offer a guess ("I've asked Servex; I'd guess…"), and deliver the answer when `updates` brings it.
+ - **Trade-offs the owner sees:** it reads everything aloud, so it phrases for speech ("slash whatever" instead of typing a path) and can't do code blocks. "I don't know if we want to put a ton of work there."
+-- **Pull, never wait (the owner, 2026-10-22).** Nothing can push to the voice app: it only learns what it asks for. So every slow call is fired without waiting, and the agent polls `updates` (changes since its last poll) on every turn, or on a loop of about 15 seconds if the app allows one; most polls say "nothing new", and a hit returns only what changed. A call it waits on can be cut off when the owner speaks, and its answer is then lost to the conversation. The goal this serves: the owner talks while watching the session page, and tasks and answers appear there, not in long chat replies.
++- **Pull, never wait (the owner, 2026-10-22; how it works now: "Asking without waiting" above).** Nothing can push to the voice app: it only learns what it asks for. So every slow call is fired without waiting, and the agent polls `updates` (changes since its last poll) on every turn, or on a loop of about 15 seconds if the app allows one; most polls say "nothing new", and a hit returns only what changed. A call it waits on can be cut off when the owner speaks, and its answer is then lost to the conversation. The goal this serves: the owner talks while watching the session page, and tasks and answers appear there, not in long chat replies.
 diff --git a/Servex/ext/remote/doc/remote-tools.md b/Servex/ext/remote/doc/remote-tools.md
 index 96f522a3e..8932643f5 100644
 --- a/Servex/ext/remote/doc/remote-tools.md
@@ -573,22 +583,22 @@ index 96f522a3e..8932643f5 100644
 -`ask_mastermind` waits up to a minute. If it times out, or the app cancels the call, `RemoteMCP.ask()` keeps watching the reply file (up to 30 minutes) and, when the answer appears, writes its `chat` line and delivers it to the `voice-app` inbox (`from: voice-mastermind`, `reply_to` = the question id), so the `updates` tool returns it. `wait: false` skips the wait and returns `{ticket, note}` at once; the answer arrives the same way. Every answer goes to the inbox, including one the call returned in time (the app may have dropped that call), so the voice agent skips a `reply_to` it already has. A `notifications/cancelled` for the call id stops the wait at once. Each delivery leaves `remote-replies/<qid>.delivered`; at boot `RemoteMCP.sweep()` delivers any `<qid>.txt` without one (files under 24 h old; the first sweep only marks existing files, replaying nothing). Tested in `RemoteMCP.test.mjs`.
 +`ask_mastermind` waits a few seconds (`wait_ms`, the bridge above). If it times out, or the app cancels the call, `RemoteMCP.ask()` keeps watching the reply file (up to 30 minutes) and, when the answer appears, writes its `chat` line and delivers it to the `voice-app` inbox (`from: voice-mastermind`, `reply_to` = the question id), so the `updates` tool returns it. `wait: false` skips the wait and returns the ticket's state (`ticket`, `to`, `status`, `first`, `answer`, `done`) and a `note` at once; the answer arrives the same way. Every answer goes to the inbox, including one the call returned in time (the app may have dropped that call), so the voice agent skips a `reply_to` it already has. A `notifications/cancelled` for the call id stops the wait at once. Each delivery leaves `remote-replies/<qid>.delivered`; at boot `RemoteMCP.sweep()` delivers any `<qid>.txt` without one (files under 24 h old; the first sweep only marks existing files, replaying nothing). Tested in `RemoteMCP.test.mjs`.
 diff --git a/Servex/ext/remote/readme.md b/Servex/ext/remote/readme.md
-index fcd679173..056a3d1ed 100644
+index 6702b2129..0567c5a51 100644
 --- a/Servex/ext/remote/readme.md
 +++ b/Servex/ext/remote/readme.md
 @@ -1,6 +1,6 @@
  # ext/remote — the tunnel MCP the Claude voice app talks to
  
--`RemoteMCP.js` serves `POST /mcp/remote` (reached through `Server/Tunnel.mjs`, bearer token in the path or header). It serves the **whole Servex tool registry** (`servex.mcp`, the same tools every local session has) plus `ask_mastermind` (ask the voice mastermind, wait up to a minute). Calls run as caller `voice-app`. The voice-agent directives live only in `RemoteMCP.INSTRUCTIONS`. Test: `node Servex/ext/remote/RemoteMCP.test.mjs`.
-+`RemoteMCP.js` serves `POST /mcp/remote` (reached through `Server/Tunnel.mjs`, bearer token in the path or header). It serves the **whole Servex tool registry** (`servex.mcp`, the same tools every local session has) plus `ask_mastermind` (ask the voice mastermind, or any agent with `to`; it waits a few seconds, then returns a ticket with the status and the mastermind's first sentence) and `voice_hear` (hear an ask's status and answer the moment they change). A mastermind stuck at the spawn gate hands asks to the agent named in `remote.fallback` (a one-line file beside `remote.token`, in `%LOCALAPPDATA%/lew42/servex/`; or `REMOTE_MCP_FALLBACK`). How it works: [doc/remote-tools.md](doc/remote-tools.md), "The bridge". Calls run as caller `voice-app`. The voice-agent directives live only in `RemoteMCP.INSTRUCTIONS`. Test: `node Servex/ext/remote/RemoteMCP.test.mjs`.
+-`RemoteMCP.js` serves `POST /mcp/remote` (reached through `Server/Tunnel.mjs`, bearer token in the path or header). It serves the **whole Servex tool registry** (`servex.mcp`, the same tools every local session has) plus `ask_mastermind` (ask the voice mastermind, wait up to a minute). Calls run as caller `voice-app`, which says nothing about who called: a spawn from a tab takes its parent from the tab's `session_id` ([rule](../agents/doc/architecture.md)), and Servex agents have this connector blocked (`disallowedTools` in `Agents.door()`) so they use their own door. The voice-agent directives live only in `RemoteMCP.INSTRUCTIONS`. Test: `node Servex/ext/remote/RemoteMCP.test.mjs`.
++`RemoteMCP.js` serves `POST /mcp/remote` (reached through `Server/Tunnel.mjs`, bearer token in the path or header). It serves the **whole Servex tool registry** (`servex.mcp`, the same tools every local session has) plus `ask_mastermind` (ask the voice mastermind, or any agent with `to`; it waits a few seconds, then returns a ticket with the status and the mastermind's first sentence) and `voice_hear` (hear an ask's status and answer the moment they change). A mastermind stuck at the spawn gate hands asks to the agent named in `remote.fallback` (a one-line file beside `remote.token`, in `%LOCALAPPDATA%/lew42/servex/`; or `REMOTE_MCP_FALLBACK`). How it works: [doc/remote-tools.md](doc/remote-tools.md), "The bridge". Calls run as caller `voice-app`, which says nothing about who called: a spawn from a tab takes its parent from the tab's `session_id` ([rule](../agents/doc/architecture.md)), and Servex agents have this connector blocked (`disallowedTools` in `Agents.door()`) so they use their own door. The voice-agent directives live only in `RemoteMCP.INSTRUCTIONS`. Test: `node Servex/ext/remote/RemoteMCP.test.mjs`.
  
  - Why one registry, fully exposed (and the shelved `local`/`remote` split): [doc/mcp-unify.md](doc/mcp-unify.md)
  - The tunnel and its keeper (Servex restarts it, shows the connector URL, the named-tunnel steps), and **the site from anywhere** (`monorepo.lew42.com` through `Server/SiteGateway.mjs`): [doc/tunnel.md](doc/tunnel.md)
 diff --git a/public/framework/ai/doc/voice-agents.md b/public/framework/ai/doc/voice-agents.md
-index 975350afd..833019da6 100644
+index 975350afd..ffac8eb2d 100644
 --- a/public/framework/ai/doc/voice-agents.md
 +++ b/public/framework/ai/doc/voice-agents.md
-@@ -40,14 +40,17 @@ Numbers from [measure.mjs](../sessions/2026/10/20/session-e00f55c9/voice-bridge/
+@@ -40,14 +40,23 @@ Numbers from [measure.mjs](../sessions/2026/10/20/session-e00f55c9/voice-bridge/
  
  | Path | Ack | Answer | Use it? |
  |---|---|---|---|
@@ -606,10 +616,16 @@ index 975350afd..833019da6 100644
 +**Where the time went (59 past voice turns):** the mastermind made its first tool call at a median 10 s, said its first words at 40 s, and ended its turn at 51 s. It worked before it spoke. The bridge asks it to speak first ([first-words.mjs](../sessions/2026/10/20/session-e00f55c9/voice-bridge/first-words.mjs) times it).
 +
 +**Today's blocker (2026-11-01, 23:10Z):** every new agent waits at Servex's spawn gate while free memory is under 2.5 GB (`SERVEX_MIN_FREE_MB`, `Global.admit`); it was 1.2 GB, with 137 `node` processes holding 6.7 GB. So an `ask_mastermind` that must spawn its mastermind gets a ticket in 0.1 s and then **no answer at all** until memory frees. Two voice masterminds sat queued that way. The bridge says so in its status, and hands the ask to a fallback agent that is already running (`remote.fallback`).
++
++**Pushing into the VS Code tab (the brief asked what hooks or `CLAUDE_CODE_MESSAGING_SOCKET` allow).** A tab runs a turn only when something starts one: a prompt typed in it, or a background job or Monitor it started itself finishing or printing. Nothing outside can start one directly:
++- **Hooks** run inside the tab's own events (`UserPromptSubmit`, `PostToolUse`, `Stop`…). They can add text to a turn that is already running, or keep it going (a `Stop` hook that blocks), but no hook fires on an outside event, so a hook cannot wake an idle tab.
++- **`CLAUDE_CODE_MESSAGING_SOCKET`** is set in each tab (a named pipe, `\\.\pipe\LOCAL\cc-msg-<hex>`). It is most likely what Claude Code's peer `SendMessage` writes to, and that message never reached an idle tab (the row above). Its wire format is not documented, so Servex does not write to it.
++- **What works today** is the tab's own Monitor on its inbox file: the line shows up about 4–9 s later, while the Monitor is armed. That is why the bridge prefers a Servex agent, which streams its words, and uses a tab only as the `remote.fallback`.
++- **Known, later:** writing to the socket directly (copying the wire format of one `SendMessage`) could cut the tab's delay to under a second. It is worth one experiment once the bridge is live.
  
  ## 5. "Switch your voice"
  
-@@ -56,6 +59,6 @@ Numbers from [measure.mjs](../sessions/2026/10/20/session-e00f55c9/voice-bridge/
+@@ -56,6 +65,6 @@ Numbers from [measure.mjs](../sessions/2026/10/20/session-e00f55c9/voice-bridge/
  
  ## 6. Rules for a cloud voice agent, in short
  

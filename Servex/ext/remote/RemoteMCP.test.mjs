@@ -94,7 +94,7 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     const list = (await rpc({ id: 5, method: "tools/list" })).json.result.tools.map(t => t.name);
     assert.equal(list[0], "ask_mastermind");
     assert.ok(list.includes("page_add") && list.includes("whoami_test"), "page_add and the registry's own tools are listed");
-    assert.equal(list.length, mcp.tools.length + 3, "tool count = registry + ask_mastermind + call + cloud_voice_log");
+    assert.equal(list.length, mcp.tools.length + 4, "tool count = registry + ask_mastermind + voice_hear + call + cloud_voice_log");
     assert.equal(new Set(list).size, list.length, "no duplicates");
     const call = (name, args) => rpc({ id: 6, method: "tools/call", params: { name, arguments: args } });
     assert.equal((await call("whoami_test", {})).json.result.content[0].text, "caller=voice-app");
@@ -229,6 +229,143 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     assert.equal(swept.length, 1, "exactly one swept answer: a marker stops a second delivery, a stale file is skipped");
     assert.equal(swept[0].text, "written while Servex was down"); assert.equal(swept[0].reply_to, "feedbeef");
     assert.ok(fs.existsSync(path.join(rd, "feedbeef.delivered")), "delivery is marked");
+}
+// THE BRIDGE (voice-bridge, 2026-11-01): a fake agent streams through the host's real seam, agents.watch(event, agent)
+{
+    const live = new Map(), standin = { id: "mastermind-voice-queued", queued: true, card: () => ({ state: "queued", reason: "only 1200 MB of memory is free; waiting for 2560 MB" }) };
+    let queue_next = false, script = null;
+    const in_queue = new Set();   // the gate's queue (Servex.js queued_entry): an id leaves it when the gate admits it
+    const agents2 = {
+        live, watch(){},
+        queued_entry: id => in_queue.has(id) ? standin : null,
+        registry_list: () => [], task_dir_for: () => null,
+        spawn(spec){
+            if (queue_next){ in_queue.add(standin.id); return standin; }
+            const a = { id: `mastermind-${spec.name}`, state: "idle", effort: spec.effort };
+            live.set(a.id, a); return a;
+        },
+        // the agent: say-first words, a tool, more words, then the reply file (or none) and the turn's end, on the timing given
+        send(id, text){
+            if (!live.has(id)){   // a VS Code tab: no stream, it answers only by writing the reply file
+                assert.ok(!/skip the file/.test(text) && /Always write the file/.test(text), "a non-streaming target is told to always write the file");
+                const out = /plain text to (\S+\.txt)/.exec(text)[1];
+                return setTimeout(() => fs.writeFileSync(out, "From the tab, by file."), 200);
+            }
+            const a = live.get(id) ?? { id };
+            const out = /plain text to (\S+\.txt)/.exec(text)?.[1];
+            // like Agents.js: queue.kinds gains one entry per message and loses one per turn end; the agent is idle once nothing is left
+            // (`idle: true` forces it, as the CLI's queued_turn_count does when a count drifted); queue.items stays empty, as it does
+            // once the Claude process has taken the messages
+            const q = a.queue ??= { items: [], kinds: [] };
+            q.kinds.push(false);
+            const ev = (ms, e) => setTimeout(() => { if (e.type === "result"){ q.kinds.shift(); if (e.idle || !q.kinds.length) a.state = "idle"; } agents2.watch(e, a); }, ms);
+            a.state = "working";
+            for (const [ms, e] of script(out)) e === "file" ? setTimeout(() => fs.writeFileSync(out, "the full answer, from the file"), ms) : ev(ms, e);
+        },
+    };
+    const servex2 = { mcp, sessions: { map: {}, save(){} }, cards: servex.cards, agents: agents2, external: servex.external };
+    const app2 = express(), gw2 = new RemoteMCP({ servex: servex2, root, router: app2, token_file, wait_ms: 1000 });
+    const srv2 = await new Promise(r => { const s = app2.listen(0, "127.0.0.1", () => r(s)); });
+    const url2 = `http://127.0.0.1:${srv2.address().port}${RemoteMCP.PATH}/${gw2.token}`;
+    const rpc2 = async (body, sid) => {
+        const r = await fetch(url2, { method: "POST", headers: { "content-type": "application/json", ...(sid ? { "mcp-session-id": sid } : {}) }, body: JSON.stringify({ jsonrpc: "2.0", ...body }) });
+        return { sid: r.headers.get("mcp-session-id"), text: (await r.json()).result?.content?.map(c => c.text).join("\n") };
+    };
+    const tool2 = (name, args, sid) => rpc2({ id: 3, method: "tools/call", params: { name, arguments: args } }, sid);
+    const b1 = (await rpc2({ id: 1, method: "initialize", params: {} })).sid;
+    // 6) slow agent: the ack comes in under a second with status; first words arrive through voice_hear before the answer
+    script = out => [[300, { type: "delta", text: "Checking the handover, " }], [350, { type: "delta", text: "about ten seconds." }], [500, { type: "tool", name: "Read", input: "handover.md" }], [900, { type: "delta", text: "thinking aloud" }], [1800, "file"], [1900, { type: "result" }]];
+    let t0 = Date.now();
+    const fire = JSON.parse((await tool2("ask_mastermind", { question: "what landed?", wait: false }, b1)).text);
+    const ack_ms = Date.now() - t0;
+    assert.ok(ack_ms < 1000 && fire.ticket && fire.status, `ack under 1 s with a status (${ack_ms} ms, ${fire.status})`);
+    const h1 = JSON.parse((await tool2("voice_hear", { ticket: fire.ticket, wait_s: 5 }, b1)).text);
+    const first_ms = Date.now() - t0;
+    assert.ok(h1.new && /^Checking the handover/.test(h1.first) && !h1.done && first_ms < 900, `voice_hear returns the first words as soon as they are said (${first_ms} ms)`);
+    let h = h1;
+    while (!h.done && Date.now() - t0 < 5000) h = JSON.parse((await tool2("voice_hear", { ticket: fire.ticket, wait_s: 5 }, b1)).text);
+    assert.equal(h.answer, "the full answer, from the file", "the reply file is the answer");
+    assert.equal(h.first, "Checking the handover, about ten seconds.", "first words are only the text before the first tool call");
+    const answer_ms = Date.now() - t0;
+    // 7) say-first was the whole answer: no file, the turn's words are the answer, and it rides on cloud_voice_log
+    script = () => [[200, { type: "delta", text: "Two branches are ready to merge." }], [400, { type: "result" }]];
+    const quick = await tool2("ask_mastermind", { question: "anything to merge?", wait: false }, b1);
+    const qt = JSON.parse(quick.text).ticket;
+    await new Promise(r => setTimeout(r, 600));
+    const logged = (await tool2("cloud_voice_log", { words: "and what else" }, b1)).text;
+    assert.match(logged, new RegExp(`Answer from mastermind-voice-\\w+ \\(ticket ${qt}\\): Two branches are ready to merge\\.`), "the answer rides on the next tool result");
+    assert.ok(!/Answer from/.test((await tool2("cloud_voice_log", { words: "again" }, b1)).text), "and rides only once");
+    // 8) the default short wait: a quick say-first answer comes back inline, a slow one returns the ticket and first words
+    script = () => [[150, { type: "delta", text: "Yes, it is up." }], [250, { type: "result" }]];
+    assert.equal((await tool2("ask_mastermind", { question: "is the site up?" }, b1)).text, "Yes, it is up.", "a fast answer is returned in the call");
+    script = () => [[150, { type: "delta", text: "Starting a minion for that." }], [200, { type: "tool", name: "spawn_agent" }], [3000, { type: "result" }]];
+    t0 = Date.now();
+    const slow = (await tool2("ask_mastermind", { question: "fix the layout" }, b1)).text;
+    assert.ok(Date.now() - t0 < 1500 && /Not answered yet/.test(slow) && /Starting a minion for that\./.test(slow), "a slow ask returns within the short wait, with its first words");
+    // 9) a mastermind queued at the spawn gate: the status says why, and the fallback answers instead
+    queue_next = true;
+    const b2 = (await rpc2({ id: 1, method: "initialize", params: {} })).sid;
+    const held = JSON.parse((await tool2("ask_mastermind", { question: "hello?", wait: false }, b2)).text);
+    assert.ok(/waiting to start: only 1200 MB/.test(held.status), `a queued mastermind's status says why (${held.status})`);
+    live.set("vscode-mastermind", { id: "vscode-mastermind", state: "idle" });
+    process.env.REMOTE_MCP_FALLBACK = "vscode-mastermind";
+    script = () => [[100, { type: "delta", text: "The tab here, answering." }], [200, { type: "result" }]];
+    const routed = JSON.parse((await tool2("ask_mastermind", { question: "hello again?", wait: false }, b2)).text);
+    delete process.env.REMOTE_MCP_FALLBACK;
+    assert.equal(routed.to, "vscode-mastermind"); assert.match(routed.routed, /waiting to start/, "routed to the fallback, and says so");
+    // the gate admits it: the next ask goes to the connection's own mastermind again, and says nothing about waiting
+    in_queue.delete(standin.id); live.set(standin.id, { id: standin.id, state: "idle" });
+    await new Promise(r => setTimeout(r, 300));
+    process.env.REMOTE_MCP_FALLBACK = "vscode-mastermind";
+    script = () => [[100, { type: "delta", text: "Started now." }], [150, { type: "result" }]];
+    const own = JSON.parse((await tool2("ask_mastermind", { question: "now?", wait: false }, b2)).text);
+    delete process.env.REMOTE_MCP_FALLBACK;
+    assert.ok(own.to === standin.id && !/waiting/.test(own.status), `an admitted mastermind is asked directly (${own.to}, ${own.status})`);
+    await new Promise(r => setTimeout(r, 300));
+    // a busy agent: the words of the turn it was already in are not this ask's answer; the next turn's are
+    const vb = live.get("vscode-mastermind");
+    vb.state = "working"; (vb.queue ??= { items: [], kinds: [] }).kinds.push(false);   // the running turn, counted as Agents.js counts it
+    script = () => [[50, { type: "delta", text: "unrelated work" }], [100, { type: "result" }], [200, { type: "delta", text: "Your answer." }], [250, { type: "result" }]];
+    const busy = (await tool2("ask_mastermind", { question: "busy?", to: "vscode-mastermind" }, b1)).text;
+    assert.equal(busy, "Your answer.", "words from the turn already running are skipped");
+    // stopped mid-turn: partial words are not an answer
+    live.get("vscode-mastermind").state = "idle";
+    script = () => [[50, { type: "delta", text: "half a thou" }], [100, { type: "result", stopped: true }]];
+    const cut = (await tool2("ask_mastermind", { question: "stop?", to: "vscode-mastermind", wait: false }, b1)).text;
+    await new Promise(r => setTimeout(r, 300));
+    const ch = JSON.parse((await tool2("voice_hear", { ticket: JSON.parse(cut).ticket, wait_s: 0 }, b1)).text);
+    assert.ok(ch.done && ch.answer === null && /stopped/.test(ch.status), `a stopped turn closes its ask with no answer (${ch.status})`);
+    // 10) `to` asks a named agent directly
+    await new Promise(r => setTimeout(r, 400));   // one question at a time: a turn's words belong to the oldest open ask of that agent
+    script = () => [[100, { type: "delta", text: "Direct." }], [150, { type: "result" }]];
+    assert.equal((await tool2("ask_mastermind", { question: "you?", to: "vscode-mastermind" }, b1)).text, "Direct.");
+    // 11) the real fallback kind: a tab reached through its inbox, which streams nothing; its reply file is the answer
+    assert.equal((await tool2("ask_mastermind", { question: "tab?", to: "vscode-tab-test" }, b1)).text, "From the tab, by file.", "a non-streaming target's file answer is returned");
+    // 12) two asks in a row: the second is sent while the first's turn runs; each gets its own turn's words, none by file
+    script = () => [[50, { type: "delta", text: "Answer A." }], [300, { type: "result" }]];
+    const qa = JSON.parse((await tool2("ask_mastermind", { question: "first?", to: "vscode-mastermind", wait: false }, b1)).text).ticket;
+    script = () => [[400, { type: "delta", text: "Answer B." }], [450, { type: "result" }]];
+    const qb = JSON.parse((await tool2("ask_mastermind", { question: "second?", to: "vscode-mastermind", wait: false }, b1)).text).ticket;
+    await new Promise(r => setTimeout(r, 650));
+    const heard = async q => JSON.parse((await tool2("voice_hear", { ticket: q, wait_s: 0 }, b1)).text);
+    assert.equal((await heard(qa)).answer, "Answer A.", "the first ask gets its own turn's words");
+    assert.equal((await heard(qb)).answer, "Answer B.", "the second ask, sent mid-turn, gets the next turn's words");
+    // 13) a helper's report is already waiting inside the Claude process (queue.items empty, queue.kinds counts it): its words are not the answer
+    const vm = live.get("vscode-mastermind");
+    vm.state = "working"; vm.queue.kinds.push(false, false);   // the running turn, plus the helper's report
+    script = () => [[50, { type: "delta", text: "Other work." }], [100, { type: "result" }], [150, { type: "delta", text: "Helper report." }], [200, { type: "result" }], [250, { type: "delta", text: "Answer C." }], [300, { type: "result" }]];
+    const qc = JSON.parse((await tool2("ask_mastermind", { question: "third?", to: "vscode-mastermind", wait: false }, b1)).text).ticket;
+    await new Promise(r => setTimeout(r, 400));
+    assert.equal((await heard(qc)).answer, "Answer C.", "a message held by the Claude process counts as a turn ahead");
+    // 14) the count came out one high (a priority message jumped the queue): when the agent goes idle, the last turn's words are the answer
+    vm.state = "working"; vm.queue.kinds.push(false, false);
+    script = () => [[50, { type: "delta", text: "Other work." }], [100, { type: "result" }], [150, { type: "delta", text: "Answer D." }], [200, { type: "result", idle: true }]];
+    const qd = JSON.parse((await tool2("ask_mastermind", { question: "fourth?", to: "vscode-mastermind", wait: false }, b1)).text).ticket;
+    await new Promise(r => setTimeout(r, 300));
+    assert.equal((await heard(qd)).answer, "Answer D.", "an over-counted ask takes the last turn's words once the agent is idle");
+    vm.queue.kinds.length = 0;
+    console.log("bridge:", JSON.stringify({ ack_ms, first_ms, answer_ms }));
+    srv2.close();
 }
 srv.close();
 fs.rmSync(root, { recursive: true, force: true });

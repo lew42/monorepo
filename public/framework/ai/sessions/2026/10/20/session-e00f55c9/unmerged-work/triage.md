@@ -30,3 +30,10 @@ Counts: **merge 7 · check 8 · superseded 17 · abandoned 15 (logs only) · old
 - **Task still open (24)**: `ai2-*`, `ui-system-land2/3`, `ui-system-clean-land`, `data-grid`, `framework-home`, `file-system`, `grip-everywhere`, `follow-tail`, `proposal-flow`, `waiting-on-you`, `check-consensus`, `layout-gate`, `fix-label`, `dictate-onewidget`, `onewidget-serve`, `dictate-marks`, `mentions`, `claude-md-consolidate`, `wl-proof`, `refine-audit`. Open tasks nobody has touched for a month: close the task as abandoned, or merge.
 
 The earlier [salvage audit](../voice-20261016/salvage/audit.md) found the same shape (183 ahead, most noise); the difference now is that [In-flight](/framework/core/Session/doc/in-flight.md) shows a session its own unmerged branches.
+
+## Outcome of the merge-backlog run (2026-11-03, [task](../merge-backlog/session.jsonl))
+- `worktree/session-twins-fix`: **merged** as 342b6462d (via `worktree/mb-twins`, reviewed, 5 findings answered). Two merge-time fixes: dev already had `DatedFiles.folders()`, so the branch's finder accessor became `session_folders()`; the `TaskLoop-steps` fixture now marks the new daily twins check done so no child holds the temp dir.
+- `worktree/voice-bridge`: **merged** as 3cee562ef (via `worktree/mb-voice`, review: pass). The one conflict, `Servex/ext/remote/readme.md`, kept both sides.
+- `worktree/chatv3-title-dedupe`: **superseded**, already on `michael/dev` as 50b14ab9f; its one conflict resolved to dev's text and nothing was left to land.
+- `worktree/v1-switch-prep`: **superseded**, the two leftover files (`core/Session/Chat/doc/pseudo-properties.md`, `core/Session/Chat/readme.md`) are older than dev's versions.
+- Note for the next merger: `merge.mjs` finds a review in a session older than 4 days only with `--review-dir <task dir>`.

@@ -32,8 +32,10 @@ class Session extends Task                       // ../Task/Task.js (Task extend
   static root_url(): URL    // ../../ai/sessions/ ; subclasses override
   static day(first_at)      // "YYYY/MM/DD" via Day.path, or null
   static dir_url(id, day?)  // sync: the dated folder, else the old flat <id>/
-  static async scan()       // node: reads every dated folder once, learns id -> day/slug
-  static async locate(id, first_at?, slug?)  // node: the folder to WRITE into; never makes a second one
+  static async scan()       // node: fills days/slugs with every session's home, from SessionFolders (a filler; locate never trusts it)
+  static async locate(id, first_at?, slug?)  // node: the folder to WRITE into, asked of SessionFolders on every call; never makes a second one
+
+// SessionFolders.mjs (node only): the store's ONE finder. at(root).of(id), .home(id, day, name), .all(id), .twins(); static owner(dir)
 
 // Day.js: class Day, static of(t) "YYYY-MM-DD", path(t) "YYYY/MM/DD" - the owner's LOCAL day, never UTC
 ```
@@ -97,9 +99,9 @@ A session's `tasks` is the one list of everything to be done: prompts, tasks and
 **References.**
 - A session is named by its **session id**: its page is `/framework/ai/sessions/<id>/`, and a child names its parent by `parent_session`.
 - A task is named by its **path**: `{"task": "<folder url>"}`.
-- `Session.locate(id)` turns an id into its folder.
+- `Session.locate(id)` turns an id into its folder, by asking `SessionFolders` (`SessionFolders.mjs`, node only): the store's one finder, checked on disk every call ([one-folder.md](/framework/ai/sessions/doc/one-folder.md)).
 
-**A session stays on the day it began.** `DatedFiles.session_dir` looks back 31 days for the session's folder before it makes one (4 until 2026-10-24, which split session-e00f55c9 across 10/20 and 10/24). `TaskDirs --new` uses it, so it never opens a second day's record. The session page also reads a session's folders on later days.
+**A session stays on the day it began.** `DatedFiles.session_dir` asks `SessionFolders`, which finds the session's folder on any day, slug-named too, before it names a new one (until 2026-11-01 it knew only `<uuid>` and `session-<id8>` names, so a slug-only session got a second folder). `TaskDirs --new` uses it, so it never opens a second day's record. The session page also reads a session's folders on later days.
 
 **One source of truth: the file.**
 - The `.jsonl` record is the only truth.

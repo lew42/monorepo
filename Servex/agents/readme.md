@@ -115,6 +115,7 @@ Test: `node Servex/agents/close-loop.test.mjs` (temp task dirs, no live Servex).
 `Assistant.js` + `assistant.md` (the always-up fast assistant and its posture) · `Chain.js` + `doc/assistant-chain.md` (flagged one-global-assistant chain, `SERVEX_CHAIN=on`) ·
 `Layers.js` + `Global.js` (the card and cross-card agents, [`doc/layers.md`](./doc/layers.md)) ·
 `turn-costs.js` (each turn's real dollars from an agent's log; `cost.test.mjs`) · `Sessions.js` per-session `plugins` (`POST /api/session/settings`) and the shared defaults (`/api/session/defaults`; `Sessions.plugins.test.mjs`, doc [`ux/Dictate/doc/settings.md`](/framework/ux/Dictate/doc/settings.md)) ·
+`page_tools.js`'s `task_origin()` + `handoff-note.js`'s `handoff_note()` (ask1-origin, 2026-11-03: a handoff's first message quotes the owner's own raw words, read off the task before `move_item` runs; `task-origin.test.mjs`) ·
 `policy.js` · `claims.js` · `Brief.js` · `tiers.js` ·
 `roles.js` (role → posture) · `Registry.js` (who has ever been spawned, and which host holds it) ·
 `ops.js` (restart, pause, resume) · `Jobs.js` (background work in node) ·

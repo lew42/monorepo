@@ -25,6 +25,8 @@ sessions/
 
 When a day's `index.jsonl` gets its first row, the writer adds the day to its month's list; a month's first day adds the month to the year's list; a year's first month adds the year to the root list.
 
+**One session, one folder.** Which folder holds a session is answered by one function, `SessionFolders` (`core/Session/SessionFolders.mjs`); every writer asks it, and `node Server/SessionConsolidate.mjs --check` (daily, from Servex) reports any session held by two folders: [doc/one-folder.md](doc/one-folder.md).
+
 A session folder is one of three kinds:
 
 | Kind | Folder name | Files | Written by |

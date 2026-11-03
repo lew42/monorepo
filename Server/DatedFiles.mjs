@@ -14,6 +14,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import AIIndexStream from "./AIIndexStream.mjs";
 import SessionRecord from "./SessionRecord.mjs";
+import SessionFolders from "../public/framework/core/Session/SessionFolders.mjs";
 import Day from "../public/framework/core/Session/Day.js";
 import Dated from "../public/framework/core/Item/Dated.js";
 import Query from "../public/framework/ext/Query/Query.js";
@@ -165,7 +166,9 @@ export default class DatedFiles extends Dated {
 		return { ok: !missing.length && !stale.length, folders: have.size, rows: latest.size, missing, stale };
 	}
 
-	/** Sessions: ok when no top folder sits under the wrong day (misfiled) and no index row points at a folder that is gone (stale). A folder without a row is not a fault: watch() and the transcript indexer fill rows in. */
+	/** Sessions: ok when no top folder sits under the wrong day (misfiled), no index row points at a folder that is gone (stale), and no session
+	 *  is held by two folders (twins: SessionFolders.twins(); fold them with node Server/SessionConsolidate.mjs --all). A folder without a row is
+	 *  not a fault: watch() and the transcript indexer fill rows in. */
 	check_sessions(){
 		const R = DatedFiles, latest = new Map(), have = new Set();
 		for (const { day, dir } of this.day_folders()){
@@ -173,7 +176,8 @@ export default class DatedFiles extends Dated {
 			try { for (const e of fs.readdirSync(dir, { withFileTypes: true })) if (e.isDirectory()) have.add(R.rel(path.join(dir, e.name))); } catch {}
 		}
 		const moves = this.misfiled({ since: DatedFiles.LOCAL_DAY_SINCE }).moves.filter(m => m.source !== "folder birth time"), stale = [...latest.values()].filter(r => r.path && !fs.existsSync(path.isAbsolute(r.path) ? r.path : R.abs(r.path))).map(r => r.path);
-		return { ok: !moves.length && !stale.length, folders: have.size, rows: latest.size, misfiled: moves.map(m => m.old), stale };
+		const twins = this.session_folders().twins().map(t => ({ id: t.id, home: R.rel(t.home), others: t.others.map(o => R.rel(o)) }));
+		return { ok: !moves.length && !stale.length && !twins.length, folders: have.size, rows: latest.size, misfiled: moves.map(m => m.old), stale, twins: twins.length, twin_examples: twins.slice(0, 5) };
 	}
 
 	// ── the sessions collection: <ai/sessions>/YYYY/MM/DD/<session or task folder>/ (TaskDirs is its thin alias) ──
@@ -191,32 +195,17 @@ export default class DatedFiles extends Dated {
 		for (const y of ls(root, /^\d{4}$/)) for (const m of ls(path.join(root, y), /^\d{2}$/)) for (const d of ls(path.join(root, y, m), /^\d{2}$/)) out.push(path.join(root, y, m, d));
 		return out;
 	}
-	/** A session's folder without a scan: `session-<id8>` or the uuid, the oldest that holds the id (the day it began); else where a new one goes, on `day`. Absolute.
-	 *  A `session-<id8>` folder that names ANOTHER full id is not ours: two ids can share their first 8 hex (the hand-picked a1c1d1e1-000N ids of
-	 *  2026-09-19 put three sessions' costs in one folder), so a clash gets a folder named by the full uuid. Doc: core/Session/doc/identity.md. */
+	/** A session's folder: the one SessionFolders finds (core/Session/SessionFolders.mjs, the store's only finder: any folder that holds the id,
+	 *  slug-named ones too, the oldest first), else where a new one goes on `day` (session-<id8>, or the full uuid when another id holds that name). Absolute.
+	 *  Doc: public/framework/ai/sessions/doc/one-folder.md. */
 	session_dir(id, day = new Date()){
-		const t = typeof day === "string" ? new Date(day + "T12:00:00") : day, short = "session-" + id.slice(0, 8);
-		// One session, one folder (2026-10-25): the OLDEST folder that holds the id, the day the session began, however long ago.
-		// Until then it looked back a fixed number of days, newest first: a tab resumed on its fifth day got a second folder (session-e00f55c9 on 10/20 and 10/24).
-		for (const d of this.days()){
-			if (fs.existsSync(path.join(d, id))) return path.join(d, id);
-			if (fs.existsSync(path.join(d, short)) && [id, null].includes(DatedFiles.owner(path.join(d, short)))) return path.join(d, short);
-		}
-		const home = path.join(this.day_dir(t), short);
-		return fs.existsSync(home) ? path.join(this.day_dir(t), id) : home;   // reached only when session-<id8> belongs to another id
+		const t = typeof day === "string" ? new Date(day + "T12:00:00") : day;
+		return this.session_folders().home(id, this.day_dir(t));
 	}
-	/** The full session id a session folder says it holds, or null when it does not say (then it is taken to be the caller's).
-	 *  The same sources, in the same order, as Session.scan: index.json, the cache summary, then line 1 of the record or page. */
-	static owner(dir){
-		const read = f => { try { return fs.readFileSync(path.join(dir, f), "utf8"); } catch { return ""; } };
-		const first = f => { try { return JSON.parse(read(f).split("\n")[0] || "null"); } catch { return null; } };
-		let id = null;
-		try { id = JSON.parse(read("index.json") || "null")?.id ?? null; } catch {}
-		if (!id) try { id = JSON.parse(read("cache.jsonl").split("\n").find(l => l.startsWith('{"summary"')) ?? "null")?.summary?.id ?? null; } catch {}
-		if (!id){ const l = first("session.jsonl") ?? first("task.jsonl"); id = l?.session?.id ?? l?.assign?.session_id ?? null; }
-		if (!id){ const l = first("page.jsonl"); id = typeof l?.session === "string" ? l.session : null; }
-		return typeof id === "string" && DatedFiles.UUID.test(id) ? id : null;
-	}
+	/** The finder of this collection's store. */
+	session_folders(){ return SessionFolders.at(DatedFiles.abs(this.root)); }
+	/** The full session id a folder says it holds, or null (SessionFolders.owner: the claim rule, in one place). */
+	static owner(dir){ return SessionFolders.owner(dir); }
 	/** Where a new task folder goes: inside its session when one is given, else straight under the day. Absolute, not created. `parent` is resolved by the caller. */
 	home({ slug, session_id, parent, day } = {}){
 		if (!/^[a-z0-9][a-z0-9._-]*$/i.test(slug ?? "")) throw new Error("a slug is [a-z0-9-], got " + JSON.stringify(slug));
