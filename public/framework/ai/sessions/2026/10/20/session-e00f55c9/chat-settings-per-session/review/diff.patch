@@ -1,372 +1,511 @@
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/plan.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/plan.md
+index 5744c6b20..90fdce440 100644
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/plan.md
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/plan.md
+@@ -6,7 +6,7 @@ Brief: [requirements.md](requirements.md). Older plan (census of 21 features, 29
+ 
+ `core/Plugin` already lets a **class** list plugins and switch them on and off. This adds a second level: a **Voice Chat instance** (one per open chat) keeps only its *overrides* (which plugins it switched, which values it changed) and reads everything else from the class. The overrides are a small plain object. That object is what is saved on the voice session, loaded when the session is opened, and copied to the class defaults by "Make default". A new session is an instance with no overrides, so it starts from the defaults.
+ 
+-## Step 1: instance-level plugins in core/Plugin (merge 2; built, in review)
++## Step 1: instance-level plugins in core/Plugin (merge 2, landed d09621cc5)
+ 
+ Built on qf-1's per-instance rows (`inst.plugins`, a List of `PluginEntry`, one per class plugin; `enabled`/`config` stay null until this instance overrides them, then read the class record). On top of that (commit a9a75d7df, 28 tests in `core/Plugin/Plugin.test.mjs`):
+ 
+@@ -25,7 +25,7 @@ Host.make_default(inst)            // copy inst.overrides into the class records
+ 
+ Reference only (not merged): my first draft used `plugin_state`/`set_plugin` on branch `task/chat-settings-per-session` (worktree qf-4); those names do not exist.
+ 
+-## Step 2: Voice Chat on core/Plugin (merges 3, 4, 5)
++## Step 2: Voice Chat on core/Plugin (merge 3 is Interrupt and ThinkingCue; then one merge per plugin)
+ 
+ Merge A (`worktree/dictate-plugins`, `ux/Dictate/VoiceChat/`) is ported, not merged as is: its own registry (`VoiceChat.use/host/set/try/store`) is replaced by core/Plugin.
+ 
+@@ -69,6 +69,6 @@ Two buttons at the top of the Features section: **Make default** (`VoiceChat.mak
+ - Servex half of steps 4 and 5: built in worktree/chat-settings-servex (commits 9a39ff44a and the one after): per-session `plugins` via POST /api/session/settings, shared defaults via /api/session/defaults, 4 tests. The page does not use them yet.
+ - Make default also saves the defaults on Servex (vscode-mastermind, 2026-11-03): done on the Servex side; the page side will read it at load, with localStorage as the fallback (not built yet).
+ - qf-1 landed on michael/dev (bc4147365, 2026-11-03).
+-- Step 1 remainder: built on qf-1 in worktree/chat-settings-plugins (a9a75d7df and after): overrides, load_overrides, reset_plugins, Host.make_default, a config change re-runs detach then attach; 28 core/Plugin tests; page demo and docs. Ready to merge after its review.
+-- Step 2, first group (Interrupt, ThinkingCue, the VoiceChat class, chat.js wiring, 10 tests): built in worktree/chat-settings-voicechat, stacked on step 1; merges after step 1. Still to port: send on each sentence end, word highlight, tap to pause, timings.
+-- Open: step 2 remainder, step 3 (Chat settings panel), page side of 4 and 5 (load, save, Make default, Reset to default). None of the five asks is ticked.
++- Step 1 remainder: built on qf-1 in worktree/chat-settings-plugins (a9a75d7df and after): overrides, load_overrides, reset_plugins, Host.make_default, a config change re-runs detach then attach; 28 core/Plugin tests; page demo and docs. Merged as d09621cc5 (merge 2).
++- Step 2, first group (merge 3): the VoiceChat class, Interrupt and ThinkingCue as plugins, `chat.js` makes one VoiceChat per Recite (the page has one reader). 12 VoiceChat tests, 30 core/Plugin tests. core/Plugin gained two small things for it: a plugin may define `reconfigure(inst)` (a threshold slider must not close and reopen the mic) and a constructor arg `overrides` is loaded before attach (no moment of Interrupt on when the browser had it off). Built in worktree/chat-settings-voicechat, in review.
++- Step 2 plugins still to port from Merge A (`worktree/dictate-plugins`, c7330581d), one merge each, in value order: send on each sentence end, word highlight, tap to pause, timings. Do NOT port Interrupt or ThinkingCue again. Then step 3 (Chat settings panel), and the page side of 4 and 5 (load, save, Make default, Reset to default). None of the five asks is ticked.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/session.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/session.jsonl
+index a406ad905..41a9925a1 100644
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/session.jsonl
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/session.jsonl
+@@ -74,3 +74,7 @@
+ {"review":{"at":"2026-11-03T13:54:19-06:00","answer":{"n":3,"reply":"fixed: the nine unrelated shot folders are removed; only shots/...core-Plugin remains."}},"by":"append.mjs","ts":"2026-11-03T19:54:19.140Z"}
+ {"review":{"at":"2026-11-03T13:54:19-06:00","answer":{"n":4,"reply":"fixed: the Make default and Reset to default buttons are nowrap, the row wraps as a whole."}},"by":"append.mjs","ts":"2026-11-03T19:54:19.141Z"}
+ {"review":{"at":"2026-11-03T13:54:19-06:00","answer":{"n":5,"reply":"noted: the framework readme core/Plugin line now names per-instance overrides and make_default."}},"by":"append.mjs","ts":"2026-11-03T19:54:19.142Z"}
++{"review":{"at":"2026-11-03T13:59:18-06:00","answer":{"n":1,"reply":"fixed: chat.js now makes ONE VoiceChat per Recite (Recite.shared.voice_chat) and every chat on the page uses it, so there is no second chat to overwrite the shared barge; readme says so."}},"by":"append.mjs","ts":"2026-11-03T19:59:18.962Z"}
++{"review":{"at":"2026-11-03T13:59:18-06:00","answer":{"n":2,"reply":"fixed: Interrupt.bind wraps the bar controls once per BargeIn and the newest chat owns them; a test with two chats on one Recite shows one host call and one row written."}},"by":"append.mjs","ts":"2026-11-03T19:59:18.963Z"}
++{"review":{"at":"2026-11-03T13:59:18-06:00","answer":{"n":3,"reply":"fixed: core/Plugin calls a plugin's reconfigure(inst) instead of detach and attach on a config change; Interrupt and ThinkingCue use it, so the slider no longer closes the mic; tested."}},"by":"append.mjs","ts":"2026-11-03T19:59:18.964Z"}
++{"review":{"at":"2026-11-03T13:59:18-06:00","answer":{"n":4,"reply":"fixed: plan.md Status lists what step 2 built and the four plugins still to port, and says not to port Interrupt or ThinkingCue again."}},"by":"append.mjs","ts":"2026-11-03T19:59:18.965Z"}
 diff --git a/public/framework/core/Plugin/Plugin.js b/public/framework/core/Plugin/Plugin.js
-index 14a9d9e20..97b71f906 100644
+index 97b71f906..21ff984a1 100644
 --- a/public/framework/core/Plugin/Plugin.js
 +++ b/public/framework/core/Plugin/Plugin.js
-@@ -45,6 +45,47 @@ export class Plugin extends Events(Object) {
- 		else Plugin.detach_instance(rec, this);
- 	}
+@@ -11,9 +11,14 @@ const own_events = Symbol.for("core.Plugin.events");
+ export class Plugin extends Events(Object) {
  
-+	// What this instance changed against the class: a plain {Name: {enabled?, config?}} that survives JSON, so it can be saved
-+	// with a session and handed back to load_overrides. A plugin this instance left alone is not in it.
-+	get overrides(){
-+		const out = {};
-+		for (const row of this.plugins) {
-+			const rec = row.record, o = {}, on = this._plugin_overrides?.get(rec), cfg = row.own("config");
-+			if (on !== undefined) o.enabled = on;
-+			if (cfg && Object.keys(cfg).length) o.config = { ...cfg };
-+			if (Object.keys(o).length) out[rec.name] = o;
-+		}
-+		return out;
-+	}
-+
-+	// Replace every override with `obj`: a listed plugin takes its value, an unlisted one goes back to the class. A plugin
-+	// whose state does not change is not touched, so loading the same overrides twice runs nothing.
-+	load_overrides(obj = {}){
-+		const Host = this.constructor, rows = [...this.plugins], was = new Map();
-+		for (const row of rows) {   // config first, so an attach that follows reads the new values
-+			const rec = row.record, cfg = obj[rec.name]?.config, next = cfg && Object.keys(cfg).length ? { ...cfg } : null;
-+			if (JSON.stringify(row.own("config") ?? null) === JSON.stringify(next)) continue;
-+			was.set(rec, rec.attached.has(this));
-+			row.put("config", next);
-+			row.emit_safely("change", "config", row.get_one("config"));
-+		}
-+		for (const row of rows) {
-+			const rec = row.record, enabled = obj[rec.name]?.enabled, before = rec.attached.has(this);
-+			if (enabled === undefined) {
-+				if (this._plugin_overrides?.delete(rec)) row.put("enabled", null);
-+				if (rec.on) Host.attach_instance(rec, this); else Host.detach_instance(rec, this);
-+			} else {
-+				this.toggle_plugin(rec, enabled);
-+				row.put("enabled", rec.attached.has(this));
-+			}
-+			if (was.get(rec) && before && rec.attached.has(this)) Host.rerun_instance(rec, this);   // same on/off, new config
-+			if (rec.attached.has(this) !== before) row.emit_safely("change", "enabled", row.get_one("enabled"));
-+		}
-+		return this;
-+	}
-+
-+	reset_plugins(){ return this.load_overrides({}); }
-+
- 	// ── class-level events. "new" walks the class chain: parents' listeners first, then each subclass's own.
- 	static get events(){
- 		if (!Object.hasOwn(this, own_events)) Object.defineProperty(this, own_events, { value: {}, writable: true });
-@@ -107,7 +148,7 @@ export class Plugin extends Events(Object) {
- 		const name = p.name || "plugin", key = `plugin.${this.name}.${name}`;
- 		const saved = Plugin.store.get(key), defaults = p.defaults ?? {};
- 		const { on: default_on = true, ...config_defaults } = defaults;
--		rec = { plugin: p, name, key, on: false, fn: null, live: new Set(), attached: new WeakSet(), n: 0,
-+		rec = { plugin: p, name, key, on: false, fn: null, live: new Set(), seen: new WeakSet(), attached: new WeakSet(), n: 0,
- 			wanted: wanted_on ?? saved?.on ?? default_on, config: { ...config_defaults, ...saved?.config } };
- 		this.records.set(p, rec);
- 		if (!Plugin.hosts.includes(this)) Plugin.hosts.push(this);
-@@ -145,6 +186,49 @@ export class Plugin extends Events(Object) {
+ 	// Same order the server's Events had: assign the args, announce "new", then instantiate().
++	// A constructor arg named `overrides` ({Name: {enabled?, config?}}, what inst.overrides gave) is loaded BEFORE the plugins attach,
++	// so a plugin this instance has off is never attached for a moment, and the others attach with this instance's own config.
+ 	constructor(...args){
+ 		super();
++		let start;
++		args = args.map(a => { if (!a || typeof a !== "object" || !("overrides" in a)) return a; const { overrides, ...rest } = a; start = overrides; return rest; });
+ 		this.assign(...args);
++		if (start) this.load_overrides(start);
+ 		this.constructor.emit("new", this);
+ 		this.instantiate();
+ 	}
+@@ -186,9 +191,11 @@ export class Plugin extends Events(Object) {
  		rec.plugin.detach(inst);
  	}
  
-+	// New config for a live instance: detach then attach, so the plugin re-reads it (a plugin with no real detach is left as is).
-+	static rerun_instance(rec, inst){
-+		if (!rec.attached.has(inst)) return;
-+		this.detach_instance(rec, inst);
-+		this.attach_instance(rec, inst);
-+	}
-+
-+	// The class config changed in `keys`: re-run every live instance that follows the class for those fields (not `except`).
-+	static reconfigure_live(rec, keys, except){
-+		for (const ref of [...rec.live]) {
-+			const inst = ref.deref();
-+			if (!inst || inst === except) continue;
-+			const own = inst._plugins?.find(rec.name)?.own("config");
-+			if (own && keys.some(k => k in own)) continue;
-+			this.rerun_instance(rec, inst);
-+		}
-+	}
-+
-+	// "Make default": copy what `inst` changed into the class records and the store, so the next page load keeps it. The
-+	// instance then has nothing left to override. Other live instances re-run if they follow the class; one with its own
-+	// override on that plugin keeps it.
-+	static make_default(inst){
-+		const overrides = inst.overrides;
-+		for (const row of inst.plugins) {
-+			const rec = row.record, o = overrides[rec.name];
-+			if (!o) continue;
-+			inst._plugin_overrides?.delete(rec);
-+			row.put("enabled", null);
-+			row.put("config", null);
-+			const old = rec.config, changed = [];
-+			if (o.config) {
-+				rec.config = { ...old, ...o.config };
-+				for (const k of Object.keys(o.config)) if (JSON.stringify(old[k]) !== JSON.stringify(rec.config[k])) changed.push(k);
-+				rec.row?.put("config", rec.config);
-+				rec.row?.emit_safely("change", "config", rec.config);
-+			}
-+			if (o.enabled !== undefined && o.enabled !== rec.on) o.enabled ? this.enable(rec) : this.disable(rec);
-+			else if (o.enabled !== undefined) rec.wanted = o.enabled;
-+			this.store.set(rec.key, { on: rec.on, config: rec.config });
-+			if (changed.length) this.reconfigure_live(rec, changed, inst);
-+		}
-+	}
-+
- 	// An instance that switched this plugin on/off for ITSELF (Plugin#toggle_plugin) keeps that wish: a class-wide
- 	// enable()/disable() never overrides an explicit per-instance override, it only moves the instances left unset.
- 	static overridden(rec, inst, value){ return inst._plugin_overrides?.get(rec) === value; }
+-	// New config for a live instance: detach then attach, so the plugin re-reads it (a plugin with no real detach is left as is).
++	// New config for a live instance: a plugin with reconfigure(inst) is told just that; otherwise detach then attach, so it re-reads
++	// its config (a plugin with no real detach is left as is).
+ 	static rerun_instance(rec, inst){
+ 		if (!rec.attached.has(inst)) return;
++		if (typeof rec.plugin.reconfigure === "function") { rec.plugin.reconfigure(inst); return; }
+ 		this.detach_instance(rec, inst);
+ 		this.attach_instance(rec, inst);
+ 	}
 diff --git a/public/framework/core/Plugin/Plugin.test.mjs b/public/framework/core/Plugin/Plugin.test.mjs
-index d108b6ff1..effea39f0 100644
+index effea39f0..310ba0c33 100644
 --- a/public/framework/core/Plugin/Plugin.test.mjs
 +++ b/public/framework/core/Plugin/Plugin.test.mjs
-@@ -264,3 +264,118 @@ test("the server shim: Server/Events.js is a Plugin that keeps assign, then new,
- 	t.eq(order, ["new:7", "initialize:7"], "assign, new event, initialize");
- 	t.ok(new Sock({}) instanceof Plugin, "it is a Plugin");
+@@ -379,3 +379,30 @@ test("make_default re-runs other live instances that follow the class, and leave
+ 	t.eq(cfg_calls, [["detach", "follower"], ["attach", "follower", '{"level":5,"pause":200}']], "follower re-ran with level 5; src already read 5 so it did not re-run; mine kept level 9");
+ 	t.eq(mine.overrides, { Tuned: { config: { level: 9 } } }, "mine still has its override");
  });
 +
-+// ── per-instance config, overrides, load_overrides, reset_plugins, make_default (chat-settings-per-session, step 1)
-+const cfg_calls = [];
-+class Tuned {
-+	static defaults = { on: true, level: 1, pause: 200 };
-+	static fields = [{ key: "level", kind: "slider" }, { key: "pause", kind: "number" }];
-+	static attach(inst){ cfg_calls.push(["attach", inst.tag, JSON.stringify(inst.plugins.find("Tuned").get("config"))]); }
-+	static detach(inst){ cfg_calls.push(["detach", inst.tag]); }
-+}
-+
-+test("a config change on a live instance row detaches then attaches, so the plugin re-reads its config", t => {
-+	cfg_calls.length = 0;
-+	class C1 extends Plugin {}
-+	C1.use(Tuned);
-+	const a = new C1({ tag: "a" }), b = new C1({ tag: "b" });
-+	cfg_calls.length = 0;
-+	a.plugins.find("Tuned").set({ config: { level: 5 } });
-+	t.eq(cfg_calls, [["detach", "a"], ["attach", "a", '{"level":5,"pause":200}']], "only a re-ran, in order, and read its new level");
-+	t.eq(b.plugins.find("Tuned").get("config"), { level: 1, pause: 200 }, "the other instance is untouched");
-+	t.eq(C1.plugins.find("Tuned").get("config"), { level: 1, pause: 200 }, "the class row is unchanged");
-+});
-+
-+test("an instance stores only the fields it changed: the rest follow the class, also when the class changes later", t => {
-+	class C2 extends Plugin {}
-+	C2.use(Tuned);
-+	const a = new C2({ tag: "a" });
-+	const row = a.plugins.find("Tuned");
-+	row.set({ config: { level: 5 } });
-+	t.eq(row.get("config"), { level: 5, pause: 200 }, "merged read: own level, class pause");
-+	C2.plugins.find("Tuned").set({ config: { pause: 300 } });
-+	t.eq(row.get("config"), { level: 5, pause: 300 }, "a later class change of another field shows through");
-+});
-+
-+test("a class config change re-attaches live instances that did not override that field, and skips the ones that did", t => {
-+	cfg_calls.length = 0;
-+	class C3 extends Plugin {}
-+	C3.use(Tuned);
-+	const plain = new C3({ tag: "plain" }), own = new C3({ tag: "own" });
-+	own.plugins.find("Tuned").set({ config: { level: 9 } });
-+	cfg_calls.length = 0;
-+	C3.plugins.find("Tuned").set({ config: { level: 2 } });
-+	t.eq(cfg_calls, [["detach", "plain"], ["attach", "plain", '{"level":2,"pause":200}']], "plain re-ran with the new level; own kept level 9 and was not touched");
-+});
-+
-+test("overrides is a plain object of what this instance changed, and nothing for the rest", t => {
-+	class C4 extends Plugin {}
-+	C4.use(Tuned, Spy);
-+	const a = new C4({ tag: "a" });
-+	t.eq(a.overrides, {}, "a new instance has no overrides");
-+	a.plugins.find("Tuned").set({ config: { level: 5 } });
-+	a.plugins.find("Spy").set({ enabled: false });
-+	t.eq(a.overrides, { Tuned: { config: { level: 5 } }, Spy: { enabled: false } }, "only what was changed");
-+	t.eq(JSON.parse(JSON.stringify(a.overrides)), a.overrides, "plain data: it survives JSON, so it can be saved");
-+});
-+
-+test("load_overrides replaces all overrides: a listed one changes, an unlisted one goes back to the class", t => {
-+	cfg_calls.length = 0; calls.length = 0;
-+	class C5 extends Plugin {}
-+	C5.use(Tuned, Spy);
-+	const a = new C5({ tag: "a" });
-+	a.plugins.find("Tuned").set({ config: { level: 5 } });
-+	cfg_calls.length = 0; calls.length = 0;
-+	a.load_overrides({ Spy: { enabled: false } });
-+	t.eq(calls, [["detach", "Spy", "a"]], "Spy switched off");
-+	t.eq(cfg_calls, [["detach", "a"], ["attach", "a", '{"level":1,"pause":200}']], "Tuned went back to the class config, re-run once");
-+	t.eq(a.overrides, { Spy: { enabled: false } }, "overrides are exactly what was loaded");
-+	calls.length = 0; cfg_calls.length = 0;
-+	a.load_overrides({ Spy: { enabled: false } });
-+	t.eq([calls.length, cfg_calls.length], [0, 0], "loading the same overrides again re-runs nothing");
-+});
-+
-+test("reset_plugins puts an instance back to the class state", t => {
-+	calls.length = 0;
-+	class C6 extends Plugin {}
-+	C6.use(Tuned, Spy);
-+	const a = new C6({ tag: "a" });
-+	a.plugins.find("Spy").set({ enabled: false });
-+	a.plugins.find("Tuned").set({ config: { level: 7 } });
-+	a.reset_plugins();
-+	t.eq(a.overrides, {}, "no overrides left");
-+	t.eq(a.plugins.find("Spy").get("enabled"), true, "Spy is back on");
-+	t.eq(a.plugins.find("Tuned").get("config"), { level: 1, pause: 200 }, "Tuned is back on the class config");
-+});
-+
-+test("make_default copies one instance's overrides to the class and the store; its own overrides are then empty", t => {
++test("a plugin with reconfigure(inst) is told that on a config change instead of being detached and re-attached", t => {
 +	Plugin.store = new Map();
-+	class C7 extends Plugin {}
-+	C7.use(Tuned, Spy);
-+	const a = new C7({ tag: "a" });
-+	a.plugins.find("Tuned").set({ config: { level: 5 } });
-+	a.plugins.find("Spy").set({ enabled: false });
-+	C7.make_default(a);
-+	t.eq(a.overrides, {}, "a has nothing left to override");
-+	t.eq(a.plugins.find("Tuned").get("config"), { level: 5, pause: 200 }, "a still reads level 5, now from the class");
-+	t.eq(a.plugins.find("Spy").get("enabled"), false, "and Spy is still off, now from the class");
-+	t.eq(Plugin.store.get("plugin.C7.Tuned"), { on: true, config: { level: 5, pause: 200 } }, "saved for the next page load");
-+	t.eq(Plugin.store.get("plugin.C7.Spy").on, false, "Spy's default is saved off");
-+	calls.length = 0; cfg_calls.length = 0;
-+	const fresh = new C7({ tag: "fresh" });
-+	t.eq(cfg_calls, [["attach", "fresh", '{"level":5,"pause":200}']], "a new instance starts from the new default");
-+	t.eq(calls.length, 0, "and without the plugin that is now off by default");
++	const log = [];
++	class Live { static defaults = { level: 1 }; static attach(i){ log.push("attach"); } static detach(i){ log.push("detach"); } static reconfigure(i){ log.push("reconfigure"); } }
++	class C9 extends Plugin {}
++	C9.use(Live);
++	const inst = new C9();
++	log.length = 0;
++	inst.plugins.find("Live").set({ config: { level: 4 } });
++	t.eq(log, ["reconfigure"], "no detach, no attach: the plugin keeps what is open");
++	inst.plugins.find("Live").set({ enabled: false });
++	t.eq(log, ["reconfigure", "detach"], "switching off still detaches");
 +});
 +
-+test("make_default re-runs other live instances that follow the class, and leaves the ones with their own override", t => {
++test("a constructor arg `overrides` is in place before the plugins attach: an off plugin never attaches, an overridden config is read by attach", t => {
 +	Plugin.store = new Map();
-+	class C8 extends Plugin {}
-+	C8.use(Tuned);
-+	const src = new C8({ tag: "src" }), follower = new C8({ tag: "follower" }), mine = new C8({ tag: "mine" });
-+	mine.plugins.find("Tuned").set({ config: { level: 9 } });
-+	src.plugins.find("Tuned").set({ config: { level: 5 } });
-+	cfg_calls.length = 0;
-+	C8.make_default(src);
-+	t.eq(cfg_calls, [["detach", "follower"], ["attach", "follower", '{"level":5,"pause":200}']], "follower re-ran with level 5; src already read 5 so it did not re-run; mine kept level 9");
-+	t.eq(mine.overrides, { Tuned: { config: { level: 9 } } }, "mine still has its override");
++	const log = [];
++	class A { static defaults = { size: 1 }; static attach(i){ log.push(["A", JSON.stringify(i.plugins.find("A").get("config"))]); } static detach(i){ log.push(["detachA"]); } }
++	class B { static attach(i){ log.push(["B"]); } static detach(i){ log.push(["detachB"]); } }
++	class C10 extends Plugin {}
++	C10.use(A, B);
++	const inst = new C10({ tag: "x", overrides: { A: { config: { size: 7 } }, B: { enabled: false } } });
++	t.eq(log, [["A", '{"size":7}']], "A attached once with size 7; B never attached, so never detached");
++	t.eq(inst.tag, "x", "the other args are still assigned");
++	t.eq(inst.overrides, { A: { config: { size: 7 } }, B: { enabled: false } }, "and the overrides read back");
 +});
-diff --git a/public/framework/core/Plugin/PluginEntry.js b/public/framework/core/Plugin/PluginEntry.js
-index 7e3388c17..67585bb2d 100644
---- a/public/framework/core/Plugin/PluginEntry.js
-+++ b/public/framework/core/Plugin/PluginEntry.js
-@@ -9,15 +9,19 @@ export class PluginEntry extends Item {
- 
- 	// An INSTANCE row (Plugin.add_instance_row) starts unset: until this instance overrides it, "enabled" and
- 	// "config" read the class row's live values (rec.on / rec.config) instead of this row's own null.
-+	// "config" is the class config with only this instance's own fields on top, so a later class change of another field shows through.
- 	get_one(key){
- 		const stored = super.get_one(key);
--		if (this.instance && stored == null) {
--			if (key === "enabled") return this.record?.on;
--			if (key === "config") return this.record?.config;
-+		if (this.instance) {
-+			if (key === "enabled" && stored == null) return this.record?.on;
-+			if (key === "config") return { ...this.record?.config, ...stored };
- 		}
- 		return stored;
- 	}
- 
-+	// What this row itself holds (null until overridden), without the class fallback: the saved override.
-+	own(key){ return super.get_one(key); }
-+
- 	// A row is active when it is on and the row above it (the plugin it is a sub-plugin of) is active.
- 	get active(){ return !!this.get_one("enabled") && this.up?.active !== false; }
- 
-@@ -51,11 +55,18 @@ export class PluginEntry extends Item {
- 	}
- 
- 	set_config(value){
--		const rec = this.record, config = { ...this.get_one("config"), ...value };
-+		const rec = this.record;
-+		if (this.instance) {   // only the changed fields are kept; the plugin re-reads them through a detach then attach
-+			this.put("config", { ...this.own("config"), ...value });
-+			if (rec) this.host.constructor.rerun_instance(rec, this.host);
-+			return;
-+		}
-+		const old = this.get_one("config"), config = { ...old, ...value };
- 		this.put("config", config);
--		if (this.instance) return;   // an instance override is not a saved class preference
- 		if (rec) rec.config = config;
- 		this.save_row();
-+		const changed = Object.keys(value).filter(k => JSON.stringify(old?.[k]) !== JSON.stringify(config[k]));
-+		if (rec && changed.length) this.host.reconfigure_live(rec, changed);
- 	}
- 
- 	// Only a change made through a CLASS row is saved; a use() in code and an instance override are not preferences.
-diff --git a/public/framework/core/Plugin/page.js b/public/framework/core/Plugin/page.js
-index 0ac9cd9c5..df2c6b250 100644
---- a/public/framework/core/Plugin/page.js
-+++ b/public/framework/core/Plugin/page.js
-@@ -116,6 +116,36 @@ Badge.plugins.set({ Glow: { enabled: false } });
- 		for (const row of Badge.plugins) row.on("change", draw);
- 		draw();
- 
-+		md("## One instance, its own settings");
-+		md("Each instance keeps only what it changed (`inst.overrides`) and reads the rest from the class. `Host.make_default(inst)` copies an instance's changes to the class; `inst.reset_plugins()` drops them. Change the first badge, watch its overrides, then press Make default: the second badge follows the class, and the first has nothing left to override. (Make default is saved in this browser, like the box above.)");
-+		const pair = div.c("flex wrap gap");
-+		const insts = [make_badge(), make_badge()];
-+		const el = (tag, text, props = {}) => Object.assign(document.createElement(tag), { textContent: text ?? "" }, props);
-+		const show = () => pair.el.replaceChildren(...insts.map((b, i) => {
-+			const box = el("div"); box.className = "surface pad flex v gap"; box.style.flex = "1 1 16em";
-+			box.append(el("span", `Badge ${i + 1}`, { className: "muted" }));
-+			for (const row of b.plugins) {
-+				const line = el("label"); line.className = "flex v-center gap"; line.style.minHeight = "2.75em";
-+				const check = el("input", "", { type: "checkbox", checked: !!row.get("enabled") });
-+				check.onchange = () => { row.set({ enabled: check.checked }); show(); };
-+				line.append(check, el("span", row.get("name")));
-+				for (const f of row.fields.filter(f => f.kind === "slider")) {
-+					const range = el("input", "", { type: "range", min: f.min, max: f.max, step: f.step, value: row.get("config")[f.key] });
-+					range.oninput = () => row.set({ config: { [f.key]: +range.value } });
-+					range.onchange = show;
-+					line.append(range);
-+				}
-+				box.append(line);
-+			}
-+			box.append(b.el, el("code", `overrides: ${JSON.stringify(b.overrides)}`));
-+			const bar = el("div"); bar.className = "flex gap";
-+			const button = (text, fn) => el("button", text, { type: "button", onclick: () => { fn(); show(); } });
-+			bar.append(button("Make default", () => Badge.make_default(b)), button("Reset to default", () => b.reset_plugins()));
-+			box.append(bar);
-+			return box;
-+		}));
-+		show();
-+
- 		md("## Classes using plugins right now");
- 		const hosts = div.c("surface pad flex v");
- 		const list_hosts = () => hosts.el.replaceChildren(...Plugin.hosts.map(h => Object.assign(document.createElement("p"), { textContent: `${h.name}: ${[...h.records.values()].map(r => r.name + (r.on ? "" : " (off)")).join(", ")}` })));
+diff --git a/public/framework/core/Plugin/files.jsonl b/public/framework/core/Plugin/files.jsonl
+index af92350b7..7fc06328c 100644
+--- a/public/framework/core/Plugin/files.jsonl
++++ b/public/framework/core/Plugin/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"doc/"}
+ {"file":"readme.md"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
 diff --git a/public/framework/core/Plugin/readme.md b/public/framework/core/Plugin/readme.md
-index 0fc062750..837f0d870 100644
+index 837f0d870..0b27fcd4f 100644
 --- a/public/framework/core/Plugin/readme.md
 +++ b/public/framework/core/Plugin/readme.md
-@@ -17,6 +17,9 @@ Badge.plugins.set({ Glow: { enabled: false } });   // the list is live; what the
- 
- const b = new Badge();
- b.plugins.set({ Glow: { enabled: false } });       // THIS instance only — unset follows the class row above
-+b.overrides;                                       // {Glow: {enabled: false}}: plain data, what a session saves
-+b.load_overrides({});  b.reset_plugins();           // back to the class state (a plugin whose state is unchanged is not touched)
-+Badge.make_default(b);                             // "Make default": b's overrides become the class defaults and are saved in Plugin.store
- ```
- 
- [Try it live](/framework/core/Plugin/): the page has a control panel (checkbox, open-a-row settings, sliders, a number you drag).
-@@ -24,9 +27,10 @@ b.plugins.set({ Glow: { enabled: false } });       // THIS instance only — uns
+@@ -27,10 +27,10 @@ Badge.make_default(b);                             // "Make default": b's overri
  ## Structure
  
  - `Plugin.js` — `class Plugin extends Events(Object)`. Constructor: assign the args, `emit("new")` on the class, then `instantiate()` → `initialize()`. Static `on/off/once/clear/emit` keep class-level listeners; `"new"` walks the class chain, parents first, so a subclass reaches its parents' plugins. Static `use/unuse/available/plugins`. A plugin is anything with `static attach(instance)` (`setup` is still accepted), a plain function, and optionally `detach`, `defaults` (`on` plus config) and `fields` (what a panel draws). Every instance a plugin reaches is tracked (`rec.live`, a `WeakRef`, kept past a `disable()`) and whether it is currently attached is tracked too (`rec.attached`, through `attach_instance`/`detach_instance`) — so `enable()` re-attaches to the still-live ones (a live singleton gets the plugin back without a reload) and never attaches the same instance twice, even across a `use()` → `unuse()` → `use()` cycle on a plugin with no real `detach` to undo the first attach.
--- `inst.plugins` — the same shape, per INSTANCE: one row per class-level plugin, `enabled`/`config` unset until that instance overrides them (toggling calls `Plugin#toggle_plugin`, which also remembers the instance's own wish). Unset reads the class row live (`PluginEntry.get_one` falls back to `rec.on` / `rec.config`); the row list stays live too — `Plugin.record()` adds a row to every already-read instance list when the class gains a new plugin afterwards. **An instance's own switch wins:** once an instance has switched a plugin on or off for itself, a later class-wide `enable()`/`disable()` leaves that instance alone (`Plugin.overridden`) — only instances still unset follow the class. Never saved to `Plugin.store` — an instance override is not a class preference.
-+- `inst.plugins` — the same shape, per INSTANCE: one row per class-level plugin, `enabled`/`config` unset until that instance overrides them (toggling calls `Plugin#toggle_plugin`, which also remembers the instance's own wish). Unset reads the class row live (`PluginEntry.get_one` falls back to `rec.on` / `rec.config`); the row list stays live too — `Plugin.record()` adds a row to every already-read instance list when the class gains a new plugin afterwards. **An instance's own switch wins:** once an instance has switched a plugin on or off for itself, a later class-wide `enable()`/`disable()` leaves that instance alone (`Plugin.overridden`) — only instances still unset follow the class. Never saved to `Plugin.store` on its own — an instance override is not a class preference. **Config:** an instance row stores only the fields it changed; `get("config")` is the class config with those on top (so a later class change of another field shows through), and `row.own("config")` is just the override. A config change on a live instance detaches then attaches it (`Plugin.rerun_instance`), so a plugin re-reads its config in `attach` and needs no change code; a plugin with no real `detach` is left as it is. A class config change re-runs the live instances that did not override those fields (`reconfigure_live`).
-+- `inst.overrides`, `inst.load_overrides(obj)`, `inst.reset_plugins()`, `Host.make_default(inst)` — the save/restore side of the per-instance rows. `overrides` is a plain `{Name: {enabled?, config?}}` of what this instance changed (it survives JSON, so a session can store it); `load_overrides` replaces all of them (unlisted plugins go back to the class); `make_default` copies them into the class records and `Plugin.store`, clears the instance's own, and re-runs the other live instances that follow the class (one with its own override on that plugin keeps it).
+-- `inst.plugins` — the same shape, per INSTANCE: one row per class-level plugin, `enabled`/`config` unset until that instance overrides them (toggling calls `Plugin#toggle_plugin`, which also remembers the instance's own wish). Unset reads the class row live (`PluginEntry.get_one` falls back to `rec.on` / `rec.config`); the row list stays live too — `Plugin.record()` adds a row to every already-read instance list when the class gains a new plugin afterwards. **An instance's own switch wins:** once an instance has switched a plugin on or off for itself, a later class-wide `enable()`/`disable()` leaves that instance alone (`Plugin.overridden`) — only instances still unset follow the class. Never saved to `Plugin.store` on its own — an instance override is not a class preference. **Config:** an instance row stores only the fields it changed; `get("config")` is the class config with those on top (so a later class change of another field shows through), and `row.own("config")` is just the override. A config change on a live instance detaches then attaches it (`Plugin.rerun_instance`), so a plugin re-reads its config in `attach` and needs no change code; a plugin with no real `detach` is left as it is. A class config change re-runs the live instances that did not override those fields (`reconfigure_live`).
++- `inst.plugins` — the same shape, per INSTANCE: one row per class-level plugin, `enabled`/`config` unset until that instance overrides them (toggling calls `Plugin#toggle_plugin`, which also remembers the instance's own wish). Unset reads the class row live (`PluginEntry.get_one` falls back to `rec.on` / `rec.config`); the row list stays live too — `Plugin.record()` adds a row to every already-read instance list when the class gains a new plugin afterwards. **An instance's own switch wins:** once an instance has switched a plugin on or off for itself, a later class-wide `enable()`/`disable()` leaves that instance alone (`Plugin.overridden`) — only instances still unset follow the class. Never saved to `Plugin.store` on its own — an instance override is not a class preference. **Config:** an instance row stores only the fields it changed; `get("config")` is the class config with those on top (so a later class change of another field shows through), and `row.own("config")` is just the override. A config change on a live instance detaches then attaches it (`Plugin.rerun_instance`), so a plugin re-reads its config in `attach` and needs no change code; a plugin with no real `detach` is left as it is. A plugin may define `static reconfigure(inst)` to be told just that (no detach, no attach) when something it holds open must not restart. A constructor arg `overrides` is loaded before the plugins attach. A class config change re-runs the live instances that did not override those fields (`reconfigure_live`).
+ - `inst.overrides`, `inst.load_overrides(obj)`, `inst.reset_plugins()`, `Host.make_default(inst)` — the save/restore side of the per-instance rows. `overrides` is a plain `{Name: {enabled?, config?}}` of what this instance changed (it survives JSON, so a session can store it); `load_overrides` replaces all of them (unlisted plugins go back to the class); `make_default` copies them into the class records and `Plugin.store`, clears the instance's own, and re-runs the other live instances that follow the class (one with its own override on that plugin keeps it).
  - `PluginEntry.js` — one row of `Host.plugins` or `inst.plugins`, an `Item` with `name`, `enabled`, `config`. `set_enabled` installs or removes the hook (class row) or calls `toggle_plugin` (instance row); `set_config` saves (class row only); `active` is false when a parent plugin is off; `row.plugins` is the plugin's own list (sub-plugins).
--- `Plugin.test.mjs` — 20 tests, `node public/framework/core/Plugin/Plugin.test.mjs`.
-+- `Plugin.test.mjs` — 28 tests, `node public/framework/core/Plugin/Plugin.test.mjs`.
+-- `Plugin.test.mjs` — 28 tests, `node public/framework/core/Plugin/Plugin.test.mjs`.
++- `Plugin.test.mjs` — 30 tests, `node public/framework/core/Plugin/Plugin.test.mjs`.
  - Saved state: `Plugin.store` (a `Map` in node; the page swaps in localStorage), key `plugin.<Host>.<Plugin>` = `{on, config}`. Only a change made through a row is saved.
  - `Server/Events.js` is now a two-line subclass of `Plugin`, so the server's classes (`Server`, `Socket`, `Servex/*`) are all pluggable and keep their import.
  
-diff --git a/public/framework/ux/Dictate/doc/settings-plugins.md b/public/framework/ux/Dictate/doc/settings-plugins.md
-index 3be113fb0..781b91dcc 100644
---- a/public/framework/ux/Dictate/doc/settings-plugins.md
-+++ b/public/framework/ux/Dictate/doc/settings-plugins.md
-@@ -32,9 +32,15 @@ Each group becomes `static attach(instance)` / `detach(instance)` plus `static d
- 
- `mastermind-chat-settings` built this bridge on `michael/dev` (`7d32afd51`): a voice session's plugin switches are one plain object, `{Name: {enabled?, config?}}`, kept in the session record (`POST /api/session/settings {session, plugins}`, `GET /api/session/<id>`) so a phone and a PC read the same, plus shared defaults ("Make default": `POST`/`GET /api/session/defaults`). Full shape, both checked by `checked_plugins()` in `Servex/agents/Sessions.js`, and the page-side read-at-load (not yet built, Servex side only): [`ux/Dictate/doc/settings.md`](settings.md#plugin-settings-per-session-and-make-default-servex-side). This doc does not design a second bridge — the panel this doc builds is the page side that calls it, same as the owner-feedback "Overlap" bullet says (plugins and settings are chat-settings' to build).
- 
--## The per-instance toggle: built, in core/Plugin itself
-+## The per-instance settings: built, in core/Plugin itself
- 
--`Host.use(P)`/`unuse(P)` is class-wide and does not reach an already-live instance on its own, but a panel does not need to solve that: `core/Plugin` now has `inst.plugins` for exactly this ([`core/Plugin/readme.md`](/framework/core/Plugin/readme.md), "`inst.plugins`") — one row per class-level plugin, starting unset so it follows the class row, switched for just this instance with `toggle_plugin` the moment the panel's row is touched, and that instance's own wish then wins over a later class-wide `enable()`/`disable()`. The gear panel's "live on/off switch" (above) is this: `inst.plugins.find(name).set({enabled})`, same `PluginEntry` shape as the class list.
-+`Host.use(P)`/`unuse(P)` is class-wide and does not reach an already-live instance on its own, but a panel does not need to solve that: `core/Plugin` has `inst.plugins` for exactly this ([`core/Plugin/readme.md`](/framework/core/Plugin/readme.md), "`inst.plugins`"). It holds one row per class-level plugin, starting unset so it follows the class row. `row.set({enabled})` switches the plugin for just this instance, and `row.set({config: {...}})` changes only the fields given (the plugin is re-run, detach then attach, so it re-reads them). That instance's own choice then wins over a later class-wide change of the same thing. The gear panel's "live on/off switch" (above) is this: same `PluginEntry` shape as the class list.
+diff --git a/public/framework/core/files.jsonl b/public/framework/core/files.jsonl
+index 51309b872..5dbf3223e 100644
+--- a/public/framework/core/files.jsonl
++++ b/public/framework/core/files.jsonl
+@@ -50,3 +50,4 @@
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
+ {"file":"Plugin/page.js"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ux/Dictate/VoiceChat/VoiceChat.js b/public/framework/ux/Dictate/VoiceChat/VoiceChat.js
+new file mode 100644
+index 000000000..6fa9456cf
+--- /dev/null
++++ b/public/framework/ux/Dictate/VoiceChat/VoiceChat.js
+@@ -0,0 +1,22 @@
++// One Voice Chat per open chat: the class lists the plugins once, each chat switches and configures them for itself.
++// Hosts are handed in by chat.js: `new VoiceChat({ recite, mic })`. Readme: ./readme.md
++import { Plugin } from "../../../core/Plugin/Plugin.js";
 +
-+Three more pieces make a chat's settings saveable ([`chat-settings-per-session/plan.md`](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/plan.md)):
++export class VoiceChat extends Plugin {
 +
-+- `inst.overrides` is a plain `{Name: {enabled?, config?}}` holding only what this instance changed; that object is what Servex stores on the voice session (`plugins`, [`settings.md`](settings.md)).
-+- `inst.load_overrides(obj)` puts a saved object back (opening a session) and `inst.reset_plugins()` empties it (the New session button).
-+- `Host.make_default(inst)` copies the overrides to the class defaults (and `Plugin.store`) and clears the instance's own, so the other open chats follow the new default.
++	// A plugin that is off for this chat must still leave its host in the off state: Recite's own default may be on.
++	// (detach() is safe before attach(); core/Plugin only detaches what was attached.)
++	initialize(){
++		for (const row of this.plugins) {
++			const rec = row.record;
++			if (rec.attached.has(this)) continue;
++			try { rec.plugin.detach?.(this); } catch (e) { console.error(`[VoiceChat] ${rec.name} detach() failed`, e); }
++		}
++		for (const row of this.plugins) row.record.plugin.bind?.(this);   // a plugin may route its host's own controls through its row
++	}
++
++	// What a plugin reads: this chat's own settings for it (its overrides on top of the class values).
++	static config(vc, P){ return vc.plugins.find(P.name).get("config"); }
++}
++
++export default VoiceChat;
+diff --git a/public/framework/ux/Dictate/VoiceChat/VoiceChat.test.mjs b/public/framework/ux/Dictate/VoiceChat/VoiceChat.test.mjs
+new file mode 100644
+index 000000000..663a207fc
+--- /dev/null
++++ b/public/framework/ux/Dictate/VoiceChat/VoiceChat.test.mjs
+@@ -0,0 +1,129 @@
++// VoiceChat: one instance per open chat, built on core/Plugin. Plugins read their settings from the instance's own rows.
++// Run: node public/framework/ux/Dictate/VoiceChat/VoiceChat.test.mjs   (written before VoiceChat.js: it fails until the class exists)
++import { test } from "../../../core/Test/Test.js";
++import { Plugin } from "../../../core/Plugin/Plugin.js";
++import { VoiceChat } from "./VoiceChat.js";
++import { Interrupt } from "./plugins/index.js";
++
++Plugin.store = new Map();
++
++// the two hosts a chat hands over, reduced to the fields the plugins touch
++const recite = () => ({
++	barge: { on: true, remembered: [], set_on(v){ this.on = !!v; this.remembered.push(["on", this.on]); this.sync(); }, set_mode(v){ this.mode = v; this.remembered.push(["mode", v]); }, set_threshold(v){ this.threshold = Number(v); this.remembered.push(["threshold", this.threshold]); }, mode: "volume", threshold: 0.35, quiet_ms: 2500, syncs: 0, sync(){ this.syncs++; } },
++	thinking_cue: true, cue_repeat_ms: 2000, cue_timer: null, cue_pending: true, changed(){},
++});
++const row = (vc, name) => vc.plugins.find(name);
++const reset = () => { for (const r of VoiceChat.records.values()) { r.config = { ...r.plugin.defaults }; delete r.config.on; r.on = r.plugin.defaults.on !== false; } };
++
++test("the class lists Interrupt and Thinking cue with their defaults, in value order", t => {
++	t.eq([...VoiceChat.records.keys()].map(p => p.name), ["Interrupt", "ThinkingCue"], "registered once, at the class");
++	const r = VoiceChat.records.get([...VoiceChat.records.keys()][0]);
++	t.eq(r.config, { mode: "volume", threshold: 0.35, quiet_ms: 2500 }, "Interrupt's defaults are its config (without `on`)");
++});
++
++test("a new chat applies the class settings to its Recite", t => {
++	reset();
++	const r = recite(), vc = new VoiceChat({ recite: r });
++	t.ok(r.barge.on && r.barge.mode === "volume" && r.barge.threshold === 0.35 && r.barge.quiet_ms === 2500, "Interrupt applied");
++	t.ok(r.thinking_cue && r.cue_repeat_ms === 2000, "Thinking cue applied");
++});
++
++test("one chat's threshold is its own: the class and a second chat are untouched", t => {
++	reset();
++	const a = recite(), b = recite(), va = new VoiceChat({ recite: a }), vb = new VoiceChat({ recite: b });
++	row(va, "Interrupt").set({ config: { threshold: 0.6 } });
++	t.eq(a.barge.threshold, 0.6, "chat A reads 0.6");
++	t.eq(b.barge.threshold, 0.35, "chat B still reads the class value");
++	t.eq(va.overrides, { Interrupt: { config: { threshold: 0.6 } } }, "only the changed field is kept");
++});
++
++test("switching Interrupt off turns Recite's barge-in off and on puts it back", t => {
++	reset();
++	const r = recite(), vc = new VoiceChat({ recite: r });
++	row(vc, "Interrupt").set({ enabled: false });
++	t.eq(r.barge.on, false, "off");
++	t.ok(r.barge.syncs > 0, "the mic was told to close");
++	row(vc, "Interrupt").set({ enabled: true });
++	t.eq(r.barge.on, true, "on again");
++});
++
++test("a plugin that is off at the class still settles a new chat into the off state", t => {
++	reset();
++	const rec = [...VoiceChat.records.values()][0];
++	VoiceChat.disable(rec);
++	const r = recite(), vc = new VoiceChat({ recite: r });
++	t.eq(r.barge.on, false, "Recite's own default was on; the chat starts with Interrupt off");
++	VoiceChat.enable(rec);
++});
++
++test("Thinking cue: its delay is a config field; off clears the timer and the flag", t => {
++	reset();
++	const r = recite(), vc = new VoiceChat({ recite: r });
++	row(vc, "ThinkingCue").set({ config: { repeat_ms: 3500 } });
++	t.eq(r.cue_repeat_ms, 3500, "re-run with the new delay");
++	r.cue_timer = setTimeout(() => {}, 100000);
++	row(vc, "ThinkingCue").set({ enabled: false });
++	t.eq([r.thinking_cue, r.cue_timer, r.cue_pending], [false, null, true], "flag off, timer cleared, the no-flood hold flag kept");
++});
++
++test("load_overrides puts a saved session back, and {} returns to the class values", t => {
++	reset();
++	const r = recite(), vc = new VoiceChat({ recite: r });
++	vc.load_overrides({ Interrupt: { config: { mode: "words" } }, ThinkingCue: { enabled: false } });
++	t.eq([r.barge.mode, r.thinking_cue], ["words", false], "saved settings applied");
++	vc.load_overrides({});
++	t.eq([r.barge.mode, r.thinking_cue, r.cue_repeat_ms], ["volume", true, 2000], "back to the class");
++});
++
++test("make_default copies this chat's settings to the class, so a new chat starts from them", t => {
++	reset();
++	const va = new VoiceChat({ recite: recite() });
++	row(va, "Interrupt").set({ config: { threshold: 0.8 } });
++	VoiceChat.make_default(va);
++	t.eq(va.overrides, {}, "nothing left to override");
++	const r = recite(); new VoiceChat({ recite: r });
++	t.eq(r.barge.threshold, 0.8, "the new chat starts from the new default");
++	reset();
++});
++
++test("the bar's own controls write the chat's settings too, and the browser's memory still gets them", t => {
++	reset();
++	const r = recite(), vc = new VoiceChat({ recite: r });
++	r.barge.set_threshold("0.7"); r.barge.set_mode("words"); r.barge.set_on(false);
++	t.eq(vc.overrides, { Interrupt: { enabled: false, config: { threshold: 0.7, mode: "words" } } }, "the chat's overrides follow the controls");
++	t.eq(r.barge.remembered.map(x => x[0]), ["threshold", "mode", "on"], "the host's own save still runs");
++	r.barge.set_on(true);
++	t.eq(r.barge.on, true, "on again");
++});
++
++test("what the browser remembered becomes this chat's overrides, not the class", t => {
++	reset();
++	const r = recite(); r.barge.threshold = 0.5; r.barge.on = false;
++	t.eq(Interrupt.snapshot(r), { Interrupt: { enabled: false, config: { threshold: 0.5 } } }, "only what differs from the class");
++	t.eq(Interrupt.snapshot(recite()), {}, "nothing remembered, nothing to adopt");
++	const had = Interrupt.snapshot(r), seen = [];   // read BEFORE the chat starts: its attach writes the class values
++	let on = r.barge.on; Object.defineProperty(r.barge, "on", { get: () => on, set: v => { seen.push(v); on = v; } });
++	const vc = new VoiceChat({ recite: r, overrides: had });
++	t.eq(seen.includes(true), false, "Interrupt was never switched on, not even for a moment (the mic would have opened)");
++	t.eq(r.barge.on, false, "still off, as the browser remembered");
++	r.barge.set_on(true);
++	t.eq(r.barge.threshold, 0.5, "turned on, it uses the remembered threshold, not the class one");
++});
++
++test("moving the threshold does not close and reopen the mic: only the values change", t => {
++	reset();
++	const r = recite(), vc = new VoiceChat({ recite: r }), syncs = r.barge.syncs;
++	row(vc, "Interrupt").set({ config: { threshold: 0.55 } });
++	t.eq(r.barge.threshold, 0.55, "the new value is on the host");
++	t.eq([r.barge.on, r.barge.syncs], [true, syncs], "still on, and the mic was not told to sync");
++	row(vc, "ThinkingCue").set({ config: { repeat_ms: 4000 } });
++	t.eq(r.cue_repeat_ms, 4000, "the cue delay changes without a detach");
++});
++
++test("two chats on one Recite wrap the bar controls once; the newest chat owns them", t => {
++	reset();
++	const r = recite(), a = new VoiceChat({ recite: r }), b = new VoiceChat({ recite: r });
++	r.barge.set_threshold("0.6");
++	t.eq(r.barge.remembered.length, 1, "the host's own call ran once, not once per chat");
++	t.eq([a.overrides, b.overrides], [{}, { Interrupt: { config: { threshold: 0.6 } } }], "only the newest chat took the change");
++});
+diff --git a/public/framework/ux/Dictate/VoiceChat/files.jsonl b/public/framework/ux/Dictate/VoiceChat/files.jsonl
+new file mode 100644
+index 000000000..c0906ebb6
+--- /dev/null
++++ b/public/framework/ux/Dictate/VoiceChat/files.jsonl
+@@ -0,0 +1,4 @@
++{"file":"plugins/"}
++{"file":"VoiceChat.test.mjs"}
++{"file":"VoiceChat.js"}
++{"file":"readme.md"}
+diff --git a/public/framework/ux/Dictate/VoiceChat/plugins/Interrupt.js b/public/framework/ux/Dictate/VoiceChat/plugins/Interrupt.js
+new file mode 100644
+index 000000000..1d6e52b8b
+--- /dev/null
++++ b/public/framework/ux/Dictate/VoiceChat/plugins/Interrupt.js
+@@ -0,0 +1,54 @@
++import { VoiceChat } from "../VoiceChat.js";
++
++// Stop reading aloud when you start talking (audio/Recite's BargeIn does the work; this sets it for one chat).
++// The values go straight onto the object, never through BargeIn.remember(): they belong to the chat, not the browser.
++export default class Interrupt {
++	static label = "Interrupt";
++	static description = "Stop reading aloud when you start talking.";
++	static defaults = { on: true, mode: "volume", threshold: 0.35, quiet_ms: 2500 };
++	static fields = [
++		{ key: "mode", kind: "choice", options: ["volume", "words"], label: "Detect you by", hint: "Loudness, or only real words" },
++		{ key: "threshold", kind: "slider", min: 0.05, max: 1, step: 0.05, label: "How loud counts as you" },
++		{ key: "quiet_ms", kind: "number", min: 500, max: 10000, step: 100, label: "Quiet before reading resumes (ms)" },
++	];
++
++	static attach(vc){
++		const c = VoiceChat.config(vc, this), b = vc.recite.barge;
++		b.mode = c.mode; b.threshold = c.threshold; b.quiet_ms = c.quiet_ms; b.on = true;
++		b.sync(); vc.recite.changed?.();
++	}
++
++	// Only the values change: the mic stays open while a threshold slider moves (detach then attach would close and reopen it).
++	static reconfigure(vc){
++		const c = VoiceChat.config(vc, this), b = vc.recite.barge;
++		b.mode = c.mode; b.threshold = c.threshold; b.quiet_ms = c.quiet_ms;
++	}
++
++	// The bar's mic, mode and threshold controls (audio/Recite/ReciteBar.js) call these three; they now also write the row of the chat that
++	// owns the bar. Wrapped once per BargeIn (the page has one); the newest bind() decides which chat that is. The host's own call runs first.
++	static bind(vc){
++		const b = vc.recite.barge;
++		b.$interrupt_chat = vc;
++		if (b.$interrupt_wrapped) return;
++		b.$interrupt_wrapped = true;
++		const row = () => b.$interrupt_chat.plugins.find(this.name);
++		for (const [method, write] of [["set_on", v => ({ enabled: !!v })], ["set_mode", v => ({ config: { mode: v } })], ["set_threshold", v => ({ config: { threshold: Number(v) } })]]) {
++			const own = b[method]?.bind(b);
++			if (own) b[method] = v => { own(v); row().set(write(v)); };
++		}
++	}
++
++	// What the host holds now that differs from the class: the browser's remembered values, as overrides for the chat that starts on them.
++	static snapshot(recite){
++		const b = recite.barge, rec = VoiceChat.records.get(this), config = {}, out = {};
++		for (const key of ["mode", "threshold", "quiet_ms"]) if (b[key] !== rec.config[key]) config[key] = b[key];
++		if (Object.keys(config).length) out.config = config;
++		if (b.on !== rec.on) out.enabled = b.on;
++		return Object.keys(out).length ? { [this.name]: out } : {};
++	}
++
++	static detach(vc){
++		const b = vc.recite.barge;
++		b.on = false; b.sync(); vc.recite.changed?.();
++	}
++}
+diff --git a/public/framework/ux/Dictate/VoiceChat/plugins/ThinkingCue.js b/public/framework/ux/Dictate/VoiceChat/plugins/ThinkingCue.js
+new file mode 100644
+index 000000000..53718dd0f
+--- /dev/null
++++ b/public/framework/ux/Dictate/VoiceChat/plugins/ThinkingCue.js
+@@ -0,0 +1,23 @@
++import { VoiceChat } from "../VoiceChat.js";
++
++// A soft tone while a reply is on its way (the flag and the repeat delay live on audio/Recite).
++export default class ThinkingCue {
++	static label = "Thinking cue";
++	static description = "Play a soft tone while a reply is on its way.";
++	static defaults = { on: true, repeat_ms: 2000 };
++	static fields = [{ key: "repeat_ms", kind: "number", min: 500, max: 10000, step: 100, label: "Tone repeats after (ms)" }];
++
++	static attach(vc){
++		vc.recite.thinking_cue = true;
++		vc.recite.cue_repeat_ms = VoiceChat.config(vc, this).repeat_ms;
++	}
++
++	static reconfigure(vc){ vc.recite.cue_repeat_ms = VoiceChat.config(vc, this).repeat_ms; }
++
++	// Only the pending repeat is dropped: cancel_cue() would also clear cue_pending, which no-flood's hold reads.
++	static detach(vc){
++		const r = vc.recite;
++		r.thinking_cue = false;
++		clearTimeout(r.cue_timer); r.cue_timer = null;
++	}
++}
+diff --git a/public/framework/ux/Dictate/VoiceChat/plugins/files.jsonl b/public/framework/ux/Dictate/VoiceChat/plugins/files.jsonl
+new file mode 100644
+index 000000000..96e77f571
+--- /dev/null
++++ b/public/framework/ux/Dictate/VoiceChat/plugins/files.jsonl
+@@ -0,0 +1,3 @@
++{"file":"index.js"}
++{"file":"Interrupt.js"}
++{"file":"ThinkingCue.js"}
+diff --git a/public/framework/ux/Dictate/VoiceChat/plugins/index.js b/public/framework/ux/Dictate/VoiceChat/plugins/index.js
+new file mode 100644
+index 000000000..f832e2b68
+--- /dev/null
++++ b/public/framework/ux/Dictate/VoiceChat/plugins/index.js
+@@ -0,0 +1,7 @@
++// The plugins, in value order: the panel lists them in this order. Importing this file registers them once, on the class.
++import { VoiceChat } from "../VoiceChat.js";
++import Interrupt from "./Interrupt.js";
++import ThinkingCue from "./ThinkingCue.js";
++
++VoiceChat.use(Interrupt, ThinkingCue);
++export { Interrupt, ThinkingCue };
+diff --git a/public/framework/ux/Dictate/VoiceChat/readme.md b/public/framework/ux/Dictate/VoiceChat/readme.md
+new file mode 100644
+index 000000000..5a8859ccb
+--- /dev/null
++++ b/public/framework/ux/Dictate/VoiceChat/readme.md
+@@ -0,0 +1,28 @@
++# VoiceChat
++
++One `VoiceChat` per Recite (the page has one reader, so the first chat makes it and the others share it): the rules and thresholds of Voice Chat (when to interrupt, how often the thinking tone repeats, later when to send) as plugins you switch on and off and configure for that chat. It is a [`core/Plugin`](/framework/core/Plugin/readme.md) host. The class lists the plugins and their defaults once (`plugins/index.js`); each instance keeps only what it changed (`vc.overrides`) and reads the rest from the class.
++
++## Use
++
++- `new VoiceChat({ recite, mic, overrides })` (done in `../chat.js`, kept at `Recite.shared.voice_chat`): `recite` is `audio/Recite`'s shared reader, `mic` the chat's Dictate, `overrides` (optional) is loaded before anything attaches. Every plugin that is on attaches to it.
++- `vc.plugins.find("Interrupt").set({ config: { threshold: 0.6 } })` changes the threshold for this chat only (the plugin re-runs); `.set({ enabled: false })` switches it off for this chat.
++- `vc.overrides` is the plain object a session saves; `vc.load_overrides(obj)` puts one back; `vc.reset_plugins()` returns to the defaults; `VoiceChat.make_default(vc)` copies a chat's settings to the defaults ([core/Plugin readme](/framework/core/Plugin/readme.md)).
++
++## Structure
++
++- `VoiceChat.js`: the class. `initialize()` settles every plugin that is off for this chat into its off state (a host's own default may be on), then calls each plugin's optional `bind(vc)`. `VoiceChat.config(vc, Plugin)` is what a plugin reads.
++- `plugins/`: one file per plugin, a plain class with `static label`, `description`, `defaults` (`on` is the switch, the rest is config), `fields` (what the panel draws: `slider`, `number` or `choice`), `attach(vc)`, `detach(vc)`, and optionally `reconfigure(vc)` (a config change that must not restart what is open: called instead of detach and attach) and `bind(vc)`. `plugins/index.js` registers them in value order.
++- `VoiceChat.test.mjs`: `node public/framework/ux/Dictate/VoiceChat/VoiceChat.test.mjs`, plain objects stand in for the hosts.
++
++| Plugin | Config | Does |
++|---|---|---|
++| `Interrupt` | `mode`, `threshold`, `quiet_ms` | Sets `recite.barge`; `reconfigure` only rewrites the values, so the mic stays open while the threshold slider moves. `bind` makes the bar's mic, mode and threshold controls also write the row of the chat that owns the bar (wrapped once per bar); `snapshot(recite)` reads the browser's remembered values as overrides. |
++| `ThinkingCue` | `repeat_ms` | Sets `recite.thinking_cue` and `cue_repeat_ms`; off also clears the pending repeat (not `cue_pending`). |
++
++## Watch out
++
++- Values go straight onto the host object, never through `remember()` (the browser's memory): they belong to the chat. The bar's own controls still save to the browser until the settings are saved with the session ([plan](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/plan.md)).
++- Read `Interrupt.snapshot(recite)` BEFORE `new VoiceChat(...)` and pass it as `overrides`: the first attach writes the class values onto the host.
++- One Recite means one set of read-aloud settings on a page: two chats on a page share one VoiceChat, they do not each get their own.
++- A plugin's `detach` must be safe when it was never attached.
++- `audio/Recite` imports nothing from `ux/`; the hosts are handed in.
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index eb0f4f9cc..f05f35ecd 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -8,6 +8,8 @@ import DictateHealth from "./DictateHealth.js";
+ import Link from "/framework/dev/Socket/Link.js";
+ import Recite from "/framework/audio/Recite/Recite.js";
+ import * as report from "/framework/ext/Chat/v2/report.js";
++import { VoiceChat } from "./VoiceChat/VoiceChat.js";
++import { Interrupt } from "./VoiceChat/plugins/index.js";
  
- ## The settings table (today's knobs, as the build starts from)
+ // One chat box, every surface: doc/chat-notes.md
+ const SESSION_KEY = "lew42-voice-session";
+@@ -239,6 +241,10 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 		});
+ 	});
+ 	Recite.shared.barge.use_mic(panel.dictate);   // barge-in hears this chat's own mic while it is on (audio/Recite)
++	// One Voice Chat per Recite (the page has one Recite, so one set of read-aloud settings): the first chat on the page makes it.
++	// The browser's remembered barge-in values are read before it starts, because its first attach writes the class values.
++	Recite.shared.voice_chat ??= new VoiceChat({ recite: Recite.shared, mic: panel.dictate, overrides: Interrupt.snapshot(Recite.shared) });   // ux/Dictate/VoiceChat/readme.md
++	panel.voice_chat = Recite.shared.voice_chat;
+ 	Recite.shared.on_read = ev => report.read(ev);   // cutting in, 2026-11-03: a note for the assistant's next turn, never a prompt (ext/Chat/v2/report.js, kind "context")
  
+ 	// Drawing one line must never stop the lines after it: a throw lands on the Page light, with the raw error.
+diff --git a/public/framework/ux/Dictate/files.jsonl b/public/framework/ux/Dictate/files.jsonl
+index b7a247e42..1742424e2 100644
+--- a/public/framework/ux/Dictate/files.jsonl
++++ b/public/framework/ux/Dictate/files.jsonl
+@@ -73,3 +73,5 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"VoiceChat/"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index 3978fe530..36cae5be9 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -98,6 +98,8 @@ ever appeared — no error, no clue why.
+ 
+ **What do the fast and smart seats each do, and which model, prompt and effort do they run?** A job-by-seat table, the gaps, a recommended split and how to experiment: [`doc/fast-and-smart.md`](doc/fast-and-smart.md).
+ 
++**Per-chat plugins (Interrupt, Thinking cue; more to come):** [`VoiceChat/readme.md`](VoiceChat/readme.md), one `VoiceChat` per chat on `core/Plugin`.
++
+ **Settings panel:** the ⚙ beside ⌨ on the sheet's bar (and the gear on a plain composer) opens "Dictation settings": the send delay (2 s) and the smart assistant's batch seconds and sentences; values live in `localStorage` key `chat.mic.settings.4` (`ext/Chat/Mic.js` `SETTINGS`): [`doc/settings.md`](doc/settings.md).
+ 
+ **How fast is the first reply?** Measured hop by hop, before and after: [`doc/latency.md`](doc/latency.md). **Raw text slow on the phone?** On a slow uplink the upload is the delay, so the WAV is 8-bit mu-law (half the bytes) and a guess in flight is dropped when the segment ends: [`doc/upload.md`](doc/upload.md).

@@ -7,3 +7,5 @@
 {"file":"doc/"}
 {"file":"readme.md"}
 {"file":"failures.jsonl"}
+{"file":"failures.jsonl","gone":true}
+{"file":"failures.jsonl"}

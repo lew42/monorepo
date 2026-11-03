@@ -379,3 +379,30 @@ test("make_default re-runs other live instances that follow the class, and leave
 	t.eq(cfg_calls, [["detach", "follower"], ["attach", "follower", '{"level":5,"pause":200}']], "follower re-ran with level 5; src already read 5 so it did not re-run; mine kept level 9");
 	t.eq(mine.overrides, { Tuned: { config: { level: 9 } } }, "mine still has its override");
 });
+
+test("a plugin with reconfigure(inst) is told that on a config change instead of being detached and re-attached", t => {
+	Plugin.store = new Map();
+	const log = [];
+	class Live { static defaults = { level: 1 }; static attach(i){ log.push("attach"); } static detach(i){ log.push("detach"); } static reconfigure(i){ log.push("reconfigure"); } }
+	class C9 extends Plugin {}
+	C9.use(Live);
+	const inst = new C9();
+	log.length = 0;
+	inst.plugins.find("Live").set({ config: { level: 4 } });
+	t.eq(log, ["reconfigure"], "no detach, no attach: the plugin keeps what is open");
+	inst.plugins.find("Live").set({ enabled: false });
+	t.eq(log, ["reconfigure", "detach"], "switching off still detaches");
+});
+
+test("a constructor arg `overrides` is in place before the plugins attach: an off plugin never attaches, an overridden config is read by attach", t => {
+	Plugin.store = new Map();
+	const log = [];
+	class A { static defaults = { size: 1 }; static attach(i){ log.push(["A", JSON.stringify(i.plugins.find("A").get("config"))]); } static detach(i){ log.push(["detachA"]); } }
+	class B { static attach(i){ log.push(["B"]); } static detach(i){ log.push(["detachB"]); } }
+	class C10 extends Plugin {}
+	C10.use(A, B);
+	const inst = new C10({ tag: "x", overrides: { A: { config: { size: 7 } }, B: { enabled: false } } });
+	t.eq(log, [["A", '{"size":7}']], "A attached once with size 7; B never attached, so never detached");
+	t.eq(inst.tag, "x", "the other args are still assigned");
+	t.eq(inst.overrides, { A: { config: { size: 7 } }, B: { enabled: false } }, "and the overrides read back");
+});

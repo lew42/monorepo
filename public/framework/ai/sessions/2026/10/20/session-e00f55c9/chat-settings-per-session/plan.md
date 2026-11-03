@@ -6,7 +6,7 @@ Brief: [requirements.md](requirements.md). Older plan (census of 21 features, 29
 
 `core/Plugin` already lets a **class** list plugins and switch them on and off. This adds a second level: a **Voice Chat instance** (one per open chat) keeps only its *overrides* (which plugins it switched, which values it changed) and reads everything else from the class. The overrides are a small plain object. That object is what is saved on the voice session, loaded when the session is opened, and copied to the class defaults by "Make default". A new session is an instance with no overrides, so it starts from the defaults.
 
-## Step 1: instance-level plugins in core/Plugin (merge 2; built, in review)
+## Step 1: instance-level plugins in core/Plugin (merge 2, landed d09621cc5)
 
 Built on qf-1's per-instance rows (`inst.plugins`, a List of `PluginEntry`, one per class plugin; `enabled`/`config` stay null until this instance overrides them, then read the class record). On top of that (commit a9a75d7df, 28 tests in `core/Plugin/Plugin.test.mjs`):
 
@@ -19,13 +19,13 @@ inst.reset_plugins()               // load_overrides({})
 Host.make_default(inst)            // copy inst.overrides into the class records and Plugin.store, clear this instance's overrides, re-run other live followers
 ```
 
-- A plugin reads its settings from `inst.plugins.find(name).get("config")`. A config change on an instance row stores only the changed fields and re-runs `detach` then `attach` (a plugin with no real `detach` cannot be re-run, so its row reports what is really attached), so a plugin never needs its own "settings changed" code.
+- A plugin reads its settings from `inst.plugins.find(name).get("config")`. A config change on an instance row stores only the changed fields and re-runs `detach` then `attach` (a plugin with no real `detach` cannot be re-run, so its row reports what is really attached), so a plugin usually needs no "settings changed" code. A plugin that holds a mic or a timer open defines `reconfigure(inst)` instead, which core/Plugin calls in place of detach and attach (it only rewrites values).
 - A class-level config change re-runs live instances through `reconfigure_live`, skipping any instance that overrode those fields. A class `disable` still detaches every live instance except one that overrode it on.
 - Only an instance's *overrides* are stored on it, never a copy of the class values, so "falls back to the class" needs no copying.
 
 Reference only (not merged): my first draft used `plugin_state`/`set_plugin` on branch `task/chat-settings-per-session` (worktree qf-4); those names do not exist.
 
-## Step 2: Voice Chat on core/Plugin (merges 3, 4, 5)
+## Step 2: Voice Chat on core/Plugin (merge 3 is Interrupt and ThinkingCue; then one merge per plugin)
 
 Merge A (`worktree/dictate-plugins`, `ux/Dictate/VoiceChat/`) is ported, not merged as is: its own registry (`VoiceChat.use/host/set/try/store`) is replaced by core/Plugin.
 
@@ -56,6 +56,8 @@ Flow: opening or switching a session calls `vc.load_overrides(session.plugins ??
 
 Two buttons at the top of the Features section: **Make default** (`VoiceChat.make_default(vc)`: copies the overrides to the class records and `localStorage` through `Plugin.store`, then clears the session's overrides, since they now equal the default) and **Reset to default** (`vc.reset_plugins()` and POST `plugins: null`). The tricky part is that a class default changes for *every other open chat*; they keep their own overrides, and the ones without an override re-attach with the new values (the "class config change re-attaches" rule in step 1).
 
+Carried from the step 2a review: the bar's switch (`Interrupt.bind`) writes an override even when the value equals the class value, so that chat stops following a later Make default for it; drop an override that equals the class value. Also: `Plugin.store` on the chat page is a Map until this step swaps in Servex plus `localStorage`; Interrupt's defaults repeat BargeIn's own (read them from BargeIn); test re-enabling Interrupt after a paused-reading detach.
+
 ## Files, cost, time
 
 - Step 1: `core/Plugin/Plugin.js`, `Plugin.test.mjs`, readme. About $2, 20 min.
@@ -69,6 +71,6 @@ Two buttons at the top of the Features section: **Make default** (`VoiceChat.mak
 - Servex half of steps 4 and 5: built in worktree/chat-settings-servex (commits 9a39ff44a and the one after): per-session `plugins` via POST /api/session/settings, shared defaults via /api/session/defaults, 4 tests. The page does not use them yet.
 - Make default also saves the defaults on Servex (vscode-mastermind, 2026-11-03): done on the Servex side; the page side will read it at load, with localStorage as the fallback (not built yet).
 - qf-1 landed on michael/dev (bc4147365, 2026-11-03).
-- Step 1 remainder: built on qf-1 in worktree/chat-settings-plugins (a9a75d7df and after): overrides, load_overrides, reset_plugins, Host.make_default, a config change re-runs detach then attach; 28 core/Plugin tests; page demo and docs. Ready to merge after its review.
-- Step 2, first group (Interrupt, ThinkingCue, the VoiceChat class, chat.js wiring, 10 tests): built in worktree/chat-settings-voicechat, stacked on step 1; merges after step 1. Still to port: send on each sentence end, word highlight, tap to pause, timings.
-- Open: step 2 remainder, step 3 (Chat settings panel), page side of 4 and 5 (load, save, Make default, Reset to default). None of the five asks is ticked.
+- Step 1 remainder: built on qf-1 in worktree/chat-settings-plugins (a9a75d7df and after): overrides, load_overrides, reset_plugins, Host.make_default, a config change re-runs detach then attach; 28 core/Plugin tests; page demo and docs. Merged as d09621cc5 (merge 2).
+- Step 2, first group (merge 3): the VoiceChat class, Interrupt and ThinkingCue as plugins, `chat.js` makes one VoiceChat per Recite (the page has one reader). 12 VoiceChat tests, 30 core/Plugin tests. core/Plugin gained two small things for it: a plugin may define `reconfigure(inst)` (a threshold slider must not close and reopen the mic) and a constructor arg `overrides` is loaded before attach (no moment of Interrupt on when the browser had it off). Built in worktree/chat-settings-voicechat, in review.
+- Step 2 plugins still to port from Merge A (`worktree/dictate-plugins`, c7330581d), one merge each, in value order: send on each sentence end, word highlight, tap to pause, timings. Do NOT port Interrupt or ThinkingCue again. Then step 3 (Chat settings panel), and the page side of 4 and 5 (load, save, Make default, Reset to default). None of the five asks is ticked.
