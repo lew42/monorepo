@@ -4,7 +4,7 @@ Brief: [requirements.md](requirements.md). Older plan (census of 21 features, 29
 
 ## The idea in four sentences
 
-`core/Plugin` already lets a **class** list plugins and switch them on and off. This adds a second level: a **Voice Chat instance** (one per open chat) keeps only its *overrides* (which plugins it switched, which values it changed) and reads everything else from the class. The overrides are a small plain object. That object is what is saved on the voice session, loaded when the session is opened, and copied to the class defaults by "Make default". A new session is an instance with no overrides, so it starts from the defaults.
+`core/Plugin` already lets a **class** list plugins and switch them on and off. This adds a second level: a **Voice Chat instance** (one per Recite, so one per page) keeps only its *overrides* (which plugins it switched, which values it changed) and reads everything else from the class. The overrides are a small plain object. That object is what is saved on the voice session, loaded when the session is opened, and copied to the class defaults by "Make default". A new session is an instance with no overrides, so it starts from the defaults.
 
 ## Step 1: instance-level plugins in core/Plugin (merge 2, landed d09621cc5)
 
@@ -42,28 +42,50 @@ ux/Dictate/VoiceChat/
 - Plugins, most valuable first, one merge each: **barge-in** (`mode`, `threshold`, `quiet_ms`; `BargeIn` already has the shape), **send on each sentence end** (`SETTINGS.send_on_period/question/comma`, `sentences_per_send`), **thinking cue** (`repeat_ms`; from Merge A), **word highlight**, **tap to pause**, **timings** (`turn_wait_ms`, `update_hold_ms`, `break_pause_ms`, send delay). Features that are tangled in `Mic.js`'s send state machine stay as plain gear rows; each plugin's fields are sliders or numbers.
 - Mic-owned numbers (`SETTINGS`): a per-session value lives as a plugin config; the plugin's `attach` writes it onto the mic *instance* (`mic.sentences_per_send`, `mic.resend_ms`, which Mic already supports as per-mic overrides) rather than the global `SETTINGS`, so two sessions never share a value through a global.
 
-## Step 3: one "Chat settings" panel (merge 3)
+## New direction, 2026-11-03 (the owner, via vscode-mastermind; [requirements.md](requirements.md), "Added by the owner"; [principles.md](/framework/ux/Dictate/doc/principles.md), "Settings"): `core/Settings`
 
-`ComposerMic.settings_panel()` stays the one panel (law 6). The gear's label becomes **Chat settings** (`ext/Chat/Composer.js`, `DictationBar.js`). Recite's own rows (voice, auto-read, barge-in on/off and threshold) move in as a "Read aloud" group, and the panel gets a **Features** section on top: one toggle per plugin, its fields one tap down. Phone first (360x740); shots at 400 and 1920.
+The plugin work above stays: it is what holds a setting's value and switches. What changes is the layer above it and where the data lives. Steps 3 to 5 below replace the old "Features section" and "saved on Servex" plans.
 
-## Step 4: saved with the session (merge 4)
+```
+core/Settings/Settings.js   class Settings: a group of fields with values, an owner, a save policy, render()
+  fields   [{key, label, type: toggle | slider | number | select, min, max, step, options, low, high, help}]
+           low / high: what the two ends of a slider do (shown under it); help: one plain sentence
+  values   own overrides only; get(key) falls back to the defaults (the class level), like core/Plugin
+  save     policy: "each" (every change), {debounce_ms}, or "manual"; calls the owner's save(group, overrides)
+  render() the panel for this group (and its child groups, in order), says which level it edits: "This session" or "Defaults (new sessions)"
+```
 
-**Store: Servex's per-session settings** (`Sessions.settings({session, ..., plugins})`, kept in `sessions.json` beside `assistant` and the wake knobs; `GET /api/session/<id>` returns `plugins`). Why: the assistant mode and the wake knobs already live there, so one place holds a session's settings; Servex is the one writer, so a phone and a PC see the same value; a new session has no entry, which means "defaults". The alternative, a `{settings}` line in the session's own `session.jsonl` record, replays with the session and survives a copy of its folder, but needs the Session class and its replay taught a new verb and is not readable from the page without a fetch of the file; it wins when the owner wants a session's settings to travel with its folder. The two share the same payload (`inst.overrides`), so moving later is a one-function change.
+- **On a Session:** `session.settings` keeps its plain `{key: value}` merge (the Name / Model form uses it) and gains two groups, `settings.dictate` and `settings.recite`, named after the classes. A group is saved as one line in the session's own `session.jsonl`: `{"settings":{"recite":{<overrides>}}}` (`core/Session/Session.js` already replays `{"settings":…}` lines; a later line wins, per group). The plugin overrides of `VoiceChat` split by the group each plugin declares (`static group = "dictate" | "recite"`): `{"Interrupt":{"config":{"threshold":0.6}}}` sits under `recite`. This replaces `sessions.json` as the home of per-session plugin settings: `Servex/agents/Sessions.js settings({session, plugins})` appends the line instead (one writer, still), `GET /api/session/<id>` reads the replay. Shared defaults for new sessions stay in `session-defaults.json` (class level), with `localStorage` as the fallback.
+- **Names close to the code:** a row is labelled with the name it controls and its data path in small type, e.g. `Interrupt.threshold` (`settings.recite.Interrupt.config.threshold`), a status is the state's own name (`listening`, `sending`, `working`, `speaking`).
+- **Why a class and not more plugin rows:** the panel, the field types and the save policy are not Plugin's business and any Item may want them; the plugin rows are the values behind it (law 6: one source of values). Alternative: grow `core/Plugin` fields into a panel; it wins only if nothing but plugins is ever configured.
 
-Flow: opening or switching a session calls `vc.load_overrides(session.plugins ?? {})`; any panel change calls `vc.plugins.find(name).set(...)`, then POSTs `inst.overrides` (debounced); **New session** calls `vc.reset_plugins()` (it starts from defaults). A Servex test covers the `plugins` round trip (set, get, null clears).
+## Step 3: core/Settings (merge 4, tests first)
 
-## Step 5: Make default (merge 5)
+`Settings.test.mjs` (get/set/defaults fall back, change events, each save policy with a fake clock, overrides round trip), then `Settings.js`, `readme.md`, a demo page (`core/Settings/page.js`) with the four field types. `render()` is checked in a browser shot, phone first (360x740) and 1920. Wired to `VoiceChat` plugin rows through a small adapter: a plugin's `fields` get `low`/`high`/`type`.
 
-Two buttons at the top of the Features section: **Make default** (`VoiceChat.make_default(vc)`: copies the overrides to the class records and `localStorage` through `Plugin.store`, then clears the session's overrides, since they now equal the default) and **Reset to default** (`vc.reset_plugins()` and POST `plugins: null`). The tricky part is that a class default changes for *every other open chat*; they keep their own overrides, and the ones without an override re-attach with the new values (the "class config change re-attaches" rule in step 1).
+## Step 4: session.settings in session.jsonl (merge 5)
 
-Carried from the step 2a review: the bar's switch (`Interrupt.bind`) writes an override even when the value equals the class value, so that chat stops following a later Make default for it; drop an override that equals the class value. Also: `Plugin.store` on the chat page is a Map until this step swaps in Servex plus `localStorage`; Interrupt's defaults repeat BargeIn's own (read them from BargeIn); test re-enabling Interrupt after a paused-reading detach.
+`Session.settings` groups (`core/Session`, test in `Session.test.mjs`), the Servex move (`Sessions.settings` appends the line; `sessions.json` `plugins` removed, its Servex tests updated), the page side: opening or switching a session calls `vc.load_overrides(...)` from the groups, a change saves per the save policy, **New session** calls `vc.reset_plugins()`.
+
+## Step 5: the Chat settings panel (merge 6)
+
+The gear says **Chat settings** (`ext/Chat/Composer.js`, `DictationBar.js`); the panel is `settings.render()` in this order: **Dictate: Whisper** (what the mic hears) → **sending to the LLM** (`Send after`: a dropdown of presets with a description each, default "each sentence"; replaces `send_on_period/question/comma` and `sentences_per_send`) → **Recite: read aloud** (voice picker moves here from the toolbar, auto-read) → **Interruption** (its own group: `Interrupt` on/off, mode, sensitivity, quiet_ms). Every slider says what its two ends do; the owner could not tell what interrupt "sensitivity" changed, so it gets the clearest text: low = "only a loud or long interruption stops it", high = "any small sound stops it", plus a live meter if cheap. The two toolbars otherwise stay. **Make default** edits the class level and **Reset to default** drops the session's overrides; the panel header says which level you are editing. The older `Mic.js` rows move into the groups; what is not yet a plugin stays as a plain row under "More".
+
+## Step 6: a status line beside the mic (merge 7)
+
+One line, named as the code names it: `listening` / `sending` / `working` / `speaking`. Read from the state the code already has (`mic` listening, Servex `floor`, `Recite` speaking), never a new copy of state. Phone first.
+
+## Step 7: the remaining plugins (as budget allows): word highlight, tap to pause, timings
+
+Each is one reviewed merge, once the panel can show it (a plugin file plus its fields; no panel work). Optional and later (owner): one Chat widget that owns the area with Dictate and Recite as plugins; not planned here.
+
+Carried from the step 2a review: the bar's switch (`Interrupt.bind`) writes an override even when the value equals the class value, so that chat stops following a later Make default; drop an override that equals the class value (in step 4). `Plugin.store` on the chat page is a Map until step 5 swaps in Servex plus `localStorage`. Interrupt's defaults repeat BargeIn's own; read them from BargeIn (step 5). Test re-enabling Interrupt after a paused-reading detach.
 
 ## Files, cost, time
 
-- Step 1: `core/Plugin/Plugin.js`, `Plugin.test.mjs`, readme. About $2, 20 min.
-- Steps 2-5: `ux/Dictate/VoiceChat/*`, `ext/Chat/Mic.js`, `Composer.js`, `DictationBar.js`, `audio/Recite/*` (only `start/stop` seams), `ux/Dictate/chat.js`, `Servex/agents/Sessions.js` (+ test), docs `ux/Dictate/doc/settings.md`. About $12 across four builds, 2 hours.
-- Reviews: `node Server/review.mjs` per merge group, about $3. Total about $17 of the $20.
-- Order: each merge keeps Voice Chat working (an empty Features list draws nothing). Worktree `task/chat-settings-per-session`, one branch; merge after steps 1, 2, 3+4, 5.
+- Spent so far: $22.95 (this mastermind, from `list_agents` at 14:10 on 2026-11-03; reviews are billed to their own reviewer agents, about $0.8 each). Budget now $35, so about $12 remain.
+- That covers steps 3 to 5 only if the builds are cheap: a Sonnet minion at low effort builds each step from a brief (files, tests first, how to check), and I review and merge. Rough cost with that: step 3 `core/Settings/*` about $2, step 4 `core/Session/Session.js`, `Servex/agents/Sessions.js` (+ tests), `ux/Dictate/chat.js` about $3, step 5 `ext/Chat/Mic.js`, `Composer.js`, `DictationBar.js`, `ux/Dictate/VoiceChat/*` about $4, reviews about $1 each. Steps 6 and 7 are queued behind the budget (the status line is a small step and is next if money is left); they never start unasked while over.
+- Order: each merge keeps Voice Chat working. One worktree per step (`chat-settings-<step>`), merged by me after review.
 
 ## Status (updated as merges land)
 
@@ -72,5 +94,5 @@ Carried from the step 2a review: the bar's switch (`Interrupt.bind`) writes an o
 - Make default also saves the defaults on Servex (vscode-mastermind, 2026-11-03): done on the Servex side; the page side will read it at load, with localStorage as the fallback (not built yet).
 - qf-1 landed on michael/dev (bc4147365, 2026-11-03).
 - Step 1 remainder: built on qf-1 in worktree/chat-settings-plugins (a9a75d7df and after): overrides, load_overrides, reset_plugins, Host.make_default, a config change re-runs detach then attach; 28 core/Plugin tests; page demo and docs. Merged as d09621cc5 (merge 2).
-- Step 2, first group (merge 3): the VoiceChat class, Interrupt and ThinkingCue as plugins, `chat.js` makes one VoiceChat per Recite (the page has one reader). 12 VoiceChat tests, 30 core/Plugin tests. core/Plugin gained two small things for it: a plugin may define `reconfigure(inst)` (a threshold slider must not close and reopen the mic) and a constructor arg `overrides` is loaded before attach (no moment of Interrupt on when the browser had it off). Built in worktree/chat-settings-voicechat, in review.
-- Step 2 plugins still to port from Merge A (`worktree/dictate-plugins`, c7330581d), one merge each, in value order: send on each sentence end, word highlight, tap to pause, timings. Do NOT port Interrupt or ThinkingCue again. Then step 3 (Chat settings panel), and the page side of 4 and 5 (load, save, Make default, Reset to default). None of the five asks is ticked.
+- Step 2, first group (merge 3): the VoiceChat class, Interrupt and ThinkingCue as plugins, `chat.js` makes one VoiceChat per Recite (the page has one reader). 12 VoiceChat tests, 30 core/Plugin tests. core/Plugin gained two small things for it: a plugin may define `reconfigure(inst)` (a threshold slider must not close and reopen the mic) and a constructor arg `overrides` is loaded before attach (no moment of Interrupt on when the browser had it off). Merged as c68d0494e (merge 3).
+- 2026-11-03: new direction from the owner (core/Settings, session.settings in session.jsonl, panel order, status line): steps 3 to 7 above are rewritten for it; the plugins still to port from Merge A (word highlight, tap to pause, timings; `worktree/dictate-plugins`, c7330581d) are now step 7. Do NOT port Interrupt or ThinkingCue again. None of the five asks is ticked yet.
