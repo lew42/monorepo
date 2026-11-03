@@ -19,12 +19,26 @@ const TAG = "whisper-detach-test-";
 /** The pids of every whisper-server (and its cmd.exe) whose command line names `needle`. */
 const strays = needle => {
 	const ps = `Get-CimInstance Win32_Process | ? { $_.CommandLine -like '*${needle}*' -and ($_.Name -eq 'whisper-server.exe' -or $_.Name -eq 'cmd.exe') } | % { $_.ProcessId }`;
-	const r = spawnSync("powershell", ["-NoProfile", "-Command", ps], { encoding: "utf8" });
+	const r = spawnSync("powershell", ["-NoProfile", "-Command", ps], { encoding: "utf8", windowsHide: true });
 	return (r.stdout || "").split(/\s+/).filter(Boolean).map(Number).filter(p => p !== process.pid);
 };
-const kill = pids => { for (const p of pids) spawnSync("taskkill", ["/pid", String(p), "/t", "/f"]); };
+const kill = pids => { for (const p of pids) spawnSync("taskkill", ["/pid", String(p), "/t", "/f"], { windowsHide: true }); };
 
-const left = strays(TAG);
+// A whisper-server.exe's own command line never names the tmp dir (only its launching cmd.exe does, in
+// spawn_detached()), so once that cmd.exe is gone — a run SIGKILLed mid-test, 2026-10-25's note above — the
+// `strays(TAG)` sweep can never find the orphaned whisper-server.exe again by name: it's gone for good until
+// someone kills it by hand. Caught twice landing qf-9 (2026-11-03): the orphan from one failed run ate enough
+// RAM/VRAM to slow the next run's model load past the 40 s "came online" wait, which then failed and left ITS
+// OWN orphan too. So also sweep any whisper-server.exe NOT listening on the live production port — anything
+// else can only be a stray test instance, since the real one always claims WHISPER_PORT.
+const live_port = Number(process.env.WHISPER_PORT) || 8178;
+const port_strays = () => {
+	const ps = `Get-CimInstance Win32_Process | ? { $_.Name -eq 'whisper-server.exe' -and $_.CommandLine -notlike '*--port ${live_port}*' } | % { $_.ProcessId }`;
+	const r = spawnSync("powershell", ["-NoProfile", "-Command", ps], { encoding: "utf8", windowsHide: true });
+	return (r.stdout || "").split(/\s+/).filter(Boolean).map(Number).filter(p => p !== process.pid);
+};
+
+const left = [...new Set([...strays(TAG), ...port_strays()])];
 if (left.length) { kill(left); console.log(`swept ${left.length} process(es) left by an earlier killed run`); }
 if (os.freemem() < 3 * 2 ** 30) { console.log(`skip — ${(os.freemem() / 2 ** 30).toFixed(1)} GB free, under the 3 GB a model load needs to finish in time`); process.exit(0); }
 
