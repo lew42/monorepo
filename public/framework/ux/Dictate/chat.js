@@ -7,6 +7,9 @@ import ChatV2Model from "/framework/ext/Chat/v2/old/ChatV2Model.js";   // V1 sti
 import DictateHealth from "./DictateHealth.js";
 import Link from "/framework/dev/Socket/Link.js";
 import Recite from "/framework/audio/Recite/Recite.js";
+import BargeIn from "/framework/audio/Recite/BargeIn.js";
+import WhisperLog from "/framework/audio/Whisper/WhisperLog.js";
+import { should_drop_phantom, whisper_info } from "./phantom-gate.js";
 import * as report from "/framework/ext/Chat/v2/report.js";
 import { VoiceChat } from "./VoiceChat/VoiceChat.js";
 import { Interrupt } from "./VoiceChat/plugins/index.js";
@@ -198,6 +201,17 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 			session: () => owner.ctl.session,
 			marks: false,   // per-sentence HITL marks (/api/hitl, one Sonnet call per bubble) off: the owner, 2026-11-02, "I thought we turned it off"
 			deliver: async entry => {
+				// Never for a typed line (BargeIn.owner_spoke() skips it the same way): the gate exists for Whisper's
+				// own hallucinations, and a typed "Thank you." said on purpose must always land.
+				if (entry.via !== "typed"){
+					const info = last_final_info;
+					const drop = should_drop_phantom(entry.text, info ?? {}, { noise: BargeIn.noise, recite: Recite.shared });
+					last_final_info = null;   // every use is one-shot: a later sentence must not reuse this clip's info
+					if (drop){
+						WhisperLog.event("composer", "dropped", { text: entry.text, reason: drop, info: info ?? null });
+						return true;   // handled on purpose: no "not sent" error for words that were never really said
+					}
+				}
 				try {
 					DictateHealth.set("sent", "wait", `sending ${quote(entry.text)}…`);
 					owner.sync_from_storage();
@@ -246,6 +260,24 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	Recite.shared.voice_chat ??= new VoiceChat({ recite: Recite.shared, mic: panel.dictate, overrides: Interrupt.snapshot(Recite.shared) });   // ux/Dictate/VoiceChat/readme.md
 	panel.voice_chat = Recite.shared.voice_chat;
 	Recite.shared.on_read = ev => report.read(ev);   // cutting in, 2026-11-03: a note for the assistant's next turn, never a prompt (ext/Chat/v2/report.js, kind "context")
+
+	// The phantom gate's one source of duration/word-probability: the last FINAL Whisper reply this mic heard, read
+	// again at the moment that sentence is about to post (deliver, below). No per-sentence id ties a final to the
+	// entry it became (ComposerMic's own pipeline doesn't carry one), so this is a best effort, not an exact match —
+	// safe because the gate only ever acts on a stock phantom phrase (BargeIn.noise) to begin with (doc/phantom-gate.md).
+	// Cleared by deliver() after every use, and should_drop_phantom() itself ignores it once stale
+	// (phantom-gate.js's LAST_FINAL_MS), so a later sentence is never judged on an old clip.
+	let last_final_info = null;
+	if (panel.dictate){
+		// Chains to whatever was already there, so an earlier on_whisper wiring keeps firing. Fragile the other way:
+		// anything that assigns panel.dictate.on_whisper AFTER this line replaces the gate's hook outright, and
+		// last_final_info silently stops updating (falls back to the echo-active branch only, doc/phantom-gate.md).
+		const prior_on_whisper = panel.dictate.on_whisper;
+		panel.dictate.on_whisper = line => {
+			prior_on_whisper?.(line);
+			if (line.kind === "final") last_final_info = { ...whisper_info(line), at: Date.now() };
+		};
+	}
 
 	// Drawing one line must never stop the lines after it: a throw lands on the Page light, with the raw error.
 	function draw(line){

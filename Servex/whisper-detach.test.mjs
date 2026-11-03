@@ -3,11 +3,18 @@
  * detached runner); runner B (the next Servex) must ADOPT the same pid with no second model load.
  * Needs the installed whisper-server + model, like Dictate. Doc: Server/doc/transcription-crash-2026-10-12.md
  *
- * No whisper-server outlives this test (2026-10-25: TestRunner killed it at 60 s three times while RAM was
- * low, its `finally` never ran, and three 1.6 GB servers were left on random ports). So: it sweeps any left
- * by an earlier killed run before it starts, it gives up by itself at 45 s (under the runner's 60 s) so its
- * cleanup always runs, the cleanup finds them by their temp dir in the command line, not only the pid file,
- * and the last check is that none is left. Under 3 GB free it skips: a model load then outlasts any limit. */
+ * No whisper-server outlives this test. TestRunner (merge.mjs's test gate) runs up to 4 files AT ONCE and
+ * force-kills a file's node process at its own timeout (60 s by default, or `timeouts.json`'s entry for this
+ * file) with Windows' TerminateProcess — no SIGTERM, so a `finally` block in THIS process never gets a chance
+ * to run (2026-10-25's first version of this note assumed `finally` just didn't run in time; landing qf-9,
+ * 2026-11-03, proved it's worse: under the other parallel tests' CPU/GPU/RAM contention, model load can take
+ * long enough that TestRunner's own external timeout fires FIRST, so no in-process cleanup — `finally`,
+ * `process.on('SIGTERM')`, none of it — ever executes at all). So the fix has two parts: `timeouts.json` gives
+ * this file enough external headroom (150 s) that its OWN 45 s internal deadline always fires first even under
+ * four-way contention, and the pid(s) this run actually started are tracked in a variable (not re-derived from
+ * a command-line pattern, which goes blind the moment the launching cmd.exe exits) so cleanup — and the final
+ * "outlived" check — only ever act on processes THIS run started, never another test's or the live whisper.
+ * A sweep by command line still runs once at the top, for whatever a run before this fix left behind. */
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import net from "node:net";
@@ -19,12 +26,26 @@ const TAG = "whisper-detach-test-";
 /** The pids of every whisper-server (and its cmd.exe) whose command line names `needle`. */
 const strays = needle => {
 	const ps = `Get-CimInstance Win32_Process | ? { $_.CommandLine -like '*${needle}*' -and ($_.Name -eq 'whisper-server.exe' -or $_.Name -eq 'cmd.exe') } | % { $_.ProcessId }`;
-	const r = spawnSync("powershell", ["-NoProfile", "-Command", ps], { encoding: "utf8" });
+	const r = spawnSync("powershell", ["-NoProfile", "-Command", ps], { encoding: "utf8", windowsHide: true });
 	return (r.stdout || "").split(/\s+/).filter(Boolean).map(Number).filter(p => p !== process.pid);
 };
-const kill = pids => { for (const p of pids) spawnSync("taskkill", ["/pid", String(p), "/t", "/f"]); };
+const kill = pids => { for (const p of pids) spawnSync("taskkill", ["/pid", String(p), "/t", "/f"], { windowsHide: true }); };
 
-const left = strays(TAG);
+// A whisper-server.exe's own command line never names the tmp dir (only its launching cmd.exe does, in
+// spawn_detached()), so once that cmd.exe is gone — a run SIGKILLed mid-test, 2026-10-25's note above — the
+// `strays(TAG)` sweep can never find the orphaned whisper-server.exe again by name: it's gone for good until
+// someone kills it by hand. Caught twice landing qf-9 (2026-11-03): the orphan from one failed run ate enough
+// RAM/VRAM to slow the next run's model load past the 40 s "came online" wait, which then failed and left ITS
+// OWN orphan too. So also sweep any whisper-server.exe NOT listening on the live production port — anything
+// else can only be a stray test instance, since the real one always claims WHISPER_PORT.
+const live_port = Number(process.env.WHISPER_PORT) || 8178;
+const port_strays = () => {
+	const ps = `Get-CimInstance Win32_Process | ? { $_.Name -eq 'whisper-server.exe' -and $_.CommandLine -notlike '*--port ${live_port}*' } | % { $_.ProcessId }`;
+	const r = spawnSync("powershell", ["-NoProfile", "-Command", ps], { encoding: "utf8", windowsHide: true });
+	return (r.stdout || "").split(/\s+/).filter(Boolean).map(Number).filter(p => p !== process.pid);
+};
+
+const left = [...new Set([...strays(TAG), ...port_strays()])];
 if (left.length) { kill(left); console.log(`swept ${left.length} process(es) left by an earlier killed run`); }
 if (os.freemem() < 3 * 2 ** 30) { console.log(`skip — ${(os.freemem() / 2 ** 30).toFixed(1)} GB free, under the 3 GB a model load needs to finish in time`); process.exit(0); }
 
@@ -45,10 +66,15 @@ const until = async (fn, ms) => { const end = Date.now() + ms; while (Date.now()
 const pid_of = () => JSON.parse(fs.readFileSync(path.join(dir, "procs", "whisper.json"), "utf8")).pid;
 const alive = pid => { try { process.kill(pid, 0); return true; } catch { return false; } };
 
+// Every pid THIS run actually started (cmd.exe's; /t takes whisper-server too), so cleanup and the final
+// "outlived" check never touch another test's process or the live one — only ours.
+const started = new Set();
+const track = () => { try { started.add(pid_of()); } catch {} };
+
 const cleanup = async () => {
-	try { kill([pid_of()]); } catch {}           // the pid is cmd.exe's; /t takes whisper-server too
-	kill(strays(path.basename(dir)));             // and anything else this run started, found by its temp dir
-	await new Promise(r => setTimeout(r, 1500));
+	kill([...started]);
+	kill(strays(path.basename(dir)));              // anything else this run started under its temp dir
+	await until(() => [...started].every(p => !alive(p)), 5000);   // wait for the kill, bounded
 	try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
 };
 const deadline = setTimeout(async () => { console.error("FAIL — gave up at 45 s (whisper-server did not come online); cleaned up"); await cleanup(); process.exit(1); }, 45000);
@@ -58,6 +84,7 @@ const a = runner();
 try {
 	await a.start();
 	assert.ok(await until(() => a.status === "online", 40000), "A: whisper-server came online");
+	track();
 	const pid = pid_of();
 	const t0 = Date.now();
 	a.release();                                   // Servex A goes away
@@ -65,6 +92,7 @@ try {
 
 	const b = runner();                            // Servex B starts
 	await b.start();
+	track();
 	assert.equal(b.status, "online", "B adopts at once, no 14 s model reload");
 	assert.equal(pid_of(), pid, "same pid: nothing was started");
 	assert.ok(said.some(m => /^adopted: pid/.test(m)), "B said it adopted");
@@ -74,7 +102,7 @@ try {
 finally {
 	clearTimeout(deadline);
 	await cleanup();
-	const still = strays(path.basename(dir));
+	const still = [...started].filter(alive);
 	if (still.length) { console.error(`FAIL — ${still.length} whisper process(es) outlived the test: ${still}`); code = 1; }
 	else console.log("ok — no whisper-server outlived the test");
 	process.exit(code);

@@ -1,6 +1,7 @@
 import Part from "../Part.js";
 import MicStream from "../MicStream/MicStream.js";
 import Whisper from "../Whisper/Whisper.js";
+import { PHANTOM_PHRASES, noise as phantom_noise } from "./phantom-phrases.js";
 
 /**
  * class BargeIn extends Part — `Recite.BargeIn`: while Recite reads, it listens
@@ -325,10 +326,10 @@ export default class BargeIn extends Part {
 	/** Recite.remember, reached through the instance: Recite imports this file, not the other way. */
 	remember(key, value){ return this.recite.constructor.remember(key, value); }
 
-	/** Common Whisper hallucinations, heard alone (not as part of a longer real line) — a plain array, so a new one
-	 *  found later is one line to add, not a regex to edit (review note, 2026-11-01). */
-	static PHANTOM_PHRASES = ["thank you.", "thank you", "thanks for watching.", "thanks for watching", "you"];
+	/** Common Whisper hallucinations, heard alone (not as part of a longer real line). The list and the check
+	 *  itself live in `phantom-phrases.js`, a plain module a node test can load with no browser, so a new phrase
+	 *  found later is one line to add in ONE place (review note, 2026-11-01). */
+	static PHANTOM_PHRASES = PHANTOM_PHRASES;
 
-	/** Whisper's own non-speech marks ("[BLANK_AUDIO]", "(wind blowing)", "♪") count as noise, and so do the phrases above. */
-	static noise(text){ return !text || /^[\[(♪*].*[\])♪*]$/.test(text) || BargeIn.PHANTOM_PHRASES.includes(String(text).toLowerCase()); }
+	static noise(text){ return phantom_noise(text); }
 }

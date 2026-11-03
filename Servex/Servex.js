@@ -501,7 +501,14 @@ export default class Servex extends Events {
             name: "whisper", log: this.log, model, port,
             command: path.join(home, "bin", "whisper-server.exe"),
             args: ["-m", model, "--host", "127.0.0.1", "--port", String(port),
-                "--vad", "--vad-model", path.join(home, "models", "ggml-silero-v5.1.2.bin")],
+                "--vad", "--vad-model", path.join(home, "models", "ggml-silero-v5.1.2.bin"),
+                // -mc 0 (--max-context): no conditioning on the previous reply's text, so Whisper has nothing of its
+                // own earlier guesses to echo into a hallucination; --suppress-nst: drop non-speech tokens. Both
+                // confirmed supported by this binary's --help (2026-11-03, phantom-gate task). This process is
+                // detached and outlives Servex — a Servex restart ADOPTS it with its old args (Process.js adopt()),
+                // so the flags only take effect once whisper-server itself is stopped and started again
+                // (stop_server/start_server "whisper").
+                "-mc", "0", "--suppress-nst"],
             detach: true   // outlives Servex like the dev servers: a restart no longer kills it and reloads the model (~14 s, every open Dictate fails) — Process.Whisper adopts it
         });
 

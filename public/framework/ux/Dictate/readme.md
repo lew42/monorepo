@@ -1,5 +1,7 @@
 # Dictate — a mic button that always shows what is happening
 
+**Voice Chat's guiding principles and direction (read first; the owner, 2026-11-03):** never interrupt, never assume the screen is seen, the messages list is the one truth, silent by default with a `say` tool, settings per session: [`doc/principles.md`](doc/principles.md).
+
 **How a chat is made, mic to screen** (the pipeline, the two views, the class sketch, the colours, the item tool; one file:line per stage): [`doc/pipeline.md`](doc/pipeline.md).
 
 **The green check and the brain icon look out of sync?** What triggers each one, by file:line, and the one real mismatch between V1 and v2 (not just timing): [`doc/status-icons.md`](doc/status-icons.md).
@@ -101,6 +103,8 @@ ever appeared — no error, no clue why.
 **Per-chat plugins (Interrupt, Thinking cue; more to come):** [`VoiceChat/readme.md`](VoiceChat/readme.md), one `VoiceChat` per Recite (one per page, shared by every chat on it) on `core/Plugin`.
 
 **Settings panel:** the ⚙ beside ⌨ on the sheet's bar (and the gear on a plain composer) opens "Dictation settings": the send delay (2 s) and the smart assistant's batch seconds and sentences; values live in `localStorage` key `chat.mic.settings.4` (`ext/Chat/Mic.js` `SETTINGS`): [`doc/settings.md`](doc/settings.md).
+
+**A Whisper hallucination ("Thank you.", "you"…) never reaches the chat:** `chat.js`'s `deliver()` gates every send on the same checks `audio/Recite/BargeIn` already had, before it posts, not after: [`doc/phantom-gate.md`](doc/phantom-gate.md).
 
 **How fast is the first reply?** Measured hop by hop, before and after: [`doc/latency.md`](doc/latency.md). **Raw text slow on the phone?** On a slow uplink the upload is the delay, so the WAV is 8-bit mu-law (half the bytes) and a guess in flight is dropped when the segment ends: [`doc/upload.md`](doc/upload.md).
 

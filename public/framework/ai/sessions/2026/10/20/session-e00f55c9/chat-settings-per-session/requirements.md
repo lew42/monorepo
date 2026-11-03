@@ -35,3 +35,18 @@
 - [ ] one Chat settings panel (the gear), with Recite's settings in it
 - [ ] settings persist with the session; a new session starts from the defaults
 - [ ] a "Make default" button
+
+## Added by the owner, 2026-11-03 about 13:50 (direction: [ux/Dictate/doc/principles.md](/framework/ux/Dictate/doc/principles.md), "Settings")
+- **Build a settings system for the long term, `core/Settings`.**
+  - It sits between the data and the UI: `settings.render()` draws the panel.
+  - Field types: toggle, slider, number, dropdown.
+  - It decides how often to save.
+  - Any Item can have one.
+- **On a Session it is `session.settings`**, with groups `settings.dictate` and `settings.recite`, named after the classes. It is saved in the session's own `session.jsonl`, so the session loads it by itself. This **replaces** Servex's `sessions.json` as the home of per-session plugin settings: move what merge 1 put there, or make it a thin read-through.
+- **"Make default"** edits the class-level settings, which new sessions start from. Without it, you edit this session's. Make the panel say which one you're editing.
+- **Names stay close to the code.** Each setting or status uses the method or class name it controls, and the data shape is shown where it can be, so the owner learns how the system really works.
+- **The panel, in the order things happen:** Whisper → sending to the LLM → read-aloud (Recite), with interruption as its own group.
+  - "Send after" is a dropdown of presets with descriptions; the default is "each sentence".
+  - Every slider says what its two ends do. The interrupt "sensitivity" slider especially: the owner couldn't tell what it changed.
+- **Move the voice picker** from the always-on toolbar into the Recite group. Keep the two toolbars otherwise.
+- **A status line beside the mic** shows the phase, named as the code names it (listening, sending, agent working, speaking). Optional and later: one Chat widget that owns the area, with Dictate and Recite as plugins.

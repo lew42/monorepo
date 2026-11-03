@@ -204,3 +204,9 @@ await check("filler (listening, filed, no question is open, only punctuation) is
 	for (const x of ["", "-", "…", "Listening.", "Filed.", "no question is open", "Nothing is open.", "Understood", "(listening)"]) assert.ok(is_filler(x), `filler: ${x}`);
 	for (const x of ["Yes, the cue is one second.", "Two ways: A, or B. Which?"]) assert.ok(!is_filler(x), `kept: ${x}`);
 });
+
+await check("a stray stringified undefined/null is filler; a real sentence using the word is not", async () => {
+	const { is_filler } = await import("./Sessions.js");
+	for (const x of ["undefined", " Undefined. ", "null"]) assert.ok(is_filler(x), `filler: ${x}`);
+	assert.ok(!is_filler("The value was undefined in the log."), "kept: real sentence");
+});
