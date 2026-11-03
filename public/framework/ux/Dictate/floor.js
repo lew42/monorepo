@@ -45,6 +45,10 @@ export const floor = {
 	fired: 0,
 	listeners: new Set(),
 	on_quiet(fn){ this.listeners.add(fn); return () => this.listeners.delete(fn); },
+	/** Calls fn(on) whenever the mic turns on or off (the status line, ux/Dictate/ChatStatus.js); returns an unsubscribe. */
+	mic_listeners: new Set(),
+	on_mic(fn){ this.mic_listeners.add(fn); return () => this.mic_listeners.delete(fn); },
+	mic_changed(){ for (const fn of this.mic_listeners) try { fn(!!this.owner); } catch (e){ console.error("floor: on_mic listener failed", e); } },
 	/** How long the owner has been quiet right now, in ms; null with the mic off. */
 	quiet_ms(){ return !this.owner ? null : this.silent_at == null ? 0 : Math.round(performance.now() - this.silent_at); },
 	quiet(ms, mic_off = false){ for (const fn of this.listeners) try { fn(Math.round(ms), { mic_off }); } catch (e){ console.error("floor: on_quiet listener failed", e); } },
@@ -55,6 +59,7 @@ export const floor = {
 		Object.assign(this, { owner, on_at: now, mic_on_at: new Date().toISOString(), pauses: [],
 			quiet_since: now, heard: false, split: false, speaking_ms: 0, last_at: now, silent_at: now, fired: this.quiet_marks.length });
 		this.post("speaking", owner);
+		this.mic_changed();
 	},
 
 	/** One level frame (about every 8 ms). `loud` is Dictate's own speech test. */
@@ -88,6 +93,7 @@ export const floor = {
 		this.owner = null;
 		if (this.fired < this.quiet_marks.length){ this.fired = this.quiet_marks.length; this.quiet(performance.now() - (this.silent_at ?? performance.now()), true); }
 		this.post("idle", owner);
+		this.mic_changed();
 	},
 
 	/** "speaking" while the mic is on and the current quiet is shorter than `done_after_ms`. */

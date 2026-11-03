@@ -14,6 +14,7 @@ import * as report from "/framework/ext/Chat/v2/report.js";
 import { VoiceChat } from "./VoiceChat/VoiceChat.js";
 import { Interrupt, ReadAloud } from "./VoiceChat/plugins/index.js";
 import ChatSettings from "./ChatSettings.js";
+import ChatStatus from "./ChatStatus.js";
 import ChatDefaults from "./ChatDefaults.js";
 import { servex_url } from "/framework/dev/servex_url.js";
 
@@ -196,6 +197,9 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	let tasks = null;   // the ChatV2Model that folds this session's Task and Question lines
 	// In-flight echo: stream pushes owner's line before say() resolves
 	const sending = [];
+	const sending_watch = new Set();   // the status line's callbacks: a post went out, or its line landed
+	const sending_now = () => sending.some(m => !m.echoed && !m.late);   // posted, line not on the wire yet
+	const sending_poke = () => { for (const fn of sending_watch) fn(); };
 	const flat = t => String(t ?? "").replace(/\s+/g, " ").trim();
 
 	new View({ el, capture: false }).append(() => {
@@ -224,7 +228,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 					const via = entry.via === "typed" ? "text" : "voice";
 					floor.stamp(entry);
 					const thread = entry.thread ? { re: entry.thread, thread: true } : {};
-					const mine = { text: flat(entry.text), at: entry.at }; sending.push(mine);
+					const mine = { text: flat(entry.text), at: entry.at }; sending.push(mine); sending_poke();
 					let r;
 					const t_say = Date.now(), t_out = Date.parse(entry.at) || t_say;
 					try {
@@ -237,7 +241,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 						// ("not sent" off, no second copy) instead of drawing the sentence twice (Session.POST_MS, doc/debug-tab.md).
 						if (/did not answer/.test(e?.message ?? "")){ mine.late = true; setTimeout(() => { const i = sending.indexOf(mine); if (i >= 0) sending.splice(i, 1); }, LATE_ECHO_MS); }
 						throw e;
-					} finally { if (!mine.late){ const i = sending.indexOf(mine); if (i >= 0) sending.splice(i, 1); } }
+					} finally { if (!mine.late){ const i = sending.indexOf(mine); if (i >= 0) sending.splice(i, 1); } sending_poke(); }
 					own_ats.add(r.at);
 					panel.retag(entry.at, r.at);
 					if (entry.floor === "speaking") owner.watch_floor();
@@ -282,6 +286,18 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	if (!panel.voice_chat._defaults){
 		const vc = panel.voice_chat, defaults = vc._defaults = new ChatDefaults({ url: servex_url });
 		defaults.get().then(out => { if (Object.keys(out.plugins).length) VoiceChat.apply_defaults(out.plugins); if (out.error) quiet_note("the shared chat defaults could not be read (using this browser's copy)", out.error); });
+	}
+	if (panel.dictate){
+		// The status line beside the mic: one ChatStatus per page, fed by the three existing sources (floor, Recite, the post in flight).
+		const recite = Recite.shared;
+		const status = new ChatStatus({
+			speaking: () => ["playing", "loading"].includes(recite.state),
+			working: () => recite.cue_pending,
+			sending: () => sending_now(),
+			listening: () => !!floor.owner,
+			watch: [fn => recite.on(fn), fn => floor.on_mic(fn), fn => sending_watch.add(fn)],
+		});
+		if (panel.dictate.status_el) status.bind(panel.dictate.status_el);
 	}
 	if (panel.dictate){
 		const vc = panel.voice_chat;
@@ -349,7 +365,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		const echo = line.chat.from?.kind === "owner" && sending.find(m => m.text === flat(line.chat.text) && panel.$thread?.lines?.has(m.at));
 		if (echo){
 			own_ats.add(line.chat.at); panel.retag(echo.at, line.chat.at);
-			echo.echoed = true;   // a timeout after this is a slow answer, not a lost send (deliver's catch)
+			echo.echoed = true; sending_poke();   // a timeout after this is a slow answer, not a lost send (deliver's catch)
 			if (echo.late){   // the send timed out but Servex took it after all: one bubble, marked sent
 				sending.splice(sending.indexOf(echo), 1);
 				panel.$thread?.mark_sent?.(line.chat.at);

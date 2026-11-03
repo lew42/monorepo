@@ -293,6 +293,7 @@ export default class Recite extends Part {
 	expect_reply(){
 		clearTimeout(this.cue_timer); this.cue_timer = null;
 		this.cue_pending = true;
+		this.changed();   // the status line (ux/Dictate/ChatStatus.js) shows "agent working"
 	}
 
 	/** The voice agent marked itself working (a `{thinking:{by:"smart"}}` session line): the cue replaces a LONG
@@ -301,6 +302,7 @@ export default class Recite extends Part {
 	start_thinking(){
 		clearTimeout(this.cue_timer);
 		this.cue_pending = true;
+		this.changed();
 		if (!this.thinking_cue) return;
 		this.play_cue();
 		const until = Date.now() + this.cue_max_ms;
@@ -315,7 +317,9 @@ export default class Recite extends Part {
 	/** The reply arrived, or a fresh line replaced the one being waited on: stop waiting. */
 	cancel_cue(){
 		clearTimeout(this.cue_timer); this.cue_timer = null;
+		const was = this.cue_pending;
 		this.cue_pending = false;
+		if (was) this.changed();
 	}
 
 	/** A short generated tone, never Kokoro speech — cheap, and never competes with recite-server for the reply
