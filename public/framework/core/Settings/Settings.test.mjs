@@ -62,6 +62,19 @@ test("load replaces every override and emits change per key that actually moved,
 	t.eq(seen.length, 0, "loading the same overrides again changes nothing");
 });
 
+test("load with groups never persists, even with the debounce policy and a fake clock", t => {
+	const calls = [], timers = [];
+	const clock = { setTimeout: fn => { timers.push(fn); return timers.length; }, clearTimeout: () => {} };
+	const s = new Settings({ defaults: {}, clock, persist: own => calls.push(own), groups: { dictate: { defaults: { lang: "en" } }, recite: { defaults: { speed: 1 } } } });
+	s.load({ dictate: { lang: "fr" }, recite: { speed: 2 } });
+	timers.forEach(fn => fn());
+	t.eq(calls.length, 0, "opening a session writes nothing back");
+	t.eq(s.own, { dictate: { lang: "fr" }, recite: { speed: 2 } }, "the groups were loaded");
+	s.recite.set("speed", 1.5);
+	timers.forEach(fn => fn());
+	t.eq(calls.length, 1, "a real edit on a group does persist");
+});
+
 test("reset drops every override and does persist", t => {
 	const calls = [];
 	const s = new Settings({ defaults: { a: 1 }, save: "manual", persist: own => calls.push(own) });

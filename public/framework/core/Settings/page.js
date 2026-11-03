@@ -5,7 +5,7 @@ import { Settings } from "./Settings.js";
 const local = { get: key => JSON.parse(localStorage.getItem(key) ?? "null") ?? undefined, set: (key, value) => localStorage.setItem(key, JSON.stringify(value)) };
 
 const settings = new Settings({
-	level: "this session",
+	level: "this session (demo)",
 	fields: [
 		{ key: "notify", label: "Notify me", type: "toggle" },
 		{ key: "volume", label: "Volume", type: "slider", min: 0, max: 10, step: 1, low: "quiet", high: "loud" },
@@ -36,14 +36,16 @@ export default new Page({
 		md("**Settings** holds a level's `defaults` and one instance's own overrides (`own`). `get(key)` falls back to the default; `set(key, value)` stores or clears an override and schedules `persist`. `render()` draws one row per field.");
 
 		code.js(`const s = new Settings({
-  fields: [{ key: "volume", label: "Volume", type: "slider", min: 0, max: 10, low: "quiet", high: "loud" }],
+  fields: [{ key: "volume", label: "Volume", type: "slider",
+    min: 0, max: 10, low: "quiet", high: "loud" }],
   defaults: { volume: 5 },
-  persist: own => fetch("/save", { method: "POST", body: JSON.stringify(own) }),
+  persist: own => fetch("/save",
+    { method: "POST", body: JSON.stringify(own) }),
 });
 s.set("volume", 8);   // own override, "change" fires, persist is scheduled`);
 
 		md("## Try it");
-		md("Change a field below. What you change is saved in this browser. The JSON on the right is `settings.own` — what a session would actually save.");
+		md("Change a field below. What you change is saved in this browser. The JSON beside it is `settings.own` — what a session would actually save.");
 
 		let json;
 		const refresh = () => { json.el.textContent = JSON.stringify(settings.own, null, 2); };

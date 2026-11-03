@@ -25,7 +25,7 @@ export class Settings extends Events(Object) {
 			for (const [name, g] of Object.entries(groups)) {
 				const child = new Settings({ fields: g.fields, defaults: g.defaults, values: g.values, save: "manual", clock: this.clock });
 				child.group_name = name;
-				child.on("change", (key, value) => { this.emit("change", key, value, name); this.schedule_persist(); });
+				child.on("change", (key, value) => { this.emit("change", key, value, name); if (!child._loading) this.schedule_persist(); });
 				this.groups[name] = child;
 				this[name] = child;
 			}
@@ -54,6 +54,12 @@ export class Settings extends Events(Object) {
 
 	// Replace every override with `obj` (a session opening): emits "change" per key that actually moved, never persists.
 	load(obj = {}){
+		this._loading = true;
+		try { this.load_now(obj); } finally { this._loading = false; }
+		return this;
+	}
+
+	load_now(obj){
 		const names = this.groups ? Object.keys(this.groups) : [];
 		const top = {};
 		for (const [k, v] of Object.entries(obj)) if (!names.includes(k)) top[k] = v;
@@ -63,7 +69,6 @@ export class Settings extends Events(Object) {
 			if (!same(before[key], top[key])) this.emit("change", key, this.get(key));
 		}
 		for (const name of names) this.groups[name].load(obj[name] ?? {});
-		return this;
 	}
 
 	reset(){
@@ -104,14 +109,14 @@ export class Settings extends Events(Object) {
 			const value = this.get(f.key);
 			const set = v => this.set(f.key, v);
 			return label.c("flex v-center gap", () => {
-				span(f.label ?? f.key).style("flex", "1 1 auto");
+				span(f.label ?? f.key).style("flex", "0 1 10em");
 				if (f.type === "toggle") {
 					const box = input().attr("type", "checkbox");
 					box.el.checked = !!value;
 					box.el.addEventListener("change", e => set(e.target.checked));
 				} else if (f.type === "slider") {
 					if (f.low != null) span.c("muted", f.low);
-					const range = input().attr("type", "range").attr("min", f.min).attr("max", f.max).attr("step", f.step ?? 1).attr("value", value);
+					const range = input().style("flex", "1 1 8em").attr("type", "range").attr("min", f.min).attr("max", f.max).attr("step", f.step ?? 1).attr("value", value);
 					const val = span.c("muted", String(value));
 					range.el.addEventListener("input", e => { set(+e.target.value); val.el.textContent = e.target.value; });
 					if (f.high != null) span.c("muted", f.high);
@@ -135,10 +140,10 @@ export class Settings extends Events(Object) {
 					box.el.addEventListener("change", e => set(e.target.value));
 				}
 				if (f.help && f.type !== "select") span.c("muted", f.help).style("flex", "1 1 100%");
-			}).style("minHeight", "2.75em");
+			}).style("minHeight", "2.25em");
 		};
 		return div.c("flex v gap", () => {
-			if (this.level) span.c("muted", this.level);
+			if (this.level) span.c("b", "Editing: " + this.level);
 			for (const f of this.fields) row(f);
 		});
 	}
