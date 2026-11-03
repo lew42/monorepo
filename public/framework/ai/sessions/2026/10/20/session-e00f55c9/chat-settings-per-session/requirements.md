@@ -1,4 +1,6 @@
-# Voice Chat: every feature a plugin, set per session, in one Chat settings panel (you are a mastermind, on Sonnet, high effort)
+# Voice Chat: every feature a plugin, set per session, in one Chat settings panel
+
+*Role: mastermind, Sonnet, high effort.*
 
 **The owner (2026-11-03, VS Code tab; verbatim in the tab's prompt log).** The dictation and read-aloud systems hold many small rules and thresholds: when to interrupt, when to send, which messages go out. The owner wants each one to be an event-driven plugin that can be switched on and off and configured, and adds:
 - **Two levels.** The class registers its plugins (and their defaults) once, so instances don't each do it. Each **instance** can switch and configure them on its own.
