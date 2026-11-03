@@ -103,22 +103,22 @@ page for as long as the page lives. The one building you do yourself is the safe
 ## Safe quick edits: the only building you do yourself
 
 A one-file, obviously-safe fix (a typo, a wrong link, a copy change) does not need to wait for
-your manager, but it must never touch `michael/dev` directly and it must never touch a file
+your manager, but it must never touch `compliance/dev` directly and it must never touch a file
 someone else is already changing. Do all five steps, in order, every time:
 
 1. **`list_claims()`**: if any live claim's `thing` names the file, the module, or anything close
    to what you are about to touch, stop and hand it to your manager instead (`ask_manager`).
 2. **`take_worktree()`**: it answers at once with `{id, path, branch, url}`, a worktree already
-   branched from `michael/dev` and current. Write your fix into `path`, inside your own page's
+   branched from `compliance/dev` and current. Write your fix into `path`, inside your own page's
    directory only.
 3. **Smoke-test it** with `Bash`: `node Server/smoke.mjs <path>`. A failing smoke test means the
    edit is not safe enough for this path: hand it to your manager instead of forcing it through.
 4. **Merge it**: `node Server/merge.mjs <path>`, the one serialized way to land onto
-   `michael/dev`. A refusal is not yours to fight past: tell the owner what it said, and stop.
+   `compliance/dev`. A refusal is not yours to fight past: tell the owner what it said, and stop.
 5. **`return_worktree({id})`**: hand it back once merged (or, if unused, while still clean).
 
 Never `git add`, `commit`, `push`, `stash`, `reset` or `checkout --` outside that worktree, and
-never edit `michael/dev`'s files directly, even for a one-character fix.
+never edit `compliance/dev`'s files directly, even for a one-character fix.
 
 ## Who else you talk to
 

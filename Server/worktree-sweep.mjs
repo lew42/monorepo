@@ -12,7 +12,7 @@
  * something stopped its server anyway. So `can_stop()` checks all three:
  *   1. the worktree's OWN task has `landed_at` + a real `outcome` (found via its task.jsonl's
  *      line 1 `worktree` field, which is set once at spawn and never changes);
- *   2. that task's branch is fully merged into `michael/dev` (`git merge-base --is-ancestor`);
+ *   2. that task's branch is fully merged into `compliance/dev` (`git merge-base --is-ancestor`);
  *   3. no live agent is still working there — the task's own mastermind, one of its minions
  *      (registry `parent` chain), or any agent whose recorded `cwd` is inside the worktree.
  * All three true = ok to stop. Any one false = skip, and say which one and why, so a nag on a
@@ -166,7 +166,7 @@ export async function can_stop(entry){
 	if (!task.landed_at || !String(task.outcome ?? "").trim())
 		return { ok: false, reason: "not-landed", why: `task ${task.key} has not landed (no landed_at + outcome yet)` };
 	if (!is_merged(entry.branch))
-		return { ok: false, reason: "not-merged", why: `branch ${entry.branch || "(none)"} is not merged into michael/dev yet` };
+		return { ok: false, reason: "not-merged", why: `branch ${entry.branch || "(none)"} is not merged into compliance/dev yet` };
 	const mastermind = task.agent || null;
 	const agents = await live_agents();
 	// "Live" here means WORKING right now, not merely "not stopped yet" — the agent that landed

@@ -609,7 +609,7 @@ try {
 				landed.push({ branch, head, at: new Date().toISOString(), files: changed });
 				fs.writeFileSync(ledger, JSON.stringify(landed, null, "\t"));
 				/* Commit exactly the landed paths, always, through a temporary index (commitLanded): a new file
-				 * written to the tree but never added reached michael/dev untracked three times (2026-10-14), and
+				 * written to the tree but never added reached compliance/dev untracked three times (2026-10-14), and
 				 * leaving paths staged for "the next commit" fed the stray-staged pile (2026-11-02). Nothing is
 				 * ever left staged; a failed commit leaves the files written and unstaged, and says so. */
 				const sha = commitLanded(changed, head, branch);

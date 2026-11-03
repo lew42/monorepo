@@ -27,11 +27,11 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 
 **Latest commits on this branch:**
 ```
-1d3b937bf Merge branch 'worktree/send-alias' into michael/dev
+1d3b937bf Merge branch 'worktree/send-alias' into compliance/dev
 0e9db9da4 send_to_agent: also `agent`; readme line; tasks readme entry closed (review answers)
 b528ee62b send-alias: brief
 14b3586f5 send_to_agent: take {to, message} as well as {id, text}; why agents said the tab isn't live
-4dabb5990 Merge branch 'worktree/assistant-toggle' into michael/dev
+4dabb5990 Merge branch 'worktree/assistant-toggle' into compliance/dev
 32b1c6587 dictation settings: an assistant change sends only the assistant
 14e6cfd2f core/Plugin: task records (plan, investigation, review report and answers, landing)
 65d3fd77f dictation settings: One assistant / Two assistants switch in the gear panel
@@ -40,9 +40,9 @@ b528ee62b send-alias: brief
 The dated sections below are written by hand and go stale; this block does not.
 <!-- NOW:end -->
 
-## Just merged into `michael/dev`: `claude/oop-streaming-research`, with `integration/data-shapes-2` (2026-11-01)
+## Just merged into `compliance/dev`: `claude/oop-streaming-research`, with `integration/data-shapes-2` (2026-11-01)
 
-The persistence research, the Item MVP built from it, and the whole of `integration/data-shapes-2` are now on `michael/dev` (merged on GitHub from the cloud session). **On the PC, after `git pull`:** restart Servex (`node Servex/sustain.mjs --restart`) and the dev server (never during a voice call), then open `/framework/core/Page/tool/` in two tabs and check an edit in one shows in the other. Everything about the merge: [build.md](/framework/research/2026/10/29/persistence-sync/build.md). Remove this section once the PC has pulled and checked. **Next** (decided in principle the same day): the git and deploy plan, six steps, in [doc/git.md](/framework/doc/git.md#steps-in-order-none-done-yet); every open ask from that session is in [framework/tasks](/framework/tasks/readme.md).
+The persistence research, the Item MVP built from it, and the whole of `integration/data-shapes-2` are now on `compliance/dev` (merged on GitHub from the cloud session). **On the PC, after `git pull`:** restart Servex (`node Servex/sustain.mjs --restart`) and the dev server (never during a voice call), then open `/framework/core/Page/tool/` in two tabs and check an edit in one shows in the other. Everything about the merge: [build.md](/framework/research/2026/10/29/persistence-sync/build.md). Remove this section once the PC has pulled and checked. **Next** (decided in principle the same day): the git and deploy plan, six steps, in [doc/git.md](/framework/doc/git.md#steps-in-order-none-done-yet); every open ask from that session is in [framework/tasks](/framework/tasks/readme.md).
 
 ## LATEST, 2026-10-25 evening: VS Code tab e00f55c9 wound down after five days (2026-10-20 → 10-25)
 
@@ -105,7 +105,7 @@ The owner moved to dictating in the browser; this tab stopped its half-hourly ch
 4. The /live/ root was NOT cleared: the owner wants a blank slate with the old cards moved to `/live/archive/`, and the Now card (id `now`) kept current. Not done; the Now card is stale.
 5. Law to enforce everywhere (CLAUDE.md, "code streams, AI does not"): live cards must be views of data, never agent-rewritten text. The Tasks card is the only data-driven one.
 6. `node Server/AIIndex.mjs --watch` is started by nothing, so `/framework/ai/tasks/` is stale.
-7. Waiting on the owner: Gmail re-auth; whether to push michael/dev (2,881 commits ahead of origin, nothing pushed in weeks); the 108 real unmerged salvage branches (`voice-20261016/salvage/audit.md`, top 5 listed).
+7. Waiting on the owner: Gmail re-auth; whether to push compliance/dev (2,881 commits ahead of origin, nothing pushed in weeks); the 108 real unmerged salvage branches (`voice-20261016/salvage/audit.md`, top 5 listed).
 8. Follow.js is the node-event → agent-queue path (files only); browser events (navigation, clicks, which task was tapped) are not relayed yet. Queue by default; interrupt only for voice barge-in (`Servex/agents/doc/owner-2026-10-16-realtime-interrupt.md`).
 
 **Landed tonight (voice-app's share):** Task system (Task extends Item, item tool, task homes, TaskPage, TasksPage, TaskView chip/row/card, today's dictations as real tasks); Whisper duplicate log 3cecf3724; salvage audit; Home link on the phone sheet 753083190; cost fix; Sheet rename; compaction nudge; laws in CLAUDE.md (8c5dc7928 / 09c5ebb29).
@@ -135,7 +135,7 @@ emote.url` IS the secret, never write it into the repo). **2026-10-15: the voice
 ## LATEST, 2026-10-13: the 10-12 day, landed and open
 - **Landed 10-12 (task folders, each with its own STATE or report):** [property-of](sessions/2026/10/12/session-87bec773/property-of/) · [page-templates](sessions/2026/10/12/session-87bec773/page-templates/) · [page-inbox](sessions/2026/10/12/session-87bec773/page-inbox/) · [past-work-skill](sessions/2026/10/12/session-87bec773/past-work-skill/) · [screenshot-system](sessions/2026/10/12/session-87bec773/screenshot-system/) · [server-query](sessions/2026/10/12/session-87bec773/server-query/) · [perf-system](sessions/2026/10/12/session-87bec773/perf-system/) · [ui-library](sessions/2026/10/12/session-87bec773/ui-library/) · [layout-catalog](sessions/2026/10/12/session-87bec773/layout-catalog/) · [step-runner](sessions/2026/10/12/session-87bec773/step-runner/) · [dead-links](sessions/2026/10/12/session-87bec773/dead-links/) · [comment-prune-3](sessions/2026/10/12/session-87bec773/comment-prune-3/) · [readme-audit](sessions/2026/10/12/session-87bec773/readme-audit/). Every one is indexed in the root and framework/ai readmes.
 - **Readme audit:** no readme over 100 lines, every child module indexed, before/after counts and the list of what CLAUDE.md needs in [readme-audit/STATE.md](sessions/2026/10/12/session-87bec773/readme-audit/STATE.md).
-- **Open:** ⚠️ `Property.of` is NOT on `michael/dev`: its landing line merged but the code (4 commits, `5a6024e53..494fb8735`, branch `michael/property-of`: Property.js, AISessionDetail.js, tests, binding.md) did not; the owner merges it or asks for a reviewed merge; `page.children` → `page.pages` rename; duplicate-bubble details; the Figma `dark` token; CLAUDE.md edits listed in the audit STATE (ask first).
+- **Open:** ⚠️ `Property.of` is NOT on `compliance/dev`: its landing line merged but the code (4 commits, `5a6024e53..494fb8735`, branch `michael/property-of`: Property.js, AISessionDetail.js, tests, binding.md) did not; the owner merges it or asks for a reviewed merge; `page.children` → `page.pages` rename; duplicate-bubble details; the Figma `dark` token; CLAUDE.md edits listed in the audit STATE (ask first).
 - **Dead links:** 53 real 404s down to 3 (040b82753).
 
 ## EARLIER, 2026-10-12 morning: the night run (30 tasks)
@@ -190,7 +190,7 @@ emote.url` IS the secret, never write it into the repo). **2026-10-15: the voice
 **Fail-safe crons from the old session are all spent; none pending.** Agents to revive by name: minion-session-class, mastermind-ai-system-docs, mastermind-refine-demo, mastermind-task-audit, mastermind-task-system-design, mastermind-ai2-merge, mastermind-notifications-lab.
 
 ## EARLIER, 2026-10-06 12:22 pm: Handover for New Tab / Mastermind
-**Session 45d8d4c7 winding down for compaction. All work landed directly on `michael/dev`. Background crons killed.**
+**Session 45d8d4c7 winding down for compaction. All work landed directly on `compliance/dev`. Background crons killed.**
 - **CRON STOPPED (task-1565):** The static 5-minute heartbeat cron was terminated. No background crons run in the chat session.
 - **Dynamic Heartbeat & Autonomy Policy Landed:**
   - `doc/agents/autonomy.md`: State-driven wakeups (no polling when idle, one-shot timer when tasks are in flight, sleep until reset when quota exhausted).
@@ -388,7 +388,7 @@ elapsed all day — Sonnet only until the reset.
 console, so its children pop VISIBLE consoles — roots get a hidden console (PowerShell
 `Start-Process -WindowStyle Hidden`) and nothing below hides itself (`server.js`, `sustain.mjs`,
 `Process.js`, `CardAnswer/Ask/Assistant.js`, `worktree-up.mjs` all fixed). Minions work in
-worktrees (`launch-wt.sh` in the run's scratchpad: a branch off `michael/dev`, the task dir's `.md`
+worktrees (`launch-wt.sh` in the run's scratchpad: a branch off `compliance/dev`, the task dir's `.md`
 files copied in because the brief is never committed, the minion commits on its branch); tear one
 down with `wt-teardown.ps1 <slug>` (kills by path first — two orphaned servers burned a core each
 when the registry's pid went stale — then `git merge --no-ff`, then removes the worktree). A card

@@ -42,7 +42,7 @@ const TASKS = [
 	{ id: "readme-link", kind: "readme check", prompt: "Which of these links in a readme points to a file that is not in the listing? Listing: doc/flow.md, doc/cards.md, page.js, readme.md. Links: doc/flow.md, doc/card.md, page.js. " + ONLY + "the broken link.", check: a => /doc\/card\.md/.test(a) && !/flow/.test(a) },
 	// card classification
 	{ id: "card-blocking", kind: "card classification", prompt: CARD + "\"Cloudflare login expired; deploy cannot continue until you log in again.\" " + ONLY + "the one word.", check: one("blocking") },
-	{ id: "card-review", kind: "card classification", prompt: CARD + "\"The Dictate page restyle is finished and merged to michael/dev; screenshots at 400 and 1200 attached.\" " + ONLY + "the one word.", check: one("review") },
+	{ id: "card-review", kind: "card classification", prompt: CARD + "\"The Dictate page restyle is finished and merged to compliance/dev; screenshots at 400 and 1200 attached.\" " + ONLY + "the one word.", check: one("review") },
 	{ id: "card-fyi", kind: "card classification", prompt: CARD + "\"Nightly token count: 4.1M, under pace by 12 points.\" " + ONLY + "the one word.", check: one("fyi") },
 	{ id: "card-blocking-2", kind: "card classification", prompt: CARD + "\"Two designs for the rail are ready; I will not pick one without you.\" " + ONLY + "the one word.", check: one("blocking") },
 	// transcript clean

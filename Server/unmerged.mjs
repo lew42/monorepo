@@ -1,4 +1,4 @@
-/* `node Server/unmerged.mjs [--json] [--write] [--hours N] [--base michael/dev]` — every `worktree/*` branch with commits not on the base:
+/* `node Server/unmerged.mjs [--json] [--write] [--hours N] [--base compliance/dev]` — every `worktree/*` branch with commits not on the base:
  * count, age, files, whether the patches are already on the base under other commits (git cherry), the task folder whose log
  * records the branch (its own `branch` field), and that task's state. Read-only. Used by core/Session/InFlight "Built, not merged". Doc: Server/doc/unmerged.md */
 import { spawn, spawnSync } from "node:child_process";

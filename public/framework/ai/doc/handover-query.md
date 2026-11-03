@@ -129,7 +129,7 @@ Browser form (`new QueryClient("tasks").ask(spec)`); node form is `SessionIndex.
 | **Stop hook** — [`ledger.mjs`](/.claude/hooks/ledger.mjs) | when an agent tries to stop | the agent itself: refuses a `landed_at` with no `outcome`; reminds of unfinished `steps` (once per 30 min, never with a live child) | only tasks that ledger knows (a session with a task) |
 | **`TaskLoop.tick()`** — [`TaskLoop.js`](/Servex/TaskLoop.js) | every 5 min | the task's agent: a neutral status check when quiet 10 min, again 15 min later, then `card_ask` to the owner ([task-loop.md](/Servex/doc/task-loop.md)) | **reads only today's and yesterday's folders** (`find_task_files`), and only tasks that opted in |
 | **`Heartbeat`** | agent silent 5 min | the agent, then a revive (rationed) | watches agents, not "items the owner still needs" |
-| **`landing_nag` / `landing_check`** — [`Agents.js`](/Servex/agents/Agents.js) | an agent goes idle | the agent or its parent: said "merged" but no landing line; landed but files not on `michael/dev` | one event per agent, no memory across days |
+| **`landing_nag` / `landing_check`** — [`Agents.js`](/Servex/agents/Agents.js) | an agent goes idle | the agent or its parent: said "merged" but no landing line; landed but files not on `compliance/dev` | one event per agent, no memory across days |
 | **`follow_up_daily()`** | once a local day, inside the tick | the owner: **one count** ("N flagged") as an Inbox note | a count, not the items; once a day; keyed on a file's mtime, so a failed run is not retried until tomorrow |
 
 ### The two blind spots

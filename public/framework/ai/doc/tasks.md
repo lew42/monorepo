@@ -83,7 +83,7 @@ Each row is a guess about where prompt, session, task, agent and landed change c
 | T4 | task to session | a session-store task names its session | **FAIL 88 of 989** |
 | T5 | task to module | a session-store task names its module | **FAIL 989 of 989** |
 | T6 | session to task | the session log names its task | **FAIL 5 of 42** (37 do) |
-| T7 | merged change to task | a task whose commit is on `michael/dev` is `complete` | **FAIL 8 of 65**: merged, never closed |
+| T7 | merged change to task | a task whose commit is on `compliance/dev` is `complete` | **FAIL 8 of 65**: merged, never closed |
 | T8 | landed to record | a complete task has an outcome sentence | **PASS** 0 of 767 |
 | T9 | work to ending | an open task was touched in the last 3 days | **FAIL 344 of 761** (319 stopped, 25 idle) |
 | T10 | agent end to landing | an agent that "ended without landing" later lands | **FAIL 163 of 313** |

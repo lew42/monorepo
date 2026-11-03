@@ -58,7 +58,7 @@
 					"landed_at": "2026-09-28T22:49:58-05:00",
 					"hours": 0.1,
 					"cost_usd": 2.6667,
-					"outcome": "Landed — 326 uncommitted files into 12 commits on michael/dev, none pushed. Status fell from 326 to ~10 (still moving — other agents writin…",
+					"outcome": "Landed — 326 uncommitted files into 12 commits on compliance/dev, none pushed. Status fell from 326 to ~10 (still moving — other agents writin…",
 					"result_url": "/framework/ai/2026-09-28/commit-live-system/groups.md",
 					"state": "done"
 				},
@@ -201,7 +201,7 @@
 					"landed_at": "2026-09-24T18:09:03-05:00",
 					"hours": 0.7,
 					"cost_usd": 21.5013,
-					"outcome": "Agents can now fork themselves, wait on each other, and survive a Servex restart. Merged into michael/dev as 230171d5, plus b6c5d5c0 (resta…",
+					"outcome": "Agents can now fork themselves, wait on each other, and survive a Servex restart. Merged into compliance/dev as 230171d5, plus b6c5d5c0 (resta…",
 					"result_url": "/framework/ai/2026-09-24/concurrency/",
 					"state": "done"
 				},
@@ -473,7 +473,7 @@
 					"landed_at": "2026-09-28T15:11:02-05:00",
 					"hours": null,
 					"cost_usd": null,
-					"outcome": "Landed on michael/dev. Server/review.mjs now runs a review as four logged turns instead of one shot: the reviewer's findings, the builder's…",
+					"outcome": "Landed on compliance/dev. Server/review.mjs now runs a review as four logged turns instead of one shot: the reviewer's findings, the builder's…",
 					"result_url": "/framework/ai/2026-09-28/review-turns/",
 					"state": "done"
 				},
@@ -642,7 +642,7 @@
 					"landed_at": "2026-09-24T17:50:38-05:00",
 					"hours": 0.2,
 					"cost_usd": 5.954,
-					"outcome": "Layouts have names, not numbers, and Make shows the description and reorders from the keyboard. Merged into michael/dev (24d1df92).",
+					"outcome": "Layouts have names, not numbers, and Make shows the description and reorders from the keyboard. Merged into compliance/dev (24d1df92).",
 					"result_url": "/framework/core/Layout/",
 					"state": "done"
 				},
@@ -1290,7 +1290,7 @@
 					"landed_at": "2026-09-24T18:40:49-05:00",
 					"hours": 0,
 					"cost_usd": 0.6138,
-					"outcome": "The Live card's preview no longer shows a raw agent id — merged into michael/dev (branch worktree/live-preview, merge commit 347140a2). It…",
+					"outcome": "The Live card's preview no longer shows a raw agent id — merged into compliance/dev (branch worktree/live-preview, merge commit 347140a2). It…",
 					"result_url": "/framework/ai2/live/",
 					"state": "done"
 				},
@@ -1316,7 +1316,7 @@
 					"landed_at": "2026-09-24T18:14:03-05:00",
 					"hours": 0,
 					"cost_usd": 2.2202,
-					"outcome": "Replying on the Live card no longer scrolls usage and running now away — merged into michael/dev (branch worktree/live-reply, merge commit…",
+					"outcome": "Replying on the Live card no longer scrolls usage and running now away — merged into compliance/dev (branch worktree/live-reply, merge commit…",
 					"result_url": "/framework/ai2/live/",
 					"state": "done"
 				},
@@ -1381,7 +1381,7 @@
 					"landed_at": "2026-09-24T17:53:24-05:00",
 					"hours": 0.3,
 					"cost_usd": 6.2025,
-					"outcome": "The Live card fills wide screens in columns, and no line of text is wider than a reading width — merged into michael/dev (branch worktree/l…",
+					"outcome": "The Live card fills wide screens in columns, and no line of text is wider than a reading width — merged into compliance/dev (branch worktree/l…",
 					"result_url": "/framework/ai2/live/",
 					"state": "done"
 				},
@@ -1407,7 +1407,7 @@
 					"landed_at": "2026-09-24T17:29:26-05:00",
 					"hours": 0.1,
 					"cost_usd": 3.7817,
-					"outcome": "Click any running agent on the Live card and talk to it from the browser — merged into michael/dev (branch worktree/agent-chat, 5a827c78).",
+					"outcome": "Click any running agent on the Live card and talk to it from the browser — merged into compliance/dev (branch worktree/agent-chat, 5a827c78).",
 					"result_url": "/framework/ai2/live/",
 					"state": "done"
 				},
@@ -1420,7 +1420,7 @@
 					"landed_at": "2026-09-24T17:20:38-05:00",
 					"hours": 0.1,
 					"cost_usd": 2.8086,
-					"outcome": "The Live card is one column that scrolls as a page, with three pace meters and honest tasks — merged into michael/dev (branch worktree/live…",
+					"outcome": "The Live card is one column that scrolls as a page, with three pace meters and honest tasks — merged into compliance/dev (branch worktree/live…",
 					"result_url": "/framework/ai2/live/",
 					"state": "done"
 				},
@@ -1587,7 +1587,7 @@
 					"landed_at": "2026-09-28T15:56:04-05:00",
 					"hours": 0.7,
 					"cost_usd": 30.256,
-					"outcome": "Facts, disputes, and abstaining landed in every collab run (michael/dev f51ad82a, 153009fd). A facts phase now runs first: members list fou…",
+					"outcome": "Facts, disputes, and abstaining landed in every collab run (compliance/dev f51ad82a, 153009fd). A facts phase now runs first: members list fou…",
 					"result_url": "/framework/ext/Collab/?src=/framework/ai/2026-09-28/collab-facts/real-run-2/collab.jsonl",
 					"state": "done"
 				},

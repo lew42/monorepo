@@ -1,5 +1,5 @@
 /* `node Server/worktree-prune.mjs [--dry] [--only <name>]` — removes every git worktree that is finished with:
- *   1. its branch is fully merged into michael/dev (`git merge-base --is-ancestor`);
+ *   1. its branch is fully merged into compliance/dev (`git merge-base --is-ancestor`);
  *   2. no Servex agent that is idle, working or queued has its cwd inside it (GET :8090/agents);
  *   3. it is not a pool slot (.worktree-pool.json: the Pool removes its own) and not the main tree;
  *   4. nothing in it but its dev server's own logs (page.jsonl, files.jsonl, the clarity flags),
@@ -10,7 +10,7 @@
  * It never stops a server in the MAIN tree: :3104 is Servex's, and :8137 is on the keep list
  * (the owner's phone; a hand-started server there is not a leftover).
  * Why (node-reliability, 2026-09-30): 76 worktrees had piled up, 52 already merged; pruned 38.
- * Uncommitted work (anything but those logs) or a branch with commits outside michael/dev is
+ * Uncommitted work (anything but those logs) or a branch with commits outside compliance/dev is
  * never deleted, only named; salvage (Pool.salvage, by hand) is the one path that may move it.
  * `--only <name>` looks at that one worktree (the pool-taken proof, 2026-09-30).
  * `--salvage` (2026-10-13, worktree-cleanup): a merged worktree skipped ONLY for changed files is not
@@ -21,7 +21,7 @@
  *   JSON; `git worktree add <path> <branch>` brings any one back.
  * `--idle-hours <n>`: skip a worktree whose last commit or any changed file is newer than n hours, so
  *   a timer can run this without racing an agent that writes there from another cwd.
- * A detached worktree whose HEAD is already in michael/dev counts as merged (wt-task-folders).
+ * A detached worktree whose HEAD is already in compliance/dev counts as merged (wt-task-folders).
  * A worktree named like a pool slot (qf-1..9) is the Pool's (recycle_orphans), never this script's.
  * Every spawn sets windowsHide. */
 import { execFileSync, spawnSync } from "node:child_process";

@@ -927,12 +927,12 @@ plus its 28px flow gap) on every doc-page section.
 *was Page.class.js line 1248*
 
 ⚠ NOT a floating "Folder" link here any more. One existed briefly
-(2026-09-28, "any path slash fs") and michael/dev re-added a refined
+(2026-09-28, "any path slash fs") and compliance/dev re-added a refined
 version of it (in_doc()-guarded) in the SAME merge this comment
 resolves — but the owner found it unclear ON ITS OWN PAGE and it was
 deliberately deleted same-day (dbe94242, "a 'Files' item in the
 mobile-nav drawer replaces it"), which is real, separate, already-
-landed work (the mobile-nav task, several merges into michael/dev).
+landed work (the mobile-nav task, several merges into compliance/dev).
 Kept deleted: reintroducing it here would undo a dated, reasoned
 owner decision that the merge otherwise has no way to know about.
 `/fs/` itself is unaffected — every folder still has one, this was

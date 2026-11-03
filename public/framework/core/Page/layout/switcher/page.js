@@ -81,7 +81,7 @@ export default new Page({
 			code("/fs");
 			span(". Its work (task dir: ");
 			code("public/framework/ai/sessions/2026/09/29/file-system/file-system/");
-			span(") is not on michael/dev yet, so this page names the class instead of wiring to it: once its branch merges, reuse ");
+			span(") is not on compliance/dev yet, so this page names the class instead of wiring to it: once its branch merges, reuse ");
 			code('this.switcher(names, { skin: "tree" })');
 			span(" there instead of a second collapse mechanism — see doc/decide.md's last section.");
 		});

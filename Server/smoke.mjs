@@ -422,10 +422,10 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 		//     2026-10-04, found landing it: `/framework/ux/Dictate/`'s own readme links two old
 		//     dated task pages — `ai/sessions/2026/09/22/dd3a11e7-7d24-4ef5-ae83-dea94fa63f0a/dictate-silence/`, `ai/sessions/2026/09/30/one-dictation/one-dictation/
 		//     minion-workbench/` — whose spend.json and one shot each 404 unchanged on
-		//     `michael/dev` too; neither is about the branch being tested, and a reader-facing
+		//     `compliance/dev` too; neither is about the branch being tested, and a reader-facing
 		//     fix for the rot itself belongs to whoever next touches those pages, not every
 		//     future merge that happens to link to one).
-		//   - a dated record's own task.jsonl and today's ai/<date>/day.jsonl (ai-modules-home, 2026-10-13): `ai/sessions/2026/08/13/task-previews/` previews six sibling records that predate task.jsonl (they keep session.json), and /framework/ai/v/3/ reads today's day log, which only the main tree writes; both 404 unchanged on michael/dev, so a branch that merely relinks those pages failed on rot it did not cause.
+		//   - a dated record's own task.jsonl and today's ai/<date>/day.jsonl (ai-modules-home, 2026-10-13): `ai/sessions/2026/08/13/task-previews/` previews six sibling records that predate task.jsonl (they keep session.json), and /framework/ai/v/3/ reads today's day log, which only the main tree writes; both 404 unchanged on compliance/dev, so a branch that merely relinks those pages failed on rot it did not cause.
 		//   - /framework/ai/index.json (2026-10-20): the renamed state.json, gitignored, written by AIIndex in the main tree only.
 		//   - /directory.json (transcription-crash, 2026-10-12): the frozen, gitignored one-file listing (Server/doc/directory-off.md); a worktree never has it, so /framework/ 404ed it on every merge.
 		if (/^\/(framework\/)?directory\.json$/.test(new URL(u).pathname) || /\/(files|page|weight|settings)\.jsonl$/.test(u) || /\/ai-logs\//.test(u) || /\/framework\/ai\/(tasks|usage|page-work|index)\.json$/.test(u)

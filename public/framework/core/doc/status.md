@@ -1,6 +1,6 @@
 # The Item system: what's built, what isn't, what's next (2026-11-01)
 
-**In one line:** the save-and-stream work from the persistence research is in the real classes on `michael/dev`, about half of the planned Phase 1 is done, and replaying all 3,931 session and task records with the new code gives the same states, titles and children as before.
+**In one line:** the save-and-stream work from the persistence research is in the real classes on `compliance/dev`, about half of the planned Phase 1 is done, and replaying all 3,931 session and task records with the new code gives the same states, titles and children as before.
 
 **What the Item system is.** An `Item` is an object that saves itself: every change becomes one line appended to a `.jsonl` file, and reading the file back ("replay") rebuilds the object. `List`, `Page`, `Task` and `Session` are all built on it, so the AI session and task records under `ai/sessions/` are Items too. The research ([persistence & sync](/framework/research/2026/10/29/persistence-sync/)) asked whether to keep this or adopt a library; the answer was keep it and fix it. What was built and merged: [build.md](/framework/research/2026/10/29/persistence-sync/build.md). The API in short: [overview.md](overview.md).
 
@@ -30,7 +30,7 @@ Proof: [Servex/agents/one-writer.test.mjs](/Servex/agents/one-writer.test.mjs) (
 
 ## Sessions and tasks: does the merge break them? (checked 2026-11-01)
 
-The owner's worry: the session and task system is the biggest body of work, it barely works, and it rests on the old Item code. Checked four ways, old code (`9bc81edc4`, `michael/dev` just before the merge) against new (`michael/dev` after it):
+The owner's worry: the session and task system is the biggest body of work, it barely works, and it rests on the old Item code. Checked four ways, old code (`9bc81edc4`, `compliance/dev` just before the merge) against new (`compliance/dev` after it):
 
 - **Every record replayed with both versions:** `node Server/ReplayCompare.mjs <old checkout>` replays all 3,931 `session.jsonl` and `task.jsonl` files under `public/framework/` with both. **None throws. State, title and child count are identical for all 3,931.** The only difference: 1,038 tasks now carry a `ran_since` field (when a running task started its current run). It's empty on every finished, stopped, idle or waiting task, and set on 4 running ones; before, that time was lost on reload.
 - **The tests:** the session, task and index tests (`core/Session`, `core/Task`, `ai/AISession`, `ai/AITask`, `Server/AIIndex`, `SessionRecord`, the item tool): 20 of 21 pass with the new code, 19 of 20 with the old; the one failure, `TasksPage.test.mjs`, fails on both (it needs the live site).
@@ -43,7 +43,7 @@ The owner's worry: the session and task system is the biggest body of work, it b
 
 ## Next steps, in order
 
-1. **On the PC:** pull `michael/dev`, restart Servex and the dev server, then open `/framework/ai/sessions/`, a recent session, a task page and `/framework/ai/`; start and stop a task and check its `.jsonl` gets the line. Anything wrong: compare with `9bc81edc4`.
+1. **On the PC:** pull `compliance/dev`, restart Servex and the dev server, then open `/framework/ai/sessions/`, a recent session, a task page and `/framework/ai/`; start and stop a task and check its `.jsonl` gets the line. Anything wrong: compare with `9bc81edc4`.
 2. **Phase 0:** the five small "stop silent losses" fixes ([design/fixes.md](/framework/research/2026/10/29/persistence-sync/design/fixes.md) 1–5), each with its failing test first.
 3. **Turn on marked lines** after step 1 looks right (steps in [line-format.md](../Item/doc/line-format.md)).
 4. **The rest of Phase 1:** ~~`unset`~~ (done 2026-11-02); ~~a warning for unknown bare keys~~ (done 2026-11-02); ~~`reset`/`epoch` and the gap check~~ (done 2026-11-02, [reset.md](../Item/doc/reset.md)); ~~`source` + `batch()`~~ (done 2026-11-02, [batch.md](../Item/doc/batch.md)); ~~typing coalesce~~ (done 2026-11-02, [batch.md](../Item/doc/batch.md#typing-many-keystrokes-one-line)). Phase 1 is done except `Room` + `FileJournal`.

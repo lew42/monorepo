@@ -190,7 +190,7 @@ A repository audit (`git status -s`) revealed 700 untracked paths, with 659 resi
 
 ### B. Mechanisms Ensuring Agents Commit Work
 - **Worktrees (`Pool.js`)**: Worktrees enforce cleanliness on `return_worktree` (dirty worktrees are rejected with an explicit error list).
-- **Merge Pipeline (`Server/merge.mjs`)**: Automatically commits clean branches to `michael/dev`. Recent commit `a5cc0a04` enabled auto-commit for clean three-way landings.
+- **Merge Pipeline (`Server/merge.mjs`)**: Automatically commits clean branches to `compliance/dev`. Recent commit `a5cc0a04` enabled auto-commit for clean three-way landings.
 - **Main Checkout Gap**: Agents running directly in the main repository checkout currently have **no automated enforcement** preventing them from completing turns while leaving uncommitted files.
 
 **Recommendation**: Add an explicit check in `finish-task` and `Agents.stop()` that verifies git working tree status and prompts or auto-commits dirty working files created during the task lifecycle.

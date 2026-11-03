@@ -25,11 +25,11 @@ const BLOCK = [
 	[`git clean -fd`, MAIN],
 	// 2026-10-13: git merge on a dirty tree resets it (ai/sessions/doc/commit-rule.md)
 	[`git merge --no-ff worktree/assistant-chain`, MAIN],
-	[`git merge michael/dev`, MAIN],
+	[`git merge compliance/dev`, MAIN],
 	[`git -c merge.ff=false merge x`, MAIN],
 	[`git pull`, MAIN],
 	[`git pull --rebase --autostash`, MAIN],
-	[`git rebase michael/dev`, MAIN],
+	[`git rebase compliance/dev`, MAIN],
 	[`git stash list && git merge x`, MAIN],
 	[`git merge --ff-only x`, MAIN],
 	// the 2026-10-01 incident's shape, and its cousins
@@ -87,10 +87,10 @@ const ALLOW = [
 	[`git config merge.ff false`, MAIN],
 	[`git log --merges -5`, MAIN],
 	[`git commit -m "git merge and git pull are blocked"`, MAIN],
-	[`git merge --ff-only michael/dev`, WT],
+	[`git merge --ff-only compliance/dev`, WT],
 	[`git pull`, WT],
-	[`git rebase michael/dev`, WT],
-	[`git -C C:/Code/lew42/worktrees/qf-4 merge --ff-only michael/dev`, MAIN],
+	[`git rebase compliance/dev`, WT],
+	[`git -C C:/Code/lew42/worktrees/qf-4 merge --ff-only compliance/dev`, MAIN],
 ];
 
 for (const [c, cwd, tool] of BLOCK) { const r = run(as(c, cwd, tool)); ok(r.status === 2 && /GIT GUARD/.test(r.stderr), `blocks  [${cwd === MAIN ? "main" : cwd === WT ? "wt" : cwd}]  ${c}`); }

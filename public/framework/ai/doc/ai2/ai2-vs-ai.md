@@ -44,4 +44,4 @@ Today: `ai/` has 46 hyphen dirs (`2026-10-08/`, 8,398 tracked files; the year tr
 `Servex/cards/Cards.js` `slugify()` cuts at 40 characters, mid-word (`...never-fini`). Fix, a two-line change for the Servex owner: cut at the last `-` before 40 when one exists past character 20. It only changes names of new cards; existing folders and ids never change. Not applied here: `Servex/` needs a restart and is another agent's area.
 
 ### 5. Zombie branches
-141 `worktree/*` branches, 11 are `ai2-*`. Half are merged, half carry commits `michael/dev` lacks; see [branches.md](branches.md). Nothing deleted. Next step if wanted: tag every merged one (`archive/<name>`), then delete the branch name only.
+141 `worktree/*` branches, 11 are `ai2-*`. Half are merged, half carry commits `compliance/dev` lacks; see [branches.md](branches.md). Nothing deleted. Next step if wanted: tag every merged one (`archive/<name>`), then delete the branch name only.

@@ -1,4 +1,4 @@
-// Server/LandingCheck.mjs — is a branch's WORK on michael/dev? Checked by file content, never commit count
+// Server/LandingCheck.mjs — is a branch's WORK on compliance/dev? Checked by file content, never commit count
 // (merge.mjs sometimes lands a branch by applying its diff). Doc: Servex/doc/landing.md
 //   node Server/LandingCheck.mjs <branch|taskDir>...      print verdicts as JSON
 import fs from "node:fs";
@@ -67,7 +67,7 @@ export default class LandingCheck {
 		return out;
 	}
 
-	/** Every (path, blob) michael/dev ever held for these paths: one `git log --raw` per 200 paths. */
+	/** Every (path, blob) compliance/dev ever held for these paths: one `git log --raw` per 200 paths. */
 	static history(paths, base){
 		const set = new Set();
 		for (let i = 0; i < paths.length; i += 200) {
@@ -78,7 +78,7 @@ export default class LandingCheck {
 		return set;
 	}
 
-	/** One line for a log: "landing line written but N files are not on michael/dev: a, b…". */
+	/** One line for a log: "landing line written but N files are not on compliance/dev: a, b…". */
 	static sentence(v){
 		const list = v.missing.slice(0, 6).join(", ") + (v.missing.length > 6 ? ` …+${v.missing.length - 6}` : "");
 		const fresh = v.new_missing?.length ? ` (new file not on dev: ${v.new_missing.slice(0, 6).join(", ")}${v.new_missing.length > 6 ? ` …+${v.new_missing.length - 6}` : ""})` : "";

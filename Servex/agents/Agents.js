@@ -1610,7 +1610,7 @@ Agents.Agent = class Agent {
 	 * — but nothing had ever SET `last_at` on a live agent, so that read always fell through to
 	 * the stale mtime. Setting it to now, right here, BEFORE `register()` runs, is the actual
 	 * fix: the sweep then sees a correct "just woke up", not a stale one. The 60 s `awoken_at`
-	 * guard in `sleep()` (the first patch, committed on michael/dev) stays as the belt — right
+	 * guard in `sleep()` (the first patch, committed on compliance/dev) stays as the belt — right
 	 * for the exact incident it closes, but incomplete on its own: it is a wall-clock special
 	 * case on `sleep()`, not a fix to the clock `last_active()` reads, so any OTHER caller that
 	 * asks "how long has this agent been idle" during this same window still got a wrong answer. */
@@ -2334,7 +2334,7 @@ Agents.Agent = class Agent {
 	}
 
 	/* THE LANDING CHECK (2026-10-13, Servex/doc/landing.md): a task with a landing line whose branch work is
-	 * NOT on michael/dev (by file content, Server/LandingCheck.mjs) gets a log line, a card reply and a
+	 * NOT on compliance/dev (by file content, Server/LandingCheck.mjs) gets a log line, a card reply and a
 	 * wake of its parent. The landing line is never deleted. Once per distinct missing set. */
 	landing_check(){
 		const dir = this.task?.dir;

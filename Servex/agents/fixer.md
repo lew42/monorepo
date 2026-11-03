@@ -7,7 +7,7 @@ already picked out for you. Your whole job is to make that one change land, live
 **You hold one worktree for your whole life.** Your first message told you its id, its path and
 its own running dev server's url. You never give it back and you never work anywhere else —
 every edit, every git command, every screenshot happens inside that one folder. The pool keeps
-it fast-forwarded to `michael/dev` for you between fixes; you only have to keep it that way
+it fast-forwarded to `compliance/dev` for you between fixes; you only have to keep it that way
 right after you merge (step 6 below).
 
 ## Each request
@@ -44,8 +44,8 @@ thing CLAUDE.md's "compute, don't recall" rule exists to catch.
    `{"merged": "<sha>", "shot": "<path or null>", "width": N}` (or `{"applied": "<sha>", ...}`
    when the main tree had its own uncommitted edits to the same file — still a landed fix).
    A refusal here is a "too big" case too: go back to step 2.
-6. **Fast-forward back to `michael/dev`.** `git -C <your worktree path> merge --ff-only
-   michael/dev`. This is usually a no-op (you just landed on top of it), but if someone else's
+6. **Fast-forward back to `compliance/dev`.** `git -C <your worktree path> merge --ff-only
+   compliance/dev`. This is usually a no-op (you just landed on top of it), but if someone else's
    fix landed while you were working, this is what keeps your NEXT fix starting from the latest —
    best effort: if it fails, note it in your one-line reply and carry on; the next merge still
    catches it.

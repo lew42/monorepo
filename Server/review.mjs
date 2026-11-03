@@ -31,8 +31,8 @@
  * the task's task.jsonl — its `file` names whichever file was actually used, plus `report` and
  * `shots` pointers when shots were taken.
  *
- * DIFF: normally `git diff michael/dev...<branch>` run INSIDE the worktree (default: cwd) — the
- * worktree shares the main repo's objects, so `michael/dev` is visible from there. `--range A..B`
+ * DIFF: normally `git diff compliance/dev...<branch>` run INSIDE the worktree (default: cwd) — the
+ * worktree shares the main repo's objects, so `compliance/dev` is visible from there. `--range A..B`
  * instead diffs two commits in the MAIN repo, for a task that already landed (the proof runs use
  * this on old merge commits).
  *
@@ -145,9 +145,9 @@ export function worktreeBase(main, dir) {
 	} catch { return null; }
 }
 
-/* The tree to review. Run from the main checkout (on michael/dev), the diff is michael/dev with itself:
+/* The tree to review. Run from the main checkout (on compliance/dev), the diff is compliance/dev with itself:
  * empty, size none, a false "pass" (2026-10-23, tasks-page-loading passed twice that way). So when the
- * tree is on michael/dev, use the task's own worktree (the last `worktree` field any line of its record
+ * tree is on compliance/dev, use the task's own worktree (the last `worktree` field any line of its record
  * names) if it exists on another branch; otherwise throw, and main() prints the refusal and exits 1.
  * Tested in review.test.mjs. */
 export function worktreeOf(recordText) {
@@ -727,12 +727,12 @@ async function main() {
 	// exist for certain in the MAIN tree.
 	const root = path.dirname(git(worktreeDir || process.cwd(), "rev-parse", "--path-format=absolute", "--git-common-dir").stdout.trim());
 	const cwd = range ? root : worktreeDir;
-	/* Two dots against a branch cut before newer michael/dev merges would show those merges as reverts; three dots diff from the merge base (the same thing when A is an ancestor of B). */
+	/* Two dots against a branch cut before newer compliance/dev merges would show those merges as reverts; three dots diff from the merge base (the same thing when A is an ancestor of B). */
 	const spec = range ? range.replace(/^([^.]+)\.\.(?!\.)/, "$1...") : `${BASE}...${git(worktreeDir, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim()}`;
 	const [, rangeB] = range ? range.split(/\.\.\.?/) : [];
 	const branch = range ? rangeB : git(worktreeDir, "rev-parse", "--abbrev-ref", "HEAD").stdout.trim();
 	/* A range is read in the MAIN tree, so `A..HEAD` meant the main tree's HEAD, not the worktree's: two reviews of
-	 * worktree/ai-system-mastermind (2026-10-23) read michael/dev's head and wrote an empty diff.patch. Name the branch. */
+	 * worktree/ai-system-mastermind (2026-10-23) read compliance/dev's head and wrote an empty diff.patch. Name the branch. */
 	if (!branch || branch === "HEAD" || branch === BASE) {
 		console.error(`refused: the review target is "${branch || "(none)"}", which is not a branch of its own, so the diff would be the wrong tree or empty. ` +
 			(range ? `Name the branch in --range (e.g. ${BASE}...worktree/<name>), or drop --range and pass the worktree dir.` : `Check out the task's branch in its worktree, or use --range ${BASE}...<branch>.`));

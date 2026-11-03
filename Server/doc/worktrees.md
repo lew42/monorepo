@@ -50,9 +50,9 @@ An append-only `*.jsonl` (a `task.jsonl`, `cards.jsonl`) can gain a line while `
 
 ## Clear out landed worktrees: `node Server/Worktrees.mjs`
 
-`--plan` prints one line per worktree that is not a `qf-*` pool slot (the pool frees its own, see `Servex/doc/pool.md`): path, branch, commits ahead of `michael/dev`, whether `git diff michael/dev...<branch>` is empty, and uncommitted files counted as *regenerated* (`files.jsonl`, `index.json`, `cache.jsonl`, `*.png`, `shots/`, `layout-check/`) or *real*.
+`--plan` prints one line per worktree that is not a `qf-*` pool slot (the pool frees its own, see `Servex/doc/pool.md`): path, branch, commits ahead of `compliance/dev`, whether `git diff compliance/dev...<branch>` is empty, and uncommitted files counted as *regenerated* (`files.jsonl`, `index.json`, `cache.jsonl`, `*.png`, `shots/`, `layout-check/`) or *real*.
 
-- **REMOVE:** its work is on `michael/dev` (nothing ahead, an empty diff, or the same file contents there, the test `Pool.landed()` uses) and nothing *real* is uncommitted.
+- **REMOVE:** its work is on `compliance/dev` (nothing ahead, an empty diff, or the same file contents there, the test `Pool.landed()` uses) and nothing *real* is uncommitted.
 - **KEEP:** unmerged commits, a real uncommitted file, a live agent in it, a lock, a detached head with commits, or Servex not answering. The line names the branch so a person can look.
 - **`--apply`** runs `git worktree remove` on each REMOVE (`--force` only when every uncommitted file is regenerated, and the line says so), then `git worktree prune`. It never touches a KEEP and never deletes a branch.
 - **Manifest:** each removal is one line in `public/framework/ai/sessions/worktree-removals.jsonl` (`path`, `branch`, `sha`, `at`, `why`, `restore`).

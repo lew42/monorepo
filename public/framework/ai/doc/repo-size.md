@@ -10,7 +10,7 @@
 | All history, packed | 474 MB: **screenshots 397 MB**, session text 30 MB, framework code 16 MB |
 | A fresh checkout of HEAD | 583 MB, of which images 447 MB |
 | On GitHub now (last push 2026-10-02) | 305 MB |
-| The next push of `michael/dev` | 1,699 commits, ~160 MB (127 MB of it images) |
+| The next push of `compliance/dev` | 1,699 commits, ~160 MB (127 MB of it images) |
 | Files the site deploys (`public/`) | 19,619 of the 20,000 Cloudflare Workers Free allows |
 
 The two totals agree: summed packed blobs (474 MB) plus trees and commits (134 MB) make the 608 MB of packs. The full run, every table: `node Server/RepoSize.mjs` (read-only, about 10 seconds). The task log with each decision: [task.jsonl](../sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/repo-size-plan/task.jsonl).
@@ -93,16 +93,16 @@ git filter-repo --invert-paths \
 # 3. check the result, then replace GitHub's copy
 node C:/Code/lew42/monorepo/Server/RepoSize.mjs --root C:/Code/lew42/monorepo-slim
 git remote add origin https://github.com/lew42/monorepo.git
-git push --force origin michael/dev main
+git push --force origin compliance/dev main
 ```
 
-The regex keeps every image inside a `doc/` folder, the same rule as the `.gitignore` (checked with Python's `re`: `ai/doc/x.png` and `ai/sessions/doc/y.png` survive; a `shots/` png goes). `.worktree-logs/` is the old per-worktree agent logs, committed by mistake early on. The push names only `michael/dev` and `main`: the `alex`, `castin` and `edric` branches on GitHub are left for their owners to re-clone, and the 183 `salvage/` branches (work set aside instead of deleted) and 89 tags are dropped from the slim repo on purpose; the `--mirror` legacy repo keeps them all.
+The regex keeps every image inside a `doc/` folder, the same rule as the `.gitignore` (checked with Python's `re`: `ai/doc/x.png` and `ai/sessions/doc/y.png` survive; a `shots/` png goes). `.worktree-logs/` is the old per-worktree agent logs, committed by mistake early on. The push names only `compliance/dev` and `main`: the `alex`, `castin` and `edric` branches on GitHub are left for their owners to re-clone, and the 183 `salvage/` branches (work set aside instead of deleted) and 89 tags are dropped from the slim repo on purpose; the `--mirror` legacy repo keeps them all.
 
 What breaks: every other clone, every worktree and its branch, open GitHub pull requests, and every commit id written into a `task.jsonl` (they still resolve in the legacy repo).
 
 #### The smaller variant: rewrite only what is not pushed
 
-Run the same `filter-repo` line with `--refs origin/michael/dev..michael/dev` added (filter-repo then rewrites only that range; check `git filter-repo --help` once it is installed, it is not on this machine yet). It strips the pictures (118 MB) and `owner-prompts.jsonl` (1.8 MB) from the ~1,700 commits since the last push, so the next push is ~41 MB instead of ~160 MB (computed by script from the unpushed blobs), and GitHub and the other clones are untouched. History already on GitHub keeps its pictures. Every worktree still has to be merged first and re-made after. Dry run it in the `monorepo-slim` clone and compare with `RepoSize.mjs` before touching the working repo.
+Run the same `filter-repo` line with `--refs origin/compliance/dev..compliance/dev` added (filter-repo then rewrites only that range; check `git filter-repo --help` once it is installed, it is not on this machine yet). It strips the pictures (118 MB) and `owner-prompts.jsonl` (1.8 MB) from the ~1,700 commits since the last push, so the next push is ~41 MB instead of ~160 MB (computed by script from the unpushed blobs), and GitHub and the other clones are untouched. History already on GitHub keeps its pictures. Every worktree still has to be merged first and re-made after. Dry run it in the `monorepo-slim` clone and compare with `RepoSize.mjs` before touching the working repo.
 
 ---
 

@@ -18,7 +18,7 @@ const slash = p => String(p).split(path.sep).join("/");
  * The owner, 2026-09-25: "Rather than spinning up a new mastermind and a new
  * work tree and a new Playwright, which takes time, if you have a quick fix you
  * send it off to an existing one." So Servex keeps ONE worktree ready — branched
- * from michael/dev, its own server answering, a page watcher on, git configured —
+ * from compliance/dev, its own server answering, a page watcher on, git configured —
  * and any agent takes it with `take_worktree`, gets `{id, path, branch, url}` at
  * once, writes, smoke-tests (Server/smoke.mjs) and merges. Taking one makes
  * Servex prepare the next. `return_worktree` hands an unused or merged one back.
@@ -30,7 +30,7 @@ const slash = p => String(p).split(path.sep).join("/");
  * Slots are made and removed by the scripts every agent already uses,
  * Server/worktree-up.mjs and worktree-down.mjs, run from the MAIN checkout
  * (found through `git rev-parse --git-common-dir`) so a slot branches from
- * michael/dev even when this Servex runs from a worktree. State lives in
+ * compliance/dev even when this Servex runs from a worktree. State lives in
  * `.worktree-pool.json` at the main repo's root, so it survives a restart.
  * The whole story for a reader: Servex/doc/pool.md. */
 export default class Pool extends Events {
@@ -254,7 +254,7 @@ export default class Pool extends Events {
         const unmerged = (await this.git(slot.path, ["log", "--oneline", `${this.base}..HEAD`])).out;
         if (unmerged && await this.landed(slot)){
             // merge.mjs APPLIED this branch (over the owner's edits, or as a diff): its commits are not ancestors of
-            // michael/dev, so a fast-forward would not bring it current. Remove it; make a fresh one. The commits stay
+            // compliance/dev, so a fast-forward would not bring it current. Remove it; make a fresh one. The commits stay
             // reachable on landed/<slot>-<date>, because worktree-down deletes the slot's own branch.
             const sha = (await this.git(slot.path, ["rev-parse", "--short", "HEAD"])).out;
             await this.git(slot.path, ["branch", "-f", `landed/${id}-${stamp().slice(0, 10)}-${sha}`, "HEAD"]);
@@ -267,7 +267,7 @@ export default class Pool extends Events {
 
         let ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
         if (!ff.ok && /local changes/.test(ff.out)){
-            /* michael/dev changed a file the slot's own server keeps rewriting (files.jsonl, page.jsonl): own_dirt() called
+            /* compliance/dev changed a file the slot's own server keeps rewriting (files.jsonl, page.jsonl): own_dirt() called
              * the slot clean, but git will not overwrite it. Stop the server first (it rewrites the file within a second),
              * put the noise back to HEAD, fast-forward, and make a fresh slot: this one's server is gone. */
             this.kill(slot.watcher_pid, /health-supervisor/i);
@@ -306,7 +306,7 @@ export default class Pool extends Events {
      *      know — a CLI session, a person — is never reclaimed);
      *   2. no live agent works in it or is queued to (cwd inside the slot), and no live agent
      *      descends from the holder (a minion writes by absolute path from anywhere);
-     *   3. it holds no changes of its own and no commits outside michael/dev — give_back()'s
+     *   3. it holds no changes of its own and no commits outside compliance/dev — give_back()'s
      *      own check, so a slot with work is refused, KEPT and named.
      * 2026-10-20: a `dormant` holder whose task has landed counts as done at once (rules 2 and 3 still protect work); an explicit
      * hold by a holder the registry has no row for is dropped after ORPHAN_HOURS; ai/board.jsonl is server noise (server_log).
@@ -422,7 +422,7 @@ export default class Pool extends Events {
         this.kill(slot.server_pid, this.server_cmd(slot));
         const healed = await this.heal_tree(slot);   // a tree deleted wholesale is put back in one call, not walked file by file
         await this.restore(slot, (await this.dirt(slot)).filter(d => Pool.server_log(d.file)).map(d => d.file));   // the server's noise stays out of salvage
-        /* Live logs that michael/dev also tracks (ai/board.jsonl, a task.jsonl) change under every agent: salvage swept
+        /* Live logs that compliance/dev also tracks (ai/board.jsonl, a task.jsonl) change under every agent: salvage swept
          * unrelated board.jsonl churn into salvage/qf-6-2026-09-30-2. Their diff is kept aside as a patch in
          * .worktree-logs/, never committed here, and the file goes back to HEAD. A NEW *.jsonl is the task's own and stays in. */
         const logs = (await this.git(slot.path, ["diff", "--name-only", "HEAD", "--", "*.jsonl"])).out.split("\n").filter(Boolean);
@@ -745,7 +745,7 @@ export default class Pool extends Events {
     }
 
     /* THE BASELINE. A fresh slot is not clean: its own dev server's PageFiles
-     * plugin appends, at boot, the page.jsonl lines michael/dev has not
+     * plugin appends, at boot, the page.jsonl lines compliance/dev has not
      * committed yet (measured 2026-09-25: two lines, in every new worktree).
      * `dirt()` is every changed file with a content hash; `up()` keeps it as the
      * slot's `baseline`. `own_dirt()` is what changed BEYOND it — an agent's

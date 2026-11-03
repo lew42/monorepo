@@ -43,7 +43,7 @@ try {
 	step("order", () => root.kids.order(["c", "e", "a", "d"]), ["c", "e", "a", "d"]);
 	t.eq(JSON.stringify(replayed()), JSON.stringify(root), "the whole replayed root equals the live one");
 
-	// add([a, b]) adds two members (fixed on worktree/qf-5; fails on michael/dev until that merges)
+	// add([a, b]) adds two members (fixed on worktree/qf-5; fails on compliance/dev until that merges)
 	const pair = Item.hydrate({ id: "p", kids: [] });
 	pair.kids.add([{ id: "x" }, { id: "y" }]);
 	t.eq(ids(pair), ["x", "y"], "add([a, b]) adds two members");
@@ -102,7 +102,7 @@ try {
 	}
 
 	// F7 evidence (persistence-sync/design/fixes.md, "Adding an item that already has a parent") — plan.md decision 2,
-	// reworded 2026-11-02: `add()`'s own default is UNCHANGED (still re-parents, as michael/dev), so no existing caller
+	// reworded 2026-11-02: `add()`'s own default is UNCHANGED (still re-parents, as compliance/dev), so no existing caller
 	// breaks; `list.ref(x)` is the new, explicit way to LINK an item some other list already owns, same file -> {path},
 	// another file -> {url, path}. `item.move_to(dest)` stays the only real move.
 	{

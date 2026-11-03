@@ -13,7 +13,7 @@ A paused build already did most of this design: `worktree/dictate-plugins` (plan
 - **The override rule**: a URL param or console call for one page load only, never saved — still the right answer, now expressed as `core/Plugin`'s `Plugin.store`.
 - **The panel-fits-in-an-existing-panel rule**: the new grouping is a section inside `ComposerMic.settings_panel()` (`ext/Chat/Mic.js:314`), not a second panel.
 
-**Not reused:** the branch's own `VoiceChat` registry class — `core/Plugin` replaces it. That branch's registry and `Plugin.js` are gone; `ux/Dictate/VoiceChat/` on `michael/dev` is the port onto `core/Plugin` (plugins `Interrupt`, `ThinkingCue`), see [`VoiceChat/readme.md`](../VoiceChat/readme.md). Port the next plugin there.
+**Not reused:** the branch's own `VoiceChat` registry class — `core/Plugin` replaces it. That branch's registry and `Plugin.js` are gone; `ux/Dictate/VoiceChat/` on `compliance/dev` is the port onto `core/Plugin` (plugins `Interrupt`, `ThinkingCue`), see [`VoiceChat/readme.md`](../VoiceChat/readme.md). Port the next plugin there.
 
 ## The two sections
 
@@ -30,7 +30,7 @@ Each group becomes `static attach(instance)` / `detach(instance)` plus `static d
 
 ## Reachable by the item tool: built by mastermind-chat-settings, not here
 
-`mastermind-chat-settings` built this bridge on `michael/dev` (`7d32afd51`): a voice session's plugin switches are one plain object, `{Name: {enabled?, config?}}`, kept in the session record (`POST /api/session/settings {session, plugins}`, `GET /api/session/<id>`) so a phone and a PC read the same, plus shared defaults ("Make default": `POST`/`GET /api/session/defaults`). Full shape, both checked by `checked_plugins()` in `Servex/agents/Sessions.js`, and the page-side read-at-load (not yet built, Servex side only): [`ux/Dictate/doc/settings.md`](settings.md#plugin-settings-per-session-and-make-default-servex-side). This doc does not design a second bridge — the panel this doc builds is the page side that calls it, same as the owner-feedback "Overlap" bullet says (plugins and settings are chat-settings' to build).
+`mastermind-chat-settings` built this bridge on `compliance/dev` (`7d32afd51`): a voice session's plugin switches are one plain object, `{Name: {enabled?, config?}}`, kept in the session record (`POST /api/session/settings {session, plugins}`, `GET /api/session/<id>`) so a phone and a PC read the same, plus shared defaults ("Make default": `POST`/`GET /api/session/defaults`). Full shape, both checked by `checked_plugins()` in `Servex/agents/Sessions.js`, and the page-side read-at-load (not yet built, Servex side only): [`ux/Dictate/doc/settings.md`](settings.md#plugin-settings-per-session-and-make-default-servex-side). This doc does not design a second bridge — the panel this doc builds is the page side that calls it, same as the owner-feedback "Overlap" bullet says (plugins and settings are chat-settings' to build).
 
 ## The per-instance settings: built, in core/Plugin itself
 

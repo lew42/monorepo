@@ -73,7 +73,7 @@ plain node over `agents.watch` and `agents.send`, so any harness can feed it. Th
 
 - **One rule.** [`Landed.js`](../Landed.js) folds the log through `Task.replay`; `complete` or `stopped` is landed (the old `landed_at` + outcome answer survives only as the fallback if replay throws). `task_landed()`, `Heartbeat.read`, `Budget`, `Worktrees`, `Lifecycle`, `Asks`, `asks/tasks.js` and `Cards` all ask it. [one-state.md](/framework/ai/doc/one-state.md).
 - **No watchdog wake.** `Agent.send` refuses `servex-heartbeat` and `servex-compact-nudge` messages for an agent whose task has landed, and logs `heartbeat: skipped, landed` once (the heartbeat writes it once to the task's log; the agent logs one `heartbeat-skipped` event per reason). A person's message, `wake_parent` and `revive: true` are unchanged. A landed agent that ends a turn sleeps (`dormant`).
-- **A log that says complete but whose branch is not on michael/dev gets no status check either** (2026-10-28): `Landed.of_file` counts that as not landed, so the heartbeat used to ping the agent every hour while the branch waited for review. `Heartbeat.tick` now skips the check and logs one `heartbeat: refused` line; the merge nag (`Agent.landing_check`) and a revive of a dead agent are unchanged. Test: `Servex/Heartbeat-landed.test.mjs`.
+- **A log that says complete but whose branch is not on compliance/dev gets no status check either** (2026-10-28): `Landed.of_file` counts that as not landed, so the heartbeat used to ping the agent every hour while the branch waited for review. `Heartbeat.tick` now skips the check and logs one `heartbeat: refused` line; the merge nag (`Agent.landing_check`) and a revive of a dead agent are unchanged. Test: `Servex/Heartbeat-landed.test.mjs`.
 - **Spend.** A watchdog wake is refused when `spent + the last turn's cost` would pass the brief's `Budget: $N` (else `ceiling_usd()`): a $4 helper at $0.70 a wake is woken five times and refused the sixth. The agent's own work is still not capped (budgets stay advisory, 2026-10-08).
 - Test: `node Servex/Heartbeat-landed.test.mjs`.
 
@@ -87,7 +87,7 @@ bug, and something stopped its server on that one signal anyway. So
 [`Server/worktree-sweep.mjs`](../../Server/worktree-sweep.mjs)'s `can_stop(entry)` checks all
 three before anything is stopped: the worktree's own task (found by its task.jsonl line 1
 `worktree` field) has `landed_at` **and** a real `outcome`; its branch is fully merged into
-`michael/dev` (`git merge-base --is-ancestor`); and no live agent is still working there — the
+`compliance/dev` (`git merge-base --is-ancestor`); and no live agent is still working there — the
 task's own mastermind, one of its minions, or any agent whose recorded `cwd` sits inside the
 worktree. All three true and it calls `Server/worktree-down.mjs`, which already refuses to remove
 a dirty tree.

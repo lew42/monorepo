@@ -199,7 +199,7 @@ function ownerQuoteFor(task, bySession, prompts) {
 // Helpers
 // ---------------------------------------------------------------------------
 // A match word counts only as a WHOLE word (or whole hyphenated/dotted token),
-// never a plain substring — "mic" must not hit "michael/dev", and "page.js"
+// never a plain substring — "mic" must not hit "compliance/dev", and "page.js"
 // must not hit every request that happens to mention a page.js file in
 // passing. \b doesn't stop at "." or "/", so this builds the boundary by hand.
 function containsWord(hay, word) {

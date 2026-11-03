@@ -29,7 +29,7 @@ let checks = 0;
 const ok = (v, msg) => { assert.ok(v, msg); checks++; };
 const eq = (a, b, msg) => { assert.equal(a, b, msg); checks++; };
 
-// the scratch repo: main on michael/dev, four worktrees beside it
+// the scratch repo: main on compliance/dev, four worktrees beside it
 const main = path.join(root, "main"); fs.mkdirSync(main);
 git(main, "init", "-q", "-b", DEV_BRANCH); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
 write(main, "a.txt", "a"); git(main, "add", "."); git(main, "commit", "-qm", "init");

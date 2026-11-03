@@ -1,4 +1,4 @@
-// node Server/landing-audit.mjs <out.md> — verify every worktree/* and michael/* branch ahead of michael/dev.
+// node Server/landing-audit.mjs <out.md> — verify every worktree/* and michael/* branch ahead of compliance/dev.
 // Real findings (top): a branch with missing CODE/doc files that belongs to a task with a landing line. Logs, json, images, patches and scratch are noise.
 import fs from "node:fs";
 import path from "node:path";
@@ -12,7 +12,7 @@ for (const t of TaskDirs.list(120)) { try { const x = SessionIndex.reduce(t.key,
 const names = (LandingCheck.git("branch", "--no-merged", LandingCheck.BASE) ?? "").split("\n").map(s => s.replace(/^[*+ ]+/, "").trim()).filter(b => /^(worktree|michael)\//.test(b));
 const rows = names.map(b => { const v = LandingCheck.verify(b); v.code = v.missing.filter(f => !NOISE.test(f)); v.task = tasks.get(b); return v; });
 const real = rows.filter(v => v.code.length && v.task?.landed);
-const L = ["# Landing audit: every michael/* and worktree/* branch ahead of michael/dev, checked by file content", "",
+const L = ["# Landing audit: every michael/* and worktree/* branch ahead of compliance/dev, checked by file content", "",
 	`${rows.length} branches, ${rows.filter(v => !v.landed).length} with any missing file, ${rows.filter(v => v.code.length).length} with missing code/doc files, **${real.length} real findings** (missing code/doc files and the task has a landing line).`, "",
 	"## Real findings", "", "| branch | task | code files missing |", "|---|---|---|"];
 for (const v of real) L.push(`| ${v.branch} | [${path.basename(v.task.key)}](/framework/ai/${v.task.key}/) | ${v.code.length}: ${v.code.slice(0, 4).join(", ")}${v.code.length > 4 ? " …" : ""} |`);

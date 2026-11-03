@@ -101,7 +101,7 @@ Each job is a task folder (Servex opens one per spawn, or use a folder under the
 
 ## Land everything: commit, then merge (the owner, 2026-10-08)
 
-Every piece of work ends committed, and merged if it is on a branch. Work on a branch or worktree by default; only a live fix goes straight to `michael/dev`. When a minion or child lands, check that its files are committed and its branch merged (`merge.mjs`) before you count it done: unmerged or uncommitted work is not delivered, and it is the first thing lost when an agent stops. Never leave a loose file in the tree.
+Every piece of work ends committed, and merged if it is on a branch. Work on a branch or worktree by default; only a live fix goes straight to `compliance/dev`. When a minion or child lands, check that its files are committed and its branch merged (`merge.mjs`) before you count it done: unmerged or uncommitted work is not delivered, and it is the first thing lost when an agent stops. Never leave a loose file in the tree.
 
 ## Minions default to Haiku (the owner, 2026-10-08)
 

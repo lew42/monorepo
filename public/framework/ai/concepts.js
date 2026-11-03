@@ -78,7 +78,7 @@ export const CONCEPTS = [
 		servex: [["Task loop (Servex doc)", fs("Servex/doc/task-loop.md")]] },
 
 	{ group: "lands", slug: "review-merge", name: "Review and merge", icon: "merge",
-		gist: "Work is built in a worktree, reviewed by fresh eyes, smoke-tested, then merged into michael/dev.",
+		gist: "Work is built in a worktree, reviewed by fresh eyes, smoke-tested, then merged into compliance/dev.",
 		items: [
 			"`Server/review.mjs`: a fresh agent checks the result against your words.",
 			"`Server/merge.mjs`: loads the changed pages, merges only with zero errors.",
@@ -154,7 +154,7 @@ export const FLOW = [
 	["It becomes an ask", "asks", "one line in ai/asks.jsonl, with the agent that owns it."],
 	["A mastermind takes it", "masterminds", "it opens a task, loaded with CLAUDE.md, the readme chain and its skills."],
 	["Minions build it", "minions", "in a worktree from the pool, one brief each."],
-	["It is reviewed and merged", "review-merge", "fresh eyes, a smoke test, then michael/dev."],
+	["It is reviewed and merged", "review-merge", "fresh eyes, a smoke test, then compliance/dev."],
 	["You see it on the card", "tasks", "and the heartbeat keeps every open task moving until then."],
 ];
 

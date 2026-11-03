@@ -99,7 +99,7 @@ Every folder in `C:/Code/lew42/worktrees/` becomes a Servex project with its own
 - **locked** or **no branch** (a detached HEAD): never touched.
 - **in use**: an agent works in it, or git touched it in the last 2 hours (`SERVEX_WORKTREE_QUIET_HOURS`): any change to its index, `HEAD` or the LAST LINE of `logs/HEAD` (read by its own timestamp, not the file's mtime — `git gc` or a reflog expiry can rewrite `logs/HEAD` without adding a line, which once made 36 worktrees at once look freshly used), so a status, an add, a commit or a checkout all count (a VS Code tab may be in it). Our own pass reads with `--no-optional-locks`, so it never counts.
 - **uncommitted**: it has real changes. Never touched.
-- **open**: its branch has commits michael/dev does not. `waiting` when its task has landed: it is held until the merge (or 48 quiet hours), and a task that asked for a preview has its server on the home Wi-Fi and is never stopped as idle ([worktree-preview.md](worktree-preview.md)).
+- **open**: its branch has commits compliance/dev does not. `waiting` when its task has landed: it is held until the merge (or 48 quiet hours), and a task that asked for a preview has its server on the home Wi-Fi and is never stopped as idle ([worktree-preview.md](worktree-preview.md)).
 - **finished**: its branch is merged or applied by merge.mjs.
 
 A **finished** worktree is removed:

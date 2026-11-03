@@ -31,7 +31,7 @@ const asking = () => div.c("flex v", () => {
 	const $dialog = el.c("dialog", "ui-dialog surface", () => form(() => {
 		div.c("ui-panel-body flex v gap", () => {
 			p.c("h3", "Rename branch");
-			input().attr("name", "branch").attr("value", "michael/dev");
+			input().attr("name", "branch").attr("value", "compliance/dev");
 
 			div.c("flex gap reverse", () => {
 				button.c("prim", "Rename").attr("value", "rename");

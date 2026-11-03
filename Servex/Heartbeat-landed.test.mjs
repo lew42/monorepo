@@ -30,7 +30,7 @@ const cases = {
 };
 for (const [k, dir] of Object.entries(cases)) assert.equal(task_landed(dir), true, `${k} is landed`);
 const open = plant("open", launch("open"), { log: { at: now, msg: "working" } });
-const unmerged = plant("unmerged", launch("unmerged"), { complete: { at: now } });   // log says complete, branch not on michael/dev
+const unmerged = plant("unmerged", launch("unmerged"), { complete: { at: now } });   // log says complete, branch not on compliance/dev
 const verdict = Landed.verdict.bind(Landed);
 Landed.verdict = dir => dir === unmerged ? { landed: false, via: "test" } : verdict(dir);
 assert.equal(task_landed(unmerged), false, "complete with an unmerged branch is not landed (todo 207)");

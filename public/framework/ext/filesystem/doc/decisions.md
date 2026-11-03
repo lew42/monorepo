@@ -48,7 +48,7 @@ row, on the fly, just to call `.render()` for the markup. Same visible result, s
 `nest()` contract for every caller, and the row markup now lives in one place (`ext/filesystem`)
 that a later pass can swap to `ui/item` by changing two methods.
 
-## `ui/item` for the file row, not the folder row (2026-09-29, after `michael/dev` merged `worktree/item-ui`)
+## `ui/item` for the file row, not the folder row (2026-09-29, after `compliance/dev` merged `worktree/item-ui`)
 
 `FsFile.render()` now draws its row with `ui/item`'s `item({ icon, name })` instead of
 hand-rolled markup — `ui/item/doc/reuse.md` (written by the item-ui task, independently)

@@ -134,7 +134,7 @@ export default class Heartbeat {
                 if (now - last < this.silent_ms * 2 ** Math.min(w.answered ?? 0, 4)) continue;
                 if (this.children(t.owner).length) continue;   // waiting on its own children; their results wake it
                 if (!alive){ await this.triage(file, t, w, live?.last_error ? `its session failed: ${live.last_error}` : "its agent is not running"); continue; }
-                /* The log SAYS complete but the branch is not on michael/dev (Landed.of_file counts that as not landed): the agent has
+                /* The log SAYS complete but the branch is not on compliance/dev (Landed.of_file counts that as not landed): the agent has
                  * nothing in flight and Agent.landing_check already nags the merge, so a status check is a paid turn that cannot help
                  * (mastermind-build-integration, 2026-10-28: pinged every ~1 h while its branch waited for review). */
                 if (t.logged){ if (w.told !== "logged"){ w.told = "logged"; await this.log(file, "refused", `status check not sent to ${t.owner}: its log says complete; only the merge is open`); } continue; }

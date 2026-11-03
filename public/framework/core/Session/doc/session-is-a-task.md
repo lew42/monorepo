@@ -30,7 +30,7 @@ The record shapes it reads are listed in the [readme](../readme.md) ("Lines it r
 
 ## The proof that old records still read the same
 
-- Every session record under `ai/sessions/` (97 files whose line 1 is `{"session"}`) was replayed by the old class (michael/dev) and the new one (worktree qf-4).
+- Every session record under `ai/sessions/` (97 files whose line 1 is `{"session"}`) was replayed by the old class (compliance/dev) and the new one (worktree qf-4).
 - The comparison covered: tasks and their ids, every task's state, `progress()`, `completion`, `first_at`, `last_at`, the session's own state and `settings`.
 - Result: **97 of 97 the same, 0 errors.** The script and its output are in the session-is-a-task task folder ([migrate-check.mjs](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-is-a-task/migrate-check.mjs)).
 

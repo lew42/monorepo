@@ -40,14 +40,14 @@ Open tasks (idle, queued or waiting, none on the owner) whose last log line is o
 
 ## Check
 
-980 healthy + 31 flagged = 1011; the state lists 1011 tasks in the same 10 days: agree. The state's own self-check is ok. Source: ai/index.json (under a minute old). 416 local branches are not merged into `michael/dev` (many are salvage or abandoned worktrees).
+980 healthy + 31 flagged = 1011; the state lists 1011 tasks in the same 10 days: agree. The state's own self-check is ok. Source: ai/index.json (under a minute old). 416 local branches are not merged into `compliance/dev` (many are salvage or abandoned worktrees).
 
 ## How each row is counted
 
 - **quiet**: the state's bucket is `in_flight` or `stale` and the last log line is over 2 h old. A `landed` task is never quiet.
 - **closed as abandoned**: a `stale` task silent over 24 h gets a `stop` line from `Server/StaleClose.mjs` (run just before this, daily) and leaves `quiet`; the manifest is `ai/stale-closes.jsonl`: [stale-close.md](/Server/doc/stale-close.md).
-- **landed with unmerged commits**: bucket `landed`, its branch (read from the state's listed dir) has commits and its files are not on `michael/dev` (`LandingCheck`).
-- **merged but never landed**: any bucket but `landed`, its branch is already on `michael/dev`.
+- **landed with unmerged commits**: bucket `landed`, its branch (read from the state's listed dir) has commits and its files are not on `compliance/dev` (`LandingCheck`).
+- **merged but never landed**: any bucket but `landed`, its branch is already on `compliance/dev`.
 - **landed with no outcome**: bucket `landed` and the state's `line` is empty.
 - **unworked**: the state's bucket is `idle`, `queued` or `waiting` (not on the owner) and the last log line is over 7 days old. Counted over the whole state, not only the window, because a task nobody touches drops out of the window. The 133 stale queue tasks of 2026-10-24 (nothing picks tasks from the queue by itself) are what this exists to catch early; it also counts idle and waiting tasks outside the queue, so its number is larger.
 - **open asks with no live owner**: `asks.jsonl` as before, joined on the state's `agents`.

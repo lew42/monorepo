@@ -36,14 +36,14 @@ A single-page edit, a doc pass or a log append runs in the main tree. Multi-file
 
 ## Merging (you merge, carefully, never clobber)
 
-- `git diff michael/dev...<branch> --stat` lists only files you meant to change; a stray reformat, shared stylesheet or another agent's file comes out first.
+- `git diff compliance/dev...<branch> --stat` lists only files you meant to change; a stray reformat, shared stylesheet or another agent's file comes out first.
 - `git merge` into a moved tree: read every conflict; never take "ours"/"theirs" wholesale.
 - **A worktree's own dev server rewrites tracked `files.jsonl` and `page.jsonl` listings within minutes (74 to 101 of them), and git then refuses `git merge` ("commit your changes or stash them") and `git worktree remove`.** They are noise, not your work: before merging the base into the branch, run `git ls-files -m | grep -E '(^|/)(files|page)\.jsonl$' | xargs git checkout HEAD --` in the worktree, and merge straight after.
 - Shared CSS (`framework.css`, `styles/`, a `.page` or padding rule) needs before-and-after screenshots of three pages that use it and you did not build.
 - The merge is `node Server/merge.mjs <worktree> [pages]`: it locks, smoke-tests (zero console errors, page errors and failed module requests on the pages the diff touched plus `/framework/` and `/framework/ai/`, following links one level), holds reloads and merges. `[pages]` only names what the diff can't. From Git Bash run it as `MSYS_NO_PATHCONV=1 node Server/merge.mjs ...`, or a page path like `/framework/ai/` arrives mangled and the smoke run holds everyone's merge lock. It runs the MAIN tree's `smoke.mjs`, so a smoke fix on your branch doesn't apply to your own merge: land it first.
 - **Every page change is reviewed from screenshots at 400, 1200, 1920 and 3440, and YOU read them** (never the minion's word): `node Server/layout-check.mjs <url...> --widths 400,1200,1920,3440`; read each in horizontal bands, top to bottom: how much of the screen the band takes, its padding (stacked left-edge padding is the usual fault), wasted space, anything wrapping that shouldn't (a tab bar over two rows). One line per band in task.jsonl. Reach the page the way the owner does (from the rail), and judge the picture: status, what was asked, what was delivered.
 - Wrap the merge in `node Server/hold.mjs on "<you> — merge"` / `off`. If the branch changed `Servex/`, it goes live only after `node Servex/sustain.mjs --restart`, which restarts you too: run it last. Never force-push or rewrite history ([version-control.md](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/version-control.md)).
-- A bug report may be from another branch: check `git log michael/dev -1` against your base; if it moved, merge it in and reproduce there first.
+- A bug report may be from another branch: check `git log compliance/dev -1` against your base; if it moved, merge it in and reproduce there first.
 
 ## Split the task, fence the minions
 

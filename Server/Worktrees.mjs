@@ -1,6 +1,6 @@
 /* node Server/Worktrees.mjs --plan | --apply [--archive [--now] [--path <worktree>]] — one verdict per non-pool worktree; --apply removes the REMOVE ones.
  * --archive also closes a quiet one (no live agent, nothing touched for 2 hours; an UNMERGED branch for 48 hours, since it waits for review): its leftovers are committed to its own branch, then the folder goes; unmerged commits get a line in ready-to-merge.jsonl.
- * REMOVE = its work is on michael/dev (or it has none) and nothing REAL is uncommitted. KEEP = anything else, with its branch.
+ * REMOVE = its work is on compliance/dev (or it has none) and nothing REAL is uncommitted. KEEP = anything else, with its branch.
  * Branches are never deleted; each removal is one line in ai/sessions/worktree-removals.jsonl. Doc: doc/worktrees.md "Clear out landed worktrees". */
 import fs from "node:fs";
 import os from "node:os";

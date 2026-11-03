@@ -535,7 +535,7 @@ them now stops every other, a bare demo box and the push-to-talk mount included.
 `check_page` on this page shows each of the three lines at `count: 1`; a headless click on the
 ✦ rail's mic (`node Server/Browser.mjs`, 390×844 viewport) shows the same, once, not twice.
 `Server/smoke.mjs` now fails any page whose raw console carries more than one `[dictate]
-socket: …` line, so a second engine can never reach `michael/dev` again unnoticed.
+socket: …` line, so a second engine can never reach `compliance/dev` again unnoticed.
 
 Deliberately left as a known, documented limitation: Android's own OS-level restart
 beep when the browser's `SpeechRecognition` (not whisper) ends and restarts itself after

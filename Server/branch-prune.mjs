@@ -2,7 +2,7 @@
  * Dry run is the default. Each branch is first tagged `salvage/<branch>` (same commit, so git can
  * restore it: `git branch <name> salvage/<name>`), then deleted with `git branch -d` (refuses unmerged).
  * Branches checked out in any worktree are skipped. Manifest: Server/logs/branch-prune-<stamp>.json
- * (old name -> tag -> sha). Never touches michael/dev, main or unmerged work. */
+ * (old name -> tag -> sha). Never touches compliance/dev, main or unmerged work. */
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";

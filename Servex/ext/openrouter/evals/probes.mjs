@@ -9,7 +9,7 @@
  *        [--effort low] [--topic owls] [--dry-run]
  *
  * ONE RUN = one (model, probe) pair:
- *   1. take_worktree() (fresh off michael/dev) — or worktree-up.mjs if the pool is empty.
+ *   1. take_worktree() (fresh off compliance/dev) — or worktree-up.mjs if the pool is empty.
  *   2. public/framework/sandbox/probe/<run>/ inside it: a readme.md and a PARENT page.js that
  *      declares no children yet — "make a new page here" means a child of this directory.
  *   3. spawn_agent (role minion, the probe's own prompt, bypassPermissions, the given model) —

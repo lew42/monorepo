@@ -1,4 +1,4 @@
-/* `node Server/NavCheck.mjs <worktree dir> [--range michael/dev...HEAD] [--base http://127.0.0.1:<port>] [--since "7 days ago"] [--urls /a/b/ /c/d/]`
+/* `node Server/NavCheck.mjs <worktree dir> [--range compliance/dev...HEAD] [--base http://127.0.0.1:<port>] [--since "7 days ago"] [--urls /a/b/ /c/d/]`
  *
  * The click test (the owner, 2026-10-23: a page nobody can click to does not exist). For every page a diff ADDS
  * (a new page.js or page.jsonl), it loads the page's PARENT on the worktree's own dev server in headless Chromium and
@@ -6,7 +6,7 @@
  * page draws no link for them, and a name in a list is not a click. merge.mjs calls `NavCheck.check` and refuses a merge
  * with an unlinked new page; `--no-nav "why"` overrides it and is logged. Doc: Server/doc/nav-check.md
  *
- *   --range   the diff to read added pages from (default michael/dev...HEAD)
+ *   --range   the diff to read added pages from (default compliance/dev...HEAD)
  *   --since   read added pages from `git log --since` instead (the census: every page the last week made)
  *   --urls    skip git; check these page urls (parents are their dirnames)
  *

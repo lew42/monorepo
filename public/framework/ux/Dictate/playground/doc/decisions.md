@@ -73,7 +73,7 @@ mirrors it.
 
 **"Send modes" / `/framework/ux/Dictate/demo/`, investigated, not built.** A task review
 said this page exists, titled "Send modes." A repo-wide search found it does — on
-`michael/dev`, at `ux/Dictate/demo/page.js`, built on `ext/Chat/Mic.js`'s `ComposerMic`
+`compliance/dev`, at `ux/Dictate/demo/page.js`, built on `ext/Chat/Mic.js`'s `ComposerMic`
 (`send_mode: "pause"|"sentences"|"manual"`). **`ext/Chat/` does not exist in this
 worktree at all**, and this worktree's `Dictate.js` has no `send_mode`, `arm()`, or
 `held_timer` for such a page to demonstrate. Not fabricated here: a stub page with no
@@ -134,7 +134,7 @@ gap from wall-clock time regardless (see above), so a second, overlapping "here'
 settled chunk" hook would have been one hook too many.
 
 ⚠ **The brief named `ext/Chat/Mic.js` as an existing caller to leave unbroken — it does
-not exist in this worktree** (`qf-3`). A repo-wide search found it only on `michael/dev`,
+not exist in this worktree** (`qf-3`). A repo-wide search found it only on `compliance/dev`,
 tied to the older `ComposerMic`/`send_mode` design; this worktree's `Dictate.js` has
 already superseded it with `ext/Ask`'s newer, whisper-first engine. Not a defect here —
 flagging it because the brief was evidently written against a different branch's state

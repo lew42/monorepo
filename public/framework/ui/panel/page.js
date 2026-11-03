@@ -8,7 +8,7 @@ const panel = () => div.c("ui-panel surface", () => {
 		button(() => icon("close")).style({ background: "none", border: "none", padding: "0" });
 	});
 
-	div.c("ui-panel-body", () => p("`michael/dev` and its preview deployment go away. This cannot be undone."));
+	div.c("ui-panel-body", () => p("`compliance/dev` and its preview deployment go away. This cannot be undone."));
 
 	div.c("ui-panel-foot flex gap reverse", () => {
 		button.c("prim", "Delete");

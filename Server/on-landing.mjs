@@ -120,7 +120,7 @@ try {
 	catch (e) { try { append(task, "owner-check: not run — " + String(e && e.message || e).slice(0, 200)); } catch {} }
 	// Worktree teardown (task-loop, worktree-down, 2026-09-29): a landed task's own private dev
 	// server (its task.jsonl line 1 `worktree`) goes down the moment it's actually safe — landed,
-	// its branch merged into michael/dev, and nobody still working there. can_stop() in
+	// its branch merged into compliance/dev, and nobody still working there. can_stop() in
 	// worktree-sweep.mjs is the one place that decides "safe"; sweep() on the loop's own tick
 	// catches anything this misses (Servex down right now, a race with a still-running agent). A
 	// task built straight in the main tree (no `worktree` on its line 1) has nothing to tear down

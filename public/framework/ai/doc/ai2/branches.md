@@ -1,6 +1,6 @@
 # Worktree branches — merged vs unmerged (computed 2026-10-08, nothing deleted)
 
-141 `worktree/*` branches: 70 merged into `michael/dev` (safe to retire later, after a tag), 71 with commits not in `michael/dev` (keep; review). `worktree/ai2-*`: 11.
+141 `worktree/*` branches: 70 merged into `compliance/dev` (safe to retire later, after a tag), 71 with commits not in `compliance/dev` (keep; review). `worktree/ai2-*`: 11.
 
 Regenerate: `node public/framework/ai/doc/ai2/branches.mjs`.
 

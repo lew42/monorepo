@@ -12,7 +12,7 @@ const git = (cwd, ...a) => execFileSync("git", a, { cwd, windowsHide: true, stdi
 const write = (cwd, f, t) => { fs.mkdirSync(path.dirname(path.join(cwd, f)), { recursive: true }); fs.writeFileSync(path.join(cwd, f), t); };
 const tmps = [];
 
-/** A main repo on michael/dev with a.txt, and a worktree on `branch` with b/new.txt added and a.txt changed, committed. */
+/** A main repo on compliance/dev with a.txt, and a worktree on `branch` with b/new.txt added and a.txt changed, committed. */
 function scratch(branch){
 	const root = fs.mkdtempSync(path.join(os.tmpdir(), "mergetest-")); tmps.push(root);
 	const main = path.join(root, "main"), wt = path.join(root, "wt");

@@ -118,7 +118,7 @@ const dirty = () => { try { return execFileSync("git", ["status", "--porcelain"]
 const dirty_before = new Set(dirty());
 let touched = [];
 /* Check 8 needs ai2-dashboard's groups file, which this branch does not have
- * yet: copied in from michael/dev for the run, removed again at cleanup. */
+ * yet: copied in from compliance/dev for the run, removed again at cleanup. */
 const GROUPS = path.join(REPO, "public/framework/ai/rail/groups.json");
 const groups_before = fs.existsSync(GROUPS);
 function groups_in(){

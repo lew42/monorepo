@@ -29,14 +29,14 @@ import { DEV_BRANCH } from "../Server/dev-branch.mjs";
  *                card folders under public/framework/ai/. Before a worktree with only
  *                noise is removed, the noise is copied to Servex's
  *                `salvage/worktrees/<name>-<date>/` (a diff plus the new files).
- *   open         its branch holds commits michael/dev does not. `waiting: true` when its task has LANDED
+ *   open         its branch holds commits compliance/dev does not. `waiting: true` when its task has LANDED
  *                but the branch is not merged: it is HELD until the merge, so the owner can still open it
  *                (build F, 2026-10-28; Servex/doc/worktree-preview.md). A task that asked for a preview
  *                (`{"assign":{"preview":true}}`) also has its dev server bound to the LAN while it waits.
  *   (closing)    a worktree with leftovers whose task has landed (and its agent stopped), or that nothing
  *                touched for 2 days (the backstop, merged or not), is CLOSED: leftovers committed to its own
  *                branch, the folder removed, the branch kept; unmerged commits become a line in ready-to-merge.jsonl.
- *   finished     its branch is merged into michael/dev (or applied by merge.mjs).
+ *   finished     its branch is merged into compliance/dev (or applied by merge.mjs).
  *
  * A FINISHED worktree is removed: its dev server stopped, `git worktree remove`
  * (--force only when every change is log noise already saved; otherwise git

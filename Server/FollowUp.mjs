@@ -44,7 +44,7 @@ export default class FollowUp {
 		this.by_dir = new Map(this.agents.filter(a => a.task_dir).map(a => [path.relative(TaskDirs.REPO, path.resolve(a.task_dir)).split(path.sep).join("/"), a]));
 	}
 
-	/** Commits on `branch` not on michael/dev; null when the branch no longer exists. */
+	/** Commits on `branch` not on compliance/dev; null when the branch no longer exists. */
 	ahead(branch){
 		if (!this.merged_cache.has(branch)) {
 			const ok = git("rev-parse", "--verify", "--quiet", "refs/heads/" + branch) !== null;
@@ -85,7 +85,7 @@ export default class FollowUp {
 	/** Importance order: unmerged code, merged-not-landed, quiet, no outcome. */
 	static ORDER = ["unmerged", "merged-not-landed", "quiet", "no-outcome"];
 	static TODO = {
-		"unmerged": "landed, but commits are not on michael/dev: review the diff, then `merge.mjs`",
+		"unmerged": "landed, but commits are not on compliance/dev: review the diff, then `merge.mjs`",
 		"merged-not-landed": "branch is merged: append the landing line",
 		"quiet": "the state calls it in_flight or stale and its log is silent for over 2 h: resume it or close it",
 		"no-outcome": "landed with no outcome text: add one line saying what shipped",
@@ -105,7 +105,7 @@ export default class FollowUp {
 	}
 	static HEAD = "| task | group | session | model | started | last log | step | state bucket | outcome | branch | agent | flags |\n|---|---|---|---|---|---|---|---|---|---|---|---|";
 
-	/** The branch the owner is deciding on, shown only while it still has commits michael/dev lacks; null once merged or gone. */
+	/** The branch the owner is deciding on, shown only while it still has commits compliance/dev lacks; null once merged or gone. */
 	static DECIDE = "michael/property-of";
 	diff_stat(){ return this.ahead(FollowUp.DECIDE) ? git("diff", "--stat", `${DEV_BRANCH}...${FollowUp.DECIDE}`)?.split("\n").slice(-12).join("\n") ?? null : null; }
 
@@ -121,7 +121,7 @@ export default class FollowUp {
 		L.push(`# Follow-up: what fell through the cracks`, "", `Counted by the one state ([one-state.md](one-state.md), \`Server/AIIndex.mjs\`): every task below is a row of \`ai/index.json\`. Computed ${day} UTC by \`node Server/FollowUp.mjs --write\` from the state's tasks touched in the last ${this.days} days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).`, "",
 			`**${c.unmerged} landed with unmerged commits · ${c["merged-not-landed"]} merged but never landed · ${c.quiet} quiet over ${QUIET_H} h · ${c["no-outcome"]} landed with no outcome · ${c.unworked} open tasks untouched over ${UNWORKED_D} days · ${c.asks} open asks with no live owner · ${c.healthy} healthy of ${this.rows.length}.**` + (this.registry ? "" : " (Servex was down: agent states unknown.)"), "");
 		const diff = this.diff_stat();
-		if (diff) L.push(`## ⚠️ The owner decides: \`${FollowUp.DECIDE}\``, "", "Its commits are code and not on `michael/dev`; this task does not merge it.", "```", diff, "```", "");
+		if (diff) L.push(`## ⚠️ The owner decides: \`${FollowUp.DECIDE}\``, "", "Its commits are code and not on `compliance/dev`; this task does not merge it.", "```", diff, "```", "");
 		for (const k of FollowUp.ORDER) {
 			const rows = this.flagged(k); if (!rows.length) continue;
 			const shown = rows.slice(0, k === "quiet" ? 12 : 8);
@@ -144,7 +144,7 @@ export default class FollowUp {
 			L.push("");
 		}
 		const k = this.check();
-		L.push("## Check", "", `${k.healthy} healthy + ${k.flagged} flagged = ${k.sum}; the state lists ${k.in_state} tasks in the same ${this.days} days: ${k.ok ? "agree" : "DISAGREE"}. The state's own self-check is ${k.state_ok ? "ok" : "FAILING"}. Source: ${this.source}. ${this.unmerged_branches.length} local branches are not merged into \`michael/dev\` (many are salvage or abandoned worktrees).`);
+		L.push("## Check", "", `${k.healthy} healthy + ${k.flagged} flagged = ${k.sum}; the state lists ${k.in_state} tasks in the same ${this.days} days: ${k.ok ? "agree" : "DISAGREE"}. The state's own self-check is ${k.state_ok ? "ok" : "FAILING"}. Source: ${this.source}. ${this.unmerged_branches.length} local branches are not merged into \`compliance/dev\` (many are salvage or abandoned worktrees).`);
 		L.push("", "## How each row is counted", "", ...FollowUp.RULES.map(r => `- ${r}`));
 		return L.join("\n") + "\n";
 	}
@@ -153,8 +153,8 @@ export default class FollowUp {
 	static RULES = [
 		"**quiet**: the state's bucket is `in_flight` or `stale` and the last log line is over 2 h old. A `landed` task is never quiet.",
 		"**closed as abandoned**: a `stale` task silent over 24 h gets a `stop` line from `Server/StaleClose.mjs` (run just before this, daily) and leaves `quiet`; the manifest is `ai/stale-closes.jsonl`: [stale-close.md](/Server/doc/stale-close.md).",
-		"**landed with unmerged commits**: bucket `landed`, its branch (read from the state's listed dir) has commits and its files are not on `michael/dev` (`LandingCheck`).",
-		"**merged but never landed**: any bucket but `landed`, its branch is already on `michael/dev`.",
+		"**landed with unmerged commits**: bucket `landed`, its branch (read from the state's listed dir) has commits and its files are not on `compliance/dev` (`LandingCheck`).",
+		"**merged but never landed**: any bucket but `landed`, its branch is already on `compliance/dev`.",
 		"**landed with no outcome**: bucket `landed` and the state's `line` is empty.",
 		"**unworked**: the state's bucket is `idle`, `queued` or `waiting` (not on the owner) and the last log line is over "+UNWORKED_D+" days old. Counted over the whole state, not only the window, because a task nobody touches drops out of the window. The 133 stale queue tasks of 2026-10-24 (nothing picks tasks from the queue by itself) are what this exists to catch early; it also counts idle and waiting tasks outside the queue, so its number is larger.",
 		"**open asks with no live owner**: `asks.jsonl` as before, joined on the state's `agents`.",

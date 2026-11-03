@@ -297,7 +297,7 @@ export function aiV2({ page, card, tabs }){
 			small.c("muted", card ? `talking into this card — ${String(card.title ?? card.name).slice(0, 60)}`
 				: thread ? `thread · ${thread.slug}` : "this page · a new conversation");
 			// The model picker lives INSIDE `Widget` now (`models: true`, below) —
-			// michael/dev's own copy of it here (from before round 3's move) is
+			// compliance/dev's own copy of it here (from before round 3's move) is
 			// left out on purpose, not lost: see `Widget.Models` in `Widget.js`.
 			if (DEV) inbox.button();
 		});

@@ -18,8 +18,8 @@ Read only — nothing on this list stops or changes anything. The script is
    worktree whose port has since changed.
 
 3. **Worktrees orphaned.** Every directory under `C:\Code\lew42\worktrees\`, checked against
-   `git branch --merged michael/dev` for its branch. "Orphaned" means the branch is already
-   merged — its work is already in `michael/dev` — but the worktree folder is still sitting on
+   `git branch --merged compliance/dev` for its branch. "Orphaned" means the branch is already
+   merged — its work is already in `compliance/dev` — but the worktree folder is still sitting on
    disk. Disk size is a recursive byte count via PowerShell (`Get-ChildItem -Recurse -File`),
    shown in MB. 40 of 70 worktree directories were orphaned this way, using roughly 13 GB.
 

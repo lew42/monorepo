@@ -78,7 +78,7 @@ eq(widthsFor([{ status: "M", f: "public/framework/ux/Thing/Thing.css" }], [{ add
 }
 eq(splitPatch("").size, 0, "splitPatch of an empty diff is an empty map, not a throw");
 
-// The false pass (2026-10-23): a tree on michael/dev is never reviewed against itself.
+// The false pass (2026-10-23): a tree on compliance/dev is never reviewed against itself.
 const rec = ['{"assign":{"now":"x"}}', JSON.stringify({ log: { worktree: "C:\a\b" } }), "not json", '{"x":{"worktree":"C:/w/later"}}'].join("\n");
 eq(worktreeOf(rec), "C:/w/later", "last worktree field wins");
 eq(worktreeOf(rec.split("\n").slice(0, 2).join("\n")), "C:\a\b", "an escaped Windows path parses");

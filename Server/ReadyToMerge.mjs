@@ -1,7 +1,7 @@
 /* `node Server/ReadyToMerge.mjs [--json] [--days 14]` — the branches an agent said are ready to merge.
  * Source of truth is the `ready:` log line in a task record (session.jsonl / task.jsonl), not the
  * branch list (305 unmerged branches are mostly salvage). Per branch the latest line wins; a branch
- * already in michael/dev, or no longer existing, is dropped. Doc: public/framework/ai/merge/readme.md
+ * already in compliance/dev, or no longer existing, is dropped. Doc: public/framework/ai/merge/readme.md
  * Row: {branch, sha, at, task_dir, task_url, title, what, review, worktree, stale}. `stale` = the
  * branch head moved past the sha the agent named. A stale row also carries `latest` = {sha, ok, why?}:
  * the review gate's answer for the branch's CURRENT head (merge.mjs --gate-only), so the card can offer
@@ -82,7 +82,7 @@ function dayDirs(sessions, since) {
 }
 
 /* opts: {root (where the records live; default the main checkout), repo (where git runs; default root),
- * base (default michael/dev), days (14), now} */
+ * base (default compliance/dev), days (14), now} */
 export async function readyRows(opts = {}) {
 	const repo = opts.repo || mainRoot(process.cwd());
 	const root = opts.root || repo, base = opts.base || DEV_BRANCH;

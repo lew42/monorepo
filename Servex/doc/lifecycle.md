@@ -57,7 +57,7 @@ Switches for Servex: `SERVEX_NO_REAPER=1` turns the sweep off; `SERVEX_REAPER_DR
 
 ## 5. Stuck pool worktrees (salvage, by hand only)
 
-Since 2026-09-30 the sweep never salvages: a slot that still holds work is kept and named in the log ([pool.md](pool.md#a-taken-worktree-stays-taken)). Salvage runs only when you ask for it with `node Servex/Lifecycle.js --salvage qf-N`. It stops the slot's server first (a running server keeps appending `page.jsonl` lines, so the folder gets dirty again seconds after any reset). Then it commits everything to a branch named `salvage/<slot>-<date>`, which is never merged and never deleted. Then it moves the slot back to `michael/dev`, removes it and prepares a fresh one. The holder's card gets one line naming the branch. Details: [pool.md](pool.md).
+Since 2026-09-30 the sweep never salvages: a slot that still holds work is kept and named in the log ([pool.md](pool.md#a-taken-worktree-stays-taken)). Salvage runs only when you ask for it with `node Servex/Lifecycle.js --salvage qf-N`. It stops the slot's server first (a running server keeps appending `page.jsonl` lines, so the folder gets dirty again seconds after any reset). Then it commits everything to a branch named `salvage/<slot>-<date>`, which is never merged and never deleted. Then it moves the slot back to `compliance/dev`, removes it and prepares a fresh one. The holder's card gets one line naming the branch. Details: [pool.md](pool.md).
 
 ## Also in this change
 

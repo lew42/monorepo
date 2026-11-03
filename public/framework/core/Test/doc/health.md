@@ -8,7 +8,7 @@
 - **`Servex/WorktreeWatch.js`**: the near tests, 45 s after the last save in a taken worktree.
 - Nothing runs the **whole** suite on a schedule. A test whose code nobody touches is never run, so it can rot unseen (the three below did).
 
-## Result of the full run (204 tests, run on michael/dev)
+## Result of the full run (204 tests, run on compliance/dev)
 | Area | Tests | State |
 |---|---|---|
 | `.claude/hooks` | 5 | 4 pass; `jsonl-schema.test.mjs` red (3 checks), filed in [.claude/hooks/improvements.jsonl](/.claude/hooks/improvements.jsonl) |
