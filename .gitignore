@@ -236,5 +236,3 @@ public/framework/ext/Chat/v2/fixture/live-*.jsonl
 # ChatV3.test.mjs does the same beside the v3 fixture
 public/framework/ext/Chat/v3/fixture/live-*.jsonl
 
-# derived by `node Server/unmerged.mjs --write`; read by core/Session/InFlightView.js
-public/framework/ai/unmerged.json

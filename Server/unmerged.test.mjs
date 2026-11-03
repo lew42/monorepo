@@ -18,8 +18,9 @@ git("checkout", "-qb", "worktree/twin"); write("two.txt", "2\n"); git("add", "."
 git("checkout", "-q", "michael/dev"); write("gap.txt", "g\n"); git("add", "."); git("commit", "-qm", "gap"); git("cherry-pick", "worktree/twin");   // same patch, new commit
 git("checkout", "-qb", "worktree/merged"); write("m.txt", "m\n"); git("add", "."); git("commit", "-qm", "m");
 git("checkout", "-q", "michael/dev"); git("merge", "-q", "--no-ff", "-m", "merge m", "worktree/merged");
-write("public/framework/ai/sessions/2026/11/01/s/t1/task.jsonl", '{"assign":{"title":"x"}}\nbranch worktree/open-one here\n'); 
-write("public/framework/ai/sessions/2026/11/01/s/t2/task.jsonl", 'worktree/twin\n{"finish":{"outcome":"ok"}}\n');
+write("public/framework/ai/sessions/2026/11/01/s/t1/task.jsonl", '{"assign":{"title":"x","branch":"worktree/open-one"}}\n');
+write("public/framework/ai/sessions/2026/11/01/s/t2/task.jsonl", '{"assign":{"branch":"worktree/twin"}}\n{"log":{"text":"not complete yet"}}\n{"finish":{"outcome":"ok"}}\n');
+write("public/framework/ai/sessions/2026/11/01/s/t3/task.jsonl", '{"log":{"text":"audit mentions worktree/open-one in passing"}}\n');
 git("add", "."); git("commit", "-qm", "logs");
 
 const rows = await unmerged({ cwd: dir });
@@ -29,7 +30,7 @@ assert.equal(by["worktree/open-one"].commits, 1);
 assert.deepEqual(by["worktree/open-one"].files, ["one.txt"]);
 assert.equal(by["worktree/open-one"].on_base, false);
 assert.equal(by["worktree/twin"].on_base, true, "cherry-picked patch counts as on base");
-assert.match(by["worktree/open-one"].task, /t1$/);
+assert.match(by["worktree/open-one"].task, /t1$/, "a log that only mentions a branch in text does not own it");
 assert.equal(by["worktree/open-one"].state, "open");
 assert.equal(by["worktree/twin"].state, "complete");
 assert.equal((await unmerged({ cwd: dir, min_hours: 6 })).length, 0, "fresh commits are not old enough");

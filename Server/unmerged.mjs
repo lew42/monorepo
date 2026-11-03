@@ -1,6 +1,6 @@
 /* `node Server/unmerged.mjs [--json] [--write] [--hours N] [--base michael/dev]` — every `worktree/*` branch with commits not on the base:
  * count, age, files, whether the patches are already on the base under other commits (git cherry), the task folder whose log
- * names the branch, and that task's state. Read-only. Used by core/Session/InFlight "Built, not merged". Doc: Server/doc/unmerged.md */
+ * records the branch (its own `branch` field), and that task's state. Read-only. Used by core/Session/InFlight "Built, not merged". Doc: Server/doc/unmerged.md */
 import { spawn, spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,17 +9,17 @@ const run = (cwd, ...a) => spawnSync("git", a, { cwd, encoding: "utf8", windowsH
 const arun = (cwd, ...a) => new Promise(res => { let out = ""; const p = spawn("git", a, { cwd, windowsHide: true }); p.stdout.on("data", d => out += d); p.on("close", () => res(out)); });
 const lines = s => s.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
 
-/** branch -> {dir, state} from task logs under `logs` (any .jsonl that mentions the branch name; a log with finish/complete/landed_at is complete). */
+/** branch -> {dir, state} from task logs under `logs` (a task or session log whose own "branch" field names it; a log with a finish/complete line or landed_at is complete). */
 function owners(cwd, logs){
-	const out = run(cwd, "grep", "-I", "-o", "-E", "worktree/[A-Za-z0-9._/-]+", "--", `${logs}/**/*.jsonl`);
+	const out = run(cwd, "grep", "-I", "-o", "-E", '"branch": ?"worktree/[^"]+"', "--", `${logs}/**/*.jsonl`);
 	const found = new Map();
 	for (const l of lines(out)){
-		const i = l.lastIndexOf(":worktree/"); if (i < 0) continue;
-		const file = l.slice(0, i), branch = l.slice(i + 1).replace(/[./-]+$/, "");
+		const m = /^(.*):"branch": ?"(worktree\/[^"]+)"$/.exec(l); if (!m) continue;
+		const file = m[1], branch = m[2];
 		if (!found.has(branch)) found.set(branch, new Set());
 		found.get(branch).add(file);
 	}
-	const state = new Map(), done = file => /"(finish|complete|landed_at)"/.test(run(cwd, "show", `:${file}`) || "");
+	const state = new Map(), done = file => /^\{\s*"(finish|complete)"|"landed_at"\s*:/m.test(run(cwd, "show", `:${file}`) || "");
 	const result = new Map();
 	for (const [branch, files] of found){
 		const list = [...files].sort((a, b) => (/task\.jsonl$/.test(b) - /task\.jsonl$/.test(a)) || b.length - a.length);
@@ -52,9 +52,10 @@ export async function unmerged({ cwd = process.cwd(), base = "michael/dev", min_
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])){
 	const arg = n => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : undefined; };
 	const rows = await unmerged({ base: arg("--base") ?? "michael/dev", min_hours: Number(arg("--hours") ?? 0) });
-	if (process.argv.includes("--write")){   // the file the In-flight block reads; gitignored (derived)
+	if (process.argv.includes("--write")){   // the file the In-flight block reads (tracked so the fetch never 404s)
 		const file = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public/framework/ai/unmerged.json");
-		await import("node:fs").then(fs => fs.writeFileSync(file, JSON.stringify({ at: new Date().toISOString(), rows: rows.map(({ files, ...r }) => ({ ...r, files: files.length })) })));
+		const fs = await import("node:fs"), text = JSON.stringify({ rows: rows.map(({ files, ...r }) => ({ ...r, files: files.length })) }) + "\n";
+		if (!fs.existsSync(file) || fs.readFileSync(file, "utf8") !== text) fs.writeFileSync(file, text);   // only when changed, so a tracked file stays clean
 	}
 	if (process.argv.includes("--json")) console.log(JSON.stringify(rows, null, 1));
 	else {

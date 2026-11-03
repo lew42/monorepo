@@ -1,6 +1,6 @@
 # Triage of unmerged `worktree/*` branches, 2026-11-03
 
-Computed by `node Server/unmerged.mjs` (full table: [unmerged-2026-11-03.json](unmerged-2026-11-03.json)): **136 branches** have commits not on `michael/dev`. Nothing was deleted or merged by this triage; the owning mastermind (the task folder in the table) or the owner decides. "Same files" = the branch's files are byte-identical on `michael/dev` today, a hint that the work landed under other commits.
+Computed by `node Server/unmerged.mjs` (full table: [unmerged-2026-11-03.json](unmerged-2026-11-03.json)): **136 branches** have commits not on `michael/dev`. The brief said 40; those were the branches from the last ~2 days (the 14 recent ones below plus older ones noticed by hand): the tool counts every `worktree/*` branch, 136, most of them weeks old. Owners in this file were first matched by name; the tool now uses each log's own `branch` field, so a few task folders named here may show `unowned` or another task in the tool (89 of 137 own one). Branch work lives in worktree `C:/Code/lew42/worktrees/unmerged-work` (this task's code). Nothing was deleted or merged by this triage; the owning mastermind (the task folder in the table) or the owner decides. "Same files" = the branch's files are byte-identical on `michael/dev` today, a hint that the work landed under other commits.
 
 Counts: **merge 7 · check 8 · superseded 17 · abandoned 15 (logs only) · older, presumed abandoned 89** (probes 12, tasks complete 53, tasks still open 24).
 

@@ -60,7 +60,7 @@
  * line's `ms` is the owner-felt latency, not just this script's own run time. The LAST line of
  * stdout, only on a landed `--quick`, is one JSON object: `{"merged","shot","width","ms","asked_at"}`.
  * Exit: 0 landed (or dry run clean), 1 refused or smoke failed, 2 too big for --quick, 3 lock wait timed out, 4 would conflict (nothing touched), 5 landed but a file is still untracked (every landed path is added to the commit, so a new file cannot stay untracked; see Server/doc/review.md). */
-import { spawnSync } from "node:child_process";
+import { spawnSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -714,6 +714,8 @@ if (!dryRun && !mainArg && code === 0 && git(MAIN, "rev-parse", BASE).stdout.tri
 	if (p.status === 0) console.error(`pushed ${BASE} to origin`);
 	else console.error(`push of ${BASE} failed (the merge stands): ${(p.stderr || "").trim().split("\n").pop()}`);
 }
+// Refresh the unmerged-branches list the In-flight block reads (Server/unmerged.mjs; ~30 s, so detached, never blocks a landing).
+if (!dryRun && !mainArg) try { spawn(process.execPath, [path.join(MAIN, "Server/unmerged.mjs"), "--write"], { cwd: MAIN, detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}
 // --quick's own last word: ONE line of JSON, always last on stdout when it lands, so the fixer
 // (or anything else driving this) can read it without parsing the human log above it.
 if (quick && code === 0) {
