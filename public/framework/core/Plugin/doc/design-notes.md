@@ -13,7 +13,7 @@ Parents' plugins run before the subclass's; within one class, in `use` order. Th
 - `new Item()` now: about 1.38 µs. Adding a class-level `emit("new")` walk with no listeners: about 1.75 µs (+0.37 µs, +27%). With one listener the cost is the listener.
 - The owner's own line applies: a game with millions of objects should hard-code its calls, not hang them on an event. A plugin is for the few classes that really are extended from outside. Even the empty `emit("new")` walk is not free.
 - Decision: Item and List do **not** extend Plugin. An Item is created in the thousands during a replay, and nothing needs a plugin on it. A class that wants plugins extends Plugin; the Item system is unchanged.
-- Live instances are tracked (WeakRef) only for a plugin that defines its own `detach`, so a plugin with no undo costs nothing per instance.
+- **Stale as of `ccbbbb573` (2026-11-03): every attached instance is now tracked (WeakRef), not only one whose plugin defines its own `detach`** (`attach_instance` always adds to `rec.live`/`rec.attached`, so a class-wide `enable()` can re-attach to instances a `disable()` left tracked, and a per-instance switch has something to read). The measurement above was taken before that change and has not been re-measured since; treat the 1e6-instance figures as the old-tracking cost, not today's.
 
 ## Debugging risk
 A plugin that runs on every new instance is invisible at the call site. Use it only where a class really is extended from outside (sockets, servers, pages), not for ordinary options. `Host.plugins` and `Plugin.hosts` list what is installed.
