@@ -86,6 +86,8 @@ ever appeared — no error, no clue why.
 
 **The thinking sound never plays; two ways to signal "working on it"** (the single seat never fires it, the tone's AudioContext is probably suspended; a code-written "..." marker plus a triple bleep, proposed 2026-11-03): [`doc/thinking-sound.md`](doc/thinking-sound.md).
 
+**Read-aloud on/off and a Hold (mute) button** (what exists, where each lives, what Servex does, proposed 2026-11-03): [`doc/read-aloud-and-hold.md`](doc/read-aloud-and-hold.md).
+
 **The chat jumps while you dictate** (most clean-up edits change nothing, and each redraws the whole bubble or card; the proposed fix, 2026-11-03): [`doc/steady-display.md`](doc/steady-display.md).
 
 **How a reply is paced** (one paragraph at a time, shown then read; title and quoted question not read; conversation mode; questions filed per module): [`doc/reply-pacing.md`](doc/reply-pacing.md), the owner's design, 2026-11-02.
