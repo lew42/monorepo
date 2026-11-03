@@ -30,13 +30,13 @@ if (Recite) test("Recite: queueing A, B, C while a reply plays reads them newest
 
 	r.ended();   // the playing reply finishes
 	await new Promise(res => setTimeout(res, 20));   // play()'s render promise settles before the next ended()
-	t.eq(r.at, 1, "next up is C");
+	t.eq(r.chunks[r.at].text, "Reply C.", "next up is C");   // the TEXT that is actually playing, not just the index (review finding 3, round 3: an index can be right while the wrong chunk sits there)
 	r.ended();
 	await new Promise(res => setTimeout(res, 20));
-	t.eq(r.at, 2, "then B");
+	t.eq(r.chunks[r.at].text, "Reply B.", "then B");
 	r.ended();
 	await new Promise(res => setTimeout(res, 20));
-	t.eq(r.at, 3, "then A, last");
+	t.eq(r.chunks[r.at].text, "Reply A.", "then A, last");
 	return r;
 });
 
@@ -96,6 +96,59 @@ if (Recite) test("Recite: a streaming reply's continuation sentences stay with i
 	await new Promise(res => setTimeout(res, 20));
 	t.eq(r.chunks.map(c => c.text), ["First streamed sentence.", "Second streamed sentence.", "An older reply, queued and waiting."],
 		"the stream's own next sentence extends ITS run, landing before the older reply, not after it");
+	return r;
+});
+
+// Review finding 1 (ask2b round 3, 2026-11-03): a fresh STREAM's own first chunk used to fall into the "no
+// existing run" branch and append at the true end, behind every reply already waiting — the reverse of
+// newest-first, and streaming is the smart reply's normal path. It must use the same fresh-reply anchor as a
+// settled reply.
+if (Recite) test("Recite: with A and B already waiting, a new streamed reply plays before them too", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	r.queue("The first, already playing.");
+	await new Promise(res => setTimeout(res, 20));
+	r.queue("A.");
+	r.queue("B.");
+	t.eq(r.chunks.map(c => c.text), ["The first, already playing.", "B.", "A."], "A and B wait, newest first");
+
+	r.partial("A fresh stream starts. ");   // the stream's very first chunk — no existing run of its own yet
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.map(c => c.text), ["The first, already playing.", "A fresh stream starts.", "B.", "A."],
+		"the stream plays right after what is already playing, ahead of both A and B — same as any other fresh reply");
+	return r;
+});
+
+// Review finding 2 (ask2b round 3, 2026-11-03): a stream S plays S1; an agent update U is appended behind it and,
+// once S1 ends, starts playing at the index S2 (more of the SAME stream) would otherwise be spliced back into —
+// S2 must still be read, in its own place after U (playback has already moved past S's old spot), and U must not
+// play twice.
+if (Recite) test("Recite: a stream's continuation lands after an update that started playing in the meantime — the update is never repeated, the continuation is never lost", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	r.partial("S1. ");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks[r.at].text, "S1.", "the stream's first sentence is playing");
+
+	r.from_wire({ kind: "line", line: { chat: { text: "An update, not held (no cue pending).", at: new Date().toISOString(), from: { kind: "assistant", id: "mastermind-x" } } } });
+	t.eq(r.chunks.map(c => c.text), ["S1.", "I have an update on x, it is in the chat."], "the update queued in behind S1");
+
+	r.ended();   // S1 finishes; the update starts playing next
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks[r.at].text, "I have an update on x, it is in the chat.", "the update is playing now");
+
+	r.partial("S1. S2. ");   // the stream's own next sentence — its old run (S1, already heard) sits behind the update now playing
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.map(c => c.text), ["S1.", "I have an update on x, it is in the chat.", "S2."],
+		"S2 lands after the update, not spliced back behind it where it would never be reached");
+
+	r.ended();   // the update finishes
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks[r.at].text, "S2.", "S2 plays next — not a repeat of the update");
 	return r;
 });
 

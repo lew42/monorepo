@@ -165,24 +165,29 @@ export default class Recite extends Part {
 		return this;
 	}
 
-	/** Where a reply's sentences land in `chunks` (newest-first, 2026-11-03): a CONTINUATION (same reply, more
-	 *  streamed sentences) goes right after that reply's own run, wherever it now sits. A FRESH reply (unless
-	 *  `append`) goes right after whatever is playing now, or held for quiet (`wait_at`), ahead of every other reply
-	 *  still waiting its turn: the newest arrival plays before the ones that haven't started yet, same as the
-	 *  page-side say gate (Servex/agents/doc/say-tools.md). A reply already playing is never cut: its own run,
-	 *  including sentences not yet said, always stays whole and first. The anchor is the run around `this.at` (or
-	 *  `wait_at` while something sits held, never started) — NOT `chunks[0]`: a finished reply stays in `chunks`
+	/** Where a reply's sentences land in `chunks` (newest-first, 2026-11-03). The anchor is the run around `this.at`
+	 *  (or `wait_at` while something sits held, never started) — NOT `chunks[0]`: a finished reply stays in `chunks`
 	 *  until `stop()`, so once more than one has played, chunk 0 is old news, not what is current (review finding,
 	 *  ask2b round 2, 2026-11-03). Idle with nothing playing or held: `this.at` sits on the last chunk that played,
-	 *  so its run is the last one in the array — anchoring there lands a fresh reply at the true end, same as
-	 *  before. */
+	 *  so its run is the last one in the array — anchoring there lands a fresh reply at the true end, same as before.
+	 *  A FRESH reply (unless `append`) goes right after the anchor's run, ahead of every other reply still waiting:
+	 *  the newest arrival plays before the ones that haven't started yet, same as the page-side say gate
+	 *  (Servex/agents/doc/say-tools.md). A reply already playing is never cut: its own run, including sentences not
+	 *  yet said, always stays whole and first. A CONTINUATION (same reply, more streamed sentences) extends its own
+	 *  run IN PLACE only while that run is still at or ahead of the anchor (still playing, or still queued, never
+	 *  passed) — once playback has moved on to something else (an update appended behind it, then started), its own
+	 *  run is in the past, so a later continuation falls through to the fresh-reply anchor instead: spliced back into
+	 *  its stale old spot it would sit forever behind the play pointer and never be read (review finding, ask2b
+	 *  round 2, 2026-11-03). The stream's very first chunk (nothing of its own queued yet) always falls through too. */
 	insert_at(id, continuing){
 		if (!this.chunks.length) return 0;
+		const anchor = this.wait_at ?? this.at;
 		if (continuing){
-			for (let i = this.chunks.length - 1; i >= 0; i--) if (this.chunks[i].reply === id) return i + 1;
-			return this.chunks.length;   // the first chunk of a fresh stream: nothing of its own to follow yet
+			let old_end = -1;
+			for (let i = this.chunks.length - 1; i >= 0; i--) if (this.chunks[i].reply === id){ old_end = i; break; }
+			if (old_end !== -1 && old_end >= anchor) return old_end + 1;
 		}
-		const anchor = this.wait_at ?? this.at, anchor_reply = this.chunks[anchor]?.reply;
+		const anchor_reply = this.chunks[anchor]?.reply;
 		if (anchor_reply === undefined) return this.chunks.length;
 		let i = anchor;
 		while (this.chunks[i + 1]?.reply === anchor_reply) i++;
