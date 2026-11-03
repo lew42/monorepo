@@ -35,6 +35,24 @@ for (const [name, text, info, recite, want_dropped] of cases){
 	console.log(ok ? "ok  " : "FAIL", name, ok ? "" : `\n  got: ${JSON.stringify(got)}`);
 }
 
+// A stale info (older than LAST_FINAL_MS) must be ignored, same as no info: the later sentence it would otherwise
+// be judged on is a DIFFERENT clip the mic heard after this one's duration/word-probability arrived.
+{
+	const now = 10_000;
+	const stale_cases = [
+		["seq175's info but 3.1 s old -> kept (treated as no info)",
+			"Thank you.", { duration_s: 1.4, word_prob: 0.14, at: now - 3100 }, silent, false],
+		["same info, 2.9 s old -> still dropped (fresh)",
+			"Thank you.", { duration_s: 1.4, word_prob: 0.14, at: now - 2900 }, silent, true],
+	];
+	for (const [name, text, info, recite, want_dropped] of stale_cases){
+		const got = should_drop_phantom(text, info, { noise, recite, now });
+		const ok = !!got === want_dropped;
+		if (!ok) bad++;
+		console.log(ok ? "ok  " : "FAIL", name, ok ? "" : `\n  got: ${JSON.stringify(got)}`);
+	}
+}
+
 // whisper_info() reads the real on_whisper shape (Dictate.js: {seconds, body:{duration, segments[].words[].probability}})
 {
 	const line = { seconds: 1.4, body: { duration: 1.3999999523162842, segments: [{ words: [

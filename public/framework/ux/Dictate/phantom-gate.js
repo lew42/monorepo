@@ -18,13 +18,19 @@
  * (seq175, 2026-11-01: 1.4 s, weakest word 0.14) even with Recite silent. Otherwise a phantom phrase heard while
  * Recite is speaking (or just stopped, `echo_active()`) is the "heard its own TTS" shape (seq995, 2026-11-03) —
  * never the duration or the word probability alone, since a real "Thank you." said slowly and clearly must land.
+ *
+ * `info.at` (ms, `Date.now()` when the Whisper final arrived) is checked against LAST_FINAL_MS: a later sentence
+ * that has no Whisper final of its own (no `on_whisper` fired for it) must not be judged on an old clip's duration
+ * or word probability, so a stale `info` is treated the same as no info at all.
  */
 export const SHORT_CLIP_S = 2;
 export const LOW_WORD_PROB = 0.3;
+export const LAST_FINAL_MS = 3000;
 
-export function should_drop_phantom(text, info = {}, { noise, recite } = {}){
+export function should_drop_phantom(text, info = {}, { noise, recite, now = Date.now() } = {}){
 	if (!text || typeof noise !== "function") return false;
-	const { duration_s, word_prob } = info;
+	const stale = typeof info.at === "number" && now - info.at >= LAST_FINAL_MS;
+	const { duration_s, word_prob } = stale ? {} : info;
 	const echo_active = !!recite?.echo_active?.();
 	if (noise(text)){
 		if (echo_active) return "echo-while-noise";

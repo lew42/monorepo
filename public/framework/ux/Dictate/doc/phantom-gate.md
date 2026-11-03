@@ -25,7 +25,9 @@ for that." is never dropped: it isn't on the blocklist at all, so `noise()` is a
 - `ux/Dictate/test/phantom-gate.mjs` — `node ux/Dictate/test/phantom-gate.mjs`, fixtures from the real evidence
   (`ai/whisper/bucket.jsonl` seq175, seq995).
 - `ux/Dictate/chat.js` — wires it in: a `panel.dictate.on_whisper` listener keeps the last FINAL Whisper reply's
-  duration/word-probability; `deliver()` checks the gate with that info before anything else.
+  duration/word-probability, stamped with the time it arrived; `deliver()` checks the gate with that info before
+  anything else, clears it right after, and ignores it once it is older than `LAST_FINAL_MS` (3 s) — so a later
+  sentence with no Whisper final of its own is never judged on an old clip.
 
 ## A drop is logged, never silent
 

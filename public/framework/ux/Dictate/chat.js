@@ -202,9 +202,11 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 				// Never for a typed line (BargeIn.owner_spoke() skips it the same way): the gate exists for Whisper's
 				// own hallucinations, and a typed "Thank you." said on purpose must always land.
 				if (entry.via !== "typed"){
-					const drop = should_drop_phantom(entry.text, last_final_info ?? {}, { noise: BargeIn.noise, recite: Recite.shared });
+					const info = last_final_info;
+					const drop = should_drop_phantom(entry.text, info ?? {}, { noise: BargeIn.noise, recite: Recite.shared });
+					last_final_info = null;   // every use is one-shot: a later sentence must not reuse this clip's info
 					if (drop){
-						WhisperLog.event("composer", "dropped", { text: entry.text, reason: drop, info: last_final_info ?? null });
+						WhisperLog.event("composer", "dropped", { text: entry.text, reason: drop, info: info ?? null });
 						return true;   // handled on purpose: no "not sent" error for words that were never really said
 					}
 				}
@@ -256,12 +258,17 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	// again at the moment that sentence is about to post (deliver, below). No per-sentence id ties a final to the
 	// entry it became (ComposerMic's own pipeline doesn't carry one), so this is a best effort, not an exact match —
 	// safe because the gate only ever acts on a stock phantom phrase (BargeIn.noise) to begin with (doc/phantom-gate.md).
+	// Cleared by deliver() after every use, and should_drop_phantom() itself ignores it once stale
+	// (phantom-gate.js's LAST_FINAL_MS), so a later sentence is never judged on an old clip.
 	let last_final_info = null;
 	if (panel.dictate){
+		// Chains to whatever was already there, so an earlier on_whisper wiring keeps firing. Fragile the other way:
+		// anything that assigns panel.dictate.on_whisper AFTER this line replaces the gate's hook outright, and
+		// last_final_info silently stops updating (falls back to the echo-active branch only, doc/phantom-gate.md).
 		const prior_on_whisper = panel.dictate.on_whisper;
 		panel.dictate.on_whisper = line => {
 			prior_on_whisper?.(line);
-			if (line.kind === "final") last_final_info = whisper_info(line);
+			if (line.kind === "final") last_final_info = { ...whisper_info(line), at: Date.now() };
 		};
 	}
 
