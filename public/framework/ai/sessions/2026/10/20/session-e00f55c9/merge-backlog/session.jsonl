@@ -10,3 +10,5 @@
 {"commit":"d954d3f82112","by":"append.mjs","ts":"2026-11-03T20:45:51.088Z"}
 {"log":{"at":"2026-11-03T14:49:11-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-03T20:49:11.770Z"}
 {"log":{"at":"2026-11-03T14:50:02-06:00","msg":"merge-backlog landed: session-twins-fix merged 342b6462d, voice-bridge merged 3cee562ef, chatv3-title-dedupe superseded (on dev as 50b14ab9f), v1-switch-prep superseded (leftovers older than dev). Triage: unmerged-work/triage.md. Lesson: merge.mjs needs --review-dir for a review in a session older than 4 days."}}
+{"log":{"at":"2026-11-03T14:51:06-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-03T20:51:06.900Z"}
+{"log":{"at":"2026-11-03T14:51:10-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-03T20:51:10.840Z"}

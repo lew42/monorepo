@@ -43,3 +43,5 @@
 {"file":"failures.jsonl"}
 {"file":"failures.jsonl","gone":true}
 {"file":"failures.jsonl"}
+{"file":"SessionFolders.mjs"}
+{"file":"SessionFolders.test.mjs"}
