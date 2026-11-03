@@ -32,8 +32,9 @@ export default class Recite extends Part {
 	error = "";            // the last failure, one plain line, shown on the bar
 	url = Recite.default_url();
 	voice = null;          // a Voice (one persona); Voice.PERSONAS lists them
-	chunks = [];           // one per sentence: {text, start, seconds, src, pending, reply}
+	chunks = [];           // one per sentence: {text, start, seconds, src, pending, reply, key, msg, ts}
 	reply_id = -1;         // bumped by every queue() that is not a take() continuation: chunks.reply groups a reply's own sentences, so drop_heard() can cut just one reply out of the queue
+	last_queued = null;    // {at, end}: where the most recent queue() call landed its chunks (never the array's end any more — newest-first, 2026-11-03) — callers (take(), final(), queue_update()) read it instead of assuming a tail append
 	at = 0;                // the chunk playing, or paused in
 	auto = Recite.remember("auto") != null ? Recite.remember("auto") === "true" : true;   // read new replies by themselves: on by default, phone and PC alike (the owner, 2026-11-01); the 🗣 button turns it off and that is remembered
 	live = null;           // the reply being streamed: {text, queued, fresh}
@@ -138,21 +139,45 @@ export default class Recite extends Part {
 	 *  `continuing` (set only by take(), below): these chunks are more of the SAME live reply, not a new one — keep
 	 *  the current `reply_id` so drop_heard() still treats the whole streamed-so-far reply as one unit.
 	 *  `key` (Recite.bubble_key) names the bubble these sentences belong to, so it can be replayed and its place remembered;
-	 *  `from` ({i, t}): a replay, start at sentence i, t seconds in, at once. */
-	queue(text, continuing = false, key = null, from = null){
-		const first = this.chunks.length;
+	 *  `from` ({i, t}): a replay, start at sentence i, t seconds in, at once. `reply_override`: the id a CONTINUATION
+	 *  belongs to (take()'s own `live.id`, or a settled stream's tail) — `this.reply_id` alone is not safe once a
+	 *  fresh reply can land in between and bump it (newest-first, 2026-11-03). */
+	queue(text, continuing = false, key = null, from = null, reply_override = null){
 		if (!continuing) this.reply_id++;
-		const id = this.reply_id;
-		for (const piece of Recite.split(text)) this.chunks.push({ text: piece, start: null, seconds: null, src: null, pending: null, reply: id, key, msg: null });
-		if (this.chunks.length === first) return this;
+		const id = continuing ? (reply_override ?? this.reply_id) : this.reply_id, ts = Date.now();
+		const pieces = Recite.split(text).map(piece => ({ text: piece, start: null, seconds: null, src: null, pending: null, reply: id, key, msg: null, ts }));
+		this.last_queued = null;
+		if (!pieces.length) return this;
+		const at = this.insert_at(id, continuing);
+		this.chunks.splice(at, 0, ...pieces);
+		for (const p of this.pending_ids) if (p.last >= at) p.last += pieces.length;   // a reply's remembered "last chunk" index shifts when a newer one lands ahead of it
+		if (this.wait_at != null && this.wait_at >= at) this.wait_at += pieces.length;
+		this.last_queued = { at, end: at + pieces.length - 1 };
 		this.retime();
 		// `wait_at != null` means a reply is already held for quiet: a second queue() while still idle must NOT
 		// call start_or_hold again — it would move `wait_at` to this later chunk and skip everything held before it.
 		if (!from) this.focus_el = null;
-		if (from && this.state === "idle"){ this.wait_at = null; this.play(first + Math.min(from.i, this.chunks.length - first - 1), from.t); }   // a replay was asked for by a tap: no turn-taking hold
-		else if (this.state === "idle" && this.wait_at == null) this.start_or_hold(first);
+		if (from && this.state === "idle"){ this.wait_at = null; this.play(at + Math.min(from.i, pieces.length - 1), from.t); }   // a replay was asked for by a tap: no turn-taking hold
+		else if (this.state === "idle" && this.wait_at == null) this.start_or_hold(at);
 		else this.prefetch(this.at);
 		return this;
+	}
+
+	/** Where a reply's sentences land in `chunks` (newest-first, 2026-11-03): a CONTINUATION (same reply, more
+	 *  streamed sentences) goes right after that reply's own run, wherever it now sits. A FRESH reply always goes
+	 *  right after whatever sits at the very front — playing now, held for quiet, or about to start — ahead of every
+	 *  other reply still waiting its turn: the newest arrival plays before the ones that haven't started yet, same
+	 *  as the page-side say gate (Servex/agents/doc/say-tools.md). A reply already playing is never cut: its own run,
+	 *  including sentences not yet said, always stays whole and first. */
+	insert_at(id, continuing){
+		if (!this.chunks.length) return 0;
+		if (continuing){
+			for (let i = this.chunks.length - 1; i >= 0; i--) if (this.chunks[i].reply === id) return i + 1;
+			return this.chunks.length;   // the first chunk of a fresh stream: nothing of its own to follow yet
+		}
+		let i = 0;
+		while (this.chunks[i + 1]?.reply === this.chunks[0].reply) i++;
+		return i + 1;
 	}
 
 	/** Chunk `i` is freshly queued and nothing is playing: start now, or hold until the owner falls quiet. */
@@ -249,9 +274,22 @@ export default class Recite extends Part {
 		const here = this.chunks[this.at], next = this.chunks[this.at + 1];
 		if (here?.key && !(next && next.key === here.key)) Recite.clear_place(here.key);   // the whole reply was heard: the next play starts at its start
 		this.settle_pending(this.at);
-		if (this.state === "playing") this.play(this.at + 1, 0);
+		if (this.state === "playing") this.play(this.skip_stale(this.at + 1), 0);
 	}
 	finish(){ this.token++; this.at = Math.max(0, this.chunks.length - 1); this.set("idle"); }
+
+	/** A reply still waiting its turn, queued more than 2 minutes ago: the owner has moved on, so when playback
+	 *  would reach it next, drop it (and any more like it) instead of reading it late (newest-first, 2026-11-03). */
+	skip_stale(i){
+		while (this.chunks[i] && Date.now() - this.chunks[i].ts > 120000){
+			const id = this.chunks[i].reply;
+			let end = i; while (this.chunks[end + 1]?.reply === id) end++;
+			for (const c of this.chunks.splice(i, end - i + 1)) if (c.src) URL.revokeObjectURL(c.src);
+			this.pending_ids = this.pending_ids.filter(p => { if (p.last !== end) return true; Recite.mark_played(p.id); return false; })
+				.map(p => p.last > end ? { ...p, last: p.last - (end - i + 1) } : p);
+		}
+		return i;
+	}
 
 	/* ── replies from a chat session ────────────────────────────────── */
 
@@ -343,7 +381,7 @@ export default class Recite extends Part {
 		if (!this.auto){ if (text && !this.live) this.trace("not read: auto is off (the 🗣 button)"); return; }
 		if (text) this.cancel_cue();   // the reply started: stop waiting for it (dictation-v3 thinking cue, 2026-11-02)
 		if (!text){ if (this.live){ this.take(this.live.text, true); this.done.add(Recite.norm(this.live.text)); this.tag_live(this.live.text); this.streamed = { chunks: this.live.chunks, at: Date.now() }; this.live = null; } return; }
-		if (!this.live || !text.startsWith(this.live.text.slice(0, 30))){ this.drop_heard(); this.streamed = null; this.live = { text, queued: 0, fresh: true, chunks: [] }; }
+		if (!this.live || !text.startsWith(this.live.text.slice(0, 30))){ this.drop_heard(); this.streamed = null; this.live = { text, queued: 0, fresh: true, chunks: [], id: ++this.reply_id }; }
 		this.live.text = text;
 		this.take(text, false);
 	}
@@ -362,26 +400,26 @@ export default class Recite extends Part {
 		const key = Recite.norm(text);
 		if (this.done.has(key)) return;
 		this.done.add(key);
-		const before = this.chunks.length;
 		if (this.live && key.startsWith(Recite.norm(this.live.text.slice(0, this.live.queued)).slice(0, 30))){
 			this.live.text = text; this.take(text, true); this.tag_live(text, id); this.live = null;
-			this.mark_when_done(id, before);
+			this.mark_when_done(id);
 			return;
 		}
 		const tail = this.unread_tail(text);
 		if (tail){   // the stream already read the start of this very reply (its last streamed text was shorter than the settled line): read only the rest, never the start again
-			const bubble = Recite.bubble_key(text);
+			const bubble = Recite.bubble_key(text), sid = this.streamed.chunks[0]?.reply;
 			for (const c of this.streamed.chunks) c.key = bubble;
 			this.streamed = null;
-			if (tail.length) this.queue(tail.join(" "), true, bubble);
-			this.mark_when_done(id, before);
+			this.last_queued = null;
+			if (tail.length) this.queue(tail.join(" "), true, bubble, null, sid);
+			this.mark_when_done(id);
 			return;
 		}
 		this.drop_heard();   // a fresh reply, not a continuation of `this.live`: if the old one sits paused by barge-in, a question just got its answer
 		this.live = null;
 		this.queue(text, false, Recite.bubble_key(text));
-		for (const c of this.chunks.slice(before)) c.msg = id ?? null;
-		this.mark_when_done(id, before);
+		if (this.last_queued) for (const c of this.chunks.slice(this.last_queued.at, this.last_queued.end + 1)) c.msg = id ?? null;
+		this.mark_when_done(id);
 	}
 
 	/** The sentences of `text` the stream that just ended (`this.streamed`, at most 2 minutes old) did NOT already queue, or
@@ -411,11 +449,12 @@ export default class Recite extends Part {
 	tag_live(text, id = null){ const key = Recite.bubble_key(text); for (const c of this.live?.chunks ?? []){ c.key = key; if (id) c.msg = id; } }
 
 	/** `id`'s text added no chunks that still need to be said (nothing was queued, or everything was already
-	 *  covered by `this.live`): mark it played right away. Otherwise remember its last chunk, so `ended()` marks it
-	 *  the moment that chunk finishes playing — never sooner, so a reply dropped mid-way is never marked played. */
-	mark_when_done(id, before){
+	 *  covered by `this.live`): mark it played right away. Otherwise remember its last chunk (`this.last_queued`,
+	 *  set by the `queue()` call that just ran), so `ended()` marks it the moment that chunk finishes playing —
+	 *  never sooner, so a reply dropped mid-way is never marked played. */
+	mark_when_done(id){
 		if (!id) return;
-		if (this.chunks.length > before) this.pending_ids.push({ id, last: this.chunks.length - 1 });
+		if (this.last_queued) this.pending_ids.push({ id, last: this.last_queued.end });
 		else Recite.mark_played(id);
 	}
 
@@ -447,9 +486,8 @@ export default class Recite extends Part {
 
 	/** Queues one collapsed update line, behind whatever is already queued — never replacing it, same as `final()`. */
 	queue_update(line, id){
-		const before = this.chunks.length;
 		this.queue(line);
-		this.mark_when_done(id, before);
+		this.mark_when_done(id);
 	}
 
 	/** Releases every held update, in the order they arrived, behind whatever is already queued (the direct answer,
@@ -548,12 +586,11 @@ export default class Recite extends Part {
 	take(text, all){
 		const live = this.live, rest = text.slice(live.queued);
 		const cut = all ? rest.length : Recite.complete(rest);
-		if (cut <= 0 || !/\w/.test(rest.slice(0, cut))) return;
+		if (cut <= 0 || !/\w/.test(rest.slice(0, cut))){ this.last_queued = null; return; }
 		live.queued += cut;
 		live.fresh = false;
-		const before = this.chunks.length;
-		this.queue(rest.slice(0, cut), true);   // continuing the same live reply, not a new one
-		live.chunks?.push(...this.chunks.slice(before));
+		this.queue(rest.slice(0, cut), true, null, null, live.id);   // continuing the same live reply, not a new one
+		if (this.last_queued) live.chunks?.push(...this.chunks.slice(this.last_queued.at, this.last_queued.end + 1));
 	}
 
 	set_auto(on){ this.auto = !!on; Recite.remember("auto", this.auto); this.changed(); }
