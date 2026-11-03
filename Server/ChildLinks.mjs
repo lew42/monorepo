@@ -11,6 +11,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import SessionRecord from "./SessionRecord.mjs";
+import SessionFolders from "../public/framework/core/Session/SessionFolders.mjs";
 import { role_readme_path } from "../Servex/agents/roles.js";
 
 const SELF_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -23,15 +24,17 @@ export default class ChildLinks {
 	/** The cached session folders of a root: Map<id | id8, dir>. Rebuilt when a lookup misses and the cache is older than 10 s. */
 	static cache = new Map();
 
-	/** Every session folder under `root` keyed by its full id (folder name, or line 1: assign.session_id / session.id) and by its first 8 characters.
-	 *  Where one session has folders on several days, the earliest one that holds a record wins. */
+	/** Every session's RECORD folder under `root`, keyed by its full id and its first 8 characters, plus every day folder by its name.
+	 *  A session's folder is the one SessionFolders picks (the oldest day first). */
 	static sessions(root = SELF_ROOT, rows = {}){
 		const map = new Map(), rec = new SessionRecord({ root });
-		const line1 = f => { try { return JSON.parse(fs.readFileSync(f, "utf8").split("\n", 1)[0]); } catch { return null; } };
+		// Which folder is a session's: the store's one finder (core/Session/SessionFolders.mjs). It counts here when it holds a record.
+		// Since 2026-11-01 a tab-era task filed flat under a day (line 1 {"assign"} with no agent) no longer stands for the tab's session:
+		// 69 tab ids pointed at one of their own task folders that way (checked one by one, session-twins-fix); they now resolve to nothing.
+		for (const { id, dir } of SessionFolders.at(path.join(root, "public/framework/ai/sessions")).homes()) if (SessionRecord.file(dir)){ map.set(id, dir); if (!map.has(id.slice(0, 8))) map.set(id.slice(0, 8), dir); }
 		for (const dir of rec.day_children()){
-			const f = SessionRecord.file(dir), l = f && line1(f), name = path.basename(dir);
-			const id = l?.assign?.session_id ?? l?.session?.id ?? (UUID.test(name) ? name : null);
-			const keys = [id, id && id.slice(0, 8), /^session-([0-9a-f]{8})$/.exec(name)?.[1], name].filter(Boolean);   // the folder name too: a voice record v-<id> is its own parent_session
+			const f = SessionRecord.file(dir), name = path.basename(dir);
+			const keys = [/^session-([0-9a-f]{8})$/.exec(name)?.[1], name].filter(Boolean);   // the folder name too: a voice record v-<id> is its own parent_session
 			for (const k of keys) if (!map.has(k) || (f && !SessionRecord.file(map.get(k)))) map.set(k, dir);
 		}
 		// An agent session's own record is its task folder (Agents.open_task), wherever that sits: the registry knows it.

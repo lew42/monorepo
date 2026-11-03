@@ -27,9 +27,9 @@ Every session has one dated folder, `public/framework/ai/sessions/YYYY/MM/DD/<na
 | **Servex agent** (SDK) | Servex: `Agents.spawn` mints a uuid and hands it to the SDK as `sessionId`. | `open_task` writes the **task** folder's line 1, `{"assign":{"session_id",…}}`. The **transcript** folder `session-<id8>/` (cache only) is made by `AISessionIndex` through `Session.locate`. |
 | **Record session** (voice call, named agent) | Its writer | `RemoteMCP.voice_session`, `append.mjs`: a name such as `voice-20261016`. |
 
-**Two code paths name the same folder**, `DatedFiles.session_dir` (Server side) and `Session.locate` (the class). They agree on the name `session-<id8>`. Both now check that a `session-<id8>` folder found on disk belongs to the id: `DatedFiles.owner(dir)` reads `index.json`, the cache summary, then line 1 of the record, the same sources `Session.scan` uses. If it belongs to another id, the new session gets a folder named by its full uuid. Folding the two paths into one is a ⬜ on [core/Session's readme](../readme.md).
+**One function finds the folder** (2026-11-01): `SessionFolders` ([SessionFolders.mjs](../SessionFolders.mjs)). `DatedFiles.session_dir`, `Session.locate`, `AISessionIndex`, `ChildLinks`, `AskIndex`, `SessionIdentity` and `SessionConsolidate` all ask it, so they cannot disagree. It finds a session in any folder that says it holds the id, slug-named ones too, and checks on disk every call. A `session-<id8>` name another id holds gives the new session its full uuid. The store's shape, the claim rule and the twin check: [ai/sessions/doc/one-folder.md](/framework/ai/sessions/doc/one-folder.md).
 
-**A session stays on the day it began.** `session_dir` walks every day folder oldest first and takes the first one that holds the id (`DatedFiles.days()`: 66 days, 6 ms). Until 2026-10-24 it looked back 4 days, then 31, newest first, so `TaskDirs --new` found or opened a later folder: this tab was split across `2026/10/20/session-e00f55c9/` and `2026/10/24/session-e00f55c9/`. The check below reports a split as `split`.
+**A session stays on the day it began.** When two folders hold one id, `SessionFolders` takes the oldest day first. Until 2026-10-24 it looked back 4 days, then 31, newest first, so `TaskDirs --new` found or opened a later folder: this tab was split across `2026/10/20/session-e00f55c9/` and `2026/10/24/session-e00f55c9/`. The check below reports a split as `split`.
 
 ## One session, one folder, one URL (2026-10-25)
 
@@ -177,7 +177,7 @@ These change Servex's lifecycle, so they go to `ai-system-mastermind` as proposa
 - ⬜ Run `Server/SessionConsolidate.mjs` over every session the check reports as `split` (e00f55c9 is folded first, by hand, once its hook fix is live).
 - ⬜ Give a VS Code tab's MCP connection its caller, so `item` with no `path` finds its own page (above).
 - ⬜ Re-index `2026/09/19/session-a1c1d1e1/`: move its mixed `cache.jsonl` aside so the indexer rebuilds one folder per id. Low value: these were test sessions.
-- ⬜ Fold `DatedFiles.session_dir` and `Session.locate` into one naming rule.
+- ✅ Fold `DatedFiles.session_dir` and `Session.locate` into one rule: `SessionFolders` (2026-11-01, [one-folder.md](/framework/ai/sessions/doc/one-folder.md)).
 - ⬜ Compaction: auto-compact threshold and timeout (above), proposed to `ai-system-mastermind`.
 - ⬜ Find why the SDK's `total_cost_usd` runs 1.3 to 1.7 times the `AISession` price of the same transcript (likely the cache-write price or the model's rate), and why a turn near a renewal lands on the session before. Numbers above; one session pair is enough to test.
 - ⬜ Give every Servex child a `task_dir` (or link it by `parent_session` alone), so `minion-process-page` and its kind are reachable from the parent's record.

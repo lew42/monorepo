@@ -18,6 +18,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import ModuleInbox from "../Servex/agents/ModuleInbox.js";
 import SessionRecord from "./SessionRecord.mjs";
 import TaskDirs from "./TaskDirs.mjs";
+import SessionFolders from "../public/framework/core/Session/SessionFolders.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FW = "public/framework";
@@ -47,18 +48,13 @@ export default class AskIndex {
 
 	// ---- where things live -----------------------------------------------------------------------
 
-	/** A session's folder: a uuid-named one anywhere in the day tree, else `session-<first 8>`; made (under `day`) when none exists. */
+	/** A session's folder, from the store's one finder (core/Session/SessionFolders.mjs: any folder that holds the id, slug-named too, checked on
+	 *  disk every call); made (session-<id8> under `day`) when none exists. */
 	session_dir(session, day){
-		if (this._dirs.has(session)) return this._dirs.get(session);
-		const want = [session, "session-" + session.slice(0, 8)], ls = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name); } catch { return []; } };
-		let found = null;
-		for (const y of ls(this.sessions)) if (/^\d{4}$/.test(y)) for (const m of ls(path.join(this.sessions, y))) for (const d of ls(path.join(this.sessions, y, m))){
-			const names = ls(path.join(this.sessions, y, m, d));
-			for (const w of want) if (names.includes(w) && (!found || w === session)) found = path.join(this.sessions, y, m, d, w);
-		}
-		if (!found){ found = path.join(this.sessions, TaskDirs.ymd(String(day ?? TaskDirs.day()).slice(0, 10)), "session-" + session.slice(0, 8)); fs.mkdirSync(found, { recursive: true }); }
-		this._dirs.set(session, found);
-		return found;
+		if (this._dirs.has(session)) return this._dirs.get(session);   // a folder pinned by hand (a test fixture); a lookup is never kept here
+		const dir = SessionFolders.at(this.sessions).home(session, TaskDirs.ymd(String(day ?? TaskDirs.day()).slice(0, 10)));
+		fs.mkdirSync(dir, { recursive: true });
+		return dir;
 	}
 
 	/** A refiner's module name → a real module folder (repo-relative), or null (site-wide, unknown, or no such folder). */

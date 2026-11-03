@@ -16,6 +16,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Day from "../../core/Session/Day.js";
 import AISession from "./AISession.js";
+import SessionFolders from "../../core/Session/SessionFolders.mjs";
 import AIIndexStream from "../../../../Server/AIIndexStream.mjs";
 import { files_of, registry_rows } from "../../../../Server/session-summary.mjs";
 import { links_of, children_map } from "../../../../Server/session-links.mjs";
@@ -207,20 +208,8 @@ export default class AISessionIndex {
 		return out;
 	}
 
-	/** Every dated session folder: [{ id, dir }]. A uuid-named folder is its own id; a slug-named one says its id in index.json (or its cache summary).
-	 *  The old flat folders and other named ones are not sessions of this shape. */
-	async session_dirs(){
-		const out = [], ls = async p => fsp.readdir(p, { withFileTypes: true }).then(r => r.filter(d => d.isDirectory()).map(d => d.name), () => []);
-		for (const y of await ls(this.root)) if (/^\d{4}$/.test(y)) for (const m of await ls(path.join(this.root, y))) for (const d of await ls(path.join(this.root, y, m)))
-			for (const name of await ls(path.join(this.root, y, m, d))){
-				const dir = path.join(this.root, y, m, d, name); let id = UUID.test(name) ? name : null;
-				if (!id) try { id = JSON.parse(await fsp.readFile(path.join(dir, "index.json"), "utf8")).id; } catch {}
-				if (!id) try { id = JSON.parse((await fsp.readFile(path.join(dir, "cache.jsonl"), "utf8")).split("\n").find(l => l.startsWith('{"summary"'))).summary.id; } catch {}
-				if (id && UUID.test(id)) out.push({ id, dir });
-			}
-		return out;
-	}
-
+	/** Every session in the store once, at its home: [{ id, dir }], from the store's one finder (core/Session/SessionFolders.mjs). */
+	async session_dirs(){ return SessionFolders.at(this.root).homes(); }
 	async each(list, fn, width = 48){
 		let i = 0;
 		await Promise.all(Array.from({ length: Math.min(width, list.length) }, async () => { while (i < list.length) { const item = list[i++]; try { await fn(item); } catch (e){ this.log("AISessionIndex: " + e.message); } } }));
@@ -333,8 +322,8 @@ export default class AISessionIndex {
 		const fresh = !before && Date.now() - Date.parse(snap.first_at ?? 0) < 600000;
 		if (!fresh && !(before && (before.state !== snap.state || before.title !== snap.title))) return;
 		try {
-			const dir = "public/framework/ai/sessions/" + snap.day + "/" + (snap.folder ?? "session-" + snap.id.slice(0, 8));
-			AIIndexStream.append(this.root, "session", { id: snap.id, path: dir, url: "/framework/ai/sessions/" + snap.day + "/" + (snap.folder ?? "session-" + snap.id.slice(0, 8)) + "/", title: snap.title ?? snap.agent ?? snap.id.slice(0, 8), state: snap.state });
+			const at = this.dirs.has(snap.id) ? path.relative(this.root, this.dirs.get(snap.id)).split(path.sep).join("/") : snap.day + "/" + (snap.folder ?? "session-" + snap.id.slice(0, 8));   // the folder dir_of found: its day can be before snap.day
+			AIIndexStream.append(this.root, "session", { id: snap.id, path: "public/framework/ai/sessions/" + at, url: "/framework/ai/sessions/" + at + "/", title: snap.title ?? snap.agent ?? snap.id.slice(0, 8), state: snap.state });
 		} catch (e){ this.log("AISessionIndex: day stream — " + e.message); }
 	}
 
@@ -363,9 +352,11 @@ export default class AISessionIndex {
 		} catch (e){ this.log("AISessionIndex: write day " + day + " — " + e.message); }
 	}
 
+	/** The folder to write `id` into, asked of the store's one finder on EVERY write (SessionFolders, checked on disk). this.dirs is only
+	 *  what the last answer was: a folder moved or removed since (a rename, a cleanup) is never written to, so never made again. */
 	async dir_of(id, snap){
-		let dir = this.dirs.get(id);
-		if (!dir){ dir = fileURLToPath(await AISession.locate(id, snap.first_at)); this.dirs.set(id, dir); }
+		const dir = SessionFolders.at(this.root).home(id, AISession.day(snap.first_at) ?? AISession.day(new Date()));
+		this.dirs.set(id, dir);
 		if (snap.folder !== path.basename(dir)) snap.folder = path.basename(dir);   // the folder name travels with the snapshot, so the browser can find the folder
 		return dir;
 	}
@@ -375,7 +366,7 @@ export default class AISessionIndex {
 		const snap = this.snaps.get(id); if (!snap) return;
 		try {
 			const dir = await this.dir_of(id, snap);
-			await fsp.mkdir(dir, { recursive: true });
+			await fsp.mkdir(dir, { recursive: true });   // dir_of just found it on disk, or it is the new home of a session that has none: never a remembered path
 			const tmp = path.join(dir, "index.tmp.json"), file = path.join(dir, "index.json");   // a .json name: the dev watcher ignores it
 			await fsp.writeFile(tmp, JSON.stringify(snap));
 			try { await fsp.rename(tmp, file); } catch { await new Promise(r => setTimeout(r, 50)); await fsp.rename(tmp, file); }
