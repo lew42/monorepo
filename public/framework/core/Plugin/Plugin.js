@@ -23,6 +23,22 @@ export class Plugin extends Events(Object) {
 	initialize(){}
 	bubbles(){ return false; }   // a plugin host is not a tree; an Item's events still bubble
 
+	// Per-INSTANCE plugin switches: one row per class-level plugin, `enabled`/`config` unset until this instance
+	// overrides them (PluginEntry.get_one falls back to the class row's rec.on / rec.config while unset).
+	get plugins(){
+		if (!Object.hasOwn(this, "_plugins")) {
+			Object.defineProperty(this, "_plugins", { value: new List(), writable: true });
+			for (const rec of this.constructor.records.values()) this.constructor.add_instance_row(this, rec);
+		}
+		return this._plugins;
+	}
+
+	// Switching THIS instance only: attach/detach runs just on `this`, the class-wide hook is untouched.
+	toggle_plugin(rec, on){
+		if (on) { const run = Plugin.runner(rec.plugin); run?.(this); }
+		else rec.plugin.detach?.(this);
+	}
+
 	// ── class-level events. "new" walks the class chain: parents' listeners first, then each subclass's own.
 	static get events(){
 		if (!Object.hasOwn(this, own_events)) Object.defineProperty(this, own_events, { value: {}, writable: true });
@@ -93,24 +109,28 @@ export class Plugin extends Events(Object) {
 		return rec;
 	}
 
+	// The attach/setup/plain-function dispatch, shared by a class-wide enable() and a per-instance toggle.
+	static runner(p){
+		return typeof p.attach === "function" ? inst => p.attach(inst)
+			: typeof p.setup === "function" ? inst => p.setup(inst)
+			: typeof p === "function" && !p.prototype ? p : null;
+	}
+
 	static enable(rec){
 		rec.wanted = true;
 		if (rec.on) return;
-		const p = rec.plugin, tracks = typeof p.detach === "function" && p.detach !== Plugin.detach;
-		const run = typeof p.attach === "function" ? inst => p.attach(inst)
-			: typeof p.setup === "function" ? inst => p.setup(inst)
-			: typeof p === "function" && !p.prototype ? p : null;
+		const p = rec.plugin, run = this.runner(p);
 		if (!run) { console.warn(`Plugin ${rec.name} must be a function or have attach(instance) or setup(instance)`); return; }
 		rec.fn = function(inst){
-			if (tracks) {
-				rec.live.add(new WeakRef(inst));
-				if (++rec.n % 256 === 0) for (const ref of rec.live) if (!ref.deref()) rec.live.delete(ref);
-			}
+			rec.live.add(new WeakRef(inst));
+			if (++rec.n % 256 === 0) for (const ref of rec.live) if (!ref.deref()) rec.live.delete(ref);
 			return run.call(this, inst);
 		};
 		this.on("new", rec.fn);
 		rec.on = true;
 		rec.row?.sync(true);
+		// Re-attach to every instance this plugin reached before (a disable() kept them tracked, never cleared).
+		for (const ref of rec.live) { const inst = ref.deref(); if (inst) run(inst); }
 	}
 
 	static disable(rec){
@@ -119,7 +139,6 @@ export class Plugin extends Events(Object) {
 		this.off("new", rec.fn);
 		rec.on = false;
 		for (const ref of rec.live) { const inst = ref.deref(); if (inst) rec.plugin.detach?.(inst); }
-		rec.live.clear();
 		rec.row?.sync(false);
 	}
 
@@ -138,6 +157,14 @@ export class Plugin extends Events(Object) {
 		Object.defineProperties(row, { host: { value: this }, record: { value: rec }, plugin: { value: rec.plugin } });
 		rec.row = row;
 		this._list.add(row);
+		return row;
+	}
+
+	// One row of an INSTANCE's `plugins` list: enabled/config start unset, so PluginEntry falls back to the class row.
+	static add_instance_row(inst, rec){
+		const row = new PluginEntry({ id: rec.name, name: rec.name, enabled: null, config: null });
+		Object.defineProperties(row, { host: { value: inst }, record: { value: rec }, plugin: { value: rec.plugin }, instance: { value: true } });
+		inst._plugins.add(row);
 		return row;
 	}
 

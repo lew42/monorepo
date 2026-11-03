@@ -147,6 +147,61 @@ test("the page can list the live plugin-using classes", t => {
 	t.ok(Plugin.hosts.includes(H10), "Plugin.hosts holds every class that used or listed a plugin");
 });
 
+test("enable() re-attaches to every still-live tracked instance, not just new ones", t => {
+	calls.length = 0;
+	class H14 extends Plugin {}
+	new H14({ tag: "single" });               // exists before use(): never tracked
+	H14.use(Spy);
+	t.eq(calls.length, 0, "use() alone does not reach a pre-existing instance");
+	new H14({ tag: "new1" });
+	t.eq(calls, [["attach", "Spy", "new1"]], "the new instance was attached and is now tracked");
+	H14.unuse(Spy);
+	calls.length = 0;
+	H14.use(Spy);
+	t.eq(calls, [["attach", "Spy", "new1"]], "re-enable reattached the tracked instance, not the untracked singleton");
+});
+
+test("a per-instance switch: enabled is unset and follows the class row, off/on touches only that instance", t => {
+	calls.length = 0;
+	class H11 extends Plugin {}
+	H11.use(Spy);
+	const a = new H11({ tag: "a" });
+	calls.length = 0;
+	const row = a.plugins.find("Spy");
+	t.eq(row.get("enabled"), true, "unset: follows the class row (on)");
+	row.set({ enabled: false });
+	t.eq(calls, [["detach", "Spy", "a"]], "off: detached this instance only");
+	calls.length = 0;
+	row.set({ enabled: true });
+	t.eq(calls, [["attach", "Spy", "a"]], "on: reattached this instance only");
+	H11.unuse(Spy);
+	t.eq(row.get("enabled"), true, "its own explicit true no longer follows the class row once off");
+});
+
+test("the item-tool delta shape works on both Host.plugins and inst.plugins", t => {
+	calls.length = 0;
+	class H12 extends Plugin {}
+	H12.use(Spy);
+	H12.plugins.set({ Spy: { enabled: false } });
+	t.eq(H12.plugins.find("Spy").get("enabled"), false, "class list toggled off");
+	const inst = new H12({ tag: "z" });
+	calls.length = 0;
+	inst.plugins.set({ Spy: { enabled: true } });
+	t.eq(calls, [["attach", "Spy", "z"]], "instance list toggled on: attach ran for this instance only");
+});
+
+test("instance config falls back to the class config until this instance sets its own", t => {
+	class Dim2 { static defaults = { on: true, opacity: 0.6 }; static attach(){} }
+	class H13 extends Plugin {}
+	H13.use(Dim2);
+	const inst = new H13({ tag: "c" });
+	const row = inst.plugins.find("Dim2");
+	t.eq(row.get("config"), { opacity: 0.6 }, "falls back to the class config");
+	row.set({ config: { opacity: 0.9 } });
+	t.eq(row.get("config"), { opacity: 0.9 }, "its own override, once set");
+	t.eq(H13.plugins.find("Dim2").get("config"), { opacity: 0.6 }, "the class row is unaffected");
+});
+
 test("the server shim: Server/Events.js is a Plugin that keeps assign, then new, then initialize", t => {
 	const order = [];
 	class Sock extends ServerEvents { initialize(){ order.push("initialize:" + this.ws); } }

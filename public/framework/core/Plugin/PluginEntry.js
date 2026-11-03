@@ -7,6 +7,17 @@ export class PluginEntry extends Item {
 
 	get fields(){ return this.plugin?.fields ?? []; }
 
+	// An INSTANCE row (Plugin.add_instance_row) starts unset: until this instance overrides it, "enabled" and
+	// "config" read the class row's live values (rec.on / rec.config) instead of this row's own null.
+	get_one(key){
+		const stored = super.get_one(key);
+		if (this.instance && stored == null) {
+			if (key === "enabled") return this.record?.on;
+			if (key === "config") return this.record?.config;
+		}
+		return stored;
+	}
+
 	// A row is active when it is on and the row above it (the plugin it is a sub-plugin of) is active.
 	get active(){ return !!this.get_one("enabled") && this.up?.active !== false; }
 
@@ -27,6 +38,11 @@ export class PluginEntry extends Item {
 	set_enabled(value){
 		const rec = this.record;
 		if (!rec) return this.put("enabled", !!value);
+		if (this.instance) {
+			this.host.toggle_plugin(rec, !!value);
+			this.put("enabled", !!value);
+			return;
+		}
 		value ? this.host.enable(rec) : this.host.disable(rec);
 		this.put("enabled", rec.on);
 		this.save_row();
@@ -35,14 +51,15 @@ export class PluginEntry extends Item {
 	set_config(value){
 		const rec = this.record, config = { ...this.get_one("config"), ...value };
 		this.put("config", config);
+		if (this.instance) return;   // an instance override is not a saved class preference
 		if (rec) rec.config = config;
 		this.save_row();
 	}
 
-	// Only a change made through the row is saved; a use() in code is the program's own wish, not a saved preference.
+	// Only a change made through a CLASS row is saved; a use() in code and an instance override are not preferences.
 	save_row(){
 		const rec = this.record;
-		if (rec) this.host.store.set(rec.key, { on: rec.on, config: rec.config });
+		if (rec && !this.instance) this.host.store.set(rec.key, { on: rec.on, config: rec.config });
 	}
 }
 Item.register(PluginEntry, "PluginEntry");

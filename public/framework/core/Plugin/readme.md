@@ -14,15 +14,19 @@ Badge.use(Glow);                     // every NEW Badge reaches Glow.attach(badg
 Badge.unuse(Glow);                   // the hook is gone; live badges are told Glow.detach(badge)
 Badge.available(Glow);               // known but off: shows as a switched-off row
 Badge.plugins.set({ Glow: { enabled: false } });   // the list is live; what the item tool sends works too
+
+const b = new Badge();
+b.plugins.set({ Glow: { enabled: false } });       // THIS instance only — unset follows the class row above
 ```
 
 [Try it live](/framework/core/Plugin/): the page has a control panel (checkbox, open-a-row settings, sliders, a number you drag).
 
 ## Structure
 
-- `Plugin.js` — `class Plugin extends Events(Object)`. Constructor: assign the args, `emit("new")` on the class, then `instantiate()` → `initialize()`. Static `on/off/once/clear/emit` keep class-level listeners; `"new"` walks the class chain, parents first, so a subclass reaches its parents' plugins. Static `use/unuse/available/plugins`. A plugin is anything with `static attach(instance)` (`setup` is still accepted), a plain function, and optionally `detach`, `defaults` (`on` plus config) and `fields` (what a panel draws).
-- `PluginEntry.js` — one row of `Host.plugins`, an `Item` with `name`, `enabled`, `config`. `set_enabled` installs or removes the hook; `set_config` saves; `active` is false when a parent plugin is off; `row.plugins` is the plugin's own list (sub-plugins).
-- `Plugin.test.mjs` — 12 tests, `node public/framework/core/Plugin/Plugin.test.mjs`.
+- `Plugin.js` — `class Plugin extends Events(Object)`. Constructor: assign the args, `emit("new")` on the class, then `instantiate()` → `initialize()`. Static `on/off/once/clear/emit` keep class-level listeners; `"new"` walks the class chain, parents first, so a subclass reaches its parents' plugins. Static `use/unuse/available/plugins`. A plugin is anything with `static attach(instance)` (`setup` is still accepted), a plain function, and optionally `detach`, `defaults` (`on` plus config) and `fields` (what a panel draws). `enable()` tracks every instance it reached (a `WeakRef`, kept past a `disable()`) and re-attaches to the still-live ones the next time it is enabled — a live singleton gets the plugin back without a reload.
+- `inst.plugins` — the same shape, per INSTANCE: one row per class-level plugin, `enabled`/`config` unset until that instance overrides them. Unset reads the class row live (`PluginEntry.get_one` falls back to `rec.on` / `rec.config`); toggling a row runs `attach`/`detach` on that one instance only (`Plugin#toggle_plugin`), and is never saved to `Plugin.store` — an instance override is not a class preference.
+- `PluginEntry.js` — one row of `Host.plugins` or `inst.plugins`, an `Item` with `name`, `enabled`, `config`. `set_enabled` installs or removes the hook (class row) or calls `toggle_plugin` (instance row); `set_config` saves (class row only); `active` is false when a parent plugin is off; `row.plugins` is the plugin's own list (sub-plugins).
+- `Plugin.test.mjs` — 17 tests, `node public/framework/core/Plugin/Plugin.test.mjs`.
 - Saved state: `Plugin.store` (a `Map` in node; the page swaps in localStorage), key `plugin.<Host>.<Plugin>` = `{on, config}`. Only a change made through a row is saved.
 - `Server/Events.js` is now a two-line subclass of `Plugin`, so the server's classes (`Server`, `Socket`, `Servex/*`) are all pluggable and keep their import.
 
