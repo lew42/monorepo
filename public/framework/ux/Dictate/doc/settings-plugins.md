@@ -36,9 +36,15 @@ The owner's ask: a Servex side setting as the bridge, so an agent (or a future c
 - **The gap**: everything else (Recite's parts, most of `SETTINGS`) is `localStorage` only, browser-side, invisible to Servex and to `item`. Wiring a plugin group onto `core/Plugin`'s `Host.use` doesn't by itself make it `item`-reachable — that needs the group's `set_config` to also `POST /api/session/settings` (or a sibling route) so the session record carries it, the way wake policy already does.
 - **The per-device open item stands**: ([`ux/Dictate/readme.md`](/framework/ux/Dictate/readme.md#one-session-across-tabs-and-settings-per-device)) "a settings record in Servex, read at load, with the browser's copy as a cache" — this doc's Servex bridge is the mechanism that item already needs; building it answers both asks at once.
 
-## The per-instance toggle: built, in core/Plugin itself
+## The per-instance settings: built, in core/Plugin itself
 
-`Host.use(P)`/`unuse(P)` is class-wide and does not reach an already-live instance on its own, but a panel does not need to solve that: `core/Plugin` now has `inst.plugins` for exactly this ([`core/Plugin/readme.md`](/framework/core/Plugin/readme.md), "`inst.plugins`") — one row per class-level plugin, starting unset so it follows the class row, switched for just this instance with `toggle_plugin` the moment the panel's row is touched, and that instance's own wish then wins over a later class-wide `enable()`/`disable()`. The gear panel's "live on/off switch" (above) is this: `inst.plugins.find(name).set({enabled})`, same `PluginEntry` shape as the class list.
+`Host.use(P)`/`unuse(P)` is class-wide and does not reach an already-live instance on its own, but a panel does not need to solve that: `core/Plugin` has `inst.plugins` for exactly this ([`core/Plugin/readme.md`](/framework/core/Plugin/readme.md), "`inst.plugins`"). It holds one row per class-level plugin, starting unset so it follows the class row. `row.set({enabled})` switches the plugin for just this instance, and `row.set({config: {...}})` changes only the fields given (the plugin is re-run, detach then attach, so it re-reads them). That instance's own choice then wins over a later class-wide change of the same thing. The gear panel's "live on/off switch" (above) is this: same `PluginEntry` shape as the class list.
+
+Three more pieces make a chat's settings saveable ([`chat-settings-per-session/plan.md`](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/plan.md)):
+
+- `inst.overrides` is a plain `{Name: {enabled?, config?}}` holding only what this instance changed; that object is what Servex stores on the voice session (`plugins`, [`settings.md`](settings.md)).
+- `inst.load_overrides(obj)` puts a saved object back (opening a session) and `inst.reset_plugins()` empties it (the New session button).
+- `Host.make_default(inst)` copies the overrides to the class defaults (and `Plugin.store`) and clears the instance's own, so the other open chats follow the new default.
 
 ## The settings table (today's knobs, as the build starts from)
 

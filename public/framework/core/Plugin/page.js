@@ -116,6 +116,36 @@ Badge.plugins.set({ Glow: { enabled: false } });
 		for (const row of Badge.plugins) row.on("change", draw);
 		draw();
 
+		md("## One instance, its own settings");
+		md("Each instance keeps only what it changed (`inst.overrides`) and reads the rest from the class. `Host.make_default(inst)` copies an instance's changes to the class; `inst.reset_plugins()` drops them. Change the first badge, watch its overrides, then press Make default: the second badge follows the class, and the first has nothing left to override. (Make default is saved in this browser, like the box above.)");
+		const pair = div.c("flex wrap gap");
+		const insts = [make_badge(), make_badge()];
+		const el = (tag, text, props = {}) => Object.assign(document.createElement(tag), { textContent: text ?? "" }, props);
+		const show = () => pair.el.replaceChildren(...insts.map((b, i) => {
+			const box = el("div"); box.className = "surface pad flex v gap"; box.style.flex = "1 1 16em";
+			box.append(el("span", `Badge ${i + 1}`, { className: "muted" }));
+			for (const row of b.plugins) {
+				const line = el("label"); line.className = "flex v-center gap"; line.style.minHeight = "2.75em";
+				const check = el("input", "", { type: "checkbox", checked: !!row.get("enabled") });
+				check.onchange = () => { row.set({ enabled: check.checked }); show(); };
+				line.append(check, el("span", row.get("name")));
+				for (const f of row.fields.filter(f => f.kind === "slider")) {
+					const range = el("input", "", { type: "range", min: f.min, max: f.max, step: f.step, value: row.get("config")[f.key] });
+					range.oninput = () => row.set({ config: { [f.key]: +range.value } });
+					range.onchange = show;
+					line.append(range);
+				}
+				box.append(line);
+			}
+			box.append(b.el, el("code", `overrides: ${JSON.stringify(b.overrides)}`));
+			const bar = el("div"); bar.className = "flex gap";
+			const button = (text, fn) => el("button", text, { type: "button", onclick: () => { fn(); show(); } });
+			bar.append(button("Make default", () => Badge.make_default(b)), button("Reset to default", () => b.reset_plugins()));
+			box.append(bar);
+			return box;
+		}));
+		show();
+
 		md("## Classes using plugins right now");
 		const hosts = div.c("surface pad flex v");
 		const list_hosts = () => hosts.el.replaceChildren(...Plugin.hosts.map(h => Object.assign(document.createElement("p"), { textContent: `${h.name}: ${[...h.records.values()].map(r => r.name + (r.on ? "" : " (off)")).join(", ")}` })));
