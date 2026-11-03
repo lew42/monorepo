@@ -906,10 +906,8 @@ export function session_state(task, tasks = []){
 		// Its own turns bucketed by the task open at the time (Task.attribute); null when no per-turn record exists (a VS Code tab today).
 		by_task: (turns => turns.length ? task.attribute(turns) : null)(task.constructor.turns_resolver?.(uuid) ?? []), data: { ...task.data }, tasks,
 		// The chat (core/Session/Chat): how many messages, and the last 20, each {id, type, by, at, text, title?, icon?, content?}
-		// (a Prompt's text is its words as said; a card is any message with icon/title set — ask3-cards-by-id).
-		// `?? ""`, never `||`, and `m.title`/`m.icon` read straight off the member: a class with no `text`/`said` getter (an
-		// unregistered type, a core Ref) must answer "", never the stringified word "undefined" (the bug that landed one on the
-		// owner's screen titled "undefined" — the cause was `String(m.said || m.text)` on a member with neither).
+		// (a Prompt's text is its words as said; a card is any message with icon/title set). `?? ""`, never `||`: a member with
+		// neither `text` nor `said` (an unregistered type, a core Ref) must answer "", never the stringified word "undefined".
 		...(task._messages?.length ? { messages: { count: task._messages.length, last: task._messages.messages.slice(-20).map(m => ({
 			id: m.id, type: m.wire(), by: m.by ?? null, at: m.at ?? null, text: String(m.said ?? m.text ?? "").slice(0, 300),
 			...(m.title ? { title: m.title } : {}), ...(m.icon ? { icon: m.icon } : {}), ...(m.content?.length ? { content: m.content.length } : {}) })) } } : {}) };

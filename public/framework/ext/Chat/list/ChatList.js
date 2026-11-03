@@ -11,6 +11,7 @@ import Prompt from "/framework/core/Session/Chat/Prompt.js";
 import Reply from "/framework/core/Session/Chat/Reply.js";
 import Ref from "/framework/core/Item/Ref.js";
 import { DefaultView } from "/framework/ux/Content/Object/DefaultView.js";
+import { note_view } from "../v3/placement.js";
 import { md_into } from "../md.js";
 View.stylesheet(import.meta, "ChatList.css");
 
@@ -54,9 +55,8 @@ export default class ChatList extends JSONL {
 		return el;
 	}
 
-	// `m.title`/`m.icon`/`m.content` are Message's own fields (core/Session/Chat/Message.js), so a card — fresh or an upgraded
-	// Prompt/Reply/note — draws its title and icon the same way regardless of kind (review finding 1, ask3-cards-by-id): the
-	// getters already answer `null`/`""` for a plain message, never the stringified word "undefined".
+	// `note_view` (../v3/placement.js, DOM-free, shared with Chat v3 — Law 6) decides the icon/title/content any message draws,
+	// including a Ref's own label: one place, so this view and v3 never drift.
 	fill(el, m){
 		const kind = m instanceof Prompt ? "prompt" : m instanceof Reply ? "reply" : "note";
 		el.className = `chatlist-msg is-${kind}`;
@@ -65,18 +65,19 @@ export default class ChatList extends JSONL {
 		const who = document.createElement("div"); who.className = "chatlist-who";
 		who.textContent = kind === "prompt" ? "You" : kind === "reply" ? `${m.by} assistant${m.level ? " · " + (this.constructor.LEVELS[m.level] ?? m.level) : ""}` : m.by ?? "note";
 		el.append(who);
-		if (m.icon) { const i = document.createElement("span"); i.className = "material-icons icon chatlist-icon"; i.textContent = m.icon; el.append(i); }
-		if (m.title) { const t = document.createElement("strong"); t.textContent = m.title; el.append(t); }
+		const { title, icon, content } = note_view(m);
+		if (icon || title){
+			const head = document.createElement("div"); head.className = "chatlist-head";
+			if (icon) { const i = document.createElement("span"); i.className = "material-icons icon chatlist-icon"; i.textContent = icon; head.append(i); }
+			if (title) { const t = document.createElement("strong"); t.textContent = title; head.append(t); }
+			el.append(head);
+		}
 		const text = document.createElement("div"); text.className = "chatlist-text md";
 		md_into(text, kind === "prompt" ? (m.text || m.cleaned) : m.text);
 		el.append(text);
-		if (m.content?.length){
+		if (content.length){
 			const list = document.createElement("div"); list.className = "chatlist-content";
-			for (const c of m.content){
-				const line = document.createElement("div"); line.className = "chatlist-content-line";
-				line.textContent = c?.get_one?.("title") ?? c?.get_one?.("text") ?? "";
-				list.append(line);
-			}
+			for (const line of content){ const row = document.createElement("div"); row.className = "chatlist-content-line"; row.textContent = line; list.append(row); }
 			el.append(list);
 		}
 	}
