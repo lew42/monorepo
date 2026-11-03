@@ -9,8 +9,8 @@
 
 ## What happens to a sentence (`Servex/agents/Sessions.js`: `single_say`, `single_cue`, `heard`)
 1. `say()` hands the sentence straight to `single_say()`: no refine, no thought hold, no wake gate, no fast agent, no code-filed Question.
-2. The agent gets `[on <page> at <at>] <words>`, then `(sentence)`, `(prompt p-…)` and `(message m-…)`. It cleans minimally with the item tool: a `{place}` line with `edit: "improve"` and the cleaned `text`. Chat V3 draws that cleaned text through a `clean` line; the raw words stay behind "show raw". A card title is `messages.<message id>.title`.
-3. It ends the turn with no text. Text from a turn with no open cue is dropped in code, even if the model talks.
+2. The agent gets `[on <page> at <at>] <words>`, then `(sentence)`, `(prompt p-…)` and `(message m-…)`. **Per the brief (2026-11-03) it only remembers it: no tool call, no text** (still one cheap model turn per sentence; the batching setting in [steady-display.md](steady-display.md) would remove those).
+3. At the pause cue (step 4) it files the whole burst in one turn with the item tool: a `{place}` line with `edit: "improve"` and the cleaned `text` only for a sentence that is actually wrong (a right one gets no call). Chat V3 draws that cleaned text through a `clean` line; the raw words stay behind "show raw". A card title is `messages.<message id>.title`. Text from a turn with no open cue is dropped in code, even if the model talks.
 4. After `single_pause_ms` of quiet (default 1000, `SERVEX_SESSION_SINGLE_PAUSE_MS`), only when the agent is idle (a busy one is retried), Servex sends `(pause: reply now only if a question is open)` and opens the cue. That turn's text becomes the reply (one short paragraph; [reply-pacing.md](reply-pacing.md)); an empty answer is dropped. A new sentence cancels the timer.
 5. Heavy work: the agent files a task on the session and spawns a helper with `spawn_agent task: {from, id}`; it does no digging and has no `eval`.
 
