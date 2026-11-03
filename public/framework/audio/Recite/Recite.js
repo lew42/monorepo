@@ -502,6 +502,7 @@ export default class Recite extends Part {
 	 *  `pending_updates` rather than queued — `flush_updates()` releases it (behind the direct answer) once that
 	 *  reply lands, or after `update_hold_ms` regardless, so it is never lost if no direct reply ever comes. */
 	agent_update(text, id, from_id){
+		this.cancel_cue();   // the delegate's answer landed: stop waiting for it, same as a direct reply (final()/partial()) — a `{thinking:done:true}` line from the server (above) does the same thing from the other side, but the cue must stop here too even if that line is ever late or dropped (ask10, review round 2, finding 1)
 		if (!this.auto){ this.trace("not read: auto is off (the 🗣 button)", { text: String(text ?? "").slice(0, 40) }); return; }
 		if (id && Recite.was_played(id)) return;
 		const key = Recite.norm(text);

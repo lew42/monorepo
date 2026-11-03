@@ -162,14 +162,18 @@ await check("a hand-off tool call writes one thinking line; a second hand-off in
 	const thinking = () => lines(file).filter(l => l.thinking);
 	s.heard({ type: "tool", name: "spawn_agent" }, agent);
 	assert.equal(thinking().length, 1, "the first hand-off writes the open line");
-	assert.deepEqual(thinking()[0].thinking, { by: "smart" });
+	assert.deepEqual({ by: thinking()[0].thinking.by, done: thinking()[0].thinking.done }, { by: "smart", done: undefined });
 	s.heard({ type: "tool", name: "ask_mastermind" }, agent);
 	assert.equal(thinking().length, 1, "a second hand-off in the same turn writes nothing more");
 	s.heard({ type: "tool", name: "read_file" }, agent);
 	assert.equal(thinking().length, 1, "a plain tool call is not a hand-off");
 });
 
-await check("a say queued before the hand-off suppresses the thinking line, but the answer still arrives", async () => {
+// The real path, driven end to end — no hand-resetting flags (review round 2, finding 3): turn 1 says the
+// hand-off and calls it, turn 1 ends empty (nothing()), the delegate's own message lands as a real `agent_msg`
+// event (the actual wake a `send_to_agent` reply produces — Agents.js emits it before the seat's next turn even
+// starts), and that next turn answers with its own `say`, released the normal way.
+await check("a say queued before the hand-off suppresses the thinking line, but the delegated answer still arrives", async () => {
 	sent.length = 0;
 	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
 	s.say({ session: made.session, path: "/a/", text: "Ask the mastermind, but tell me first.", via: "voice", floor: "speaking" });
@@ -180,15 +184,70 @@ await check("a say queued before the hand-off suppresses the thinking line, but 
 	s.queue_say(s.map[made.session], { text: "I've asked the mastermind." });   // spoken hand-off, said first in this turn
 	s.heard({ type: "tool", name: "spawn_agent" }, agent);
 	assert.equal(thinking().length, 0, "no beep: the seat already said it is handing off");
-	s.release_say(s.map[made.session]);
+	s.heard({ type: "result", text: "" }, agent);   // the turn ends with nothing() right after the tool call
+	s.release_say(s.map[made.session]);   // the say gate's own timer, fired here directly
 	assert.equal(replies().length, 1, "the spoken hand-off itself is delivered");
 	assert.equal(replies()[0].chat.text, "I've asked the mastermind.");
-	// the delegate's own work lands later as a fresh say, in a new turn — the answer still reaches the owner
-	s.map[made.session].turn_said = false;
-	s.queue_say(s.map[made.session], { text: "The tab bar bug is fixed." });
+	assert.equal(thinking().length, 0, "there was never anything open to close");
+
+	s.heard({ type: "agent_msg", from: "mastermind-voice-system", text: "The tab bar bug is fixed." }, agent);   // the delegate's real wake, not a flag
+	s.queue_say(s.map[made.session], { text: "The tab bar bug is fixed." });   // the next turn answers it
+	s.heard({ type: "result", text: "" }, agent);
 	s.release_say(s.map[made.session]);
 	assert.equal(replies().length, 2, "the delegated answer is delivered too, not lost");
 	assert.equal(replies()[1].chat.text, "The tab bar bug is fixed.");
+});
+
+// Deliverable 4 (review round 2, finding 1): when nothing was ever said and the hand-off left the cue open, the
+// delegate's OWN message (an `agent_msg` from someone other than the owner) closes it directly — the owner's own
+// sentences (`from: "owner"`) must never be mistaken for that.
+await check("an agent_msg from the delegate closes an open thinking line; one from the owner never does", async () => {
+	sent.length = 0;
+	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
+	s.say({ session: made.session, path: "/a/", text: "Ask the mastermind about the logo.", via: "voice", floor: "speaking" });
+	await tick();
+	const id = s.map[made.session].smart, agent = { id };
+	const thinking = () => lines(file).filter(l => l.thinking);
+	s.heard({ type: "tool", name: "spawn_agent" }, agent);
+	assert.equal(thinking().length, 1, "the open line is written");
+	s.heard({ type: "agent_msg", from: "owner", text: "also, how's the logo" }, agent);
+	assert.equal(thinking().length, 1, "the owner's own message never closes it");
+	s.heard({ type: "agent_msg", from: "mastermind-voice-system", text: "The new logo is ready." }, agent);
+	assert.equal(thinking().length, 2, "the delegate's own message closes it");
+	assert.deepEqual({ by: thinking()[1].thinking.by, done: thinking()[1].thinking.done }, { by: "smart", done: true });
+	assert.ok(!s.map[made.session].thinking_open);
+});
+
+// Finding 2: a hand-off that never gets answered (the turn ends with nothing(), the brief's own instruction)
+// must not block every LATER, unrelated hand-off from beeping forever — `thinking_open_ms` (here shortened for
+// the test) is the server-side half of Recite's own 60 s give-up.
+await check("a stale open cue (past thinking_open_ms) does not block a later, unrelated hand-off", async () => {
+	sent.length = 0;
+	const s = make({ thinking_open_ms: 10 }), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
+	s.say({ session: made.session, path: "/a/", text: "Ask the mastermind about the logo.", via: "voice", floor: "speaking" });
+	await tick();
+	const id = s.map[made.session].smart, agent = { id };
+	const thinking = () => lines(file).filter(l => l.thinking);
+	s.heard({ type: "tool", name: "spawn_agent" }, agent);
+	s.heard({ type: "result", text: "" }, agent);   // nothing() — the turn ends with the cue still open, unanswered
+	assert.equal(thinking().length, 1, "still open: no answer ever came");
+	await wait(20);   // past thinking_open_ms (10)
+	s.heard({ type: "tool", name: "ask_mastermind" }, agent);   // a later, unrelated hand-off
+	assert.equal(thinking().length, 2, "a stale open cue does not block a fresh one");
+});
+
+// Review note 6: the brief named "a message to the mastermind" — `send_to_agent` to anyone else is not a hand-off.
+await check("send_to_agent only beeps when its own `id` names a mastermind", async () => {
+	sent.length = 0;
+	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
+	s.say({ session: made.session, path: "/a/", text: "Message someone.", via: "voice", floor: "speaking" });
+	await tick();
+	const id = s.map[made.session].smart, agent = { id };
+	const thinking = () => lines(file).filter(l => l.thinking);
+	s.heard({ type: "tool", name: "send_to_agent", input: "id=fast-helper text=hi" }, agent);
+	assert.equal(thinking().length, 0, "a message to a non-mastermind agent does not beep");
+	s.heard({ type: "tool", name: "send_to_agent", input: "id=vscode-mastermind text=hi" }, agent);
+	assert.equal(thinking().length, 1, "a message to a mastermind does");
 });
 
 await check("release_say closes an open thinking line with a done:true line", async () => {
@@ -203,7 +262,7 @@ await check("release_say closes an open thinking line with a done:true line", as
 	s.queue_say(s.map[made.session], { text: "The new logo is ready." });
 	s.release_say(s.map[made.session]);
 	assert.equal(thinking().length, 2, "a done line closes it");
-	assert.deepEqual(thinking()[1].thinking, { by: "smart", done: true });
+	assert.deepEqual({ by: thinking()[1].thinking.by, done: thinking()[1].thinking.done }, { by: "smart", done: true });
 	assert.ok(!s.map[made.session].thinking_open, "the session no longer thinks it is open");
 });
 
