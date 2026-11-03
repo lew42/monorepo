@@ -380,7 +380,7 @@ export default class Sessions {
 	 * null drops a knob back to the default; `tail: true` makes the smart seat follow its own session.jsonl (`tail_log`). Returns the knobs now in force. */
 	settings({ session, gap_ms, every, tail, assistant, plugins } = {}){
 		const s = this.get(session);
-		if (plugins !== undefined) plugins === null ? delete s.plugins : s.plugins = checked_plugins(plugins);   // before any other write: a refused value leaves nothing behind
+		const next_plugins = plugins === undefined || plugins === null ? plugins : checked_plugins(plugins);   // checked first, written last (below)
 		if (assistant !== undefined){
 			if (assistant !== null && !ASSISTANTS.includes(assistant)) throw Object.assign(new Error(`assistant must be ${ASSISTANTS.join(", ")} or null`), { status: 400 });
 			const before = this.assistant_of(s);
@@ -393,6 +393,7 @@ export default class Sessions {
 		if (every !== undefined) patch.every = every;
 		const next = this.waker.checked(s.id, patch);
 		Object.keys(next).length ? s.wake = next : delete s.wake;
+		if (next_plugins === null) delete s.plugins; else if (next_plugins !== undefined) s.plugins = next_plugins;
 		this.save();
 		return { ok: true, ...this.waker.knobs(s.id), ...(s.tail ? { tail: true } : {}), ...(s.assistant ? { assistant: s.assistant } : {}), ...(s.plugins ? { plugins: s.plugins } : {}) };
 	}
