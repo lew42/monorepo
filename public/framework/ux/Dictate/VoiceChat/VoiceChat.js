@@ -1,4 +1,4 @@
-// One Voice Chat per open chat: the class lists the plugins once, each chat switches and configures them for itself.
+// One Voice Chat per Recite (one per page, shared by every chat on it): the class lists the plugins once, each instance switches and configures them for itself.
 // Hosts are handed in by chat.js: `new VoiceChat({ recite, mic })`. Readme: ./readme.md
 import { Plugin } from "../../../core/Plugin/Plugin.js";
 

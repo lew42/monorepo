@@ -1,4 +1,4 @@
-// VoiceChat: one instance per open chat, built on core/Plugin. Plugins read their settings from the instance's own rows.
+// VoiceChat: one instance per Recite (one per page), built on core/Plugin. Plugins read their settings from the instance's own rows.
 // Run: node public/framework/ux/Dictate/VoiceChat/VoiceChat.test.mjs   (written before VoiceChat.js: it fails until the class exists)
 import { test } from "../../../core/Test/Test.js";
 import { Plugin } from "../../../core/Plugin/Plugin.js";

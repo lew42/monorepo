@@ -19,7 +19,7 @@ inst.reset_plugins()               // load_overrides({})
 Host.make_default(inst)            // copy inst.overrides into the class records and Plugin.store, clear this instance's overrides, re-run other live followers
 ```
 
-- A plugin reads its settings from `inst.plugins.find(name).get("config")`. A config change on an instance row stores only the changed fields and re-runs `detach` then `attach` (a plugin with no real `detach` cannot be re-run, so its row reports what is really attached), so a plugin never needs its own "settings changed" code.
+- A plugin reads its settings from `inst.plugins.find(name).get("config")`. A config change on an instance row stores only the changed fields and re-runs `detach` then `attach` (a plugin with no real `detach` cannot be re-run, so its row reports what is really attached), so a plugin usually needs no "settings changed" code. A plugin that holds a mic or a timer open defines `reconfigure(inst)` instead, which core/Plugin calls in place of detach and attach (it only rewrites values).
 - A class-level config change re-runs live instances through `reconfigure_live`, skipping any instance that overrode those fields. A class `disable` still detaches every live instance except one that overrode it on.
 - Only an instance's *overrides* are stored on it, never a copy of the class values, so "falls back to the class" needs no copying.
 
@@ -55,6 +55,8 @@ Flow: opening or switching a session calls `vc.load_overrides(session.plugins ??
 ## Step 5: Make default (merge 5)
 
 Two buttons at the top of the Features section: **Make default** (`VoiceChat.make_default(vc)`: copies the overrides to the class records and `localStorage` through `Plugin.store`, then clears the session's overrides, since they now equal the default) and **Reset to default** (`vc.reset_plugins()` and POST `plugins: null`). The tricky part is that a class default changes for *every other open chat*; they keep their own overrides, and the ones without an override re-attach with the new values (the "class config change re-attaches" rule in step 1).
+
+Carried from the step 2a review: the bar's switch (`Interrupt.bind`) writes an override even when the value equals the class value, so that chat stops following a later Make default for it; drop an override that equals the class value. Also: `Plugin.store` on the chat page is a Map until this step swaps in Servex plus `localStorage`; Interrupt's defaults repeat BargeIn's own (read them from BargeIn); test re-enabling Interrupt after a paused-reading detach.
 
 ## Files, cost, time
 
