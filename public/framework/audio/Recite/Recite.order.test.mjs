@@ -169,6 +169,43 @@ if (Recite) test("Recite: a reply waiting more than 2 minutes, never started, is
 	return r;
 });
 
+// Review finding 1 (ask2b round 4, 2026-11-03): skip_stale() checked only `ts`, and every sentence of a reply
+// carries the time it was QUEUED — so a reply already under way, whose later sentence just happened to be queued
+// over 2 minutes ago (it arrived mid-stream, or sat behind a long pause), could get cut by the very check meant
+// only for a reply that never started. It must stop at the reply already at `this.at`.
+if (Recite) test("Recite: an old timestamp on a later sentence of the CURRENT reply never skips it — a reply already under way is never stale", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	// Case 1: a plain two-sentence reply, playing its first sentence; the second's own `ts` is old (it was queued
+	// a long time before this test's clock, as a slow stream might).
+	r.queue("R1, sentence one. R1, sentence two.");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks[r.at].text, "R1, sentence one.", "the first sentence is playing");
+	r.chunks[1].ts -= 130000;   // more than 2 minutes old, same reply as the one playing
+
+	r.ended();   // the first sentence finishes; skip_stale() runs on index 1 next
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks[r.at].text, "R1, sentence two.", "the second sentence still plays — it is the SAME reply as the one just playing, never stale");
+
+	// Case 2: a reply paused by a barge-in (state "heard", `this.at` unchanged while paused) whose later sentence
+	// ages while it sits paused.
+	r.stop();
+	r.queue("R2, sentence one. R2, sentence two.");
+	await new Promise(res => setTimeout(res, 20));
+	r.pause("heard");   // simulates BargeIn pausing mid-reply, same as a real barge-in
+	t.eq(r.state, "heard", "paused, as if by a barge-in");
+	r.chunks[1].ts -= 130000;
+	r.resume();
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.state, "playing", "resumed");
+	r.ended();   // the first sentence finishes; skip_stale() runs on index 1 next
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks[r.at].text, "R2, sentence two.", "the second sentence still plays after the pause, despite its old ts — same reply, never stale");
+	return r;
+});
+
 // Review finding 1 (ask2b round 2, 2026-11-03): a heard reply stays in `chunks` until `stop()` — insert_at() must
 // anchor on the run around `this.at` (the one playing, or just finished), never `chunks[0]`, or from the third
 // reply on a fresh reply lands among already-heard chunks instead of after the one actually current, and an

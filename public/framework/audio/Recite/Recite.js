@@ -293,13 +293,18 @@ export default class Recite extends Part {
 	finish(){ this.token++; this.at = Math.max(0, this.chunks.length - 1); this.set("idle"); }
 
 	/** A reply still waiting its turn, queued more than 2 minutes ago: the owner has moved on, so when playback
-	 *  would reach it next, drop it (and any more like it) instead of reading it late (newest-first, 2026-11-03). */
+	 *  would reach it next, drop it (and any more like it) instead of reading it late (newest-first, 2026-11-03).
+	 *  Stops at the reply already at `this.at` — every one of ITS sentences shares `this.at`'s own `reply` id, so a
+	 *  reply already playing (or merely paused, `this.at` unchanged) is never cut just because one of its later
+	 *  sentences happened to be queued over 2 minutes ago; only a reply that never started is stale (review
+	 *  finding, ask2b round 4, 2026-11-03 — checking `ts` alone cut a reply that was already under way). */
 	skip_stale(i){
-		while (this.chunks[i] && Date.now() - this.chunks[i].ts > 120000){
+		const playing_reply = this.chunks[this.at]?.reply;
+		while (this.chunks[i] && this.chunks[i].reply !== playing_reply && Date.now() - this.chunks[i].ts > 120000){
 			const id = this.chunks[i].reply;
 			let end = i; while (this.chunks[end + 1]?.reply === id) end++;
 			for (const c of this.chunks.splice(i, end - i + 1)) if (c.src) URL.revokeObjectURL(c.src);
-			this.pending_ids = this.pending_ids.filter(p => { if (p.last !== end) return true; Recite.mark_played(p.id); return false; })
+			this.pending_ids = this.pending_ids.filter(p => { if (p.last < i || p.last > end) return true; Recite.mark_played(p.id); return false; })
 				.map(p => p.last > end ? { ...p, last: p.last - (end - i + 1) } : p);
 		}
 		return i;
