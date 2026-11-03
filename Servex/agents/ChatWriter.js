@@ -118,11 +118,24 @@ export default class ChatWriter {
 	/* A `{place}` line from the fast seat (ux/Dictate/doc/voice-assistant.md), as the line that updates the chat list: its cleaned
 	 * `text` (edit "improve" or "both") becomes that sentence's cleaned text on the Prompt that holds it, IN PLACE: the Prompt keeps its
 	 * position and its raw words. `session` is the replayed Session; null when there is no text, or no sentence with that `at`.
-	 * Where the sentence goes (`to`, `where`) is not mirrored: the list's order never changes. */
+	 * Where the sentence goes is `move_line`'s job (below), never this one's. */
 	static place(session, place){
 		if (!place || !["improve", "both"].includes(place.edit) || !String(place.text ?? "").trim() || !place.re) return null;
 		const s = [...(session?._sentences ?? [])].find(x => x.at === place.re);
 		const p = s && session._messages?.messages.find(m => m.sentences?.includes?.(s.id));
 		return p ? ChatWriter.clean_line(p.id, s.id, place.text) : null;
+	}
+
+	/* A `{place}` that starts a new topic (`to: "card"`, `where: "up"`) or names a message (`after`): the ONE `List.move` line
+	 * that puts the Prompt holding that sentence after the last message (or after `place.after`). The same message moves, so no
+	 * view ever sees a second copy; a view that gets this line moves its drawn node (ext/Chat/v3/ChatV3.js `moved`). null when
+	 * nothing would move: `same`/`beside`/`inside`, no sentence with that `at`, or the Prompt is already there. */
+	static move_line(session, place){
+		if (!place?.re || !(place.after || (place.to === "card" && place.where === "up"))) return null;
+		const list = session?._messages?.messages ?? [], s = [...(session?._sentences ?? [])].find(x => x.at === place.re);
+		const p = s && list.find(m => m.sentences?.includes?.(s.id));
+		const after = place.after ?? list.at(-1)?.id;
+		if (!p || !after || after === p.id || list[list.indexOf(p) - 1]?.id === after) return null;
+		return { messages: { move: { id: p.id, after } } };
 	}
 }

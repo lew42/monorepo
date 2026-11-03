@@ -6,6 +6,9 @@ import Prompt from "../../../core/Session/Chat/Prompt.js";
 
 export const PARAGRAPH_GAP_MS = 4000;   // a pause this long between two sentences' `at` starts a new paragraph (views-on-messages.md)
 
+/** The id a `List.move` delta (`{move:{id, after}}`) names, else null: ChatV3 moves that drawn node instead of redrawing it. */
+export function moved_id(line){ return line?.move?.id ?? null; }
+
 /** The Prompt a Reply answers: the one whose `sentences` holds `re.to`, else the newest Prompt before it in `list` (session.messages.messages). */
 export function owning_prompt(list, reply){
 	const to = reply.re?.to ?? null, prompts = list.filter(m => m instanceof Prompt);

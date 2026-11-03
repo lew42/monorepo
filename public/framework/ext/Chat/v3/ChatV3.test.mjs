@@ -94,6 +94,20 @@ try {
 	await page.waitForSelector(`${card} .chat-v3-reply.is-card .chat-v3-title`, { timeout: 8000 });
 	check("upgrading a Reply (title/icon set on it) makes it draw as a card too", await page.$eval(`${card} .chat-v3-reply.is-card .chat-v3-title`, e => e.textContent) === "Phone the owner back");
 
+	// 9. a MOVE reaches the screen as the same node in a new place (never a redraw); an improve patches the text in place
+	const order = () => page.$$eval(".chat-v3 > .chat-v3-card:not(.chat-v3-draft)", els => els.map(e => e.dataset.id));
+	const lead = ".chat-v3-prompt[data-id='m-1793586471880']";
+	await page.$eval(lead, e => { e.__mark = "same-node"; window.__text = e.querySelector(".chat-v3-text"); });
+	const was = await order();
+	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { move: { id: "m-1793586471880", after: was.at(-1) } } }) + "\n");
+	await page.waitForFunction(id => document.querySelector(".chat-v3 > .chat-v3-card:not(.chat-v3-draft):last-of-type") === document.querySelector(`[data-id='${id}']`) || [...document.querySelectorAll(".chat-v3 > .chat-v3-card")].at(-1)?.dataset.id === id, "m-1793586471880", { timeout: 8000 });
+	const now = await order();
+	check("a move line puts the card last, one copy, the others in order", now.at(-1) === "m-1793586471880" && now.length === was.length && JSON.stringify(now.slice(0, -1)) === JSON.stringify(was.slice(1)), now);
+	check("the moved card is the SAME DOM node, with the same text node (not redrawn)", await page.$eval(lead, e => e.__mark === "same-node" && e.querySelector(".chat-v3-text") === window.__text));
+	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { "m-1793586471880": { clean: { "s-1793586471880": "Can you hear me, please?" } } } }) + "\n");
+	await page.waitForFunction(c => document.querySelector(c + " .chat-v3-text")?.textContent.includes("please"), lead, { timeout: 8000 });
+	check("an improve edit patches the text in place: the card keeps its node and its place", await page.$eval(lead, e => e.__mark === "same-node") && (await order()).at(-1) === "m-1793586471880");
+
 	check("the fixture copy was only ever appended to", readFileSync(here + "fixture/" + live, "utf8").startsWith(before));
 	check("no page errors", errors.length === 0, errors);
 } finally {
