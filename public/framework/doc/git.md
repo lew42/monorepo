@@ -162,6 +162,24 @@ Today the site only reads files; every change goes through git. Writing at runti
 - **Who may push at all:** only accounts with write access to the repo (the owner, invited collaborators, or an installed GitHub app). A branch rule narrows that further for one branch, and its bypass list names who may skip it.
   - A cloud session (Claude Code on the web) pushes its own branch. The PC lands it, or a pull request does.
 
+## merge.mjs and GitHub (built 2026-11-03)
+
+- **The branch name is one constant:** `DEV_BRANCH` in [Server/dev-branch.mjs](../../../Server/dev-branch.mjs). `merge.mjs`, Servex and the Server scripts import it; step 4 edits that one line.
+- **Pull before push.** After a landing moves the dev branch, `merge.mjs` runs `git fetch origin` and brings `origin/<dev>` in first: a fast-forward if the PC is behind, a merge if both moved and `git merge-tree` says it is clean and none of the files origin changed has uncommitted edits in the main tree. Anything else (a conflict, an overlapping uncommitted edit) is only a warning, and the landing stands. Then it pushes. **A refused push** fetches, brings origin in and pushes once more.
+- **The merge commit names the task:** `Merge qf-5: bold the session title` (the branch's last name part, then its head commit's subject).
+- **Publish to `main` is built and OFF.** It opens a pull request dev → `main` through GitHub's API (the rule on `main` still requires one), merges it, moves the local `main` label with `git fetch origin main:main`, and brings the pull request's merge commit back into dev. The token is the one git itself uses (`git credential fill`) or `GH_TOKEN`.
+  - **Turn it on** by setting `{"main": true}` in [Server/publish.json](../../../Server/publish.json) (read at every landing, no restart), or `MERGE_PUBLISH_MAIN=1` in the environment. Turn it on only after `lew42.com` follows `production`, because a push to `main` is a push to the public site until then.
+  - **Run it once by hand:** `MERGE_PUBLISH_MAIN=1 node Server/DevPublish.mjs`.
+  - A `merge.mjs --main <dir>` run (a scratch repo) never pushes.
+
+## The rename (script: Server/rename-dev-branch.mjs)
+
+- **Dry run** (`node Server/rename-dev-branch.mjs`) prints the manifest: every tracked file that names the branch, sorted into **rewrite** (live code, hooks, roles, readmes, docs: replaced in place), **by hand** (this file, CLAUDE.md, the script itself), and **history** (session and task folders, runs, reviews, archives, dated docs, `*.jsonl`, patches: records of what happened, left alone). Add `--manifest <file>` to save it as JSON.
+- **`--apply`** takes `.merge.lock`, edits `Server/dev-branch.mjs` and the rewrite files, runs `git branch -m michael/dev compliance/dev`, commits the rewritten files (a file with someone's uncommitted edits is rewritten but left uncommitted), pushes the new branch with its upstream, and deletes `origin/michael/dev` only if the new branch contains everything on it.
+- **Run it** only when no agent is mid-turn (`node Servex/sustain.mjs --restart --dry-run` lists who is), then `node Servex/sustain.mjs --restart` and restart the dev server, because Servex holds the old name in memory. Any other clone: `git fetch origin; git branch -m michael/dev compliance/dev; git branch -u origin/compliance/dev compliance/dev`.
+- **CLAUDE.md** names the branch twice, in the "Commit after every working step" line. It is the owner's file, so the script never edits it. Proposal: replace `michael/dev` with `compliance/dev` there.
+- Cloudflare gives `compliance/dev` a preview at `compliance-dev-monorepo.lew42.workers.dev`.
+
 ## Where things stand (checked 2026-11-01)
 
 - **`main` was last updated 2026-08-07;** `michael/dev` is about 7,800 commits ahead. `monorepo.lew42.workers.dev` follows `main`; no custom domain is attached.
@@ -172,7 +190,7 @@ Today the site only reads files; every change goes through git. Writing at runti
 
 1. **Drop the pull-request rule on `main`** (keep no-force-push and no-deletion). A 30-second change in GitHub's settings, or an agent with the owner's go.
 2. **Bring `main` up to `michael/dev`** (`git push origin michael/dev:main`, a step forward). Staging then shows today's code; it hasn't moved since 2026-08-07.
-3. **`merge.mjs`:** pull before push; after a push to `main`, fast-forward the local `main`; name the work in the merge message.
-4. **Rename `michael/dev` → `compliance`** (or `compliance/dev`, if fixes will be `compliance/<slug>`): one scripted change to `merge.mjs`, Servex, the docs and the PC's checkout.
+3. **`merge.mjs`: done 2026-11-03** ([Server/DevPublish.mjs](../../../Server/DevPublish.mjs), tests in `Server/DevPublish.test.mjs`). See "merge.mjs and GitHub" below.
+4. **Rename `michael/dev` → `compliance/dev`: script built 2026-11-03, see "The rename" below.**
 5. **When `lew42.com` should serve this repo:** create `production` at `main`, pick one Worker or two (above), attach the domain, and add the promote step.
 6. **Decide about fix branches on GitHub**, and delete the merged branches listed above.
