@@ -151,13 +151,24 @@ Windows treats `Markdown` and `markdown` as the same name; Cloudflare and Linux 
 
 Today the site only reads files; every change goes through git. Writing at runtime (appending JSONL, uploading images into the site's folders) would need a Worker script and storage like R2, and raises git sync, per-environment separation and the fact that R2 objects can't be appended to. Recorded with the hosting ideas: [research/…/ideas/hosting-tunnels-and-cloud-files.md](../research/2026/10/29/persistence-sync/ideas/hosting-tunnels-and-cloud-files.md#writing-files-on-the-hosted-site-the-owner-2026-11-01).
 
+## Done on 2026-11-03 (the owner said go for steps 1 and 2, the rename, and `production`)
+- **Step 2 is done.** `main` was brought up to `michael/dev` through pull request #26, merged at b816f9f27. A pull request was used because the rule below still requires one. Afterwards `michael/dev` and the local `main` label were moved forward to the same commit, so the trees are identical.
+- **`lew42.com` already serves this repo's `main`.** It turned out to be attached to the `monorepo` Worker: today's `framework/core/Settings/Settings.js` loads there. So pushing `main` publishes the public site, not just staging. The session records stay out (`public/.assetsignore`).
+- **`production` exists on GitHub,** at the same commit as `main`. Nothing serves it yet.
+  - **To make `lew42.com` follow it:** Cloudflare dashboard → Workers & Pages → `monorepo` → Settings → Build → Branch control → production branch = `production`.
+  - From then on, `lew42.com` and `monorepo.lew42.workers.dev` show `production`, and staging (`main`) is at `main-monorepo.lew42.workers.dev`.
+- **Step 1 is not done.** An agent's attempt to change the rule on `main` was refused by the tool's safety check, so the owner makes this change.
+  - **Recommended:** keep the rule, and add "Repository admin" to its bypass list (GitHub → Settings → Rules → Rule 1 → Bypass list). Then only the owner's login can push to `main` directly. Anyone else, a cloud agent's GitHub app included, still needs a pull request.
+- **Who may push at all:** only accounts with write access to the repo (the owner, invited collaborators, or an installed GitHub app). A branch rule narrows that further for one branch, and its bypass list names who may skip it.
+  - A cloud session (Claude Code on the web) pushes its own branch. The PC lands it, or a pull request does.
+
 ## Where things stand (checked 2026-11-01)
 
 - **`main` was last updated 2026-08-07;** `michael/dev` is about 7,800 commits ahead. `monorepo.lew42.workers.dev` follows `main`; no custom domain is attached.
 - **`michael/dev` is the PC's working branch** (the PC is named `compliance`). Worktree branches are local only ([worktrees](../../../Server/doc/worktrees.md), [quick fix](../ai/quick-fix/readme.md)).
 - **12 branches on GitHub.** Already fully inside `michael/dev`, so safe to delete: `alex/page-route`, `castin/framework`, `claude/oop-streaming-research`, `claude/replay-tests` (its old name), `claude/web-crawler-design-analysis-og8s3r`, `integration/data-shapes-2`, `michael/echo-wire-format-fix`. Not inside it: `alex/update-working-dir` (5 commits), `edric/new-page` (2), `research/persistence-sync` (8 snapshot commits of the research, replaced by `research/2026/10/29/persistence-sync/`; check, then delete).
 
-## Steps, in order (none done yet)
+## Steps, in order (step 2 done 2026-11-03; see above)
 
 1. **Drop the pull-request rule on `main`** (keep no-force-push and no-deletion). A 30-second change in GitHub's settings, or an agent with the owner's go.
 2. **Bring `main` up to `michael/dev`** (`git push origin michael/dev:main`, a step forward). Staging then shows today's code; it hasn't moved since 2026-08-07.
