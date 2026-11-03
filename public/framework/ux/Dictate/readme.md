@@ -98,6 +98,8 @@ ever appeared — no error, no clue why.
 
 **What do the fast and smart seats each do, and which model, prompt and effort do they run?** A job-by-seat table, the gaps, a recommended split and how to experiment: [`doc/fast-and-smart.md`](doc/fast-and-smart.md).
 
+**Per-chat plugins (Interrupt, Thinking cue; more to come):** [`VoiceChat/readme.md`](VoiceChat/readme.md), one `VoiceChat` per chat on `core/Plugin`.
+
 **Settings panel:** the ⚙ beside ⌨ on the sheet's bar (and the gear on a plain composer) opens "Dictation settings": the send delay (2 s) and the smart assistant's batch seconds and sentences; values live in `localStorage` key `chat.mic.settings.4` (`ext/Chat/Mic.js` `SETTINGS`): [`doc/settings.md`](doc/settings.md).
 
 **How fast is the first reply?** Measured hop by hop, before and after: [`doc/latency.md`](doc/latency.md). **Raw text slow on the phone?** On a slow uplink the upload is the delay, so the WAV is 8-bit mu-law (half the bytes) and a guess in flight is dropped when the segment ends: [`doc/upload.md`](doc/upload.md).

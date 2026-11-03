@@ -8,6 +8,8 @@ import DictateHealth from "./DictateHealth.js";
 import Link from "/framework/dev/Socket/Link.js";
 import Recite from "/framework/audio/Recite/Recite.js";
 import * as report from "/framework/ext/Chat/v2/report.js";
+import { VoiceChat } from "./VoiceChat/VoiceChat.js";
+import { Interrupt } from "./VoiceChat/plugins/index.js";
 
 // One chat box, every surface: doc/chat-notes.md
 const SESSION_KEY = "lew42-voice-session";
@@ -239,6 +241,8 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		});
 	});
 	Recite.shared.barge.use_mic(panel.dictate);   // barge-in hears this chat's own mic while it is on (audio/Recite)
+	const had = Interrupt.snapshot(Recite.shared);   // the browser's remembered barge-in values, read before the chat's plugins write the class values
+	panel.voice_chat = new VoiceChat({ recite: Recite.shared, mic: panel.dictate }).load_overrides(had);   // this chat's plugin settings (ux/Dictate/VoiceChat/readme.md)
 	Recite.shared.on_read = ev => report.read(ev);   // cutting in, 2026-11-03: a note for the assistant's next turn, never a prompt (ext/Chat/v2/report.js, kind "context")
 
 	// Drawing one line must never stop the lines after it: a throw lands on the Page light, with the raw error.
