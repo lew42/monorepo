@@ -30,9 +30,10 @@ export default class BargeIn extends Part {
 	mode = "volume";      // what pauses reading: "volume" (loud, then check) or "words" (only real words from Whisper); remembered as "barge_mode"
 	threshold = 0.35;     // on MicStream's shown level, 0..1 (the meter's own scale)
 	hold_ms = 250;
-	quick_hold_ms = 120;   // cutting in (2026-11-03): the hold used instead of hold_ms when the owner was ALREADY talking as the chunk began (no grace to wait out) — a reply that starts over him must die fast
-	grace_ms = 1000;       // cutting in: for this long after a chunk starts, the fast volume trigger is blocked (the chunk's own first word tripping the mic, then stopping it — the stutter) — but only when the owner was quiet when it began; skipped entirely if he was already talking (quick_hold_ms applies instead)
+	quick_hold_ms = 120;   // cutting in (2026-11-03): the hold used instead of hold_ms when the owner was ALREADY talking as the chunk began (no grace to wait out) — a reply that starts over the owner must die fast
+	grace_ms = 1000;       // cutting in: for this long after a chunk starts, the fast volume trigger is blocked (the chunk's own first word tripping the mic, then stopping it — the stutter) — but only when the owner was quiet when it began; skipped entirely if they were already talking (quick_hold_ms applies instead)
 	chunk_at = 0;          // cutting in: performance.now() the current chunk started playing (Recite.chunk_started())
+	last_speech_at = -Infinity;   // cutting in: performance.now() of the last frame loud enough to count as the owner talking — the one-second hold reads this, not the instantaneous level (review finding 5, 2026-11-03)
 	chunk_grace_skip = false;   // cutting in: true when the owner was already talking as the chunk began — no grace, quick_hold_ms applies
 	listen_ms = 1500;
 	check = true;         // false: any loud sound pauses, with no Whisper check
@@ -165,6 +166,12 @@ export default class BargeIn extends Part {
 	 *  (turn-taking, dictation-v3 2026-11-01): it waits for quiet instead of starting, or interrupting. */
 	speaking(){ return this.level > this.effective_threshold(); }   // not gated on `on` any more (cutting in, 2026-11-03): Recite.start_or_hold() must hold for quiet whether or not the interrupt ear is on, and the level keeps running either way through the chat's own mic (use_mic())
 
+	/** How long since the owner was last loud enough to count as talking (`last_speech_at`, updated every frame in
+	 *  `hear()`) — never "are they loud THIS INSTANT" (`speaking()`), which would read quiet the moment after a
+	 *  word ends, with no hold at all (review finding 5, 2026-11-03). Named `silence_ms`, not `quiet_ms` — that
+	 *  name is already a field (the resume-after-a-barge-in wait, above). */
+	silence_ms(){ return performance.now() - this.last_speech_at; }
+
 	/** The loudness floor a sound must clear to count as the owner talking: raised by `echo_threshold_mult` while
 	 *  `recite.echo_active()` (playing, or just stopped), so the read-aloud voice itself and a cough right after it
 	 *  don't hold a reply back or fire a barge-in (item 22, dictation-v3 2026-11-01). */
@@ -218,6 +225,7 @@ export default class BargeIn extends Part {
 	/** One level frame (about every 8 ms). */
 	hear(shown){
 		this.level = shown;
+		if (shown > this.effective_threshold()) this.last_speech_at = performance.now();   // the one-second hold (Recite.start_or_hold/check_wait) counts from here, not from "is it loud THIS INSTANT" — tracked whatever this.state is, so a reply arriving the moment after the owner stops still waits
 		this.recent_peak = Math.max(shown, this.recent_peak * 0.995);   // a decaying max, not a point sample: owner_spoke() reads it well after the loud instant has passed
 		this.noise_floor *= 0.9993;
 		if (this.state === "checking") this.peak = Math.max(this.peak, shown);

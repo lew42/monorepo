@@ -158,9 +158,11 @@ export default class Recite extends Part {
 	/** Chunk `i` is freshly queued and nothing is playing: start now, or hold until the owner falls quiet. */
 	start_or_hold(i){
 		clearTimeout(this.wait_timer);
-		// at least 1 s of quiet before a fresh reply starts, whatever `barge.on` (the interrupt ear) says — the
-		// mic level keeps running either way, through the chat's own mic (BargeIn.use_mic) (cutting in, 2026-11-03)
-		if (!this.barge?.speaking()){ this.wait_at = null; this.play(i, 0); return; }
+		// at least 1 s of quiet since the owner's LAST HEARD WORD, whatever `barge.on` (the interrupt ear) says and
+		// whatever the level reads right this instant — the mic level keeps running either way, through the chat's
+		// own mic (BargeIn.use_mic) (cutting in, 2026-11-03; review finding 5: checking only the instant level let
+		// a reply start with no hold at all when it arrived a moment after the owner stopped)
+		if (this.quiet_long_enough()){ this.wait_at = null; this.play(i, 0); return; }
 		this.wait_at = i;
 		this.quiet_since_wait = null;
 		this.trace("holding: the owner is talking", { sentence: i });
@@ -168,12 +170,18 @@ export default class Recite extends Part {
 		this.wait_timer = setTimeout(() => this.check_wait(), 80);
 	}
 
-	/** Polls every ~80 ms while `wait_at` is set: starts once the owner has been quiet for `turn_wait_ms`. */
+	/** True once at least `min_quiet_ms()` has passed since `barge.last_speech_at` — never just "is the level low
+	 *  right now" (`speaking()`), which reads quiet the instant a word ends. */
+	quiet_long_enough(){ return !this.barge || (this.barge.silence_ms() >= this.min_quiet_ms()); }
+
+	/** The hold before a fresh reply starts: at least 1 s (cutting in, 2026-11-03), never less than `turn_wait_ms`
+	 *  (default 2500, the no-flood setting) even if that were ever set lower. */
+	min_quiet_ms(){ return Math.max(1000, this.turn_wait_ms ?? 2500); }
+
+	/** Polls every ~80 ms while `wait_at` is set: starts once the owner has been quiet for `min_quiet_ms()`. */
 	check_wait(){
 		if (this.wait_at == null) return;
-		if (this.barge.speaking()){ this.quiet_since_wait = null; this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
-		this.quiet_since_wait ??= performance.now();
-		if (performance.now() - this.quiet_since_wait < (this.turn_wait_ms ?? 2500)){ this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
+		if (!this.quiet_long_enough()){ this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
 		const i = this.wait_at;
 		this.wait_at = this.quiet_since_wait = null;
 		this.play(i, 0);
@@ -482,11 +490,9 @@ export default class Recite extends Part {
 		else this.set("idle");
 	}
 
-	/** Queue the finished sentences of the live reply that are not queued yet (all of it when `all`); always behind
-	 *  whatever is already playing, never replacing it (dictation-v3, 2026-11-01). */
 	/** Real owner speech, right now (cutting in, 2026-11-03): stop at once and drop the WHOLE queue, not just the
 	 *  reply that was playing — every reply still waiting its turn is skipped too, so the owner never has to sit
-	 *  through a backlog he never asked to hear. No auto-resume unless `resume_after_cut` is on. Each dropped reply
+	 *  through a backlog they never asked to hear. No auto-resume unless `resume_after_cut` is on. Each dropped reply
 	 *  is reported once through `on_read` (the reply playing, if any, as "cut" with the words it had reached; every
 	 *  other distinct reply still queued as "skipped"), so the page can tell the assistant what was and wasn't
 	 *  heard. A reply only held by turn-taking (`wait_at`, never started) counts as queued too. */
@@ -530,6 +536,8 @@ export default class Recite extends Part {
 
 	set_resume_after_cut(on){ this.resume_after_cut = !!on; Recite.remember("resume_after_cut", this.resume_after_cut); this.changed(); }
 
+	/** Queue the finished sentences of the live reply that are not queued yet (all of it when `all`); always behind
+	 *  whatever is already playing, never replacing it (dictation-v3, 2026-11-01). */
 	take(text, all){
 		const live = this.live, rest = text.slice(live.queued);
 		const cut = all ? rest.length : Recite.complete(rest);

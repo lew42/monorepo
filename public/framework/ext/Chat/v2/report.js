@@ -33,5 +33,16 @@ export function click(label){ post(current_session, "click", label); }
 
 /** Opt-in: any other page context worth a mention ("the drawer is now open", a page's own state). */
 export function context(text){ post(current_session, "context", text); }
+/** The plain sentence for a `Recite.on_read` event (audio/Recite's `cancel_unheard()`, cutting in 2026-11-03):
+ *  pure, so it is testable with no fetch and no session — `read(ev)` below posts what this returns. */
+export function read_note(ev){
+	return ev.heard === "cut"
+		? `(cut off after "${ev.words}"; the rest was not heard — treat it as unsaid)`
+		: `(a reply was skipped, never heard: it queued behind a reply you then cancelled)`;
+}
+/** A reply was cut short or skipped before it was heard: filed as `context`, same as `context()` above — a note
+ *  for the assistant's next turn, never a prompt and never read back aloud. Wired to `Recite.shared.on_read` in
+ *  `ux/Dictate/chat.js` (never the other way: this file never imports `ux/Dictate`). */
+export function read(ev){ post(current_session, "context", read_note(ev)); }
 /** A diagnostic line filed in the session record as a `log` line (the error path), never read as speech: "recite: loaded …". */
 export function diag(text){ post(current_session, "error", text); }

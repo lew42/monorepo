@@ -219,7 +219,9 @@ if (Recite) test("Recite: a reply waits for the owner to stop talking before it 
 	r.barge.hear(0.05);   // the level actually drops below threshold: real quiet, not a flipped flag
 	t.eq(r.barge.speaking(), false, "and speaking() now reads quiet from that same real path");
 	await new Promise(res => setTimeout(res, 150));
-	t.eq(r.state, "playing", "started once you had been quiet for a moment");
+	t.eq(r.state, "idle", "not yet — at least 1 s of quiet is required since the last heard word, not just 'is it quiet this instant' (review finding 5, 2026-11-03)");
+	await new Promise(res => setTimeout(res, 950));   // past the 1 s floor since the hear(0.9) above
+	t.eq(r.state, "playing", "started once you had been quiet for at least a second");
 
 	r.barge.owner_spoke("hold on a second");   // a real barge-in, mid-reply, through the real wire-line route
 	t.eq(r.state, "idle", "cancelled at once, by default — no resume to wait for");
@@ -279,11 +281,11 @@ if (Recite) test("Recite: a second reply queued while the first still waits for 
 
 	r.barge.hear(0.05);   // the level drops below threshold: real quiet
 	clearTimeout(r.wait_timer);
-	r.check_wait();   // first poll: notices quiet, starts the clock — not long enough yet
-	t.eq(r.state, "idle", "not yet — the quiet window just started");
-	r.quiet_since_wait = performance.now() - (r.turn_wait_ms + 5);   // fast-forward past turn_wait_ms: no real sleep needed
+	r.check_wait();   // the last loud frame (hear(0.9), above) is still under min_quiet_ms ago: not long enough yet
+	t.eq(r.state, "idle", "not yet — less than 1 s since the last heard word");
+	r.barge.last_speech_at = performance.now() - (r.min_quiet_ms() + 5);   // fast-forward past the hold: no real sleep needed
 	clearTimeout(r.wait_timer);
-	r.check_wait();   // second poll: quiet long enough — starts
+	r.check_wait();   // quiet long enough now — starts
 	await new Promise(res => setTimeout(res, 20));   // let play()'s render promise settle
 	t.eq(r.state, "playing", "started once quiet");
 	t.eq(r.at, 0, "chunk 0 (the first reply) plays first, not chunk 1");
