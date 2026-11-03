@@ -113,17 +113,18 @@ await check("pause cue: one cue after the pause, none while sentences keep comin
 	const id = s.map[made.session].smart;
 	idle(id);
 	for (let i = 0; i < 4; i++){ await wait(25); say(`More ${i}.`); idle(id); }
-	assert.equal(to_seat().filter(c => /\(pause:/.test(c.text)).length, 0, "no cue while sentences keep coming");
+	const is_cue = c => c.text === "(pause)";
+	assert.equal(to_seat().filter(is_cue).length, 0, "no cue while sentences keep coming");
 	agents.live.get(id).state = "working";
 	await wait(120);
-	assert.equal(to_seat().filter(c => /\(pause:/.test(c.text)).length, 0, "no cue into a busy seat");
+	assert.equal(to_seat().filter(is_cue).length, 0, "no cue into a busy seat");
 	idle(id);
 	await wait(120);
-	const cues = to_seat().filter(c => /\(pause:/.test(c.text));
+	const cues = to_seat().filter(is_cue);
 	assert.equal(cues.length, 1, "exactly one cue after the pause");
-	assert.match(cues[0].text, /reply now only if a question is open/);
+	assert.equal(cues[0].text, "(pause)");
 	await wait(150);
-	assert.equal(to_seat().filter(c => /\(pause:/.test(c.text)).length, 1, "and no second cue for the same silence");
+	assert.equal(to_seat().filter(is_cue).length, 1, "and no second cue for the same silence");
 });
 
 await check("text without an open cue is dropped; an empty turn is dropped; a cue turn's text becomes the reply", async () => {
@@ -197,3 +198,9 @@ try {
 	fs.rmSync(repo, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 }
 console.log(`Sessions.single.test.mjs: ${checks} checks passed`);
+
+await check("filler (listening, filed, no question is open, only punctuation) is dropped; a real answer is not", async () => {
+	const { is_filler } = await import("./Sessions.js");
+	for (const x of ["", "-", "…", "Listening.", "Filed.", "no question is open", "Nothing is open.", "Understood", "(listening)"]) assert.ok(is_filler(x), `filler: ${x}`);
+	for (const x of ["Yes, the cue is one second.", "Two ways: A, or B. Which?"]) assert.ok(!is_filler(x), `kept: ${x}`);
+});

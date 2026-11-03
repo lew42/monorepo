@@ -720,7 +720,7 @@ export default class Sessions {
 			if (!this.single_seat(s) || !this.awake(s, "smart")) return;
 			if (this.servex.agents.live.get(s.smart)?.state === "working") return void timers.set(s.id, setTimeout(fire, this.single_pause_ms).unref());
 			s.cue_open = true;
-			this.send(s, "smart", "(pause: reply now only if a question is open)");
+			this.send(s, "smart", "(pause)");
 		};
 		const t = setTimeout(fire, this.single_pause_ms);
 		t.unref?.();
@@ -1565,7 +1565,7 @@ export default class Sessions {
 	heard(event, agent){
 		const who = this.by_agent.get(agent.id), s = who && this.map[who.id];
 		if (!s) return;
-		if (event.type === "delta" && !event.nested) return who.role === "smart" && this.single_seat(s) && !s.cue_open ? undefined : this.streaming(s, who.role, agent.id, event.text);   // single: only a cue turn is a reply
+		if (event.type === "delta" && !event.nested) return who.role === "smart" && this.single_seat(s) ? undefined : this.streaming(s, who.role, agent.id, event.text);   // single: its reply is one short paragraph, shown whole at the turn's end, so filler can be dropped before anyone sees it
 		if (event.type === "tool" && !event.nested) return this.streaming(s, who.role, agent.id, null);   // text before a tool call was thinking aloud
 		if (event.type !== "result") return;
 		this.streaming(s, who.role, agent.id, null);
@@ -1574,7 +1574,7 @@ export default class Sessions {
 		if (who.role === "smart" && this.single_seat(s)){
 			const cued = !!s.cue_open;
 			delete s.cue_open;
-			if (!cued || !String(event.text ?? agent.last_text ?? "").trim()) return;
+			if (!cued || is_filler(event.text ?? agent.last_text)) return;
 		}
 		/* The voice assistant answers with a {place} line (item tool), never in chat: whatever text its turn ends on is dropped. */
 		if (who.role === "fast" && s.fast_seat === "voice") return;
@@ -1721,9 +1721,9 @@ export default class Sessions {
 	}
 }
 
-/* A fast reply that says nothing: its brief's `(listening)`, or a short filler line ("Go ahead, listening."). */
-const FILLER = /^(?:keep going|go (?:on|ahead)|i'?m (?:here|listening)|still (?:here|listening|with you)|noted|got it|take your time|mm-?hm+|ok(?:ay)?|listening|sure)\b[\s,.!-]*(?:(?:i'?m |i am )?(?:still )?(?:listening|here|with you)[\s,.!-]*)?$/i;
-export const is_filler = text => { const t = String(text ?? "").trim(); return !t || /^\(listening\)/i.test(t) || (t.length <= 40 && FILLER.test(t)); };
+/* A reply that says nothing: `(listening)`, only punctuation, or a short filler line ("Go ahead, listening.", "Filed.", "No question is open."); a single-seat cue turn drops it too. */
+const FILLER = /^(?:keep going|go (?:on|ahead)|i'?m (?:here|listening)|still (?:here|listening|with you)|noted|got it|take your time|mm-?hm+|ok(?:ay)?|listening|sure|filed|done|understood|waiting|silent|no question(?: is)?(?: open)?|nothing(?: is)?(?: open)?|nothing to (?:say|add|reply)|no reply)\b[\s,.!-]*(?:(?:i'?m |i am )?(?:still )?(?:listening|here|with you)[\s,.!-]*)?$/i;
+export const is_filler = text => { const t = String(text ?? "").trim(); return !/[\p{L}\p{N}]/u.test(t) || /^\(listening\)/i.test(t) || (t.length <= 40 && FILLER.test(t)); };
 
 /* The fast assistant's "this is a new topic" marker (`session-fast.md`): always the first
  * thing in its reply, stripped off by `heard()` above before anything else reads the text. */

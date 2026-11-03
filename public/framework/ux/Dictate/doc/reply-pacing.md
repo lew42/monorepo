@@ -2,6 +2,8 @@
 
 **What this is.** How Voice Chat's assistant should reply: in small pieces, shown and read one at a time, so a reply is never a wall of text that nobody reads. This is the owner's design from a dictation at about 16:30 (verbatim in the tab's prompt log). It isn't built yet. The single voice assistant's build ([its brief](/framework/ai/sessions/2026/10/20/session-e00f55c9/single-voice-assistant/requirements.md)) carries the instructions part; the read-aloud mechanics are a follow-up.
 
+**Status, checked 2026-11-03:** still not built, apart from the brief asking for one short paragraph. The halfway trigger for the next paragraph, how it uses the read marker, and what happens when you cut in are designed in [echo-and-turn-taking.md](echo-and-turn-taking.md#one-paragraph-at-a-time-the-next-one-started-at-the-halfway-point-asked-2026-11-03).
+
 ## Silent first
 - **Often no reply is needed.** The assistant upgrades the owner's words into cards, files the task and fixes the text, and that shows it heard and understood. Reading aloud is optional: it's for the car, or walking with the phone in a pocket.
 - **The best moment to speak:** the owner asks a question, then pauses.
