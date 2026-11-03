@@ -16,10 +16,11 @@ import fs from "node:fs";
 import path from "node:path";
 import Lifecycle, { main_repo } from "../Servex/Lifecycle.js";
 import Worktrees from "./Worktrees.mjs";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 const argv = process.argv.slice(2), arg = k => argv.includes(k) ? argv[argv.indexOf(k) + 1] : null;
 const STOP = argv.includes("--stop-stale"), DRY = argv.includes("--dry"), OLDER_H = Number(arg("--older-than")) || 0;
-const BASE = "michael/dev", main = main_repo();
+const BASE = DEV_BRANCH, main = main_repo();
 const git = (...a) => { try { return { ok: true, out: execFileSync("git", ["-C", main, ...a], { encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "ignore"] }) }; } catch { return { ok: false, out: "" }; } };
 const slash = s => String(s || "").replace(/\\/g, "/").toLowerCase();
 

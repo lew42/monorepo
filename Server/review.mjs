@@ -74,8 +74,9 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import SessionRecord from "./SessionRecord.mjs";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
-const BASE = "michael/dev";
+const BASE = DEV_BRANCH;
 const MCP = "http://127.0.0.1:8090/mcp";
 const WIDTHS = [400, 1200, 1920, 3440];
 // The review order every system's questions sort into (Server/review.mjs --questions, and the

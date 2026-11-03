@@ -8,6 +8,7 @@ import { refuse_links_into_main } from "../Server/junction-guard.mjs";
 import { stamp, HOME } from "./home.js";
 import WorktreeWatch from "./WorktreeWatch.js";
 import Landed from "./Landed.js";
+import { DEV_BRANCH } from "../Server/dev-branch.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const slash = p => String(p).split(path.sep).join("/");
@@ -40,7 +41,7 @@ export default class Pool extends Events {
     initialize(){
         this.K ??= 6;
         this.N_hours ??= 6;
-        this.base ??= "michael/dev";
+        this.base ??= DEV_BRANCH;
         this.prefix ??= process.env.SERVEX_POOL_PREFIX || "qf";
         this.main ??= Pool.main_repo();
         this.file ??= process.env.SERVEX_POOL_FILE || path.join(this.main, ".worktree-pool.json");
@@ -89,8 +90,8 @@ export default class Pool extends Events {
         return [{
             name: "take_worktree",
             description: "Take a ready quick-fix worktree: returns {id, path, branch, url} at once — a worktree already branched from"
-                + " michael/dev and brought current, its own server answering at `url`. Write your fix into `path`, run"
-                + " `node Server/smoke.mjs <path>`, merge into michael/dev, then call return_worktree. Servex prepares the next one"
+                + " " + DEV_BRANCH + " and brought current, its own server answering at `url`. Write your fix into `path`, run"
+                + " `node Server/smoke.mjs <path>`, merge into " + DEV_BRANCH + ", then call return_worktree. Servex prepares the next one"
                 + " in the background. If none is ready yet, this waits while one is made (about 20 s). At most 6 exist; when all"
                 + " 3 are taken it answers an error naming who holds each.",
             inputSchema: { type: "object", properties: {} },
@@ -98,7 +99,7 @@ export default class Pool extends Events {
         }, {
             name: "return_worktree",
             description: "Hand a worktree back to the pool. It must be clean and hold nothing unmerged (unused, merged, or applied by Server/merge.mjs into"
-                + " michael/dev); it is then fast-forwarded to michael/dev and marked ready. Anything uncommitted or unmerged is"
+                + ` ${DEV_BRANCH}); it is then fast-forwarded to ${DEV_BRANCH} and marked ready. Anything uncommitted or unmerged is`
                 + " refused with the list — nothing is ever discarded.",
             inputSchema: { type: "object", required: ["id"], properties: { id: { type: "string", description: "The id take_worktree gave, e.g. qf-1." } } },
             handler: async (args, ctx) => JSON.stringify(await this.give_back(args.id, ctx?.caller), null, 2)

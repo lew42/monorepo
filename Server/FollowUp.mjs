@@ -11,6 +11,7 @@ import SessionIndex from "./SessionIndex.mjs";
 import LandingCheck from "./LandingCheck.mjs";
 import SessionRecord from "./SessionRecord.mjs";
 import AIIndex from "./AIIndex.mjs";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 const QUIET_H = 2, UNWORKED_D = 7, OPEN_ASK = new Set(["building", "routed", "queued", "stalled", undefined]), LIVE = new Set(["working", "idle", "dormant"]);
 const DOC = path.join(TaskDirs.AI, "doc"), ts = s => { const t = Date.parse(s); return Number.isNaN(t) ? 0 : t; };
@@ -26,7 +27,7 @@ export default class FollowUp {
 		this.window = this.state.tasks.filter(t => this.in_window(t));   // the state's tasks touched in the window
 		for (const t of this.window) this.rows.push(this.read_task(t));
 		this.read_asks();
-		this.unmerged_branches = (git("branch", "--no-merged", "michael/dev") ?? "").split("\n").map(s => s.replace(/^[*+ ]+/, "").trim()).filter(Boolean);
+		this.unmerged_branches = (git("branch", "--no-merged", DEV_BRANCH) ?? "").split("\n").map(s => s.replace(/^[*+ ]+/, "").trim()).filter(Boolean);
 		return this;
 	}
 
@@ -47,7 +48,7 @@ export default class FollowUp {
 	ahead(branch){
 		if (!this.merged_cache.has(branch)) {
 			const ok = git("rev-parse", "--verify", "--quiet", "refs/heads/" + branch) !== null;
-			this.merged_cache.set(branch, ok ? Number(git("rev-list", "--count", "michael/dev.." + branch)) : null);
+			this.merged_cache.set(branch, ok ? Number(git("rev-list", "--count", DEV_BRANCH + ".." + branch)) : null);
 		}
 		return this.merged_cache.get(branch);
 	}
@@ -106,7 +107,7 @@ export default class FollowUp {
 
 	/** The branch the owner is deciding on, shown only while it still has commits michael/dev lacks; null once merged or gone. */
 	static DECIDE = "michael/property-of";
-	diff_stat(){ return this.ahead(FollowUp.DECIDE) ? git("diff", "--stat", `michael/dev...${FollowUp.DECIDE}`)?.split("\n").slice(-12).join("\n") ?? null : null; }
+	diff_stat(){ return this.ahead(FollowUp.DECIDE) ? git("diff", "--stat", `${DEV_BRANCH}...${FollowUp.DECIDE}`)?.split("\n").slice(-12).join("\n") ?? null : null; }
 
 	/** Healthy plus flagged must equal the state's own task count over the same window. */
 	check(){

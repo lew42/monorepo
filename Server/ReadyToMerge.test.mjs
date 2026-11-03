@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseReady, readyRows, mergeBranch, plainGate, gateOf } from "./ReadyToMerge.mjs";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 let n = 0; const ok = (c, m) => { assert.ok(c, m); n++; };
 const eq = (a, b, m) => { assert.deepEqual(a, b, m); n++; };
@@ -19,11 +20,11 @@ eq(parseReady("not ready: b 1234567"), null);
 // 2. a scratch repo: base, one ready branch, one landed, one gone, one stale
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "rtm-"));
 const g = (...a) => { const r = spawnSync("git", a, { cwd: root, encoding: "utf8" }); assert.equal(r.status, 0, r.stderr); return r.stdout.trim(); };
-g("init", "-q", "-b", "michael/dev"); g("config", "user.email", "t@t"); g("config", "user.name", "t");
+g("init", "-q", "-b", DEV_BRANCH); g("config", "user.email", "t@t"); g("config", "user.name", "t");
 fs.writeFileSync(path.join(root, "a"), "1"); g("add", "."); g("commit", "-qm", "base");
-const mk = (b, f) => { g("checkout", "-qb", b); fs.writeFileSync(path.join(root, f), "x"); g("add", "."); g("commit", "-qm", b); const s = g("rev-parse", "HEAD"); g("checkout", "-q", "michael/dev"); return s; };
+const mk = (b, f) => { g("checkout", "-qb", b); fs.writeFileSync(path.join(root, f), "x"); g("add", "."); g("commit", "-qm", b); const s = g("rev-parse", "HEAD"); g("checkout", "-q", DEV_BRANCH); return s; };
 const sha = mk("task/ready", "r"), landed = mk("task/landed", "l"); g("merge", "-q", "--no-edit", "task/landed");
-const stale0 = mk("task/stale", "s"); g("checkout", "-q", "task/stale"); fs.writeFileSync(path.join(root, "s2"), "x"); g("add", "."); g("commit", "-qm", "more"); g("checkout", "-q", "michael/dev");
+const stale0 = mk("task/stale", "s"); g("checkout", "-q", "task/stale"); fs.writeFileSync(path.join(root, "s2"), "x"); g("add", "."); g("commit", "-qm", "more"); g("checkout", "-q", DEV_BRANCH);
 const day = new Date().toISOString().slice(0, 10).split("-");
 const dir = path.join(root, "public/framework/ai/sessions", ...day, "sess", "task1"); fs.mkdirSync(dir, { recursive: true });
 const rec = path.join(dir, "session.jsonl");

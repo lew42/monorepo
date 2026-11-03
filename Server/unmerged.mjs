@@ -4,6 +4,7 @@
 import { spawn, spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 const run = (cwd, ...a) => spawnSync("git", a, { cwd, encoding: "utf8", windowsHide: true, maxBuffer: 1 << 28 }).stdout ?? "";
 const arun = (cwd, ...a) => new Promise(res => { let out = ""; const p = spawn("git", a, { cwd, windowsHide: true }); p.stdout.on("data", d => out += d); p.on("close", () => res(out)); });
@@ -30,7 +31,7 @@ function owners(cwd, logs){
 	return result;
 }
 
-export async function unmerged({ cwd = process.cwd(), base = "michael/dev", min_hours = 0, now = Date.now(), logs = "public/framework/ai/sessions" } = {}){
+export async function unmerged({ cwd = process.cwd(), base = DEV_BRANCH, min_hours = 0, now = Date.now(), logs = "public/framework/ai/sessions" } = {}){
 	const own = owners(cwd, logs), rows = [], todo = [];
 	for (const branch of lines(run(cwd, "branch", "--list", "worktree/*", "--no-merged", base, "--format=%(refname:short)"))){
 		const raw = lines(run(cwd, "log", `${base}..${branch}`, "--format=@%ct", "--name-only")), log = raw.filter(l => l[0] === "@").map(l => l.slice(1));
@@ -51,7 +52,7 @@ export async function unmerged({ cwd = process.cwd(), base = "michael/dev", min_
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])){
 	const arg = n => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : undefined; };
-	const rows = await unmerged({ base: arg("--base") ?? "michael/dev", min_hours: Number(arg("--hours") ?? 0) });
+	const rows = await unmerged({ base: arg("--base") ?? DEV_BRANCH, min_hours: Number(arg("--hours") ?? 0) });
 	if (process.argv.includes("--write")){   // the file the In-flight block reads (tracked so the fetch never 404s)
 		const file = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public/framework/ai/unmerged.json");
 		const fs = await import("node:fs"), text = JSON.stringify({ rows: rows.map(({ files, ...r }) => ({ ...r, files: files.length })) }) + "\n";

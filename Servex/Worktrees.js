@@ -8,6 +8,7 @@ import TaskDirs from "../Server/TaskDirs.mjs";
 import SessionRecord from "../Server/SessionRecord.mjs";
 import Landed from "./Landed.js";
 import WorktreePreview from "../Server/WorktreePreview.mjs";
+import { DEV_BRANCH } from "../Server/dev-branch.mjs";
 
 /* WORKTREE CLEAN-UP — a worktree is temporary (process-monitor, 2026-09-30).
  *
@@ -50,7 +51,7 @@ export default class Worktrees extends Events {
 	initialize(){
 		this.main ??= path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 		this.dir ??= path.resolve(this.main, "..", "worktrees");
-		this.base ??= "michael/dev";
+		this.base ??= DEV_BRANCH;
 		this.every ??= Number(process.env.SERVEX_WORKTREES_EVERY_MS) || 10 * 60000;
 		this.removing ??= process.env.SERVEX_WORKTREE_CLEANUP !== "0";
 		this.stopping ??= process.env.SERVEX_WORKTREE_STOP_SERVERS !== "0";

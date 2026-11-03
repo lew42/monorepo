@@ -28,13 +28,14 @@ import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 // the MAIN repo (its registry, pool file and worktree list), even when this copy runs from a worktree
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const MAIN = path.resolve(HERE, execFileSync("git", ["rev-parse", "--git-common-dir"], { cwd: HERE, encoding: "utf8", windowsHide: true }).trim(), "..").replace(/\\/g, "/");
 const DRY = process.argv.includes("--dry");
 const ONLY = process.argv.includes("--only") ? process.argv[process.argv.indexOf("--only") + 1] : null;
-const BASE = "michael/dev";
+const BASE = DEV_BRANCH;
 const SALVAGE = process.argv.includes("--salvage");
 const MANIFEST = process.argv.includes("--manifest") ? process.argv[process.argv.indexOf("--manifest") + 1] : null;
 const POOL_NAME = new RegExp(`^${process.env.SERVEX_POOL_PREFIX || "qf"}-\\d+$`);

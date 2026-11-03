@@ -14,6 +14,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { status as reviewStatus } from "./review.mjs";
 import WorktreePreview from "./WorktreePreview.mjs";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 const READY = /^ready: (\S+) (?:at )?([0-9a-f]{7,40})\b[;,.:]?\s*(.*)$/s;
 
@@ -84,7 +85,7 @@ function dayDirs(sessions, since) {
  * base (default michael/dev), days (14), now} */
 export async function readyRows(opts = {}) {
 	const repo = opts.repo || mainRoot(process.cwd());
-	const root = opts.root || repo, base = opts.base || "michael/dev";
+	const root = opts.root || repo, base = opts.base || DEV_BRANCH;
 	const since = (opts.now ?? Date.now()) - (opts.days ?? 14) * 864e5;
 	const sessions = path.join(root, "public/framework/ai/sessions");
 	const latest = new Map();   // branch -> row (latest line wins)

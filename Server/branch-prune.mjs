@@ -6,9 +6,10 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 const RUN = process.argv.includes("--run");
-const BASE = "michael/dev";
+const BASE = DEV_BRANCH;
 const git = (...a) => spawnSync("git", a, { encoding: "utf8", windowsHide: true });
 const lines = out => out.stdout.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
 

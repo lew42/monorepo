@@ -18,6 +18,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Browser from "./Browser.mjs";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 const SKIP = [/\/sessions\/\d{4}\/\d{2}\/\d{2}\//, /\/ai\/\d{4}-\d{2}-\d{2}\//, /\/ai\/\d{4}\/\d{2}\/\d{2}\//, /\/tasks\//, /\/shots\//, /\/archive\//, /\/node_modules\//];
 
@@ -31,7 +32,7 @@ export default class NavCheck {
 	static parent_of(url){ return url.replace(/[^/]+\/$/, ""); }
 
 	/** The page urls a diff adds, from `git diff --diff-filter=A` (or `git log --since`), minus the skipped kinds. */
-	static added(dir, { range = "michael/dev...HEAD", since } = {}){
+	static added(dir, { range = `${DEV_BRANCH}...HEAD`, since } = {}){
 		const args = since ? ["log", `--since=${since}`, "--diff-filter=A", "--name-only", "--format=", "--", "public"]
 			: ["diff", "--no-renames", "--diff-filter=A", "--name-only", range, "--", "public"];
 		const out = spawnSync("git", args, { cwd: dir, encoding: "utf8", windowsHide: true, maxBuffer: 64 << 20 });

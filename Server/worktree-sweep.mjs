@@ -23,6 +23,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { links_into_main } from "./junction-guard.mjs";
 import SessionRecord from "./SessionRecord.mjs";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 // `ROOT` is normally this script's own repo (Server/.. — a worktree's copy sweeps that
 // worktree's own Servex state). `--root <dir>` (proof only, same idea as merge.mjs's `--main`)
@@ -118,7 +119,7 @@ export function entry_for_task_dir(dir){
 
 function is_merged(branch){
 	if (!branch) return false;
-	const r = spawnSync("git", ["merge-base", "--is-ancestor", branch, "michael/dev"], { cwd: ROOT, windowsHide: true });
+	const r = spawnSync("git", ["merge-base", "--is-ancestor", branch, DEV_BRANCH], { cwd: ROOT, windowsHide: true });
 	return r.status === 0;
 }
 

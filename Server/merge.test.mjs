@@ -3,6 +3,7 @@
 import fs from "node:fs"; import os from "node:os"; import path from "node:path"; import assert from "node:assert";
 import { execFileSync, spawnSync } from "node:child_process";
 import LandingCheck from "./LandingCheck.mjs";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 const MERGE = path.join(import.meta.dirname, "merge.mjs");
 let passed = 0;
@@ -16,7 +17,7 @@ function scratch(branch){
 	const root = fs.mkdtempSync(path.join(os.tmpdir(), "mergetest-")); tmps.push(root);
 	const main = path.join(root, "main"), wt = path.join(root, "wt");
 	fs.mkdirSync(main);
-	git(main, "init", "-b", "michael/dev"); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
+	git(main, "init", "-b", DEV_BRANCH); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
 	write(main, "a.txt", "1\n"); write(main, "other.txt", "x\n"); write(main, ".gitignore", ".merge-landed.json\n.merge.lock\n"); git(main, "add", "."); git(main, "commit", "-m", "base");
 	git(main, "worktree", "add", "-b", branch, wt);
 	write(wt, "a.txt", "2\n"); write(wt, "b/new.txt", "NEW\n"); git(wt, "add", "."); git(wt, "commit", "-m", "work");
@@ -112,7 +113,7 @@ function scratchTests(branch, { baseX, baseTest, branchX, branchTest }){
 	const root = fs.mkdtempSync(path.join(os.tmpdir(), "mergetest-")); tmps.push(root);
 	const main = path.join(root, "main"), wt = path.join(root, "wt");
 	fs.mkdirSync(main);
-	git(main, "init", "-b", "michael/dev"); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
+	git(main, "init", "-b", DEV_BRANCH); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
 	write(main, "a.txt", "1\n"); write(main, "t/x.mjs", baseX); write(main, "t/x.test.mjs", baseTest);
 	write(main, ".gitignore", ".merge-landed.json\n.merge.lock\npublic/\n"); git(main, "add", "."); git(main, "commit", "-m", "base");
 	git(main, "worktree", "add", "-b", branch, wt);
@@ -166,7 +167,7 @@ test("gate: a review in a task dir of an old session (years old, not in the 4-da
 	const { main, wt } = scratch("worktree/oldtask");
 	const gate = () => spawnSync("node", [MERGE, wt, "--gate-only"], { encoding: "utf8", windowsHide: true });
 	const td = "public/framework/ai/sessions/2025/01/05/session-aaaa1111/oldtask";
-	const base = git(main, "rev-parse", "michael/dev").trim();
+	const base = git(main, "rev-parse", DEV_BRANCH).trim();
 	assert.match(gate().stdout, /no review/, "before any review is written");
 	const review = { review: { verdict: "pass", findings: [], file: "review.md", branch: "worktree/oldtask", head: base, at: "2026-11-02T00:00:00Z" } };
 	write(wt, td + "/task.jsonl", [{ task: "oldtask" }, review].map(o => JSON.stringify(o)).join("\n") + "\n");

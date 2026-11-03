@@ -19,6 +19,7 @@ import os from "node:os";
 import path from "node:path";
 import { spawn, execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { DEV_BRANCH } from "../../Server/dev-branch.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "../..");
@@ -122,7 +123,7 @@ const GROUPS = path.join(REPO, "public/framework/ai/rail/groups.json");
 const groups_before = fs.existsSync(GROUPS);
 function groups_in(){
 	if (groups_before) return JSON.parse(fs.readFileSync(GROUPS, "utf8"));
-	const text = execFileSync("git", ["show", "michael/dev:public/framework/ai/rail/groups.json"], { cwd: REPO, encoding: "utf8", windowsHide: true });
+	const text = execFileSync("git", ["show", `${DEV_BRANCH}:public/framework/ai/rail/groups.json`], { cwd: REPO, encoding: "utf8", windowsHide: true });
 	fs.writeFileSync(GROUPS, text);
 	return JSON.parse(text);
 }

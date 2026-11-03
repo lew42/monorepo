@@ -9,6 +9,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
+import { DEV_BRANCH } from "../Server/dev-branch.mjs";
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "pool-restore-"));
 process.env.SERVEX_HOME = path.join(root, "home");
@@ -17,7 +18,7 @@ const git = (cwd, ...a) => execFileSync("git", ["-C", cwd, ...a], { encoding: "u
 const slash = p => p.split(path.sep).join("/");
 
 const main = path.join(root, "main"); fs.mkdirSync(main);
-git(main, "init", "-q", "-b", "michael/dev"); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
+git(main, "init", "-q", "-b", DEV_BRANCH); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
 const N = 1500;
 for (let d = 0; d < 15; d++){
     fs.mkdirSync(path.join(main, `d${d}`));
@@ -77,7 +78,7 @@ for (const [id, wreck] of Object.entries(ways)){
     assert.equal(git(main, "show", `${r.branch}:late.txt`), "written after the wreck");
     assert.ok(files.length >= N, `${id}: the salvage branch still holds the whole tree (${files.length}), not 1,500 deletions`);
     assert.equal(git(w, "branch", "--show-current"), `worktree/${id}`, `${id}: back on its own branch`);
-    assert.equal(git(w, "rev-parse", "HEAD"), git(main, "rev-parse", "michael/dev"), `${id}: back at the base`);
+    assert.equal(git(w, "rev-parse", "HEAD"), git(main, "rev-parse", DEV_BRANCH), `${id}: back at the base`);
     assert.equal(git(w, "status", "--porcelain"), "", `${id}: the slot is clean again`);
     console.log(`ok ${id}: salvaged in ${took} ms, worst event-loop stall ${worst} ms, ${r.what}`);
 }

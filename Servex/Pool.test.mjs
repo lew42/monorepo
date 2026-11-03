@@ -7,6 +7,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { DEV_BRANCH } from "../Server/dev-branch.mjs";
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "pool-reclaim-"));
 process.env.SERVEX_HOME = path.join(root, "home");
@@ -16,7 +17,7 @@ const slash = p => p.split(path.sep).join("/");
 const write = (dir, file, text) => { fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true }); fs.writeFileSync(path.join(dir, file), text); };
 
 const main = path.join(root, "main"); fs.mkdirSync(main);
-git(main, "init", "-q", "-b", "michael/dev"); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
+git(main, "init", "-q", "-b", DEV_BRANCH); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
 write(main, "a.txt", "a"); write(main, "log.jsonl", "{\"n\":0}\n"); git(main, "add", "."); git(main, "commit", "-qm", "init");
 fs.mkdirSync(path.join(root, "worktrees"));
 const wt = id => path.join(root, "worktrees", id);
@@ -42,7 +43,7 @@ pool.slots = ["qf-1", "qf-2", "qf-3"].map((id, i) => ({ id, path: slash(wt(id)),
 const removed = []; pool.remove = slot => { removed.push(slot.id); pool.forget(slot); }; pool.top_up = () => {};
 
 assert.equal((await pool.standing(pool.slots[1])).on_base, true, "qf-2: diff is on the base though the commits are not ancestors");
-assert.throws(() => git(main, "merge-base", "--is-ancestor", "worktree/qf-2", "michael/dev"), "qf-2 is not an ancestor: only its diff landed");
+assert.throws(() => git(main, "merge-base", "--is-ancestor", "worktree/qf-2", DEV_BRANCH), "qf-2 is not an ancestor: only its diff landed");
 const v = id => pool.verdict(pool.slots.find(s => s.id === id), rows, []);
 assert.equal((await v("qf-1")).free, true, "clean, stopped, nothing ahead");
 assert.equal((await v("qf-2")).free, true, "landed as a diff");

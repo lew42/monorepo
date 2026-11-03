@@ -10,13 +10,14 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import Pool from "../Servex/Pool.js";
 import { refuse_links_into_main } from "./junction-guard.mjs";
 import WorktreePreview from "./WorktreePreview.mjs";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const slash = s => String(s || "").replace(/\\/g, "/");
 const lower = s => slash(s).toLowerCase().replace(/\/+$/, "");
 
 export default class Worktrees {
-    static BASE = "michael/dev";
+    static BASE = DEV_BRANCH;
     static MANIFEST = "public/framework/ai/sessions/worktree-removals.jsonl";
     static READY = "public/framework/ai/sessions/ready-to-merge.jsonl";   // one line per branch whose worktree went but whose commits are not on the base
     // files a worktree's own dev server or a screenshot run rewrites: losing them loses nothing

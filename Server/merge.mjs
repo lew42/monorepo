@@ -1,7 +1,7 @@
 /* `node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run] [--quick [--asked <iso>]]` — the one serialized way to land a worktree.
  * It takes a lock (.merge.lock at the main repo root) so two merges never run at once, refuses
  * uncommitted work in the worktree, smoke-tests it (Server/smoke.mjs), then lands its branch on
- * michael/dev with the live-reload hold on. It NEVER runs `git merge` over uncommitted edits in the
+ * the dev branch (DEV_BRANCH, Server/dev-branch.mjs) with the live-reload hold on, naming the task in the merge commit. It NEVER runs `git merge` over uncommitted edits in the
  * main tree (2026-09-25: that reset 85 of the owner's files): it compares the branch's files with
  * the main tree's dirty files FIRST.
  *
@@ -75,8 +75,10 @@ import { refuse_links_into_main } from "./junction-guard.mjs";
 import SessionRecord from "./SessionRecord.mjs";
 import MergeTests from "./MergeTests.mjs";
 import IgnoredImageLinks from "./IgnoredImageLinks.mjs";
+import { DEV_BRANCH } from "./dev-branch.mjs";
+import DevPublish from "./DevPublish.mjs";
 
-const BASE = "michael/dev";
+const BASE = DEV_BRANCH;
 const argv = process.argv.slice(2);
 const flag = name => { const i = argv.indexOf(name); if (i < 0) return undefined; const [, v] = argv.splice(i, 2); return v; };
 const bool = name => argv.includes(name) && (argv.splice(argv.indexOf(name), 1), true);
@@ -487,7 +489,7 @@ function commitLanded(list, head, branch) {
 	const tmp = path.join(gitDir, `merge-index.${process.pid}`);
 	const env = { ...process.env, GIT_INDEX_FILE: tmp };
 	const tg = (...a) => spawnSync("git", a, { cwd: MAIN, env, encoding: "utf8", windowsHide: true, maxBuffer: 64 << 20 });
-	const msg = `Merge branch '${branch}' into ${BASE}\n`;
+	const msg = DevPublish.merge_message(branch, git(MAIN, "log", "-1", "--format=%s", head).stdout.trim()) + "\n";
 	try {
 		for (let attempt = 0; attempt < 3; attempt++) {
 			const old = git(MAIN, "rev-parse", "HEAD").stdout.trim();
@@ -611,7 +613,7 @@ try {
 				 * leaving paths staged for "the next commit" fed the stray-staged pile (2026-11-02). Nothing is
 				 * ever left staged; a failed commit leaves the files written and unstaged, and says so. */
 				const sha = commitLanded(changed, head, branch);
-				if (sha) console.log(`three-way merge committed: Merge branch '${branch}' into ${BASE} (${sha.slice(0, 9)})`);
+				if (sha) console.log(`three-way merge committed: ${git(MAIN, "log", "-1", "--format=%s", sha).stdout.trim()} (${sha.slice(0, 9)})`);
 				else { console.error(`NOT COMMITTED: the landed files are written in the main tree, unstaged: ${changed.join(", ")}`); code = 1; }
 				// the check: nothing the diff touched may be untracked now (a modified live .jsonl is the site's own append, not a miss)
 				const untracked = untrackedAmong(changed);
@@ -708,11 +710,11 @@ try {
 	if (!dryRun) try { fs.unlinkSync(lockFile); } catch {}
 }
 // KEEP GITHUB CURRENT (the owner, 2026-10-29: "when we're committing, we should be pushing to GitHub regularly"; a cloud
-// agent's clone was 6,089 commits behind). A landing that moved michael/dev pushes it; a failed push only warns.
+// agent's clone was 6,089 commits behind). A landing that moved the dev branch brings origin/<dev> in first, pushes, and retries
+// a refused push once (Server/DevPublish.mjs); a failure only warns. Publishing to main is a separate switch, off by default.
 if (!dryRun && !mainArg && code === 0 && git(MAIN, "rev-parse", BASE).stdout.trim() !== startHead) {
-	const p = git(MAIN, "push", "origin", BASE);
-	if (p.status === 0) console.error(`pushed ${BASE} to origin`);
-	else console.error(`push of ${BASE} failed (the merge stands): ${(p.stderr || "").trim().split("\n").pop()}`);
+	const pushed = DevPublish.push_dev(MAIN, BASE, { log: s => console.error(s) });
+	if (pushed.ok && DevPublish.publish_on()) await DevPublish.publish_main(MAIN, BASE, { log: s => console.error(s) });
 }
 // Refresh the unmerged-branches list the In-flight block reads (Server/unmerged.mjs; ~30 s, so detached, never blocks a landing).
 if (!dryRun && !mainArg) try { spawn(process.execPath, [path.join(MAIN, "Server/unmerged.mjs"), "--write"], { cwd: MAIN, detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}

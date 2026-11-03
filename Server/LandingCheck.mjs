@@ -6,11 +6,12 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import SessionIndex from "./SessionIndex.mjs";
 import SessionRecord from "./SessionRecord.mjs";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 const REPO = path.resolve(import.meta.dirname, "..");
 
 export default class LandingCheck {
-	static BASE = "michael/dev";
+	static BASE = DEV_BRANCH;
 
 	static git(...a){
 		try { return execFileSync("git", a, { cwd: LandingCheck.REPO, encoding: "utf8", windowsHide: true, maxBuffer: 1 << 28, stdio: ["ignore", "pipe", "ignore"] }).trim(); }

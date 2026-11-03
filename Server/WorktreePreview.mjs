@@ -11,11 +11,12 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import { task_state, entry_for_task_dir, task_for_worktree } from "./worktree-sweep.mjs";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 const PRIVATE = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/;
 
 export default class WorktreePreview {
-	static BASE = "michael/dev";
+	static BASE = DEV_BRANCH;
 
 	/* The page a task's `preview` asks for: true -> "/", a "/path/" -> that path, anything else -> null. */
 	static page(state){

@@ -8,6 +8,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { DEV_BRANCH } from "../Server/dev-branch.mjs";
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "pool-heal-"));
 process.env.SERVEX_HOME = path.join(root, "home");
@@ -16,14 +17,14 @@ const { default: Log } = await import("./Log.js");
 const git = (cwd, ...a) => execFileSync("git", ["-C", cwd, ...a], { encoding: "utf8", windowsHide: true }).trim();
 
 const main = path.join(root, "main"); fs.mkdirSync(main);
-git(main, "init", "-q", "-b", "michael/dev"); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
+git(main, "init", "-q", "-b", DEV_BRANCH); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
 fs.writeFileSync(path.join(main, "a.txt"), "a"); git(main, "add", "."); git(main, "commit", "-qm", "init");
 fs.mkdirSync(path.join(root, "worktrees"));
 const wt = id => path.join(root, "worktrees", id);
 git(main, "worktree", "add", "-q", "-b", "worktree/qf-2", wt("qf-2"));
 fs.writeFileSync(path.join(wt("qf-2"), "work.txt"), "precious");            // uncommitted work
 git(main, "branch", "worktree/qf-3"); git(main, "checkout", "-q", "worktree/qf-3");
-fs.writeFileSync(path.join(main, "b.txt"), "b"); git(main, "add", "."); git(main, "commit", "-qm", "unmerged"); git(main, "checkout", "-q", "michael/dev");
+fs.writeFileSync(path.join(main, "b.txt"), "b"); git(main, "add", "."); git(main, "commit", "-qm", "unmerged"); git(main, "checkout", "-q", DEV_BRANCH);
 
 const said = [];
 const pool = new Pool({ main: main.split(path.sep).join("/"), file: path.join(root, "pool.json"), servex: { say: m => said.push(m), agents: { registry_list: () => [] }, queued: () => [{ id: "minion-x", reason: "waits for a pool worktree", since: new Date(Date.now() - 20 * 60000).toISOString() }] } });
@@ -56,7 +57,7 @@ assert.equal(pool.take_sync("agent-b").id, "qf-1", "take, return, take");
 
 // a server log that the slot's server dirtied and michael/dev also changed must not block the return
 fs.writeFileSync(path.join(main, "files.jsonl"), "1\n"); git(main, "add", "."); git(main, "commit", "-qm", "files");
-git(wt("qf-1"), "merge", "-q", "--ff-only", "michael/dev");
+git(wt("qf-1"), "merge", "-q", "--ff-only", DEV_BRANCH);
 Object.assign(pool, { slots: [{ id: "qf-1", path: wt("qf-1").split(path.sep).join("/"), branch: "worktree/qf-1", state: "taken", taken_by: "x", baseline: {} }] });
 fs.writeFileSync(path.join(wt("qf-1"), "files.jsonl"), "1\n2\n");          // the slot's server wrote a line
 fs.writeFileSync(path.join(main, "files.jsonl"), "1\n3\n"); git(main, "commit", "-qam", "dev changed files.jsonl");

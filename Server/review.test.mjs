@@ -7,6 +7,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 let n = 0;
 const t = (cond, what) => { assert.ok(cond, what); n++; };
@@ -84,10 +85,10 @@ eq(worktreeOf(rec.split("\n").slice(0, 2).join("\n")), "C:\a\b", "an escaped Win
 eq(worktreeOf('{"assign":{}}'), null, "no worktree named");
 {
 	const here = execFileSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf8" }).trim();
-	if (execFileSync("git", ["-C", here, "rev-parse", "--abbrev-ref", "HEAD"], { encoding: "utf8" }).trim() !== "michael/dev")
+	if (execFileSync("git", ["-C", here, "rev-parse", "--abbrev-ref", "HEAD"], { encoding: "utf8" }).trim() !== DEV_BRANCH)
 		eq(branchTree(os.tmpdir(), here), here, "a tree on its own branch is kept");
 	const common = path.dirname(execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], { encoding: "utf8" }).trim());
-	if (execFileSync("git", ["-C", common, "rev-parse", "--abbrev-ref", "HEAD"], { encoding: "utf8" }).trim() === "michael/dev") {
+	if (execFileSync("git", ["-C", common, "rev-parse", "--abbrev-ref", "HEAD"], { encoding: "utf8" }).trim() === DEV_BRANCH) {
 		const dir = fs.mkdtempSync(path.join(os.tmpdir(), "rv-"));
 		fs.writeFileSync(path.join(dir, "session.jsonl"), '{"assign":{"now":"x"}}\n');
 		assert.throws(() => branchTree(dir, common), /refused/); n++;

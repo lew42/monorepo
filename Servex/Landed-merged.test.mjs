@@ -7,13 +7,14 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import LandingCheck from "../Server/LandingCheck.mjs";
 import Landed from "./Landed.js";
+import { DEV_BRANCH } from "../Server/dev-branch.mjs";
 
 const d = fs.mkdtempSync(path.join(os.tmpdir(), "landed-merged-"));
 const g = (...a) => execFileSync("git", a, { cwd: d, windowsHide: true, stdio: "pipe" }).toString();
-g("init", "-b", "michael/dev"); g("config", "user.email", "t@t"); g("config", "user.name", "t");
+g("init", "-b", DEV_BRANCH); g("config", "user.email", "t@t"); g("config", "user.name", "t");
 fs.writeFileSync(path.join(d, "a.txt"), "1"); g("add", "."); g("commit", "-m", "base");
 g("checkout", "-b", "worktree/t1"); fs.writeFileSync(path.join(d, "b.txt"), "B"); g("add", "."); g("commit", "-m", "work");
-g("checkout", "michael/dev");
+g("checkout", DEV_BRANCH);
 LandingCheck.REPO = d;
 
 const now = new Date().toISOString();

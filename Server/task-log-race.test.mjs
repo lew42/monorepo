@@ -13,6 +13,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const MERGE = process.env.MERGE_UNDER_TEST || path.join(HERE, "merge.mjs"), GUARD = path.join(HERE, "..", ".claude", "hooks", "git-guard.mjs");
@@ -28,7 +29,7 @@ const LIVE = '{"live":"appended by another agent"}';
 function setup(name, { racer }) {
 	const root = path.join(SCRATCH, name), main = path.join(root, "main"), wt = path.join(root, "wt");
 	fs.mkdirSync(main, { recursive: true });
-	git(main, "init", "-q", "-b", "michael/dev");
+	git(main, "init", "-q", "-b", DEV_BRANCH);
 	fs.writeFileSync(path.join(main, "a.jsonl"), '{"n":1}\n');
 	fs.writeFileSync(path.join(main, "zz.jsonl"), '{"z":1}\n');
 	fs.writeFileSync(path.join(main, "code.txt"), Array.from({ length: 20 }, (_, i) => `line ${i + 1}`).join("\n") + "\n");

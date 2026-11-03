@@ -10,6 +10,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "worktree-preview-"));
 process.env.SERVEX_HOME = path.join(root, "home");
@@ -30,7 +31,7 @@ const eq = (a, b, msg) => { assert.equal(a, b, msg); checks++; };
 
 // the scratch repo: main on michael/dev, four worktrees beside it
 const main = path.join(root, "main"); fs.mkdirSync(main);
-git(main, "init", "-q", "-b", "michael/dev"); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
+git(main, "init", "-q", "-b", DEV_BRANCH); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
 write(main, "a.txt", "a"); git(main, "add", "."); git(main, "commit", "-qm", "init");
 const wts = path.join(root, "worktrees"); fs.mkdirSync(wts);
 const wt = n => path.join(wts, n).split(path.sep).join("/");

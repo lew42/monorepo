@@ -5,13 +5,14 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import Worktrees from "./Worktrees.mjs";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "wt-")), main = path.join(root, "main").replace(/\\/g, "/");
 const git = (cwd, ...a) => { const r = spawnSync("git", ["-C", cwd, ...a], { encoding: "utf8", windowsHide: true }); assert.equal(r.status, 0, `git ${a.join(" ")}: ${r.stderr}`); return r.stdout; };
 const put = (dir, file, text) => { fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true }); fs.writeFileSync(path.join(dir, file), text); };
 
 fs.mkdirSync(main);
-git(main, "init", "-q", "-b", "michael/dev");
+git(main, "init", "-q", "-b", DEV_BRANCH);
 git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
 put(main, "a.txt", "a\n"); git(main, "add", "."); git(main, "commit", "-qm", "init");
 const add = (name) => { const p = path.join(root, name).replace(/\\/g, "/"); git(main, "worktree", "add", "-q", "-b", `worktree/${name}`, p); return p; };

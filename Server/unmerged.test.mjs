@@ -5,19 +5,20 @@ import os from "node:os";
 import path from "node:path";
 import assert from "node:assert/strict";
 import { unmerged } from "./unmerged.mjs";
+import { DEV_BRANCH } from "./dev-branch.mjs";
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "unmerged-"));
 const git = (...a) => execFileSync("git", a, { cwd: dir, encoding: "utf8", env: { ...process.env, GIT_AUTHOR_NAME: "t", GIT_AUTHOR_EMAIL: "t@t", GIT_COMMITTER_NAME: "t", GIT_COMMITTER_EMAIL: "t@t" } });
 const write = (f, s) => { fs.mkdirSync(path.dirname(path.join(dir, f)), { recursive: true }); fs.writeFileSync(path.join(dir, f), s); };
-git("init", "-q", "-b", "michael/dev");
+git("init", "-q", "-b", DEV_BRANCH);
 write("a.txt", "a\n"); git("add", "."); git("commit", "-qm", "base");
 
 git("checkout", "-qb", "worktree/open-one"); write("one.txt", "1\n"); git("add", "."); git("commit", "-qm", "one");
-git("checkout", "-q", "michael/dev");
+git("checkout", "-q", DEV_BRANCH);
 git("checkout", "-qb", "worktree/twin"); write("two.txt", "2\n"); git("add", "."); git("commit", "-qm", "two");
-git("checkout", "-q", "michael/dev"); write("gap.txt", "g\n"); git("add", "."); git("commit", "-qm", "gap"); git("cherry-pick", "worktree/twin");   // same patch, new commit
+git("checkout", "-q", DEV_BRANCH); write("gap.txt", "g\n"); git("add", "."); git("commit", "-qm", "gap"); git("cherry-pick", "worktree/twin");   // same patch, new commit
 git("checkout", "-qb", "worktree/merged"); write("m.txt", "m\n"); git("add", "."); git("commit", "-qm", "m");
-git("checkout", "-q", "michael/dev"); git("merge", "-q", "--no-ff", "-m", "merge m", "worktree/merged");
+git("checkout", "-q", DEV_BRANCH); git("merge", "-q", "--no-ff", "-m", "merge m", "worktree/merged");
 write("public/framework/ai/sessions/2026/11/01/s/t1/task.jsonl", '{"assign":{"title":"x","branch":"worktree/open-one"}}\n');
 write("public/framework/ai/sessions/2026/11/01/s/t2/task.jsonl", '{"assign":{"branch":"worktree/twin"}}\n{"log":{"text":"not complete yet"}}\n{"finish":{"outcome":"ok"}}\n');
 write("public/framework/ai/sessions/2026/11/01/s/t3/task.jsonl", '{"log":{"text":"audit mentions worktree/open-one in passing"}}\n');

@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { spawnSync } from "child_process";
+import { DEV_BRANCH } from "../Server/dev-branch.mjs";
 
 /* THE LOG SWEEPER — commits the machine-written logs so the working tree stays quiet.
  *
@@ -47,7 +48,7 @@ export default class LogSweeper {
         this.root ??= process.cwd();
         this.every ??= (Number(process.env.SERVEX_SWEEP_MIN) || 30) * 60000;
         this.max ??= 400;
-        this.branch ??= process.env.SERVEX_SWEEP_BRANCH || "michael/dev";
+        this.branch ??= process.env.SERVEX_SWEEP_BRANCH || DEV_BRANCH;
         this.dry ??= process.env.SERVEX_SWEEP_DRY === "1";
         this.message ??= "servex: log sweep";
         this.last = null;
