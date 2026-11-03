@@ -26,7 +26,7 @@ s.render();                // a View: one row per field
 - **Save policy** (`save:` in the constructor): `"each"` persists on every `set`; `{ debounce_ms }` (the default, 400ms) waits for a quiet gap, using an injectable `clock` (`{setTimeout, clearTimeout}`, for tests); `"manual"` persists only when `save()` is called. `reset()` and `make_default()` always persist immediately, regardless of policy.
 - **Groups** (`groups: { dictate: {...}, recite: {...} }`) make `s.dictate` / `s.recite` a child `Settings` (its own `save: "manual"`, since the parent is what actually calls `persist`). A group's `"change"` bubbles to the parent as `(key, value, "dictate")` and schedules the parent's persist; the parent's `own` includes `{dictate: {...}}` only while that group has an override.
 - `render()` — a View, one row per field by type (`toggle`, `slider`, `number`, `select`, `text`): a slider shows its `low`/`high` end texts and the live value; a select shows the chosen option's `help` text underneath. A `level` string, if given, is shown as a line above the rows. Checked in a browser, not in the node tests.
-- `Settings.test.mjs` — 12 tests (31 checks), `node public/framework/core/Settings/Settings.test.mjs`.
+- `Settings.test.mjs` — 13 tests, `node public/framework/core/Settings/Settings.test.mjs`.
 
 ## Who reads this next
 
