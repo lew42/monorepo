@@ -1,6 +1,6 @@
 # Git and deploying: how code gets from a worktree to production
 
-**Decided in principle (the owner, 2026-11-01):** the PC's work lands on its own branch (`compliance/dev`, today `michael/dev`), which goes into `main`. `main` is staging: anyone may push to it, and its address shows the newest checked code. A separate `production` branch is what the public site (`lew42.com`) serves, and it moves up to `main` only when the owner says so.
+**Decided in principle (the owner, 2026-11-01):** the PC's work lands on its own branch (`compliance/dev`, renamed from `michael/dev` on 2026-11-03), which goes into `main`. `main` is staging: anyone may push to it, and its address shows the newest checked code. A separate `production` branch is what the public site (`lew42.com`) serves, and it moves up to `main` only when the owner says so.
 
 Words used here: **production** is the public site (`lew42.com`, later). **Staging** is `main`'s address. **Preview** is any other branch's address. Only production is "live" for visitors. This comes from two of the owner's dictations on 2026-11-01 (cloud session `e3fd9043`), with every fact checked that day. Nothing is built yet: the steps are at the end. The older rules for people joining the repo are in the [root readme](../../../readme.md#new-dev-onboarding).
 
@@ -164,7 +164,7 @@ Today the site only reads files; every change goes through git. Writing at runti
 
 ## merge.mjs and GitHub (built 2026-11-03)
 
-- **The branch name is one constant:** `DEV_BRANCH` in [Server/dev-branch.mjs](../../../Server/dev-branch.mjs). `merge.mjs`, Servex and the Server scripts import it; step 4 edits that one line.
+- **The branch name is one constant:** `DEV_BRANCH` in [Server/dev-branch.mjs](../../../Server/dev-branch.mjs). `merge.mjs`, Servex and the Server scripts import it; the rename edited that one line (it now says `compliance/dev`).
 - **Pull before push.** After a landing moves the dev branch, `merge.mjs` runs `git fetch origin` and brings `origin/<dev>` in first: a fast-forward if the PC is behind, a merge if both moved and `git merge-tree` says it is clean and none of the files origin changed has uncommitted edits in the main tree. Anything else (a conflict, an overlapping uncommitted edit) is only a warning, and the landing stands. Then it pushes. **A refused push** fetches, brings origin in and pushes once more.
 - **The merge commit names the task:** `Merge qf-5: bold the session title` (the branch's last name part, then its head commit's subject).
 - **Publish to `main` is built and OFF.** It opens a pull request dev → `main` through GitHub's API (the rule on `main` still requires one), merges it, moves the local `main` label with `git fetch origin main:main`, and brings the pull request's merge commit back into dev. The token is the one git itself uses (`git credential fill`) or `GH_TOKEN`.
@@ -172,10 +172,12 @@ Today the site only reads files; every change goes through git. Writing at runti
   - **Run it once by hand:** `MERGE_PUBLISH_MAIN=1 node Server/DevPublish.mjs`.
   - A `merge.mjs --main <dir>` run (a scratch repo) never pushes.
 
-## The rename (script: Server/rename-dev-branch.mjs)
+## The rename (script: Server/rename-dev-branch.mjs) — DONE 2026-11-03
+
+**Done.** The PC's dev branch is now `compliance/dev` (upstream `origin/compliance/dev`); `origin/michael/dev` was deleted after the script checked that everything on it was inside the new branch. 82 live files were rewritten and committed in one commit; `main` and `production` were not touched. Manifest and result: [rename-manifest.json](../ai/sessions/2026/10/20/session-e00f55c9/git-steps/rename-manifest.json). Older text below says `michael/dev` where it describes what was true before the rename. Still to do by hand: restart Servex and the dev server, and the CLAUDE.md proposal below (the owner's file). Other clones: the command in "Run it".
 
 - **Dry run** (`node Server/rename-dev-branch.mjs`) prints the manifest: every tracked file that names the branch, sorted into **rewrite** (live code, hooks, roles, readmes, docs: replaced in place), **by hand** (this file, CLAUDE.md, the script itself), and **history** (session and task folders, runs, reviews, archives, dated docs, `*.jsonl`, patches: records of what happened, left alone). Add `--manifest <file>` to save it as JSON.
-- **`--apply`** takes `.merge.lock`, edits `Server/dev-branch.mjs` and the rewrite files, runs `git branch -m michael/dev compliance/dev`, commits the rewritten files (a file with someone's uncommitted edits is rewritten but left uncommitted), pushes the new branch with its upstream, and deletes `origin/michael/dev` only if the new branch contains everything on it.
+- **`--apply`** takes `.merge.lock`, runs `git branch -m michael/dev compliance/dev` first (so a failure leaves the files alone), edits `Server/dev-branch.mjs` and the rewrite files, commits the rewritten files (a file with someone's uncommitted edits is rewritten but left uncommitted), pushes the new branch with its upstream, and deletes `origin/michael/dev` only if, after a fresh `git fetch origin`, the new branch contains everything on it.
 - **Run it** only when no agent is mid-turn (`node Servex/sustain.mjs --restart --dry-run` lists who is), then `node Servex/sustain.mjs --restart` and restart the dev server, because Servex holds the old name in memory. Any other clone: `git fetch origin; git branch -m michael/dev compliance/dev; git branch -u origin/compliance/dev compliance/dev`.
 - **CLAUDE.md** names the branch twice, in the "Commit after every working step" line. It is the owner's file, so the script never edits it. Proposal: replace `michael/dev` with `compliance/dev` there.
 - Cloudflare gives `compliance/dev` a preview at `compliance-dev-monorepo.lew42.workers.dev`.
@@ -183,7 +185,7 @@ Today the site only reads files; every change goes through git. Writing at runti
 ## Where things stand (checked 2026-11-01)
 
 - **`main` was last updated 2026-08-07;** `michael/dev` is about 7,800 commits ahead. `monorepo.lew42.workers.dev` follows `main`; no custom domain is attached.
-- **`michael/dev` is the PC's working branch** (the PC is named `compliance`). Worktree branches are local only ([worktrees](../../../Server/doc/worktrees.md), [quick fix](../ai/quick-fix/readme.md)).
+- **`compliance/dev` (was `michael/dev` until 2026-11-03) is the PC's working branch** (the PC is named `compliance`). Worktree branches are local only ([worktrees](../../../Server/doc/worktrees.md), [quick fix](../ai/quick-fix/readme.md)).
 - **12 branches on GitHub.** Already fully inside `michael/dev`, so safe to delete: `alex/page-route`, `castin/framework`, `claude/oop-streaming-research`, `claude/replay-tests` (its old name), `claude/web-crawler-design-analysis-og8s3r`, `integration/data-shapes-2`, `michael/echo-wire-format-fix`. Not inside it: `alex/update-working-dir` (5 commits), `edric/new-page` (2), `research/persistence-sync` (8 snapshot commits of the research, replaced by `research/2026/10/29/persistence-sync/`; check, then delete).
 
 ## Steps, in order (step 2 done 2026-11-03; see above)
@@ -191,6 +193,6 @@ Today the site only reads files; every change goes through git. Writing at runti
 1. **Drop the pull-request rule on `main`** (keep no-force-push and no-deletion). A 30-second change in GitHub's settings, or an agent with the owner's go.
 2. **Bring `main` up to `michael/dev`** (`git push origin michael/dev:main`, a step forward). Staging then shows today's code; it hasn't moved since 2026-08-07.
 3. **`merge.mjs`: done 2026-11-03** ([Server/DevPublish.mjs](../../../Server/DevPublish.mjs), tests in `Server/DevPublish.test.mjs`). See "merge.mjs and GitHub" below.
-4. **Rename `michael/dev` → `compliance/dev`: script built 2026-11-03, see "The rename" below.**
+4. **Rename `michael/dev` → `compliance/dev`: done 2026-11-03** ([Server/rename-dev-branch.mjs](../../../Server/rename-dev-branch.mjs), see "The rename" above).
 5. **When `lew42.com` should serve this repo:** create `production` at `main`, pick one Worker or two (above), attach the domain, and add the promote step.
 6. **Decide about fix branches on GitHub**, and delete the merged branches listed above.
