@@ -151,3 +151,5 @@ ever appeared — no error, no clue why.
 - [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — sentences are written instantly by code; the fast seat is paused as a placer (leaning), the chat is one stored list.
 
 **Bubble layout (2026-11-02):** the Dictate bubbles use the one shared rule set, [`ext/Chat/bubbles.css`](/framework/ext/Chat/readme.md#the-layout-your-words-on-the-right-the-assistants-plain-on-the-left-2026-11-02): your words are a hugging pill on the right, the assistant's plain text on the left. `Widget.css` only sets the width token for them (`.ux-dictate-widget-bubbles { --bubble-max: min(80%, 40rem) }`, 80% on a phone); change the look in `bubbles.css`, not here.
+
+**Placement defaults, the one-truth audit and why messages were out of order** (2026-11-03, by file:line): [`doc/placement-defaults.md`](doc/placement-defaults.md).
