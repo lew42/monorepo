@@ -17,8 +17,9 @@ export default class ChatWriter {
 
 	/* `find_sentence(key, at)`: the id of the sentence with that `at`, read from the session's file (used after a restart, when memory
 	 * is empty). `find_message(key, at)`: the id of the Prompt MESSAGE that sentence was filed under, same source, same reason. */
-	constructor({ find_sentence = () => null, find_message = () => null } = {}){
+	constructor({ find_sentence = () => null, find_message = () => null, last_id = () => null } = {}){
 		this.find_sentence = find_sentence;
+		this.last_id = last_id;   // the id of the newest message in the session's FILE (any writer's): `last_message_id`, read by Sessions
 		this.find_message = find_message;
 		this.sessions = new Map();   // key -> {open, open_prompt, last, held: [lines], by_at: Map(at -> sentence id)}
 		this.last_ms = new Map();    // id prefix -> last ms used
@@ -57,7 +58,9 @@ export default class ChatWriter {
 		if (st.by_at.size > ChatWriter.KEEP) st.by_at.delete(st.by_at.keys().next().value);
 		const sentence = { id: sid, at: chat.at, text: chat.text, via: chat.via ?? "text", ...(chat.said_at ? { said_at: chat.said_at } : {}), ...(chat.raw ? { raw: chat.raw } : {}) };
 		const prompt = chat.prompt ?? null;
-		if (st.open && st.last === st.open && st.open_prompt === prompt){
+		// Another writer (the item tool's cards, Refs, notes) may have added a message below the open Prompt: the FILE knows, `st.last` does not.
+		const last = this.last_id(key) ?? st.last;
+		if (st.open && last === st.open && st.open_prompt === prompt){
 			st.msg_at.set(chat.at, st.open);
 			if (st.msg_at.size > ChatWriter.KEEP) st.msg_at.delete(st.msg_at.keys().next().value);
 			return { sentences: { add: sentence }, messages: { [st.open]: { sentences: { push: sid } } }, by: "servex", ts: now_iso() };
@@ -82,6 +85,23 @@ export default class ChatWriter {
 		const st = this.state(key), id = this.id("m");
 		st.last = id;
 		return { messages: { add: { id, ...msg } }, by: "servex", ts: now_iso() };
+	}
+
+	/** The id of the message that is LAST in these session-file lines (text), or null when none: adds append, a `move` puts the Prompt after another, as List.move does. */
+	static last_message_id(text){
+		const order = [];
+		for (const line of String(text ?? "").split("\n")){
+			if (!line.includes('"messages"')) continue;
+			let m; try { m = JSON.parse(line).messages; } catch { continue; }
+			for (const a of [].concat(m?.add ?? [])) if (a?.id) order.push(a.id);
+			const mv = m?.move;
+			if (mv?.id){
+				const from = order.indexOf(mv.id); if (from >= 0) order.splice(from, 1);
+				const at = order.indexOf(mv.after);
+				order.splice(at >= 0 ? at + 1 : order.length, 0, mv.id);
+			}
+		}
+		return order.at(-1) ?? null;
 	}
 
 	/** The thought ended: every held reply, in the order it arrived, as lines to write now. */

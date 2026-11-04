@@ -44,6 +44,19 @@ check("no pause: the original sentence and the quick follow-up share one paragra
 check("a long pause starts a new paragraph", paras.length === 2 && paras[1] === "A third thought, after a long pause.", paras);
 check("a prompt with one sentence and no pause is a single paragraph", paragraphs(second.sentence_items, second.clean).length === 1);
 
+// 3b. arrival order wins over the anchor: a Reply to an OLDER prompt that arrived after a NEWER prompt is drawn under the newer one
+// (where the list put it), never back above words the owner had already seen.
+{
+	const t = "2026-11-03T10:00:0", pa = { sentences: { add: { id: "s-a", at: t + "1.000-06:00", text: "First", via: "voice" } }, messages: { add: { type: "Prompt", id: "m-a", by: "owner", at: t + "1.000-06:00", sentences: ["s-a"] } } };
+	const pb = { sentences: { add: { id: "s-b", at: t + "5.000-06:00", text: "Second", via: "voice" } }, messages: { add: { type: "Prompt", id: "m-b", by: "owner", at: t + "5.000-06:00", sentences: ["s-b"] } } };
+	const rep = (id, to, s) => ({ messages: { add: { type: "Reply", id, by: "smart", at: t + s + ".000-06:00", text: id, re: { to } } } });
+	const l = Session.replay([pa, pb, rep("m-r1", "s-a", 6), rep("m-r2", "s-b", 7)]).messages.messages;
+	check("a reply to an older prompt that arrived after a newer prompt is drawn under the newer one", owning_prompt(l, l[2]) === l[1], owning_prompt(l, l[2])?.id);
+	check("a reply with no newer prompt in between lands under the prompt it answers", owning_prompt(l, l[3]) === l[1]);
+	const l2 = Session.replay([pa, rep("m-r0", "s-a", 2), pb]).messages.messages;
+	check("a reply placed right after its own prompt stays under it", owning_prompt(l2, l2[1]) === l2[0]);
+}
+
 // 4. the fixture file was only ever read, never changed by this test
 check("the fixture was not modified", readFileSync(fixture, "utf8") === before);
 

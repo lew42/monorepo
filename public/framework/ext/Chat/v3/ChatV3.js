@@ -239,8 +239,9 @@ export default class ChatV3 extends JSONL {
 	you_class(p){ return "chat-v3-you"; }
 	you(p, title, refined, open, sentences){
 		div.c("chat-v3-head", () => {
-			if (title) h3.c("chat-v3-title", title);
-			else if (!this.redundant_title(p)) h3.c("chat-v3-title is-untitled", ChatV3.first_words(p.cleaned || p.raw));   // no AI title yet: its first words, muted
+			const box = p.kind === "task" ? "☐ " : "";   // a task-like prompt: an empty checkbox before its title (ux/Dictate/doc/placement-defaults.md)
+			if (title) h3.c("chat-v3-title", box + title);
+			else if (!this.redundant_title(p)) h3.c("chat-v3-title is-untitled", box + ChatV3.first_words(p.cleaned || p.raw));   // no AI title yet: its first words, muted
 			this.marks(p);
 		});
 		/* Gray is only for words Whisper has not finished (the draft at the end, the owner 2026-10-26: "light gray to black reserved

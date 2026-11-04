@@ -6,11 +6,14 @@ import Prompt from "../../../core/Session/Chat/Prompt.js";
 
 export const PARAGRAPH_GAP_MS = 4000;   // a pause this long between two sentences' `at` starts a new paragraph (views-on-messages.md)
 
-/** The Prompt a Reply answers: the one whose `sentences` holds `re.to`, else the newest Prompt before it in `list` (session.messages.messages). */
+/** The Prompt a Reply is drawn under: the one whose `sentences` holds `re.to`, else the newest Prompt before it in `list`
+ *  (session.messages.messages). Arrival order wins over the anchor: when a NEWER Prompt already sits between that Prompt and the
+ *  Reply, the Reply is drawn under the newer one, where the list put it. Anchoring it to the older Prompt drew an answer ABOVE
+ *  words the owner had already seen (14 of 117 replies in v-z0jonhy, the owner's "messages out of order"). */
 export function owning_prompt(list, reply){
 	const to = reply.re?.to ?? null, prompts = list.filter(m => m instanceof Prompt);
-	if (to) { const hit = prompts.find(p => p.sentences.includes(to)); if (hit) return hit; }
 	const i = list.indexOf(reply);
+	if (to) { const hit = prompts.find(p => p.sentences.includes(to)); if (hit && !list.slice(list.indexOf(hit) + 1, i).some(m => m instanceof Prompt)) return hit; }
 	for (let j = i - 1; j >= 0; j--) if (list[j] instanceof Prompt) return list[j];
 	return prompts.at(-1) ?? null;
 }
