@@ -109,6 +109,7 @@ Test: `node Servex/agents/close-loop.test.mjs` (temp task dirs, no live Servex).
 - Names and aliases for roles and ids: [`doc/names.md`](./doc/names.md).
 - Landing nag, next-step wake, compaction policy: [`doc/lifecycle.md`](./doc/lifecycle.md).
 - **The single seat's only reply** — `say`, `nothing`, `retract_say`, the gate that releases a queued say, boot-env only for now: [`doc/say-tools.md`](./doc/say-tools.md) (also the thinking sound: when the server writes `{thinking}`/`{thinking,done}`, and `SERVEX_SESSION_THINKING_OPEN_MS`). Its brief: [`single-voice-assistant.md`](./single-voice-assistant.md); tests: `say-tools.test.mjs` (the tools and gate), `single-brief.test.mjs` (the brief's own words, its real opening prompt, and a replayed real session), `Sessions.single.test.mjs` (the thinking sound).
+- **One mastermind per voice session** (ask8-session-mastermind, 2026-11-03): the single seat's `{{mastermind}}` is this session's own standing `mastermind`, not one shared one — `Sessions.js`'s `ensure_mastermind()`/`mastermind_brief()`, its own brief [`session-mastermind.md`](./session-mastermind.md), test `Sessions.mastermind.test.mjs`; doc [`ux/Dictate/doc/single-voice-assistant.md`](/framework/ux/Dictate/doc/single-voice-assistant.md#its-own-mastermind-ask8-session-mastermind-2026-11-03).
 
 ## Files
 
