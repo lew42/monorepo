@@ -128,7 +128,8 @@ export const now_ms = () => {
  *   line 1   {"session": {id, home, at, project, host, fast, smart, backing: {fast, smart}}}
  *   then     {"chat": {at, session, path, from: {kind, id, agent?}, via, text, re?, floor?, cues?}}
  *            {"nav":  {at, from, to}}
- *            {"backing": {at, fast, smart, how}}   (a respawn; the latest one wins)
+ *            {"backing": {at, fast, smart, how, mastermind?}}   (a respawn; the latest one wins. `mastermind` (ask8-session-mastermind): this
+ *              session's own standing mastermind id, kept on `s.mastermind` — never a Claude session id, so it is never resumed by `wake()`)
  *            {"react": {at, session, re, emoji, from}}   (a tap-back on line `re`; see LONE_EMOJI)
  *
  * THE FOLDER INDEX: every folder the session reaches gets a presence line in its own
@@ -1093,7 +1094,7 @@ export default class Sessions {
 		do id = "v-" + Date.now().toString(36).slice(-4) + Math.random().toString(36).slice(2, 5); while (this.map[id]);
 		const file = Sessions.session_path(home, id);
 		/* No agents yet: the first say spawns them (wake). */
-		const s = { id, home, file, kind: "voice", at: now_ms(), project, host, path: asked, visited: [], fast: null, smart: null,
+		const s = { id, home, file, kind: "voice", at: now_ms(), project, host, path: asked, visited: [], fast: null, smart: null, mastermind: null,
 			backing: { fast: null, smart: null }, ...(card ? { card } : {}) };
 		this.map[id] = s;
 		this.write(s, { session: { id, home, kind: "voice", at: s.at, project, host, ...(card ? { card } : {}), fast: null, smart: null, backing: s.backing } });
@@ -1534,8 +1535,35 @@ export default class Sessions {
 
 	brief(role){ return fs.readFileSync(path.join(HERE, `session-${role}.md`), "utf8"); }
 
-	/* The single voice assistant's whole system text: its own brief (Servex/agents/single-voice-assistant.md). */
-	single_brief(){ return fs.readFileSync(path.join(HERE, "single-voice-assistant.md"), "utf8"); }
+	/* The single voice assistant's whole system text: its own brief (Servex/agents/single-voice-assistant.md),
+	 * with `{{mastermind}}` substituted for THIS session's own mastermind (ask8-session-mastermind) — or the
+	 * old shared one, `mastermind-voice-system`, when a spawn failed or none exists yet (so nothing breaks). */
+	single_brief(s){ return fs.readFileSync(path.join(HERE, "single-voice-assistant.md"), "utf8").replaceAll("{{mastermind}}", s?.mastermind || "mastermind-voice-system"); }
+
+	/* ASK8-SESSION-MASTERMIND: one standing `mastermind` per voice session (instead of the one shared
+	 * `mastermind-voice-system`), so it can `follow` just this session's own log. Spawned the first time the
+	 * single seat wakes, and again on a resume that never got one (both routes are `wake(s, "smart")`); held
+	 * open with NO PROMPT (review finding 1: a `prompt` here ran a real Sonnet-high turn on the owner's very
+	 * first sentence, against "costs nothing until used") — its first real turn is the first message sent to
+	 * it, so it costs nothing until used. `path` still loads the generic brief, `public/framework/ux/Dictate/mastermind.md`,
+	 * into its SYSTEM prompt (role_system, Agents.js), so it reads its own id — `mastermind-<session id>` — to
+	 * learn which session it is for; no per-session text to generate or keep in sync. With no `prompt`,
+	 * `Agents.default_task` also gives it no task dir of its own (review finding 4). Its id lives on the
+	 * session record (`s.mastermind`), so a later wake or revive reuses it and never respawns one per sentence.
+	 * A spawn failure is logged and the seat falls back to the old shared mastermind (single_brief() above)
+	 * rather than breaking the turn. */
+	ensure_mastermind(s){
+		if (s.mastermind && this.servex.agents.live.get(s.mastermind)?.state !== "stopped") return;
+		try {
+			const agent = this.servex.agents.spawn({
+				role: "mastermind", name: s.id, path: "public/framework/ux/Dictate/",
+				model: "claude-sonnet-5-5", effort: "high", dormant_after: 0,
+				parent: "sessions", parent_session: s.id
+			});
+			s.mastermind = agent.id;
+			this.write(s, { backing: { at: now_ms(), fast: s.backing.fast ?? null, smart: s.backing.smart ?? null, mastermind: s.mastermind } });
+		} catch (e){ console.error(`sessions: mastermind spawn failed for ${s.id}: ${e.message}`); }
+	}
 
 	/* The voice assistant's whole system text: the `voice-assistant` skill, minus its front matter. */
 	voice_brief(){
@@ -1574,7 +1602,7 @@ export default class Sessions {
 			 * Servex's door: the item tool files sentences, spawn_agent delegates. */
 			role: "single-voice-assistant", name: s.id, model: this.session_model(s, "smart"), effort: "low", urgent: true,
 			permission_mode: "bypassPermissions", cwd: this.repo, setting_sources: [],
-			system: this.single_brief() + where,
+			system: this.single_brief(s) + where,
 			env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
 			sdk: { tools: [] },
 			parent: "sessions", parent_session: s.id
@@ -1639,6 +1667,7 @@ export default class Sessions {
 	 * makes room (max_pairs). Each spawn writes a `backing` line (the latest one wins). */
 	wake(s, role){
 		if (role === "fast" && this.fast_off(s)) return false;
+		if (role === "smart" && this.single_seat(s)) this.ensure_mastermind(s);   // ask8: every smart wake, including a resume that never got one
 		if (this.awake(s, role)) return false;
 		if (!this.awake(s, "fast") && !this.awake(s, "smart")) this.room(s);
 		const target_model = this.session_model(s, role);
@@ -1681,6 +1710,8 @@ export default class Sessions {
 	/* Stop both agents of a session; their Claude sessions stay on disk for the next say. */
 	sleep(s, why){
 		for (const role of ["fast", "smart"]) if (this.awake(s, role)) try { this.servex.agents.stop(s[role]); } catch {}
+		// ask8: the mastermind holds no process dormant (dormant_after: 0) — this only catches the rare case it is still mid-turn.
+		if (s.mastermind && this.servex.agents.live.get(s.mastermind)?.state !== "stopped") try { this.servex.agents.stop(s.mastermind); } catch {}
 		s.asleep_at = now_ms();
 		s.asleep_why = why;
 		/* `ended`, with the latest title, in EVERY folder the session reached, on every stop

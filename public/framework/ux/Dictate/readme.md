@@ -92,6 +92,8 @@ ever appeared — no error, no clue why.
 
 **The gear panel, organized into Recite and Dictate plugin groups** (reusing the paused `dictate-plugins` branch, on `core/Plugin`, with the settings table to build from): [`doc/settings-plugins.md`](doc/settings-plugins.md).
 
+**Its own mastermind, one per voice session** (ask8, 2026-11-03 — a standing `mastermind` for the single seat to hand things to, instead of one shared across every session): [`doc/single-voice-assistant.md#its-own-mastermind-ask8-session-mastermind-2026-11-03`](doc/single-voice-assistant.md#its-own-mastermind-ask8-session-mastermind-2026-11-03).
+
 **Read-aloud on/off and a Hold (mute) button** (what exists, where each lives, what Servex does, proposed 2026-11-03): [`doc/read-aloud-and-hold.md`](doc/read-aloud-and-hold.md).
 
 **The chat jumps while you dictate** (most clean-up edits change nothing, and each redraws the whole bubble or card; the proposed fix, 2026-11-03): [`doc/steady-display.md`](doc/steady-display.md).

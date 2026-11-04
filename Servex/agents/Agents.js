@@ -239,7 +239,13 @@ export class Agents {
 		 * system prompt (SERVEX_ROLE_IN_SYSTEM=0, or its own system brief) the old way still applies: the chain rides in the first message. */
 		const path_loaded = fresh && spec.path && in_system ? path_check(append, spec.path) : null;
 		const dir = fresh && !path_loaded ? directory_of(spec) : null;
-		const opened = again || spec.system ? spec.prompt : this.whoami(id, session_id) + (path_loaded ? path_note(path_loaded) + "\n\n" : "") + opening(spec.role, spec.prompt, { in_system });
+		/* HELD OPEN, NO PROMPT (ask8-session-mastermind, 2026-11-03): a fresh, non-system spawn with no `spec.prompt` at
+		 * all has nothing to say yet — stay idle, the same way a `resume`/`system` spawn already does on the branch
+		 * above, rather than wrapping `undefined` into a real, non-empty first message ("Now: undefined") that would
+		 * start a turn nobody asked for. Only an ACTUAL caller prompt (including `""`, which some caller might mean on
+		 * purpose) still gets the readme-chain/skill wrapping below. */
+		const opened = again || spec.system ? spec.prompt : spec.prompt == null ? undefined
+			: this.whoami(id, session_id) + (path_loaded ? path_note(path_loaded) + "\n\n" : "") + opening(spec.role, spec.prompt, { in_system });
 		if (!again && !spec.system) {
 			const names = injected(spec.role);
 			this.store().append("skills", { at: stamp(), agent: id, role: spec.role ?? null, injected: names, where: in_system ? "system" : "message", fallback: names.length ? undefined : true,
