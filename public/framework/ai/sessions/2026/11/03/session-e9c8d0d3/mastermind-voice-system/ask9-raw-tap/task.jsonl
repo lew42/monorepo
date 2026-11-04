@@ -6,3 +6,4 @@
 {"review":{"at":"2026-11-03T19:00:25-06:00","answer":{"n":5,"reply":"noted: keyboard access and aria-expanded are not built; ask was a touch tap; proposed in ai/todo.md"}}}
 {"review":{"at":"2026-11-03T19:00:25-06:00","answer":{"n":6,"reply":"fixed: the css comment now states the rule, not a task slug"}}}
 {"review":{"at":"2026-11-03T19:00:25-06:00","answer":{"n":7,"reply":"noted: requirement met, thanks"}}}
+{"review":{"at":"2026-11-03T19:00:34-06:00","answer":{"n":3,"reply":"declined: not a defect, the change lives on the worktree branch and lands with this very merge; confirmed after merge"}}}
