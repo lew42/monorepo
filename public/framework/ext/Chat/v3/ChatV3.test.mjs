@@ -94,8 +94,7 @@ try {
 	await page.waitForSelector(`${card} .chat-v3-reply.is-card .chat-v3-title`, { timeout: 8000 });
 	check("upgrading a Reply (title/icon set on it) makes it draw as a card too", await page.$eval(`${card} .chat-v3-reply.is-card .chat-v3-title`, e => e.textContent) === "Phone the owner back");
 
-	// 9a. ask7 review fix #1: a live answer redraws the Question's own row AT ONCE, no reload (find_answered_ids, placement.js
-	// + ChatV3.read()) — the earlier version of this test only proved it after a reload; that was finding 1 of the review.
+	// 9a. a live answer redraws the Question's own row AT ONCE, no reload (find_answered_ids, placement.js + ChatV3.read()).
 	const order0 = () => page.$$eval(".chat-v3 > .chat-v3-card:not(.chat-v3-draft)", els => els.map(e => e.dataset.id));
 	check("no reference yet: the question is still open", await page.$(".chat-v3-refs .chat-v3-ask-ref") === null);
 	check("the real card shows it open, before the answer", await page.getAttribute(first + " [data-id='q-1793586471874']", "data-phase") === "open");
@@ -109,8 +108,8 @@ try {
 	await tap(".chat-v3-refs .chat-v3-ask-ref");
 	check("tapping it scrolls the real card into view", await page.evaluate(() => { const r = document.querySelector("[data-id='q-1793586471874']").getBoundingClientRect(); return r.top > -50 && r.top < window.innerHeight; }));
 
-	// 9a-2. review fix #2: a new card arriving AFTER a reference exists must land BEFORE `.chat-v3-refs`, never after it
-	// (the refs box used to be a plain append target, so every later card drifted below it, into the middle of the chat).
+	// 9a-2. a new card arriving AFTER a reference exists must land BEFORE `.chat-v3-refs`, never after it — a plain
+	// append would drift it below the references, into the middle of the chat.
 	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { add: { id: "m-live-after-ref", type: "Message", by: "owner", at: "2026-11-01T20:40:20.000-06:00", text: "One more thing, after the reference already showed." } } }) + "\n");
 	await page.waitForSelector(".chat-v3-loose[data-id='m-live-after-ref']", { timeout: 8000 });
 	check("a card added after the reference box still lands BEFORE it, never mid-chat drift", await page.evaluate(() => {
@@ -118,9 +117,9 @@ try {
 		return !!(refs && card) && !!(refs.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_PRECEDING);
 	}));
 
-	// 9a-3. review fix #4: "a repeated question links to its existing card" — the item tool writes the link as `also_from`
-	// on the EXISTING Question (page_tools.js, Question-dedupe.test.mjs); this is the view's half, drawing a reference
-	// under the REPEATING Prompt's own card, pointing back at the original (never a second Question card).
+	// 9a-3. "a repeated question links to its existing card" — the item tool writes the link as `also_from` on the
+	// EXISTING Question (page_tools.js, Question-dedupe.test.mjs); this is the view's half, drawing a reference under
+	// the REPEATING Prompt's own card, pointing back at the original (never a second Question card).
 	appendFileSync(here + "fixture/" + live, JSON.stringify({ "p-1793586471873": { "q-1793586471874": { also_from: ["p-1793586544360"] } } }) + "\n");
 	await page.waitForSelector(".chat-v3-prompt[data-id='m-1793586544363'] .chat-v3-ask-ref", { timeout: 8000 });
 	check("the repeating Prompt's own card draws a reference back to the original (not a second Question)",
@@ -140,10 +139,10 @@ try {
 	await page.waitForFunction(c => document.querySelector(c + " .chat-v3-text")?.textContent.includes("please"), lead, { timeout: 8000 });
 	check("an improve edit patches the text in place: the card keeps its node and its place", await page.$eval(lead, e => e.__mark === "same-node") && (await order()).at(-1) === "m-1793586471880");
 
-	// 9b. ask7: once its own Prompt becomes the newest root (the move just above), the reference goes away — nothing is
-	// between the real card and the end of the chat any more, so there is nothing to resurface. Review fix #10: the wait
-	// IS the proof (a plain `check(..., true)` after it only passed because a failed wait would have thrown first) — fold
-	// it into the check itself, so a regression that makes the wait resolve some OTHER way still reports a real result.
+	// 9b. once its own Prompt becomes the newest root (the move just above), the reference goes away — nothing is
+	// between the real card and the end of the chat any more, so there is nothing to resurface. The wait IS the proof
+	// here, so it is folded into the check itself (never a bare `check(..., true)` after it), so a regression that
+	// makes the wait resolve some OTHER way still reports a real result.
 	const gone = await page.waitForFunction(() => document.querySelector(".chat-v3-refs .chat-v3-ask-ref") === null, { timeout: 8000 }).then(() => true, () => false);
 	check("the reference disappears once its own card is the newest root", gone && await page.$(".chat-v3-refs .chat-v3-ask-ref") === null);
 

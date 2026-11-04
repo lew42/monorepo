@@ -68,9 +68,9 @@ check("the fixture was not modified", readFileSync(fixture, "utf8") === before);
 	check("…upgraded (title/icon set on it, same item tool call as a fresh card): reply() now has what it needs to draw it as a card", note_view(reply).title === "Phone the owner back" && note_view(reply).icon === "call");
 }
 
-// 6. far_off_questions: a resurfaced reference is only for an ANSWERED Question more than `threshold` roots back from the
-// end (review fix, finding 3: "not the newest root" let a question qualify the instant the next prompt arrived), capped
-// to the most recent `max` so references never pile up for the whole session (finding 3, "no pile-up").
+// 6. far_off_questions: a resurfaced reference is only for an ANSWERED Question more than `threshold` roots back from
+// the end (not merely "not the newest root", which would qualify the instant the next prompt arrived), capped to the
+// most recent `max` so references never pile up for the whole session.
 {
 	const roots10 = Array.from({ length: 10 }, (_, i) => `p${i}`);   // p0 (oldest) .. p9 (newest)
 	const answered = { answer: { text: "A" } }, open = {};
@@ -93,8 +93,8 @@ check("the fixture was not modified", readFileSync(fixture, "utf8") === before);
 		far_off_questions(many, roots10).map(x => x.prompt).join(",") === "p1,p2,p3,p4,p5");
 }
 
-// 7. find_answered_ids: the view's own fix for a live answer never firing a "delta" event (review fix, finding 1) —
-// pure data, no Session: any id whose own value carries an "answer" key, at any depth.
+// 7. find_answered_ids: how the view finds a live answer when no "delta" event fires for it — pure data, no Session:
+// any id whose own value carries an "answer" key, at any depth.
 {
 	check("a top-level answer line names its id", find_answered_ids({ "q-1": { answer: { text: "x" } } }).join() === "q-1");
 	check("a nested answer line (addressed through its Prompt task) still finds the Question's own id",

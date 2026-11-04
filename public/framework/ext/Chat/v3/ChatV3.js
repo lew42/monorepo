@@ -50,11 +50,11 @@ export default class ChatV3 extends JSONL {
 			const line = LineKey.deep(raw);   // `start()` and `#c3` read as start and c3 (D13)
 			if (line?.chat || line?.place) continue;   // V1-only; the real update is the separate messages/sentences mirror line
 			this.session.replay_line(line);
-			// Review fix (ask7, finding 1 + 4): a plain nested-field write (a Question's `answer` or `also_from`,
-			// `Task.replay_line`'s `take()`) fires no live "delta" event — fixed here, in the view, not core Item:
-			// find_answered_ids (placement.js) reads the line itself for any id that just changed one of those fields.
-			// Its own card is marked dirty like any other change; `also_from` additionally names OTHER Prompts (the
-			// ones that repeated it), each of whose own card must redraw too, to show the reference pointing back here.
+			// A plain nested-field write (a Question's `answer` or `also_from`, `Task.replay_line`'s `take()`) fires
+			// no live "delta" event — fixed here, in the view, not core Item: find_answered_ids (placement.js) reads
+			// the line itself for any id that just changed one of those fields. Its own card is marked dirty like any
+			// other change; `also_from` additionally names OTHER Prompts (the ones that repeated it), each of whose
+			// own card must redraw too, to show the reference pointing back here.
 			for (const id of find_answered_ids(line)){
 				const q = this.session.find(id);
 				if (!q) continue;
@@ -153,9 +153,9 @@ export default class ChatV3 extends JSONL {
 			if (view) { view.empty(() => this.fill(node)); }
 			else if (this.card_roots().includes(node)){
 				this.$box?.el.querySelector(":scope > .chat-v3-empty")?.remove();
-				// Review fix (ask7, finding 2): a plain append would land AFTER `.chat-v3-refs` once that box exists, drifting
-				// the references into the middle of the chat as new cards kept arriving. A fresh card always lands just
-				// before the refs box (or at the end, when there is none yet) — refs stay "near the end", never the middle.
+				// A plain append would land AFTER `.chat-v3-refs` once that box exists, drifting the references into
+				// the middle of the chat as new cards kept arriving. A fresh card always lands just before the refs
+				// box (or at the end, when there is none yet) — refs stay "near the end", never the middle.
 				const fresh = this.card(node);
 				if (this.$refs?.el.isConnected) this.$refs.el.before(fresh.el); else this.$box?.el.append(fresh.el);
 				this.draft_at_end();
@@ -204,10 +204,10 @@ export default class ChatV3 extends JSONL {
 		for (const r of this.trailing_replies(p)) this.reply(r);
 		if (this.partial && p === this.card_roots().filter(r => r instanceof Prompt).at(-1)) queueMicrotask(() => this.stream(this.partial?.role, this.partial?.text ?? ""));
 		const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
-		// ask7 (review fix, finding 4): "a repeated question links to its existing card" — the item tool never writes a second
-		// Question for a repeat; it adds the new Prompt's own task id to the EXISTING Question's `also_from` instead. So THIS
-		// Prompt (the one that repeated it) draws the same small reference ChatV3 already uses for a far-off answer, right
-		// here where the repeat happened, pointing back at the one true card.
+		// A repeated question links to its existing card: the item tool never writes a second Question for a repeat;
+		// it adds the new Prompt's own task id to the EXISTING Question's `also_from` instead. So THIS Prompt (the
+		// one that repeated it) draws the same small reference ChatV3 already uses for a far-off answer, right here
+		// where the repeat happened, pointing back at the one true card.
 		const also = task ? this.all_questions().filter(q => q.also_from.includes(task.id)) : [];
 		if (kids.length || also.length) div.c("chat-v3-nest", () => {
 			kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k));
@@ -321,8 +321,8 @@ export default class ChatV3 extends JSONL {
 	// reference near the end instead, a back-arrow overlay on its icon, linking to the real card's own `#id` permalink
 	// (ChatV3.js's existing scroll-to-hash, draw()). Recomputed after every draw/update; cheap at chat sizes.
 	refresh_refs(){
-		// Review fix, finding 9: a Prompt older than the "show earlier" limit has no drawn card (draw()'s `slice(-this.limit)`),
-		// so a reference to it would link to an `#id` nothing on screen owns. Only reference a Prompt actually in `this.els`.
+		// A Prompt older than the "show earlier" limit has no drawn card (draw()'s `slice(-this.limit)`), so a
+		// reference to it would link to an `#id` nothing on screen owns. Only reference a Prompt actually in `this.els`.
 		const far = far_off_questions(this.questions_with_prompts(), this.card_roots()).filter(({ prompt }) => this.els.has(prompt.id));
 		if (!this.$refs?.el.isConnected) { this.$refs = div.c("chat-v3-refs"); this.$box?.el.append(this.$refs.el); }
 		this.$refs.empty(() => far.forEach(({ question }) => this.reference(question)));

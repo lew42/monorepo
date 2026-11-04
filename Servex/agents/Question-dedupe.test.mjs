@@ -1,9 +1,8 @@
-// node Servex/agents/Question-dedupe.test.mjs — ask7, item 4: "a repeated question links to its existing card instead of
-// making a second one" (ux/Dictate/doc/principles.md). A Question nests under its Prompt's own task (never the session's
-// own root), so the item tool's older same-TITLE guard never saw it. Review fix (finding 4): the first version only
-// REFUSED the write (dropping every sibling line in the same delta, and making no actual link); this version strips the
-// duplicate in place, writes `also_from` onto the existing Question, and leaves everything else in the write untouched —
-// strip_duplicate_questions/norm_question/is_question in page_tools.js.
+// node Servex/agents/Question-dedupe.test.mjs — "a repeated question links to its existing card instead of making a
+// second one" (ux/Dictate/doc/principles.md). A Question nests under its Prompt's own task (never the session's own
+// root), so the item tool's older same-TITLE guard never saw it. strip_duplicate_questions (page_tools.js) removes
+// the duplicate from the delta in place, grows the existing Question's own `also_from` with the repeating Prompt's
+// id, and leaves everything else in the same write untouched — never a refusal, and never a self-link.
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
@@ -54,7 +53,7 @@ try {
 	r = await add({ "p-2": { tasks: { add: { type: "Question", id: "q-3", text: "  CAN you hear me??  ", from: "p-2" } } } });
 	ok(r.ok && r.linked?.[0]?.existing === "q-1", "a differently-punctuated repeat is still caught and linked");
 
-	// A SIBLING field in the SAME delta as a duplicate must still be written — the old refusal dropped it (finding 4, part 2).
+	// A SIBLING field in the SAME delta as a duplicate must still be written, never dropped.
 	r = await add({ "p-2": { title: "Are you still there? (refined)", tasks: { add: { type: "Question", id: "q-3b", text: "Can you hear me?", from: "p-2" } } } });
 	ok(r.ok && !r.ids.includes("q-3b") && r.linked?.[0]?.existing === "q-1", "the duplicate in this delta is linked, not written");
 	const p2 = find("p-2");
@@ -94,7 +93,7 @@ try {
 	r = await add({ "p-2": { tasks: { add: { title: "Can you hear me?" } } } });
 	ok(r.ok && !r.linked, "a plain Task with the same words is not a Question, so it is not touched by this guard");
 
-	// SELF-LINK BUG (round 3, note 5): the SAME Prompt asking the same text twice (two different Question ids) must
+	// SELF-LINK BUG: the SAME Prompt asking the same text twice (two different Question ids) must
 	// never get also_from pointing at itself — ChatV3's `card()` would draw a reference to the card under the very
 	// card that already holds it. The match is skipped when `from` equals the existing Question's own `from`; both
 	// are written as real, separate cards instead of a self-link.
@@ -113,7 +112,7 @@ try {
 	const q7a_again = find("q-7a");
 	ok(!(q7a_again.also_from ?? []).includes("p-6") && !(q7a_again.also_from ?? []).includes("q-7a"), "...and still never links to itself, by from or by id");
 
-	// AN ADD THAT IS ONLY A REPEAT must not write an empty bookkeeping line (round 3, note 6): the generic write used to
+	// AN ADD THAT IS ONLY A REPEAT must not write an empty bookkeeping line: the generic write used to
 	// still fire once `tasks.add` was stripped down to nothing, leaving a hollow `{"p-9":{}}` line in the file.
 	r = await add({ tasks: { add: { id: "p-9", title: "Only ever asks repeats" } } });
 	ok(r.ok, "p-9 added");
