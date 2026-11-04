@@ -9,32 +9,43 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-03 00:03 UTC, last 24 h)
+## NOW (computed 2026-11-04 00:06 UTC, last 24 h)
 
-**Pace:** Week: 61% used · 70% gone · 88% of pace (steady, 2 days 2 hours left)
+**Pace:** Week: 71% used · 84% gone · 85% of pace (steady, 1 day 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (5):**
-- [You are a mastermind on Sonnet, medium effort; budget about $5. The new In-flight block (public/framework/core](/framework/ai/sessions/2026/11/02/spawned/mastermind-in-flight-real-data/) (mastermind-in-flight-real-data)
-- [You are a mastermind on Sonnet, medium effort; budget about $5. Two Recite fixes from the owner (via voice, 16](/framework/ai/sessions/2026/11/02/spawned/mastermind-recite-cue-icon/) (mastermind-recite-cue-icon)
-- [Chat V1.2 scroll fix, Recite controls on tapped bubble only, V3 brain avatar removed](/framework/ai/sessions/2026/11/02/spawned/mastermind-v1-2-scroll-fix/) (mastermind-v1-2-scroll-fix)
-- [Budget: $2. Load the minion skill first. Work ONLY in C:/Code/lew42/worktrees/marked-lines-switch (a git workt](/framework/ai/sessions/2026/11/02/session-7bd2fdb6/minion-minion-marked-tests/) (minion-minion-marked-tests)
-- [Chat v3: hide a chit-chat prompt's title when it just repeats its own body](/framework/ai/sessions/2026/11/02/session-00f6d159/mastermind-chatv3-title-dedupe/) (mastermind-chatv3-title-dedupe)
+**Landed (26):**
+- [Load the minion skill first. Read your brief at C:\Code\lew42\monorepo\public\framework\ai\sessions\2026\11\03](/framework/ai/sessions/2026/11/03/session-f5eadae9/minion-minion-ask10-thinking-sound/) (minion-minion-ask10-thinking-sound)
+- [ask5-move-mirror](/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask5-move-mirror/) (minion-ask5-move-mirror)
+- [Your brief: public/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask2b-newest-firs](/framework/ai/sessions/2026/11/03/session-f5eadae9/minion-minion-ask2b-newest-first/) (minion-minion-ask2b-newest-first)
+- [Your brief: public/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask3-cards-by-id/](/framework/ai/sessions/2026/11/03/session-f5eadae9/minion-minion-ask3-cards-by-id/) (minion-minion-ask3-cards-by-id)
+- [ask2c-brief-rewrite](/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask2c-brief-rewrite/)
+- [Your brief is public/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask2c-brief-rew](/framework/ai/sessions/2026/11/03/session-f5eadae9/minion-minion-ask2c-brief-rewrite/) (minion-minion-ask2c-brief-rewrite)
+- [Chat settings: session.settings groups, page wiring, review fixes](/framework/ai/sessions/2026/11/03/session-9d296611/minion-settings-build-step4/) (minion-settings-build-step4)
+- [ask1-origin](/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask1-origin/) (minion-ask1-origin)
+- [Read and do the brief at public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/br](/framework/ai/sessions/2026/11/03/session-9d296611/minion-settings-build-step3/) (minion-settings-build-step3)
+- [Load the minion skill first. Budget: $2. READ-ONLY: change no file; give your answer as your final reply and a](/framework/ai/sessions/2026/11/03/session-f5eadae9/minion-ask5-ask6/) (minion-ask5-ask6)
+- [Load the minion skill first. Budget: $3. READ-ONLY investigation; change no files except your own task log. So](/framework/ai/sessions/2026/11/03/session-f5eadae9/minion-minion-asks-4-cost/) (minion-minion-asks-4-cost)
+- [Load the minion skill first. Budget: $3. READ-ONLY investigation; change no files except your own task log. So](/framework/ai/sessions/2026/11/03/session-f5eadae9/minion-minion-asks-236/) (minion-minion-asks-236)
+- …and 14 more (the [task list](/framework/ai/tasks/))
 
-**Open, touched in the window (1):**
-- [Owner's ask, polished: In Chat v3 (public/framework/ext/Chat/v3, ChatV3.js / ChatV3.css), remove the pink brai](/framework/ai/sessions/2026/11/02/session-00f6d159/mastermind-chatv3-remove-brain/) (mastermind-chatv3-remove-brain)
+**Open, touched in the window (4):**
+- [Your brief is at /framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask7-question-card](/framework/ai/sessions/2026/11/03/session-f5eadae9/minion-minion-ask7-question-cards/) (minion-minion-ask7-question-cards)
+- [Budget: $0.50. Read-only research, no edits, no commits. Question from the owner: a plugin / configuration sys](/framework/ai/sessions/2026/11/03/session-f5eadae9/minion-past-work-plugin/) (minion-past-work-plugin)
+- [You are the voice system mastermind. Study how the whole voice system works: ux/Dictate (incl. doc/reply-pacin](/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/) (mastermind-voice-system)
+- [ask2a-say-tools](/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask2a-say-tools/) (minion-ask2a-say-tools)
 
 **Latest commits on this branch:**
 ```
-1d3b937bf Merge branch 'worktree/send-alias' into compliance/dev
-0e9db9da4 send_to_agent: also `agent`; readme line; tasks readme entry closed (review answers)
-b528ee62b send-alias: brief
-14b3586f5 send_to_agent: take {to, message} as well as {id, text}; why agents said the tab isn't live
-4dabb5990 Merge branch 'worktree/assistant-toggle' into compliance/dev
-32b1c6587 dictation settings: an assistant change sends only the assistant
-14e6cfd2f core/Plugin: task records (plan, investigation, review report and answers, landing)
-65d3fd77f dictation settings: One assistant / Two assistants switch in the gear panel
+eae1dcf86 servex: log sweep (36 files)
+03705942c Merge voice-think: Thinking cue: hand-off matches the live mcp__servex__ tool names and send_to_agent's to= argument
+c1bd2c94d voice-system: ask 10 review answers
+56f7950ae Thinking cue: hand-off matches the live mcp__servex__ tool names and send_to_agent's to= argument
+70f2397e9 Thinking sound round 3: only the delegate closes the cue, per-turn id
+4ef7b72d1 Thinking sound round 2: close on agent update, reset per turn, real test path
+b0a7adeaa Thinking sound: triple bleep, code marks the hand-off not the model
+a76cbe4da voice-system: brief for ask 10 thinking sound
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
