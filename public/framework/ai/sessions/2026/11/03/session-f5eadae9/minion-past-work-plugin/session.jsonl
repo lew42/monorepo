@@ -20,3 +20,6 @@
 {"log":{"at":"2026-11-03T18:01:54-06:00","heartbeat":"deliberate","msg":"minion-past-work-plugin its agent is not running: it was stopped on purpose by mastermind-voice-system at 2026-11-03T13:00:44-06:00; not revived."}}
 {"log":{"at":"2026-11-03T18:06:42-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-03T19:06:46-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T19:33:52-06:00","heartbeat":"deliberate","msg":"minion-past-work-plugin its agent is not running: it was stopped on purpose by mastermind-voice-system at 2026-11-03T13:00:44-06:00; not revived."}}
+{"log":{"at":"2026-11-03T19:55:07-06:00","heartbeat":"deliberate","msg":"minion-past-work-plugin its agent is not running: it was stopped on purpose by mastermind-voice-system at 2026-11-03T13:00:44-06:00; not revived."}}
+{"log":{"at":"2026-11-03T20:09:47-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}

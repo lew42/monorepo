@@ -173,3 +173,10 @@
 {"messages":{"add":{"type":"Ref","url":"/framework/ai/sessions/2026/11/03/session-f5eadae9/minion-minion-research-locked-phone/","by":"servex","at":"2026-11-04T01:36:40.543Z"}},"by":"servex","ts":"2026-11-04T01:36:40.543Z"}
 {"action":{"at":"2026-11-03T19:44:29-06:00","did":"edit","files":["public/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask456-placement/review.md"]},"by":"ledger","ts":"2026-11-04T01:44:29.144Z"}
 {"action":{"at":"2026-11-03T19:53:30-06:00","did":"edit","files":["public/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/summary.md"]},"by":"ledger","ts":"2026-11-04T01:53:30.429Z"}
+{"log":{"at":"2026-11-03T19:55:57-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-04T01:55:57.548Z"}
+{"log":{"at":"2026-11-03T19:55:57-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-04T01:55:57.676Z"}
+{"log":{"at":"2026-11-03T19:55:57-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-04T01:55:57.811Z"}
+{"log":{"at":"2026-11-03T19:57:53-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-04T01:57:53.473Z"}
+{"log":{"at":"2026-11-03T20:01:48-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-04T02:01:48.167Z"}
+{"log":{"at":"2026-11-03T20:02:56-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-04T02:02:56.259Z"}
+{"log":{"at":"2026-11-03T20:08:49-06:00","heartbeat":"refused","msg":"status check not sent to mastermind-voice-system: a wake costs about $0.03 and it has spent $148.28 of $100.00"}}

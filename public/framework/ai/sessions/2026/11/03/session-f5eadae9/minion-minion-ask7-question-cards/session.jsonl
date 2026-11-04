@@ -16,3 +16,6 @@
 {"log":{"at":"2026-11-03T19:11:46-06:00","msg":"task-loop status ask 2: minion-minion-ask7-question-cards was stopped on purpose; not woken","ask":2}}
 {"log":{"at":"2026-11-03T19:16:46-06:00","msg":"task-loop status ask 3: minion-minion-ask7-question-cards was stopped on purpose; not woken","ask":3}}
 {"log":{"at":"2026-11-03T19:21:46-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"log":{"at":"2026-11-03T19:33:44-06:00","heartbeat":"deliberate","msg":"minion-minion-ask7-question-cards its agent is not running: it was stopped on purpose by mastermind-voice-system at 2026-11-03T18:53:44-06:00; not revived."}}
+{"log":{"at":"2026-11-03T19:53:39-06:00","heartbeat":"orphaned","msg":"minion-minion-ask7-question-cards its agent is not running: its working directory C:/Code/lew42/worktrees/voice-qcards no longer exists; not revived."}}
+{"log":{"at":"2026-11-03T19:58:47-06:00","heartbeat":"orphaned","msg":"minion-minion-ask7-question-cards its agent is not running: its working directory C:/Code/lew42/worktrees/voice-qcards no longer exists; not revived."}}
