@@ -840,6 +840,20 @@ function row_of(t){
 // Every task in a tree, each once (a session's cost sums each task's own agents once, so nothing counts twice).
 function every_task(list, out = []){ for (const t of list ?? []){ out.push(t); every_task(t._tasks, out); } return out; }
 
+/* ask7 ("A repeated question links to its existing card instead of making a second one", ux/Dictate/doc/principles.md):
+ * every nested `tasks.add` of type "Question" anywhere in a delta (a Question nests under its Prompt's own task, never
+ * at the session's own root, so the root-level same-title guard above never sees it). Pure data, no file access. */
+function find_question_adds(node, out = []){
+	if (Array.isArray(node)) { for (const n of node) find_question_adds(n, out); return out; }
+	if (!is_plain(node)) return out;
+	if (is_plain(node.tasks) && node.tasks.add !== undefined) for (const a of [].concat(node.tasks.add)) if (is_plain(a) && task_type(a) === "Question" && typeof a.text === "string") out.push(a);
+	for (const v of Object.values(node)) find_question_adds(v, out);
+	return out;
+}
+const norm_question = s => String(s ?? "").toLowerCase().replace(/[^\p{L}\p{N}\s]+/gu, "").replace(/\s+/g, " ").trim();
+// Duck-typed, not imported (core/Task/Question.js would be a cycle from here): `phase` is a getter only Question defines.
+const is_question = t => typeof t?.phase === "string";
+
 /* What a task tree holds, by state: created (every task), started (it ran: start() stamped started_at, or it is past idle and not
  * stopped), complete and stopped. A task stopped before it ever ran is not started. */
 function counts(list){
@@ -1376,6 +1390,12 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		if (g.why) return { ok: false, why: g.why };
 		homes.push(...g.made);
 		size = size_of(at.file);
+	}
+	// ask7: a nested Question add, checked against every Question already in this file (session-wide: "a question asked
+	// again in the same session links to the card that's already answered", principles.md) — a slip no longer makes two.
+	if (tasky) for (const a of find_question_adds(body)){
+		const text = norm_question(a.text), dup = text && every_task(root()._tasks ?? []).find(t => is_question(t) && t.id !== a.id && norm_question(t.text) === text);
+		if (dup) return { ok: false, why: `this question already has a card ("${dup.text}", id "${dup.id}"); nothing was written. Use that one — answer it, or link to it — instead of a second card for the same question.`, existing: dup.id };
 	}
 	let unchanged = null;
 	if ((pages === undefined && folder === undefined && !homes.length && !ids.length) || Object.keys(body).length){
