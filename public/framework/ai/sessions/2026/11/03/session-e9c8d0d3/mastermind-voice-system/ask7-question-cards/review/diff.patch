@@ -1,0 +1,732 @@
+diff --git a/Servex/agents/Question-dedupe.test.mjs b/Servex/agents/Question-dedupe.test.mjs
+new file mode 100644
+index 000000000..53046f730
+--- /dev/null
++++ b/Servex/agents/Question-dedupe.test.mjs
+@@ -0,0 +1,90 @@
++// node Servex/agents/Question-dedupe.test.mjs — ask7, item 4: "a repeated question links to its existing card instead of
++// making a second one" (ux/Dictate/doc/principles.md). A Question nests under its Prompt's own task (never the session's
++// own root), so the item tool's older same-TITLE guard never saw it. Review fix (finding 4): the first version only
++// REFUSED the write (dropping every sibling line in the same delta, and making no actual link); this version strips the
++// duplicate in place, writes `also_from` onto the existing Question, and leaves everything else in the write untouched —
++// strip_duplicate_questions/norm_question/is_question in page_tools.js.
++import assert from "node:assert";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { page_tools, run_item } from "./page_tools.js";
++import TaskHomes from "../../Server/TaskHomes.mjs";
++import Task from "../../public/framework/core/Task/Task.js";
++import "../../public/framework/core/Task/Question.js";   // registers "Question" with Item.register — page_tools.js never imports it directly
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
++const REL = "public/framework/ai/sessions/2026/10/16/.question-dedupe-test-" + process.pid;
++const DIR = path.join(ROOT, REL), FILE = path.join(DIR, "task.jsonl");
++TaskHomes.INDEX = DIR + "-homes/task.jsonl";   // never the real /tasks/ index
++const URL = "/" + REL.slice("public/".length) + "/";
++let n = 0;
++const ok = (c, m) => { assert.ok(c, m); n++; };
++
++fs.mkdirSync(DIR, { recursive: true });
++fs.writeFileSync(FILE, JSON.stringify({ assign: { slug: "fixture", title: "Fixture" } }) + "\n");
++
++try {
++	const add = (delta, caller = "t1") => run_item({ path: URL, delta }, { caller });
++	// Read the record back for real (like Question.test.mjs), rather than through the item tool's own small answer shape
++	// (task_state/row_of drop `also_from` on purpose — never the whole picture on every write).
++	const every = (t, out = []) => { out.push(t); for (const k of t._tasks ?? []) every(k, out); return out; };
++	const find = id => { const lines = fs.readFileSync(FILE, "utf8").trim().split("\n").filter(Boolean).map(l => JSON.parse(l)); return every(Task.replay(lines)).find(t => t.id === id); };
++
++	// Two Prompt-shaped tasks, each with its own Question nested under it (the real shape: a Question nests under its
++	// Prompt's own task, never the session's own root). A plain Task stands in for a Prompt here — only its own child
++	// Question nesting matters to this guard.
++	let r = await add({ tasks: { add: { id: "p-1", title: "Can you hear me?" } } });
++	ok(r.ok, "p-1 added");
++	r = await add({ tasks: { add: { id: "p-2", title: "Are you still there?" } } });
++	ok(r.ok, "p-2 added");
++
++	r = await add({ "p-1": { tasks: { add: { type: "Question", id: "q-1", text: "Can you hear me?", from: "p-1" } } } });
++	ok(r.ok && r.ids.includes("q-1"), "the first Question is written");
++
++	// The SAME question, worded identically, under a different Prompt: NOT written as a second card — linked instead.
++	r = await add({ "p-2": { tasks: { add: { type: "Question", id: "q-2", text: "Can you hear me?", from: "p-2" } } } });
++	ok(r.ok, "the write still succeeds (never a refusal)");
++	ok(!r.ids.includes("q-2"), "the duplicate itself is not written as a new task");
++	ok(r.linked?.[0]?.existing === "q-1" && r.linked[0].id === "q-2" && r.linked[0].from === "p-2", "the answer reports what was linked, to what, and from where");
++	let q1 = find("q-1");
++	ok(JSON.stringify(q1.also_from) === JSON.stringify(["p-2"]), "the EXISTING Question's own also_from now names the repeating Prompt — the actual link a view draws");
++
++	// Punctuation/case/whitespace differences do not defeat the dedupe (norm_question).
++	r = await add({ "p-2": { tasks: { add: { type: "Question", id: "q-3", text: "  CAN you hear me??  ", from: "p-2" } } } });
++	ok(r.ok && r.linked?.[0]?.existing === "q-1", "a differently-punctuated repeat is still caught and linked");
++
++	// A SIBLING field in the SAME delta as a duplicate must still be written — the old refusal dropped it (finding 4, part 2).
++	r = await add({ "p-2": { title: "Are you still there? (refined)", tasks: { add: { type: "Question", id: "q-3b", text: "Can you hear me?", from: "p-2" } } } });
++	ok(r.ok && !r.ids.includes("q-3b") && r.linked?.[0]?.existing === "q-1", "the duplicate in this delta is linked, not written");
++	const p2 = find("p-2");
++	ok(p2.get_one("title") === "Are you still there? (refined)", "...and the SIBLING field in the same delta (p-2's own title) was still written, not dropped");
++
++	// A genuinely different question is not touched by this guard.
++	r = await add({ "p-2": { tasks: { add: { type: "Question", id: "q-4", text: "What time is it?", from: "p-2" } } } });
++	ok(r.ok && r.ids.includes("q-4") && !r.linked, "a different question is written, nothing linked");
++
++	// An ANSWERED duplicate is still caught (the guard is about the text, not the phase — "the card that's already answered").
++	await add({ "q-1": { answer: { text: "Yes.", by: "smart" } } });
++	r = await add({ "p-2": { tasks: { add: { type: "Question", id: "q-5", text: "Can you hear me?", from: "p-2" } } } });
++	ok(r.ok && !r.ids.includes("q-5") && r.linked?.[0]?.existing === "q-1", "an answered duplicate is still caught, not just an open one");
++
++	// A SECOND repeat of the same text in the very SAME write links to the first, never both landing. (An array-form
++	// `tasks.add` never reports its new ids in `r.ids` — a pre-existing, unrelated quirk of `stamp_ids`'s single-object
++	// case only — so this checks the file itself, not `r.ids`.)
++	r = await add({ "p-1": { tasks: { add: [
++		{ type: "Question", id: "q-6a", text: "Is it cached?", from: "p-1" },
++		{ type: "Question", id: "q-6b", text: "is it cached??", from: "p-1" },
++	] } } });
++	ok(r.ok && r.linked?.[0]?.existing === "q-6a" && r.linked[0].id === "q-6b", "the second of two repeats in one write links to the first, not a third card");
++	ok(!!find("q-6a") && !find("q-6b"), "the first repeat is really written, the second really is not");
++
++	// A plain Task (not a Question) with the same words never trips this guard — it is text-matching Questions only.
++	r = await add({ "p-2": { tasks: { add: { title: "Can you hear me?" } } } });
++	ok(r.ok && !r.linked, "a plain Task with the same words is not a Question, so it is not touched by this guard");
++
++	console.log(`${n} passed`);
++} finally {
++	fs.rmSync(DIR, { recursive: true, force: true });
++	fs.rmSync(DIR + "-homes", { recursive: true, force: true });
++}
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 4ae936790..2f44686c7 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -840,6 +840,39 @@ function row_of(t){
+ // Every task in a tree, each once (a session's cost sums each task's own agents once, so nothing counts twice).
+ function every_task(list, out = []){ for (const t of list ?? []){ out.push(t); every_task(t._tasks, out); } return out; }
+ 
++/* ask7 ("A repeated question links to its existing card instead of making a second one", ux/Dictate/doc/principles.md) —
++ * review fix (finding 4): the first version only REFUSED the whole write, which (a) dropped every sibling line sent in
++ * the same delta (a refined title, another field) and (b) made no actual link anywhere. This mutates `node` IN PLACE:
++ * a nested `tasks.add` of type "Question" whose text normalizes to one already in `seen` (pre-seeded with every Question
++ * already in the file) is removed from the add list — never written as a second card — and reported in `out` as
++ * `{id, existing, from}` so the caller can both (1) tell the seat which card to use and (2) write the actual link
++ * (`also_from`, below) onto the existing Question, so a view can draw a reference back to it under the repeating
++ * Prompt too. A second repeat of the SAME text later in the very same write also links to the first (added to `seen`
++ * as it is kept), never both landing. Everything else in the delta is untouched and still gets written normally. */
++function strip_duplicate_questions(node, seen, out = []){
++	if (Array.isArray(node)) { for (const n of node) strip_duplicate_questions(n, seen, out); return out; }
++	if (!is_plain(node)) return out;
++	if (is_plain(node.tasks) && node.tasks.add !== undefined){
++		const was_array = Array.isArray(node.tasks.add), list = [].concat(node.tasks.add), kept = [];
++		for (const a of list){
++			const text = is_plain(a) && task_type(a) === "Question" && typeof a.text === "string" ? norm_question(a.text) : null;
++			const existing = text && seen.get(text);
++			if (existing){ out.push({ id: a.id, existing, from: a.from }); continue; }
++			if (text) seen.set(text, a.id);
++			kept.push(a);
++		}
++		if (kept.length !== list.length){
++			if (!kept.length) { delete node.tasks.add; if (!Object.keys(node.tasks).length) delete node.tasks; }
++			else node.tasks.add = was_array ? kept : kept[0];
++		}
++	}
++	for (const v of Object.values(node)) strip_duplicate_questions(v, seen, out);
++	return out;
++}
++const norm_question = s => String(s ?? "").toLowerCase().replace(/[^\p{L}\p{N}\s]+/gu, "").replace(/\s+/g, " ").trim();
++// Duck-typed, not imported (core/Task/Question.js would be a cycle from here): `phase` is a getter only Question defines.
++const is_question = t => typeof t?.phase === "string";
++
+ /* What a task tree holds, by state: created (every task), started (it ran: start() stamped started_at, or it is past idle and not
+  * stopped), complete and stopped. A task stopped before it ever ran is not started. */
+ function counts(list){
+@@ -1303,6 +1336,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 
+ 	const ids = [], homes = [], requests = [], by = ctx.caller ?? "agent";
+ 	let merged = null;   // adds a class merged into an existing task (Improvements), reported in the answer
++	let linked = null;   // ask7: a repeated Question, not written again — linked to the existing one instead (reported in the answer)
+ 	let line = null, size;
+ 	// Every write to a Task/Session goes through here: append the line, then advance the live root with it.
+ 	const put = (l, own = true) => {
+@@ -1377,6 +1411,22 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 		homes.push(...g.made);
+ 		size = size_of(at.file);
+ 	}
++	// ask7 (review fix, finding 4): a nested Question add is checked against every Question already in this file
++	// (session-wide: "a question asked again in the same session links to the card that's already answered",
++	// principles.md). A duplicate is stripped from `body` IN PLACE (never refused — every sibling line in the same
++	// delta still gets written) and the EXISTING Question's own `also_from` grows the new Prompt's id, so a view can
++	// draw a reference back to it under the repeating Prompt (ChatV3's `all_questions()`/`also_from` rendering).
++	if (tasky){
++		const seen = new Map();
++		for (const t of every_task(root()._tasks ?? [])) if (is_question(t) && typeof t.text === "string"){ const tx = norm_question(t.text); if (tx && !seen.has(tx)) seen.set(tx, t.id); }
++		const stripped = strip_duplicate_questions(body, seen);
++		for (const { id, existing, from } of stripped){
++			const dup = every_task(root()._tasks ?? []).find(t => t.id === existing);
++			const also = [...new Set([...(dup?.also_from ?? []), ...(from ? [from] : [])])];
++			put({ [existing]: { also_from: also } }, true);
++			(linked ??= []).push({ id, existing, from: from ?? null });
++		}
++	}
+ 	let unchanged = null;
+ 	if ((pages === undefined && folder === undefined && !homes.length && !ids.length) || Object.keys(body).length){
+ 		// A verb that does nothing (refused from this state, or its child not found) is still written, but the answer says so.
+@@ -1408,7 +1458,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 	// (it then appended the line itself: a twin). The picture is a read, item({path}) with no delta. A page's write still answers its page.
+ 	if (tasky){
+ 		const live = root();
+-		return { ok: true, ids, line, size, now: { state: live.state, completion: live.completion }, ...(unchanged ? { warning: unchanged } : {}), ...(merged ? { merged } : {}), ...(homes.length ? { homes } : {}),
++		return { ok: true, ids, line, size, now: { state: live.state, completion: live.completion }, ...(unchanged ? { warning: unchanged } : {}), ...(merged ? { merged } : {}), ...(homes.length ? { homes } : {}), ...(linked ? { linked } : {}),
+ 			...(!alias && first_time() ? { instructions: await instructions_for(kind, Class) } : {}) };
+ 	}
+ 	// A write answers small, whatever the file size: never the page's whole text (753,132 characters once). A read (item with no delta) is how you get the picture.
+diff --git a/Servex/agents/session-smart.md b/Servex/agents/session-smart.md
+index f972c1b9a..7532f9bab 100644
+--- a/Servex/agents/session-smart.md
++++ b/Servex/agents/session-smart.md
+@@ -69,8 +69,8 @@ A **Prompt** task already exists for the thought you were just sent, holding its
+ 
+ - **Your refined version** (what the chat shows at the bubble's root, chat-shape.md "Two more"): `item({path, delta: {"p-<ms>": {title: "a few words", text: "your cleaned version of what they meant"}}}})`. Do this once you have actually understood the Prompt, not before. **Cards converge** (the owner, 2026-10-25): one title plus one cleaned paragraph per prompt; a topic card shows its RANKED, CONCLUSIVE outcomes first, then its open decisions below — merge or shrink an existing card rather than piling another onto it, and tuck the raw sentences inside (one click down), never leave them beside the outcomes. Write real markdown lists (`- ` or `1. `) in `text`, not a run-on sentence pretending to be one.
+ - **A plain reply** (a comment or acknowledgement that is neither a question nor a new task; an answer to a question goes inside its Question card, next bullets): `item({path, delta: {"p-<ms>": {replies: {add: {id: "r-<ms>", text: "…", anchor: {sentence: "a2"}}}}}}})`. `anchor` is optional (omit it to answer the whole Prompt); `sentence` is a paragraph id plus a 1-based number (`a1`, `a2`…) — the Prompt's own sentences, computed from its paragraph text, never something you invent.
+-- **Every question the owner asks is a Question card, and its answer goes INSIDE it** (the owner, 2026-10-25): file the Question on the Prompt (next bullet), then answer with `{"q-…": {answer: {text, by, at}}}` (the bullet "Answering your own question" below), not as a plain reply or chat line below. A one-line answer may also get a short chat line pointing at the card. Planned, not built yet (task-mastermind-2's resurface brief): the answered card will move to the newest end of the chat; `created_at` stays in the data and the answer carries `at`, so a log view can show the true order.
+-- **A question you heard in it**, open until answered: `item({path, delta: {"p-<ms>": {tasks: {add: {type: "Question", id: "q-<ms>", text: "does X mean Y?", from: "p-<ms>"}}}}}})`. (The fast seat may also have already filed one for an obvious "?" sentence — check before you add a second for the same question.)
++- **Every question the owner asks is a Question card, and its answer goes INSIDE it** (the owner, 2026-10-25): file the Question on the Prompt (next bullet), then answer with `{"q-…": {answer: {text, by, at}}}` (the bullet "Answering your own question" below), not as a plain reply or chat line below. A one-line answer may also get a short chat line pointing at the card. **Built (V3, 2026-11-03): the card never moves** — it stays exactly where it was asked, live, the moment the answer lands. If it has scrolled far behind (more than a few cards back), V3 draws a small reference near the end with a back-arrow link to it on its own; nothing for you to do. Detail: `ux/Dictate/doc/question-cards.md`.
++- **A question you heard in it**, open until answered: `item({path, delta: {"p-<ms>": {tasks: {add: {type: "Question", id: "q-<ms>", text: "does X mean Y?", from: "p-<ms>"}}}}}})`. (The fast seat may also have already filed one for an obvious "?" sentence.) **A near-exact repeat is handled for you**: the tool never writes a second card — it silently links your new Prompt to the existing one (`also_from`) and the chat draws a reference back to it under your Prompt. The write still succeeds either way, so you don't need to check first, but the answer tells you when it happened: `linked: [{id, existing, from}]`.
+ - **The working sign** (the owner, 2026-10-25): the moment you have seen a Question or a card and start writing its answer, set `item({path, delta: {"<id>": {working: {by: "smart", at: "<iso now>"}}}}})` on that Question or Prompt; clear it the same way the instant you write the answer (or give up on it): `item({path, delta: {"<id>": {working: null}}}})`. The screen will show a small brain icon with animated dots while it reads non-null (the view is planned; the field works already) — never leave it set past your own turn.
+ - **Answering your own (or an earlier) question**: `item({path, delta: {"q-<ms>": {answer: {text: "…", by: "smart", at: "<iso now>"}}}}})`. The owner reading it is a separate step (`{"q-<ms>": {complete: {}}}`) — never yours to call.
+ - **A real task** (something to build or fix): the usual `tasks: {add: {title, description, …}}` on the Prompt, exactly as "A task from an ask" above already has you writing it — nesting it under the Prompt (instead of the session root) is what lets the chat show it under the right bubble.
+diff --git a/public/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask7-question-cards/plan.md b/public/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask7-question-cards/plan.md
+new file mode 100644
+index 000000000..9672058a7
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask7-question-cards/plan.md
+@@ -0,0 +1,47 @@
++# Plan: question cards (ask 7)
++
++## What exists today
++- **In place, answer on card (items 1+2): already built.** `Question extends Task` (`core/Task/Question.js`) nests under its
++  Prompt's own task (`from`); `ChatV3.question(q)` (`ext/Chat/v3/ChatV3.js:267-276`) draws it inside the Prompt's card with a
++  "?" icon and, once `q.answer` exists, the answer text right on the same card. Punctuation is the smart seat's job
++  (`single-voice-assistant.md`, "fix punctuation"), not the view's — nothing to change here.
++- **Resurface on answer (item 3): not built.** An older brief (`task-mastermind-2/resurface-answer-brief.md`) asked V1/V2 to
++  *move* the whole card to the end on answer. The owner's newer, more specific words (`ux/Dictate/doc/principles.md:88-91`)
++  are different: never move the original; add a small *reference* near the end with a back-arrow overlay on its icon.
++- **Dedupe repeats (item 4): not enforced.** `session-smart.md:73` only tells the smart seat to check by hand before adding a
++  second Question for the same thing. The item tool's own duplicate guard (`page_tools.js:1339`, "the same title twice is
++  the same ask") only compares `title`, and only on a root-level add (`!at.target.length`) — a Question nested under a
++  Prompt (`{"p-<ms>": {tasks: {add: {type:"Question", text}}}}}`) never reaches it.
++
++## What I will change
++1. **`ChatV3.js` + `placement.js`**: a pure, DOM-free helper `far_off_questions(roots, task_for, nested_tasks)` that finds
++   every answered Question whose owning Prompt is not the newest root (i.e. other cards exist after it). `ChatV3.draw()`/
++   `update()` append one small reference card per far-off answered Question at the end of the box: a back-arrow icon,
++   the question's first words, `href="#<id>"` (the existing per-card permalink, `ChatV3.js:22`) that scrolls to the real
++   card. No move, no animation (both already true — we only ever append).
++2. **`page_tools.js`**: one new guard, next to the existing per-item checks in `run_item_now`, before the generic write at
++   the end of the function. A small recursive scan of the delta body finds every nested `tasks.add` whose `type` is
++   `"Question"`; for each, normalize its `text` (same rule as `ChatV3.norm_words`) and compare against every Question
++   already in this file's live root (`every_task(root()._tasks)`, filtered to Question by duck-typing `typeof t.phase ===
++   "string"` — unique to `Question`, never imported to avoid a cycle). A match refuses the write with `{ok:false, why,
++   existing: <id>}`, the same shape the title-dedupe already answers, so the caller is told which card to use instead.
++
++## What I will NOT touch
++- `ux/Dictate/Widget.js` (V1) — the owner's new words are Chat-specific; V1's own Question row is untouched (law 6: V1 is
++  not drawn from `session.messages`, so the same helper does not apply there without a bigger change than this ask asks for).
++- The root-level, title-based dedupe (`page_tools.js:1339`) — left exactly as is; the new guard is additive, never replaces it.
++- Batching, log mode, saved/cross-session questions (`principles.md:93-95`, explicitly "later").
++- Any CSS/animation for the move (there is no move to animate).
++
++## Tests first
++- `placement.test.mjs`: `far_off_questions` — an answered Question under the newest root is not far-off; one under an older
++  root with newer roots after it is; an unanswered Question is never far-off.
++- `ChatV3.test.mjs`: a new section — the reference card renders at the end, its link's `href` matches the real card's id,
++  clicking it scrolls there (reuses the existing `#id` scroll logic, `ChatV3.js:135-136`).
++- A new `page_tools.Question-dedupe.test.mjs` (node, no browser): adding a second Question with the same normalized text
++  under a different Prompt in the same file is refused with `existing: <first id>`; a different question is not; an
++  answered duplicate is still caught (dedupe is about the text, not the phase).
++
++## Report shape
++File:line for each change, the three tests' counts, screenshots at 400/1200 for the reference card, and an explicit note
++that V1 and saved/cross-session questions are left for later, with why.
+diff --git a/public/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask7-question-cards/report.md b/public/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask7-question-cards/report.md
+new file mode 100644
+index 000000000..548e3dea9
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask7-question-cards/report.md
+@@ -0,0 +1,25 @@
++# Ask 7 — fix round report
++
++All 11 review findings answered in `task.jsonl` (`review.answer` lines). 10 fixed, 1 noted (punctuation, item 1 — the
++seat's own job, not this view's). Detail and history: [`ux/Dictate/doc/question-cards.md`](/framework/ux/Dictate/doc/question-cards.md).
++
++## What changed (branch `worktree/voice-qcards`)
++
++- **744656305** — live answer redraw (`find_answered_ids`), refs box never drifts mid-chat (insert-before-refs), real "far-off" (`{threshold, max}`), reference only for a drawn card, `check(..., true)` folded into a real check. `ext/Chat/v3/{placement,ChatV3}.{js,test.mjs}`.
++- **2a56f0fae** — a repeated Question links (`also_from`) instead of refusing; sibling lines in the same write are never dropped. `Servex/agents/page_tools.js`, `public/framework/core/Task/Question.js`, `Servex/agents/Question-dedupe.test.mjs`, `Question.test.mjs`.
++- **f4015eb79** — `ux/Dictate/doc/question-cards.md` (new); stale lines fixed in `ext/Chat/v3/readme.md`, `ux/Dictate/readme.md`, `Servex/agents/session-smart.md`.
++- `plan.md` copied into this folder (finding 7).
++
++## Tests (run for real, this session, against the worktree's own server — port from `.worktrees.json`)
++
++- `placement.test.mjs` — **37/37**
++- `ChatV3.test.mjs` (headless Playwright) — **36/36**, screenshots at 400/1200 (`/tmp/ask7-fix4-shots/`, local to the run)
++- `Question.test.mjs` — **8/8**
++- `Servex/agents/Question-dedupe.test.mjs` — **15/15**
++- `Servex/agents/item_tool.test.mjs` — **118/118** (unaffected, re-checked)
++
++## Unproven / left as noted
++
++- Item 1's punctuation fix: real, but lives in the smart seat's brief, not this view — no test here (finding 8).
++- A root-level Question add (not nested under a Prompt) never reaches the dedupe guard — not the documented usage shape, noted in `question-cards.md`.
++- V1's own Question row (move-to-end) is untouched — a separate, already-reviewed decision.
+diff --git a/public/framework/core/Task/Question.js b/public/framework/core/Task/Question.js
+index 2368873c9..d4d538d61 100644
+--- a/public/framework/core/Task/Question.js
++++ b/public/framework/core/Task/Question.js
+@@ -6,7 +6,7 @@ import Item from "../Item/Item.js";
+ 
+ export class Question extends Task {
+ 
+-	static line_fields = ["text", "from", "answer", "working"];
++	static line_fields = ["text", "from", "answer", "working", "also_from"];
+ 	static queries = [...Task.queries, "phase"];
+ 
+ 	get text(){ return this.get_one("text") ?? this.get_one("title") ?? null; }
+@@ -16,6 +16,10 @@ export class Question extends Task {
+ 	get phase(){ return this.state === "complete" ? "complete" : this.answer ? "answered" : "open"; }
+ 	/** The smart seat's "seen it, writing" sign: `{by, at}` while it writes the answer, else null (`{working: null}` clears it). */
+ 	get working(){ return this.get_one("working") ?? null; }
++	/** Every OTHER Prompt task that asked this same question again (ask7, "links to its existing card instead of making a
++	 *  second one"): the item tool (page_tools.js) finds the repeat, never writes a second Question, and appends the new
++	 *  Prompt's own task id here instead — so a view can draw a reference back to THIS card under the repeating Prompt too. */
++	get also_from(){ return this.get_one("also_from") ?? []; }
+ 
+ 	/* Reading the answer is the evidence, so an answered Question completes with a bare {complete: {}}; an unanswered one needs the
+ 	   usual evidence (an owner who drops a question writes why). `node` is the Question itself (the item tool passes it). */
+diff --git a/public/framework/core/Task/Question.test.mjs b/public/framework/core/Task/Question.test.mjs
+index 63a941210..8ad5c8426 100644
+--- a/public/framework/core/Task/Question.test.mjs
++++ b/public/framework/core/Task/Question.test.mjs
+@@ -58,6 +58,12 @@ check("a Question under a Prompt appears in its trace", () => {
+ 	return hit.id === "p1" && hit.tasks.map(t => t.id).sort().join() === "q1,q2";
+ });
+ 
++check("also_from: empty by default, a plain array once set (ask7 — a repeated question links to this one)", () => {
++	const empty = q(make(), "q1").also_from;
++	const grown = q(make({ p1: { q1: { also_from: ["p9"] } } }), "q1").also_from;
++	return Array.isArray(empty) && empty.length === 0 && JSON.stringify(grown) === JSON.stringify(["p9"]);
++});
++
+ const failed = results.filter(r => !r).length;
+ console.log(failed ? `${failed} FAILED of ${results.length}` : `all ${results.length} passed`);
+ process.exit(failed ? 1 : 0);
+diff --git a/public/framework/ext/Chat/readme.md b/public/framework/ext/Chat/readme.md
+index e44cd6c97..196639f99 100644
+--- a/public/framework/ext/Chat/readme.md
++++ b/public/framework/ext/Chat/readme.md
+@@ -26,6 +26,7 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
+ - **Two moving cursors on a live owner line** (2026-10-25): one ✓ after the newest FAST chunk (comma / period / question mark / !), one 🧠 after the newest finished SENTENCE (period / question / ! only) — gray until that seat has the line, colored once it does. There is never more than one of each on screen: V1 moves its pair onto whichever TRACKED piece is newest in the bubble (`Chat.js`'s `place_live_cursors()`), the same "newest only" rule v2's `place_cursors()` uses for the newest Prompt. The 🧠 is left out entirely while no sentence has finished yet, rather than drawn in front of the words. V1 and v2 share ONE maker and ONE CSS class set — `ext/Chat/cursors.js` (`cursor_el()`/`smart_cursor_el()`), `cursors.css` (`.chat-cursor`/`.chat-smart-cursor`) — never two copies. `chunks.js` is the shared splitter (`fast_chunks()`, `last_finished_sentence_end()`); the green Understand check is removed from V1 for now (the yellow `?` stays) — [`ux/Understand/readme.md`](/framework/ux/Understand/readme.md). Mock test: `chunks.test.mjs`; live proof: `ux/Dictate/test/chat-sent.mjs`.
+ - **Reactions & threads**: Emoji tap-backs and nested inline thread replies · [`doc/reactions.md`](./doc/reactions.md).
+ - **A Question card moves to the end when it is answered** (2026-10-25, round 2 of the review): the card's on-screen position, a plain move with no transition, ordered by WHEN it was answered (`answer.at`), not when it was asked. V1 is already one flat list, so "the end" is simply `ux/Dictate/Widget.js`'s `show_task` dropping the row where it was just built (the end of `$bubbles`) instead of moving it back, when `chat.js`'s `draw_task` says `moved`. v2 is nested (replies/questions/tasks under their Prompt), so an answered Question SURFACES at the ROOT of the whole chat, not just the end of its own prompt's nest — live (`v2/ChatV2.js`'s `surface_answered()`, called from `apply_one()`) and a cold reload (`ChatV2Model`'s `roots()`/`children()`) place it identically, carrying `data-from` as the one hint back to its prompt (no new label system). Both views read the one shared signal, `v2/ChatV2Model.js`'s `newly_answered(model, line)` (a Question with no answer before this line — never a Task, never a repeat edit). One static switch, `ChatV2Model.RESURFACE`, turns all of this off (the old, never-moved behaviour) for every reader at once. **The data never reorders**: a card's true position in time is always `created_at` (when asked) and `answer.at` (when answered) — a log view reading that real order does not exist yet; this is only where the live card sits on screen. Node test (no browser, incl. live-vs-reload parity): `v2/resurface.test.mjs`.
++  **Superseded for V3 (2026-11-03, the owner's newer words):** `ux/Dictate/doc/principles.md`'s "Questions" is more specific — the real card never moves at all; a far-off answered one gets a small REFERENCE near the end instead, with a back-arrow link to it. V1/V2's move-to-end above is untouched (it is its own, already-reviewed decision); V3's version is `v3/placement.js`'s `far_off_questions` + `v3/ChatV3.js`'s `refresh_refs()` ([`v3/readme.md`](./v3/readme.md)).
+ 
+ ## The layout: your words on the right, the assistant's plain on the left (2026-11-02)
+ 
+diff --git a/public/framework/ext/Chat/v3/ChatV3.css b/public/framework/ext/Chat/v3/ChatV3.css
+index db88d2f05..a520be457 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.css
++++ b/public/framework/ext/Chat/v3/ChatV3.css
+@@ -54,5 +54,14 @@
+ 	.chat-v3-answer { font-size: .92em; overflow-wrap: anywhere; }
+ 	.chat-v3-answer > * { margin-block: 0; }
+ 
++	/* ask7: a far-off answered Question's card never moves — this is just a small reference near the end of the chat, a
++	   back-arrow badge over its icon, linking (#id) to the real card. */
++	.chat-v3-refs { display: flex; flex-direction: column; gap: .3rem; margin-top: .3rem; }
++	.chat-v3-ask-ref { display: flex; align-items: center; gap: .4rem; font-size: .85em; opacity: .75; text-decoration: none; color: inherit; }
++	.chat-v3-ask-ref:hover { opacity: 1; text-decoration: underline; }
++	.chat-v3-ref-icon { position: relative; font-size: 1rem; }
++	.chat-v3-ref-icon::after { content: "↩"; position: absolute; inset: auto auto -.3em -.3em; font-size: .7em; line-height: 1; }
++	.chat-v3-ref-text { overflow-wrap: anywhere; }
++
+ 	@media (max-width: 500px) { .chat-v3 { padding: .25rem; gap: .5rem; } .chat-v3-card { padding: .5rem .6rem; } }
+ }
+diff --git a/public/framework/ext/Chat/v3/ChatV3.js b/public/framework/ext/Chat/v3/ChatV3.js
+index f7697bd0e..de57f1f70 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.js
++++ b/public/framework/ext/Chat/v3/ChatV3.js
+@@ -16,7 +16,7 @@ import LineKey from "/framework/core/Item/LineKey.js";
+ import { md_into } from "../md.js";
+ import ReciteBubble from "/framework/audio/Recite/ReciteBubble.js";
+ import * as Wire from "/framework/ext/Session/Session.js";
+-import { owning_prompt, paragraphs, paragraph_groups, note_view } from "./placement.js";
++import { owning_prompt, paragraphs, paragraph_groups, note_view, far_off_questions, find_answered_ids } from "./placement.js";
+ View.stylesheet(import.meta, "ChatV3.css");
+ View.stylesheet(import.meta, "../bubbles.css");
+ 
+@@ -50,6 +50,17 @@ export default class ChatV3 extends JSONL {
+ 			const line = LineKey.deep(raw);   // `start()` and `#c3` read as start and c3 (D13)
+ 			if (line?.chat || line?.place) continue;   // V1-only; the real update is the separate messages/sentences mirror line
+ 			this.session.replay_line(line);
++			// Review fix (ask7, finding 1 + 4): a plain nested-field write (a Question's `answer` or `also_from`,
++			// `Task.replay_line`'s `take()`) fires no live "delta" event — fixed here, in the view, not core Item:
++			// find_answered_ids (placement.js) reads the line itself for any id that just changed one of those fields.
++			// Its own card is marked dirty like any other change; `also_from` additionally names OTHER Prompts (the
++			// ones that repeated it), each of whose own card must redraw too, to show the reference pointing back here.
++			for (const id of find_answered_ids(line)){
++				const q = this.session.find(id);
++				if (!q) continue;
++				const card = this.card_for(q); if (card) this.dirty.add(card);
++				for (const tid of q.also_from ?? []){ const other = this.card_roots().find(p => p instanceof Prompt && p.prompt === tid); if (other) this.dirty.add(other); }
++			}
+ 		}
+ 		if (first) this.draw(); else this.update();
+ 		this.dirty.clear(); this.moved.clear();
+@@ -131,7 +142,7 @@ export default class ChatV3 extends JSONL {
+ 			this.$earlier.el.textContent = `show earlier (${Math.max(0, list.length - this.limit)})`;
+ 			this.$earlier.el.hidden = list.length <= this.limit;
+ 		});
+-		this.draft_at_end();
++		this.refresh_refs();   // also keeps the live draft after it (draft_at_end)
+ 		const want = location.hash.slice(1), el = want ? this.$box?.el.querySelector(`[id="${CSS.escape(want)}"]`) : null;
+ 		el?.scrollIntoView({ block: "center" });
+ 	}
+@@ -142,11 +153,16 @@ export default class ChatV3 extends JSONL {
+ 			if (view) { view.empty(() => this.fill(node)); }
+ 			else if (this.card_roots().includes(node)){
+ 				this.$box?.el.querySelector(":scope > .chat-v3-empty")?.remove();
+-				this.$box?.append(() => this.card(node));
++				// Review fix (ask7, finding 2): a plain append would land AFTER `.chat-v3-refs` once that box exists, drifting
++				// the references into the middle of the chat as new cards kept arriving. A fresh card always lands just
++				// before the refs box (or at the end, when there is none yet) — refs stay "near the end", never the middle.
++				const fresh = this.card(node);
++				if (this.$refs?.el.isConnected) this.$refs.el.before(fresh.el); else this.$box?.el.append(fresh.el);
+ 				this.draft_at_end();
+ 			}
+ 		}
+ 		for (const node of this.moved) this.relocate(node);
++		this.refresh_refs();
+ 	}
+ 
+ 	// A re-ordered root keeps its drawn node (same object, same text node): only its place in the box changes, to just after the
+@@ -188,7 +204,23 @@ export default class ChatV3 extends JSONL {
+ 		for (const r of this.trailing_replies(p)) this.reply(r);
+ 		if (this.partial && p === this.card_roots().filter(r => r instanceof Prompt).at(-1)) queueMicrotask(() => this.stream(this.partial?.role, this.partial?.text ?? ""));
+ 		const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
+-		if (kids.length) div.c("chat-v3-nest", () => kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k)));
++		// ask7 (review fix, finding 4): "a repeated question links to its existing card" — the item tool never writes a second
++		// Question for a repeat; it adds the new Prompt's own task id to the EXISTING Question's `also_from` instead. So THIS
++		// Prompt (the one that repeated it) draws the same small reference ChatV3 already uses for a far-off answer, right
++		// here where the repeat happened, pointing back at the one true card.
++		const also = task ? this.all_questions().filter(q => q.also_from.includes(task.id)) : [];
++		if (kids.length || also.length) div.c("chat-v3-nest", () => {
++			kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k));
++			also.forEach(q => this.reference(q));
++		});
++	}
++	// Every Question anywhere in the task tree (top-level task_roots plus their own nested kids) — `also_from` lookups
++	// need the whole tree, not just one Prompt's own kids (a repeat can happen under any Prompt, pointing at any other).
++	all_questions(){
++		const out = [];
++		const walk = list => { for (const t of list ?? []){ if (t instanceof Question) out.push(t); walk(t._tasks); } };
++		walk(this.task_roots());
++		return out;
+ 	}
+ 
+ 	// The owner's side of a card: ONE right-aligned bubble that hugs its words (bubbles.css), holding the title, the text (or the dictation)
+@@ -275,6 +307,35 @@ export default class ChatV3 extends JSONL {
+ 		});
+ 	}
+ 
++	// Every Question nested under a drawn Prompt, paired with the Prompt card it sits under — `far_off_questions` (placement.js)
++	// needs both: which card the Question belongs to, and whether that card is still the newest one.
++	questions_with_prompts(){
++		const out = [];
++		for (const p of this.card_roots()) if (p instanceof Prompt){
++			const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
++			for (const k of kids) if (k instanceof Question) out.push({ question: k, prompt: p });
++		}
++		return out;
++	}
++	// A far-off answered Question's real card never moves (ux/Dictate/doc/principles.md, "Questions"): this is the small
++	// reference near the end instead, a back-arrow overlay on its icon, linking to the real card's own `#id` permalink
++	// (ChatV3.js's existing scroll-to-hash, draw()). Recomputed after every draw/update; cheap at chat sizes.
++	refresh_refs(){
++		// Review fix, finding 9: a Prompt older than the "show earlier" limit has no drawn card (draw()'s `slice(-this.limit)`),
++		// so a reference to it would link to an `#id` nothing on screen owns. Only reference a Prompt actually in `this.els`.
++		const far = far_off_questions(this.questions_with_prompts(), this.card_roots()).filter(({ prompt }) => this.els.has(prompt.id));
++		if (!this.$refs?.el.isConnected) { this.$refs = div.c("chat-v3-refs"); this.$box?.el.append(this.$refs.el); }
++		this.$refs.empty(() => far.forEach(({ question }) => this.reference(question)));
++		this.$refs.el.hidden = !far.length;
++		this.draft_at_end();   // the live draft stays after the refs, same rule draft_at_end already keeps
++	}
++	reference(q){
++		a.c("chat-v3-ask-ref", () => {
++			icon("mark_chat_unread").ac("chat-v3-state", "is-answered", "chat-v3-ref-icon");
++			span.c("chat-v3-ref-text", ChatV3.first_words(q.text ?? "", 10));
++		}).attr("href", "#" + q.id);
++	}
++
+ 	// The words being spoken right now, before they are sent: faint, last in the chat (the composer's mic reports them as "chat-live").
+ 	listen(on){
+ 		this._live ??= e => this.draft(e.detail ?? {});
+diff --git a/public/framework/ext/Chat/v3/ChatV3.test.mjs b/public/framework/ext/Chat/v3/ChatV3.test.mjs
+index f612d0a01..92e96bc84 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.test.mjs
++++ b/public/framework/ext/Chat/v3/ChatV3.test.mjs
+@@ -94,6 +94,38 @@ try {
+ 	await page.waitForSelector(`${card} .chat-v3-reply.is-card .chat-v3-title`, { timeout: 8000 });
+ 	check("upgrading a Reply (title/icon set on it) makes it draw as a card too", await page.$eval(`${card} .chat-v3-reply.is-card .chat-v3-title`, e => e.textContent) === "Phone the owner back");
+ 
++	// 9a. ask7 review fix #1: a live answer redraws the Question's own row AT ONCE, no reload (find_answered_ids, placement.js
++	// + ChatV3.read()) — the earlier version of this test only proved it after a reload; that was finding 1 of the review.
++	const order0 = () => page.$$eval(".chat-v3 > .chat-v3-card:not(.chat-v3-draft)", els => els.map(e => e.dataset.id));
++	check("no reference yet: the question is still open", await page.$(".chat-v3-refs .chat-v3-ask-ref") === null);
++	check("the real card shows it open, before the answer", await page.getAttribute(first + " [data-id='q-1793586471874']", "data-phase") === "open");
++	appendFileSync(here + "fixture/" + live, JSON.stringify({ "q-1793586471874": { answer: { text: "Yes, loud and clear.", by: "smart" } } }) + "\n");
++	await page.waitForFunction(() => document.querySelector("[data-id='q-1793586471874']")?.dataset.phase === "answered", { timeout: 8000 });
++	check("the real card shows the answer LIVE, in place (never moved), no reload needed", await page.getAttribute(first + " [data-id='q-1793586471874']", "data-phase") === "answered");
++	check("...and its answer text is drawn on the card", (await page.textContent(first + " [data-id='q-1793586471874'] .chat-v3-answer")).includes("loud and clear"));
++	await page.waitForSelector(".chat-v3-refs .chat-v3-ask-ref", { timeout: 8000 });
++	check("the real card is still the FIRST root (no move)", (await order0())[0] === "m-1793586471880");
++	check("the reference links back to the real card's own id", await page.getAttribute(".chat-v3-refs .chat-v3-ask-ref", "href") === "#q-1793586471874");
++	await tap(".chat-v3-refs .chat-v3-ask-ref");
++	check("tapping it scrolls the real card into view", await page.evaluate(() => { const r = document.querySelector("[data-id='q-1793586471874']").getBoundingClientRect(); return r.top > -50 && r.top < window.innerHeight; }));
++
++	// 9a-2. review fix #2: a new card arriving AFTER a reference exists must land BEFORE `.chat-v3-refs`, never after it
++	// (the refs box used to be a plain append target, so every later card drifted below it, into the middle of the chat).
++	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { add: { id: "m-live-after-ref", type: "Message", by: "owner", at: "2026-11-01T20:40:20.000-06:00", text: "One more thing, after the reference already showed." } } }) + "\n");
++	await page.waitForSelector(".chat-v3-loose[data-id='m-live-after-ref']", { timeout: 8000 });
++	check("a card added after the reference box still lands BEFORE it, never mid-chat drift", await page.evaluate(() => {
++		const refs = document.querySelector(".chat-v3-refs"), card = document.querySelector("[data-id='m-live-after-ref']");
++		return !!(refs && card) && !!(refs.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_PRECEDING);
++	}));
++
++	// 9a-3. review fix #4: "a repeated question links to its existing card" — the item tool writes the link as `also_from`
++	// on the EXISTING Question (page_tools.js, Question-dedupe.test.mjs); this is the view's half, drawing a reference
++	// under the REPEATING Prompt's own card, pointing back at the original (never a second Question card).
++	appendFileSync(here + "fixture/" + live, JSON.stringify({ "p-1793586471873": { "q-1793586471874": { also_from: ["p-1793586544360"] } } }) + "\n");
++	await page.waitForSelector(".chat-v3-prompt[data-id='m-1793586544363'] .chat-v3-ask-ref", { timeout: 8000 });
++	check("the repeating Prompt's own card draws a reference back to the original (not a second Question)",
++		await page.getAttribute(".chat-v3-prompt[data-id='m-1793586544363'] .chat-v3-ask-ref", "href") === "#q-1793586471874");
++
+ 	// 9. a MOVE reaches the screen as the same node in a new place (never a redraw); an improve patches the text in place
+ 	const order = () => page.$$eval(".chat-v3 > .chat-v3-card:not(.chat-v3-draft)", els => els.map(e => e.dataset.id));
+ 	const lead = ".chat-v3-prompt[data-id='m-1793586471880']";
+@@ -108,6 +140,13 @@ try {
+ 	await page.waitForFunction(c => document.querySelector(c + " .chat-v3-text")?.textContent.includes("please"), lead, { timeout: 8000 });
+ 	check("an improve edit patches the text in place: the card keeps its node and its place", await page.$eval(lead, e => e.__mark === "same-node") && (await order()).at(-1) === "m-1793586471880");
+ 
++	// 9b. ask7: once its own Prompt becomes the newest root (the move just above), the reference goes away — nothing is
++	// between the real card and the end of the chat any more, so there is nothing to resurface. Review fix #10: the wait
++	// IS the proof (a plain `check(..., true)` after it only passed because a failed wait would have thrown first) — fold
++	// it into the check itself, so a regression that makes the wait resolve some OTHER way still reports a real result.
++	const gone = await page.waitForFunction(() => document.querySelector(".chat-v3-refs .chat-v3-ask-ref") === null, { timeout: 8000 }).then(() => true, () => false);
++	check("the reference disappears once its own card is the newest root", gone && await page.$(".chat-v3-refs .chat-v3-ask-ref") === null);
++
+ 	check("the fixture copy was only ever appended to", readFileSync(here + "fixture/" + live, "utf8").startsWith(before));
+ 	check("no page errors", errors.length === 0, errors);
+ } finally {
+diff --git a/public/framework/ext/Chat/v3/placement.js b/public/framework/ext/Chat/v3/placement.js
+index 526e3e712..206142344 100644
+--- a/public/framework/ext/Chat/v3/placement.js
++++ b/public/framework/ext/Chat/v3/placement.js
+@@ -47,3 +47,38 @@ export function note_view(m){
+ 	const content = [...(m?.content ?? [])].map(c => c?.get_one?.("title") ?? c?.get_one?.("text") ?? c?.label?.() ?? null).filter(Boolean).map(String);
+ 	return { title, icon, text: String(m?.text ?? ""), content };
+ }
++
++/** Which answered Questions are "far off" (ux/Dictate/doc/principles.md, "Questions": "If the card has scrolled far away,
++ *  a reference to it appears near the bottom") — review fix (ask7, finding 3): "far" means an actual distance, `threshold`
++ *  or more OTHER root cards between the question's own Prompt and the end of the chat, not merely "not the newest root"
++ *  (a question answered right as the next prompt arrives used to qualify at once). `items` is `[{question, prompt}]` (a
++ *  Question and the Prompt card it nests under); `roots` is the card list in order (`ChatV3.card_roots()`). An unanswered
++ *  Question is never far-off. The result is capped to the most recent `max` (closest to the end first, i.e. the ones
++ *  the owner is most likely to still care about) so references never pile up for the whole session. */
++export function far_off_questions(items, roots, { threshold = 3, max = 5 } = {}){
++	const last_index = roots.length - 1;
++	const far = items.filter(({ question, prompt }) => {
++		if (!question?.answer) return false;
++		const idx = roots.indexOf(prompt);
++		return idx === -1 || last_index - idx > threshold;
++	});
++	return far.slice(-max);
++}
++
++// Fields whose change on a Question needs its owning card redrawn even though the write never fires a "delta" event
++// (Task.replay_line's `take()`, never `set_one()`): the answer landing, and `also_from` growing (review fix, finding 4 —
++// a repeated Question links to the existing card by growing THIS field, drawn as a reference under the repeating Prompt).
++const QUESTION_LIVE_FIELDS = ["answer", "also_from"];
++
++/** Every id directly nested under one of `QUESTION_LIVE_FIELDS` anywhere in a raw line (review fix, finding 1): a plain
++ *  object carrying one of those keys names a Question whose card needs redrawing, at whatever depth the line addressed
++ *  it — `{"q-id":{answer:{…}}}`, `{"p-id":{"q-id":{also_from:[…]}}}`. Pure data, no Session/DOM: ChatV3 looks these ids
++ *  up itself (`session.find`) and marks their owning card dirty, fixed entirely in the view, as the review asked. */
++export function find_answered_ids(node, out = []){
++	if (!node || typeof node !== "object" || Array.isArray(node)) return out;
++	for (const [k, v] of Object.entries(node)){
++		if (v && typeof v === "object" && !Array.isArray(v) && QUESTION_LIVE_FIELDS.some(f => v[f] !== undefined)) out.push(k);
++		find_answered_ids(v, out);
++	}
++	return out;
++}
+diff --git a/public/framework/ext/Chat/v3/placement.test.mjs b/public/framework/ext/Chat/v3/placement.test.mjs
+index fd89b9e75..0f19520ed 100644
+--- a/public/framework/ext/Chat/v3/placement.test.mjs
++++ b/public/framework/ext/Chat/v3/placement.test.mjs
+@@ -9,7 +9,7 @@ import Session from "../../../core/Session/Session.js";
+ import Prompt from "../../../core/Session/Chat/Prompt.js";
+ import Reply from "../../../core/Session/Chat/Reply.js";
+ import Message from "../../../core/Session/Chat/Message.js";
+-import { owning_prompt, paragraphs, note_view } from "./placement.js";
++import { owning_prompt, paragraphs, note_view, far_off_questions, find_answered_ids } from "./placement.js";
+ 
+ let pass = 0, fail = 0;
+ const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
+@@ -68,5 +68,41 @@ check("the fixture was not modified", readFileSync(fixture, "utf8") === before);
+ 	check("…upgraded (title/icon set on it, same item tool call as a fresh card): reply() now has what it needs to draw it as a card", note_view(reply).title === "Phone the owner back" && note_view(reply).icon === "call");
+ }
+ 
++// 6. far_off_questions: a resurfaced reference is only for an ANSWERED Question more than `threshold` roots back from the
++// end (review fix, finding 3: "not the newest root" let a question qualify the instant the next prompt arrived), capped
++// to the most recent `max` so references never pile up for the whole session (finding 3, "no pile-up").
++{
++	const roots10 = Array.from({ length: 10 }, (_, i) => `p${i}`);   // p0 (oldest) .. p9 (newest)
++	const answered = { answer: { text: "A" } }, open = {};
++	check("fewer than `threshold` roots behind the end: NOT far-off yet (default threshold 3)",
++		far_off_questions([{ question: answered, prompt: "p7" }], roots10).length === 0, "p7 is 2 behind p9");
++	check("more than `threshold` roots behind: far-off",
++		far_off_questions([{ question: answered, prompt: "p5" }], roots10).length === 1, "p5 is 4 behind p9");
++	check("exactly `threshold` roots behind: NOT far-off (strictly more than, not at least)",
++		far_off_questions([{ question: answered, prompt: "p6" }], roots10).length === 0, "p6 is 3 behind p9");
++	check("an answered question under the newest root is never far-off",
++		far_off_questions([{ question: answered, prompt: "p9" }], roots10).length === 0);
++	check("an unanswered question is never far-off, however old",
++		far_off_questions([{ question: open, prompt: "p0" }], roots10).length === 0);
++	check("a custom threshold is honoured (threshold: 1 -> 2 behind already qualifies)",
++		far_off_questions([{ question: answered, prompt: "p7" }], roots10, { threshold: 1 }).length === 1);
++	const many = roots10.map((p, i) => ({ question: answered, prompt: p })).filter((_, i) => i < 6);   // p0..p5, all far-off at threshold 3
++	check("a pile of far-off questions is capped to the most recent `max` (default 5), not left to grow forever",
++		far_off_questions(many, roots10).length === 5, far_off_questions(many, roots10).map(x => x.prompt));
++	check("...and the cap keeps the ones CLOSEST to the end (most likely still relevant), not the oldest",
++		far_off_questions(many, roots10).map(x => x.prompt).join(",") === "p1,p2,p3,p4,p5");
++}
++
++// 7. find_answered_ids: the view's own fix for a live answer never firing a "delta" event (review fix, finding 1) —
++// pure data, no Session: any id whose own value carries an "answer" key, at any depth.
++{
++	check("a top-level answer line names its id", find_answered_ids({ "q-1": { answer: { text: "x" } } }).join() === "q-1");
++	check("a nested answer line (addressed through its Prompt task) still finds the Question's own id",
++		find_answered_ids({ "p-1": { "q-1": { answer: { text: "x" } } } }).join() === "q-1");
++	check("a line with no answer key anywhere finds nothing", find_answered_ids({ "p-1": { tasks: { add: { id: "q-2" } } } }).length === 0);
++	check("two answers in one line both come back", find_answered_ids({ "q-1": { answer: { text: "a" } }, "q-2": { answer: { text: "b" } } }).sort().join() === "q-1,q-2");
++	check("a move line (unrelated shape) finds nothing", find_answered_ids({ messages: { move: { id: "m-1", after: "m-2" } } }).length === 0);
++}
++
+ console.log(`${pass} passed, ${fail} failed`);
+ process.exit(fail ? 1 : 0);
+diff --git a/public/framework/ext/Chat/v3/readme.md b/public/framework/ext/Chat/v3/readme.md
+index 07288c399..c1d3ac52b 100644
+--- a/public/framework/ext/Chat/v3/readme.md
++++ b/public/framework/ext/Chat/v3/readme.md
+@@ -32,10 +32,13 @@ Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws [fixture/messag
+ - **Grouping/summary cards** as an overlay that references Prompts by id: not built.
+ - **Per-task route:** the `#id` permalink stands in for one.
+ - **Id scheme** for Prompts is whatever `m-<ms>` already is.
++- **Question cards** (in place, live answer, far-off resurface, repeated-question links): built; the asks, what the first
++  pass got wrong and how it was fixed, live in [`ux/Dictate/doc/question-cards.md`](/framework/ux/Dictate/doc/question-cards.md),
++  not here.
+ 
+ ## Test
+ 
+-- `placement.test.mjs` (plain node, 24 checks, no browser: `owning_prompt`/`paragraphs` — which now delegates to `paragraph_groups`, exercised through it — against a copy of a real voice session — every Reply lands under the Prompt holding its `re.to`, in list order; a pause starts a paragraph; the fixture file is only ever read; plus `note_view` (ask3-cards-by-id): a plain note's text with no title/icon/content, a card's real title/icon, any unknown `type` guess hydrating as a Message rather than showing "undefined", a Reply upgraded with title/icon): `node placement.test.mjs`.
+-- `ChatV3.test.mjs` (headless Playwright, 26 checks (section 9: a move keeps its node, an improve patches in place; fixture/move-session.jsonl is its replay copy, used by Servex/agents/ChatWriter.move.test.mjs): card order, nesting, raw toggle, paragraph breaks, live append of a Prompt and a Reply found by `re.to`, no page errors; plus a fresh card's title/icon drawn with no "undefined" anywhere in it, content appended to a card redrawing it live, an upgraded Reply drawing its title): `node ChatV3.test.mjs [base-url] [shots-dir]`. It copies `fixture/messages-session.jsonl` to `fixture/live-v3-*.jsonl` (gitignored) and deletes the copy when done.
++- `placement.test.mjs` (plain node, 37 checks, no browser: `owning_prompt`/`paragraphs` — which now delegates to `paragraph_groups`, exercised through it — against a copy of a real voice session — every Reply lands under the Prompt holding its `re.to`, in list order; a pause starts a paragraph; the fixture file is only ever read; `note_view` (ask3-cards-by-id): a plain note's text with no title/icon/content, a card's real title/icon, any unknown `type` guess hydrating as a Message rather than showing "undefined", a Reply upgraded with title/icon; `far_off_questions`'s threshold/cap and `find_answered_ids` (question-cards.md)): `node placement.test.mjs`.
++- `ChatV3.test.mjs` (headless Playwright, 36 checks: card order, nesting, raw toggle, paragraph breaks, live append of a Prompt and a Reply found by `re.to`, no page errors; a fresh card's title/icon drawn with no "undefined" anywhere in it, content appended to a card redrawing it live, an upgraded Reply drawing its title; a move keeps its node, an improve patches in place (fixture/move-session.jsonl is its replay copy, used by Servex/agents/ChatWriter.move.test.mjs); the question-cards.md fixes — live answer redraw, refs box never drifts, also_from reference): `node ChatV3.test.mjs [base-url] [shots-dir]`. It copies `fixture/messages-session.jsonl` to `fixture/live-v3-*.jsonl` (gitignored) and deletes the copy when done.
+ 
+ `failures.jsonl` here is the page-error log the test run wrote while the draft was built (a since-fixed `scrollIntoView` error); it is a record, kept.
+diff --git a/public/framework/ux/Dictate/doc/question-cards.md b/public/framework/ux/Dictate/doc/question-cards.md
+new file mode 100644
+index 000000000..a642c2b41
+--- /dev/null
++++ b/public/framework/ux/Dictate/doc/question-cards.md
+@@ -0,0 +1,59 @@
++# Question cards (ask 7, 2026-11-03)
++
++What a Question card does, in V3, and why — the owner's four asks (`ux/Dictate/doc/principles.md`, "Questions"), where
++each is built, and the fix history for what the first pass got wrong (a review caught four of eleven findings as "must
++fix"; this doc is where that history lives, not the readme — [`ext/Chat/v3/readme.md`](/framework/ext/Chat/v3/readme.md)
++only links here).
++
++## The four asks, and where each lives
++
++1. **In place, punctuation fixed.** A Question nests under its own Prompt's card (`core/Task/Question.js`, `ChatV3.question()`
++   in [`ext/Chat/v3/ChatV3.js`](/framework/ext/Chat/v3/ChatV3.js)) — never a separate root card. Punctuation is the smart
++   seat's own job (`Servex/agents/single-voice-assistant.md`, "fix punctuation"), not this view's; no test here proves it,
++   since ChatV3 never touches a sentence's words.
++2. **The answer goes on the card, live.** `ChatV3.question()` draws `q.answer.text` on the same card. The first pass of
++   this (2026-11-03) only worked after a reload: a plain nested-field write (`{"q-id":{answer:{…}}}`) is routed by
++   `Session.apply_line` to `Task.replay_line`, whose per-field loop calls `take()` → `Item.put()` (the bare
++   `this.data[key] = value`), never `set_one()` (the one that calls `this.emit("delta", …)`) — so no live "delta" event
++   ever fires for it. **Fixed in the view** (the review's own suggestion, not a core `Item`/`Task` change):
++   `find_answered_ids()` ([`placement.js`](/framework/ext/Chat/v3/placement.js)) reads each incoming raw line itself for
++   any id that just got an `answer` or `also_from`, and `ChatV3.read()` marks that id's owning card dirty directly,
++   bypassing the event system entirely. `ChatV3.test.mjs` proves this live, no reload.
++3. **A far-off answered card resurfaces as a small reference near the end, with a back-arrow link to the original.**
++   `far_off_questions()` (placement.js) + `ChatV3.refresh_refs()`/`reference()`. Two things the first pass got wrong,
++   both fixed:
++   - **"Far-off" was "not the newest root"**, which qualified the instant the NEXT prompt arrived, and piled up
++     references for the whole session once it did. It is now a real distance: `{threshold, max}` — more than
++     `threshold` (default 3) OTHER root cards behind the end, capped to the most recent `max` (default 5) so the box
++     never grows without bound.
++   - **The references box drifted into the middle of the chat**: `update()`'s plain `append()` landed new cards AFTER
++     `.chat-v3-refs` once it existed. A fresh card now always inserts BEFORE the refs box (or at the very end, when
++     there is none yet), so the box stays "near the end" the whole time.
++   - A smaller bug caught in the same pass: a reference to a Prompt older than the "show earlier" window pointed at an
++     `#id` nothing on screen owns (no card was drawn for it). `refresh_refs()` now only references a Prompt actually in
++     `this.els` (drawn).
++4. **A repeated question links to its existing card instead of making a second one.** `page_tools.js`'s
++   `strip_duplicate_questions()`: a nested `tasks.add` of type Question, checked session-wide against every Question
++   already in the file (normalized text). The first pass REFUSED the whole write on a match — which dropped every
++   sibling line sent in the same delta, and made no actual link anywhere. Fixed: the duplicate add is removed from the
++   delta IN PLACE (everything else in the same write still lands), and the EXISTING Question's own `also_from` field
++   grows the repeating Prompt's task id. `ChatV3.js`'s `all_questions()` then draws a reference (the SAME small element
++   `reference()` draws for a far-off answer) under the REPEATING Prompt's own card, pointing back at the one true card
++   — live, through the same `find_answered_ids()` mechanism as item 2 (widened to watch `also_from` too).
++
++## Tests
++
++`placement.test.mjs` 37/37 (far_off_questions' threshold/cap, find_answered_ids) · `ChatV3.test.mjs` 36/36 (live answer
++redraw, refs-box ordering, also_from reference, no page errors) · `Question.test.mjs` 8/8 (also_from) ·
++`Servex/agents/Question-dedupe.test.mjs` 15/15 (link not refuse, siblings preserved, two repeats in one write, answered
++duplicates, plain Tasks untouched) · `Servex/agents/item_tool.test.mjs` 118/118 (unaffected).
++
++## Left for later (explicitly out of this ask's fence)
++
++- **V1's own Question row** (`ux/Dictate/Widget.js`) still moves the card to the end on answer (2026-10-25 design,
++  [`ext/Chat/readme.md`](/framework/ext/Chat/readme.md)) — a different, already-reviewed decision, untouched here.
++- Batching, a log mode, and questions that outlive a session (`principles.md`'s "Later": `session.questions`, a
++  module's `questions.jsonl`, a module readme FAQ) — not built.
++- A root-level Question add (at the session's own root, not nested under a Prompt) never reaches
++  `strip_duplicate_questions()` (it is consumed earlier by the title-only root guard); the documented, real usage shape
++  — nested under a Prompt — is the one this fixes. Not seen in practice; noted here if it ever is.
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index 0e7fc4e99..290c79f6a 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -4,6 +4,8 @@
+ 
+ **How a chat is made, mic to screen** (the pipeline, the two views, the class sketch, the colours, the item tool; one file:line per stage): [`doc/pipeline.md`](doc/pipeline.md).
+ 
++**Question cards** (in place, the answer live on the card, a far-off answer resurfaced, a repeated question linked to its existing card, not duplicated): [`doc/question-cards.md`](doc/question-cards.md).
++
+ **The green check and the brain icon look out of sync?** What triggers each one, by file:line, and the one real mismatch between V1 and v2 (not just timing): [`doc/status-icons.md`](doc/status-icons.md).
+ 
+ **Where the dictation work stands** (what landed on 2026-11-01/02, what's open, the owner's next decisions): [dictation-v3 handover](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/handover.md).
+@@ -34,7 +36,7 @@ You speak and Whisper turns the sound into text, one sentence at a time. The pag
+ - `class DictateDebug` (the view, [DictateDebug.js](DictateDebug.js))
+ - `class DictateDocs` (the Docs tab: this readme and the docs, rendered in place; [DictateDocs.js](DictateDocs.js), [DictateDocs.css](DictateDocs.css); proof `test/docs-tab.mjs`)
+ - `chat.js` calls `report.init(session)` ([ext/Chat/v2/report.js](/framework/ext/Chat/v2/report.js)) once the voice session id is known.
+-- **A Question card moves to the end of the chat when it is answered** (2026-10-25): `Widget.js`'s `show_task` drops the row where it was just built (the end of `$bubbles`) instead of moving it back to where it was asked, when `chat.js`'s `draw_task` says `moved` — the same rule, and the same shared signal (`ChatV2Model.newly_answered`), as v2's root-surfacing: [`ext/Chat/readme.md`](/framework/ext/Chat/readme.md).
++- **V1's own Question card moves to the end of the chat when it is answered** (2026-10-25): `Widget.js`'s `show_task` drops the row where it was just built (the end of `$bubbles`) instead of moving it back to where it was asked, when `chat.js`'s `draw_task` says `moved` — the same rule, and the same shared signal (`ChatV2Model.newly_answered`), as v2's root-surfacing: [`ext/Chat/readme.md`](/framework/ext/Chat/readme.md). **V3 keeps the card in place instead** (the owner's newer words, 2026-11-03): a far-off answered one gets a small reference near the end, never a move; [`doc/question-cards.md`](doc/question-cards.md).
+ - **V1 is the raw log** (the owner, 2026-11-01): every sentence the owner said stays visible, in order, whatever an assistant does with it later — a Question or a Task made from a sentence is drawn IN ADDITION to it, never in place of it, and so does a `place`/`improve` edit's cleaned text. `show_task()` used to set `parent.style.display = "none"` on the owner's own bubble the moment the fast seat turned it into a Question, swallowing the raw words; `place()` separately swapped the raw text for the cleaned one on an "improve" edit. Both fixed: the hide is gone, and an improve edit now patches `{revision: {text, level}}` instead of `{text}`, which `ext/Chat/Chat.js`'s existing `revision_pair_node()` draws as the raw words muted above the cleaned ones (click to toggle) — the pattern already built 2026-09-29 for a revision line, reused rather than duplicated (CLAUDE.md law 6). Proof at `test/raw-stays.mjs` (replays a real exchange from `public/framework/ai/sessions/2026/11/01/v-u48msei/session.jsonl`, with its `place`/`improve` line's text changed to a real clean-up so an overwrite would fail the check).
+ - **`chat-live` window event:** the composer's mic (`Widget.js`, `on_live`) also dispatches `new CustomEvent("chat-live", {detail: {text, settled, guess, sent}})` on `window` each time it reports the unsent words, beside the V1 `$thread.live()` call. Nothing in V1 listens; [Chat v3](/framework/ext/Chat/v3/readme.md) draws the same words as its faint draft.
+ - The Debug panel in the phone sheet has a resize handle whose height survives a reload ([`SheetPanel.tabs_grip`](/framework/ext/drawer/doc/sheet.md#the-debug-panel-handle-2026-10-25)).

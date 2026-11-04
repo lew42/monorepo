@@ -1,0 +1,24 @@
+verdict: fix
+1. [fix] `core/Task/doc/prompt.md:37` still lists Question's `line_fields` as `text, from, answer, working`; this diff adds `also_from` (`core/Task/Question.js:9`) and does not update that doc. The doc is stale, so a fresh agent reading it won't know the link field exists.
+2. [fix] `Servex/agents/readme.md:118-119` lists `page_tools.js`'s guards and their tests (for example `task_origin()` / `task-origin.test.mjs`), but the new `strip_duplicate_questions()` guard and `Servex/agents/Question-dedupe.test.mjs` are not listed there. Nothing in Servex's own readme chain points to them (law 10).
+3. [fix] `ux/Dictate/doc/question-cards.md` is mostly fix history ("the first pass got wrong…", "a review caught four of eleven findings"). The brief says "No dated logs" and law 9 says a doc should describe how the system works now, with no history. Rewrite it to say what each ask does now and where it is built; the history already lives in `task.jsonl` and `report.md`.
+4. [note] `plan.md:25-27` still says a repeat "refuses the write with `{ok:false, …existing}`". The code now links it through `also_from` instead. A fresh agent who reads the plan before `report.md` gets the old design; add a line at the top of the plan saying it was superseded.
+5. [note] `page_tools.js` `strip_duplicate_questions` matches a re-add of the same Question id, or a repeat under the same Prompt, as a duplicate. That writes the Prompt's own id into `also_from`, so `ChatV3.js` (the `also` filter in `card()`) draws a reference to the card under the very card that holds it. Skip the match when `existing === a.id` or `from` equals the existing Question's own `from`.
+6. [note] When the stripped duplicate was the only thing in the write, `body` keeps a key holding nothing (for example `{"p-2":{}}`). The generic write at `page_tools.js` ~1442 still sends it as a no-op line, because `Object.keys(body).length` counts that key.
+7. [note] The code comments say "Review fix (ask7, finding N)" throughout (`ChatV3.js:43,469,525`, `placement.js:610,631`, `page_tools.js:177,225`). A later reader has no way to look up those finding numbers; the comments should say what the code does, not which round fixed it.
+8. [note] Item 1's punctuation fix depends on the seat brief alone (`Servex/agents/single-voice-assistant.md:7`); no test proves it. The report says so honestly.
+
+## Requirements
+Light review: no shots were taken, so this covers Requirements and Words only.
+- 1 "A question becomes a question card IN PLACE (where the owner's sentence is), its punctuation fixed" — yes for in place: the Question nests under its Prompt's card (`ChatV3.question()`). The punctuation fix rests on the seat brief and is untested (note 8).
+- 2 "The answer goes ON the card" — yes. The answer now redraws on the card live: `find_answered_ids` (`placement.js:635`) plus the dirty-marking in `ChatV3.read()` (`ChatV3.js:446`). The live answer check is in `ChatV3.test.mjs` §9a.
+- 3 "A far-off answered card … is resurfaced near the end as a reference with a back arrow that jumps to the original card" — yes. `far_off_questions` uses threshold 3 and cap 5 (`placement.js:616`); `refresh_refs()` and `reference()` draw it, the ↩ badge comes from `ChatV3.css:419`, and the link is `href="#id"`. New cards are inserted before the refs box, and the tests cover the tap-scroll and the ordering.
+- 4 "A repeated question links to its existing card instead of making a second one" — yes for repeats nested under a Prompt. The repeat is stripped from the write and the existing Question's `also_from` grows, so the repeating Prompt draws a reference back to it. A repeat added at the session root is not caught; `question-cards.md` documents this. Self-links are possible (note 5).
+- Class changed (`Question` gains `also_from`): can you open a page that shows its live instances? — n/a. The Question class already existed and the chat V3 page draws its instances; nothing new to show.
+- Tests I re-ran in the worktree: `placement.test.mjs` 37 passed, `Question.test.mjs` 8 passed, `Question-dedupe.test.mjs` 15 passed. I did not re-run `ChatV3.test.mjs` (it needs Playwright and the worktree's server).
+
+## Words
+- content: plain, full sentences — mostly yes. `report.md` fits one screen and lists file, commit and test counts; `question-cards.md` is clear but written as history (finding 3).
+- content: the owner's own words and names — yes. The readme lines quote the owner's asks.
+- content: no jargon standing in for an explanation — no for the code comments: "finding N" refers to a list the reader doesn't have (note 7).
+- Index and continuity: could a fresh agent continue from this folder alone? — Mostly. `requirements.md`, `plan.md`, `report.md` and `task.jsonl` are all present. But the plan is stale (note 4), and two module docs miss the new pieces (findings 1 and 2).
