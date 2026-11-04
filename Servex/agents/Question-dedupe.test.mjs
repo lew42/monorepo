@@ -69,19 +69,59 @@ try {
 	r = await add({ "p-2": { tasks: { add: { type: "Question", id: "q-5", text: "Can you hear me?", from: "p-2" } } } });
 	ok(r.ok && !r.ids.includes("q-5") && r.linked?.[0]?.existing === "q-1", "an answered duplicate is still caught, not just an open one");
 
-	// A SECOND repeat of the same text in the very SAME write links to the first, never both landing. (An array-form
-	// `tasks.add` never reports its new ids in `r.ids` — a pre-existing, unrelated quirk of `stamp_ids`'s single-object
-	// case only — so this checks the file itself, not `r.ids`.)
-	r = await add({ "p-1": { tasks: { add: [
-		{ type: "Question", id: "q-6a", text: "Is it cached?", from: "p-1" },
-		{ type: "Question", id: "q-6b", text: "is it cached??", from: "p-1" },
-	] } } });
-	ok(r.ok && r.linked?.[0]?.existing === "q-6a" && r.linked[0].id === "q-6b", "the second of two repeats in one write links to the first, not a third card");
+	// A SECOND repeat of the same text in the very SAME write, under a DIFFERENT prompt, links to the first (not a
+	// self-link — two different Prompts, so the guard above does not apply). (An array-form `tasks.add` never reports
+	// its new ids in `r.ids` — a pre-existing, unrelated quirk of `stamp_ids`'s single-object case only — so this
+	// checks the file itself, not `r.ids`.)
+	r = await add({ tasks: { add: { id: "p-6b", title: "Another fresh Prompt" } } });
+	ok(r.ok, "p-6b added");
+	r = await add({ "p-1": { tasks: { add: { type: "Question", id: "q-6a", text: "Is it cached?", from: "p-1" } } } });
+	ok(r.ok, "q-6a (the first of the pair, under p-1) is written");
+	r = await add({ "p-6b": { tasks: { add: { type: "Question", id: "q-6b", text: "is it cached??", from: "p-6b" } } } });
+	ok(r.ok && r.linked?.[0]?.existing === "q-6a" && r.linked[0].id === "q-6b", "a repeat under a DIFFERENT prompt links to the first, not a third card");
 	ok(!!find("q-6a") && !find("q-6b"), "the first repeat is really written, the second really is not");
+
+	// The batch (array) form of the self-link guard: two Questions with the same text, same Prompt, in ONE array add —
+	// neither links, both are real cards (the array path goes through the same strip loop as the single-object path).
+	r = await add({ "p-1": { tasks: { add: [
+		{ type: "Question", id: "q-6c", text: "Is it slow?", from: "p-1" },
+		{ type: "Question", id: "q-6d", text: "is it slow??", from: "p-1" },
+	] } } });
+	ok(r.ok && !r.linked, "two same-prompt repeats in one array add: no link at all");
+	ok(!!find("q-6c") && !!find("q-6d"), "...both are written as real, separate cards");
 
 	// A plain Task (not a Question) with the same words never trips this guard — it is text-matching Questions only.
 	r = await add({ "p-2": { tasks: { add: { title: "Can you hear me?" } } } });
 	ok(r.ok && !r.linked, "a plain Task with the same words is not a Question, so it is not touched by this guard");
+
+	// SELF-LINK BUG (round 3, note 5): the SAME Prompt asking the same text twice (two different Question ids) must
+	// never get also_from pointing at itself — ChatV3's `card()` would draw a reference to the card under the very
+	// card that already holds it. The match is skipped when `from` equals the existing Question's own `from`; both
+	// are written as real, separate cards instead of a self-link.
+	r = await add({ tasks: { add: { id: "p-6", title: "A fresh Prompt" } } });
+	ok(r.ok, "p-6 added");
+	r = await add({ "p-6": { tasks: { add: { type: "Question", id: "q-7a", text: "Same prompt, same text", from: "p-6" } } } });
+	ok(r.ok && r.ids.includes("q-7a"), "the first of the pair is written");
+	r = await add({ "p-6": { tasks: { add: { type: "Question", id: "q-7b", text: "same prompt, same text!", from: "p-6" } } } });
+	ok(r.ok && r.ids.includes("q-7b") && !r.linked, "the SAME Prompt repeating itself is never treated as a duplicate to link — both cards are real");
+	const q7a = find("q-7a");
+	ok(!(q7a.also_from ?? []).includes("p-6"), "q-7a's also_from never names its own Prompt (no self-link)");
+
+	// SELF-LINK BUG, the other half: re-adding the exact same id (an idempotent retry) must never self-link either.
+	r = await add({ "p-6": { tasks: { add: { type: "Question", id: "q-7a", text: "Same prompt, same text", from: "p-6" } } } });
+	ok(r.ok, "re-adding the exact same id does not error");
+	const q7a_again = find("q-7a");
+	ok(!(q7a_again.also_from ?? []).includes("p-6") && !(q7a_again.also_from ?? []).includes("q-7a"), "...and still never links to itself, by from or by id");
+
+	// AN ADD THAT IS ONLY A REPEAT must not write an empty bookkeeping line (round 3, note 6): the generic write used to
+	// still fire once `tasks.add` was stripped down to nothing, leaving a hollow `{"p-9":{}}` line in the file.
+	r = await add({ tasks: { add: { id: "p-9", title: "Only ever asks repeats" } } });
+	ok(r.ok, "p-9 added");
+	r = await add({ "p-9": { tasks: { add: { type: "Question", id: "q-9a", text: "Can you hear me?", from: "p-9" } } } });
+	ok(r.ok && r.linked?.[0]?.existing === "q-1", "the ONLY thing in this write is a repeat — it is linked, nothing else to write");
+	const lines = fs.readFileSync(FILE, "utf8").trim().split("\n").map(l => JSON.parse(l));
+	const hollow = lines.find(l => l["p-9"] && typeof l["p-9"] === "object" && !Array.isArray(l["p-9"]) && Object.keys(l["p-9"]).length === 0);
+	ok(!hollow, "no hollow {\"p-9\":{}} bookkeeping line was ever written for a write that was only a repeat");
 
 	console.log(`${n} passed`);
 } finally {
