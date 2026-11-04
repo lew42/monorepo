@@ -32,21 +32,13 @@ Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws [fixture/messag
 - **Grouping/summary cards** as an overlay that references Prompts by id: not built.
 - **Per-task route:** the `#id` permalink stands in for one.
 - **Id scheme** for Prompts is whatever `m-<ms>` already is.
-- **A far-off answered Question resurfaces** (ux/Dictate/doc/principles.md, "Questions"): the real card never moves, a small
-  reference near the end links back to it (`#id`), `placement.js`'s `far_off_questions` + `ChatV3.refresh_refs()`.
-- **KNOWN GAP, found building the line above (ask7, 2026-11-03): a plain field write deep in the task tree (e.g. a
-  Question's `answer`, written as `{"<id>":{answer:{…}}}` and routed by `Session.apply_line` to `Task.replay_line`) never
-  fires a live "delta" event.** `Task.replay_line`'s per-field loop calls `this.take(key, value)`, which for an un-hooked
-  key falls to `Item.put()` — the bare `this.data[key] = value`, not `set_one()` (the one that calls `this.emit("delta",
-  …)`). So the Question's own nested row is not refilled by a live write; only a full reload shows the answer on it.
-  `ChatV3.refresh_refs()` still resurfaces it correctly, because it re-reads the live tree on every draw/update rather
-  than waiting for a dirty event — but the real card looks stale until reload. Fixing `take()`/`replay_line` to emit is a
-  core `Item`/`Task` change (affects every Task field, not just Question), out of this ask's fence; left for whoever next
-  touches live task-field redraws. `ChatV3.test.mjs` proves the data is right after a reload and documents the gap inline.
+- **Question cards** (in place, live answer, far-off resurface, repeated-question links): built; the asks, what the first
+  pass got wrong and how it was fixed, live in [`ux/Dictate/doc/question-cards.md`](/framework/ux/Dictate/doc/question-cards.md),
+  not here.
 
 ## Test
 
-- `placement.test.mjs` (plain node, 24 checks, no browser: `owning_prompt`/`paragraphs` — which now delegates to `paragraph_groups`, exercised through it — against a copy of a real voice session — every Reply lands under the Prompt holding its `re.to`, in list order; a pause starts a paragraph; the fixture file is only ever read; plus `note_view` (ask3-cards-by-id): a plain note's text with no title/icon/content, a card's real title/icon, any unknown `type` guess hydrating as a Message rather than showing "undefined", a Reply upgraded with title/icon): `node placement.test.mjs`.
-- `ChatV3.test.mjs` (headless Playwright, 26 checks (section 9: a move keeps its node, an improve patches in place; fixture/move-session.jsonl is its replay copy, used by Servex/agents/ChatWriter.move.test.mjs): card order, nesting, raw toggle, paragraph breaks, live append of a Prompt and a Reply found by `re.to`, no page errors; plus a fresh card's title/icon drawn with no "undefined" anywhere in it, content appended to a card redrawing it live, an upgraded Reply drawing its title): `node ChatV3.test.mjs [base-url] [shots-dir]`. It copies `fixture/messages-session.jsonl` to `fixture/live-v3-*.jsonl` (gitignored) and deletes the copy when done.
+- `placement.test.mjs` (plain node, 37 checks, no browser: `owning_prompt`/`paragraphs` — which now delegates to `paragraph_groups`, exercised through it — against a copy of a real voice session — every Reply lands under the Prompt holding its `re.to`, in list order; a pause starts a paragraph; the fixture file is only ever read; `note_view` (ask3-cards-by-id): a plain note's text with no title/icon/content, a card's real title/icon, any unknown `type` guess hydrating as a Message rather than showing "undefined", a Reply upgraded with title/icon; `far_off_questions`'s threshold/cap and `find_answered_ids` (question-cards.md)): `node placement.test.mjs`.
+- `ChatV3.test.mjs` (headless Playwright, 36 checks: card order, nesting, raw toggle, paragraph breaks, live append of a Prompt and a Reply found by `re.to`, no page errors; a fresh card's title/icon drawn with no "undefined" anywhere in it, content appended to a card redrawing it live, an upgraded Reply drawing its title; a move keeps its node, an improve patches in place (fixture/move-session.jsonl is its replay copy, used by Servex/agents/ChatWriter.move.test.mjs); the question-cards.md fixes — live answer redraw, refs box never drifts, also_from reference): `node ChatV3.test.mjs [base-url] [shots-dir]`. It copies `fixture/messages-session.jsonl` to `fixture/live-v3-*.jsonl` (gitignored) and deletes the copy when done.
 
 `failures.jsonl` here is the page-error log the test run wrote while the draft was built (a since-fixed `scrollIntoView` error); it is a record, kept.
