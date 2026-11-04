@@ -1543,27 +1543,26 @@ export default class Sessions {
 	/* ASK8-SESSION-MASTERMIND: one standing `mastermind` per voice session (instead of the one shared
 	 * `mastermind-voice-system`), so it can `follow` just this session's own log. Spawned the first time the
 	 * single seat wakes, and again on a resume that never got one (both routes are `wake(s, "smart")`); held
-	 * open with no prompt like the seats — its first real turn is the first message sent to it, so it costs
-	 * nothing until used. Its id lives on the session record (`s.mastermind`), so a later wake or revive reuses
-	 * it and never respawns one per sentence. A spawn failure is logged and the seat falls back to the old
-	 * shared mastermind (single_brief() above) rather than breaking the turn. */
+	 * open with NO PROMPT (review finding 1: a `prompt` here ran a real Sonnet-high turn on the owner's very
+	 * first sentence, against "costs nothing until used") — its first real turn is the first message sent to
+	 * it, so it costs nothing until used. `path` still loads the generic brief, `public/framework/ux/Dictate/mastermind.md`,
+	 * into its SYSTEM prompt (role_system, Agents.js), so it reads its own id — `mastermind-<session id>` — to
+	 * learn which session it is for; no per-session text to generate or keep in sync. With no `prompt`,
+	 * `Agents.default_task` also gives it no task dir of its own (review finding 4). Its id lives on the
+	 * session record (`s.mastermind`), so a later wake or revive reuses it and never respawns one per sentence.
+	 * A spawn failure is logged and the seat falls back to the old shared mastermind (single_brief() above)
+	 * rather than breaking the turn. */
 	ensure_mastermind(s){
 		if (s.mastermind && this.servex.agents.live.get(s.mastermind)?.state !== "stopped") return;
 		try {
 			const agent = this.servex.agents.spawn({
 				role: "mastermind", name: s.id, path: "public/framework/ux/Dictate/",
 				model: "claude-sonnet-5-5", effort: "high", dormant_after: 0,
-				prompt: this.mastermind_brief(s), parent: "sessions", parent_session: s.id
+				parent: "sessions", parent_session: s.id
 			});
 			s.mastermind = agent.id;
 			this.write(s, { backing: { at: now_ms(), fast: s.backing.fast ?? null, smart: s.backing.smart ?? null, mastermind: s.mastermind } });
 		} catch (e){ console.error(`sessions: mastermind spawn failed for ${s.id}: ${e.message}`); }
-	}
-
-	/* Its brief: Servex/agents/session-mastermind.md, substituted with this session's own id, log file and page dir. */
-	mastermind_brief(s){
-		return fs.readFileSync(path.join(HERE, "session-mastermind.md"), "utf8")
-			.replaceAll("{{id}}", s.id).replaceAll("{{file}}", s.file).replaceAll("{{dir}}", path.posix.dirname(s.file));
 	}
 
 	/* The voice assistant's whole system text: the `voice-assistant` skill, minus its front matter. */

@@ -1,6 +1,8 @@
 /* node Servex/agents/Sessions.mastermind.test.mjs — ask8-session-mastermind: one standing `mastermind`
- * per voice session (Sessions.js `ensure_mastermind`/`mastermind_brief`), instead of the one shared
- * `mastermind-voice-system`. Plain node, a scratch repo and a fake agent host: no model runs. */
+ * per voice session (Sessions.js `ensure_mastermind`), instead of the one shared `mastermind-voice-system`.
+ * Its brief is generic and lives in its own system prompt (`public/framework/ux/Dictate/mastermind.md`,
+ * loaded by `path`), never a per-session `prompt` — review finding 1, 2026-11-03: a `prompt` here ran a
+ * real turn on the owner's first sentence. Plain node, a scratch repo and a fake agent host: no model runs. */
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -45,6 +47,7 @@ await check("one create plus the first say spawns exactly one mastermind, role/p
 	assert.equal(mm[0].parent, "sessions");
 	assert.equal(mm[0].parent_session, made.session);
 	assert.equal(mm[0].dormant_after, 0);
+	assert.ok(!("prompt" in mm[0]), "no prompt: held open, idle, costs nothing until used (review finding 1)");
 	assert.equal(s.map[made.session].mastermind, mm[0].id ?? `mastermind-${made.session}`);
 });
 
