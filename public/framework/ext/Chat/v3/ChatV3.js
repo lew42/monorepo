@@ -200,7 +200,16 @@ export default class ChatV3 extends JSONL {
 
 	prompt(p){
 		const title = p.title, refined = p.text, open = this.raw_open.has(p.id), sentences = p.sentence_items;
-		div.c(this.you_class(p), () => this.you(p, title, refined, open, sentences));
+		const has_raw = Object.keys(p.clean).length > 0;
+		div.c(this.you_class(p), () => this.you(p, title, refined, open, sentences))
+			.attr("data-raw-tap", has_raw ? "" : null)
+			.click(e => {
+				if (!has_raw) return;
+				if (e.target.closest("button, a, .chat-v3-reply")) return;   // nested controls and a reply drawn inside the pill (V2) handle their own tap
+				const sel = window.getSelection?.(); if (sel?.toString() && e.currentTarget.contains(sel.anchorNode)) return;   // a drag-to-select inside the pill ends in a click; don't swallow it
+				open ? this.raw_open.delete(p.id) : this.raw_open.add(p.id);
+				this.els.get(p.id)?.empty(() => this.prompt(p));
+			});
 		for (const r of this.trailing_replies(p)) this.reply(r);
 		if (this.partial && p === this.card_roots().filter(r => r instanceof Prompt).at(-1)) queueMicrotask(() => this.stream(this.partial?.role, this.partial?.text ?? ""));
 		const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
@@ -223,8 +232,10 @@ export default class ChatV3 extends JSONL {
 		return out;
 	}
 
-	// The owner's side of a card: ONE right-aligned bubble that hugs its words (bubbles.css), holding the title, the text (or the dictation)
-	// and the raw toggle. Everything the assistant says is drawn after it, outside it (Claude-style layout, the owner 2026-11-02).
+	// The owner's side of a card: ONE right-aligned bubble that hugs its words (bubbles.css), holding the title and the text (or the
+	// dictation). A tap on the bubble toggles its raw words (ask9-raw-tap, 2026-11-03), when a `clean` override exists — see `prompt()`'s
+	// click handler, which also ignores a tap landing on a nested control or a text selection. Everything the assistant says is drawn
+	// after it, outside it (Claude-style layout, the owner 2026-11-02).
 	you_class(p){ return "chat-v3-you"; }
 	you(p, title, refined, open, sentences){
 		div.c("chat-v3-head", () => {
@@ -238,9 +249,6 @@ export default class ChatV3 extends JSONL {
 		 * with "show all", never one wall (the owner, 2026-11-01: a 6,760-character Prompt came up as "a huge wall of text"). */
 		if (refined) md_into(div.c("chat-v3-text md").el, refined);
 		else this.dictation(p);
-		const has_clean = Object.keys(p.clean).length > 0;
-		if (has_clean) button.c("chat-v3-toggle", open ? "hide raw" : "show raw").attr("type", "button")
-			.click(() => { open ? this.raw_open.delete(p.id) : this.raw_open.add(p.id); this.els.get(p.id)?.empty(() => this.prompt(p)); });
 		if (open) div.c("chat-v3-raw", () => sentences.forEach(s => blockquote.c("chat-v3-raw-line", s.text)));
 	}
 

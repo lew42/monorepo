@@ -47,10 +47,13 @@ try {
 	check("no pause: two sentences share one paragraph", paras.length === 2 && paras[0].includes("Can you hear me?") && paras[0].includes("second thought"), paras);
 	check("a long pause starts a new paragraph", paras[1] === "A third thought, after a long pause.", paras);
 
-	// 5. "show raw" (the first prompt has a `clean` override on its first sentence)
+	// 5. tapping the owner's pill toggles raw words (no "show raw" button any more)
 	check("raw hidden by default", await page.$(first + " .chat-v3-raw") === null);
-	await tap(first + " .chat-v3-toggle");
-	check("show raw reveals every sentence's own words (3: the original + two synthetic)", (await page.$$(first + " .chat-v3-raw-line")).length === 3);
+	check("no \"show raw\" button exists", await page.$(first + " .chat-v3-toggle") === null);
+	await tap(first + " .chat-v3-you");
+	check("tapping the pill reveals every sentence's own words (3: the original + two synthetic)", (await page.$$(first + " .chat-v3-raw-line")).length === 3);
+	await tap(first + " .chat-v3-you");
+	check("tapping it again hides the raw words", await page.$(first + " .chat-v3-raw") === null);
 
 	if (shots) {
 		mkdirSync(shots, { recursive: true });

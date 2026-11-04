@@ -54,7 +54,7 @@ unit drawn            one bubble per spoken line,         one Prompt at the root
                       assistants as bubbles               tasks nested under it
 live words            YES: draft bubble, gray guess       NO (⬜): the Prompt grows as Servex writes raw,
                                                           but there is no gray guess tail
-raw vs cleaned        raw bubble swapped for cleaned      cleaned/refined shown, "show raw" one click down
+raw vs cleaned        raw bubble swapped for cleaned      cleaned/refined shown, raw words one tap away
 the connection        Session.watch + Session.stream      JSONL.live(): the file is streamed, patched in place
 where it is           ✦ sheet, drawer AI tab (default)    the "v2" chip on the sheet and the drawer, the session's
                                                           Chat tab (?chat_view=v2), /framework/ext/Chat/v2/
