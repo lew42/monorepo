@@ -311,7 +311,8 @@ export default class Sessions {
 	 * `session.messages` and `session.sentences`, right after it (`write()` below). V1's own lines stay exactly as they were. */
 	get chat_writer(){
 		return this._chat_writer ??= new ChatWriter({ find_sentence: (id, at) => this.find_sentence(this.map[id], at),
-			find_message: (id, at) => this.find_message(this.map[id], at) });
+			find_message: (id, at) => this.find_message(this.map[id], at),
+			last_id: id => this.last_message_id(this.map[id]) });
 	}
 	// The owner is mid-thought: a reply now would land between the sentences of one message, so it waits (ChatWriter.flush).
 	mid_thought(s){ return this.speaking(s) || !!this.thoughts.get(s.id)?.lines.length; }
@@ -333,6 +334,16 @@ export default class Sessions {
 			}
 		} catch {}
 		return null;
+	}
+
+	/* The newest message id in the session's file (any writer's), from its last 64 KB: ChatWriter grows the open Prompt only while it is still last. */
+	last_message_id(s){
+		if (!s) return null;
+		try {
+			const file = this.disk(s.file), size = fs.statSync(file).size, len = Math.min(size, 65536), buf = Buffer.alloc(len), fd = fs.openSync(file, "r");
+			try { fs.readSync(fd, buf, 0, len, size - len); } finally { fs.closeSync(fd); }
+			return ChatWriter.last_message_id(buf.toString("utf8"));
+		} catch { return null; }
 	}
 
 	/* The id of the Prompt MESSAGE a sentence with this `at` was filed under, read back from the session's file (mark_sent's fallback
