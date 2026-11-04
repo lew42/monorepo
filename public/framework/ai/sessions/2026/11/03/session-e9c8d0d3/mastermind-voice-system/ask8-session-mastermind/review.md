@@ -1,0 +1,21 @@
+verdict: fix
+1. [fix] The mastermind is not "held open with no prompt": `ensure_mastermind` passes `prompt: this.mastermind_brief(s)` (Sessions.js, the `agents.spawn` call), and `Agent.start()` runs a turn whenever `this.prompt` is set (Agents.js:1287–1290). So every voice session's first sentence starts a Sonnet-high `mastermind` turn, with the Dictate readme chain and the mastermind role loaded and nothing handed to it yet. That breaks ask 1 ("costs nothing until used") and the rule "Do not spawn anything that costs tokens before the owner says a first sentence", and the mastermind role may go looking for work by itself. Put the brief in the system prompt instead (an appended `system`, or the role/path text plus the brief) and pass no `prompt`, so the agent starts `idle`. Then add a test that checks the spec has no `prompt`.
+2. [fix] `report.md` is missing. The task folder (`.../ask8-session-mastermind/`) holds only `requirements.md` and `review/`, in both the main tree and the worktree. The brief asks for a one-screen report with file:line, the test output, what was declined, and the note that Servex must be restarted. A fresh agent can't tell from the folder what landed (commit `6090b9951` on `worktree/voice-mm`) or that it isn't live yet.
+3. [fix] Ask 6 asked for a pointer line in `public/framework/ux/Dictate/readme.md`, and the diff doesn't touch that file. The readme's only mastermind lines (:75, :91) are about other things, so the new doc section "Its own mastermind" is unindexed from the module readme.
+4. [note] The spawn sets no `task: false`, so `Agents.spawn` gives every voice session's mastermind its own default task dir (Agents.js, `default_task`). Expect one task folder per session; check that is wanted.
+5. [note] `sleep()` stops the mastermind, and the next `wake(s, "smart")` sees `state === "stopped"` and spawns a new one. So a session revived after the idle sweep gets a fresh mastermind, not the old one reused. Ask 1 says "a wake or revive reuses it" and ask 4 says teardown removes it, and the diff silently chose teardown. One sentence in the doc should say so.
+6. [note] A failed spawn is retried on every say, because `ensure_mastermind` runs before the `awake` check in `wake()`. Each retry logs another `console.error`. That is harmless, but it is noisy while spawning is broken.
+7. [note] The `session` line written by `create()` still has no `mastermind` key. Ask 1 said "written into the session's `session` line like fast/smart"; the id only appears on a later `backing` line. The doc comment at Sessions.js:131 covers this, so it is a small drift from the brief.
+8. [note] `single-voice-assistant.md` is at 898 words, against the 900 limit (`wc -w`), so the next edit will trip the test.
+
+## Requirements
+- 1 "One mastermind per voice session, spawned with the single seat … held open with no prompt" — no. One per session, reuse, role, path, model, effort, `dormant_after: 0`, parent and `s.mastermind` are all right, but it is spawned with a prompt, so it runs a turn at once (finding 1).
+- 2 "Its brief … `Servex/agents/session-mastermind.md` … under 250 words" — yes. 200 words; it covers follow, the hand-off forms, answering on the card or task and never in chat.
+- 3 "The seat's brief gets its id … `{{mastermind}}` … fallback `mastermind-voice-system`" — yes. All three are replaced, `single_brief(s)` substitutes the id, and the only non-doc reader left is test fixtures (grep).
+- 4 "Teardown: idle sweep stops its mastermind too … New session starts a fresh one" — yes. Done in `sleep()`; `create()` sets `mastermind: null`. Not tested (finding 5).
+- 5 "Test … one spawn, second say none, id in brief, no `{{`, failure fallback, <900 words" — yes. `node Servex/agents/Sessions.mastermind.test.mjs` gives 5 checks passed.
+- 6 "Docs (law 9) … Servex/agents/readme.md, doc/single-voice-assistant.md, ux/Dictate/readme.md pointer, say Servex must restart" — no. The first two are done; the Dictate readme pointer and the restart note are missing (findings 2, 3).
+- Class question — n/a (no new class).
+
+## Words
+- The new brief and doc paragraph are plain and short — yes. The doc's "Not built yet" list drops the item this task built — yes.

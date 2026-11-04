@@ -1,0 +1,307 @@
+diff --git a/Servex/agents/ChatWriter.js b/Servex/agents/ChatWriter.js
+index 9dc162fae..cb4fe5629 100644
+--- a/Servex/agents/ChatWriter.js
++++ b/Servex/agents/ChatWriter.js
+@@ -118,11 +118,24 @@ export default class ChatWriter {
+ 	/* A `{place}` line from the fast seat (ux/Dictate/doc/voice-assistant.md), as the line that updates the chat list: its cleaned
+ 	 * `text` (edit "improve" or "both") becomes that sentence's cleaned text on the Prompt that holds it, IN PLACE: the Prompt keeps its
+ 	 * position and its raw words. `session` is the replayed Session; null when there is no text, or no sentence with that `at`.
+-	 * Where the sentence goes (`to`, `where`) is not mirrored: the list's order never changes. */
++	 * Where the sentence goes is `move_line`'s job (below), never this one's. */
+ 	static place(session, place){
+ 		if (!place || !["improve", "both"].includes(place.edit) || !String(place.text ?? "").trim() || !place.re) return null;
+ 		const s = [...(session?._sentences ?? [])].find(x => x.at === place.re);
+ 		const p = s && session._messages?.messages.find(m => m.sentences?.includes?.(s.id));
+ 		return p ? ChatWriter.clean_line(p.id, s.id, place.text) : null;
+ 	}
++
++	/* A `{place}` that starts a new topic (`to: "card"`, `where: "up"`) or names a message (`after`): the ONE `List.move` line
++	 * that puts the Prompt holding that sentence after the last message (or after `place.after`). The same message moves, so no
++	 * view ever sees a second copy; a view that gets this line moves its drawn node (ext/Chat/v3/ChatV3.js `moved`). null when
++	 * nothing would move: `same`/`beside`/`inside`, no sentence with that `at`, or the Prompt is already there. */
++	static move_line(session, place){
++		if (!place?.re || !(place.after || (place.to === "card" && place.where === "up"))) return null;
++		const list = session?._messages?.messages ?? [], s = [...(session?._sentences ?? [])].find(x => x.at === place.re);
++		const p = s && list.find(m => m.sentences?.includes?.(s.id));
++		const after = place.after ?? list.at(-1)?.id;
++		if (!p || !after || after === p.id || list[list.indexOf(p) - 1]?.id === after) return null;
++		return { messages: { move: { id: p.id, after } } };
++	}
+ }
+diff --git a/Servex/agents/ChatWriter.move.test.mjs b/Servex/agents/ChatWriter.move.test.mjs
+new file mode 100644
+index 000000000..e5b637215
+--- /dev/null
++++ b/Servex/agents/ChatWriter.move.test.mjs
+@@ -0,0 +1,52 @@
++/* node Servex/agents/ChatWriter.move.test.mjs — a re-placed sentence reaches the chat list as ONE List.move line (never a delete+add),
++ * and an improve still patches in place. Replays lines of a real voice session (ext/Chat/v3/fixture/move-session.jsonl, a copy of
++ * the first 60 lines of ai/sessions/2026/11/03/v-z0jonhy/session.jsonl: lines 14/15, 35/36, 56/57 are its Reply pairs). */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import { fileURLToPath } from "node:url";
++import ChatWriter from "./ChatWriter.js";
++import Session from "../../public/framework/core/Session/Session.js";
++import { moved_id } from "../../public/framework/ext/Chat/v3/placement.js";
++
++let n = 0;
++const check = (name, fn) => { fn(); n++; console.log("PASS —", name); };
++const lines = fs.readFileSync(fileURLToPath(new URL("../../public/framework/ext/Chat/v3/fixture/move-session.jsonl", import.meta.url)), "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
++const replay = extra => Session.replay([...lines, ...extra]);
++
++const base = replay([]), list = base.messages.messages, ids = list.map(m => m.id);
++const first = list[0], last = list.at(-1);
++const first_at = [...base._sentences].find(s => first.sentences.includes(s.id)).at;
++
++const up = { re: first_at, to: "card", where: "up", edit: "nothing" };
++const mv = ChatWriter.move_line(base, up);
++check("a new-topic placement writes ONE move line on messages, for the Prompt holding the sentence", () => {
++	assert.deepEqual(Object.keys(mv), ["messages", ...Object.keys(mv).filter(k => k !== "messages")]);
++	assert.deepEqual(mv.messages, { move: { id: first.id, after: last.id } });
++	assert.equal(JSON.stringify(mv).includes("remove"), false, "no delete");
++});
++check("a placement that moves nothing writes nothing (same, beside, no match, already last)", () => {
++	assert.equal(ChatWriter.move_line(base, { re: first_at, to: "same", edit: "nothing" }), null);
++	assert.equal(ChatWriter.move_line(base, { re: first_at, to: "card", where: "beside" }), null);
++	assert.equal(ChatWriter.move_line(base, { re: "2026-01-01T00:00:00.000-06:00", to: "card", where: "up" }), null);
++	const again = replay([mv]), a2 = [...again._sentences].find(s => again.messages.messages.at(-1).sentences?.includes?.(s.id));
++	assert.equal(ChatWriter.move_line(again, { re: a2.at, to: "card", where: "up" }), null);
++});
++check("replayed, the move reorders the SAME message: one copy, new last place, text untouched", () => {
++	const after = replay([mv]).messages.messages;
++	assert.equal(after.length, list.length);
++	assert.equal(after.filter(m => m.id === first.id).length, 1);
++	assert.equal(after.at(-1).id, first.id);
++	assert.equal(after.at(-1).raw, first.raw);
++});
++check("the view reads a move delta's id (placement.moved_id); an add or a clean is not a move", () => {
++	assert.equal(moved_id({ move: { id: "m-1", after: "m-2" } }), "m-1");
++	assert.equal(moved_id({ add: { id: "m-1" } }), null);
++	assert.equal(moved_id(null), null);
++});
++check("an improve still patches the Prompt in place (no move line, same position)", () => {
++	const clean = ChatWriter.place(base, { re: first_at, to: "same", edit: "improve", text: "Can you hear me, please?" });
++	assert.equal(ChatWriter.move_line(base, { re: first_at, to: "same", edit: "improve", text: "x" }), null);
++	const after = replay([clean]).messages.messages;
++	assert.deepEqual(after.map(m => m.id), ids);
++});
++console.log(`${n} checks passed`);
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 3ccef1cee..4ae936790 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -1388,7 +1388,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 		const was = verb ? steady(print(root())) : null;
+ 		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: stamp(), ...(client ? { client } : {}) }), !!tasky);
+ 		// THE REAL CHAT LIST (core/Session/Chat): a {place} with a cleaned text also updates that sentence's text on its Prompt, in place.
+-		if (kind === "Session" && !at.target.length && is_plain(body.place)) try { const m = ChatWriter.place(root(), body.place); if (m){ const keep = line; put({ ...m, by, ts: stamp(), ...(client ? { client } : {}) }); line = keep; } } catch (e) { console.error(`item: a {place} was written but not mirrored into the chat list (${at.file}): ${e.message}`); }
++		if (kind === "Session" && !at.target.length && is_plain(body.place)) try { for (const m of [ChatWriter.place(root(), body.place), ChatWriter.move_line(root(), body.place)]) if (m){ const keep = line; put({ ...m, by, ts: stamp(), ...(client ? { client } : {}) }); line = keep; } } catch (e) { console.error(`item: a {place} was written but not mirrored into the chat list (${at.file}): ${e.message}`); }
+ 		if (verb && steady(print(root())) === was) unchanged = `"${verb}" was written but changed nothing: the task (or the child it names) is in a state that refuses it, or no child has that id`;
+ 	} else if (size === undefined) size = size_of(at.file);
+ 	// An approve line starts a templated task's agent (TaskLoop.launch); never awaited into the answer, a failure never reaches the tool.
+diff --git a/Servex/readme.md b/Servex/readme.md
+index 1cd57bec8..89ca036f0 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -42,7 +42,7 @@ class Servex {
+ 
+ | Folder or file | What |
+ |---|---|
+-| `agents/` | `Agents.js` (`spawn` → `open_task` → SDK `query()`), `tools.js` (the in-process tools incl. `spawn_agent`), `roles.js` (role → its readme in [`roles/`](agents/roles/readme.md), skills and posture), `Dispatcher.js`, `Sessions.js` (a voice session's fast and smart seats; the fast seat is the voice assistant by default, `session-assistant.txt` = `voice`/`fast`/`off`; both have `parent: "sessions"` so their turn-ends reach `Sessions.hire()`, and `nest_agents` in `page_tools.js` files the fast seat's cost under the smart seat of the same `parent_session`, test `seat-cost.test.mjs`), `ChatWriter.js` (mirrors each `{chat}` line `Sessions.write()` makes into the session's real chat list, `session.messages` and `session.sentences`, and, through the item tool, a `{place}` improve as that sentence's cleaned text, in place; test `chat-messages.test.mjs`: [core/Session/Chat](/framework/core/Session/Chat/readme.md)), `WakePolicy.js` (when a voice session's smart seat is woken; test `WakePolicy.test.mjs`: [wake-policy](/framework/ux/Dictate/doc/wake-policy.md)), `page_tools.js` (item, page_set/page_add/page_call/page_read/page_log/page_note; `item` also answers **queries** with no write, e.g. `item({path, delta:{"summary":{}}})`: [doc/item-tool.md](doc/item-tool.md)), `inbox.js`, `claims.js`, `directory.js` |
++| `agents/` | `Agents.js` (`spawn` → `open_task` → SDK `query()`), `tools.js` (the in-process tools incl. `spawn_agent`), `roles.js` (role → its readme in [`roles/`](agents/roles/readme.md), skills and posture), `Dispatcher.js`, `Sessions.js` (a voice session's fast and smart seats; the fast seat is the voice assistant by default, `session-assistant.txt` = `voice`/`fast`/`off`; both have `parent: "sessions"` so their turn-ends reach `Sessions.hire()`, and `nest_agents` in `page_tools.js` files the fast seat's cost under the smart seat of the same `parent_session`, test `seat-cost.test.mjs`), `ChatWriter.js` (mirrors each `{chat}` line `Sessions.write()` makes into the session's real chat list, `session.messages` and `session.sentences`, and, through the item tool, a `{place}` improve as that sentence's cleaned text, in place, and a new-topic `{place}` as one List `move` line; tests `chat-messages.test.mjs`, `ChatWriter.move.test.mjs`: [core/Session/Chat](/framework/core/Session/Chat/readme.md)), `WakePolicy.js` (when a voice session's smart seat is woken; test `WakePolicy.test.mjs`: [wake-policy](/framework/ux/Dictate/doc/wake-policy.md)), `page_tools.js` (item, page_set/page_add/page_call/page_read/page_log/page_note; `item` also answers **queries** with no write, e.g. `item({path, delta:{"summary":{}}})`: [doc/item-tool.md](doc/item-tool.md)), `inbox.js`, `claims.js`, `directory.js` |
+ | `asks/`, `cards/` | the asks ledger (`Asks.js`), cards (`Cards.js`, writes `ai/cards.jsonl`) |
+ | `ext/` | `remote/` (voice-app door), `openrouter/` (non-Anthropic models), `refine/`, `local/`, `recite/` (recite-server, text to speech: [ext/recite/readme.md](ext/recite/readme.md)) |
+ | `doc/` | the detail; `proof/` and `*.test.mjs` are checks |
+diff --git a/public/framework/core/Session/Chat/readme.md b/public/framework/core/Session/Chat/readme.md
+index 4b75fdc09..fa24ffdcb 100644
+--- a/public/framework/core/Session/Chat/readme.md
++++ b/public/framework/core/Session/Chat/readme.md
+@@ -58,7 +58,7 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
+   - Known edge: a reply held at the moment Servex restarts is lost from the list (V1 still has it).
+ - **Any agent, through the item tool:** `item({path: <session url>, delta: {messages: {add: {type: "Reply", by: "smart", text: "…"}}}})`, or `{messages: {"<id>": {title, text}}}` to refine a message in place. A read of the session (`item({path})`) answers `messages: {count, last}` (the last 20).
+ - **A root task, or a spawned child session, as a Ref** (2026-11-02, chat-model step 3): when `tasks.add` lands at a session's own root — a folder-making ask (`Servex/agents/page_tools.js`'s `put({task: …})`) or an inline subtask (`put({tasks: {add: …}})`) — the same write also appends `ChatWriter.ref_line({path|url})`: a Ref at the bottom of `session.messages`, right after the line that made the task. A spawned child session gets the same Ref wherever `SessionRecord.add_ref` (`Server/SessionRecord.mjs`, called by `Agents.open_task`/`link_parent` and `ChildLinks.link`) writes a `{"task":url}` reference onto a **session's own** `session.jsonl`, top-level or nested (never onto some task's `task.jsonl` beneath it — "root tasks only": `SessionRecord.is_chat_ref_target`). Idempotent the same way the `{task}` reference already was: a retried link never adds a second Ref.
+-- **The fast seat's `{place}` lines** (written by the voice assistant through the item tool): one with a cleaned `text` (edit `improve` or `both`) also writes `{"messages":{"<prompt id>":{"clean":{"<sentence id>":"…"}}}}`, so that sentence's text updates on its Prompt **in place**: the Prompt keeps its position and its raw words, and a later improve of the same sentence wins (`ChatWriter.place`, called from the item tool, `page_tools.js`). Where a sentence goes (`to`, `where`) is not mirrored: the list's order never changes.
++- **The fast seat's `{place}` lines** (written by the voice assistant through the item tool): one with a cleaned `text` (edit `improve` or `both`) also writes `{"messages":{"<prompt id>":{"clean":{"<sentence id>":"…"}}}}`, so that sentence's text updates on its Prompt **in place**: the Prompt keeps its position and its raw words, and a later improve of the same sentence wins (`ChatWriter.place`, called from the item tool, `page_tools.js`). A `{place}` with `to:"card", where:"up"` (a new topic), or an `after` message id, also writes ONE `{"messages":{"move":{"id":"<prompt id>","after":"<message id>"}}}` line (the List's own move; `ChatWriter.move_line`, same call site): the same Prompt, never a delete plus an add. `same`, `beside` and `inside` move nothing.
+ - **`Sessions.mark_sent`** (chat-model step 6): besides its existing broadcast `{"sent":{to,at,re}}` line (read by V1/V2 through the Prompt *task*), it now looks up the Prompt *message* that owns the last line's sentence (`ChatWriter.message_for`) and, when found, also writes `{"messages":{"<mid>":{"sent":{"fast"|"smart":{"at":…}}}}}` through `ChatWriter.sent_line`. `message_for` tries memory first (`msg_at`, filled the same way as `by_at`), then falls back to the file itself (`ChatWriter.find_message` → `Sessions.find_message`, the same shape as `find_sentence`): the line that adds a sentence always also names the message it was filed under, so the mark still lands on the right message after a Servex restart.
+ 
+ ## How a view reads it
+diff --git a/public/framework/ext/Chat/v3/ChatV3.js b/public/framework/ext/Chat/v3/ChatV3.js
+index 633825e96..da67d271c 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.js
++++ b/public/framework/ext/Chat/v3/ChatV3.js
+@@ -16,7 +16,7 @@ import LineKey from "/framework/core/Item/LineKey.js";
+ import { md_into } from "../md.js";
+ import ReciteBubble from "/framework/audio/Recite/ReciteBubble.js";
+ import * as Wire from "/framework/ext/Session/Session.js";
+-import { owning_prompt, paragraphs, paragraph_groups, note_view } from "./placement.js";
++import { owning_prompt, paragraphs, paragraph_groups, note_view, moved_id } from "./placement.js";
+ View.stylesheet(import.meta, "ChatV3.css");
+ View.stylesheet(import.meta, "../bubbles.css");
+ 
+@@ -27,6 +27,7 @@ export default class ChatV3 extends JSONL {
+ 	session = new Session();
+ 	els = new Map();           // root id -> the View that draws it
+ 	dirty = new Set();         // roots (Prompt or plain Message) to refill after this batch
++	moved = new Set();         // roots a `move` delta re-ordered: their drawn node is moved in the DOM, never refilled
+ 	listening = false;
+ 	partial = null;            // the reply being written right now, from the session's live wire: {role, text}
+ 	raw_open = new Set();      // prompt ids whose raw words are open
+@@ -38,6 +39,8 @@ export default class ChatV3 extends JSONL {
+ 		if (!this.listening){
+ 			this.listening = true;
+ 			this.session.on("delta", (line, from) => {
++				const mid = from instanceof List ? moved_id(line) : null, node = mid != null ? this.session.find(mid) : null;
++				if (node) { if (this.card_roots().includes(node)) this.moved.add(node); else { const card = this.card_for(node); if (card) this.dirty.add(card); } return; }
+ 				const member = this.added_member(line, from);
+ 				if (member instanceof Reply) { this.partial = null; this.$partial?.el.remove(); }   // its settled Reply landed: stop drawing the partial
+ 				const card = this.card_for(member); if (card) this.dirty.add(card);
+@@ -49,10 +52,10 @@ export default class ChatV3 extends JSONL {
+ 			this.session.replay_line(line);
+ 		}
+ 		if (first) this.draw(); else this.update();
+-		this.dirty.clear();
++		this.dirty.clear(); this.moved.clear();
+ 		return this;
+ 	}
+-	reset(){ this.session = new Session(); this.els.clear(); this.dirty.clear(); this.listening = false; this.drawn = false; return super.reset(); }
++	reset(){ this.session = new Session(); this.els.clear(); this.dirty.clear(); this.moved.clear(); this.listening = false; this.drawn = false; return super.reset(); }
+ 	live(){ super.live(() => {}).then(() => { if (this.stopped) super.unsubscribe(); }); this.listen(true); this.wire(true); return this; }
+ 	unsubscribe(){ this.stopped = true; this.listen(false); this.wire(false); return super.unsubscribe(); }
+ 
+@@ -143,6 +146,19 @@ export default class ChatV3 extends JSONL {
+ 				this.draft_at_end();
+ 			}
+ 		}
++		for (const node of this.moved) this.relocate(node);
++	}
++
++	// A re-ordered root keeps its drawn node (same object, same text node): only its place in the box changes, to just after the
++	// node of the root now before it in the list, or first when it leads. A root not drawn (older than the shown limit) is skipped.
++	relocate(node){
++		const el = this.els.get(node.id)?.el;
++		if (!el) return;
++		const roots = this.card_roots(), prev = roots[roots.indexOf(node) - 1], prev_el = prev && this.els.get(prev.id)?.el;
++		if (prev_el?.parentNode === el.parentNode) prev_el.after(el);
++		else if (this.$earlier?.el.parentNode === el.parentNode) this.$earlier.el.after(el);
++		else el.parentNode?.prepend(el);
++		this.draft_at_end();
+ 	}
+ 
+ 	card(node){
+diff --git a/public/framework/ext/Chat/v3/ChatV3.test.mjs b/public/framework/ext/Chat/v3/ChatV3.test.mjs
+index 639ec67b7..f612d0a01 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.test.mjs
++++ b/public/framework/ext/Chat/v3/ChatV3.test.mjs
+@@ -94,6 +94,20 @@ try {
+ 	await page.waitForSelector(`${card} .chat-v3-reply.is-card .chat-v3-title`, { timeout: 8000 });
+ 	check("upgrading a Reply (title/icon set on it) makes it draw as a card too", await page.$eval(`${card} .chat-v3-reply.is-card .chat-v3-title`, e => e.textContent) === "Phone the owner back");
+ 
++	// 9. a MOVE reaches the screen as the same node in a new place (never a redraw); an improve patches the text in place
++	const order = () => page.$$eval(".chat-v3 > .chat-v3-card:not(.chat-v3-draft)", els => els.map(e => e.dataset.id));
++	const lead = ".chat-v3-prompt[data-id='m-1793586471880']";
++	await page.$eval(lead, e => { e.__mark = "same-node"; window.__text = e.querySelector(".chat-v3-text"); });
++	const was = await order();
++	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { move: { id: "m-1793586471880", after: was.at(-1) } } }) + "\n");
++	await page.waitForFunction(id => document.querySelector(".chat-v3 > .chat-v3-card:not(.chat-v3-draft):last-of-type") === document.querySelector(`[data-id='${id}']`) || [...document.querySelectorAll(".chat-v3 > .chat-v3-card")].at(-1)?.dataset.id === id, "m-1793586471880", { timeout: 8000 });
++	const now = await order();
++	check("a move line puts the card last, one copy, the others in order", now.at(-1) === "m-1793586471880" && now.length === was.length && JSON.stringify(now.slice(0, -1)) === JSON.stringify(was.slice(1)), now);
++	check("the moved card is the SAME DOM node, with the same text node (not redrawn)", await page.$eval(lead, e => e.__mark === "same-node" && e.querySelector(".chat-v3-text") === window.__text));
++	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { "m-1793586471880": { clean: { "s-1793586471880": "Can you hear me, please?" } } } }) + "\n");
++	await page.waitForFunction(c => document.querySelector(c + " .chat-v3-text")?.textContent.includes("please"), lead, { timeout: 8000 });
++	check("an improve edit patches the text in place: the card keeps its node and its place", await page.$eval(lead, e => e.__mark === "same-node") && (await order()).at(-1) === "m-1793586471880");
++
+ 	check("the fixture copy was only ever appended to", readFileSync(here + "fixture/" + live, "utf8").startsWith(before));
+ 	check("no page errors", errors.length === 0, errors);
+ } finally {
+diff --git a/public/framework/ext/Chat/v3/fixture/move-session.jsonl b/public/framework/ext/Chat/v3/fixture/move-session.jsonl
+new file mode 100644
+index 000000000..047431f5f
+--- /dev/null
++++ b/public/framework/ext/Chat/v3/fixture/move-session.jsonl
+@@ -0,0 +1,60 @@
++{"session":{"id":"v-z0jonhy","home":"/","kind":"voice","at":"2026-11-03T12:04:25.092-06:00","project":"monorepo","host":"10.0.0.135:3104","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
++{"tasks":{"add":{"type":"Prompt","id":"p-1793729065264","raw":["Can you hear me?"],"paragraphs":[{"id":"a","text":"Can you hear me?"}]}},"ts":"2026-11-03T18:04:25.264Z","by":"fast"}
++{"chat":{"at":"2026-11-03T12:04:25.267-06:00","session":"v-z0jonhy","path":"/","from":{"kind":"owner"},"via":"voice","text":"Can you hear me?","prompt":"p-1793729065264","said_at":"2026-11-03T18:04:24.984Z","floor":"speaking","cues":{"mic_on_at":"2026-11-03T18:04:20.730Z","pauses":[{"start":2964,"end":null,"ms":1418}],"speaking_ms":622}}}
++{"sentences":{"add":{"id":"s-1793729065269","at":"2026-11-03T12:04:25.267-06:00","text":"Can you hear me?","via":"voice","said_at":"2026-11-03T18:04:24.984Z"}},"messages":{"add":{"type":"Prompt","id":"m-1793729065269","by":"owner","at":"2026-11-03T12:04:25.267-06:00","sentences":["s-1793729065269"],"prompt":"p-1793729065264"}},"by":"servex","ts":"2026-11-03T18:04:25.269Z"}
++{"backing":{"at":"2026-11-03T12:04:25.417-06:00","fast":null,"smart":"e9c8d0d3-7b7b-4565-aad3-4d7651e3553f","how":{"smart":"new"}}}
++{"sent":{"to":"smart","at":"2026-11-03T12:04:25.419-06:00","re":["2026-11-03T12:04:25.267-06:00"],"delay_ms":435}}
++{"messages":{"m-1793729065269":{"sent":{"smart":{"at":"2026-11-03T12:04:25.419-06:00"}}}},"by":"servex","ts":"2026-11-03T18:04:25.420Z"}
++{"log":{"at":"2026-11-03T12:04:25.468-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true,\"session\":\"v-z0jonhy\",\"why\":\"this page's session (session changed)\"}"}}
++{"quiet":{"at":"2026-11-03T12:04:26.352-06:00","ms":2500,"path":"/"}}
++{"place":{"re":"2026-11-03T12:04:25.267-06:00","to":"same","edit":"improve","text":"Can you hear me?"},"by":"single-voice-assistant-v-z0jonhy","ts":"2026-11-03T18:04:34.842Z"}
++{"messages":{"m-1793729065269":{"clean":{"s-1793729065269":"Can you hear me?"}}},"by":"single-voice-assistant-v-z0jonhy","ts":"2026-11-03T18:04:34.845Z"}
++{"sessions":[{"id":"single-voice-assistant-v-z0jonhy","task":"/framework/ai/sessions/2026/11/03/v-z0jonhy/"}],"by":"single-voice-assistant-v-z0jonhy","ts":"2026-11-03T18:04:34.848Z"}
++{"log":{"at":"2026-11-03T12:04:38.424-06:00","msg":"recite: reply streaming {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true,\"text\":\"Yes, I can hear you.\"}"}}
++{"chat":{"at":"2026-11-03T12:04:38.832-06:00","session":"v-z0jonhy","path":"/","from":{"kind":"assistant","id":"smart","agent":"single-voice-assistant-v-z0jonhy"},"via":"text","text":"Yes, I can hear you. Your sentence came through clearly.","re":"2026-11-03T12:04:25.267-06:00"}}
++{"messages":{"add":{"id":"m-1793729078834","type":"Reply","by":"smart","at":"2026-11-03T12:04:38.832-06:00","text":"Yes, I can hear you. Your sentence came through clearly.","re":{"to":"s-1793729065269"}}},"by":"servex","ts":"2026-11-03T18:04:38.834Z"}
++{"log":{"at":"2026-11-03T12:04:39.035-06:00","msg":"recite: reply line {\"state\":\"loading\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true,\"from\":\"smart\",\"text\":\"Yes, I can hear you. Your sentence came \"}"}}
++{"log":{"at":"2026-11-03T12:04:39.047-06:00","msg":"recite: reply line {\"state\":\"loading\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true,\"from\":\"smart\",\"text\":\"Yes, I can hear you. Your sentence came \"}"}}
++{"log":{"at":"2026-11-03T12:04:39.052-06:00","msg":"recite: reply seen {\"state\":\"loading\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true,\"from\":\"smart\",\"at\":\"2026-11-03T12:04:38.832-06:00\",\"new\":true,\"watching_since\":\"2026-11-03T18:04:25.111Z\"}"}}
++{"log":{"at":"2026-11-03T12:04:39.055-06:00","msg":"recite: reply line {\"state\":\"loading\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true,\"from\":\"smart\",\"text\":\"Yes, I can hear you. Your sentence came \"}"}}
++{"log":{"at":"2026-11-03T12:04:39.524-06:00","msg":"recite: playing {\"state\":\"loading\",\"auto\":true,\"server\":\"online\",\"unlocked\":true,\"sentence\":0}"}}
++{"log":{"at":"2026-11-03T12:04:39.894-06:00","msg":"recite: reply line {\"state\":\"playing\",\"auto\":true,\"server\":\"online\",\"unlocked\":true,\"from\":\"smart\",\"text\":\"Yes, I can hear you. Your sentence came \"}"}}
++{"log":{"at":"2026-11-03T12:04:39.900-06:00","msg":"recite: reply seen {\"state\":\"playing\",\"auto\":true,\"server\":\"online\",\"unlocked\":true,\"from\":\"smart\",\"at\":\"2026-11-03T12:04:38.832-06:00\",\"new\":true,\"watching_since\":\"2026-11-03T18:04:25.111Z\"}"}}
++{"quiet":{"at":"2026-11-03T12:04:46.526-06:00","ms":2500,"path":"/"}}
++{"log":{"at":"2026-11-03T12:05:02.173-06:00","msg":"ResizeObserver loop completed with undelivered notifications. (https://monorepo.lew42.com/:0)"}}
++{"quiet":{"at":"2026-11-03T12:05:05.148-06:00","ms":2500,"path":"/"}}
++{"tasks":{"add":{"type":"Prompt","id":"p-1793729110266","raw":["What model are you?"],"paragraphs":[{"id":"a","text":"What model are you?"}]}},"ts":"2026-11-03T18:05:10.266Z","by":"fast"}
++{"chat":{"at":"2026-11-03T12:05:10.272-06:00","session":"v-z0jonhy","path":"/","from":{"kind":"owner"},"via":"voice","text":"What model are you?","prompt":"p-1793729110266","said_at":"2026-11-03T18:05:10.116Z","floor":"done","cues":{"mic_on_at":"2026-11-03T18:04:20.730Z","pauses":[{"start":4382,"end":23165,"ms":18783},{"start":23186,"end":29008,"ms":5822},{"start":31245,"end":31665,"ms":420},{"start":31804,"end":32891,"ms":1087},{"start":32924,"end":33502,"ms":578},{"start":34482,"end":34963,"ms":481},{"start":35103,"end":35922,"ms":819},{"start":36482,"end":37203,"ms":721},{"start":38723,"end":39884,"ms":1161},{"start":40364,"end":41662,"ms":1298},{"start":41822,"end":46724,"ms":4901},{"start":47709,"end":null,"ms":1730}],"speaking_ms":5827}}}
++{"sentences":{"add":{"id":"s-1793729110276","at":"2026-11-03T12:05:10.272-06:00","text":"What model are you?","via":"voice","said_at":"2026-11-03T18:05:10.116Z"}},"messages":{"add":{"type":"Prompt","id":"m-1793729110276","by":"owner","at":"2026-11-03T12:05:10.272-06:00","sentences":["s-1793729110276"],"prompt":"p-1793729110266"}},"by":"servex","ts":"2026-11-03T18:05:10.277Z"}
++{"sent":{"to":"smart","at":"2026-11-03T12:05:10.279-06:00","re":["2026-11-03T12:05:10.272-06:00"],"delay_ms":163}}
++{"messages":{"m-1793729110276":{"sent":{"smart":{"at":"2026-11-03T12:05:10.279-06:00"}}}},"by":"servex","ts":"2026-11-03T18:05:10.280Z"}
++{"quiet":{"at":"2026-11-03T12:05:11.046-06:00","ms":2500,"path":"/"}}
++{"place":{"re":"2026-11-03T12:05:10.272-06:00","to":"same","edit":"improve","text":"What model are you?"},"by":"single-voice-assistant-v-z0jonhy","ts":"2026-11-03T18:05:12.404Z"}
++{"messages":{"m-1793729110276":{"clean":{"s-1793729110276":"What model are you?"}}},"by":"single-voice-assistant-v-z0jonhy","ts":"2026-11-03T18:05:12.408Z"}
++{"log":{"at":"2026-11-03T12:05:14.457-06:00","msg":"recite: reply streaming {\"state\":\"idle\",\"auto\":true,\"server\":\"online\",\"unlocked\":true,\"text\":\"I'm\"}"}}
++{"chat":{"at":"2026-11-03T12:05:14.828-06:00","session":"v-z0jonhy","path":"/","from":{"kind":"assistant","id":"smart","agent":"single-voice-assistant-v-z0jonhy"},"via":"text","text":"I'm Claude Sonnet 5.5, running as the voice assistant for this session.","re":"2026-11-03T12:05:10.272-06:00"}}
++{"messages":{"add":{"id":"m-1793729114831","type":"Reply","by":"smart","at":"2026-11-03T12:05:14.828-06:00","text":"I'm Claude Sonnet 5.5, running as the voice assistant for this session.","re":{"to":"s-1793729110276"}}},"by":"servex","ts":"2026-11-03T18:05:14.831Z"}
++{"quiet":{"at":"2026-11-03T12:05:14.960-06:00","ms":2500,"path":"/"}}
++{"log":{"at":"2026-11-03T12:05:15.002-06:00","msg":"recite: reply line {\"state\":\"loading\",\"auto\":true,\"server\":\"online\",\"unlocked\":true,\"from\":\"smart\",\"text\":\"I'm Claude Sonnet 5.5, running as the vo\"}"}}
++{"log":{"at":"2026-11-03T12:05:15.006-06:00","msg":"recite: reply seen {\"state\":\"loading\",\"auto\":true,\"server\":\"online\",\"unlocked\":true,\"from\":\"smart\",\"at\":\"2026-11-03T12:05:14.828-06:00\",\"new\":true,\"watching_since\":\"2026-11-03T18:04:25.111Z\"}"}}
++{"log":{"at":"2026-11-03T12:05:15.010-06:00","msg":"recite: reply line {\"state\":\"loading\",\"auto\":true,\"server\":\"online\",\"unlocked\":true,\"from\":\"smart\",\"text\":\"I'm Claude Sonnet 5.5, running as the vo\"}"}}
++{"log":{"at":"2026-11-03T12:05:15.014-06:00","msg":"recite: reply line {\"state\":\"loading\",\"auto\":true,\"server\":\"online\",\"unlocked\":true,\"from\":\"smart\",\"text\":\"I'm Claude Sonnet 5.5, running as the vo\"}"}}
++{"log":{"at":"2026-11-03T12:05:15.674-06:00","msg":"recite: reply seen {\"state\":\"loading\",\"auto\":true,\"server\":\"online\",\"unlocked\":true,\"from\":\"smart\",\"at\":\"2026-11-03T12:05:14.828-06:00\",\"new\":true,\"watching_since\":\"2026-11-03T18:04:25.111Z\"}"}}
++{"log":{"at":"2026-11-03T12:05:15.682-06:00","msg":"recite: reply line {\"state\":\"loading\",\"auto\":true,\"server\":\"online\",\"unlocked\":true,\"from\":\"smart\",\"text\":\"I'm Claude Sonnet 5.5, running as the vo\"}"}}
++{"quiet":{"at":"2026-11-03T12:05:21.314-06:00","ms":2500,"path":"/"}}
++{"tasks":{"add":{"type":"Prompt","id":"p-1793729126449","raw":["Is there a smart and fast assistant or only one assistant?"],"paragraphs":[{"id":"a","text":"Is there a smart and fast assistant or only one assistant?"}]}},"ts":"2026-11-03T18:05:26.449Z","by":"fast"}
++{"chat":{"at":"2026-11-03T12:05:26.456-06:00","session":"v-z0jonhy","path":"/","from":{"kind":"owner"},"via":"voice","text":"Is there a smart and fast assistant or only one assistant?","prompt":"p-1793729126449","said_at":"2026-11-03T18:05:26.345Z","floor":"speaking","cues":{"mic_on_at":"2026-11-03T18:04:20.730Z","pauses":[{"start":49439,"end":50803,"ms":1365},{"start":50824,"end":51604,"ms":780},{"start":51623,"end":55405,"ms":3782},{"start":56016,"end":56463,"ms":447},{"start":56883,"end":57804,"ms":921},{"start":57984,"end":60543,"ms":2560},{"start":64283,"end":null,"ms":1335}],"speaking_ms":3747}}}
++{"sentences":{"add":{"id":"s-1793729126460","at":"2026-11-03T12:05:26.456-06:00","text":"Is there a smart and fast assistant or only one assistant?","via":"voice","said_at":"2026-11-03T18:05:26.345Z"}},"messages":{"add":{"type":"Prompt","id":"m-1793729126460","by":"owner","at":"2026-11-03T12:05:26.456-06:00","sentences":["s-1793729126460"],"prompt":"p-1793729126449"}},"by":"servex","ts":"2026-11-03T18:05:26.460Z"}
++{"sent":{"to":"smart","at":"2026-11-03T12:05:26.463-06:00","re":["2026-11-03T12:05:26.456-06:00"],"delay_ms":118}}
++{"messages":{"m-1793729126460":{"sent":{"smart":{"at":"2026-11-03T12:05:26.463-06:00"}}}},"by":"servex","ts":"2026-11-03T18:05:26.464Z"}
++{"quiet":{"at":"2026-11-03T12:05:27.612-06:00","ms":2500,"path":"/"}}
++{"place":{"re":"2026-11-03T12:05:26.456-06:00","to":"same","edit":"improve","text":"Is there a smart and fast assistant, or only one assistant?"},"by":"single-voice-assistant-v-z0jonhy","ts":"2026-11-03T18:05:32.710Z"}
++{"messages":{"m-1793729126460":{"clean":{"s-1793729126460":"Is there a smart and fast assistant, or only one assistant?"}}},"by":"single-voice-assistant-v-z0jonhy","ts":"2026-11-03T18:05:32.712Z"}
++{"quiet":{"at":"2026-11-03T12:05:36.293-06:00","ms":2500,"path":"/"}}
++{"quiet":{"at":"2026-11-03T12:05:40.513-06:00","ms":2500,"path":"/"}}
++{"log":{"at":"2026-11-03T12:05:47.855-06:00","msg":"recite: reply streaming {\"state\":\"idle\",\"auto\":true,\"server\":\"online\",\"unlocked\":true,\"text\":\"In this session there's only\"}"}}
++{"chat":{"at":"2026-11-03T12:05:48.684-06:00","session":"v-z0jonhy","path":"/","from":{"kind":"assistant","id":"smart","agent":"single-voice-assistant-v-z0jonhy"},"via":"text","text":"In this session there's only one voice assistant, and that's me. I'm built to be quick: I tidy and file what you say. For anything heavy or smart, I hand it to a separate agent. That agent can run a stronger model, and I can start one for you.","re":"2026-11-03T12:05:26.456-06:00"}}
++{"messages":{"add":{"id":"m-1793729148687","type":"Reply","by":"smart","at":"2026-11-03T12:05:48.684-06:00","text":"In this session there's only one voice assistant, and that's me. I'm built to be quick: I tidy and file what you say. For anything heavy or smart, I hand it to a separate agent. That agent can run a stronger model, and I can start one for you.","re":{"to":"s-1793729126460"}}},"by":"servex","ts":"2026-11-03T18:05:48.687Z"}
++{"log":{"at":"2026-11-03T12:05:48.894-06:00","msg":"recite: reply line {\"state\":\"loading\",\"auto\":true,\"server\":\"online\",\"unlocked\":true,\"from\":\"smart\",\"text\":\"In this session there's only one voice a\"}"}}
++{"log":{"at":"2026-11-03T12:05:48.901-06:00","msg":"recite: reply line {\"state\":\"loading\",\"auto\":true,\"server\":\"online\",\"unlocked\":true,\"from\":\"smart\",\"text\":\"In this session there's only one voice a\"}"}}
++{"log":{"at":"2026-11-03T12:05:48.904-06:00","msg":"recite: reply seen {\"state\":\"loading\",\"auto\":true,\"server\":\"online\",\"unlocked\":true,\"from\":\"smart\",\"at\":\"2026-11-03T12:05:48.684-06:00\",\"new\":true,\"watching_since\":\"2026-11-03T18:04:25.111Z\"}"}}
+diff --git a/public/framework/ext/Chat/v3/placement.js b/public/framework/ext/Chat/v3/placement.js
+index 526e3e712..6b727e69e 100644
+--- a/public/framework/ext/Chat/v3/placement.js
++++ b/public/framework/ext/Chat/v3/placement.js
+@@ -6,6 +6,9 @@ import Prompt from "../../../core/Session/Chat/Prompt.js";
+ 
+ export const PARAGRAPH_GAP_MS = 4000;   // a pause this long between two sentences' `at` starts a new paragraph (views-on-messages.md)
+ 
++/** The id a `List.move` delta (`{move:{id, after}}`) names, else null: ChatV3 moves that drawn node instead of redrawing it. */
++export function moved_id(line){ return line?.move?.id ?? null; }
++
+ /** The Prompt a Reply answers: the one whose `sentences` holds `re.to`, else the newest Prompt before it in `list` (session.messages.messages). */
+ export function owning_prompt(list, reply){
+ 	const to = reply.re?.to ?? null, prompts = list.filter(m => m instanceof Prompt);
+diff --git a/public/framework/ext/Chat/v3/readme.md b/public/framework/ext/Chat/v3/readme.md
+index 46b5ff96e..d2cc3dad4 100644
+--- a/public/framework/ext/Chat/v3/readme.md
++++ b/public/framework/ext/Chat/v3/readme.md
+@@ -18,6 +18,7 @@ Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws [fixture/messag
+ - **Layout** (2026-11-02): a Prompt's `.chat-v3-you` (title, words, "show raw") is the owner's one hugging pill on the right ([`../bubbles.css`](../bubbles.css), shared with V1 and V2); its replies, the reply being written and the task/question nest sit under it, plain on the left. `ChatV3.you()` draws the pill's insides, `you_class()` picks its class (V2 overrides it). A reply carries `data-id` = its message id, so the read-aloud highlight finds its own bubble ([audio/Recite](/framework/audio/Recite/readme.md)).
+ - **Windowed:** the newest 40 cards, with "show earlier (N)".
+ - **Live, in place:** a list `add` bubbles with `from` = the list itself (`List extends Item` now, so `get_one` can't tell them apart — `ChatV3.added_member()` resolves the actual member from the line's own `add` payload); a changed Prompt/Reply/Task redraws only the card it touched (`card_for()`).
++- **A move keeps its node:** a list `move` delta (`{move:{id, after}}`, `placement.moved_id`) is not a redraw: `relocate()` moves the card's existing DOM node to its new place (same node, same text node, so a selection or scroll position inside it survives). An improve (`clean`) refills the card in place. Tests: `ChatV3.test.mjs` (section 9), `Servex/agents/ChatWriter.move.test.mjs`.
+ - **Per-card link:** each card carries its id, so `#<id>` on the chat's url scrolls to it.
+ - **Small, overridable methods**, the seam `ChatV2` (its subclass, step 2) builds on: `prompt()`, `reply()`, `marks()` (a no-op hook here — ChatV2 fills it with the ✓/🧠 marks, which live on the Prompt TASK until [views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md) step 3), `paragraph(group, p)` (one paragraph's sentences, joined — ChatV2 draws sentence rows instead, with a Reply beside the one it answers), `trailing_replies(p)` (the Replies drawn after the body, default `replies_of(p)` — ChatV2 drops any it already drew beside a sentence), `clamped_text(p, words, fill)` (the "show all (N words)" clamp wrapper, shared by `dictation()` and ChatV2's sentence rows).
+ 

@@ -1,0 +1,207 @@
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 7c1cb280b..0aba7db28 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -27,7 +27,8 @@ import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, r
+ import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
+ import { server as sdk_server } from "./tools.js";   // cycle with tools.js is fine: used only at call time
+ const MAIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");   // Servex runs from the main tree
+-import { page_tools, move_item } from "./page_tools.js";
++import { page_tools, move_item, task_origin } from "./page_tools.js";
++import { handoff_note } from "./handoff-note.js";
+ 
+ /* The in-process caller is the agent itself: its own task.jsonl (its task dir), or null; the item tool files a reference there. */
+ function agent_log(agent){
+@@ -225,6 +226,8 @@ export class Agents {
+ 		const session_id = !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
+ 		/* EVERY SPAWN HAS A TASK DIR (2026-10-18): a bare spawn gets one here, `task: false` opts out (default_task below). */
+ 		if ((spec.task === undefined || (spec.task && !spec.task.dir)) && !again){ const task = this.default_task(spec, id); if (task) spec = { ...spec, task: { ...task, ...(spec.task || {}) } }; }   // a handoff `task: {from, id}` with no dir lands in the default folder
++		// ASK 1 (ask1-origin): read BEFORE open_task triggers the handoff's move_item (unawaited, racing the rest of this function) — the task still lives at `spec.task.from` right now.
++		const origin = !again && spec.task?.from && spec.task?.id ? task_origin(spec.task.from, spec.task.id) : null;
+ 		if (spec.task && !again) open_task(spec.task, { session_id, agent: id, role: spec.role, by: spec.parent, model, effort: spec.effort ?? role_defaults(spec.role).effort ?? null, role_readme: role_readme_path(spec.role), worktree: worktree_of(spec.cwd), parent_session: spec.parent ? spec.parent_session ?? this.session_of(spec.parent) : null, parent_dir: spec.parent ? this.task_dir_of?.(spec.parent) ?? this.live.get(spec.parent)?.task?.dir : null });
+ 		if (spec.task && !again && spec.parent) this.follow_child(spec.parent, spec.task.dir, id);
+ 		const past_work = spec.task && !again ? this.past_work(spec.task, id) : null;
+@@ -244,7 +247,7 @@ export class Agents {
+ 		}
+ 		const base = dir ? `${first_prompt(dir)}\n\n${opened}` : opened;
+ 		const prompt = spec.task
+-			? `${base}\n\nYour task is already open at ${path.relative(process.cwd(), SessionRecord.log_or_old(path.resolve(spec.task.dir))).split(path.sep).join("/")}; don't run new-task, log there.${past_work ? ` Your past-work.md is beside the brief (${past_work}): read it first.` : ""}`
++			? `${base}\n\nYour task is already open at ${path.relative(process.cwd(), SessionRecord.log_or_old(path.resolve(spec.task.dir))).split(path.sep).join("/")}; don't run new-task, log there.${past_work ? ` Your past-work.md is beside the brief (${past_work}): read it first.` : ""}${handoff_note(origin)}`
+ 			: base;
+ 		const agent = new this.constructor.Agent({
+ 			...role_defaults(spec.role), ...spec, id, prompt, provider,
+diff --git a/Servex/agents/doc/messaging.md b/Servex/agents/doc/messaging.md
+index 8163a2959..4f52d2206 100644
+--- a/Servex/agents/doc/messaging.md
++++ b/Servex/agents/doc/messaging.md
+@@ -37,6 +37,7 @@ A request that matters is a task on the receiver's own log, not a chat message.
+ - **The asker hears the answer.** When a task with a `from` completes, `hooks.answered` sends the asker the outcome in one line.
+ - **Which adds count as requests:** an add counts when the caller is not the log's own agent (the task's `agent`). Tasks an agent adds to its own log are not requests. Adds by the owner (from the browser) and by a parent adding steps to its child's task count too, so each one sends the receiver a notice.
+ - **Where it is built:** `notify_requests` in `Servex/agents/page_tools.js`; the two hooks are wired in `Servex.js`. Test: `node Servex/agents/requests.test.mjs`.
++- **`from` is overloaded (ask1-origin, 2026-11-03):** a voice-filed task can carry `from: {prompt, sentence}` (the sentence that asked for it; `task_origin()`, readme.md) instead of an asker's agent id. `notify_requests` only ever treats a STRING `from` as an asker — an object `from` is never stamped by the asker-skip check (`a.from === undefined`, page_tools.js), and never reaches `hooks.answered` as a `to`. The tradeoff: a voice-filed task handed off this way gets no automatic "it's done" notice back to the voice session; the mastermind that completes it must tell the owner some other way (a chat line, a card) if that matters. Test: `node Servex/agents/task-origin.test.mjs`.
+ - **Still chat:** a quick clarification. Its answer also goes into the doc it belongs in (mastermind role readme, "A quick question is a documentation gap").
+ 
+ ## Across platforms (2026-10-20)
+diff --git a/Servex/agents/handoff-note.js b/Servex/agents/handoff-note.js
+new file mode 100644
+index 000000000..c0f838363
+--- /dev/null
++++ b/Servex/agents/handoff-note.js
+@@ -0,0 +1,11 @@
++/* ASK 1 (ask1-origin, 2026-11-03): the owner's own words for a handed-off task, as one short line for the new agent's first
++ * message — quoted verbatim, never retyped. Its own file (no SDK import) so it tests without the heavy Agents.js dependency
++ * chain. `origin` is `task_origin()`'s answer (page_tools.js): {from, text}, either optional. `from.sentence` is the sentence's
++ * `<at>` (single-voice-assistant.md's `[on <page> at <at>]`); `text` is the raw words. "" when there is nothing to add. */
++export function handoff_note(origin){
++	const text = origin?.text;
++	if (!text) return "";
++	const at = origin.from && typeof origin.from === "object" ? origin.from.sentence : undefined;
++	return ` The owner's own words${at ? ` (at ${at})` : ""}: "${text}"`;
++}
++export default handoff_note;
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 5a90ef0b3..4f7a5d41e 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -725,6 +725,27 @@ export async function move_item({ from, id, to, by = "agent", module, entry = nu
+ 	return { from: moved_from, to: url, file: nf };
+ }
+ 
++/* ASK 1 (ask1-origin, 2026-11-03): a task's `from` (who or what asked, here `{prompt, sentence}` for a voice-filed task) and `text`
++ * (the raw words), read straight off disk — never through Task.FIELDS, so a plain task's `text` need not be a recognized field to
++ * travel. Scans every line that addresses `id` (a `tasks.add`, a bare `{"tasks":{id:…}}`, or a bare `{"id":…}`) and keeps the last
++ * value of each key written, the same "last line wins" rule replay uses. Returns {from, text} (either may be undefined), or null
++ * when `id` is never addressed. Called before a handoff moves the task (Agents.js spawn()), so Servex's own first-turn line can
++ * quote the owner's words instead of only a path. */
++export function task_origin(from, id){
++	const pf = resolve_file(from, true);
++	if (!pf || !fs.existsSync(pf)) return null;
++	let out = null;
++	for (const l of parse_lines(pf)){
++		const adds = is_plain(l.tasks) ? [].concat(l.tasks.add ?? []).filter(a => is_plain(a) && a.id === id) : [];
++		const bodies = [...adds, ...(is_plain(l.tasks) && is_plain(l.tasks[id]) ? [l.tasks[id]] : []), ...(is_plain(l[id]) ? [l[id]] : [])];
++		for (const b of bodies){
++			if (b.from === undefined && b.text === undefined) continue;
++			out = { ...out, ...(b.from !== undefined ? { from: b.from } : {}), ...(b.text !== undefined ? { text: b.text } : {}) };
++		}
++	}
++	return out;
++}
++
+ /* Requests are logged items (Servex/agents/doc/messaging.md). After a write: each new request goes to its receiver, and each
+  * request this write completed goes back to whoever asked (`from`), with its outcome. A completion is a `complete` line on a nested
+  * child ({"<id>": {"complete": …}}, or a target of [<id>]), or on a request that has its own folder (the file's own root). */
+@@ -739,7 +760,10 @@ function notify_requests(live, at, body, requests, by){
+ 	}
+ 	for (const t of done){
+ 		const from = t?.get_one("from");
+-		if (!from || from === by || from === "owner" || t.state !== "complete") continue;   // the owner sees it on the page
++		// `from` is overloaded (ask1-origin, 2026-11-03): the asker's agent id for a request (always a string), but also a plain
++		// object ({prompt, sentence}) on a voice-filed task. Only a string can ever be a "who asked" — an object is never the asker,
++		// never a notice target, and must never reach hooks.answered as `to` (it would fail silently or notify the wrong thing).
++		if (typeof from !== "string" || from === by || from === "owner" || t.state !== "complete") continue;   // the owner sees it on the page
+ 		Promise.resolve(hooks.answered({ to: from, by, id: t.id, title: t.get_one("title") ?? t.id, outcome: t.get_one("outcome") ?? null, path: t === live ? (live.get_one("path") ?? app_path(path.dirname(at.file))) : app_path(path.dirname(at.file)) })).catch(() => {});
+ 	}
+ }
+diff --git a/Servex/agents/readme.md b/Servex/agents/readme.md
+index 38c030602..9c2382436 100644
+--- a/Servex/agents/readme.md
++++ b/Servex/agents/readme.md
+@@ -115,6 +115,7 @@ Test: `node Servex/agents/close-loop.test.mjs` (temp task dirs, no live Servex).
+ `Assistant.js` + `assistant.md` (the always-up fast assistant and its posture) · `Chain.js` + `doc/assistant-chain.md` (flagged one-global-assistant chain, `SERVEX_CHAIN=on`) ·
+ `Layers.js` + `Global.js` (the card and cross-card agents, [`doc/layers.md`](./doc/layers.md)) ·
+ `turn-costs.js` (each turn's real dollars from an agent's log; `cost.test.mjs`) · `Sessions.js` per-session `plugins` (`POST /api/session/settings`) and the shared defaults (`/api/session/defaults`; `Sessions.plugins.test.mjs`, doc [`ux/Dictate/doc/settings.md`](/framework/ux/Dictate/doc/settings.md)) ·
++`page_tools.js`'s `task_origin()` + `handoff-note.js`'s `handoff_note()` (ask1-origin, 2026-11-03: a handoff's first message quotes the owner's own raw words, read off the task before `move_item` runs; `task-origin.test.mjs`) ·
+ `policy.js` · `claims.js` · `Brief.js` · `tiers.js` ·
+ `roles.js` (role → posture) · `Registry.js` (who has ever been spawned, and which host holds it) ·
+ `ops.js` (restart, pause, resume) · `Jobs.js` (background work in node) ·
+diff --git a/Servex/agents/single-voice-assistant.md b/Servex/agents/single-voice-assistant.md
+index 47bad83e0..5a3b2ab33 100644
+--- a/Servex/agents/single-voice-assistant.md
++++ b/Servex/agents/single-voice-assistant.md
+@@ -54,10 +54,12 @@ The owner listens: write for the ear.
+ You are the quick seat: never read files, dig or think long. For the repo: file the task on the session, then message `mastermind-voice-system`, or `spawn_agent` with `task: { from: "<session>", id: "<the id the add returned>" }`:
+ 
+ ```js
+-const r = await item({ path: "<session>", delta: { tasks: { add: { title: "Fix the mobile tab bar", text: "The tab bar is broken on the owner's phone." } } } })
++const r = await item({ path: "<session>", delta: { tasks: { add: { title: "Fix the mobile tab bar", from: { prompt: "<the (prompt p-…) id>", sentence: "<at>" }, text: "The tab bar is broken on my phone." } } } })
+ // r.ids[0] is the new task's id
+ ```
+ 
++`text` is the owner's words exactly as heard, never a paraphrase.
++
+ ## Your own files
+ 
+ You cannot edit these; if one is wrong, file a task on: `Servex/agents/single-voice-assistant.md` (this brief), `Servex/agents/roles.js`, `Servex/agents/Sessions.js`.
+diff --git a/Servex/agents/task-origin.test.mjs b/Servex/agents/task-origin.test.mjs
+new file mode 100644
+index 000000000..81e9864d5
+--- /dev/null
++++ b/Servex/agents/task-origin.test.mjs
+@@ -0,0 +1,66 @@
++// task_origin() / handoff_note() (ask1-origin, 2026-11-03): a task filed with `tasks.add` on a session carries `from: {prompt,
++// sentence}` and raw `text`; it survives Task.replay, a Ref lands in session.messages after the owner's own bubble, and the
++// fields outlive a handoff move. `node Servex/agents/task-origin.test.mjs`.
++import assert from "node:assert";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { run_item, task_origin, move_item } from "./page_tools.js";
++import { handoff_note } from "./handoff-note.js";
++import Session from "../../public/framework/core/Session/Session.js";
++import Ref from "../../public/framework/core/Item/Ref.js";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
++const REL = "public/framework/ai/sessions/2026/11/03/.ask1-origin-test-" + process.pid;
++const DIR = path.join(ROOT, REL), FILE = path.join(DIR, "session.jsonl"), URL = "/" + REL.slice("public/".length) + "/";
++const MOVED_REL = REL + "-moved", MOVED_URL = "/" + MOVED_REL.slice("public/".length) + "/";
++
++const read = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
++let n = 0;
++const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok", m); };
++const item = (delta, caller) => run_item({ path: URL, delta }, { caller });
++
++const FROM = { prompt: "p-abc123", sentence: "2026-11-03T13:50:00-06:00" };
++const TEXT = "The tab bar is broken on my phone.";
++
++fs.mkdirSync(DIR, { recursive: true });
++try {
++	fs.writeFileSync(FILE, JSON.stringify({ session: { id: "v-ask1-origin-test", kind: "voice", at: "2026-11-03T13:49:00-06:00" } }) + "\n");
++
++	// 1. A root tasks.add on a voice session carries `from`/`text` through, and the task.jsonl line shows both verbatim.
++	const add = await item({ tasks: { add: { title: "Fix the mobile tab bar", from: FROM, text: TEXT } } }, "voice-assistant");
++	ok(add.ok && add.ids.length === 1, "tasks.add on the session root writes a nested subtask");
++	const id = add.ids[0];
++	const added_line = read(FILE).find(l => l.tasks?.add?.id === id);
++	ok(added_line && JSON.stringify(added_line.tasks.add.from) === JSON.stringify(FROM), "the written line keeps `from` as the object it was given, not an asker string");
++	ok(added_line.tasks.add.text === TEXT, "the written line keeps `text` verbatim");
++
++	// 2. It survives Session/Task.replay (deliverable 1: `from` is a recognized Task field).
++	const session = Session.replay(read(FILE));
++	const task = session._tasks.find(id);
++	ok(task && JSON.stringify(task.get_one("from")) === JSON.stringify(FROM), "Task.replay keeps `from` as the object (Task.FIELDS already lists it)");
++
++	// 3. A Ref reaches session.messages for the root task add (deliverable 3 — ChatWriter.ref_line, already wired for any root tasks.add).
++	const ref = session.messages.items.find(m => m instanceof Ref && (m.data?.path === `tasks.${id}` || m.data?.url?.endsWith?.(`/${id}/`)));
++	ok(!!ref, "a Ref for the new task landed in session.messages");
++
++	// 4. task_origin() reads the raw `from`/`text` back off disk, the way a handoff reads them before the move.
++	const origin = task_origin(URL, id);
++	ok(origin && JSON.stringify(origin.from) === JSON.stringify(FROM) && origin.text === TEXT, "task_origin() answers {from, text} straight off the file");
++
++	// 5. handoff_note() turns that into the one-line quote for the new agent's first message, naming the sentence and the raw words.
++	const note = handoff_note(origin);
++	ok(note.includes(TEXT) && note.includes(FROM.sentence), "handoff_note() quotes the raw words and names the sentence's `at`, never retyped");
++	ok(handoff_note(null) === "" && handoff_note({}) === "", "no origin, or an origin with nothing to say, adds nothing");
++
++	// 6. A handoff (move_item) still leaves `from`/`text` in the moved task's own task.jsonl.
++	const moved = await move_item({ from: URL, id, to: MOVED_URL, by: "spawn" });
++	ok(!moved.why, `move_item did not refuse: ${moved.why}`);
++	const moved_text = fs.readFileSync(moved.file, "utf8");
++	ok(moved_text.includes(TEXT) && moved_text.includes(FROM.prompt) && moved_text.includes(FROM.sentence), "the moved task.jsonl still has the raw text and the from object, unchanged");
++} finally {
++	fs.rmSync(DIR, { recursive: true, force: true });
++	fs.rmSync(path.join(ROOT, MOVED_REL), { recursive: true, force: true });
++}
++console.log(`${n} passing`);
++process.exit(0);

@@ -1,0 +1,266 @@
+diff --git a/Servex/agents/Sessions.js b/Servex/agents/Sessions.js
+index 508d2e424..80e14b01f 100644
+--- a/Servex/agents/Sessions.js
++++ b/Servex/agents/Sessions.js
+@@ -128,7 +128,8 @@ export const now_ms = () => {
+  *   line 1   {"session": {id, home, at, project, host, fast, smart, backing: {fast, smart}}}
+  *   then     {"chat": {at, session, path, from: {kind, id, agent?}, via, text, re?, floor?, cues?}}
+  *            {"nav":  {at, from, to}}
+- *            {"backing": {at, fast, smart, how}}   (a respawn; the latest one wins)
++ *            {"backing": {at, fast, smart, how, mastermind?}}   (a respawn; the latest one wins. `mastermind` (ask8-session-mastermind): this
++ *              session's own standing mastermind id, kept on `s.mastermind` — never a Claude session id, so it is never resumed by `wake()`)
+  *            {"react": {at, session, re, emoji, from}}   (a tap-back on line `re`; see LONE_EMOJI)
+  *
+  * THE FOLDER INDEX: every folder the session reaches gets a presence line in its own
+@@ -1093,7 +1094,7 @@ export default class Sessions {
+ 		do id = "v-" + Date.now().toString(36).slice(-4) + Math.random().toString(36).slice(2, 5); while (this.map[id]);
+ 		const file = Sessions.session_path(home, id);
+ 		/* No agents yet: the first say spawns them (wake). */
+-		const s = { id, home, file, kind: "voice", at: now_ms(), project, host, path: asked, visited: [], fast: null, smart: null,
++		const s = { id, home, file, kind: "voice", at: now_ms(), project, host, path: asked, visited: [], fast: null, smart: null, mastermind: null,
+ 			backing: { fast: null, smart: null }, ...(card ? { card } : {}) };
+ 		this.map[id] = s;
+ 		this.write(s, { session: { id, home, kind: "voice", at: s.at, project, host, ...(card ? { card } : {}), fast: null, smart: null, backing: s.backing } });
+@@ -1534,8 +1535,36 @@ export default class Sessions {
+ 
+ 	brief(role){ return fs.readFileSync(path.join(HERE, `session-${role}.md`), "utf8"); }
+ 
+-	/* The single voice assistant's whole system text: its own brief (Servex/agents/single-voice-assistant.md). */
+-	single_brief(){ return fs.readFileSync(path.join(HERE, "single-voice-assistant.md"), "utf8"); }
++	/* The single voice assistant's whole system text: its own brief (Servex/agents/single-voice-assistant.md),
++	 * with `{{mastermind}}` substituted for THIS session's own mastermind (ask8-session-mastermind) — or the
++	 * old shared one, `mastermind-voice-system`, when a spawn failed or none exists yet (so nothing breaks). */
++	single_brief(s){ return fs.readFileSync(path.join(HERE, "single-voice-assistant.md"), "utf8").replaceAll("{{mastermind}}", s?.mastermind || "mastermind-voice-system"); }
++
++	/* ASK8-SESSION-MASTERMIND: one standing `mastermind` per voice session (instead of the one shared
++	 * `mastermind-voice-system`), so it can `follow` just this session's own log. Spawned the first time the
++	 * single seat wakes, and again on a resume that never got one (both routes are `wake(s, "smart")`); held
++	 * open with no prompt like the seats — its first real turn is the first message sent to it, so it costs
++	 * nothing until used. Its id lives on the session record (`s.mastermind`), so a later wake or revive reuses
++	 * it and never respawns one per sentence. A spawn failure is logged and the seat falls back to the old
++	 * shared mastermind (single_brief() above) rather than breaking the turn. */
++	ensure_mastermind(s){
++		if (s.mastermind && this.servex.agents.live.get(s.mastermind)?.state !== "stopped") return;
++		try {
++			const agent = this.servex.agents.spawn({
++				role: "mastermind", name: s.id, path: "public/framework/ux/Dictate/",
++				model: "claude-sonnet-5-5", effort: "high", dormant_after: 0,
++				prompt: this.mastermind_brief(s), parent: "sessions", parent_session: s.id
++			});
++			s.mastermind = agent.id;
++			this.write(s, { backing: { at: now_ms(), fast: s.backing.fast ?? null, smart: s.backing.smart ?? null, mastermind: s.mastermind } });
++		} catch (e){ console.error(`sessions: mastermind spawn failed for ${s.id}: ${e.message}`); }
++	}
++
++	/* Its brief: Servex/agents/session-mastermind.md, substituted with this session's own id, log file and page dir. */
++	mastermind_brief(s){
++		return fs.readFileSync(path.join(HERE, "session-mastermind.md"), "utf8")
++			.replaceAll("{{id}}", s.id).replaceAll("{{file}}", s.file).replaceAll("{{dir}}", path.posix.dirname(s.file));
++	}
+ 
+ 	/* The voice assistant's whole system text: the `voice-assistant` skill, minus its front matter. */
+ 	voice_brief(){
+@@ -1574,7 +1603,7 @@ export default class Sessions {
+ 			 * Servex's door: the item tool files sentences, spawn_agent delegates. */
+ 			role: "single-voice-assistant", name: s.id, model: this.session_model(s, "smart"), effort: "low", urgent: true,
+ 			permission_mode: "bypassPermissions", cwd: this.repo, setting_sources: [],
+-			system: this.single_brief() + where,
++			system: this.single_brief(s) + where,
+ 			env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
+ 			sdk: { tools: [] },
+ 			parent: "sessions", parent_session: s.id
+@@ -1639,6 +1668,7 @@ export default class Sessions {
+ 	 * makes room (max_pairs). Each spawn writes a `backing` line (the latest one wins). */
+ 	wake(s, role){
+ 		if (role === "fast" && this.fast_off(s)) return false;
++		if (role === "smart" && this.single_seat(s)) this.ensure_mastermind(s);   // ask8: every smart wake, including a resume that never got one
+ 		if (this.awake(s, role)) return false;
+ 		if (!this.awake(s, "fast") && !this.awake(s, "smart")) this.room(s);
+ 		const target_model = this.session_model(s, role);
+@@ -1681,6 +1711,8 @@ export default class Sessions {
+ 	/* Stop both agents of a session; their Claude sessions stay on disk for the next say. */
+ 	sleep(s, why){
+ 		for (const role of ["fast", "smart"]) if (this.awake(s, role)) try { this.servex.agents.stop(s[role]); } catch {}
++		// ask8: the mastermind holds no process dormant (dormant_after: 0) — this only catches the rare case it is still mid-turn.
++		if (s.mastermind && this.servex.agents.live.get(s.mastermind)?.state !== "stopped") try { this.servex.agents.stop(s.mastermind); } catch {}
+ 		s.asleep_at = now_ms();
+ 		s.asleep_why = why;
+ 		/* `ended`, with the latest title, in EVERY folder the session reached, on every stop
+diff --git a/Servex/agents/Sessions.mastermind.test.mjs b/Servex/agents/Sessions.mastermind.test.mjs
+new file mode 100644
+index 000000000..c692e5978
+--- /dev/null
++++ b/Servex/agents/Sessions.mastermind.test.mjs
+@@ -0,0 +1,93 @@
++/* node Servex/agents/Sessions.mastermind.test.mjs — ask8-session-mastermind: one standing `mastermind`
++ * per voice session (Sessions.js `ensure_mastermind`/`mastermind_brief`), instead of the one shared
++ * `mastermind-voice-system`. Plain node, a scratch repo and a fake agent host: no model runs. */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import Sessions from "./Sessions.js";
++
++let checks = 0;
++const check = async (name, fn) => { await fn(); checks++; console.log("PASS —", name); };
++const tick = () => new Promise(r => setImmediate(r));
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
++
++const repo = fs.mkdtempSync(path.join(os.tmpdir(), "sessions-mastermind-test-"));
++fs.mkdirSync(path.join(repo, "public/a"), { recursive: true });
++let spawned = [], fail_mastermind = false;
++const agents = {
++	live: new Map(),
++	spawn(spec){
++		if (spec.role === "mastermind" && fail_mastermind) throw new Error("no mastermind for you");
++		spawned.push(spec);
++		const id = spec.id ?? `${spec.role}-${spec.name}`, a = { id, state: "working", session_id: null };
++		this.live.set(id, a);
++		return a;
++	},
++	send(){}, stop(id){ this.live.get(id).state = "stopped"; },
++};
++let n = 0;
++const make = () => {
++	const s = new Sessions({ repo, file: path.join(repo, `sessions-${++n}.json`), assistant: "single", single_pause_ms: 60 });
++	s.load(); s.servex = { agents };
++	return s;
++};
++
++await check("one create plus the first say spawns exactly one mastermind, role/path/parent right", async () => {
++	spawned = []; fail_mastermind = false;
++	const s = make(), made = s.create({ path: "/a/", fresh: true });
++	s.say({ session: made.session, path: "/a/", text: "Hello.", via: "text" });
++	await tick();
++	const mm = spawned.filter(x => x.role === "mastermind");
++	assert.equal(mm.length, 1, "exactly one mastermind spawned");
++	assert.equal(mm[0].path, "public/framework/ux/Dictate/");
++	assert.equal(mm[0].parent, "sessions");
++	assert.equal(mm[0].parent_session, made.session);
++	assert.equal(mm[0].dormant_after, 0);
++	assert.equal(s.map[made.session].mastermind, mm[0].id ?? `mastermind-${made.session}`);
++});
++
++await check("a second say in the same session spawns no second mastermind", async () => {
++	spawned = []; fail_mastermind = false;
++	const s = make(), made = s.create({ path: "/a/", fresh: true });
++	s.say({ session: made.session, path: "/a/", text: "First.", via: "text" });
++	await tick();
++	assert.equal(spawned.filter(x => x.role === "mastermind").length, 1);
++	s.say({ session: made.session, path: "/a/", text: "Second.", via: "text" });
++	await tick();
++	assert.equal(spawned.filter(x => x.role === "mastermind").length, 1, "still just one — reused, not respawned");
++});
++
++await check("the seat's brief carries its own session's mastermind id and no leftover {{", async () => {
++	spawned = []; fail_mastermind = false;
++	const s = make(), made = s.create({ path: "/a/", fresh: true });
++	s.say({ session: made.session, path: "/a/", text: "Hello.", via: "text" });
++	await tick();
++	const seat = spawned.find(x => x.role === "single-voice-assistant");
++	const text = typeof seat.system === "string" ? seat.system : seat.system.append;
++	const mm_id = s.map[made.session].mastermind;
++	assert.ok(mm_id, "a mastermind id was recorded on the session");
++	assert.ok(text.includes(mm_id), "the seat brief names this session's own mastermind");
++	assert.ok(!text.includes("{{"), "no leftover placeholder");
++});
++
++await check("a mastermind spawn failure falls back to the old shared mastermind-voice-system, and does not throw", async () => {
++	spawned = []; fail_mastermind = true;
++	const s = make(), made = s.create({ path: "/a/", fresh: true });
++	s.say({ session: made.session, path: "/a/", text: "Hello.", via: "text" });
++	await tick();
++	assert.ok(!s.map[made.session].mastermind, "no id recorded: the spawn failed");
++	const seat = spawned.find(x => x.role === "single-voice-assistant");
++	const text = typeof seat.system === "string" ? seat.system : seat.system.append;
++	assert.ok(text.includes("mastermind-voice-system"), "falls back to the shared mastermind so the turn still works");
++});
++
++const BRIEF = path.join(ROOT, "Servex/agents/single-voice-assistant.md");
++await check("the seat brief stays under 900 words", () => {
++	const words = fs.readFileSync(BRIEF, "utf8").split(/\s+/).filter(Boolean).length;
++	assert.ok(words < 900, `the brief has ${words} words`);
++});
++
++console.log(`Sessions.mastermind.test.mjs: ${checks} checks passed`);
++fs.rmSync(repo, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+diff --git a/Servex/agents/readme.md b/Servex/agents/readme.md
+index 2a607d441..c4c15da5a 100644
+--- a/Servex/agents/readme.md
++++ b/Servex/agents/readme.md
+@@ -109,6 +109,7 @@ Test: `node Servex/agents/close-loop.test.mjs` (temp task dirs, no live Servex).
+ - Names and aliases for roles and ids: [`doc/names.md`](./doc/names.md).
+ - Landing nag, next-step wake, compaction policy: [`doc/lifecycle.md`](./doc/lifecycle.md).
+ - **The single seat's only reply** — `say`, `nothing`, `retract_say`, the gate that releases a queued say, boot-env only for now: [`doc/say-tools.md`](./doc/say-tools.md) (also the thinking sound: when the server writes `{thinking}`/`{thinking,done}`, and `SERVEX_SESSION_THINKING_OPEN_MS`). Its brief: [`single-voice-assistant.md`](./single-voice-assistant.md); tests: `say-tools.test.mjs` (the tools and gate), `single-brief.test.mjs` (the brief's own words, its real opening prompt, and a replayed real session), `Sessions.single.test.mjs` (the thinking sound).
++- **One mastermind per voice session** (ask8-session-mastermind, 2026-11-03): the single seat's `{{mastermind}}` is this session's own standing `mastermind`, not one shared one — `Sessions.js`'s `ensure_mastermind()`/`mastermind_brief()`, its own brief [`session-mastermind.md`](./session-mastermind.md), test `Sessions.mastermind.test.mjs`; doc [`ux/Dictate/doc/single-voice-assistant.md`](/framework/ux/Dictate/doc/single-voice-assistant.md#its-own-mastermind-ask8-session-mastermind-2026-11-03).
+ 
+ ## Files
+ 
+diff --git a/Servex/agents/session-mastermind.md b/Servex/agents/session-mastermind.md
+new file mode 100644
+index 000000000..ab1edf4bd
+--- /dev/null
++++ b/Servex/agents/session-mastermind.md
+@@ -0,0 +1,13 @@
++You are the voice-system mastermind of session {{id}}: the standing mastermind for this one voice session, held open with no prompt until the single seat hands you something.
++
++The session log is {{file}}; the session page is {{dir}}/. `follow` that log instead of reading the whole thing — you are not told every sentence, only the ones the single seat hands you.
++
++A hand-off arrives one of two ways:
++- a plain message (`send_to_agent` or a cross-session message) naming the task's id;
++- a spawn with `task: {from, id}`, whose first message already quotes the owner's raw words verbatim.
++
++Either way, find the task on the session (`item({path: "{{dir}}/"})` or the task id you were given) before you act — the owner's own words are `text` on that task, never a paraphrase.
++
++Do the work, then answer on the question card or task it names — never in chat, and never a status line back to the seat ("I've looked into it"). The seat reads the task/card itself once you update it.
++
++You are a standing `mastermind`: spawn minions for real work the way any mastermind does (`Servex/agents/roles/mastermind.md`), watch usage, and report by logging on the task, not by talking.
+diff --git a/Servex/agents/single-voice-assistant.md b/Servex/agents/single-voice-assistant.md
+index 622818668..7171edf3e 100644
+--- a/Servex/agents/single-voice-assistant.md
++++ b/Servex/agents/single-voice-assistant.md
+@@ -33,7 +33,7 @@ await item({ path: "<session>", delta: { place: { re: "<at3>", to: "card", where
+ 
+ Use `paragraph` or `card` only for a clearly new thought. Never drop or merge two sentences.
+ 
+-A sentence that is a real question, or heavy enough to need the repo, goes once to `mastermind-voice-system` (one short message: the question and its `at`) — see "Anything heavy" below. **Any turn that ends without a `say` ends with `nothing()`** — whether you did silent work in it (a placement, a task, a message to the mastermind) or did nothing at all; never a status line, never "listening." (The phone beeps on hand-off by itself; never write that line.)
++A sentence that is a real question, or heavy enough to need the repo, goes once to `{{mastermind}}` (one short message: the question and its `at`) — see "Anything heavy" below. **Any turn that ends without a `say` ends with `nothing()`** — whether you did silent work in it (a placement, a task, a message to the mastermind) or did nothing at all; never a status line, never "listening." (The phone beeps on hand-off by itself; never write that line.)
+ 
+ ## Speaking: `say` only. Plain text is never a reply
+ 
+@@ -49,11 +49,11 @@ The owner listens: write for the ear.
+ - **One item at a time.** Say one thing, stop; never a list of what could come next.
+ - **Several ways forward:** your lean first ("Two ways: A, or B. Which?"); start none until the owner picks.
+ - **Unclear is not a command.** A cut-off fragment, or an echo of your own read-aloud ("proceed with this"), never files a task. Ask one short question, or stay silent if it reads like echo.
+-- **Feedback about the voice system itself** (too long, too eager, echo, jumpy display, interrupts) is a task: file it and hand it to `mastermind-voice-system`; say nothing about having filed it.
++- **Feedback about the voice system itself** (too long, too eager, echo, jumpy display, interrupts) is a task: file it and hand it to `{{mastermind}}`; say nothing about having filed it.
+ 
+ ## Anything heavy: delegate, stay quick
+ 
+-You are the quick seat: never read files, dig or think long. For the repo: file the task on the session, then message `mastermind-voice-system`, or `spawn_agent` with `task: { from: "<session>", id: "<the id the add returned>" }`:
++You are the quick seat: never read files, dig or think long. For the repo: file the task on the session, then message `{{mastermind}}`, or `spawn_agent` with `task: { from: "<session>", id: "<the id the add returned>" }`:
+ 
+ ```js
+ const r = await item({ path: "<session>", delta: { tasks: { add: { title: "Fix the mobile tab bar", from: { prompt: "<the (prompt p-…) id>", sentence: "<at>" }, text: "The tab bar is broken on my phone." } } } })
+diff --git a/public/framework/ux/Dictate/doc/single-voice-assistant.md b/public/framework/ux/Dictate/doc/single-voice-assistant.md
+index 90922d6fb..cafb5358b 100644
+--- a/public/framework/ux/Dictate/doc/single-voice-assistant.md
++++ b/public/framework/ux/Dictate/doc/single-voice-assistant.md
+@@ -15,11 +15,14 @@
+ 5. Heavy work: the agent files a task on the session and spawns a helper with `spawn_agent task: {from, id}`; it does no digging and has no `eval`.
+ 
+ ## The voice style the brief enforces (the owner, 2026-11-03)
+-Written into the brief's "Speaking" and "How you talk" sections: replies very small (one paragraph at most); one item at a time, never several at once; several ways forward are named briefly and the owner picks; no narration ever ("I've filed that" is noise, not a reply); an unclear or echo-like fragment ("proceed with this") is never a command, ask one short question first; feedback about the voice system itself is filed as a task and handed to `mastermind-voice-system`. These are prompt rules only: nothing in `Sessions.js` enforces them yet (a narrated `say` is still queued and released; only plain text is muted by code).
++Written into the brief's "Speaking" and "How you talk" sections: replies very small (one paragraph at most); one item at a time, never several at once; several ways forward are named briefly and the owner picks; no narration ever ("I've filed that" is noise, not a reply); an unclear or echo-like fragment ("proceed with this") is never a command, ask one short question first; feedback about the voice system itself is filed as a task and handed to this session's own mastermind (`{{mastermind}}`, below). These are prompt rules only: nothing in `Sessions.js` enforces them yet (a narrated `say` is still queued and released; only plain text is muted by code).
++
++## Its own mastermind (ask8-session-mastermind, 2026-11-03)
++Each voice session gets its own standing `mastermind` (role `mastermind`, path `public/framework/ux/Dictate/`), not the one shared `mastermind-voice-system`, so it can `follow` just that session's own log instead of being told every sentence. It is spawned the first time the single seat wakes (and again on a resume that never got one — `Sessions.js`: `ensure_mastermind()`, wired into `wake()`), held open with no prompt like the seats, and its id lives on the session record (`s.mastermind`) so later wakes reuse it. The seat's brief substitutes `{{mastermind}}` for this id (`single_brief(s)`); a failed spawn falls back to the old shared `mastermind-voice-system` so the turn still works. Its own brief: `Servex/agents/session-mastermind.md` (`mastermind_brief(s)`), under 250 words, substituted with the session's id, log file and page dir. Teardown: the idle sweep's `sleep()` stops it too, though it normally holds no process open on its own (`dormant_after: 0`). Proof: `Servex/agents/Sessions.mastermind.test.mjs`.
+ 
+ ## Where each piece is
+ - Role row `single-voice-assistant`: `Servex/agents/roles.js`; model tier `voice_single` (Sonnet, effort low): `Servex/agents/tiers.js`.
+ - The proof: `Servex/agents/Sessions.single.test.mjs` (plain node, no model). It runs every `js` example in the brief for real against a temp session file, then replays the file the way Chat V3 reads it (cleaned words, title, paragraphs, raw kept). `Servex/agents/single-brief.test.mjs` proves the brief itself: its own words, the real opening prompt (`brief() + where`) a seat is actually spawned with, and a replayed real session driven through the real `say`/`nothing`/`retract_say` handlers in `tools.js`.
+ 
+ ## Not built yet
+-Read-aloud mechanics from reply-pacing · moving a sentence to another paragraph or card as data Chat V3 draws (the `place` line is written, V3 does not move cards from it yet) · Ref cards · the grey/green check in single · cards that absorb walls · heard-only context · a voice-system mastermind for the agent to hand its own fixes to. Live cost per sentence is to be measured on the first real session.
++Read-aloud mechanics from reply-pacing · moving a sentence to another paragraph or card as data Chat V3 draws (the `place` line is written, V3 does not move cards from it yet) · Ref cards · the grey/green check in single · cards that absorb walls · heard-only context. Live cost per sentence is to be measured on the first real session.

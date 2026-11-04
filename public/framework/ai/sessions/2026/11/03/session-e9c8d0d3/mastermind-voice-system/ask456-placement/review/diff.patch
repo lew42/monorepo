@@ -1,0 +1,246 @@
+diff --git a/Servex/agents/ChatWriter.js b/Servex/agents/ChatWriter.js
+index 94e9efd81..97afae735 100644
+--- a/Servex/agents/ChatWriter.js
++++ b/Servex/agents/ChatWriter.js
+@@ -17,8 +17,9 @@ export default class ChatWriter {
+ 
+ 	/* `find_sentence(key, at)`: the id of the sentence with that `at`, read from the session's file (used after a restart, when memory
+ 	 * is empty). `find_message(key, at)`: the id of the Prompt MESSAGE that sentence was filed under, same source, same reason. */
+-	constructor({ find_sentence = () => null, find_message = () => null } = {}){
++	constructor({ find_sentence = () => null, find_message = () => null, last_id = () => null } = {}){
+ 		this.find_sentence = find_sentence;
++		this.last_id = last_id;   // the id of the newest message in the session's FILE (any writer's): `last_message_id`, read by Sessions
+ 		this.find_message = find_message;
+ 		this.sessions = new Map();   // key -> {open, open_prompt, last, held: [lines], by_at: Map(at -> sentence id)}
+ 		this.last_ms = new Map();    // id prefix -> last ms used
+@@ -57,7 +58,9 @@ export default class ChatWriter {
+ 		if (st.by_at.size > ChatWriter.KEEP) st.by_at.delete(st.by_at.keys().next().value);
+ 		const sentence = { id: sid, at: chat.at, text: chat.text, via: chat.via ?? "text", ...(chat.said_at ? { said_at: chat.said_at } : {}), ...(chat.raw ? { raw: chat.raw } : {}) };
+ 		const prompt = chat.prompt ?? null;
+-		if (st.open && st.last === st.open && st.open_prompt === prompt){
++		// Another writer (the item tool's cards, Refs, notes) may have added a message below the open Prompt: the FILE knows, `st.last` does not.
++		const last = this.last_id(key) ?? st.last;
++		if (st.open && last === st.open && st.open_prompt === prompt){
+ 			st.msg_at.set(chat.at, st.open);
+ 			if (st.msg_at.size > ChatWriter.KEEP) st.msg_at.delete(st.msg_at.keys().next().value);
+ 			return { sentences: { add: sentence }, messages: { [st.open]: { sentences: { push: sid } } }, by: "servex", ts: now_iso() };
+@@ -84,6 +87,17 @@ export default class ChatWriter {
+ 		return { messages: { add: { id, ...msg } }, by: "servex", ts: now_iso() };
+ 	}
+ 
++	/** The id of the newest message added in these session-file lines (text), or null when none: the message the next owner sentence may grow only if it is the open Prompt. */
++	static last_message_id(text){
++		const lines = String(text ?? "").split("\n");
++		for (let i = lines.length - 1; i >= 0; i--){
++			if (!lines[i].includes('"messages"')) continue;
++			let add; try { add = JSON.parse(lines[i]).messages?.add; } catch { continue; }
++			if (add) return [].concat(add).at(-1)?.id ?? null;
++		}
++		return null;
++	}
++
+ 	/** The thought ended: every held reply, in the order it arrived, as lines to write now. */
+ 	flush(key){
+ 		const st = this.sessions.get(key);
+diff --git a/Servex/agents/ChatWriter.order.test.mjs b/Servex/agents/ChatWriter.order.test.mjs
+new file mode 100644
+index 000000000..9f7052f69
+--- /dev/null
++++ b/Servex/agents/ChatWriter.order.test.mjs
+@@ -0,0 +1,34 @@
++/* node Servex/agents/ChatWriter.order.test.mjs — ask 5 (never split the owner's bubble): a message another writer put in the chat list
++ * (the item tool adds a card, a Ref, a note) is below the open Prompt, so the owner's next sentence starts a NEW Prompt under it
++ * instead of growing the one above it. Before: ChatWriter only knew the messages IT wrote (`st.last`), so the words landed above the card. */
++import assert from "node:assert/strict";
++import ChatWriter from "./ChatWriter.js";
++import Session from "../../public/framework/core/Session/Session.js";
++
++let n = 0;
++const check = (name, fn) => { fn(); n++; console.log("PASS —", name); };
++const file = [];                                   // the session file, as the item tool and ChatWriter both append to it
++const w = new ChatWriter({ last_id: () => ChatWriter.last_message_id(file.map(l => JSON.stringify(l)).join("\n")) });
++const owner = (at, text) => { const l = w.mirror("k", { at, from: { kind: "owner" }, text, via: "voice" })[0]; file.push(l); return l; };
++
++const a = owner("2026-11-03T10:00:00.000-06:00", "The tab bar is broken.");
++const id = a.messages.add.id;
++const b = owner("2026-11-03T10:00:01.000-06:00", "On my phone.");
++check("with nothing in between, the next sentence grows the open Prompt", () => assert.deepEqual(b.messages[id].sentences, { push: b.sentences.add.id }));
++
++file.push({ messages: { add: { id: "m-card", icon: "task", title: "Call the vet", by: "smart" } } });   // the item tool, not ChatWriter
++const c = owner("2026-11-03T10:00:02.000-06:00", "And it flickers.");
++check("a card the item tool added below it closes the open Prompt: new Prompt", () => assert.equal(c.messages.add?.type, "Prompt"));
++check("...and the replay reads: Prompt, card, Prompt", () => {
++	const list = Session.replay(file).messages.messages;
++	assert.deepEqual(list.map(m => m.id), [id, "m-card", c.messages.add.id]);
++	assert.equal(list[0].sentences.length, 2);
++});
++const d = owner("2026-11-03T10:00:03.000-06:00", "Still on the phone.");
++check("the new Prompt is now the last message: it grows again", () => assert.deepEqual(d.messages[c.messages.add.id].sentences, { push: d.sentences.add.id }));
++
++check("last_message_id reads the newest add, and answers null for a file with none", () => {
++	assert.equal(ChatWriter.last_message_id('{"messages":{"add":{"id":"m-1"}}}\n{"messages":{"m-1":{"title":"x"}}}\n{"chat":{}}'), "m-1");
++	assert.equal(ChatWriter.last_message_id('{"chat":{}}'), null);
++});
++console.log(`${n} passed`);
+diff --git a/Servex/agents/Sessions.js b/Servex/agents/Sessions.js
+index a865f9c12..74de08980 100644
+--- a/Servex/agents/Sessions.js
++++ b/Servex/agents/Sessions.js
+@@ -311,7 +311,8 @@ export default class Sessions {
+ 	 * `session.messages` and `session.sentences`, right after it (`write()` below). V1's own lines stay exactly as they were. */
+ 	get chat_writer(){
+ 		return this._chat_writer ??= new ChatWriter({ find_sentence: (id, at) => this.find_sentence(this.map[id], at),
+-			find_message: (id, at) => this.find_message(this.map[id], at) });
++			find_message: (id, at) => this.find_message(this.map[id], at),
++			last_id: id => this.last_message_id(this.map[id]) });
+ 	}
+ 	// The owner is mid-thought: a reply now would land between the sentences of one message, so it waits (ChatWriter.flush).
+ 	mid_thought(s){ return this.speaking(s) || !!this.thoughts.get(s.id)?.lines.length; }
+@@ -335,6 +336,16 @@ export default class Sessions {
+ 		return null;
+ 	}
+ 
++	/* The newest message id in the session's file (any writer's), from its last 64 KB: ChatWriter grows the open Prompt only while it is still last. */
++	last_message_id(s){
++		if (!s) return null;
++		try {
++			const file = this.disk(s.file), size = fs.statSync(file).size, len = Math.min(size, 65536), buf = Buffer.alloc(len), fd = fs.openSync(file, "r");
++			try { fs.readSync(fd, buf, 0, len, size - len); } finally { fs.closeSync(fd); }
++			return ChatWriter.last_message_id(buf.toString("utf8"));
++		} catch { return null; }
++	}
++
+ 	/* The id of the Prompt MESSAGE a sentence with this `at` was filed under, read back from the session's file (mark_sent's fallback
+ 	 * when ChatWriter's own memory of it was lost — a Servex restart, builder.md step 6). The same line that adds a sentence always
+ 	 * either adds its Prompt (`messages.add.sentences` includes the new sentence) or grows an already-open one (`messages.<mid>.sentences.push`
+diff --git a/Servex/agents/single-voice-assistant.md b/Servex/agents/single-voice-assistant.md
+index ce6188139..aa6025d8f 100644
+--- a/Servex/agents/single-voice-assistant.md
++++ b/Servex/agents/single-voice-assistant.md
+@@ -31,13 +31,13 @@ Move a sentence you already cleaned, no `text`:
+ await item({ path: "<session>", delta: { place: { re: "<at3>", to: "card", where: "inside", title: "Phone only", edit: "move" } } })
+ ```
+ 
+-Use `paragraph` or `card` only for a clearly new thought. Never drop or merge two sentences.
++A new sentence stays at the end of the last paragraph; `paragraph` or `card` only for a clearly new thought. After two or three sentences give the message a rough `title` (`messages: { "<message>": { title } }`); a task-like message also gets `kind: "task"` (the view draws an empty checkbox). Never drop or merge two sentences.
+ 
+-A sentence that is a real question, or heavy enough to need the repo, goes once to `{{mastermind}}` (one short message: your session id, the question and its `at`) — below. **Any turn that ends without a `say` ends with `nothing()`** — whether you did silent work in it (a placement, a task, a message to the mastermind) or did nothing at all; never a status line, never "listening." (The phone beeps on hand-off by itself; never write that line.)
++A sentence that is a real question, or heavy enough to need the repo, goes once to `{{mastermind}}` (one short message: your session id, the question and its `at`) — below. **Any turn that ends without a `say` ends with `nothing()`** — silent work or none; never a status line, never "listening."
+ 
+ ## Speaking: `say` only. Plain text is never a reply
+ 
+-The only way to be heard or shown anything is `say({text, re?})`. It queues at once; the page releases it once the owner has actually paused — you never wait for a tag to call it, call it as soon as you have something worth saying and the gate handles the timing. If the owner keeps talking and what you queued would now answer something old, `retract_say({id})` it and `say` a newer one instead: newest thing first, never an old answer surfacing after the conversation moved on.
++The only way to be heard or shown anything is `say({text, re?})`. It queues at once; the page releases it once the owner has actually paused — call it as soon as you have something worth saying; the gate handles the timing. If the owner keeps talking and what you queued would now answer something old, `retract_say({id})` it and `say` a newer one instead: never an old answer after the conversation moved on.
+ 
+ No narration, ever: never "I've filed that," "noted," "passed it along" — doing the work is the job, saying so is noise. The result of background work (a mastermind's answer, a filed task) goes onto its own question card or task reference, not into a spoken line about having done it.
+ 
+diff --git a/public/framework/ai/todo.md b/public/framework/ai/todo.md
+index c1404663a..af01686a4 100644
+--- a/public/framework/ai/todo.md
++++ b/public/framework/ai/todo.md
+@@ -272,3 +272,6 @@ here instead of starting it. You pick what runs next. Each line links to its bri
+ - 2026-11-01 22:40 — `node Server/worktree-restart.mjs --path <dir>` registers the worktree in `.worktrees.json` under the name `--path` (the flag, not the folder), and a later `worktree-restart.mjs <name>` adds a second entry for the same path; `smoke.mjs` takes the first match, so `merge.mjs` smoked a dead port until the stale entry was removed by hand ([log](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/session.jsonl)). Name it from the folder and replace an entry with the same path. Sonnet $1.
+ - 2026-11-03 15:20 — `ux/Dictate/VoiceChat/VoiceChat.js` `apply_defaults` repeats the class-update half of `core/Plugin/Plugin.js` `make_default` (~l.225-236); pull out one `Plugin.apply_class(rec, o, except)` both use (law 6). Also give `ux/Dictate/ChatSettings.js` a demo page with a fake VoiceChat so its live instances can be opened. [review](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/review.md), items 6 and 12. Sonnet $2.
+ - 2026-11-03 19:00 — Chat V3 `prompt()` raw-tap pill (`ext/Chat/v3/ChatV3.js` ~:205) is a div with a click handler: no keyboard toggle and no `aria-expanded`, so the raw words need a pointer. Add `tabindex`, Enter/Space and `aria-expanded`. [review](/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask9-raw-tap/review.md), item 5. Sonnet $1.
++- 2026-11-03 20:30 — Voice chat one-truth (ask 4): V1 (`ux/Dictate/Widget.js` Thread, `chat.js`, `ext/Chat/Chat.js`) draws from V1 `{chat}` lines, not `session.messages`; kept on purpose as the raw log and the V1/V3 compare, but it is the one chat view that is not the messages list. Audit in `ux/Dictate/doc/placement-defaults.md`. Also V2/V3 read `session._tasks` beside messages.
++- 2026-11-03 20:30 — Stored paragraphs (ask 6.4): paragraphs are derived from a 4 s pause gap (`ext/Chat/v3/placement.js`), so a "new paragraph" cannot be stored; proposal in `ux/Dictate/doc/placement-defaults.md` (Prompt `paragraphs` of sentence ids; migration + both views, over 150 lines).
++- 2026-11-03 20:30 — ChatV3 checkbox for `kind: "task"` (`ChatV3.js` `you()`) has no browser test yet; add one to `ChatV3.test.mjs` where node_modules exist.
+diff --git a/public/framework/ext/Chat/v3/ChatV3.js b/public/framework/ext/Chat/v3/ChatV3.js
+index 02094ccfc..f6b26340a 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.js
++++ b/public/framework/ext/Chat/v3/ChatV3.js
+@@ -239,8 +239,9 @@ export default class ChatV3 extends JSONL {
+ 	you_class(p){ return "chat-v3-you"; }
+ 	you(p, title, refined, open, sentences){
+ 		div.c("chat-v3-head", () => {
+-			if (title) h3.c("chat-v3-title", title);
+-			else if (!this.redundant_title(p)) h3.c("chat-v3-title is-untitled", ChatV3.first_words(p.cleaned || p.raw));   // no AI title yet: its first words, muted
++			const box = p.kind === "task" ? "☐ " : "";   // a task-like prompt: an empty checkbox before its title (ux/Dictate/doc/placement-defaults.md)
++			if (title) h3.c("chat-v3-title", box + title);
++			else if (!this.redundant_title(p)) h3.c("chat-v3-title is-untitled", box + ChatV3.first_words(p.cleaned || p.raw));   // no AI title yet: its first words, muted
+ 			this.marks(p);
+ 		});
+ 		/* Gray is only for words Whisper has not finished (the draft at the end, the owner 2026-10-26: "light gray to black reserved
+diff --git a/public/framework/ext/Chat/v3/placement.js b/public/framework/ext/Chat/v3/placement.js
+index 7e9d1c1f2..a8b5f3a39 100644
+--- a/public/framework/ext/Chat/v3/placement.js
++++ b/public/framework/ext/Chat/v3/placement.js
+@@ -6,11 +6,14 @@ import Prompt from "../../../core/Session/Chat/Prompt.js";
+ 
+ export const PARAGRAPH_GAP_MS = 4000;   // a pause this long between two sentences' `at` starts a new paragraph (views-on-messages.md)
+ 
+-/** The Prompt a Reply answers: the one whose `sentences` holds `re.to`, else the newest Prompt before it in `list` (session.messages.messages). */
++/** The Prompt a Reply is drawn under: the one whose `sentences` holds `re.to`, else the newest Prompt before it in `list`
++ *  (session.messages.messages). Arrival order wins over the anchor: when a NEWER Prompt already sits between that Prompt and the
++ *  Reply, the Reply is drawn under the newer one, where the list put it. Anchoring it to the older Prompt drew an answer ABOVE
++ *  words the owner had already seen (14 of 117 replies in v-z0jonhy, the owner's "messages out of order"). */
+ export function owning_prompt(list, reply){
+ 	const to = reply.re?.to ?? null, prompts = list.filter(m => m instanceof Prompt);
+-	if (to) { const hit = prompts.find(p => p.sentences.includes(to)); if (hit) return hit; }
+ 	const i = list.indexOf(reply);
++	if (to) { const hit = prompts.find(p => p.sentences.includes(to)); if (hit && !list.slice(list.indexOf(hit) + 1, i).some(m => m instanceof Prompt)) return hit; }
+ 	for (let j = i - 1; j >= 0; j--) if (list[j] instanceof Prompt) return list[j];
+ 	return prompts.at(-1) ?? null;
+ }
+diff --git a/public/framework/ext/Chat/v3/placement.test.mjs b/public/framework/ext/Chat/v3/placement.test.mjs
+index be5202a35..50bfea8e0 100644
+--- a/public/framework/ext/Chat/v3/placement.test.mjs
++++ b/public/framework/ext/Chat/v3/placement.test.mjs
+@@ -44,6 +44,19 @@ check("no pause: the original sentence and the quick follow-up share one paragra
+ check("a long pause starts a new paragraph", paras.length === 2 && paras[1] === "A third thought, after a long pause.", paras);
+ check("a prompt with one sentence and no pause is a single paragraph", paragraphs(second.sentence_items, second.clean).length === 1);
+ 
++// 3b. arrival order wins over the anchor: a Reply to an OLDER prompt that arrived after a NEWER prompt is drawn under the newer one
++// (where the list put it), never back above words the owner had already seen.
++{
++	const t = "2026-11-03T10:00:0", pa = { sentences: { add: { id: "s-a", at: t + "1.000-06:00", text: "First", via: "voice" } }, messages: { add: { type: "Prompt", id: "m-a", by: "owner", at: t + "1.000-06:00", sentences: ["s-a"] } } };
++	const pb = { sentences: { add: { id: "s-b", at: t + "5.000-06:00", text: "Second", via: "voice" } }, messages: { add: { type: "Prompt", id: "m-b", by: "owner", at: t + "5.000-06:00", sentences: ["s-b"] } } };
++	const rep = (id, to, s) => ({ messages: { add: { type: "Reply", id, by: "smart", at: t + s + ".000-06:00", text: id, re: { to } } } });
++	const l = Session.replay([pa, pb, rep("m-r1", "s-a", 6), rep("m-r2", "s-b", 7)]).messages.messages;
++	check("a reply to an older prompt that arrived after a newer prompt is drawn under the newer one", owning_prompt(l, l[2]) === l[1], owning_prompt(l, l[2])?.id);
++	check("a reply with no newer prompt in between lands under the prompt it answers", owning_prompt(l, l[3]) === l[1]);
++	const l2 = Session.replay([pa, rep("m-r0", "s-a", 2), pb]).messages.messages;
++	check("a reply placed right after its own prompt stays under it", owning_prompt(l2, l2[1]) === l2[0]);
++}
++
+ // 4. the fixture file was only ever read, never changed by this test
+ check("the fixture was not modified", readFileSync(fixture, "utf8") === before);
+ 
+diff --git a/public/framework/ux/Dictate/doc/placement-defaults.md b/public/framework/ux/Dictate/doc/placement-defaults.md
+new file mode 100644
+index 000000000..6435df41d
+--- /dev/null
++++ b/public/framework/ux/Dictate/doc/placement-defaults.md
+@@ -0,0 +1,22 @@
++# Placement defaults, the one-truth audit, and the out-of-order cause (2026-11-03, asks 4, 5, 6)
++
++## Ask 4 — does anything reach the chat except through `session.messages`?
++
++- **V3 and V2** (`ext/Chat/v3/ChatV3.js`, `ext/Chat/v2/ChatV2.js`) draw one card per root message of `session.messages`. Two other readers sit beside it, both data from the same session: `session._tasks` (Tasks and Questions nested under a Prompt, `ChatV3.js:76`, `:109`) and `session.sentences`.
++- **`chat-live`** (fired `ux/Dictate/Widget.js:843`, heard `ChatV3.js:348-351`) is legitimate: it carries the words being spoken right now, not yet sent, so they are not messages yet. It draws faint at the end and is dropped when the real sentence arrives. Same for the `Wire.stream` partial reply (`ChatV3.js:122`): transient, never stored.
++- **V1** (`Widget.js` Thread, `chat.js`) draws from V1 `{chat}` lines with its own piece tracking, not from `session.messages`. This is a real departure from "one truth", kept on purpose: V1 is the raw log and the side-by-side compare (`core/Session/Chat/V1Bubbles.js`). Moving it is large; listed in `ai/todo.md`.
++- No local message arrays or direct DOM writes of message text were found in V2/V3.
++
++## Ask 5 — nothing splits the owner's bubble; why "out of order"
++
++- **Mid-dictation reply:** `Servex/agents/ChatWriter.js` holds an assistant line while the owner is mid-thought (`mirror(..., {hold})`) and `flush()` places it below, after the owner's last sentence; the owner's next sentence then opens a new Prompt. V1 does the same (`ext/Chat/doc/notes.md#bubble-order`, `ux/Dictate/test/v1-order.mjs`).
++- **Gap fixed:** cards, Refs and notes written by the item tool bypass `ChatWriter`, so it still thought the open Prompt was last and grew the Prompt ABOVE the card. It now asks the session file for the newest message id (`ChatWriter.last_message_id`, `owner()`); test `Servex/agents/ChatWriter.order.test.mjs`.
++- **The out-of-order cause (view):** `owning_prompt` (`ext/Chat/v3/placement.js:13`) drew a Reply inside the Prompt holding its `re.to` even when a NEWER Prompt already sat between them. The answer then showed above words the owner had already seen. Replaying `sessions/2026/11/03/v-z0jonhy` drew 14 of 117 replies away from their list position (v-qfzrnhh 2 of 40). Fixed: arrival order wins; the reply is drawn under the newest Prompt before it. `re.to` stays as data. Test `ext/Chat/v3/placement.test.mjs` (3b). Trade-off: ChatV2's beside-the-sentence drawing now applies only while no newer Prompt intervenes.
++- The stored data was never out of order: a scan of every `v-*` session of 2026-11-01..03 found no sentence pushed into a Prompt above a later message.
++
++## Ask 6 — placement defaults
++
++1. **A new sentence goes at the end of the last paragraph.** Already true: a sentence grows the open Prompt (`ChatWriter.owner`), and paragraphs are derived from pauses (`placement.js` `paragraphs`, 4 s gap). A new topic is one `place` line (`to: "card"`) which is one `List.move` (`ChatWriter.move_line`). A stored "paragraph" does not exist: `to: "paragraph"` splits only V1's bubble (`Widget.js:600`).
++2. **A rough title after a couple of sentences.** The view already shows the first words muted until a title exists (`ChatV3.js` `you()`); the seat brief now tells the seat to set `title` after two or three sentences.
++3. **A task-like prompt gets an empty checkbox.** The seat sets `kind: "task"` on the message (`Prompt.kind`, existing); `ChatV3.you()` draws `☐ ` before the title. Browser proof is not written here (the worktree has no node_modules for the playwright test).
++4. **Sentences `{raw, clean}`, paragraphs refer to them.** Mostly exists: a Sentence holds `text` (the raw words) and `raw` (the unprocessed tap); the cleaned text is `Prompt.clean[sentence id]`; a Prompt refers to sentences by id. Not built: stored paragraphs that refer to sentence ids. **Proposal:** a Prompt gets `paragraphs: [[sid,...],...]`; `to: "paragraph"` becomes one line that splits that list; views stop deriving paragraphs from pauses. It changes the shape of every stored Prompt (a migration of all sessions) and both views, well over 150 lines, so it is declined here and filed in `ai/todo.md`.
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index b685bfda0..7116705c1 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -151,3 +151,5 @@ ever appeared — no error, no clue why.
+ - [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — sentences are written instantly by code; the fast seat is paused as a placer (leaning), the chat is one stored list.
+ 
+ **Bubble layout (2026-11-02):** the Dictate bubbles use the one shared rule set, [`ext/Chat/bubbles.css`](/framework/ext/Chat/readme.md#the-layout-your-words-on-the-right-the-assistants-plain-on-the-left-2026-11-02): your words are a hugging pill on the right, the assistant's plain text on the left. `Widget.css` only sets the width token for them (`.ux-dictate-widget-bubbles { --bubble-max: min(80%, 40rem) }`, 80% on a phone); change the look in `bubbles.css`, not here.
++
++**Placement defaults, the one-truth audit and why messages were out of order** (2026-11-03, by file:line): [`doc/placement-defaults.md`](doc/placement-defaults.md).

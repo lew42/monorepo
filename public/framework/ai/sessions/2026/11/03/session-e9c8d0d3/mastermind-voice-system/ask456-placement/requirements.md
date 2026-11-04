@@ -1,0 +1,15 @@
+# Asks 4, 5 (remainder), 6 (remainder): the messages list is the truth; never split the owner's bubble; placement defaults
+
+Budget: $12. Load the `minion` skill first. Worktree `C:\Code\lew42\worktrees\voice-place` (branch `worktree/voice-place`, site http://voice-place.localhost/). Tests first. Do NOT build batching or log mode. Principles: `public/framework/ux/Dictate/doc/principles.md`. Owner's words: `owner-feedback-2026-11-03b.md` items 4, 5, 6 (one folder up; read them). Already merged and live (do not redo): the move mirror, question cards by id, cards by id (asks 2b, 3, 5/6 move, 7), raw tap (9).
+
+Work in this order; each part is its own commit. If a part is already true, say so with the evidence (file:line) and move on; that is a result.
+
+A. **Ask 4, audit.** Prove nothing reaches the chat view (V1 `ux/Dictate/Widget.js` and `chat.js`, V2/V3 under `ext/Chat/`) except through `session.messages` (the `Session` class, `public/framework/core/Session/` and `ext/Session/`). Grep for DOM writes, local arrays and extra event paths (`chat-live` is the one known side channel for a draft; say whether it is legitimate). Fix real violations; list the rest in `public/framework/ai/todo.md`.
+
+B. **Ask 5 remainder.**
+ 1. An agent message that arrives while the owner is mid-dictation lands BELOW the owner's current open bubble, never inside it; agent messages queue while the owner talks and release when the owner pauses (per `principles.md`). Find where an assistant line is placed today (`ext/Chat/v3/placement.js`, `ChatV3.js`, V1 `Widget.js`) and make it so, with a test using the existing fixtures (`ChatV3.test.mjs`, `ux/Dictate/test/v1-order*.mjs`).
+ 2. "The owner saw messages out of order a few times: find out why." Replay recent real session logs (`public/framework/ai/sessions/2026/11/03/v-*/session.jsonl`) through the placement code and find a case drawn out of order; state the cause with file:line. Fix it if small, otherwise put cause and fix in `todo.md`.
+
+C. **Ask 6 remainder** (only what is not already true; check `Servex/agents/single-voice-assistant.md` and the `item` tool first). The seat's brief must stay under 900 words (a test enforces it; reword, do not add). (1) A new sentence goes at the end of the last paragraph by default; a new topic moves it to a new paragraph in one step. (2) A rough title after a couple of sentences. (3) A task-like prompt gets an empty checkbox before its title. (4) Sentences are `{raw, clean}` and paragraphs refer to them: say what exists; if the data-shape change is large (over about 150 lines, or touches stored sessions), do NOT build it: write the proposal in `ux/Dictate/doc/` and a line in `todo.md`.
+
+Docs (law 9): update the readmes and docs of what you change; add a pointer from `ux/Dictate/readme.md`. Report: `report.md` beside this file, one screen: what changed (file:line), tests, what you declined. Commit by exact path; the dev server regenerates `files.jsonl` files, so leave those out (check `git diff --name-only <base> HEAD` shows none). Never kill the dev server; never use the stash command; do not run `git stash`-like commands at all.

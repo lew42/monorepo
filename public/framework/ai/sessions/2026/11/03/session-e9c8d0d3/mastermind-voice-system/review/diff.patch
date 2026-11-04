@@ -1,0 +1,1188 @@
+diff --git a/Servex/agents/single-voice-assistant.md b/Servex/agents/single-voice-assistant.md
+index 5ba5fed31..92152660f 100644
+--- a/Servex/agents/single-voice-assistant.md
++++ b/Servex/agents/single-voice-assistant.md
+@@ -43,15 +43,15 @@ Servex sends `(pause)` after about one second of silence. Only that turn's text
+ 
+ The owner listens: write for the ear.
+ 
+-- **Very small:** a few plain sentences; no lists, tables or headings.
+-- **One item at a time.** Say one thing and stop; never a list of what could come next.
+-- **Several ways forward:** one short breath, your lean first ("Two ways: A, or B. Which?"); start none until the owner picks.
+-- **Unclear is not a command.** A cut-off fragment, or words that look like an echo of your own read-aloud ("proceed with this") never files a task or starts anything. Ask one short question, or stay silent if it reads like echo.
+-- **Feedback about the voice system itself** (too long, too eager, echo, jumpy display, interrupts) is a task: file it on the session and hand it to `mastermind-voice-system`; say nothing, and send that agent one message per burst at most, never one per sentence.
++- **Very small:** plain sentences; no lists, tables or headings.
++- **One item at a time.** Say one thing, stop; never a list of what could come next.
++- **Several ways forward:** your lean first ("Two ways: A, or B. Which?"); start none until the owner picks.
++- **Unclear is not a command.** A cut-off fragment, or an echo of your own read-aloud ("proceed with this"), never files a task. Ask one short question, or stay silent if it reads like echo.
++- **Feedback about the voice system itself** (too long, too eager, echo, jumpy display, interrupts) is a task: file it and hand it to `mastermind-voice-system`; say nothing, one message per burst, never per sentence.
+ 
+ ## Anything heavy: delegate, stay quick
+ 
+-You are the quick seat: never read files, dig or think long. For the repo: file the task on the session, then message `mastermind-voice-system`, or `spawn_agent` with `task: { from: "<session>", id: "<the id the add returned>" }`:
++You are the quick seat: never read files, dig or think long. `mastermind-voice-system` is hands-free the same way: it never reads or builds either, only briefs minions and judges what comes back, so it too answers fast. For the repo: file the task on the session, then message it, or `spawn_agent` with `task: { from: "<session>", id: "<the id the add returned>" }`:
+ 
+ ```js
+ const r = await item({ path: "<session>", delta: { tasks: { add: { title: "Fix the mobile tab bar", text: "The tab bar is broken on the owner's phone." } } } })
+diff --git a/public/framework/audio/Recite/BargeIn.js b/public/framework/audio/Recite/BargeIn.js
+index 4662d517d..ecdbcde1c 100644
+--- a/public/framework/audio/Recite/BargeIn.js
++++ b/public/framework/audio/Recite/BargeIn.js
+@@ -30,6 +30,11 @@ export default class BargeIn extends Part {
+ 	mode = "volume";      // what pauses reading: "volume" (loud, then check) or "words" (only real words from Whisper); remembered as "barge_mode"
+ 	threshold = 0.35;     // on MicStream's shown level, 0..1 (the meter's own scale)
+ 	hold_ms = 250;
++	quick_hold_ms = 120;   // cutting in (2026-11-03): the hold used instead of hold_ms when the owner was ALREADY talking as the chunk began (no grace to wait out) — a reply that starts over the owner must die fast
++	grace_ms = 1000;       // cutting in: for this long after a chunk starts, the fast volume trigger is blocked (the chunk's own first word tripping the mic, then stopping it — the stutter) — but only when the owner was quiet when it began; skipped entirely if they were already talking (quick_hold_ms applies instead)
++	chunk_at = 0;          // cutting in: performance.now() the current chunk started playing (Recite.chunk_started())
++	last_speech_at = -Infinity;   // cutting in: performance.now() of the last frame loud enough to count as the owner talking — the one-second hold reads this, not the instantaneous level (review finding 5, 2026-11-03)
++	chunk_grace_skip = false;   // cutting in: true when the owner was already talking as the chunk began — no grace, quick_hold_ms applies
+ 	listen_ms = 1500;
+ 	check = true;         // false: any loud sound pauses, with no Whisper check
+ 	state = "off";        // off | listening | checking | heard
+@@ -116,24 +121,56 @@ export default class BargeIn extends Part {
+ 	 *  now covering the chat-mic path too, since that is the normal one on a phone — but only for a line that came
+ 	 *  from speech: a TYPED line (`via === "text"`) is skipped, since `recent_peak` is a mic reading and decays to
+ 	 *  under `near_silent` after about 5 s of a quiet mic, which a typed line says nothing about (review finding 1,
+-	 *  2026-11-02). Each is logged and dropped, never acted on. Otherwise, also runs while already paused by an
+-	 *  earlier barge-in (`recite.state === "heard"`) — a SECOND line ("wait… / what about the other one?") must
+-	 *  still get its own question check, or it would otherwise resume and talk over the new answer; `heard_speech`
+-	 *  just pushes the quiet window out when it isn't a question. */
++	 *  2026-11-02). Each is logged and dropped, never acted on. Otherwise cancels the whole queue at once (`cut()`,
++	 *  cutting in 2026-11-03) — a reply held by turn-taking (`wait_at`, never started) counts as "reading" too, so
++	 *  real speech dropped the moment it is confirmed, not only once something is already playing. */
+ 	owner_spoke(text, via){
+ 		this.spoke?.(text);
+ 		if (BargeIn.noise(text)){ this.recite.trace("barge: phantom phrase dropped", { text: String(text).slice(0, 80) }); return; }
+ 		if (this.recite.echo_active() && this.echo(text)){ this.recite.trace("barge: echo dropped", { text: String(text).slice(0, 80) }); return; }
+ 		if (text && via !== "text" && this.recent_peak < this.near_silent){ this.recite.trace("barge: near-silent dropped", { text: String(text).slice(0, 80), peak: this.recent_peak }); return; }
+-		if (this.recite.state === "playing" || this.recite.state === "loading") this.recite.pause("heard");
+-		else if (this.recite.state !== "heard") return;
+-		this.heard_speech(text);
++		const reading = ["playing", "loading", "heard"].includes(this.recite.state) || this.recite.wait_at != null;
++		if (!reading) return;
++		this.cut(text);
++	}
++
++	/** Real owner speech just confirmed (the wire line, or the own-mic Whisper check): cancel the whole queue at
++	 *  once (cutting in, 2026-11-03) — no auto-resume, unless `resume_after_cut` is on, which keeps the old manners
++	 *  (pause, drop only on a question, otherwise resume once quiet). `close_mic`: trigger()'s own-mic path owns the
++	 *  mic once real words are heard (play() reopens it); a wire line never does. */
++	cut(text, { close_mic = false } = {}){
++		if (close_mic && this.mic) this.close();
++		this.heard = text;
++		this.note = "heard: " + text;
++		if (this.recite.resume_after_cut){
++			if (this.recite.state === "playing" || this.recite.state === "loading") this.recite.pause("heard");
++			else if (this.recite.state !== "heard") return;   // only a wait_at hold, with nothing playing: nothing to pause into "heard"
++			this.state = "heard";
++			if (/\?\s*$/.test(text)){
++				this.note = "heard a question: " + text;
++				this.cancel_resume();
++				this.recite.drop_heard();
++				this.sync();
++			} else this.schedule_resume();
++		} else {
++			this.cancel_resume();
++			this.recite.cancel_unheard();
++			this.state = "off";
++			this.sync();
++		}
++		this.recite.changed();
+ 	}
+ 
+ 	/** True while the owner is making sound loud enough to count as talking, by the same threshold the fast barge-in
+ 	 *  check uses. Recite asks this before it starts a freshly queued reply, so it never talks over the owner
+ 	 *  (turn-taking, dictation-v3 2026-11-01): it waits for quiet instead of starting, or interrupting. */
+-	speaking(){ return this.on && this.level > this.effective_threshold(); }
++	speaking(){ return this.level > this.effective_threshold(); }   // not gated on `on` any more (cutting in, 2026-11-03): Recite.start_or_hold() must hold for quiet whether or not the interrupt ear is on, and the level keeps running either way through the chat's own mic (use_mic())
++
++	/** How long since the owner was last loud enough to count as talking (`last_speech_at`, updated every frame in
++	 *  `hear()`) — never "are they loud THIS INSTANT" (`speaking()`), which would read quiet the moment after a
++	 *  word ends, with no hold at all (review finding 5, 2026-11-03). Named `silence_ms`, not `quiet_ms` — that
++	 *  name is already a field (the resume-after-a-barge-in wait, above). */
++	silence_ms(){ return performance.now() - this.last_speech_at; }
+ 
+ 	/** The loudness floor a sound must clear to count as the owner talking: raised by `echo_threshold_mult` while
+ 	 *  `recite.echo_active()` (playing, or just stopped), so the read-aloud voice itself and a cough right after it
+@@ -143,24 +180,6 @@ export default class BargeIn extends Part {
+ 		return this.recite.echo_active() ? base * this.echo_threshold_mult : base;
+ 	}
+ 
+-	/** Real speech was heard (this mic's own check, or the chat's own line): note it, and decide what happens to the
+-	 *  paused reply. A question ("...?") means a new answer is coming, so the paused reply is dropped outright
+-	 *  (recite.drop_heard() — only its own chunks; anything else already queued behind it keeps its place and still
+-	 *  plays). Anything else schedules an auto-resume once things go quiet (schedule_resume). */
+-	heard_speech(text, { close_mic = false } = {}){
+-		if (close_mic && this.mic) this.close();   // close() resets state to "off"; set it below, after
+-		this.heard = text;
+-		this.note = "heard: " + text;
+-		this.state = "heard";
+-		if (/\?\s*$/.test(text)){
+-			this.note = "heard a question: " + text;
+-			this.cancel_resume();          // state is "off" before drop_heard() runs, so its own sync() sees the right state
+-			this.recite.drop_heard();
+-			this.sync();                   // belt and suspenders: drop_heard()'s own set() already calls this when it goes idle
+-		} else this.schedule_resume();
+-		this.recite.changed();
+-	}
+-
+ 	/** (Re)starts the quiet timer; each call while still "heard" pushes it further out (hear(), below), so the owner
+ 	 *  can keep talking and the old reply only resumes once they are actually done. */
+ 	schedule_resume(){
+@@ -198,9 +217,15 @@ export default class BargeIn extends Part {
+ 		this.recite.changed();
+ 	}
+ 
++	/** Recite.play()/speak_browser() calls this the instant a chunk actually starts: the start grace (cutting in,
++	 *  2026-11-03) times from here, and remembers whether the owner was already talking as it began (then there is
++	 *  no grace to give — quick_hold_ms applies instead, in hear()). */
++	chunk_started(){ this.chunk_at = performance.now(); this.chunk_grace_skip = this.speaking(); }
++
+ 	/** One level frame (about every 8 ms). */
+ 	hear(shown){
+ 		this.level = shown;
++		if (shown > this.effective_threshold()) this.last_speech_at = performance.now();   // the one-second hold (Recite.start_or_hold/check_wait) counts from here, not from "is it loud THIS INSTANT" — tracked whatever this.state is, so a reply arriving the moment after the owner stops still waits
+ 		this.recent_peak = Math.max(shown, this.recent_peak * 0.995);   // a decaying max, not a point sample: owner_spoke() reads it well after the loud instant has passed
+ 		this.noise_floor *= 0.9993;
+ 		if (this.state === "checking") this.peak = Math.max(this.peak, shown);
+@@ -209,12 +234,14 @@ export default class BargeIn extends Part {
+ 			else if (shown > this.effective_threshold()) this.schedule_resume();   // still talking: push the quiet window out
+ 			return;
+ 		}
+-		if (this.state !== "listening" || this.recite.state !== "playing") return;
++		if (this.state !== "listening" || !["playing", "loading"].includes(this.recite.state)) return;
+ 		const now = performance.now();
+ 		if (shown > this.effective_threshold()){
++			if (!this.chunk_grace_skip && now - this.chunk_at < this.grace_ms) return;   // the chunk's own first word, right after it started quiet: wait out the grace, don't even arm the hold
+ 			this.quiet_since = null;
+ 			this.loud_since ??= now;
+-			if (now - this.loud_since >= this.hold_ms) this.trigger();
++			const hold = this.chunk_grace_skip ? this.quick_hold_ms : this.hold_ms;   // already talking when it began: no grace was given, so cut fast
++			if (now - this.loud_since >= hold) this.trigger();
+ 		} else {
+ 			this.loud_since = null;
+ 			this.quiet_since ??= now;
+@@ -249,7 +276,7 @@ export default class BargeIn extends Part {
+ 			if (this.recite.state === "heard") this.recite.resume();
+ 		} else {
+ 			if (words) this.recite.pause("heard");   // real words, only now: reading kept going through the check
+-			this.heard_speech(text, { close_mic: true });   // the mic is yours now (dictate) unless it was a question; play reopens it
++			this.cut(text, { close_mic: true });   // the mic is yours now (dictate) unless resume_after_cut is on and it was a question; play reopens it
+ 		}
+ 		this.recite.changed();
+ 	}
+diff --git a/public/framework/audio/Recite/Recite.js b/public/framework/audio/Recite/Recite.js
+index 69a8756cd..d6de67076 100644
+--- a/public/framework/audio/Recite/Recite.js
++++ b/public/framework/audio/Recite/Recite.js
+@@ -54,6 +54,8 @@ export default class Recite extends Part {
+ 	update_hold_timer = null;   // no-flood: flush_updates()'s own safety timeout, in case no direct reply ever arrives
+ 	focus_el = null;        // replay: the bubble element a tapped replay reads, so the highlight lights that bubble's words first
+ 	update_hold_ms = 4000;   // no-flood: how long an agent update waits for the direct answer before it is queued anyway
++	resume_after_cut = Recite.remember("resume_after_cut") === "true";   // cutting in (2026-11-03): false (default) — real owner speech cancels the whole queue outright, with no auto-resume; true keeps the old behaviour (pause, then resume once quiet, drop only on a question)
++	on_read = null;   // cutting in: injected by the page (chat.js, never audio/'s own import) — called with {id, reply, chunk, sentence, heard: "cut"|"skipped", words} whenever cancel_unheard() stops a reply short, so a "say" with kind "read" can be posted; audio/Recite never posts itself
+ 
+ 	constructor(...args){
+ 		super(...args);
+@@ -156,7 +158,11 @@ export default class Recite extends Part {
+ 	/** Chunk `i` is freshly queued and nothing is playing: start now, or hold until the owner falls quiet. */
+ 	start_or_hold(i){
+ 		clearTimeout(this.wait_timer);
+-		if (!this.barge?.on || !this.barge.speaking()){ this.wait_at = null; this.play(i, 0); return; }
++		// at least 1 s of quiet since the owner's LAST HEARD WORD, whatever `barge.on` (the interrupt ear) says and
++		// whatever the level reads right this instant — the mic level keeps running either way, through the chat's
++		// own mic (BargeIn.use_mic) (cutting in, 2026-11-03; review finding 5: checking only the instant level let
++		// a reply start with no hold at all when it arrived a moment after the owner stopped)
++		if (this.quiet_long_enough()){ this.wait_at = null; this.play(i, 0); return; }
+ 		this.wait_at = i;
+ 		this.quiet_since_wait = null;
+ 		this.trace("holding: the owner is talking", { sentence: i });
+@@ -164,12 +170,18 @@ export default class Recite extends Part {
+ 		this.wait_timer = setTimeout(() => this.check_wait(), 80);
+ 	}
+ 
+-	/** Polls every ~80 ms while `wait_at` is set: starts once the owner has been quiet for `turn_wait_ms`. */
++	/** True once at least `min_quiet_ms()` has passed since `barge.last_speech_at` — never just "is the level low
++	 *  right now" (`speaking()`), which reads quiet the instant a word ends. */
++	quiet_long_enough(){ return !this.barge || (this.barge.silence_ms() >= this.min_quiet_ms()); }
++
++	/** The hold before a fresh reply starts: at least 1 s (cutting in, 2026-11-03), never less than `turn_wait_ms`
++	 *  (default 2500, the no-flood setting) even if that were ever set lower. */
++	min_quiet_ms(){ return Math.max(1000, this.turn_wait_ms ?? 2500); }
++
++	/** Polls every ~80 ms while `wait_at` is set: starts once the owner has been quiet for `min_quiet_ms()`. */
+ 	check_wait(){
+ 		if (this.wait_at == null) return;
+-		if (this.barge.speaking()){ this.quiet_since_wait = null; this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
+-		this.quiet_since_wait ??= performance.now();
+-		if (performance.now() - this.quiet_since_wait < (this.turn_wait_ms ?? 2500)){ this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
++		if (!this.quiet_long_enough()){ this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
+ 		const i = this.wait_at;
+ 		this.wait_at = this.quiet_since_wait = null;
+ 		this.play(i, 0);
+@@ -194,6 +206,7 @@ export default class Recite extends Part {
+ 		this.trace("playing", { sentence: i });
+ 		if (token !== this.token) return;
+ 		this.set("playing", "");
++		this.barge.chunk_started();   // the start grace (BargeIn.grace_ms): its own first word must not trip the mic
+ 		this.unlocked = true;   // it played: no tap-unlock needed any more
+ 		this.media_session();
+ 		this.prefetch(i);
+@@ -477,6 +490,59 @@ export default class Recite extends Part {
+ 		else this.set("idle");
+ 	}
+ 
++	/** Real owner speech, right now (cutting in, 2026-11-03): stop at once and drop the WHOLE queue, not just the
++	 *  reply that was playing — every reply still waiting its turn is skipped too, so the owner never has to sit
++	 *  through a backlog they never asked to hear. No auto-resume unless `resume_after_cut` is on. Each dropped reply
++	 *  is reported once through `on_read` (the reply playing, if any, as "cut" with the words it had reached; every
++	 *  other distinct reply still queued as "skipped"), so the page can tell the assistant what was and wasn't
++	 *  heard. A reply only held by turn-taking (`wait_at`, never started) counts as queued too. */
++	cancel_unheard(){
++		this.barge.cancel_resume();
++		clearTimeout(this.wait_timer);
++		const held_at = this.wait_at;   // read before clearing: start_or_hold() set only `wait_at`, never `this.at` —
++		                                // `this.at` still sits on the LAST chunk that actually played (finish()), so
++		                                // the skip loop must start at `wait_at` while held, not that stale `this.at`
++		                                // (review finding 1, 2026-11-03)
++		this.wait_at = this.quiet_since_wait = null;
++		const was_going = held_at == null && ["playing", "loading", "heard"].includes(this.state) && this.chunks[this.at];
++		this.token++;
++		this.audio?.pause();
++		globalThis.speechSynthesis?.cancel();
++		const reported = new Set();
++		if (was_going){
++			const c = this.chunks[this.at];
++			reported.add(c.reply);
++			this.report_read(this.at, this.at - this.group_start(this.at), "cut", Recite.heard_words(c));
++		}
++		// Start at `wait_at` when nothing was playing (everything from there on is still unheard); otherwise at
++		// `this.at` (everything before it already finished playing, and chunks stay in the array until a full
++		// stop(), readme.md) — either way, never from 0, or a reply fully heard minutes ago gets reported "skipped".
++		for (let i = held_at ?? this.at; i < this.chunks.length; i++){
++			const c = this.chunks[i];
++			if (reported.has(c.reply)) continue;
++			reported.add(c.reply);
++			this.report_read(i, i - this.group_start(i), "skipped", "");
++		}
++		for (const p of this.pending_ids) Recite.mark_played(p.id);   // dropped, never played: a reload must not read it either
++		this.pending_ids = [];
++		for (const c of this.chunks) if (c.src) URL.revokeObjectURL(c.src);
++		this.chunks = [];
++		this.live = null;
++		this.streamed = null;
++		this.at = 0;
++		this.set("idle");
++	}
++
++	/** Tells `on_read` (if the page wired one) that chunk `i` of its reply was cut or skipped; never throws into the
++	 *  caller — a page's own callback failing must not stop the cut it is reporting on. */
++	report_read(i, sentence, heard, words){
++		const c = this.chunks[i];
++		try { this.on_read?.({ id: c?.msg ?? null, reply: c?.reply ?? null, chunk: i, sentence, heard, words }); }
++		catch (e){ console.error("Recite: on_read failed", e); }
++	}
++
++	set_resume_after_cut(on){ this.resume_after_cut = !!on; Recite.remember("resume_after_cut", this.resume_after_cut); this.changed(); }
++
+ 	/** Queue the finished sentences of the live reply that are not queued yet (all of it when `all`); always behind
+ 	 *  whatever is already playing, never replacing it (dictation-v3, 2026-11-01). */
+ 	take(text, all){
+@@ -662,6 +728,7 @@ export default class Recite extends Part {
+ 		c.seconds ??= c.text.length / 15;   // an estimate, so back 10 s still steps back a sentence or two
+ 		this.retime();
+ 		this.set("playing");
++		this.barge.chunk_started();
+ 		this.voice.speak(c.text, () => {
+ 			if (token !== this.token || this.state !== "playing") return;
+ 			this.settle_pending(i);
+@@ -729,6 +796,11 @@ export default class Recite extends Part {
+ 	/** About how long a sentence takes to say before it has been rendered: 15 characters a second. */
+ 	static est_seconds(text){ return Math.max(1, String(text ?? "").length / 15); }
+ 
++	/** A rough "last heard words" for the cut-off report: no word timer exists (Highlight.word_at is an estimate
++	 *  too), so this is the chunk's own first few words, not truly where the audio had reached. Good enough for a
++	 *  note the assistant reads, not a transcript. */
++	static heard_words(chunk){ return String(chunk?.text ?? "").split(/\s+/).slice(0, 6).join(" "); }
++
+ 	/** Where `seconds` back from `t` seconds into chunk `at` lands: {i, t}. A sentence not rendered yet counts by its estimate; never earlier than chunk `floor`. */
+ 	static step_back(chunks, at, t, seconds, floor = 0){
+ 		let i = at, left = seconds;
+diff --git a/public/framework/audio/Recite/Recite.test.mjs b/public/framework/audio/Recite/Recite.test.mjs
+index 072575f56..043f7edb8 100644
+--- a/public/framework/audio/Recite/Recite.test.mjs
++++ b/public/framework/audio/Recite/Recite.test.mjs
+@@ -73,13 +73,14 @@ if (Recite) test("Recite: the first tap unlocks a refused reply", async t => {
+ 	return r;
+ });
+ 
+-// Turn-taking (dictation-v3, 2026-11-01): a reply queues behind what is playing, never replaces it; a real barge-in
+-// pauses and auto-resumes from the START of the cut sentence once things go quiet; a question drops the rest instead.
+-// Driven through owner_spoke() — the real route a wire line takes (review note 7), not heard_speech() called directly.
+-if (Recite) test("Recite + BargeIn: queueing, resume from the sentence's start, a question drops the rest", async t => {
++// Cutting in (2026-11-03): by default (resume_after_cut off) real owner speech cancels the WHOLE queue at once, no
++// resume — not just the one reply that was playing. Driven through owner_spoke() — the real route a wire line
++// takes (review note 7), not a private method called directly.
++if (Recite) test("Recite + BargeIn: real speech cancels the whole queue at once, with no auto-resume", async t => {
+ 	const r = new Recite({ voice: fake_voice });
+ 	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+ 	r.barge.on = false;   // owner_spoke()/sync() never open a real mic in a test; `on` only gates sync()'s own mic-open/close
++	t.eq(r.resume_after_cut, false, "off by default: a cut never resumes on its own");
+ 
+ 	r.queue("First reply, sentence one. First reply, sentence two.");
+ 	await new Promise(res => setTimeout(res, 20));   // the queue's own auto-play settles
+@@ -89,22 +90,98 @@ if (Recite) test("Recite + BargeIn: queueing, resume from the sentence's start,
+ 	t.eq(r.chunks.length, 3, "it queued behind the first reply — nothing already there was dropped");
+ 	t.eq(r.chunks[0].text, "First reply, sentence one.", "the first reply's own first sentence is unchanged");
+ 
++	const read = []; r.on_read = ev => read.push(ev);
+ 	await r.play(1, 1.5);   // simulate: partway into reply one's second sentence
+-	r.barge.quiet_ms = 15;   // fast for the test
+ 	r.barge.owner_spoke("wait, hold on");   // a wire line, real speech, not a question
++	t.eq(r.state, "idle", "the instant you speak, reading stops — the whole queue is gone, not held for quiet");
++	t.eq(r.chunks.length, 0, "the reply in progress AND the one queued behind it are both dropped");
++	await new Promise(res => setTimeout(res, 50));
++	t.eq(r.state, "idle", "and it never resumes on its own");
++	t.eq(read.length, 2, "both replies were reported through on_read: the one playing (cut) and the one queued (skipped)");
++	t.eq(read[0].heard, "cut", "the reply that was playing is reported cut, not skipped");
++	t.eq(read[1].heard, "skipped", "the one that never started is reported skipped");
++	return r;
++});
++
++// cancel_unheard() must never report an EARLIER, fully-played reply as "skipped" — chunks stay in the array until a
++// full stop() (readme.md), so looping from index 0 told the assistant a reply it heard in full minutes ago was
++// never heard (review finding 1, 2026-11-03).
++if (Recite) test("Recite + BargeIn: cancel_unheard() does not report a reply already played to the end", async t => {
++	const r = new Recite({ voice: fake_voice });
++	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
++	r.barge.on = false;
++
++	r.queue("A first reply, heard in full.");
++	await new Promise(res => setTimeout(res, 20));
++	t.eq(r.state, "playing", "the first reply started");
++	r.ended();   // its one sentence finishes: Recite.at now points past it, chunks[0] stays in the array
++	t.eq(r.state, "idle", "nothing queued after it: idle, waiting");
++
++	r.queue("A second reply, cut off mid-way. It has two sentences.");
++	await new Promise(res => setTimeout(res, 20));
++	t.eq(r.at, 1, "playing the second reply's first sentence — chunk 0 (the first reply) is still in the array");
++
++	const read = []; r.on_read = ev => read.push(ev);
++	r.barge.owner_spoke("hold on a second");
++	t.eq(r.state, "idle", "cancelled");
++	t.eq(read.length, 1, "only the SECOND reply is reported — the first, already heard in full, is not");
++	t.eq(read[0].heard, "cut", "and it is reported cut, not skipped, since it was the one playing");
++	return r;
++});
++
++// Same bug, the HELD case: finish() leaves `this.at` on the LAST chunk that actually played, and start_or_hold()
++// only sets `wait_at` — it never moves `this.at`. So while a fresh reply sits held (nothing playing), cancel_unheard()
++// must start the skip loop at `wait_at`, not the stale `this.at` from the reply before it (review finding 1, round 3).
++if (Recite) test("Recite + BargeIn: a cut that lands during a turn-taking hold does not report the played reply either", async t => {
++	const r = new Recite({ voice: fake_voice });
++	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
++	r.barge.on = true;
++	r.barge.sync = () => {};   // never open a real mic in a test
++
++	r.queue("A first reply, heard in full.");
++	await new Promise(res => setTimeout(res, 20));
++	t.eq(r.state, "playing", "the first reply started");
++	r.ended();   // finishes: this.at stays on chunk 0, the one that just played
++	t.eq(r.state, "idle", "idle, nothing queued yet");
++
++	r.barge.hear(0.9);   // the owner is talking when the second reply arrives
++	r.queue("A second reply, held while you talk.");
++	t.eq(r.state, "idle", "it does not start over you");
++	t.eq(r.wait_at, 1, "held at chunk 1 — this.at is still 0, the first reply's own chunk");
++
++	const read = []; r.on_read = ev => read.push(ev);
++	r.barge.owner_spoke("hold on a second");
++	t.eq(r.state, "idle", "cancelled");
++	t.eq(read.length, 1, "only the held, never-started reply is reported — not the one already heard in full");
++	t.eq(read[0].heard, "skipped", "it never started playing, so it is skipped, not cut");
++	return r;
++});
++
++// resume_after_cut = true keeps the OLD manners: pause, drop only on a question, otherwise resume once quiet — for
++// an owner who wants the previous behaviour back.
++if (Recite) test("Recite + BargeIn: resume_after_cut = true keeps the old pause-then-resume manners", async t => {
++	const r = new Recite({ voice: fake_voice });
++	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
++	r.barge.on = false;
++	r.resume_after_cut = true;
++
++	r.queue("First reply, sentence one. First reply, sentence two.");
++	await new Promise(res => setTimeout(res, 20));
++	r.queue("Second reply arrives while the first still plays.");
++	await r.play(1, 1.5);
++	r.barge.quiet_ms = 15;
++	r.barge.owner_spoke("wait, hold on");   // real speech, not a question
+ 	t.eq(r.state, "heard", "still paused, giving the owner a moment to keep talking");
+ 	await new Promise(res => setTimeout(res, 50));
+ 	t.eq(r.state, "playing", "resumed by itself once the owner went quiet");
+ 	t.eq(r.audio.currentTime, 0, "it started the cut sentence over, not mid-word");
+ 	t.eq(r.chunks.length, 3, "the queued second reply is still waiting its turn, untouched");
+ 
+-	let synced = 0; const real_sync = r.barge.sync.bind(r.barge); r.barge.sync = () => { synced++; real_sync(); };
+ 	r.barge.owner_spoke("but what about the other one?");   // a question: a new answer is coming
+-	await new Promise(res => setTimeout(res, 20));   // drop_heard()'s own play() of whatever is queued behind settles
++	await new Promise(res => setTimeout(res, 20));
+ 	t.eq(r.chunks.length, 1, "only the dropped reply (the one that was heard) is gone");
+-	t.eq(r.chunks[0].text, "Second reply arrives while the first still plays.", "the reply that was already queued behind it was never touched, and starts right where it was waiting");
++	t.eq(r.chunks[0].text, "Second reply arrives while the first still plays.", "the reply already queued behind it was never touched");
+ 	t.eq(r.state, "playing", "playback carries on with what was queued behind the dropped reply");
+-	t.ok(synced > 0, "dropping a question re-syncs the mic, ready for the next interruption");
+ 	return r;
+ });
+ 
+@@ -117,11 +194,11 @@ if (Recite) test("Recite: a reply arriving while the old one is paused by barge-
+ 
+ 	r.queue("An answer that gets interrupted, no less.");
+ 	await new Promise(res => setTimeout(res, 20));
+-	r.barge.owner_spoke("actually never mind");   // real speech, no question mark
+-	t.eq(r.state, "heard", "paused, waiting to see if the owner keeps talking");
++	r.barge.owner_spoke("actually never mind");   // real speech, no question mark — by default this cancels outright, no "heard" hold
++	t.eq(r.state, "idle", "cancelled outright, with no auto-resume (resume_after_cut is off by default)");
+ 
+-	r.final("A fresh reply has already started arriving.");   // "a reply to it is coming"
+-	t.eq(r.state, "loading", "the reply arriving is itself the signal: the old one is dropped, and the new one starts right away — not resumed into");
++	r.final("A fresh reply has already started arriving.");   // a fresh reply arriving after the cancel is just a normal new reply
++	t.eq(r.state, "loading", "the new reply starts right away");
+ 	t.eq(r.chunks.length, 1, "only the new reply is queued");
+ 	t.eq(r.chunks[0].text.startsWith("A fresh reply"), true, "and it is the new reply, not a leftover of the old one");
+ 	return r;
+@@ -143,15 +220,15 @@ if (Recite) test("Recite: dropping a cut-off reply keeps whatever is already que
+ 	r.final("Second reply, queued behind the first.", "msg-q2");
+ 	t.eq(r.chunks.length, 2, "both replies are queued, in order");
+ 
+-	r.barge.owner_spoke("actually never mind");   // real speech, no question — just pauses it
+-	t.eq(r.state, "heard", "paused mid first reply");
++	r.barge.owner_spoke("actually never mind");   // real speech, no question — cancels the whole queue by default now
++	t.eq(r.state, "idle", "cancelled outright: both the playing and the queued reply are gone");
++	t.eq(r.chunks.length, 0, "nothing is left queued — the second reply is dropped too, not kept for later");
+ 
+-	r.final("The answer that was coming is this one.", "msg-q3");   // a fresh reply arriving is itself the drop signal
++	r.final("The answer that was coming is this one.", "msg-q3");
+ 	await new Promise(res => setTimeout(res, 20));
+-	t.eq(r.chunks.length, 2, "the first reply is gone; the second (never heard) and the new third reply remain");
+-	t.eq(r.chunks[0].text, "Second reply, queued behind the first.", "the one already waiting its turn kept its place — and plays first, not last");
+-	t.eq(r.chunks[1].text, "The answer that was coming is this one.", "the new reply queues behind it, not ahead of it");
+-	t.eq(r.state, "playing", "playback carries straight on with the reply that was already queued");
++	t.eq(r.chunks.length, 1, "only the fresh reply plays — the two cancelled ones are gone for good");
++	t.eq(r.chunks[0].text, "The answer that was coming is this one.", "and it is the new reply");
++	t.eq(r.state, "playing", "it starts right away");
+ 	return r;
+ });
+ 
+@@ -196,13 +273,12 @@ if (Recite) test("Recite: a reply waits for the owner to stop talking before it
+ 	r.barge.hear(0.05);   // the level actually drops below threshold: real quiet, not a flipped flag
+ 	t.eq(r.barge.speaking(), false, "and speaking() now reads quiet from that same real path");
+ 	await new Promise(res => setTimeout(res, 150));
+-	t.eq(r.state, "playing", "started once you had been quiet for a moment");
++	t.eq(r.state, "idle", "not yet — at least 1 s of quiet is required since the last heard word, not just 'is it quiet this instant' (review finding 5, 2026-11-03)");
++	await new Promise(res => setTimeout(res, 950));   // past the 1 s floor since the hear(0.9) above
++	t.eq(r.state, "playing", "started once you had been quiet for at least a second");
+ 
+-	r.barge.quiet_ms = 15;
+ 	r.barge.owner_spoke("hold on a second");   // a real barge-in, mid-reply, through the real wire-line route
+-	t.eq(r.state, "heard", "a barge-in mid-reply still stops playback");
+-	await new Promise(res => setTimeout(res, 50));
+-	t.eq(r.state, "playing", "and the rest resumes once the owner is quiet again");
++	t.eq(r.state, "idle", "cancelled at once, by default — no resume to wait for");
+ 	return r;
+ });
+ 
+@@ -259,11 +335,11 @@ if (Recite) test("Recite: a second reply queued while the first still waits for
+ 
+ 	r.barge.hear(0.05);   // the level drops below threshold: real quiet
+ 	clearTimeout(r.wait_timer);
+-	r.check_wait();   // first poll: notices quiet, starts the clock — not long enough yet
+-	t.eq(r.state, "idle", "not yet — the quiet window just started");
+-	r.quiet_since_wait = performance.now() - (r.turn_wait_ms + 5);   // fast-forward past turn_wait_ms: no real sleep needed
++	r.check_wait();   // the last loud frame (hear(0.9), above) is still under min_quiet_ms ago: not long enough yet
++	t.eq(r.state, "idle", "not yet — less than 1 s since the last heard word");
++	r.barge.last_speech_at = performance.now() - (r.min_quiet_ms() + 5);   // fast-forward past the hold: no real sleep needed
+ 	clearTimeout(r.wait_timer);
+-	r.check_wait();   // second poll: quiet long enough — starts
++	r.check_wait();   // quiet long enough now — starts
+ 	await new Promise(res => setTimeout(res, 20));   // let play()'s render promise settle
+ 	t.eq(r.state, "playing", "started once quiet");
+ 	t.eq(r.at, 0, "chunk 0 (the first reply) plays first, not chunk 1");
+@@ -298,10 +374,10 @@ if (Recite) test("Recite + BargeIn: a second owner line while already paused sti
+ 	r.queue("An answer that gets interrupted.");
+ 	await new Promise(res => setTimeout(res, 20));
+ 	r.barge.owner_spoke("wait, hold on");
+-	t.eq(r.state, "heard", "paused by the first line");
++	t.eq(r.state, "idle", "the first line already cancelled everything, by default");
+ 
+-	r.barge.owner_spoke("actually, what about the other one?");   // a SECOND line, while still paused — a question
+-	t.eq(r.state, "idle", "the question in the second line still drops the reply, even though it arrived while already paused");
++	r.barge.owner_spoke("actually, what about the other one?");   // a SECOND line, nothing left to cancel — must not throw
++	t.eq(r.state, "idle", "still idle — a second line with nothing playing is a no-op");
+ 	t.eq(r.chunks.length, 0, "nothing left queued");
+ 	return r;
+ });
+@@ -326,7 +402,7 @@ if (Recite) test("Recite + BargeIn: an echo of the sentence being read never pau
+ 	t.ok(traced.includes("barge: echo dropped"), "the drop is logged, not acted on");
+ 
+ 	r.barge.owner_spoke("please stop for a second");   // unrelated words: a real interruption
+-	t.eq(r.state, "heard", "an unrelated line still barges in and pauses, same as always");
++	t.eq(r.state, "idle", "an unrelated line still cancels the reading, same as always");
+ 	return r;
+ });
+ 
+@@ -370,7 +446,7 @@ if (Recite) test("Recite + BargeIn: owner_spoke() drops a Whisper final heard ou
+ 
+ 	r.barge.recent_peak = 0.9;   // the same words, but the owner was actually loud this time
+ 	r.barge.owner_spoke("go ahead and skip that one");
+-	t.eq(r.state, "heard", "the gate only catches near-silence — real volume still barges in on the same words");
++	t.eq(r.state, "idle", "the gate only catches near-silence — real volume still cancels the reading on the same words");
+ 	return r;
+ });
+ 
+diff --git a/public/framework/audio/Recite/playback-stutter.test.mjs b/public/framework/audio/Recite/playback-stutter.test.mjs
+index 8c8e62a62..7f5b1a7bd 100644
+--- a/public/framework/audio/Recite/playback-stutter.test.mjs
++++ b/public/framework/audio/Recite/playback-stutter.test.mjs
+@@ -122,7 +122,52 @@ check("words mode ignores a Whisper phantom phrase", r3.during === "playing" &&
+ let r4 = await interrupt("words", "the weather today is rather mild");
+ check("words mode ignores Recite's own voice coming back (echo)", r4.after === "playing", r4);
+ let r5 = await interrupt("words", "wait, can you stop for a second");
+-check("words mode pauses when Whisper hears real words", r5.during === "playing" && r5.after === "heard", r5);
++check("words mode cancels outright when Whisper hears real words (cutting in, 2026-11-03: no auto-resume by default)", r5.during === "playing" && r5.after === "idle", r5);
++
++// 5b. cutting in (2026-11-03): real words through the own-mic trigger() path cancel the WHOLE queue (not just the
++// playing reply) and report both through on_read, with no auto-resume.
++whisper_says = "wait, can you stop for a second";
++await fresh();
++const cut_report = await page.evaluate(async () => {
++	const r = window.r, b = r.barge, sleep = ms => new Promise(x => setTimeout(x, ms));
++	const read = []; r.on_read = ev => read.push(ev);
++	r.queue("The weather today is rather mild.");
++	r.queue("Something else, queued behind it.");
++	await sleep(900);
++	b.mode = "words"; b.on = true; b.listen_ms = 200; b.state = "listening";
++	b.mic = { snapshot: () => new Float32Array(10), cut(){}, wav: () => new Blob(["x"]), stop(){} };
++	b.recent_peak = 0.9;
++	const done = b.trigger();
++	b.peak = 0.9;   // trigger() zeroes it synchronously; set it before the await settles, like the other interrupt() cases
++	await done;
++	await sleep(500);
++	return { state: r.state, chunks: r.chunks.length, read };
++});
++check("cutting in: the trigger path cancels every queued reply, not just the one playing", cut_report.chunks === 0, cut_report);
++check("cutting in: both replies were reported through on_read", cut_report.read.length === 2 && cut_report.read[0].heard === "cut" && cut_report.read[1].heard === "skipped", cut_report.read);
++check("cutting in: it stays idle — no auto-resume by default", cut_report.state === "idle", cut_report.state);
++
++// 5c. the start grace: a chunk's own first word, right after it starts (quiet when it began), does not trip the
++// fast volume trigger — but real Whisper-confirmed words still cut in (the stopgap for the stutter).
++await fresh();
++const grace = await page.evaluate(async () => {
++	const r = window.r, b = r.barge, sleep = ms => new Promise(x => setTimeout(x, ms));
++	r.queue("A sentence that just started playing.");   // barge.on is still false here (fresh()): queue()'s own state
++	// changes call barge.sync(), which would try to open a REAL mic the instant barge.on is true — set it after,
++	// once playback has settled, same order the other interrupt() cases use
++	await sleep(250);   // past the 150 ms render stub: the chunk is actually playing now, grace just started
++	b.grace_ms = 300; b.on = true; b.mode = "volume"; b.hold_ms = 10; b.state = "listening";
++	const before = r.state;
++	b.hear(0.9);   // loud, but within the grace and the owner was quiet when it began
++	await sleep(40);
++	const during_grace = r.state;
++	await sleep(400);   // past the grace window now
++	b.hear(0.9); await sleep(20); b.hear(0.9);   // two frames, hold_ms apart: hear() only checks the clock on each new frame
++	await sleep(40);
++	return { before, during_grace, after_grace: r.state };
++});
++check("the start grace: a loud frame right after a quiet start does not trigger the fast pause", grace.before === "playing" && grace.during_grace === "playing", grace);
++check("once the grace has passed, the same loud level does trigger it", grace.after_grace !== "playing", grace);
+ 
+ // 6. the setting is remembered and the plugin shape is there
+ const shape = await page.evaluate(async () => {
+diff --git a/public/framework/audio/Recite/readme.md b/public/framework/audio/Recite/readme.md
+index 3d93886d0..1f2fa8043 100644
+--- a/public/framework/audio/Recite/readme.md
++++ b/public/framework/audio/Recite/readme.md
+@@ -1,6 +1,6 @@
+ # Recite — reads the AI's replies aloud
+ 
+-Recite is text to speech, the reverse of transcription. It reads a reply out loud with a local voice, so you can use the site on a walk without looking at the screen. It has a playhead (pause, back 10 s, restart), and it pauses when you start talking — then picks back up once you go quiet, from the start of the sentence it cut off; a new question instead drops the rest, since a new answer is coming. A reply that arrives while another is already playing queues behind it, and a reply never starts over your own voice. Tapping a chat bubble is the same play/pause gesture as the bar. [The live demo](/framework/audio/Recite/).
++Recite is text to speech, the reverse of transcription. It reads a reply out loud with a local voice, so you can use the site on a walk without looking at the screen. It has a playhead (pause, back 10 s, restart). **Cutting in (2026-11-03, the default):** the instant you talk, `Recite.cancel_unheard()` stops at once and drops the WHOLE queue — the reply playing and every reply still waiting its turn — with no auto-resume; `recite.resume_after_cut = true` brings back the old manners (pause, drop only on a question, otherwise resume once quiet, from the start of the cut sentence). A reply never starts over your own voice, waiting for at least a second of quiet regardless of whether the ear (barge-in) is on. Tapping a chat bubble is the same play/pause gesture as the bar. [The live demo](/framework/audio/Recite/).
+ 
+ ## Use
+ 
+@@ -15,7 +15,9 @@ recite.bar;                          // the one-line control; while state is `he
+ 
+ Tapping a reply bubble's text (or its ▶/⏸) plays or pauses that bubble — from the word it last stopped at, else its start; ↺10 steps back about 10 s. A tap anywhere else in the chat toggles whatever Recite is reading now. A tap on a link, a mention chip or a button does its own thing instead.
+ 
+-**Turn-taking settings:** `recite.turn_wait_ms` (default 2500: 2–3 s, no flood) is how much quiet is needed before a freshly queued reply starts over the owner; `recite.barge.quiet_ms` (default 2500) is how much quiet is needed after a barge-in before the cut reply resumes — a separate field with the same default, not merged into one setting, since several tests set it directly for speed.
++**Turn-taking settings:** `recite.turn_wait_ms` (default 2500: 2–3 s, no flood) is how much quiet is needed before a freshly queued reply starts over the owner — checked on the mic level whether or not the ear (`barge.on`) is on; `recite.barge.quiet_ms` (default 2500) is how much quiet is needed after a barge-in before the cut reply resumes, used only when `resume_after_cut` is on — a separate field with the same default, not merged into one setting, since several tests set it directly for speed.
++
++**Cutting-in settings (2026-11-03):** `recite.resume_after_cut` (default false, remembered) — off: real speech cancels the whole queue outright; on: the old manners (pause, resume once quiet, drop only on a question). **Console-only today:** no gear-panel row or `settings-plugins.md` table entry reaches it yet — set it from DevTools (`Recite.shared.set_resume_after_cut(true)`) until the settings panel (`ux/Dictate/doc/settings-plugins.md`) adds one. `recite.barge.grace_ms` (default 1000) blocks the fast volume trigger for this long after a chunk starts playing, so its own first word (right after a quiet moment) does not trip the mic and stop it — skipped entirely when you were already talking as it began, since there is nothing to wait out. `recite.barge.quick_hold_ms` (default 120, vs. the ordinary `hold_ms` 250) is the hold used instead when you were already talking as the chunk began — a reply that starts over you must die fast, not wait out the usual hold. `recite.on_read` is an injected callback (`{id, reply, chunk, sentence, heard: "cut"|"skipped", words}`), called once per dropped reply by `cancel_unheard()`, so a page can report what was and wasn't heard (`audio/Recite` never posts anything itself — `ext/Chat` must not import it, so the wiring, if any, lives in `chat.js`, the same way as `on_out`).
+ 
+ **No flood:** a reply from a tracked agent role (`mastermind-`/`minion-`/`reviewer-`/`clarity-` — not the smart one, and not `fast`/`revise`/`card`, which keep being ignored as before) is an agent update — never read in full, it collapses to "I have an update on {agent}, it is in the chat." If the owner's own line is still awaiting the direct answer, the update waits and the direct answer plays ahead of it; that guarantee only covers updates held for that reason — one already queued earlier (or a second direct reply) keeps its place in line, same as any other reply. Tapping a bubble (or its ▶) plays that reply again — an agent update's bubble included — so "it is in the chat" can be followed by a tap ([Recite.Bubble](#architecture)).
+ 
+@@ -51,7 +53,7 @@ Decisions and why: [doc/architecture.md](doc/architecture.md).
+ 
+ ## Open, by the agreed build order
+ 
+-Resume + queueing + turn-taking (piece (a)), echo suppression, the thinking cue, the highlight dropout fix (+ lit words), no-flood + prioritise, tap to pause (piece (b)) and resumable bubbles with their ▶/⏸ and ↺10 (`Recite.Bubble`, above) have landed. Still to come, in this order:
++Resume + queueing + turn-taking (piece (a)), echo suppression, the thinking cue, the highlight dropout fix (+ lit words), no-flood + prioritise, tap to pause (piece (b)), resumable bubbles with their ▶/⏸ and ↺10 (`Recite.Bubble`, above), and cutting in — cancel the whole queue at once, the start grace, the always-on 1 s hold, `on_read` — have landed. Still to come, in this order:
+ 
+ 1. **Voice chevron** — a dropdown chevron on the voice name in `ReciteBar` (today's heart icon reads as a "like" button), and the `read_aloud_hidden: "keep" | "pause"` setting (default `keep`; `pause` stops playback on `visibilitychange` to hidden and resumes when the page is visible again).
+ 2. **(c) Karaoke follow** — without phrase-level streaming.
+@@ -68,7 +70,8 @@ The owner's own order and why: `ai/sessions/2026/10/20/session-e00f55c9/dictatio
+ - **Speakers leak into the mic — guarded, not eliminated.** `getUserMedia`'s own echo cancelling, a fuzzy word match against the sentence being read, and a raised mic threshold all run while `recite.echo_active()` (doc/architecture.md has the detail); a phone's speaker leak is still the hardest case for the browser's own `echoCancellation`, so headphones remain the most reliable option.
+ - **The Claude-app voice agent is separate.** It speaks with the app's own voice and writes `/live/`, not the chat session, so Recite never reads it twice (`Servex/ext/remote/doc/cloud-voice-agent.md`). From the phone, `/recite/*` goes through the site gateway exactly like `/whisper/*`.
+ - **Reading starts only for new replies** (lines under 2 minutes old), never for history on a reload.
+-- **With the ear (barge-in) off, a reply never waits for you.** `speaking()` requires `barge.on`; turning the ear off is the opt-out from turn-taking, so a freshly queued reply starts right away even if you are still mid-sentence. Intended, not a bug.
++- **With the ear (barge-in) off, a freshly queued reply still waits a moment for quiet (2026-11-03).** `speaking()` no longer requires `barge.on` — only the fast volume PAUSE (interrupting a reply already playing) is opted out by turning the ear off; a fresh reply always holds for `turn_wait_ms` of quiet on the mic level first.
++- **The "last heard words" on a cut report is an estimate.** `Recite.heard_words()` reads the cut chunk's own first few words, not the point the audio had actually reached — there is no word timer (the karaoke highlight's own word position is an estimate too). Good enough for a note the assistant reads, not a transcript.
+ - **Open item: `chunks` never shrinks until a full `stop()`.** Each queued reply's rendered audio (a blob URL) stays in memory for the whole session; a very long session with no interruption and no session switch holds every reply's audio at once. Deferred: a page reload bounds it in practice, so no eviction was added. [doc/architecture.md](doc/architecture.md) has the detail.
+ 
+ - **A finished reply is not read twice.** The stream reads a reply sentence by sentence; when the settled line arrives later with slightly different or longer text, `final()` queues only the part the stream did not read (`unread_tail`), never the whole reply again. Before that fix (dictation-v3, 2026-11-01) the reply started over a few seconds in; the cause and the phone log lines are in the [playback-stutter findings](/framework/ai/sessions/2026/10/20/session-e00f55c9/playback-stutter/findings.md). Test: [playback-stutter.test.mjs](playback-stutter.test.mjs) (`FENCE_SERVEX=1 node playback-stutter.test.mjs <site url>`).
+diff --git a/public/framework/core/Plugin/Plugin.js b/public/framework/core/Plugin/Plugin.js
+index eec6ff026..14a9d9e20 100644
+--- a/public/framework/core/Plugin/Plugin.js
++++ b/public/framework/core/Plugin/Plugin.js
+@@ -23,6 +23,28 @@ export class Plugin extends Events(Object) {
+ 	initialize(){}
+ 	bubbles(){ return false; }   // a plugin host is not a tree; an Item's events still bubble
+ 
++	// Per-INSTANCE plugin switches: one row per class-level plugin, `enabled`/`config` unset until this instance
++	// overrides them (PluginEntry.get_one falls back to the class row's rec.on / rec.config while unset).
++	// The row list is kept live: Plugin.record() pushes a row here for any plugin the class gains afterwards.
++	get plugins(){
++		if (!Object.hasOwn(this, "_plugins")) {
++			Object.defineProperty(this, "_plugins", { value: new List(), writable: true });
++			const Host = this.constructor;
++			if (!Object.hasOwn(Host, "_plugin_instances")) Object.defineProperty(Host, "_plugin_instances", { value: new Set(), writable: true });
++			Host._plugin_instances.add(new WeakRef(this));
++			for (const rec of Host.records.values()) Host.add_instance_row(this, rec);
++		}
++		return this._plugins;
++	}
++
++	// Switching THIS instance only: attach/detach runs just on `this`, the class-wide hook is untouched, and this
++	// instance's own wish is remembered so a later class-wide enable()/disable() never overrides it (see those).
++	toggle_plugin(rec, on){
++		(this._plugin_overrides ??= new Map()).set(rec, on);
++		if (on) Plugin.attach_instance(rec, this);
++		else Plugin.detach_instance(rec, this);
++	}
++
+ 	// ── class-level events. "new" walks the class chain: parents' listeners first, then each subclass's own.
+ 	static get events(){
+ 		if (!Object.hasOwn(this, own_events)) Object.defineProperty(this, own_events, { value: {}, writable: true });
+@@ -85,32 +107,66 @@ export class Plugin extends Events(Object) {
+ 		const name = p.name || "plugin", key = `plugin.${this.name}.${name}`;
+ 		const saved = Plugin.store.get(key), defaults = p.defaults ?? {};
+ 		const { on: default_on = true, ...config_defaults } = defaults;
+-		rec = { plugin: p, name, key, on: false, fn: null, live: new Set(), n: 0,
++		rec = { plugin: p, name, key, on: false, fn: null, live: new Set(), attached: new WeakSet(), n: 0,
+ 			wanted: wanted_on ?? saved?.on ?? default_on, config: { ...config_defaults, ...saved?.config } };
+ 		this.records.set(p, rec);
+ 		if (!Plugin.hosts.includes(this)) Plugin.hosts.push(this);
+ 		if (this._list) this.add_row(rec);
++		if (Object.hasOwn(this, "_plugin_instances")) for (const ref of this._plugin_instances) { const inst = ref.deref(); if (inst) this.add_instance_row(inst, rec); }
+ 		return rec;
+ 	}
+ 
++	// The attach/setup/plain-function dispatch, shared by a class-wide enable() and a per-instance toggle.
++	static runner(p){
++		return typeof p.attach === "function" ? inst => p.attach(inst)
++			: typeof p.setup === "function" ? inst => p.setup(inst)
++			: typeof p === "function" && !p.prototype ? p : null;
++	}
++
++	// Attach/detach are per (rec, instance): `rec.attached` makes both idempotent, so a plugin with no real
++	// detach is never run twice on the same instance across a use() -> unuse() -> use() cycle.
++	static attach_instance(rec, inst){
++		if (rec.attached.has(inst)) return;
++		const run = this.runner(rec.plugin);
++		if (!run) return;
++		rec.attached.add(inst);
++		rec.live.add(new WeakRef(inst));
++		run(inst);
++	}
++
++	static detach_instance(rec, inst){
++		if (!rec.attached.has(inst)) return;
++		// Irreversible either way: no `detach` at all, OR a `Plugin` subclass with none of its OWN — it still
++		// inherits the base class's no-op `Plugin.detach` (:209), which IS a function, so `typeof` alone would
++		// treat it as a real undo (review finding 2, 2026-11-03). Either way, stays "attached" so a later enable
++		// never runs attach twice.
++		if (typeof rec.plugin.detach !== "function" || rec.plugin.detach === Plugin.detach) return;
++		rec.attached.delete(inst);
++		rec.plugin.detach(inst);
++	}
++
++	// An instance that switched this plugin on/off for ITSELF (Plugin#toggle_plugin) keeps that wish: a class-wide
++	// enable()/disable() never overrides an explicit per-instance override, it only moves the instances left unset.
++	static overridden(rec, inst, value){ return inst._plugin_overrides?.get(rec) === value; }
++
+ 	static enable(rec){
+ 		rec.wanted = true;
+ 		if (rec.on) return;
+-		const p = rec.plugin, tracks = typeof p.detach === "function" && p.detach !== Plugin.detach;
+-		const run = typeof p.attach === "function" ? inst => p.attach(inst)
+-			: typeof p.setup === "function" ? inst => p.setup(inst)
+-			: typeof p === "function" && !p.prototype ? p : null;
+-		if (!run) { console.warn(`Plugin ${rec.name} must be a function or have attach(instance) or setup(instance)`); return; }
++		const Host = this;
+ 		rec.fn = function(inst){
+-			if (tracks) {
+-				rec.live.add(new WeakRef(inst));
+-				if (++rec.n % 256 === 0) for (const ref of rec.live) if (!ref.deref()) rec.live.delete(ref);
+-			}
+-			return run.call(this, inst);
++			if (++rec.n % 256 === 0) for (const ref of rec.live) if (!ref.deref()) rec.live.delete(ref);
++			if (Host.overridden(rec, inst, false)) return;   // this instance switched itself off: stays off
++			Host.attach_instance(rec, inst);
+ 		};
+ 		this.on("new", rec.fn);
+ 		rec.on = true;
+ 		rec.row?.sync(true);
++		// Re-attach to every instance this plugin reached before (a disable() kept them tracked, never cleared),
++		// skipping one that switched itself off on its own.
++		for (const ref of rec.live) {
++			const inst = ref.deref();
++			if (inst && !this.overridden(rec, inst, false)) this.attach_instance(rec, inst);
++		}
+ 	}
+ 
+ 	static disable(rec){
+@@ -118,8 +174,11 @@ export class Plugin extends Events(Object) {
+ 		if (!rec.on) return;
+ 		this.off("new", rec.fn);
+ 		rec.on = false;
+-		for (const ref of rec.live) { const inst = ref.deref(); if (inst) rec.plugin.detach?.(inst); }
+-		rec.live.clear();
++		// Leave alone an instance that switched itself on: the class going off is not its own wish.
++		for (const ref of rec.live) {
++			const inst = ref.deref();
++			if (inst && !this.overridden(rec, inst, true)) this.detach_instance(rec, inst);
++		}
+ 		rec.row?.sync(false);
+ 	}
+ 
+@@ -141,6 +200,14 @@ export class Plugin extends Events(Object) {
+ 		return row;
+ 	}
+ 
++	// One row of an INSTANCE's `plugins` list: enabled/config start unset, so PluginEntry falls back to the class row.
++	static add_instance_row(inst, rec){
++		const row = new PluginEntry({ id: rec.name, name: rec.name, enabled: null, config: null });
++		Object.defineProperties(row, { host: { value: inst }, record: { value: rec }, plugin: { value: rec.plugin }, instance: { value: true } });
++		inst._plugins.add(row);
++		return row;
++	}
++
+ 	// ── a class that IS a plugin. attach(instance): "this plugin attaches itself to that instance". setup is the old name.
+ 	static attach(instance){ return this.setup?.(instance); }
+ 	static detach(instance){}
+diff --git a/public/framework/core/Plugin/Plugin.test.mjs b/public/framework/core/Plugin/Plugin.test.mjs
+index dbe1d38c0..d108b6ff1 100644
+--- a/public/framework/core/Plugin/Plugin.test.mjs
++++ b/public/framework/core/Plugin/Plugin.test.mjs
+@@ -147,6 +147,115 @@ test("the page can list the live plugin-using classes", t => {
+ 	t.ok(Plugin.hosts.includes(H10), "Plugin.hosts holds every class that used or listed a plugin");
+ });
+ 
++test("enable() re-attaches to every still-live tracked instance, not just new ones", t => {
++	calls.length = 0;
++	class H14 extends Plugin {}
++	new H14({ tag: "single" });               // exists before use(): never tracked
++	H14.use(Spy);
++	t.eq(calls.length, 0, "use() alone does not reach a pre-existing instance");
++	new H14({ tag: "new1" });
++	t.eq(calls, [["attach", "Spy", "new1"]], "the new instance was attached and is now tracked");
++	H14.unuse(Spy);
++	calls.length = 0;
++	H14.use(Spy);
++	t.eq(calls, [["attach", "Spy", "new1"]], "re-enable reattached the tracked instance, not the untracked singleton");
++});
++
++test("a per-instance switch: enabled is unset and follows the class row, off/on touches only that instance", t => {
++	calls.length = 0;
++	class H11 extends Plugin {}
++	H11.use(Spy);
++	const a = new H11({ tag: "a" });
++	calls.length = 0;
++	const row = a.plugins.find("Spy");
++	t.eq(row.get("enabled"), true, "unset: follows the class row (on)");
++	row.set({ enabled: false });
++	t.eq(calls, [["detach", "Spy", "a"]], "off: detached this instance only");
++	calls.length = 0;
++	row.set({ enabled: true });
++	t.eq(calls, [["attach", "Spy", "a"]], "on: reattached this instance only");
++	calls.length = 0;
++	H11.unuse(Spy);
++	t.eq(calls.length, 0, "the instance's own 'on' wins: the class going off does not detach it");
++	t.eq(row.get("enabled"), true, "row shows the real, still-attached state");
++	H11.use(Spy);
++	t.eq(calls.length, 0, "already attached: re-enabling the class does not attach it a second time");
++});
++
++test("attach is idempotent per (instance, plugin): use -> unuse -> use never attaches the same live instance twice", t => {
++	calls.length = 0;
++	class H15 extends Plugin {}
++	H15.use(Spy);               // Spy has detach, but Other (used below) does not
++	const live = new H15({ tag: "live" });
++	calls.length = 0;
++	H15.unuse(Spy); H15.use(Spy);
++	t.eq(calls, [["detach", "Spy", "live"], ["attach", "Spy", "live"]], "one real detach, then one re-attach — not a duplicate attach");
++	calls.length = 0;
++	class H16 extends Plugin {}
++	H16.use(Other);              // Other has no detach: disable() can't undo the first attach
++	const live2 = new H16({ tag: "live2" });
++	calls.length = 0;
++	H16.unuse(Other); H16.use(Other);
++	t.eq(calls.length, 0, "no real detach ran, so attach_instance's own guard skips the second attach");
++	calls.length = 0;
++	// A Plugin SUBCLASS with no detach of its own inherits Plugin.detach (a no-op) — review finding 2, 2026-11-03:
++	// `typeof rec.plugin.detach === "function"` is true for that inherited no-op, so detach_instance must also
++	// check it isn't just the base class's default, or it wrongly treats the inherited no-op as a real undo.
++	class NoOwnDetach extends Plugin { static attach(inst){ calls.push(["attach", "NoOwnDetach", inst.tag]); } }
++	class H19 extends Plugin {}
++	H19.use(NoOwnDetach);
++	const live3 = new H19({ tag: "live3" });
++	calls.length = 0;
++	H19.unuse(NoOwnDetach); H19.use(NoOwnDetach);
++	t.eq(calls.length, 0, "the inherited no-op detach is not a real undo either — attached once, stays attached");
++});
++
++test("a per-instance switch-off of a plugin with no detach stays attached, and the row says so (review finding 10, 2026-11-03)", t => {
++	calls.length = 0;
++	class H20 extends Plugin {}
++	H20.use(Other);   // Other has no detach: an instance "off" can't really undo its attach
++	const inst = new H20({ tag: "stuck" });
++	calls.length = 0;
++	const row = inst.plugins.find("Other");
++	row.set({ enabled: false });
++	t.eq(calls.length, 0, "no detach ran — there is none");
++	t.eq(row.get("enabled"), true, "the row reports the real state (still attached), not the off it was asked for");
++});
++
++test("inst.plugins picks up a plugin the class gains after the row list was first read", t => {
++	class H17 extends Plugin {}
++	H17.use(Spy);
++	const inst = new H17({ tag: "late" });
++	t.eq(inst.plugins.length, 1, "one row before Other is added");
++	H17.use(Other);
++	t.eq(inst.plugins.length, 2, "Other's row appeared on the already-read instance list");
++	t.eq(inst.plugins.find("Other").get("enabled"), true, "unset: follows the class row");
++});
++
++test("the item-tool delta shape works on both Host.plugins and inst.plugins", t => {
++	calls.length = 0;
++	class H12 extends Plugin {}
++	H12.use(Spy);
++	H12.plugins.set({ Spy: { enabled: false } });
++	t.eq(H12.plugins.find("Spy").get("enabled"), false, "class list toggled off");
++	const inst = new H12({ tag: "z" });
++	calls.length = 0;
++	inst.plugins.set({ Spy: { enabled: true } });
++	t.eq(calls, [["attach", "Spy", "z"]], "instance list toggled on: attach ran for this instance only");
++});
++
++test("instance config falls back to the class config until this instance sets its own", t => {
++	class Dim2 { static defaults = { on: true, opacity: 0.6 }; static attach(){} }
++	class H13 extends Plugin {}
++	H13.use(Dim2);
++	const inst = new H13({ tag: "c" });
++	const row = inst.plugins.find("Dim2");
++	t.eq(row.get("config"), { opacity: 0.6 }, "falls back to the class config");
++	row.set({ config: { opacity: 0.9 } });
++	t.eq(row.get("config"), { opacity: 0.9 }, "its own override, once set");
++	t.eq(H13.plugins.find("Dim2").get("config"), { opacity: 0.6 }, "the class row is unaffected");
++});
++
+ test("the server shim: Server/Events.js is a Plugin that keeps assign, then new, then initialize", t => {
+ 	const order = [];
+ 	class Sock extends ServerEvents { initialize(){ order.push("initialize:" + this.ws); } }
+diff --git a/public/framework/core/Plugin/PluginEntry.js b/public/framework/core/Plugin/PluginEntry.js
+index 468cd78c6..7e3388c17 100644
+--- a/public/framework/core/Plugin/PluginEntry.js
++++ b/public/framework/core/Plugin/PluginEntry.js
+@@ -7,6 +7,17 @@ export class PluginEntry extends Item {
+ 
+ 	get fields(){ return this.plugin?.fields ?? []; }
+ 
++	// An INSTANCE row (Plugin.add_instance_row) starts unset: until this instance overrides it, "enabled" and
++	// "config" read the class row's live values (rec.on / rec.config) instead of this row's own null.
++	get_one(key){
++		const stored = super.get_one(key);
++		if (this.instance && stored == null) {
++			if (key === "enabled") return this.record?.on;
++			if (key === "config") return this.record?.config;
++		}
++		return stored;
++	}
++
+ 	// A row is active when it is on and the row above it (the plugin it is a sub-plugin of) is active.
+ 	get active(){ return !!this.get_one("enabled") && this.up?.active !== false; }
+ 
+@@ -27,6 +38,13 @@ export class PluginEntry extends Item {
+ 	set_enabled(value){
+ 		const rec = this.record;
+ 		if (!rec) return this.put("enabled", !!value);
++		if (this.instance) {
++			this.host.toggle_plugin(rec, !!value);
++			// Irreversible (no real detach): the row must say what is actually attached, not what was asked for
++			// (review finding 10, 2026-11-03) — `rec.attached` is Plugin's own source of truth for this instance.
++			this.put("enabled", rec.attached.has(this.host));
++			return;
++		}
+ 		value ? this.host.enable(rec) : this.host.disable(rec);
+ 		this.put("enabled", rec.on);
+ 		this.save_row();
+@@ -35,14 +53,15 @@ export class PluginEntry extends Item {
+ 	set_config(value){
+ 		const rec = this.record, config = { ...this.get_one("config"), ...value };
+ 		this.put("config", config);
++		if (this.instance) return;   // an instance override is not a saved class preference
+ 		if (rec) rec.config = config;
+ 		this.save_row();
+ 	}
+ 
+-	// Only a change made through the row is saved; a use() in code is the program's own wish, not a saved preference.
++	// Only a change made through a CLASS row is saved; a use() in code and an instance override are not preferences.
+ 	save_row(){
+ 		const rec = this.record;
+-		if (rec) this.host.store.set(rec.key, { on: rec.on, config: rec.config });
++		if (rec && !this.instance) this.host.store.set(rec.key, { on: rec.on, config: rec.config });
+ 	}
+ }
+ Item.register(PluginEntry, "PluginEntry");
+diff --git a/public/framework/core/Plugin/doc/design-notes.md b/public/framework/core/Plugin/doc/design-notes.md
+index a0fcdbf1a..94a8bae2a 100644
+--- a/public/framework/core/Plugin/doc/design-notes.md
++++ b/public/framework/core/Plugin/doc/design-notes.md
+@@ -13,7 +13,7 @@ Parents' plugins run before the subclass's; within one class, in `use` order. Th
+ - `new Item()` now: about 1.38 µs. Adding a class-level `emit("new")` walk with no listeners: about 1.75 µs (+0.37 µs, +27%). With one listener the cost is the listener.
+ - The owner's own line applies: a game with millions of objects should hard-code its calls, not hang them on an event. A plugin is for the few classes that really are extended from outside. Even the empty `emit("new")` walk is not free.
+ - Decision: Item and List do **not** extend Plugin. An Item is created in the thousands during a replay, and nothing needs a plugin on it. A class that wants plugins extends Plugin; the Item system is unchanged.
+-- Live instances are tracked (WeakRef) only for a plugin that defines its own `detach`, so a plugin with no undo costs nothing per instance.
++- Every attached instance is tracked (WeakRef), not only one whose plugin defines its own `detach`: `attach_instance` always adds to `rec.live`/`rec.attached`, so a class-wide `enable()` can re-attach to instances a `disable()` left tracked, and a per-instance switch has something to read. The measurement above predates this and has not been re-measured since; treat the 1e6-instance figures as the old-tracking cost, not today's.
+ 
+ ## Debugging risk
+ A plugin that runs on every new instance is invisible at the call site. Use it only where a class really is extended from outside (sockets, servers, pages), not for ordinary options. `Host.plugins` and `Plugin.hosts` list what is installed.
+diff --git a/public/framework/core/Plugin/readme.md b/public/framework/core/Plugin/readme.md
+index 97bc5aaa5..ed1360d79 100644
+--- a/public/framework/core/Plugin/readme.md
++++ b/public/framework/core/Plugin/readme.md
+@@ -14,15 +14,19 @@ Badge.use(Glow);                     // every NEW Badge reaches Glow.attach(badg
+ Badge.unuse(Glow);                   // the hook is gone; live badges are told Glow.detach(badge)
+ Badge.available(Glow);               // known but off: shows as a switched-off row
+ Badge.plugins.set({ Glow: { enabled: false } });   // the list is live; what the item tool sends works too
++
++const b = new Badge();
++b.plugins.set({ Glow: { enabled: false } });       // THIS instance only — unset follows the class row above
+ ```
+ 
+ [Try it live](/framework/core/Plugin/): the page has a control panel (checkbox, open-a-row settings, sliders, a number you drag).
+ 
+ ## Structure
+ 
+-- `Plugin.js` — `class Plugin extends Events(Object)`. Constructor: assign the args, `emit("new")` on the class, then `instantiate()` → `initialize()`. Static `on/off/once/clear/emit` keep class-level listeners; `"new"` walks the class chain, parents first, so a subclass reaches its parents' plugins. Static `use/unuse/available/plugins`. A plugin is anything with `static attach(instance)` (`setup` is still accepted), a plain function, and optionally `detach`, `defaults` (`on` plus config) and `fields` (what a panel draws).
+-- `PluginEntry.js` — one row of `Host.plugins`, an `Item` with `name`, `enabled`, `config`. `set_enabled` installs or removes the hook; `set_config` saves; `active` is false when a parent plugin is off; `row.plugins` is the plugin's own list (sub-plugins).
+-- `Plugin.test.mjs` — 12 tests, `node public/framework/core/Plugin/Plugin.test.mjs`.
++- `Plugin.js` — `class Plugin extends Events(Object)`. Constructor: assign the args, `emit("new")` on the class, then `instantiate()` → `initialize()`. Static `on/off/once/clear/emit` keep class-level listeners; `"new"` walks the class chain, parents first, so a subclass reaches its parents' plugins. Static `use/unuse/available/plugins`. A plugin is anything with `static attach(instance)` (`setup` is still accepted), a plain function, and optionally `detach`, `defaults` (`on` plus config) and `fields` (what a panel draws). Every instance a plugin reaches is tracked (`rec.live`, a `WeakRef`, kept past a `disable()`) and whether it is currently attached is tracked too (`rec.attached`, through `attach_instance`/`detach_instance`) — so `enable()` re-attaches to the still-live ones (a live singleton gets the plugin back without a reload) and never attaches the same instance twice, even across a `use()` → `unuse()` → `use()` cycle on a plugin with no real `detach` to undo the first attach.
++- `inst.plugins` — the same shape, per INSTANCE: one row per class-level plugin, `enabled`/`config` unset until that instance overrides them (toggling calls `Plugin#toggle_plugin`, which also remembers the instance's own wish). Unset reads the class row live (`PluginEntry.get_one` falls back to `rec.on` / `rec.config`); the row list stays live too — `Plugin.record()` adds a row to every already-read instance list when the class gains a new plugin afterwards. **An instance's own switch wins:** once an instance has switched a plugin on or off for itself, a later class-wide `enable()`/`disable()` leaves that instance alone (`Plugin.overridden`) — only instances still unset follow the class. Never saved to `Plugin.store` — an instance override is not a class preference.
++- `PluginEntry.js` — one row of `Host.plugins` or `inst.plugins`, an `Item` with `name`, `enabled`, `config`. `set_enabled` installs or removes the hook (class row) or calls `toggle_plugin` (instance row); `set_config` saves (class row only); `active` is false when a parent plugin is off; `row.plugins` is the plugin's own list (sub-plugins).
++- `Plugin.test.mjs` — 19 tests, `node public/framework/core/Plugin/Plugin.test.mjs`.
+ - Saved state: `Plugin.store` (a `Map` in node; the page swaps in localStorage), key `plugin.<Host>.<Plugin>` = `{on, config}`. Only a change made through a row is saved.
+ - `Server/Events.js` is now a two-line subclass of `Plugin`, so the server's classes (`Server`, `Socket`, `Servex/*`) are all pluggable and keep their import.
+ 
+diff --git a/public/framework/ext/Chat/v2/report.js b/public/framework/ext/Chat/v2/report.js
+index 27c3f5de3..44b443fdf 100644
+--- a/public/framework/ext/Chat/v2/report.js
++++ b/public/framework/ext/Chat/v2/report.js
+@@ -33,5 +33,18 @@ export function click(label){ post(current_session, "click", label); }
+ 
+ /** Opt-in: any other page context worth a mention ("the drawer is now open", a page's own state). */
+ export function context(text){ post(current_session, "context", text); }
++/** The plain sentence for a `Recite.on_read` event (audio/Recite's `cancel_unheard()`, cutting in 2026-11-03):
++ *  pure, so it is testable with no fetch and no session — `read(ev)` below posts what this returns. */
++export function read_note(ev){
++	// "about": Recite.heard_words() is the cut sentence's own first few words, not where the audio really stopped
++	// (no word timer exists) — review finding 11, 2026-11-03.
++	return ev.heard === "cut"
++		? `(cut off about "${ev.words}"; in the sentence starting there, the rest was not heard — treat it as unsaid)`
++		: `(a reply was skipped, never heard: it queued behind a reply you then cancelled)`;
++}
++/** A reply was cut short or skipped before it was heard: filed as `context`, same as `context()` above — a note
++ *  for the assistant's next turn, never a prompt and never read back aloud. Wired to `Recite.shared.on_read` in
++ *  `ux/Dictate/chat.js` (never the other way: this file never imports `ux/Dictate`). */
++export function read(ev){ post(current_session, "context", read_note(ev)); }
+ /** A diagnostic line filed in the session record as a `log` line (the error path), never read as speech: "recite: loaded …". */
+ export function diag(text){ post(current_session, "error", text); }
+diff --git a/public/framework/ext/Chat/v2/report.test.mjs b/public/framework/ext/Chat/v2/report.test.mjs
+new file mode 100644
+index 000000000..42cfe02f8
+--- /dev/null
++++ b/public/framework/ext/Chat/v2/report.test.mjs
+@@ -0,0 +1,16 @@
++// report.test.mjs — report.js posts the page's own errors/clicks/context (and now a Recite "read" marker) down
++// the real dictation path. read_note() is pure (no fetch, no session): the formatting cutting-in's Recite.on_read
++// wires into read() needs, tested without any network. report.js imports an absolute "/framework/..." path
++// (servex_url.js), which only the browser's own module root resolves — like Recite.test.mjs, this skips in plain
++// node: open /framework/core/Test/view/?file=ext/Chat/v2/report.test.mjs (or let TestRunner run it there).
++import { test } from "../../../core/Test/Test.js";
++const read_note = typeof document === "undefined" ? null : (await import("./report.js")).read_note;
++if (!read_note) console.log("skip in node — report.js imports an absolute /framework/ path, resolved only in the browser");
++
++if (read_note) test("report.read_note: the plain sentence for a cut-off or skipped reply (cutting in, 2026-11-03)", t => {
++	t.ok(/cut off about "the weather today"/.test(read_note({ heard: "cut", words: "the weather today" })),
++		"a cut reply names the last heard words, hedged as an estimate (review finding 11: it's the sentence's own first words, not the real audio clock)");
++	t.ok(/treat it as unsaid/.test(read_note({ heard: "cut", words: "hello" })), "and tells the assistant to forget the rest");
++	t.ok(/skipped, never heard/.test(read_note({ heard: "skipped", words: "" })), "a skipped reply (never started) says so, with no words to quote");
++	t.eq(read_note({ heard: "cut", words: "" }), read_note({ heard: "cut", words: "" }), "pure: the same event gives the same sentence");
++});
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index 1d670c299..eb0f4f9cc 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -239,6 +239,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 		});
+ 	});
+ 	Recite.shared.barge.use_mic(panel.dictate);   // barge-in hears this chat's own mic while it is on (audio/Recite)
++	Recite.shared.on_read = ev => report.read(ev);   // cutting in, 2026-11-03: a note for the assistant's next turn, never a prompt (ext/Chat/v2/report.js, kind "context")
+ 
+ 	// Drawing one line must never stop the lines after it: a throw lands on the Page light, with the raw error.
+ 	function draw(line){
+diff --git a/public/framework/ux/Dictate/doc/echo-and-turn-taking.md b/public/framework/ux/Dictate/doc/echo-and-turn-taking.md
+index f8bda027d..850250971 100644
+--- a/public/framework/ux/Dictate/doc/echo-and-turn-taking.md
++++ b/public/framework/ux/Dictate/doc/echo-and-turn-taking.md
+@@ -109,25 +109,27 @@ I have not seen it drift, so these are the places it can, ranked by how likely t
+ 
+ It needs no new code beyond what is already proposed: the brief now says do nothing per sentence and speak only to a real question; Hold (read-aloud-and-hold.md) says do not even open the cue until a long pause; and step 2 above holds the cue while the floor is `speaking`. The one extra setting worth adding: the pause before the cue fires (`single_pause_ms`, 1 s today) becomes a per-session value (try 3 s) so a breath inside a long dictation does not already count as the end. Options: A, keep 1 s and rely on Hold; B, 3 s by default (fewer interjections, the reply to a quick question arrives 2 s later). Recommendation: B plus the stale-skip, since it needs no button press.
+ 
+-### Cutting in: interrupts, the start grace, and the one-second silence (asked 2026-11-03)
++### Cutting in: interrupts, the start grace, and the one-second silence (asked 2026-11-03, built 2026-11-03)
+ 
+-**Why the assistant said "listening" and "no question is open" (found and fixed).** The pause cue read `(pause: reply now only if a question is open)`, which asks the model to weigh that condition and say the answer. Servex also streamed a cue turn's words as they came, so filler showed. Now the cue is a bare `(pause)`; the brief carries the rule (never filler, never speak while the owner talks, short after the pause, assume he is not done); a single-seat cue turn that is only filler or punctuation is dropped before anyone sees it (`is_filler` in `Servex/agents/Sessions.js`, test `Sessions.single.test.mjs`); and its replies are shown whole at the turn's end. A harness reminder to "say what you are doing" cannot be turned off from here, so the brief names it as not the owner, and "-" is the sanctioned way out. Needs a Servex restart to take effect.
++**Built:** `Recite.cancel_unheard()` (audio/Recite/Recite.js), `BargeIn.cut()` (audio/Recite/BargeIn.js), `BargeIn.grace_ms`/`quick_hold_ms`/`chunk_started()`/`last_speech_at`/`silence_ms()`, `Recite.resume_after_cut`, `Recite.min_quiet_ms()` and `Recite.on_read`, wired in `ux/Dictate/chat.js` to `report.read()` (`ext/Chat/v2/report.js`) — all below are now live, default on. Tests: `Recite.test.mjs` ("real speech cancels the whole queue", "resume_after_cut = true keeps the old manners", "does not report a reply already played to the end"), `playback-stutter.test.mjs` ("cutting in: …", "the start grace: …") and `ext/Chat/v2/report.test.mjs`. Open items are called out in each paragraph below, not repeated here.
+ 
+-**Interrupts today (`audio/Recite/BargeIn.js`).** `hear()` :202 only fires while the ear is on and Recite is "playing" (not "loading" or while a reply is held); it pauses, then checks Whisper's words against the chunks being read (`echo()` :287). A non-question is resumed from the start of the cut sentence (`try_resume()` :181) and queued replies stay queued. So he must talk again, and the old queue plays on. **Proposed:** on real owner speech, `cancel_unheard()`: stop, drop every unplayed reply and mark each `skipped`; no auto-resume unless a setting says so; the check also covers "loading" and held replies; Servex drops or `speak:false`s a reply still in flight when the floor becomes speaking. Test: `Recite.test.mjs` resume cases change; a new `cancel-queue.mjs`.
++**Why the assistant said "listening" and "no question is open" (found and fixed).** The pause cue read `(pause: reply now only if a question is open)`, which asks the model to weigh that condition and say the answer. Servex also streamed a cue turn's words as they came, so filler showed. Now the cue is a bare `(pause)`; the brief carries the rule (never filler, never speak while the owner talks, short after the pause, assume you are not done); a single-seat cue turn that is only filler or punctuation is dropped before anyone sees it (`is_filler` in `Servex/agents/Sessions.js`, test `Sessions.single.test.mjs`); and its replies are shown whole at the turn's end. A harness reminder to "say what you are doing" cannot be turned off from here, so the brief names it as not the owner, and "-" is the sanctioned way out. Needs a Servex restart to take effect.
+ 
+-**The start grace (not coded today).** Its own first word trips the mic, it stops, then restarts: the stutter. Proposed `grace_ms` 1000 after a chunk starts, blocking only the volume trigger (a Whisper-confirmed non-echo word still cuts in at once). An echo verdict should teach the noise floor (today `if (!echo)` at :247 stops it) and the echo multiplier is applied once.
++**Interrupts, built.** `BargeIn.owner_spoke()` cancels the whole queue the instant real speech is confirmed — the wire line, or the own-mic Whisper check (`cut()`, which calls `Recite.cancel_unheard()`): every reply, playing or still queued, is dropped and reported through `on_read`; no auto-resume by default (`resume_after_cut`). It also fires while a reply is held by turn-taking (`wait_at`, nothing playing yet) through the wire-line path. **Open:** the local own-mic volume trigger (`hear()`, not `owner_spoke()`) still only fires while Recite is "playing" — it does not yet cancel a reply that is merely held (`wait_at`); and Servex does not drop or `speak:false` a reply still in flight on its own side when the floor becomes speaking (the client-side cancel is the one built; a second device or an old tab is not covered).
+ 
+-**One second of silence before anything is read (checked).** The hold is real (`turn_wait_ms` 2500, `Recite.js:168`) but only with the ear on and the level over the threshold; with the ear off, or a quiet voice, a reply starts at once. Proposed: hold on the floor or mic level whatever the ear setting, minimum 1 s, 2.5 s while the level is high. The cue itself fires 1 s after the last sentence without checking the floor; it should wait while the floor is "speaking".
++**The start grace, built.** `BargeIn.grace_ms` (1000 ms) blocks the fast volume trigger for that long after a chunk starts (`chunk_started()`, called from `Recite.play()`/`speak_browser()`), but only when the owner was quiet as it began — `chunk_grace_skip` skips the grace entirely when they were already talking, and `quick_hold_ms` (120, not the ordinary `hold_ms` 250) cuts fast instead. A Whisper-confirmed non-echo word (the wire-line path) still cuts in at once, grace or not.
+ 
+-**Telling the assistant where it was cut off.** When a read stops (a cut-in, a mute, the stale skip), Recite sends one `say` with `kind: "read"`, state `cut`, the reply id, the chunk and sentence index, and how much was heard (`partial`, with the last words). Servex hands the assistant one line: `(cut off after "…last heard words…"; the rest was not heard)` and erases the unread remainder from what it remembers next (the heard-only rule above). It is a note, never a prompt: no turn opens for it unless he asked something. Same marker as `start` / `half` / `end`; one extra state.
++**One second of silence before anything is read, built.** `BargeIn.last_speech_at` (updated every frame in `hear()`, whatever `this.state` is) replaces "is the level low right now": `Recite.start_or_hold()`/`check_wait()` hold until `BargeIn.silence_ms()` clears `Recite.min_quiet_ms()` (at least 1000 ms, never less than `turn_wait_ms`), whether or not the ear (`barge.on`) is on. **Open:** the server-side pause cue (`Sessions.js` `single_cue`) still fires 1 s after the last sentence without checking the floor, as noted above in "Hold the assistant's reply while the owner is talking, on the server" (step 2) — that part of the design is unbuilt.
+ 
+-**A reply that starts while he is still talking must die at once.** If the floor is "speaking" (or the mic level is over the threshold) when a reply starts, or it starts and he carries on, there is no start grace: the cut-in uses a short hold (about 120 ms, not 250) and goes through `cancel_unheard()`. The grace exists only to stop the reply's own first word tripping the mic when he was quiet; it is skipped whenever he was already talking. With the one-second silence rule above this should be rare, so the quick cut is the backstop.
++**Telling the assistant where it was cut off, built — differently than first designed.** `Recite.on_read({id, reply, chunk, sentence, heard: "cut"|"skipped", words})` fires from `cancel_unheard()`; `ux/Dictate/chat.js` wires it to `report.read(ev)` (`ext/Chat/v2/report.js`), which posts a `context` note (not a `say` with `kind: "read"`, and not a Servex-side state machine) — a plain sentence (`read_note()`) for the assistant's next turn, never a prompt. **Open:** nothing is erased from what the assistant remembers saying — the note tells it to treat the rest as unsaid, but the heard-only rebuild ("What the assistant remembers", above) is unbuilt.
++
++**A reply that starts while you are still talking must die at once.** If the floor is "speaking" (or the mic level is over the threshold) when a reply starts, or it starts and you carry on, there is no start grace: the cut-in uses a short hold (about 120 ms, not 250) and goes through `cancel_unheard()`. The grace exists only to stop the reply's own first word tripping the mic when you were quiet; it is skipped whenever you were already talking. With the one-second silence rule above this should be rare, so the quick cut is the backstop.
+ 
+ ## The "How loud counts as talking" slider: what it really does (checked 2026-11-03)
+ 
+ It is the barge-in threshold (`BargeIn.threshold`, `audio/Recite/BargeIn.js:31`, `effective_threshold()` :141), the mic level above which the reading is **paused**. It is a sensitivity, not an echo filter: **lower = more sensitive**, so the assistant's own voice leaking into the mic crosses it, the reading pauses itself at once, and a paused reply makes no more sound to leak. That is why sliding it all the way down seemed to cure the echo. The cost: the assistant is cut off by its own voice and any small noise, and `speaking()` (:136) is true so new replies are held. Raising it was the wrong advice for the echo that reaches the chat: the slider never touches the send path (`take_out()`), so the echoed words still get sent whatever it says. Raising it only stops the false pauses. The real fix stays step 1 above (drop echoed lines at the send). The slider's tooltip now says this.
+ 
+-**It also gates when a queued reply starts (checked later the same day).** One number, two jobs, both through `BargeIn.speaking()` (:136, level above `effective_threshold()`): (1) while a reply plays, a level above it for `hold_ms` pauses the reading (`hear()` :214, `trigger()`); (2) when a reply arrives while nothing plays, `Recite.start_or_hold()` (`Recite.js:157`) asks `speaking()`: if true the reply waits (`wait_at`), and `check_wait()` (:168) starts it only after the level has stayed under the threshold for `turn_wait_ms` (2.5 s). Both need the ear toggle on (`barge.on`); with it off a reply plays at once. So **low slider = queue until quiet, strictly** (a small sound counts as you talking, so the wait is long and replies rarely start over you); **high slider = replies start while you talk**, since ordinary talking does not reach the bar, and you must then shout to pause one. The cost of low: in a noisy room the level may never fall under the bar, so replies wait for ever (`noise_floor` adapts only up to about 1.15x). Both effects are why low "queued properly" and high "interrupted him". The tooltip says so, and the right default is low-to-middle, not high; the lasting fix for the leak is still the send-side echo drop.
++**It also gates when a queued reply starts (checked later the same day; updated 2026-11-03).** One number, two jobs, both through `BargeIn.speaking()` (level above `effective_threshold()`): (1) while a reply plays, a level above it for `hold_ms` pauses the reading (`hear()`, `trigger()`) — this one DOES need the ear toggle on (`barge.on`); with it off, nothing pauses an already-playing reply. (2) when a reply arrives while nothing plays, `Recite.start_or_hold()`/`check_wait()` hold on `BargeIn.silence_ms()` (the one-second rule, above) — this one no longer needs `barge.on`: a fresh reply always waits for quiet, whatever the ear says. So **low slider = queue until quiet, strictly** (a small sound counts as you talking, so the wait is long and replies rarely start over you); **high slider = replies start while you talk**, since ordinary talking does not reach the bar, and you must then shout to pause one. The cost of low: in a noisy room the level may never fall under the bar, so replies wait for ever (`noise_floor` adapts only up to about 1.15x). Both effects are why low "queued properly" and high "interrupted you". The tooltip says so, and the right default is low-to-middle, not high; the lasting fix for the leak is still the send-side echo drop.
+ 
+ ## Another option: recognise the owner's voice (speaker identification; asked 2026-11-03)
+ 
+diff --git a/public/framework/ux/Dictate/doc/settings-plugins.md b/public/framework/ux/Dictate/doc/settings-plugins.md
+new file mode 100644
+index 000000000..3be113fb0
+--- /dev/null
++++ b/public/framework/ux/Dictate/doc/settings-plugins.md
+@@ -0,0 +1,75 @@
++# The gear panel, organized: Recite and Dictate, one plugin group each
++
++**The problem:** the gear ("Dictation settings") is one flat list of unrelated knobs — send delay, wake timing, Recite's voice, barge-in's threshold — mixed together in `ext/Chat/Mic.js`. A feature's on/off switch and its config are not grouped, and nothing says which knob belongs to which feature.
++
++**The fix:** two sections, **Recite** and **Dictate**, each a list of plugin groups built on [`core/Plugin`](/framework/core/Plugin/readme.md). Each group is one row: a live on/off switch first, its config fields under it when on, and a one-line plain-words description that opens when you click the plugin's name.
++
++## Reuse: the dictate-plugins worktree
++
++A paused build already did most of this design: `worktree/dictate-plugins` (plan at [`/framework/ai/sessions/2026/10/20/session-e00f55c9/dictate-plugins/plan.md`](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictate-plugins/plan.md)), finished and tested but never merged — paused 2026-11-02 when the owner moved the plugin base into the framework as `core/Plugin`, superseding that branch's own registry (`VoiceChat.js`/`Plugin.js`). Still good:
++
++- **The feature census**, 21 features, which settings are wired/partly-wired/missing (`census/census.jsonl` beside the plan).
++- **The shape of a plugin class**: `static id`, `static label`, `static defaults` (`{on, ...config}`), `static fields` (what the panel draws), `start()`/`stop()` wrapping an existing object (Recite's `BargeIn`, `Highlight`, `Tap`, `Bubble` parts already have most of this — `BargeIn.js:25-27` already has `static id = "barge"`, `static label = "Interrupt"`, `static defaults = {on: true, mode: "volume"}`).
++- **The override rule**: a URL param or console call for one page load only, never saved — still the right answer, now expressed as `core/Plugin`'s `Plugin.store`.
++- **The panel-fits-in-an-existing-panel rule**: the new grouping is a section inside `ComposerMic.settings_panel()` (`ext/Chat/Mic.js:314`), not a second panel.
++
++**Not reused:** the branch's own `VoiceChat` registry class — `core/Plugin` replaces it. Delete/ignore `ux/Dictate/VoiceChat/VoiceChat.js` and `Plugin.js` on that branch; keep `ThinkingCue.js` and the test shapes as a worked example to port onto `core/Plugin`.
++
++## The two sections
++
++- **Recite** (`audio/Recite/`): the parts that are already separate classes — `BargeIn` (interrupt), `ReciteHighlight` (read-aloud highlight), `ReciteTap` (tap to pause), `ReciteBubble` (per-bubble replay) — plus `thinking_cue` (today a flag on `Recite` itself, `Recite.js:47`) and `turn_wait_ms`/`cue_repeat_ms` (today loose numbers, no panel row at all per the census).
++- **Dictate** (`ext/Chat/Mic.js` `SETTINGS`): send mode, pause/sentence timing, fillers, clean-up, wake policy (`wake_gap_s`, `wake_every`), assistant pick. Most of these are really one plugin each ("pause send", "wake policy") rather than loose keys; group by feature, not by field.
++
++## core/Plugin as the base (read `core/Plugin/readme.md` before building)
++
++Each group becomes `static attach(instance)` / `detach(instance)` plus `static defaults` and `static fields`, used as `Host.use(Plugin)`. Key facts from the live system (not the paused branch's own words):
++
++- The row key the panel writes is **`enabled`**, not `on` — `Item.set` reads a bare `on` as a call to `Events.on`. The plugin classes above (`BargeIn.defaults = {on: true, ...}`) predate this and use `on`; wrapping them as a `core/Plugin` means the **row** says `enabled`, and the row's `set_config`/`set_enabled` is what calls into the wrapped object's own `on` field — don't conflate the two.
++- Saved state: `Plugin.store`, key `plugin.<Host>.<Plugin>` = `{on, config}`, only written when changed through a row — so per-device for now, which matches the open item below.
++- A plugin can have its own sub-plugins (`row.plugins`), which is one way to nest "Recite → BargeIn → mode" if a group ever needs it, but a flat `fields` list (as `BargeIn.defaults.mode` already works today) is simpler and should be tried first.
++
++## Reachable by the item tool: built by mastermind-chat-settings, not here
++
++`mastermind-chat-settings` built this bridge on `michael/dev` (`7d32afd51`): a voice session's plugin switches are one plain object, `{Name: {enabled?, config?}}`, kept in the session record (`POST /api/session/settings {session, plugins}`, `GET /api/session/<id>`) so a phone and a PC read the same, plus shared defaults ("Make default": `POST`/`GET /api/session/defaults`). Full shape, both checked by `checked_plugins()` in `Servex/agents/Sessions.js`, and the page-side read-at-load (not yet built, Servex side only): [`ux/Dictate/doc/settings.md`](settings.md#plugin-settings-per-session-and-make-default-servex-side). This doc does not design a second bridge — the panel this doc builds is the page side that calls it, same as the owner-feedback "Overlap" bullet says (plugins and settings are chat-settings' to build).
++
++## The per-instance toggle: built, in core/Plugin itself
++
++`Host.use(P)`/`unuse(P)` is class-wide and does not reach an already-live instance on its own, but a panel does not need to solve that: `core/Plugin` now has `inst.plugins` for exactly this ([`core/Plugin/readme.md`](/framework/core/Plugin/readme.md), "`inst.plugins`") — one row per class-level plugin, starting unset so it follows the class row, switched for just this instance with `toggle_plugin` the moment the panel's row is touched, and that instance's own wish then wins over a later class-wide `enable()`/`disable()`. The gear panel's "live on/off switch" (above) is this: `inst.plugins.find(name).set({enabled})`, same `PluginEntry` shape as the class list.
++
++## The settings table (today's knobs, as the build starts from)
++
++| Section | Plugin / group | Setting | Default | Description |
++|---|---|---|---|---|
++| Recite | Interrupt (`BargeIn`) | `enabled` | on | Stop reading aloud when you start talking. |
++| Recite | Interrupt | `mode` | `"volume"` | Detect you talking by loudness, or by recognized words. |
++| Recite | Read-aloud highlight (`ReciteHighlight`) | `enabled` | on | Highlight the words as they're read aloud. |
++| Recite | Tap to pause (`ReciteTap`) | `enabled` | on | Tap a reply to pause or resume reading it. |
++| Recite | Per-bubble replay (`ReciteBubble`) | `enabled` | on | Show a ▶/⏸ and ↺10 control on every reply. |
++| Recite | Thinking cue | `enabled` | on | Play a soft tone while a reply is on its way. |
++| Recite | Thinking cue | `cue_repeat_ms` | 2000 | How often the tone repeats while still waiting. |
++| Recite | Turn-taking | `turn_wait_ms` | 2500 | Quiet needed before a freshly queued reply starts over you (the 1 s floor, `Recite.min_quiet_ms()`). |
++| Recite | No-flood (hold updates) | `update_hold_ms` | 4000 | How long an agent update waits for the direct answer before it is queued anyway. |
++| Recite | Interrupt | `quiet_ms` (BargeIn) | — (census: partly wired) | Quiet time after you stop talking before reading resumes. |
++| Recite | Interrupt | `resume_after_cut` | off | When you cut a reply off, pick it back up once you're quiet, instead of cancelling it outright (console-only today: `Recite.set_resume_after_cut`). |
++| Dictate | Send timing | `send_mode` | `"pause"` | Send on a pause, or send each finished sentence. |
++| Dictate | Send timing | `pause_send_ms` | 2000 | Quiet before everything on screen is sent. |
++| Dictate | Send timing | `paragraph_pause_ms` | 2000 | Quiet after a finished sentence that sends everything so far. |
++| Dictate | Send timing | `sentences_per_send` | 1 | Send after this many finished sentences. |
++| Dictate | Send timing | `early_sentences` | true | Send a sentence the moment it ends, not only at the pause. |
++| Dictate | Punctuation cuts | `send_on_period` / `send_on_question` / `send_on_comma` | true / true / false | Which punctuation marks end a send. |
++| Dictate | Clean-up | `clean` | true | Tidy up filler and false starts before showing your words. |
++| Dictate | Clean-up | `fillers` | "ah uh um er erm hmm mm" | Words dropped as filler. |
++| Dictate | Wake policy | `wake_gap_s` | null (Servex default 12s) | Quiet seconds before the smart assistant hears a batch. |
++| Dictate | Wake policy | `wake_every` | null (Servex default 1) | Or this many sentences, whichever comes first. |
++| Dictate | Wake policy | `assistant` | undefined | Which assistant seat answers this session. |
++| Dictate | Box | `box_lines` | 3 | How many lines the growing text box shows before scrolling. |
++| Dictate | Destination | `into` | `"chat"` | Dictated words go into the chat log, or into a plain text box. |
++| Dictate | Server answer wait | `answer_quiet_ms` | 2500 | Quiet before a spoken line reaches the fast seat (Servex-side, `Sessions.js:246`). |
++
++Five features the census (`wired: false`) found with **no switch at all**: word highlight, tap-a-bubble-to-play/pause and per-bubble replay (all three already have a class — `ReciteHighlight`, `ReciteTap`, `ReciteBubble`, listed above — just no setting or panel row yet), plus the send cursors (✓/🧠) and Whisper repeat collapse (neither has a class or a setting). The first three are a panel row each, reusing the existing class; the last two need a plugin class built from scratch — out of scope for this doc, noted for the build.
++
++## Build order
++
++1. Port the paused branch's `BargeIn`/`Highlight`/`Tap`/`Bubble`/thinking-cue wrapping onto `core/Plugin.use`, keeping their existing `static id/label/defaults/fields` — the per-instance toggle they need (`inst.plugins`) is already there.
++2. Group `Mic.js`'s `SETTINGS` keys into plugin-shaped classes (send timing, wake policy, clean-up) rather than one flat object — each becomes a `fields` list under one toggle, reusing `panel_sections` (`Mic.js:314`) as the insertion point.
++3. Call the bridge `mastermind-chat-settings` already built (above) from each plugin group's `set_config`/`set_enabled`, so `item` deltas and cross-device sync reach it instead of `localStorage` alone.
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index edc890b85..3978fe530 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -86,6 +86,8 @@ ever appeared — no error, no clue why.
+ 
+ **The thinking sound never plays; two ways to signal "working on it"** (the single seat never fires it, the tone's AudioContext is probably suspended; a code-written "..." marker plus a triple bleep, proposed 2026-11-03): [`doc/thinking-sound.md`](doc/thinking-sound.md).
+ 
++**The gear panel, organized into Recite and Dictate plugin groups** (reusing the paused `dictate-plugins` branch, on `core/Plugin`, with the settings table to build from): [`doc/settings-plugins.md`](doc/settings-plugins.md).
++
+ **Read-aloud on/off and a Hold (mute) button** (what exists, where each lives, what Servex does, proposed 2026-11-03): [`doc/read-aloud-and-hold.md`](doc/read-aloud-and-hold.md).
+ 
+ **The chat jumps while you dictate** (most clean-up edits change nothing, and each redraws the whole bubble or card; the proposed fix, 2026-11-03): [`doc/steady-display.md`](doc/steady-display.md).
