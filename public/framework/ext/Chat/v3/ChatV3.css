@@ -54,5 +54,14 @@
 	.chat-v3-answer { font-size: .92em; overflow-wrap: anywhere; }
 	.chat-v3-answer > * { margin-block: 0; }
 
+	/* ask7: a far-off answered Question's card never moves — this is just a small reference near the end of the chat, a
+	   back-arrow badge over its icon, linking (#id) to the real card. */
+	.chat-v3-refs { display: flex; flex-direction: column; gap: .3rem; margin-top: .3rem; }
+	.chat-v3-ask-ref { display: flex; align-items: center; gap: .4rem; font-size: .85em; opacity: .75; text-decoration: none; color: inherit; }
+	.chat-v3-ask-ref:hover { opacity: 1; text-decoration: underline; }
+	.chat-v3-ref-icon { position: relative; font-size: 1rem; }
+	.chat-v3-ref-icon::after { content: "↩"; position: absolute; inset: auto auto -.3em -.3em; font-size: .7em; line-height: 1; }
+	.chat-v3-ref-text { overflow-wrap: anywhere; }
+
 	@media (max-width: 500px) { .chat-v3 { padding: .25rem; gap: .5rem; } .chat-v3-card { padding: .5rem .6rem; } }
 }

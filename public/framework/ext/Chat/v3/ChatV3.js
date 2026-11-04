@@ -16,7 +16,7 @@ import LineKey from "/framework/core/Item/LineKey.js";
 import { md_into } from "../md.js";
 import ReciteBubble from "/framework/audio/Recite/ReciteBubble.js";
 import * as Wire from "/framework/ext/Session/Session.js";
-import { owning_prompt, paragraphs, paragraph_groups, note_view } from "./placement.js";
+import { owning_prompt, paragraphs, paragraph_groups, note_view, far_off_questions } from "./placement.js";
 View.stylesheet(import.meta, "ChatV3.css");
 View.stylesheet(import.meta, "../bubbles.css");
 
@@ -131,7 +131,7 @@ export default class ChatV3 extends JSONL {
 			this.$earlier.el.textContent = `show earlier (${Math.max(0, list.length - this.limit)})`;
 			this.$earlier.el.hidden = list.length <= this.limit;
 		});
-		this.draft_at_end();
+		this.refresh_refs();   // also keeps the live draft after it (draft_at_end)
 		const want = location.hash.slice(1), el = want ? this.$box?.el.querySelector(`[id="${CSS.escape(want)}"]`) : null;
 		el?.scrollIntoView({ block: "center" });
 	}
@@ -147,6 +147,7 @@ export default class ChatV3 extends JSONL {
 			}
 		}
 		for (const node of this.moved) this.relocate(node);
+		this.refresh_refs();
 	}
 
 	// A re-ordered root keeps its drawn node (same object, same text node): only its place in the box changes, to just after the
@@ -273,6 +274,33 @@ export default class ChatV3 extends JSONL {
 				if (q.answer) md_into(div.c("chat-v3-answer md").el, q.answer.text ?? "");
 			});
 		});
+	}
+
+	// Every Question nested under a drawn Prompt, paired with the Prompt card it sits under — `far_off_questions` (placement.js)
+	// needs both: which card the Question belongs to, and whether that card is still the newest one.
+	questions_with_prompts(){
+		const out = [];
+		for (const p of this.card_roots()) if (p instanceof Prompt){
+			const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
+			for (const k of kids) if (k instanceof Question) out.push({ question: k, prompt: p });
+		}
+		return out;
+	}
+	// A far-off answered Question's real card never moves (ux/Dictate/doc/principles.md, "Questions"): this is the small
+	// reference near the end instead, a back-arrow overlay on its icon, linking to the real card's own `#id` permalink
+	// (ChatV3.js's existing scroll-to-hash, draw()). Recomputed after every draw/update; cheap at chat sizes.
+	refresh_refs(){
+		const far = far_off_questions(this.questions_with_prompts(), this.card_roots());
+		if (!this.$refs?.el.isConnected) { this.$refs = div.c("chat-v3-refs"); this.$box?.el.append(this.$refs.el); }
+		this.$refs.empty(() => far.forEach(({ question }) => this.reference(question)));
+		this.$refs.el.hidden = !far.length;
+		this.draft_at_end();   // the live draft stays after the refs, same rule draft_at_end already keeps
+	}
+	reference(q){
+		a.c("chat-v3-ask-ref", () => {
+			icon("mark_chat_unread").ac("chat-v3-state", "is-answered", "chat-v3-ref-icon");
+			span.c("chat-v3-ref-text", ChatV3.first_words(q.text ?? "", 10));
+		}).attr("href", "#" + q.id);
 	}
 
 	// The words being spoken right now, before they are sent: faint, last in the chat (the composer's mic reports them as "chat-live").

@@ -32,6 +32,17 @@ Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws [fixture/messag
 - **Grouping/summary cards** as an overlay that references Prompts by id: not built.
 - **Per-task route:** the `#id` permalink stands in for one.
 - **Id scheme** for Prompts is whatever `m-<ms>` already is.
+- **A far-off answered Question resurfaces** (ux/Dictate/doc/principles.md, "Questions"): the real card never moves, a small
+  reference near the end links back to it (`#id`), `placement.js`'s `far_off_questions` + `ChatV3.refresh_refs()`.
+- **KNOWN GAP, found building the line above (ask7, 2026-11-03): a plain field write deep in the task tree (e.g. a
+  Question's `answer`, written as `{"<id>":{answer:{…}}}` and routed by `Session.apply_line` to `Task.replay_line`) never
+  fires a live "delta" event.** `Task.replay_line`'s per-field loop calls `this.take(key, value)`, which for an un-hooked
+  key falls to `Item.put()` — the bare `this.data[key] = value`, not `set_one()` (the one that calls `this.emit("delta",
+  …)`). So the Question's own nested row is not refilled by a live write; only a full reload shows the answer on it.
+  `ChatV3.refresh_refs()` still resurfaces it correctly, because it re-reads the live tree on every draw/update rather
+  than waiting for a dirty event — but the real card looks stale until reload. Fixing `take()`/`replay_line` to emit is a
+  core `Item`/`Task` change (affects every Task field, not just Question), out of this ask's fence; left for whoever next
+  touches live task-field redraws. `ChatV3.test.mjs` proves the data is right after a reload and documents the gap inline.
 
 ## Test
 
