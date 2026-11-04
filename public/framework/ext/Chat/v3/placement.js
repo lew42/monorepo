@@ -47,3 +47,38 @@ export function note_view(m){
 	const content = [...(m?.content ?? [])].map(c => c?.get_one?.("title") ?? c?.get_one?.("text") ?? c?.label?.() ?? null).filter(Boolean).map(String);
 	return { title, icon, text: String(m?.text ?? ""), content };
 }
+
+/** Which answered Questions are "far off" (ux/Dictate/doc/principles.md, "Questions": "If the card has scrolled far away,
+ *  a reference to it appears near the bottom"): an actual distance, `threshold` or more OTHER root cards between the
+ *  question's own Prompt and the end of the chat — not merely "it isn't the newest root", which would qualify the
+ *  instant the next prompt arrives. `items` is `[{question, prompt}]` (a Question and the Prompt card it nests under);
+ *  `roots` is the card list in order (`ChatV3.card_roots()`). An unanswered Question is never far-off. The result is
+ *  capped to the most recent `max` (closest to the end first, i.e. the ones the owner is most likely to still care
+ *  about) so references never pile up for the whole session. */
+export function far_off_questions(items, roots, { threshold = 3, max = 5 } = {}){
+	const last_index = roots.length - 1;
+	const far = items.filter(({ question, prompt }) => {
+		if (!question?.answer) return false;
+		const idx = roots.indexOf(prompt);
+		return idx === -1 || last_index - idx > threshold;
+	});
+	return far.slice(-max);
+}
+
+// Fields whose change on a Question needs its owning card redrawn even though the write never fires a "delta" event
+// (Task.replay_line's `take()`, never `set_one()`): the answer landing, and `also_from` growing (a repeated Question
+// links to the existing card by growing THIS field, drawn as a reference under the repeating Prompt).
+const QUESTION_LIVE_FIELDS = ["answer", "also_from"];
+
+/** Every id directly nested under one of `QUESTION_LIVE_FIELDS` anywhere in a raw line: a plain object carrying one of
+ *  those keys names a Question whose card needs redrawing, at whatever depth the line addressed it —
+ *  `{"q-id":{answer:{…}}}`, `{"p-id":{"q-id":{also_from:[…]}}}`. Pure data, no Session/DOM: ChatV3 looks these ids up
+ *  itself (`session.find`) and marks their owning card dirty, fixed entirely in the view, never a core Item/Task change. */
+export function find_answered_ids(node, out = []){
+	if (!node || typeof node !== "object" || Array.isArray(node)) return out;
+	for (const [k, v] of Object.entries(node)){
+		if (v && typeof v === "object" && !Array.isArray(v) && QUESTION_LIVE_FIELDS.some(f => v[f] !== undefined)) out.push(k);
+		find_answered_ids(v, out);
+	}
+	return out;
+}

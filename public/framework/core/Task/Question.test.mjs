@@ -58,6 +58,12 @@ check("a Question under a Prompt appears in its trace", () => {
 	return hit.id === "p1" && hit.tasks.map(t => t.id).sort().join() === "q1,q2";
 });
 
+check("also_from: empty by default, a plain array once set (ask7 — a repeated question links to this one)", () => {
+	const empty = q(make(), "q1").also_from;
+	const grown = q(make({ p1: { q1: { also_from: ["p9"] } } }), "q1").also_from;
+	return Array.isArray(empty) && empty.length === 0 && JSON.stringify(grown) === JSON.stringify(["p9"]);
+});
+
 const failed = results.filter(r => !r).length;
 console.log(failed ? `${failed} FAILED of ${results.length}` : `all ${results.length} passed`);
 process.exit(failed ? 1 : 0);

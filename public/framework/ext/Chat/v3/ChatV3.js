@@ -16,7 +16,7 @@ import LineKey from "/framework/core/Item/LineKey.js";
 import { md_into } from "../md.js";
 import ReciteBubble from "/framework/audio/Recite/ReciteBubble.js";
 import * as Wire from "/framework/ext/Session/Session.js";
-import { owning_prompt, paragraphs, paragraph_groups, note_view } from "./placement.js";
+import { owning_prompt, paragraphs, paragraph_groups, note_view, far_off_questions, find_answered_ids } from "./placement.js";
 View.stylesheet(import.meta, "ChatV3.css");
 View.stylesheet(import.meta, "../bubbles.css");
 
@@ -50,6 +50,17 @@ export default class ChatV3 extends JSONL {
 			const line = LineKey.deep(raw);   // `start()` and `#c3` read as start and c3 (D13)
 			if (line?.chat || line?.place) continue;   // V1-only; the real update is the separate messages/sentences mirror line
 			this.session.replay_line(line);
+			// A plain nested-field write (a Question's `answer` or `also_from`, `Task.replay_line`'s `take()`) fires
+			// no live "delta" event — fixed here, in the view, not core Item: find_answered_ids (placement.js) reads
+			// the line itself for any id that just changed one of those fields. Its own card is marked dirty like any
+			// other change; `also_from` additionally names OTHER Prompts (the ones that repeated it), each of whose
+			// own card must redraw too, to show the reference pointing back here.
+			for (const id of find_answered_ids(line)){
+				const q = this.session.find(id);
+				if (!q) continue;
+				const card = this.card_for(q); if (card) this.dirty.add(card);
+				for (const tid of q.also_from ?? []){ const other = this.card_roots().find(p => p instanceof Prompt && p.prompt === tid); if (other) this.dirty.add(other); }
+			}
 		}
 		if (first) this.draw(); else this.update();
 		this.dirty.clear(); this.moved.clear();
@@ -131,7 +142,7 @@ export default class ChatV3 extends JSONL {
 			this.$earlier.el.textContent = `show earlier (${Math.max(0, list.length - this.limit)})`;
 			this.$earlier.el.hidden = list.length <= this.limit;
 		});
-		this.draft_at_end();
+		this.refresh_refs();   // also keeps the live draft after it (draft_at_end)
 		const want = location.hash.slice(1), el = want ? this.$box?.el.querySelector(`[id="${CSS.escape(want)}"]`) : null;
 		el?.scrollIntoView({ block: "center" });
 	}
@@ -142,11 +153,16 @@ export default class ChatV3 extends JSONL {
 			if (view) { view.empty(() => this.fill(node)); }
 			else if (this.card_roots().includes(node)){
 				this.$box?.el.querySelector(":scope > .chat-v3-empty")?.remove();
-				this.$box?.append(() => this.card(node));
+				// A plain append would land AFTER `.chat-v3-refs` once that box exists, drifting the references into
+				// the middle of the chat as new cards kept arriving. A fresh card always lands just before the refs
+				// box (or at the end, when there is none yet) — refs stay "near the end", never the middle.
+				const fresh = this.card(node);
+				if (this.$refs?.el.isConnected) this.$refs.el.before(fresh.el); else this.$box?.el.append(fresh.el);
 				this.draft_at_end();
 			}
 		}
 		for (const node of this.moved) this.relocate(node);
+		this.refresh_refs();
 	}
 
 	// A re-ordered root keeps its drawn node (same object, same text node): only its place in the box changes, to just after the
@@ -188,7 +204,23 @@ export default class ChatV3 extends JSONL {
 		for (const r of this.trailing_replies(p)) this.reply(r);
 		if (this.partial && p === this.card_roots().filter(r => r instanceof Prompt).at(-1)) queueMicrotask(() => this.stream(this.partial?.role, this.partial?.text ?? ""));
 		const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
-		if (kids.length) div.c("chat-v3-nest", () => kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k)));
+		// A repeated question links to its existing card: the item tool never writes a second Question for a repeat;
+		// it adds the new Prompt's own task id to the EXISTING Question's `also_from` instead. So THIS Prompt (the
+		// one that repeated it) draws the same small reference ChatV3 already uses for a far-off answer, right here
+		// where the repeat happened, pointing back at the one true card.
+		const also = task ? this.all_questions().filter(q => q.also_from.includes(task.id)) : [];
+		if (kids.length || also.length) div.c("chat-v3-nest", () => {
+			kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k));
+			also.forEach(q => this.reference(q));
+		});
+	}
+	// Every Question anywhere in the task tree (top-level task_roots plus their own nested kids) — `also_from` lookups
+	// need the whole tree, not just one Prompt's own kids (a repeat can happen under any Prompt, pointing at any other).
+	all_questions(){
+		const out = [];
+		const walk = list => { for (const t of list ?? []){ if (t instanceof Question) out.push(t); walk(t._tasks); } };
+		walk(this.task_roots());
+		return out;
 	}
 
 	// The owner's side of a card: ONE right-aligned bubble that hugs its words (bubbles.css), holding the title, the text (or the dictation)
@@ -273,6 +305,35 @@ export default class ChatV3 extends JSONL {
 				if (q.answer) md_into(div.c("chat-v3-answer md").el, q.answer.text ?? "");
 			});
 		});
+	}
+
+	// Every Question nested under a drawn Prompt, paired with the Prompt card it sits under — `far_off_questions` (placement.js)
+	// needs both: which card the Question belongs to, and whether that card is still the newest one.
+	questions_with_prompts(){
+		const out = [];
+		for (const p of this.card_roots()) if (p instanceof Prompt){
+			const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
+			for (const k of kids) if (k instanceof Question) out.push({ question: k, prompt: p });
+		}
+		return out;
+	}
+	// A far-off answered Question's real card never moves (ux/Dictate/doc/principles.md, "Questions"): this is the small
+	// reference near the end instead, a back-arrow overlay on its icon, linking to the real card's own `#id` permalink
+	// (ChatV3.js's existing scroll-to-hash, draw()). Recomputed after every draw/update; cheap at chat sizes.
+	refresh_refs(){
+		// A Prompt older than the "show earlier" limit has no drawn card (draw()'s `slice(-this.limit)`), so a
+		// reference to it would link to an `#id` nothing on screen owns. Only reference a Prompt actually in `this.els`.
+		const far = far_off_questions(this.questions_with_prompts(), this.card_roots()).filter(({ prompt }) => this.els.has(prompt.id));
+		if (!this.$refs?.el.isConnected) { this.$refs = div.c("chat-v3-refs"); this.$box?.el.append(this.$refs.el); }
+		this.$refs.empty(() => far.forEach(({ question }) => this.reference(question)));
+		this.$refs.el.hidden = !far.length;
+		this.draft_at_end();   // the live draft stays after the refs, same rule draft_at_end already keeps
+	}
+	reference(q){
+		a.c("chat-v3-ask-ref", () => {
+			icon("mark_chat_unread").ac("chat-v3-state", "is-answered", "chat-v3-ref-icon");
+			span.c("chat-v3-ref-text", ChatV3.first_words(q.text ?? "", 10));
+		}).attr("href", "#" + q.id);
 	}
 
 	// The words being spoken right now, before they are sent: faint, last in the chat (the composer's mic reports them as "chat-live").

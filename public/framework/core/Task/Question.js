@@ -6,7 +6,7 @@ import Item from "../Item/Item.js";
 
 export class Question extends Task {
 
-	static line_fields = ["text", "from", "answer", "working"];
+	static line_fields = ["text", "from", "answer", "working", "also_from"];
 	static queries = [...Task.queries, "phase"];
 
 	get text(){ return this.get_one("text") ?? this.get_one("title") ?? null; }
@@ -16,6 +16,10 @@ export class Question extends Task {
 	get phase(){ return this.state === "complete" ? "complete" : this.answer ? "answered" : "open"; }
 	/** The smart seat's "seen it, writing" sign: `{by, at}` while it writes the answer, else null (`{working: null}` clears it). */
 	get working(){ return this.get_one("working") ?? null; }
+	/** Every OTHER Prompt task that asked this same question again (ask7, "links to its existing card instead of making a
+	 *  second one"): the item tool (page_tools.js) finds the repeat, never writes a second Question, and appends the new
+	 *  Prompt's own task id here instead — so a view can draw a reference back to THIS card under the repeating Prompt too. */
+	get also_from(){ return this.get_one("also_from") ?? []; }
 
 	/* Reading the answer is the evidence, so an answered Question completes with a bare {complete: {}}; an unanswered one needs the
 	   usual evidence (an owner who drops a question writes why). `node` is the Question itself (the item tool passes it). */
