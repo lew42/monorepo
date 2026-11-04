@@ -1,0 +1,65 @@
+# Telling the read-aloud voice from the owner's (research, 2026-11-03)
+
+**The question.** The phone reads a reply aloud. The microphone hears that voice, Whisper turns it into text, and the chat sends it as the owner's words. How do we tell the two voices apart? Background: [echo-and-turn-taking.md](echo-and-turn-taking.md).
+
+**The short answer.** The read-aloud voice is a fixed synthetic voice (Kokoro), and our code already knows its words and its start and end times. That is a stronger signal than any voice test, so the send-side echo drop comes first. A voice test is a second line of defence, not the first.
+
+## What we already know in the repo
+
+- The fast barge-in threshold and the echo multiplier (1.6x while reading) live in `public/framework/audio/Recite/BargeIn.js` (`threshold`, `echo_threshold_mult`, `effective_threshold()`). They decide when the owner counts as talking. They never touch the send path.
+- Whisper is a local server. The browser posts to `http://127.0.0.1:8178` (or the page's `/whisper` proxy from a phone). See `public/framework/audio/Whisper/Whisper.js`.
+- The line that reaches the chat leaves `ext/Chat/Mic.js` (`take_out()`), which has no echo check.
+
+## Option (a): WhisperX and speaker diarization
+
+- **Fit.** Poor. WhisperX is a batch tool: Whisper, plus a forced-alignment model, plus pyannote diarization. Our path re-sends a growing guess about every 0.9 s and wants a sentence out in a second or two. It would need a Python stack beside the local whisper-server.
+- **Latency and cost.** Batch, not real time. Vendor figures of up to about 70x real time need a GPU; with diarization a planning figure is closer to 30x (medium confidence: one aggregator source). It also needs a Hugging Face token and a model licence click-through (high confidence).
+- **What it gives.** "Speaker 1 / Speaker 2" per clip, with no name. Nothing says which label is the owner (high confidence). On one-sentence clips the grouping is unreliable.
+- **Likelihood it works here.** Low for this job.
+- **Cheapest first experiment.** None worth running. Skip it.
+
+Sources: [WhisperX repo](https://github.com/m-bain/whisperx); [WhisperX overview and cost](https://www.forasoft.com/learn/ai-for-video-engineering/articles-ai/whisperx-diarization-word-level-timestamps).
+
+## Option (b): a pitch check
+
+- **Fit.** Easy in the browser: an `AnalyserNode` on the mic gives a time-domain buffer, and an autocorrelation gives the pitch of each frame. No server work.
+- **Latency and cost.** Milliseconds, free.
+- **Likelihood it works.** Weak. The read-aloud voice is a choice in our settings, so it can be any voice. Pitch ranges of men and women overlap, the owner's voice varies with mood and tiredness, and a phone mic and a phone speaker both colour the pitch. The rule "female is the assistant, deep is the owner" would break as soon as the voice setting changes. (Engineering judgment, high confidence that pitch alone is not a speaker test.)
+- **Cheapest first experiment.** Record 20 clips of the read-aloud voice and 20 of the owner speaking, on the phone, and print the median pitch of each. If the two sets do not separate cleanly, drop the idea. About an hour.
+
+## Option (c): a different interrupt threshold while reading
+
+- **Fit.** Already in place. `echo_threshold_mult` (1.6) raises the bar while `recite.echo_active()`.
+- **Latency and cost.** None.
+- **Likelihood it works.** It stops false pauses, but it does not stop echoed words reaching the chat, because the send path never reads the threshold. The threshold is a loudness test; the leak is a words problem. Raising it too far also means the owner must shout to interrupt. (Confirmed by reading `BargeIn.js` lines 12 and 50.)
+- **Cheapest first experiment.** None needed: it exists. The gap is the send side.
+
+## Option (d), the one the repo already implies: match by words and clock
+
+Not one of the three asked for, but it is what `echo-and-turn-taking.md` already plans as step 1. Recite knows the exact sentence and the time span it played. A line that overlaps a playing span and shares 60%+ of its words with the reply is dropped in `Mic.js` `take_out()`. It needs no model, works on any voice, and is cheap.
+
+- **Likelihood it works.** High for our own voice, since we know its words. It cannot see another person's voice, which only a voice test could do.
+
+## Speaker verification (a lighter form of (a)), if words are not enough
+
+- Enrol the owner once (a few seconds of speech turned into a voice embedding), then check each clip against it and drop a clip that does not match.
+- A pretrained ECAPA-TDNN model has an ONNX export, and cosine similarity against a threshold is the standard check (medium-high confidence: several model cards and examples).
+- Fit: it must run on the server, because Python or an ONNX runtime cannot live in `ext/Chat`, which must stay plain browser JS. Browser-side ECAPA is unverified (low confidence; I found no working example).
+- Kokoro is a fixed voice, so one reported comparison put its ECAPA similarity to other speakers near 0.05, against about 0.70 for the same person (low confidence: one source, not checked here).
+- Cost: one small model, tens of milliseconds per clip (medium confidence), plus an enrolment step and a risk of misses when the owner whispers or is ill.
+
+## Recommendation
+
+Build the send-side echo drop (option d) first, then measure how many echoed lines still get through; add server-side speaker verification only if that count stays high.
+
+## Platform facts, and how sure each is
+
+- WhisperX is batch and needs a GPU for speed: high.
+- Diarization needs a Hugging Face token and licence click-through: high.
+- The 70x and 30x speed figures: medium (vendor and aggregator).
+- An ECAPA-TDNN ONNX export exists: medium-high.
+- Browser ECAPA runs well: low, unverified.
+- Kokoro's cross-speaker similarity near 0.05: low, one source.
+- Pitch alone separates the two voices: low, judged from how voices vary.
+
+Sources: [WhisperX repo](https://github.com/m-bain/whisperx); [WhisperX cost and speed](https://www.forasoft.com/learn/ai-for-video-engineering/articles-ai/whisperx-diarization-word-level-timestamps); [ECAPA-TDNN ONNX export](https://huggingface.co/astrolabos/ecapa-tdnn); [SpeechBrain ECAPA](https://huggingface.co/speechbrain/spkrec-ecapa-voxceleb); [Kokoro speaker-similarity benchmark](https://heyneo.com/blog/voice-cloning-models-cpu-benchmark).
