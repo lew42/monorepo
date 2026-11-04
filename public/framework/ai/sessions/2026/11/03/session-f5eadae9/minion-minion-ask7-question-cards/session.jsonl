@@ -20,3 +20,4 @@
 {"log":{"at":"2026-11-03T19:53:39-06:00","heartbeat":"orphaned","msg":"minion-minion-ask7-question-cards its agent is not running: its working directory C:/Code/lew42/worktrees/voice-qcards no longer exists; not revived."}}
 {"log":{"at":"2026-11-03T19:58:47-06:00","heartbeat":"orphaned","msg":"minion-minion-ask7-question-cards its agent is not running: its working directory C:/Code/lew42/worktrees/voice-qcards no longer exists; not revived."}}
 {"log":{"at":"2026-11-03T20:24:49-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T21:24:50-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
