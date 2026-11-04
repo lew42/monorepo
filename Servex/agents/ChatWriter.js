@@ -87,15 +87,21 @@ export default class ChatWriter {
 		return { messages: { add: { id, ...msg } }, by: "servex", ts: now_iso() };
 	}
 
-	/** The id of the newest message added in these session-file lines (text), or null when none: the message the next owner sentence may grow only if it is the open Prompt. */
+	/** The id of the message that is LAST in these session-file lines (text), or null when none: adds append, a `move` puts the Prompt after another, as List.move does. */
 	static last_message_id(text){
-		const lines = String(text ?? "").split("\n");
-		for (let i = lines.length - 1; i >= 0; i--){
-			if (!lines[i].includes('"messages"')) continue;
-			let add; try { add = JSON.parse(lines[i]).messages?.add; } catch { continue; }
-			if (add) return [].concat(add).at(-1)?.id ?? null;
+		const order = [];
+		for (const line of String(text ?? "").split("\n")){
+			if (!line.includes('"messages"')) continue;
+			let m; try { m = JSON.parse(line).messages; } catch { continue; }
+			for (const a of [].concat(m?.add ?? [])) if (a?.id) order.push(a.id);
+			const mv = m?.move;
+			if (mv?.id){
+				const from = order.indexOf(mv.id); if (from >= 0) order.splice(from, 1);
+				const at = order.indexOf(mv.after);
+				order.splice(at >= 0 ? at + 1 : order.length, 0, mv.id);
+			}
 		}
-		return null;
+		return order.at(-1) ?? null;
 	}
 
 	/** The thought ended: every held reply, in the order it arrived, as lines to write now. */

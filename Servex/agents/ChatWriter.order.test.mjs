@@ -31,4 +31,20 @@ check("last_message_id reads the newest add, and answers null for a file with no
 	assert.equal(ChatWriter.last_message_id('{"messages":{"add":{"id":"m-1"}}}\n{"messages":{"m-1":{"title":"x"}}}\n{"chat":{}}'), "m-1");
 	assert.equal(ChatWriter.last_message_id('{"chat":{}}'), null);
 });
+check("a move line makes the moved open Prompt last again: the owner's next sentence grows it, not a new Prompt", () => {
+	const open = c.messages.add.id;
+	file.push({ messages: { add: { id: "m-note", icon: "note", title: "n", by: "smart" } } });   // lands below the open Prompt
+	assert.equal(owner("2026-11-03T10:00:04.000-06:00", "x").messages.add?.type, "Prompt");     // so a sentence now would start a new Prompt (and open that)
+});
+const w2 = new ChatWriter({ last_id: () => ChatWriter.last_message_id(file2.map(l => JSON.stringify(l)).join("\n")) });
+const file2 = [];
+const owner2 = (at, text) => { const l = w2.mirror("k", { at, from: { kind: "owner" }, text, via: "voice" })[0]; file2.push(l); return l; };
+check("after a move line the open Prompt is last again: its next sentence grows it", () => {
+	const p = owner2("2026-11-03T11:00:00.000-06:00", "First topic.").messages.add.id;
+	file2.push({ messages: { add: { id: "m-x", icon: "task", title: "x", by: "smart" } } });
+	file2.push({ messages: { move: { id: p, after: "m-x" } } });
+	assert.equal(ChatWriter.last_message_id(file2.map(l => JSON.stringify(l)).join("\n")), p);
+	const e = owner2("2026-11-03T11:00:01.000-06:00", "More.");
+	assert.deepEqual(e.messages[p].sentences, { push: e.sentences.add.id });
+});
 console.log(`${n} passed`);
