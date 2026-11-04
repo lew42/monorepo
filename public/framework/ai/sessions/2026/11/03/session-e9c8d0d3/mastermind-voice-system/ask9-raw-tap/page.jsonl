@@ -1,0 +1,5 @@
+{"log":"minion-minion-ask9-raw-tap: built — tap the owner's pill (.chat-v3-you) toggles raw words, removed the \"show raw\" button; click handler in ChatV3.prompt() ignores nested controls/links and active text selection; added data-raw-tap attr for cursor affordance. Red test first (ChatV3.test.mjs section 5 rewritten), then build. ChatV3.test.mjs 38/38 pass, placement.test.mjs 37/37 pass. Readme updated. Committed d48d0dbeb on worktree/voice-rawtap (worktree C:/Code/lew42/worktrees/voice-rawtap).","by":"minion-minion-ask9-raw-tap","ts":"2026-11-04T00:58:38.426Z"}
+{"file":"review/"}
+{"file":"review.md"}
+{"file":"task.jsonl"}
+{"file":"review.jsonl"}
