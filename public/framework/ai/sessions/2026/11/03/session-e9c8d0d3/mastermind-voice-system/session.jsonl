@@ -180,3 +180,5 @@
 {"log":{"at":"2026-11-03T20:01:48-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-04T02:01:48.167Z"}
 {"log":{"at":"2026-11-03T20:02:56-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-04T02:02:56.259Z"}
 {"log":{"at":"2026-11-03T20:08:49-06:00","heartbeat":"refused","msg":"status check not sent to mastermind-voice-system: a wake costs about $0.03 and it has spent $148.28 of $100.00"}}
+{"log":{"at":"2026-11-03T21:04:50-06:00","msg":"dropped: Load the minion skill. Budget: $2. RESEARCH ONLY, no code edits. Work in C:\\Code\\lew42\\worktrees\\voice-rsch. Question: d: owner minion-minion-research-locked-phone is stopped","dropped":"/framework/ai/sessions/2026/11/03/session-f5eadae9/minion-minion-research-locked-phone/","reason":"owner-stopped"}}
+{"log":{"at":"2026-11-03T21:09:50-06:00","msg":"dropped: Budget: $0.50. Read-only research, no edits, no commits. Question from the owner: a plugin / configuration system exists: owner minion-past-work-plugin is stopped","dropped":"/framework/ai/sessions/2026/11/03/session-f5eadae9/minion-past-work-plugin/","reason":"owner-stopped"}}
