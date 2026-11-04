@@ -1,5 +1,11 @@
 # Plan: question cards (ask 7)
 
+> **Superseded.** This was the FIRST plan, written before any fix round. Item 4's design below ("a match refuses the
+> write with `{ok:false, …, existing}`") is NOT what shipped: the code now LINKS a repeat (the existing Question's
+> `also_from` grows with the repeating Prompt's id) rather than refusing the write, so every sibling line in the same
+> delta still gets written. Read [`ux/Dictate/doc/question-cards.md`](/framework/ux/Dictate/doc/question-cards.md)
+> for what is actually built; this file is kept as the historical record of what was planned first.
+
 ## What exists today
 - **In place, answer on card (items 1+2): already built.** `Question extends Task` (`core/Task/Question.js`) nests under its
   Prompt's own task (`from`); `ChatV3.question(q)` (`ext/Chat/v3/ChatV3.js:267-276`) draws it inside the Prompt's card with a
