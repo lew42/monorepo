@@ -9,7 +9,7 @@ import Session from "../../../core/Session/Session.js";
 import Prompt from "../../../core/Session/Chat/Prompt.js";
 import Reply from "../../../core/Session/Chat/Reply.js";
 import Message from "../../../core/Session/Chat/Message.js";
-import { owning_prompt, paragraphs, note_view, far_off_questions } from "./placement.js";
+import { owning_prompt, paragraphs, note_view, far_off_questions, find_answered_ids } from "./placement.js";
 
 let pass = 0, fail = 0;
 const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
@@ -68,18 +68,40 @@ check("the fixture was not modified", readFileSync(fixture, "utf8") === before);
 	check("…upgraded (title/icon set on it, same item tool call as a fresh card): reply() now has what it needs to draw it as a card", note_view(reply).title === "Phone the owner back" && note_view(reply).icon === "call");
 }
 
-// 6. far_off_questions: a resurfaced reference is only for an ANSWERED Question whose Prompt is not the newest root (ask7)
+// 6. far_off_questions: a resurfaced reference is only for an ANSWERED Question more than `threshold` roots back from the
+// end (review fix, finding 3: "not the newest root" let a question qualify the instant the next prompt arrived), capped
+// to the most recent `max` so references never pile up for the whole session (finding 3, "no pile-up").
 {
-	const roots = ["p1", "p2", "p3"];
+	const roots10 = Array.from({ length: 10 }, (_, i) => `p${i}`);   // p0 (oldest) .. p9 (newest)
 	const answered = { answer: { text: "A" } }, open = {};
-	check("an answered question under an older root (newer roots after it) is far-off",
-		far_off_questions([{ question: answered, prompt: "p1" }], roots).length === 1);
-	check("an answered question under the newest root is NOT far-off (nothing is between it and the end)",
-		far_off_questions([{ question: answered, prompt: "p3" }], roots).length === 0);
+	check("fewer than `threshold` roots behind the end: NOT far-off yet (default threshold 3)",
+		far_off_questions([{ question: answered, prompt: "p7" }], roots10).length === 0, "p7 is 2 behind p9");
+	check("more than `threshold` roots behind: far-off",
+		far_off_questions([{ question: answered, prompt: "p5" }], roots10).length === 1, "p5 is 4 behind p9");
+	check("exactly `threshold` roots behind: NOT far-off (strictly more than, not at least)",
+		far_off_questions([{ question: answered, prompt: "p6" }], roots10).length === 0, "p6 is 3 behind p9");
+	check("an answered question under the newest root is never far-off",
+		far_off_questions([{ question: answered, prompt: "p9" }], roots10).length === 0);
 	check("an unanswered question is never far-off, however old",
-		far_off_questions([{ question: open, prompt: "p1" }], roots).length === 0);
-	check("two far-off questions both come back",
-		far_off_questions([{ question: answered, prompt: "p1" }, { question: answered, prompt: "p2" }], roots).length === 2);
+		far_off_questions([{ question: open, prompt: "p0" }], roots10).length === 0);
+	check("a custom threshold is honoured (threshold: 1 -> 2 behind already qualifies)",
+		far_off_questions([{ question: answered, prompt: "p7" }], roots10, { threshold: 1 }).length === 1);
+	const many = roots10.map((p, i) => ({ question: answered, prompt: p })).filter((_, i) => i < 6);   // p0..p5, all far-off at threshold 3
+	check("a pile of far-off questions is capped to the most recent `max` (default 5), not left to grow forever",
+		far_off_questions(many, roots10).length === 5, far_off_questions(many, roots10).map(x => x.prompt));
+	check("...and the cap keeps the ones CLOSEST to the end (most likely still relevant), not the oldest",
+		far_off_questions(many, roots10).map(x => x.prompt).join(",") === "p1,p2,p3,p4,p5");
+}
+
+// 7. find_answered_ids: the view's own fix for a live answer never firing a "delta" event (review fix, finding 1) —
+// pure data, no Session: any id whose own value carries an "answer" key, at any depth.
+{
+	check("a top-level answer line names its id", find_answered_ids({ "q-1": { answer: { text: "x" } } }).join() === "q-1");
+	check("a nested answer line (addressed through its Prompt task) still finds the Question's own id",
+		find_answered_ids({ "p-1": { "q-1": { answer: { text: "x" } } } }).join() === "q-1");
+	check("a line with no answer key anywhere finds nothing", find_answered_ids({ "p-1": { tasks: { add: { id: "q-2" } } } }).length === 0);
+	check("two answers in one line both come back", find_answered_ids({ "q-1": { answer: { text: "a" } }, "q-2": { answer: { text: "b" } } }).sort().join() === "q-1,q-2");
+	check("a move line (unrelated shape) finds nothing", find_answered_ids({ messages: { move: { id: "m-1", after: "m-2" } } }).length === 0);
 }
 
 console.log(`${pass} passed, ${fail} failed`);
