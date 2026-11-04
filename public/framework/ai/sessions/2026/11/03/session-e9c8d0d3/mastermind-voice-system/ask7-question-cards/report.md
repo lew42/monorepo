@@ -20,6 +20,13 @@ seat's own job, not this view's). Detail and history: [`ux/Dictate/doc/question-
 
 ## Unproven / left as noted
 
-- Item 1's punctuation fix: real, but lives in the smart seat's brief, not this view — no test here (finding 8).
+- Item 1's punctuation fix: real, but lives in the smart seat's brief, not this view — no test here (finding 8, unchanged in round 3).
 - A root-level Question add (not nested under a Prompt) never reaches the dedupe guard — not the documented usage shape, noted in `question-cards.md`.
 - V1's own Question row (move-to-end) is untouched — a separate, already-reviewed decision.
+
+## Round 3 (8 more findings, all answered in `task.jsonl`)
+
+- **a46d81f1a** — self-link guard (same Prompt repeating itself, or an idempotent id retry, no longer self-links `also_from`; red test first) + a write that is only a repeat writes nothing (no hollow `{"id":{}}` line).
+- **3f13b90ca** — `core/Task/doc/prompt.md` documents `also_from`; `Servex/agents/readme.md` lists `strip_duplicate_questions()`/its test; every "finding N"/"round N" code comment rewritten to say what, not which review found it.
+- **347bae9b0** — `question-cards.md` rewritten present-tense (no dated history); `plan.md` marked superseded at the top, copied here again.
+- Tests re-run: `placement.test.mjs` 37/37, `ChatV3.test.mjs` 36/36, `Question.test.mjs` 8/8, `Question-dedupe.test.mjs` 28/28 (13 new), `item_tool.test.mjs` 118/118, `Sessions.single.test.mjs` 19/19.
