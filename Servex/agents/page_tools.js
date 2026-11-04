@@ -840,14 +840,33 @@ function row_of(t){
 // Every task in a tree, each once (a session's cost sums each task's own agents once, so nothing counts twice).
 function every_task(list, out = []){ for (const t of list ?? []){ out.push(t); every_task(t._tasks, out); } return out; }
 
-/* ask7 ("A repeated question links to its existing card instead of making a second one", ux/Dictate/doc/principles.md):
- * every nested `tasks.add` of type "Question" anywhere in a delta (a Question nests under its Prompt's own task, never
- * at the session's own root, so the root-level same-title guard above never sees it). Pure data, no file access. */
-function find_question_adds(node, out = []){
-	if (Array.isArray(node)) { for (const n of node) find_question_adds(n, out); return out; }
+/* ask7 ("A repeated question links to its existing card instead of making a second one", ux/Dictate/doc/principles.md) —
+ * review fix (finding 4): the first version only REFUSED the whole write, which (a) dropped every sibling line sent in
+ * the same delta (a refined title, another field) and (b) made no actual link anywhere. This mutates `node` IN PLACE:
+ * a nested `tasks.add` of type "Question" whose text normalizes to one already in `seen` (pre-seeded with every Question
+ * already in the file) is removed from the add list — never written as a second card — and reported in `out` as
+ * `{id, existing, from}` so the caller can both (1) tell the seat which card to use and (2) write the actual link
+ * (`also_from`, below) onto the existing Question, so a view can draw a reference back to it under the repeating
+ * Prompt too. A second repeat of the SAME text later in the very same write also links to the first (added to `seen`
+ * as it is kept), never both landing. Everything else in the delta is untouched and still gets written normally. */
+function strip_duplicate_questions(node, seen, out = []){
+	if (Array.isArray(node)) { for (const n of node) strip_duplicate_questions(n, seen, out); return out; }
 	if (!is_plain(node)) return out;
-	if (is_plain(node.tasks) && node.tasks.add !== undefined) for (const a of [].concat(node.tasks.add)) if (is_plain(a) && task_type(a) === "Question" && typeof a.text === "string") out.push(a);
-	for (const v of Object.values(node)) find_question_adds(v, out);
+	if (is_plain(node.tasks) && node.tasks.add !== undefined){
+		const was_array = Array.isArray(node.tasks.add), list = [].concat(node.tasks.add), kept = [];
+		for (const a of list){
+			const text = is_plain(a) && task_type(a) === "Question" && typeof a.text === "string" ? norm_question(a.text) : null;
+			const existing = text && seen.get(text);
+			if (existing){ out.push({ id: a.id, existing, from: a.from }); continue; }
+			if (text) seen.set(text, a.id);
+			kept.push(a);
+		}
+		if (kept.length !== list.length){
+			if (!kept.length) { delete node.tasks.add; if (!Object.keys(node.tasks).length) delete node.tasks; }
+			else node.tasks.add = was_array ? kept : kept[0];
+		}
+	}
+	for (const v of Object.values(node)) strip_duplicate_questions(v, seen, out);
 	return out;
 }
 const norm_question = s => String(s ?? "").toLowerCase().replace(/[^\p{L}\p{N}\s]+/gu, "").replace(/\s+/g, " ").trim();
@@ -1317,6 +1336,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 
 	const ids = [], homes = [], requests = [], by = ctx.caller ?? "agent";
 	let merged = null;   // adds a class merged into an existing task (Improvements), reported in the answer
+	let linked = null;   // ask7: a repeated Question, not written again — linked to the existing one instead (reported in the answer)
 	let line = null, size;
 	// Every write to a Task/Session goes through here: append the line, then advance the live root with it.
 	const put = (l, own = true) => {
@@ -1391,11 +1411,21 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		homes.push(...g.made);
 		size = size_of(at.file);
 	}
-	// ask7: a nested Question add, checked against every Question already in this file (session-wide: "a question asked
-	// again in the same session links to the card that's already answered", principles.md) — a slip no longer makes two.
-	if (tasky) for (const a of find_question_adds(body)){
-		const text = norm_question(a.text), dup = text && every_task(root()._tasks ?? []).find(t => is_question(t) && t.id !== a.id && norm_question(t.text) === text);
-		if (dup) return { ok: false, why: `this question already has a card ("${dup.text}", id "${dup.id}"); nothing was written. Use that one — answer it, or link to it — instead of a second card for the same question.`, existing: dup.id };
+	// ask7 (review fix, finding 4): a nested Question add is checked against every Question already in this file
+	// (session-wide: "a question asked again in the same session links to the card that's already answered",
+	// principles.md). A duplicate is stripped from `body` IN PLACE (never refused — every sibling line in the same
+	// delta still gets written) and the EXISTING Question's own `also_from` grows the new Prompt's id, so a view can
+	// draw a reference back to it under the repeating Prompt (ChatV3's `all_questions()`/`also_from` rendering).
+	if (tasky){
+		const seen = new Map();
+		for (const t of every_task(root()._tasks ?? [])) if (is_question(t) && typeof t.text === "string"){ const tx = norm_question(t.text); if (tx && !seen.has(tx)) seen.set(tx, t.id); }
+		const stripped = strip_duplicate_questions(body, seen);
+		for (const { id, existing, from } of stripped){
+			const dup = every_task(root()._tasks ?? []).find(t => t.id === existing);
+			const also = [...new Set([...(dup?.also_from ?? []), ...(from ? [from] : [])])];
+			put({ [existing]: { also_from: also } }, true);
+			(linked ??= []).push({ id, existing, from: from ?? null });
+		}
 	}
 	let unchanged = null;
 	if ((pages === undefined && folder === undefined && !homes.length && !ids.length) || Object.keys(body).length){
@@ -1428,7 +1458,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	// (it then appended the line itself: a twin). The picture is a read, item({path}) with no delta. A page's write still answers its page.
 	if (tasky){
 		const live = root();
-		return { ok: true, ids, line, size, now: { state: live.state, completion: live.completion }, ...(unchanged ? { warning: unchanged } : {}), ...(merged ? { merged } : {}), ...(homes.length ? { homes } : {}),
+		return { ok: true, ids, line, size, now: { state: live.state, completion: live.completion }, ...(unchanged ? { warning: unchanged } : {}), ...(merged ? { merged } : {}), ...(homes.length ? { homes } : {}), ...(linked ? { linked } : {}),
 			...(!alias && first_time() ? { instructions: await instructions_for(kind, Class) } : {}) };
 	}
 	// A write answers small, whatever the file size: never the page's whole text (753,132 characters once). A read (item with no delta) is how you get the picture.

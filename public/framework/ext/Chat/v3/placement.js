@@ -65,16 +65,19 @@ export function far_off_questions(items, roots, { threshold = 3, max = 5 } = {})
 	return far.slice(-max);
 }
 
-/** Every id directly nested under an "answer" field anywhere in a raw line (review fix, finding 1): a plain object with
- *  its own "answer" key names a Question whose answer just landed, at whatever depth the line addressed it —
- *  `{"q-id":{answer:{…}}}` or `{"p-id":{"q-id":{answer:{…}}}}`. Pure data, no Session/DOM: a plain nested-field write
- *  (`Task.replay_line`'s `take()`, never `set_one()`) fires no live "delta" event — a core Item/Task gap out of this
- *  view's own fence to fix — so ChatV3 looks these ids up itself (`session.find`) and marks their owning card dirty,
- *  fixed entirely in the view, as the review asked. */
+// Fields whose change on a Question needs its owning card redrawn even though the write never fires a "delta" event
+// (Task.replay_line's `take()`, never `set_one()`): the answer landing, and `also_from` growing (review fix, finding 4 —
+// a repeated Question links to the existing card by growing THIS field, drawn as a reference under the repeating Prompt).
+const QUESTION_LIVE_FIELDS = ["answer", "also_from"];
+
+/** Every id directly nested under one of `QUESTION_LIVE_FIELDS` anywhere in a raw line (review fix, finding 1): a plain
+ *  object carrying one of those keys names a Question whose card needs redrawing, at whatever depth the line addressed
+ *  it — `{"q-id":{answer:{…}}}`, `{"p-id":{"q-id":{also_from:[…]}}}`. Pure data, no Session/DOM: ChatV3 looks these ids
+ *  up itself (`session.find`) and marks their owning card dirty, fixed entirely in the view, as the review asked. */
 export function find_answered_ids(node, out = []){
 	if (!node || typeof node !== "object" || Array.isArray(node)) return out;
 	for (const [k, v] of Object.entries(node)){
-		if (v && typeof v === "object" && !Array.isArray(v) && v.answer !== undefined) out.push(k);
+		if (v && typeof v === "object" && !Array.isArray(v) && QUESTION_LIVE_FIELDS.some(f => v[f] !== undefined)) out.push(k);
 		find_answered_ids(v, out);
 	}
 	return out;

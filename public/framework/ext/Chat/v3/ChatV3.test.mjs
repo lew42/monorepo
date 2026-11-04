@@ -118,6 +118,14 @@ try {
 		return !!(refs && card) && !!(refs.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_PRECEDING);
 	}));
 
+	// 9a-3. review fix #4: "a repeated question links to its existing card" — the item tool writes the link as `also_from`
+	// on the EXISTING Question (page_tools.js, Question-dedupe.test.mjs); this is the view's half, drawing a reference
+	// under the REPEATING Prompt's own card, pointing back at the original (never a second Question card).
+	appendFileSync(here + "fixture/" + live, JSON.stringify({ "p-1793586471873": { "q-1793586471874": { also_from: ["p-1793586544360"] } } }) + "\n");
+	await page.waitForSelector(".chat-v3-prompt[data-id='m-1793586544363'] .chat-v3-ask-ref", { timeout: 8000 });
+	check("the repeating Prompt's own card draws a reference back to the original (not a second Question)",
+		await page.getAttribute(".chat-v3-prompt[data-id='m-1793586544363'] .chat-v3-ask-ref", "href") === "#q-1793586471874");
+
 	// 9. a MOVE reaches the screen as the same node in a new place (never a redraw); an improve patches the text in place
 	const order = () => page.$$eval(".chat-v3 > .chat-v3-card:not(.chat-v3-draft)", els => els.map(e => e.dataset.id));
 	const lead = ".chat-v3-prompt[data-id='m-1793586471880']";

@@ -50,10 +50,17 @@ export default class ChatV3 extends JSONL {
 			const line = LineKey.deep(raw);   // `start()` and `#c3` read as start and c3 (D13)
 			if (line?.chat || line?.place) continue;   // V1-only; the real update is the separate messages/sentences mirror line
 			this.session.replay_line(line);
-			// Review fix (ask7, finding 1): a plain nested-field write (a Question's `answer`, `Task.replay_line`'s `take()`)
-			// fires no live "delta" event — fixed here, in the view, not core Item: find_answered_ids (placement.js) reads
-			// the line itself for any id that just got an `answer`, and its owning card is marked dirty like any other change.
-			for (const id of find_answered_ids(line)){ const q = this.session.find(id), card = q && this.card_for(q); if (card) this.dirty.add(card); }
+			// Review fix (ask7, finding 1 + 4): a plain nested-field write (a Question's `answer` or `also_from`,
+			// `Task.replay_line`'s `take()`) fires no live "delta" event — fixed here, in the view, not core Item:
+			// find_answered_ids (placement.js) reads the line itself for any id that just changed one of those fields.
+			// Its own card is marked dirty like any other change; `also_from` additionally names OTHER Prompts (the
+			// ones that repeated it), each of whose own card must redraw too, to show the reference pointing back here.
+			for (const id of find_answered_ids(line)){
+				const q = this.session.find(id);
+				if (!q) continue;
+				const card = this.card_for(q); if (card) this.dirty.add(card);
+				for (const tid of q.also_from ?? []){ const other = this.card_roots().find(p => p instanceof Prompt && p.prompt === tid); if (other) this.dirty.add(other); }
+			}
 		}
 		if (first) this.draw(); else this.update();
 		this.dirty.clear(); this.moved.clear();
@@ -197,7 +204,23 @@ export default class ChatV3 extends JSONL {
 		for (const r of this.trailing_replies(p)) this.reply(r);
 		if (this.partial && p === this.card_roots().filter(r => r instanceof Prompt).at(-1)) queueMicrotask(() => this.stream(this.partial?.role, this.partial?.text ?? ""));
 		const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
-		if (kids.length) div.c("chat-v3-nest", () => kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k)));
+		// ask7 (review fix, finding 4): "a repeated question links to its existing card" — the item tool never writes a second
+		// Question for a repeat; it adds the new Prompt's own task id to the EXISTING Question's `also_from` instead. So THIS
+		// Prompt (the one that repeated it) draws the same small reference ChatV3 already uses for a far-off answer, right
+		// here where the repeat happened, pointing back at the one true card.
+		const also = task ? this.all_questions().filter(q => q.also_from.includes(task.id)) : [];
+		if (kids.length || also.length) div.c("chat-v3-nest", () => {
+			kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k));
+			also.forEach(q => this.reference(q));
+		});
+	}
+	// Every Question anywhere in the task tree (top-level task_roots plus their own nested kids) — `also_from` lookups
+	// need the whole tree, not just one Prompt's own kids (a repeat can happen under any Prompt, pointing at any other).
+	all_questions(){
+		const out = [];
+		const walk = list => { for (const t of list ?? []){ if (t instanceof Question) out.push(t); walk(t._tasks); } };
+		walk(this.task_roots());
+		return out;
 	}
 
 	// The owner's side of a card: ONE right-aligned bubble that hugs its words (bubbles.css), holding the title, the text (or the dictation)
