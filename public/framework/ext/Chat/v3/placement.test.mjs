@@ -9,7 +9,7 @@ import Session from "../../../core/Session/Session.js";
 import Prompt from "../../../core/Session/Chat/Prompt.js";
 import Reply from "../../../core/Session/Chat/Reply.js";
 import Message from "../../../core/Session/Chat/Message.js";
-import { owning_prompt, paragraphs, note_view } from "./placement.js";
+import { owning_prompt, paragraphs, note_view, far_off_questions } from "./placement.js";
 
 let pass = 0, fail = 0;
 const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
@@ -66,6 +66,20 @@ check("the fixture was not modified", readFileSync(fixture, "utf8") === before);
 	check("an ordinary Reply: no title, no icon — reply() draws it plain", note_view(reply).title === null && note_view(reply).icon === null);
 	reply.set({ title: "Phone the owner back", icon: "call" });   // "upgrading" it: the same title/icon fields any message has
 	check("…upgraded (title/icon set on it, same item tool call as a fresh card): reply() now has what it needs to draw it as a card", note_view(reply).title === "Phone the owner back" && note_view(reply).icon === "call");
+}
+
+// 6. far_off_questions: a resurfaced reference is only for an ANSWERED Question whose Prompt is not the newest root (ask7)
+{
+	const roots = ["p1", "p2", "p3"];
+	const answered = { answer: { text: "A" } }, open = {};
+	check("an answered question under an older root (newer roots after it) is far-off",
+		far_off_questions([{ question: answered, prompt: "p1" }], roots).length === 1);
+	check("an answered question under the newest root is NOT far-off (nothing is between it and the end)",
+		far_off_questions([{ question: answered, prompt: "p3" }], roots).length === 0);
+	check("an unanswered question is never far-off, however old",
+		far_off_questions([{ question: open, prompt: "p1" }], roots).length === 0);
+	check("two far-off questions both come back",
+		far_off_questions([{ question: answered, prompt: "p1" }, { question: answered, prompt: "p2" }], roots).length === 2);
 }
 
 console.log(`${pass} passed, ${fail} failed`);
