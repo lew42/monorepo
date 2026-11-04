@@ -206,7 +206,7 @@ export default class ChatV3 extends JSONL {
 			.click(e => {
 				if (!has_raw) return;
 				if (e.target.closest("button, a")) return;   // nested controls (show all/less) handle their own tap
-				if (window.getSelection?.()?.toString()) return;   // a drag-to-select ends in a click; don't swallow it
+				const sel = window.getSelection?.(); if (sel?.toString() && e.currentTarget.contains(sel.anchorNode)) return;   // a drag-to-select inside the pill ends in a click; don't swallow it
 				open ? this.raw_open.delete(p.id) : this.raw_open.add(p.id);
 				this.els.get(p.id)?.empty(() => this.prompt(p));
 			});

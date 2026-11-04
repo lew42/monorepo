@@ -61,7 +61,7 @@
 	.chat-v3-yours :is(.chat-v3-dictation, .chat-v3-para) { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; align-self: stretch; }
 	.chat-v3-you .chat-v3-title { font-size: 0.95rem; flex: none; max-inline-size: 100%; }
 	.chat-v3-you .chat-v3-toggle { align-self: flex-end; }
-	.chat-v3-you[data-raw-tap] { cursor: pointer; }   /* a tap toggles the raw words (ask9-raw-tap) when a clean override exists */
+	.chat-v3-you[data-raw-tap] { cursor: pointer; }   /* a tap toggles the raw words when a clean override exists (V3 only sets the attribute) */
 	.chat-v3-draft > .chat-v3-you { border: 1px dashed color-mix(in srgb, var(--prime) 55%, transparent); }
 	.chat-v3-reply { border-top: 0; }
 
