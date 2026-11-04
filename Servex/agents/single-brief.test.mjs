@@ -76,7 +76,7 @@ try {
 		assert.ok(spec, "the single seat was spawned for real, through Sessions.spawn()");
 		const where = `\n\nThis session is ${sess.id}. Its home page is ${sess.home}; the owner pressed ✦ on ${sess.path}.`
 			+ `\n\nYour session's page (the item tool's \`path\`): ${path.posix.dirname(sess.file)}/`;
-		assert.equal(spec.system, s.single_brief() + where, "the system prompt handed to the real agent IS brief() + where — the exact text the brief asked this test to put in front of the seat");
+		assert.equal(spec.system, s.single_brief(sess) + where, "the system prompt handed to the real agent IS brief() + where — the exact text the brief asked this test to put in front of the seat");
 	});
 
 	await check("replayed session: a scripted seat, driven through the REAL say/nothing/retract_say handlers in tools.js (one call per sentence), never reaches the owner before the gate — and a narration attempt in plain text is a muted skip, not a reply", async () => {
