@@ -137,6 +137,7 @@ export default class Pool extends Events {
             this.say(`pool: ${slot.id} taken by ${slot.taken_by}`, { id: slot.id, taken_by: slot.taken_by });
             try { this.servex?.lifecycle?.took(slot, slot.taken_by); } catch {}   // lifecycle.jsonl + the taker's task log learns its worktree
             this.page_watch(slot);
+            this.start_watcher(slot);
             this.top_up();
             return { id: slot.id, path: slot.path, branch: slot.branch, url: slot.url };
         }
@@ -165,6 +166,7 @@ export default class Pool extends Events {
         }
         try { this.servex?.lifecycle?.took(slot, slot.taken_by); } catch {}
         this.page_watch(slot);
+        this.start_watcher(slot);
         this.say(`pool: ${slot.id} taken by ${slot.taken_by} (sync)`, { id: slot.id, taken_by: slot.taken_by });
         this.top_up();
         return { id: slot.id, path: slot.path, branch: slot.branch, url: slot.url };
@@ -272,7 +274,9 @@ export default class Pool extends Events {
              * put the noise back to HEAD, fast-forward, and make a fresh slot: this one's server is gone. */
             this.kill(slot.watcher_pid, /health-supervisor/i);
             this.kill(slot.server_pid, this.server_cmd(slot));
-            await this.restore(slot, (await this.dirt(slot)).filter(d => Pool.server_log(d.file)).map(d => d.file));
+            const generated = (await this.dirt(slot)).filter(d => Pool.generated(d)).map(d => d.file);
+            this.aside(slot, generated);
+            await this.restore(slot, generated);
             ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
             if (ff.ok){
                 this.remove(slot);
@@ -526,7 +530,7 @@ export default class Pool extends Events {
         const ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
         if (!ff.ok) throw new Error(`could not fast-forward to ${this.base}: ${ff.out}`);
         await this.identity(slot);
-        await this.watch(slot);
+        // no page watcher here: a ready slot has no editor to watch, and the watcher's Playwright browser cost ~500 MB per idle slot; take() starts it
         slot.baseline = Object.fromEntries((await this.dirt(slot)).map(d => [d.file, d.hash]));
         Object.assign(slot, { state: "ready", idle_since: stamp() });
         this.save();
@@ -584,7 +588,7 @@ export default class Pool extends Events {
             if (!fs.existsSync(slot.path)){ this.forget(slot); continue; }
             if (slot.state === "taken"){ this.page_watch(slot); continue; }
             if (slot.state !== "ready" || !(await this.answers(slot.url))){ this.remove(slot); continue; }
-            if (!this.alive(slot.watcher_pid)){ await this.watch(slot); this.save(); }
+            if (this.alive(slot.watcher_pid)){ this.kill(slot.watcher_pid, /health-supervisor/i); slot.watcher_pid = null; this.save(); }   // a ready slot holds no browser
         }
         if (this.slots.length) this.say(`pool: adopted ${this.slots.map(s => `${s.id} (${s.state})`).join(", ")}`);
     }
@@ -769,7 +773,8 @@ export default class Pool extends Events {
             const h = await this.git(slot.path, ["hash-object", "--", ...chunk]);
             if (h.ok) h.out.split("\n").forEach((hash, j) => { hashes[chunk[j]] = hash.trim(); });
         }
-        return files.map(file => ({ file, hash: hashes[file] ?? "gone" }));
+        const codes = out ? out.split("\n").map(l => l.slice(0, 2).trim()) : [];   // the porcelain code: "M" = a tracked file edited in place, "??" = new
+        return files.map((file, i) => ({ file, hash: hashes[file] ?? "gone", code: codes[i] ?? "" }));
     }
 
     /* A dev server's own logs (page.jsonl, files.jsonl, the clarity flags) are its noise, never an
@@ -777,8 +782,25 @@ export default class Pool extends Events {
      * 2026-09-30: qf-6's salvage swept 233 of them into a branch; a slot with only these stayed leased). */
     static server_log(file){ return /(^|\/)(page|files)\.jsonl$/.test(file) || file === "public/framework/ai/board.jsonl" || file === ".claude/skills/clarity/flags.jsonl"; }
 
+    /* GENERATED, BY RULE (the owner, 2026-11-04: session-links.jsonl and task-moves.jsonl, both machine-written, kept a slot held):
+     * the named server logs, and any tracked *.jsonl edited in place. A NEW *.jsonl is a task's own and stays real. The rule is the same
+     * one Worktrees.js noise() applies to removals. Never discarded unseen: aside() keeps the diff first. */
+    static generated(d){ return Pool.server_log(d.file) || (/\.jsonl$/.test(d.file) && /^M+$/.test(d.code ?? "")); }
+
     async own_dirt(slot){
-        return (await this.dirt(slot)).filter(d => !Pool.server_log(d.file) && slot.baseline?.[d.file] !== d.hash);
+        return (await this.dirt(slot)).filter(d => !Pool.generated(d) && slot.baseline?.[d.file] !== d.hash);
+    }
+
+    /* Keep the diff of these tracked log files as a patch in .worktree-logs/ before they go back to HEAD. Returns the patch path or null. */
+    aside(slot, files){
+        files = files.filter(f => /\.jsonl$/.test(f));
+        if (!files.length) return null;
+        const out = path.join(this.main, ".worktree-logs", `${slot.id}-${stamp().slice(0, 10)}-logs-${Date.now()}.patch`);
+        fs.mkdirSync(path.dirname(out), { recursive: true });
+        const chunks = [];   // 100 paths a call stays under the Windows command line limit
+        for (let i = 0; i < files.length; i += 100) chunks.push(execFileSync("git", ["-C", slot.path, "diff", "HEAD", "--", ...files.slice(i, i + 100)], { windowsHide: true, maxBuffer: 256 << 20 }));
+        fs.writeFileSync(out, Buffer.concat(chunks));
+        return out;
     }
 
     /* Baseline files back to exactly what HEAD holds (one not in HEAD is deleted). NEVER one git call per file, and never a
@@ -855,6 +877,11 @@ export default class Pool extends Events {
             if (!slot.watcher_pid) this.say(`pool: ${slot.id} page watcher did not start: ${e?.message ?? out}`, { id: slot.id });
             resolve(slot.watcher_pid);
         }));
+    }
+
+    /* Starts the health watcher (and so its browser) for a slot that was just taken; in the background, never fails the take. */
+    start_watcher(slot){
+        this.watch(slot).then(() => this.save()).catch(e => this.say(`pool: ${slot.id} health watcher did not start: ${e.message}`, { id: slot.id }));
     }
 
     /* The page watcher for a taken slot (WorktreeWatch.js): a break in a page its holder edits reaches the holder in about 10 s. Never fails the pool. */

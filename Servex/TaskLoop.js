@@ -501,13 +501,16 @@ export default class TaskLoop {
 
     /* The only other way a task leaves the loop — the owner's `close_task` tool
      * (Servex.js) calls straight into this. */
-    async close_task({ dir, why } = {}){
+    async close_task({ dir, why, by } = {}){
         if (!dir) return { ok: false, why: "dir is required" };
         const cdir = path.isAbsolute(dir) ? dir : path.join(this.root, dir), file = SessionRecord.log_file(cdir) ?? path.join(cdir, "task.jsonl");
         if (!fs.existsSync(file)) return { ok: false, why: `no task.jsonl at "${dir}"` };
         const at = stamp();
         await this.write_line(file, { assign: { closed_by: "owner", closed_at: at, closed_why: why ?? null } });
-        return { ok: true, dir, closed_at: at };
+        // the guarantee: closing a task stops what it started (Lifecycle.closeout) and says what it could not
+        let out = { ok: true, closed: [], left: [] };
+        try { out = await this.servex.lifecycle.closeout(cdir, { why: why ?? "closed", by }); } catch (e){ out = { ok: false, closed: [], left: [{ kind: "closeout", id: "error", why: String(e.message || e) }] }; }
+        return { ok: out.ok, dir, closed_at: at, closed: out.closed, left: out.left };
     }
 
     /* One append at a time per file — a chase and a close_task landing at the

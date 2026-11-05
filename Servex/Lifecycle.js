@@ -7,7 +7,9 @@
  *                                    direct append when Servex is down). kind: agent task
  *                                    worktree server health browser.
  *   track(kind, id, extra)           a process logs its own start now and its own end on exit.
- *   new Lifecycle().reap(task)       close everything one task owns (on-landing.mjs calls it).
+ *   new Lifecycle().closeout(task)   THE CLOSE: stop everything one task owns, remove its merged worktrees, check again, write one
+ *                                    line, `ok: false` when anything is left (on-landing.mjs, close_task and merge.mjs call it).
+ *   new Lifecycle().reap(task)       its first half: only the processes and idle agents.
  *   new Lifecycle().sweep()          close what a landed / long-dead task still owns, and idle
  *                                    one-pass agents; Servex runs it on the heartbeat tick.
  *
@@ -54,6 +56,14 @@ export function main_repo(){
 		return main_cache = path.resolve(HERE, common, "..");
 	} catch { return main_cache = path.resolve(HERE, ".."); }
 }
+/** The pool slot whose folder holds `dir` (read from the pool's own file, cached 5 s), or null. A path that merely looks like qf-N is not a slot. */
+let pool_cache = { at: 0, slots: [] };
+export function pool_slot(dir){
+	if (!dir) return null;
+	if (Date.now() - pool_cache.at > 5000) { let slots = []; try { slots = JSON.parse(fs.readFileSync(path.join(main_repo(), ".worktree-pool.json"), "utf8")).slots ?? []; } catch {} pool_cache = { at: Date.now(), slots }; }
+	return pool_cache.slots.find(s => inside(dir, s.path)) ?? null;
+}
+
 const ai_dir = () => path.join(main_repo(), "public", "framework", "ai");
 
 /** A task's key: its dir relative to public/framework/ai/ ("2026-09-29/lifecycle/build"). */
@@ -148,8 +158,13 @@ export default class Lifecycle {
 	/** The same list without freezing Servex: the two blocking calls above took 20+ s on a busy machine, long enough to time out every agent's prompt hook (2026-10-23). */
 	async processes_async(){
 		const run = (cmd, args, maxBuffer) => promisify(execFile)(cmd, args, { encoding: "utf8", windowsHide: true, maxBuffer, timeout: 30000 }).then(r => r.stdout, () => "");
-		const [out, ns] = await Promise.all([run("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], 32 << 20), run("netstat", ["-ano", "-p", "TCP"], 8 << 20)]);
-		return this.process_map(out, ns);
+		let map;
+		for (let attempt = 0; attempt < 2; attempt++){   // a busy machine can time the query out; an empty list means it failed (this process itself is a node.exe)
+			const [out, ns] = await Promise.all([run("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], 32 << 20), run("netstat", ["-ano", "-p", "TCP"], 8 << 20)]);
+			map = this.process_map(out, ns);
+			if (map.size) break;
+		}
+		return map;
 	}
 
 	process_map(out, ns){
@@ -199,7 +214,7 @@ export default class Lifecycle {
 		const add = r => { if (r.pid && seen.has(r.pid)) return; if (r.pid) claim(r.pid); rows.push(r); };
 		for (const e of this.open()) if (this.alive(e) && ["server", "health", "browser"].includes(e.kind)) {
 			const top = this.wrapper(procs.get(e.pid));
-			add({ kind: e.kind, id: e.id, pid: top.pid, child: top.pid !== e.pid ? e.pid : null, port: e.port, path: e.path, owner_task: e.owner_task, owner_agent: e.owner_agent, born: Date.parse(e.at), logged: true });
+			add({ kind: e.kind, id: e.id, pid: top.pid, child: top.pid !== e.pid ? e.pid : null, port: e.port, path: e.path, owner_task: e.owner_task, owner_agent: e.owner_agent, launcher: e.launcher, born: Date.parse(e.at), logged: true });
 		}
 		let reg = {}; try { reg = JSON.parse(fs.readFileSync(path.join(main, ".worktrees.json"), "utf8")); } catch {}
 		for (const w of Object.values(reg)) if (this.alive({ pid: w.pid, at: w.created_at }))
@@ -262,7 +277,9 @@ export default class Lifecycle {
 		// itself Servex, the gate or whisper, or started by one of them (3 node/cmd parents up; an agent's bash is never read)
 		for (let p = this.procs?.get(r.pid), i = 0; p && i < 4 && /^(node|cmd)\.exe$/i.test(p.name); p = this.procs.get(p.ppid), i++)
 			if (/Servex[\\/](index|sustain|gate)\.m?js|whisper/i.test(p.cmd)) return "Servex, the gate or whisper owns it";
-		if (r.path && /[\\/]worktrees[\\/]qf-\d+/i.test(r.path)) return "a pool slot (Pool.js looks after it)";
+		// a pool slot's server is Pool.js's; its health watcher and browser are NOT kept while the slot is ready (nobody edits there) or when the slot is not in the pool file at all
+		const slot = pool_slot(r.path);
+		if (slot && (r.kind === "server" || slot.state === "taken")) return "a pool slot (Pool.js looks after it)";
 		// a dev server the owner's phone link points at, until its branch merges (build F, Servex/doc/worktree-preview.md)
 		if (r.path && r.kind === "server"){ const held = WorktreePreview.held(r.path, main_repo()); if (held) return held; }
 		// An unlogged chrome.exe (logged: false, from the Playwright-marker scan above) has no path
@@ -294,6 +311,8 @@ export default class Lifecycle {
 			if (owner && (owner.state === "stopped" || owner.state === "gone") && r.role === "minion") return `idle, and its parent ${owner.id} has stopped`;
 			return null;
 		}
+		// a browser whose launching script is gone is an orphan, wherever it was logged (Server/browser-watchdog.mjs usually closes it first)
+		if (r.kind === "browser" && r.logged && r.launcher && !this.procs?.has(r.launcher)) return `its launcher (pid ${r.launcher}) is gone`;
 		if (r.kind === "browser" && r.logged === false){
 			if (only) return null;   // no owning task to match against — only the sweep ever closes one of these
 			const launcher = this.procs?.get(this.procs.get(r.pid)?.ppid);
@@ -303,6 +322,7 @@ export default class Lifecycle {
 			return null;
 		}
 		if (only) return r.owner_task === only ? `its task ${only} has landed` : null;
+		if ((r.kind === "health" || r.kind === "browser") && pool_slot(r.path)?.state === "ready") return "a ready pool slot holds no browser (started again when the slot is taken)";
 		const t = this.task(r.owner_task), age = r.born ? Date.now() - r.born : 0;
 		if (t?.landed) return `its task ${t.key} has landed`;
 		if (t && Date.now() - t.mtime > DEAD_MS) return `its task ${t.key} has been silent for ${hours(Date.now() - t.mtime)} h`;
@@ -313,6 +333,12 @@ export default class Lifecycle {
 	/** Stop a process tree by its top pid (the wrapper, so nothing respawns), then any child still alive. */
 	kill(r){
 		for (const pid of [r.pid, r.child].filter(Boolean)) try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
+		// the script that launched a browser keeps its folder as its working directory, so it would block the worktree's removal;
+		// a plain `node script.mjs` is closed with its browser; Servex, an agent (claude), a dev server (server.js / run.js, which opens browsers for its own screenshots) and this process never are
+		// never the main checkout's own processes (the dev server's screenshot plugin holds a browser in-process): only a script started inside a worktree or elsewhere
+		const in_main = r.path && path.resolve(String(r.path)).toLowerCase() === path.resolve(main_repo()).toLowerCase();
+		const l = r.kind === "browser" && r.launcher && r.launcher !== process.pid && !in_main ? this.procs?.get(r.launcher) : null;
+		if (l && l.name === "node.exe" && !/Servex[\\/]+(index|sustain)|claude|mcp|vscode|(^|[\\/\s"])(server|run)\.m?js\b/i.test(l.cmd)) try { execFileSync("taskkill", ["/PID", String(r.launcher), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
 	}
 
 	/** One Servex tool, over its door (a CLI run has no Servex in-process). */
@@ -335,12 +361,66 @@ export default class Lifecycle {
 		return rows.map(r => ({ ...r, why: this.why(r, only), keep: this.kept(r) }));
 	}
 
-	/** Close everything task `dir` owns — on-landing.mjs calls this. */
-	async reap(dir, { dry = false } = {}){
+	/** Close the processes and idle agents task `dir` owns. closeout() is the whole close; this is its first half. */
+	async reap(dir, { dry = false, note = true } = {}){
 		const key = task_key(dir), rows = (await this.plan(key)).filter(r => r.why);
 		if (!dry) for (const r of rows) await this.close(r, r.why);
-		if (!dry) await record({ kind: "task", id: key, owner_task: key, event: "end", why: `landed; ${rows.length} resource(s) closed` }, this.servex?.log);
+		if (!dry && note) await record({ kind: "task", id: key, owner_task: key, event: "end", why: `landed; ${rows.length} resource(s) closed` }, this.servex?.log);
 		return rows;
+	}
+
+	/** Worktrees a task made: its own log's `assign.worktree` lines, the hand-made registry, and the creation log's worktree starts. */
+	task_worktrees(dir){
+		const key = task_key(dir), found = new Map(), add = p => { if (p) found.set(norm(p), String(p).replace(/\\/g, "/")); };
+		try {
+			const file = SessionRecord.log_file(path.resolve(main_repo(), dir)) ?? path.join(path.resolve(main_repo(), dir), "task.jsonl");
+			for (const l of fs.readFileSync(file, "utf8").split("\n")) { let a; try { a = JSON.parse(l).assign; } catch { continue; } if (a?.worktree) add(a.worktree); }
+		} catch {}
+		try { for (const w of Object.values(JSON.parse(fs.readFileSync(path.join(main_repo(), ".worktrees.json"), "utf8").replace(/^﻿/, "")))) if (w?.path && task_for_worktree(w.path, main_repo())?.key === key) add(w.path); } catch {}
+		for (const e of this.open()) if (e.kind === "worktree" && e.owner_task === key) add(e.path);
+		return [...found.values()];
+	}
+
+	/**
+	 * THE CLOSE (the owner, 2026-11-04: "all the agent has to do is say task complete, and it automatically triggers the cleanup... if a
+	 * task has been closed, then everything it should have done has happened. That should be part of the code guarantee").
+	 * One node function: stops every process and idle child agent the task owns (registered at start by track(), Browser.mjs,
+	 * worktree-up and the pool, so no agent has to remember), hands back or removes its worktrees when they are merged and clean,
+	 * checks again, and writes ONE `task` end line listing what it closed and what it could not. `ok` is false when anything is left.
+	 * Called by on-landing.mjs, close_task and merge.mjs; `node Servex/Lifecycle.js --closeout <dir>` by hand.
+	 */
+	async closeout(dir, { dry = false, why = "closed", by = null } = {}){
+		const key = task_key(dir), closed = [], left = [];
+		const rows = await this.reap(dir, { dry, note: false });
+		for (const r of rows) closed.push({ kind: r.kind, id: r.id, pid: r.pid ?? null, why: r.why });
+		const { default: Worktrees } = await import("./Worktrees.js");
+		const wts = this.servex?.worktrees ?? new Worktrees({ main: main_repo(), servex: { lifecycle: this, log: this.servex?.log } });
+		for (const p of this.task_worktrees(dir)) {
+			const slot = pool_slot(p);
+			if (slot) {   // a pool slot goes back to the pool, which refuses one with unmerged work
+				if (slot.state !== "taken") continue;
+				if (dry) { closed.push({ kind: "worktree", id: slot.id, why: "would be returned to the pool" }); continue; }
+				try {
+					if (this.servex?.pool) await this.servex.pool.give_back(slot.id, slot.taken_by ?? by);
+					else await this.tool("return_worktree", { id: slot.id });
+					closed.push({ kind: "worktree", id: slot.id, why: "returned to the pool" });
+				} catch (e) { left.push({ kind: "worktree", id: slot.id, why: String(e.message || e).split("\n")[0] }); }
+				continue;
+			}
+			if (!fs.existsSync(p) && !(await wts.list()).some(w => norm(w.path) === norm(p))) continue;   // already gone
+			if (dry) { closed.push({ kind: "worktree", id: path.basename(p), why: "would be removed if merged and clean" }); continue; }
+			const r = await wts.close_now(p);
+			if (r.ok) { if (r.removed) closed.push({ kind: "worktree", id: path.basename(p), why: r.why }); }
+			else left.push({ kind: "worktree", id: path.basename(p), why: r.why });
+		}
+		if (!dry) {   // look again: anything the task still owns is reported, not assumed gone
+			this.tasks = new Map();
+			const again = await this.plan(key);
+			if (!this.procs?.size) left.push({ kind: "process-list", id: "processes", why: "the process list could not be read, so nothing was verified; run the close again" });
+			for (const r of again.filter(r => r.why || (r.owner_task === key && /is working there/.test(r.keep ?? "")))) left.push({ kind: r.kind, id: r.id, pid: r.pid ?? null, why: r.why ?? r.keep });
+			await record({ kind: "task", id: key, owner_task: key, event: "end", why: `${why}; ${closed.length} closed, ${left.length} left`, closed, left }, this.servex?.log);
+		}
+		return { ok: left.length === 0, key, closed, left };
 	}
 
 	/** The heartbeat's sweep: close what a landed / dead task still owns, end the log lines of what already died, reclaim dead pool holders. */
@@ -400,6 +480,11 @@ if (path.resolve(process.argv[1] || "") === fileURLToPath(import.meta.url)) {
 		if (!slot) { console.log(`no pool slot ${id}`); process.exit(1); }
 		if (dry) console.log(`would stop pid ${slot.watcher_pid} and ${slot.server_pid}, then salvage ${slot.path} (held by ${slot.taken_by})`);
 		else console.log((await pool.salvage(slot, slot.taken_by)).what);
+	} else if (argv.includes("--closeout")) {
+		const r = await lc.closeout(argv[argv.indexOf("--closeout") + 1], { dry });
+		console.log(`closeout ${r.key}: ${r.ok ? "clean" : "NOT CLEAN"} — ${r.closed.length} ${dry ? "would close" : "closed"}, ${r.left.length} left`);
+		r.closed.forEach(c => console.log(`  closed ${c.kind} ${c.id}: ${c.why}`)); r.left.forEach(c => console.log(`  LEFT   ${c.kind} ${c.id}: ${c.why}`));
+		process.exit(r.ok ? 0 : 1);
 	} else if (argv.includes("--reap")) {
 		const rows = await lc.reap(argv[argv.indexOf("--reap") + 1], { dry });
 		console.log(`lifecycle reap: ${rows.length} ${dry ? "would close" : "closed"}`); rows.forEach(r => console.log(show(r)));

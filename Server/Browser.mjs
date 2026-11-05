@@ -16,10 +16,10 @@
  *
  * The named exports `browser`, `close`, `pid` at the bottom are one-line aliases kept for the ~35 existing callers.
  */
-import { execSync } from "node:child_process";
+import { execSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { pathToFileURL, fileURLToPath } from "node:url";
 
 export default class Browser {
 	static chromium_promise;
@@ -113,8 +113,12 @@ export default class Browser {
 			const m = await import("../Servex/Lifecycle.js");
 			const pid = await this.real_pid(b);
 			if (this.current === b) this.current_pid = pid;
-			const base = { kind: "browser", id: `browser:${pid ?? Date.now()}`, pid, path: process.cwd(), owner_task: m.owner_task(), owner_agent: process.env.LEW_AGENT || null, script: this.launch_tag() };
+			const base = { kind: "browser", id: `browser:${pid ?? Date.now()}`, pid, launcher: process.pid, path: process.cwd(), owner_task: m.owner_task(), owner_agent: process.env.LEW_AGENT || null, script: this.launch_tag() };
 			m.record({ ...base, event: "start" });
+			// a separate process that closes the browser if THIS one is killed hard (no `exit` hook runs then)
+			if (pid && process.env.LEW_NO_BROWSER_WATCHDOG !== "1") try {
+				spawn(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), "browser-watchdog.mjs"), String(process.pid), String(pid)], { detached: true, stdio: "ignore", windowsHide: true }).unref();
+			} catch {}
 			b.on("disconnected", () => m.record({ ...base, event: "end", why: "browser closed" }));
 		} catch {}
 	}

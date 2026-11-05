@@ -1,6 +1,50 @@
-# The process monitor, orphans, and worktree clean-up
+# Processes: closing a task, the monitor, orphans, and worktree clean-up
 
-**What it answers:** how much RAM and CPU is ours, how much belongs to everything else, which task uses how much, and what was left behind.
+**What it answers:** what a task started and how closing the task stops all of it by code; how much RAM and CPU is ours, how much belongs to everything else, which task uses how much, and what was left behind.
+
+## Closing a task leaves nothing behind (2026-11-04, the owner: "if a task has been closed, then everything it should have done has happened")
+
+The guarantee is code, not an agent remembering. Two halves.
+
+**1. Everything is registered where it starts** (`Lifecycle.record()`, written through Servex's `lifecycle` log, `%LOCALAPPDATA%/lew42/servex/logs/lifecycle.jsonl`; a start line carries `owner_task` and `owner_agent`, taken from the environment or the working directory):
+
+| started by | line kind | written by |
+|---|---|---|
+| a dev server, a health supervisor | `server` (`Server/run.js`), `health` (`Server/health-supervisor.mjs`) | `track()` in `Lifecycle.js`, called by the script itself |
+| a Playwright Chromium | `browser`, with `launcher` = the node pid that opened it | `Server/Browser.mjs` |
+| a worktree | `worktree` | `Server/worktree-up.mjs` (`owner_task` = the `--task` dir, else the caller's task), and the pool's `take`/`give_back` for `qf-*` slots |
+| a child agent | `agent` | Lifecycle's own agent hooks (start and end of every Servex agent) |
+
+Not registered yet: tunnels, whisper-server and the recite python process (the idle-timeout work, an open improvement).
+
+**2. Closing runs one function**, `Lifecycle.closeout(dir, {why, by})`, which `close_task` (MCP → `TaskLoop.close_task`), `Server/on-landing.mjs` and `Server/merge.mjs` (after a full landing, through `Worktrees.close_now`) all call. By hand: `node Servex/Lifecycle.js --closeout <task dir> [--dry]`. It:
+
+1. closes every process and idle child agent the task owns (`reap`);
+2. for each worktree the task made (its `assign.worktree` lines, `.worktrees.json`, the creation log): a pool slot (`qf-*`) goes back to the pool; any other is stopped, then removed from git AND from disk by `Worktrees.close_now` when its branch is merged and holds nothing real. A folder git no longer lists is moved aside to `<worktrees>/../moved-aside/worktree-residue/`, never deleted. An unmerged or dirty worktree is kept and reported;
+3. looks again at the live process list; anything still owned by the task is `left`;
+4. writes ONE `task`/`end` line `{closed: […], left: […]}` and returns `{ok, closed, left}`. `ok` is false when anything is left, so a close never claims what did not happen.
+
+**When nobody closes it** the sweep catches the rest. `Servex.reaper()` runs `Lifecycle.sweep()` on every heartbeat and always appends one `lifecycle-sweep` line to the `servex` log (what it closed, what it found gone, what it kept). Its rules (`Lifecycle.why()`): a task that landed or whose agent is dead owns nothing; a logged browser whose `launcher` pid is gone is closed; a ready pool slot holds no browser or health watcher (`kept()` checks the slot's pool file, not the `qf-N` path); a worktree folder git does not list is moved aside by the 10-minute `Worktrees.tick`.
+
+**A browser cannot outlive its launcher.** `Server/Browser.mjs` starts `Server/browser-watchdog.mjs <launcher pid> <chrome pid>` detached; it kills Chromium the moment the launcher is gone, even after a hard kill that skips `process.on("exit")`. `LEW_NO_BROWSER_WATCHDOG=1` turns it off (the test does, to prove the sweep rule alone). Closing a browser also ends its launcher (`Lifecycle.kill`), so a script that held the browser cannot keep a worktree folder locked; a launcher that looks like Servex, claude, an MCP server or VS Code is never killed.
+
+**A failed process listing is not an empty one.** `processes_async` asks PowerShell for every process (30 s limit) and retries once on an empty answer; if the list is still empty, `closeout` returns `left: [{kind: "process-list"}]` and `ok: false` instead of claiming everything closed.
+
+**New work is gated on commit charge.** `Global.admit` refuses a spawn when the machine's commit charge is at `SERVEX_COMMIT_HIGH_PCT` (default 80: only masterminds and children of a live parent get in) or `SERVEX_COMMIT_FULL_PCT` (default 90: nothing new), on top of the working cap and `SERVEX_MIN_FREE_MB` (default 1024). See "The commit charge" below.
+
+**Machine-written files never block a return.** `Pool.generated()` treats a modified tracked `*.jsonl` and the named server logs as machine-written: `give_back` sets them aside as a patch in `.worktree-logs/` and restores them, so the slot is returned. A NEW `.jsonl` or any source file is real work and still blocks the return, by name.
+
+**Hand-started worktree servers back off.** `worktree-sweep.mjs` retries a failing `worktree-down` with a doubling wait (state in `worktree-sweep-fails.json` in the Servex state folder, cap 6 h) instead of every pass, and posts one `risk` owner note on the 5th failure.
+
+**A worktree someone still works in is kept.** `Worktrees.close_now` refuses to remove a folder while a live agent, a not-yet-ended agent in the lifecycle records, or the calling process has its working directory inside it (on Windows that would delete the files and leave the folder, with the agent in a gutted checkout). The close reports it as `left`, and the sweep removes the worktree once that agent stops.
+
+**A close with `left` does not undo a landing.** By then the merge is done, so refusing would help nothing: `on-landing` writes the `LEFT: ...` line, `closeout` returns `ok: false`, and `Lifecycle.sweep()` keeps retrying every heartbeat. Closing a browser also ends its launcher script, but never when the browser was started from the main checkout itself (the dev server's screenshot plugin holds one in-process).
+
+**Is the live sweep running?** Yes. The empty process list under load was the cause of 'it closed nothing': it is now retried once and reported as `left` (above), and every sweep appends a `lifecycle-sweep` line to the `servex` log, so a quiet sweep is visible.
+
+**The proof is a test you can rerun:** `node Servex/closeout.test.mjs` (one to two minutes, needs global Playwright, uses a temp `SERVEX_HOME` and port 18999 so the live Servex is untouched). It starts a real server, a real Chromium and a real git worktree under a task, plus a server in a leftover folder git does not list; closes the task; and asserts from the OS process list, `git worktree list` and the disk that none remain. Then: an unmerged worktree is kept and reported; a launcher killed hard has its browser closed by the watchdog; with the watchdog off the sweep finds the orphan; machine-written logs do not block a return. Every artifact it makes is removed at the end, and debris of an earlier run that died first (`closeout-test-*` worktrees and branches) is removed when it starts. `closeout.fixture.mjs` is the small server/browser/orphan program the test launches.
+
+## The process monitor
 
 Every 10 seconds Servex reads every process on the machine. It sorts each one into a group:
 

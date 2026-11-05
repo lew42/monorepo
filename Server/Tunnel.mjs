@@ -39,6 +39,7 @@ export default class Tunnel {
         const s = this.state();
         if (s && this.alive(s.pid)) return console.log("already up (URL in remote.url)");
         fs.mkdirSync(Tunnel.DIR, { recursive: true });
+        fs.writeFileSync(this.state_file, JSON.stringify({ pid: process.pid, child: null, port: null, at: new Date().toISOString() }));   // claim the name now: the keeper checks every 60 s and the URL takes up to 90 s, so without this a second cloudflared starts
         const gw = this.gateway();
         const named = this.named_token();   // present = permanent hostname (TunnelNamed.mjs setup); absent = quick tunnel
         gw.on("error", e => { console.error("gateway port busy: " + e.message); process.exit(1); });

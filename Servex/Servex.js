@@ -69,6 +69,10 @@ import DatedFiles from "../Server/DatedFiles.mjs";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
 const SKIP = new Set(["node_modules", "dist", "build", "coverage"]);
+/* A linked git worktree has a `.git` FILE ("gitdir: ..."); a real checkout has a `.git` folder. */
+function is_linked_worktree(dir){
+    try { return fs.statSync(path.join(dir, ".git")).isFile(); } catch { return false; }
+}
 
 const INSTRUCTIONS = `Servex is the always-on process on this machine. It supervises dev servers`
     + ` (and whisper-server), owns every log file as the single writer, and answers here.`
@@ -388,6 +392,7 @@ export default class Servex extends Events {
         for (const entry of entries){
             if (!entry.isDirectory() || entry.name.startsWith(".") || SKIP.has(entry.name)) continue;
             const child = path.join(dir, entry.name);
+            if (is_linked_worktree(child)) continue;   // a git worktree is a checkout of a project, never a project: one found here came back after every kill (2026-11-04)
 
             if (fs.existsSync(path.join(child, "package.json"))) this.add(child);
             else if (depth > 1) this.scan(child, depth - 1);
@@ -1122,10 +1127,12 @@ export default class Servex extends Events {
         /* The task loop's own two tools (Servex/doc/task-loop.md). */
         this.mcp.tool("close_task", {
             description: "The only way a task leaves the task loop besides landing. Appends {closed_by: \"owner\","
-                + " closed_at, closed_why} to its task.jsonl; the loop then never chases or escalates it again.",
+                + " closed_at, closed_why} to its task.jsonl; the loop then never chases or escalates it again. It also runs the close-out: stops every server,"
+                + " health watcher, browser and idle agent the task started, returns or removes its worktrees, and answers {ok, closed:[…], left:[…]}; ok is false if anything is left.",
             inputSchema: { type: "object", required: ["dir"], properties: {
                 dir: { type: "string", description: "The task's directory, e.g. `public/framework/ai/2026-09-28/my-task` — repo-relative or absolute." },
-                why: { type: "string", description: "One line: why it is being closed without landing." }
+                why: { type: "string", description: "One line: why it is being closed without landing." },
+                by: { type: "string", description: "Your agent id (a pool slot you hold is returned under it)." }
             } }
         }, async args => JSON.stringify(await this.task_loop.close_task(args)));
 
@@ -1574,6 +1581,7 @@ export default class Servex extends Events {
             last = Date.now();
             const dry = !!process.env.SERVEX_REAPER_DRY;
             const mine = this.reaping = this.lifecycle.sweep({ dry })
+                .then(r => { this.log.append("servex", { type: "lifecycle-sweep", dry, closed: r.close.length, gone: r.gone.length, kept: r.kept.length }).catch(() => {}); return r; })   // every sweep leaves a line, even an empty one
                 .then(({ close, gone }) => (close.length || gone.length) && this.say(`lifecycle${dry ? " (dry)" : ""}: ${dry ? "would close" : "closed"} ${close.map(r => `${r.kind} ${r.id} (${r.why})`).join("; ") || "nothing"}; ${gone.length} dead log line(s) ended`))
                 .catch(e => this.say(`lifecycle: sweep failed: ${e.message || e}`))
                 .finally(() => { if (this.reaping === mine) this.reaping = null; });

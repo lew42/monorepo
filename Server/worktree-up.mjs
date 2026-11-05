@@ -216,7 +216,7 @@ try {
 		fs.mkdirSync(dir, { recursive: true });
 		fs.appendFileSync(SessionRecord.log_or_old(dir), JSON.stringify({ assign: { worktree: target, branch } }) + "\n");
 	}
-	await lc.record({ kind: "worktree", id: name, path: target, port, pid: child.pid, owner_task: task_arg ? lc.task_key(task_arg) : null, owner_agent: process.env.LEW_AGENT || null, event: "start" });
+	await lc.record({ kind: "worktree", id: name, path: target, port, pid: child.pid, owner_task: task_arg ? lc.task_key(task_arg) : lc.owner_task(), owner_agent: process.env.LEW_AGENT || null, event: "start" });   // no --task: LEW_TASK, else the task that names this worktree, so the close-out always finds it
 } catch {}
 
 /* Servex is optional, always — a worktree must work with it stopped, so this

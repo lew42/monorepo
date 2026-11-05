@@ -85,7 +85,7 @@ export default class Global {
 			// more direct measurement of resume overhead alone ever crosses 3 s, raise this.
 			// Detail and the raw numbers: doc/dormant.md.
 			grace_ms: env("SERVEX_DORMANT_GRACE_MS", 0), dormant_freed_mb: 0,
-			measure_every_ms: env("SERVEX_MEASURE_EVERY_MS", 5 * 60000), last_measure: 0, cap: env("SERVEX_AGENT_CAP", 30), min_free_mb: env("SERVEX_MIN_FREE_MB", 1024),
+			measure_every_ms: env("SERVEX_MEASURE_EVERY_MS", 5 * 60000), last_measure: 0, cap: env("SERVEX_AGENT_CAP", 30), min_free_mb: env("SERVEX_MIN_FREE_MB", 1024), commit_high: env("SERVEX_COMMIT_HIGH_PCT", 80), commit_full: env("SERVEX_COMMIT_FULL_PCT", 90),
 			pending: [], timer: null, last_sent: 0, touched: new Map(), idle_seen: new Map(), ready: null };
 	}
 
@@ -407,7 +407,13 @@ export default class Global {
 		checks.push(spec => this.admit(spec));
 	}
 
-	admit(spec = {}, free_mb = os.freemem() / 1048576){
+	/* The machine's commit charge as a percent of its limit (RAM plus pagefile), from the process monitor; null before its first reading. */
+	commit_pct(){
+		const p = this.servex?.procmon;
+		return p?.commit_mb && p?.commit_limit_mb ? 100 * p.commit_mb / p.commit_limit_mb : null;
+	}
+
+	admit(spec = {}, free_mb = os.freemem() / 1048576, commit_pct = this.commit_pct()){
 		/* ALWAYS ON (the owner, 2026-10-02): "the Servex mastermind should always stay
 		 * on… we can't afford to have it go down… just force it." The holder
 		 * (mastermind-servex or mastermind-servex-N) skips every gate: memory, the
@@ -417,6 +423,13 @@ export default class Global {
 		/* THE WORKING CAP (Agents.working). A resume is a wake that must deliver its
 		 * message, and the front desk answers the owner: neither is held by it. */
 		const wake = !!spec.resume && !spec.fork, desk = DESK.test(spec.role ?? "") || STANDING.test(spec.id ?? "");
+		/* THE COMMIT GATE (the owner, 2026-11-04: the machine thrashes on commit charge, not free RAM). From `commit_high` percent
+		 * only a mastermind (or a child of a live parent, so parents never starve) is admitted; from `commit_full` nothing new is. */
+		if (!wake && !desk && commit_pct != null){
+			const parent = spec.parent && this.agents.live.get(spec.parent);
+			if (commit_pct >= this.commit_full) return `commit charge is ${Math.round(commit_pct)}% (limit ${this.commit_full}%): no new agents until it falls`;
+			if (commit_pct >= this.commit_high && spec.role !== "mastermind" && !(parent && parent.state !== "stopped")) return `commit charge is ${Math.round(commit_pct)}% (above ${this.commit_high}%): only masterminds and their children start until it falls`;
+		}
 		if (!wake && !desk && this.agents.working){
 			const working = this.agents.working().length, cap = this.agents.working_cap;
 			if (working >= cap) return `working ${working}/${cap}: waits for a working agent to end its turn`;
