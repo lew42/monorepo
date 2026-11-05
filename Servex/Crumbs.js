@@ -2,6 +2,7 @@ import fs from "node:fs";
 import cp from "node:child_process";
 import { syncBuiltinESMExports } from "node:module";
 import { Worker, isMainThread } from "node:worker_threads";
+import { promisify } from "node:util";
 import { place } from "./home.js";
 
 /* BREADCRUMBS — the last thing Servex did before a native fast-fail kills it with no stack, no report, no event.
@@ -47,6 +48,7 @@ export default class Crumbs {
 				Crumbs.drop(`${name} len=${shown.length} ${shown.slice(0, 120)}`);
 				return real.apply(this, args);
 			};
+			if (real[promisify.custom]) cp[name][promisify.custom] = real[promisify.custom];   // without it promisify(execFile) resolves a bare string and every `.stdout` is undefined (the empty process list inside Servex, 2026-11-05)
 		}
 		const watch = fs.watch;
 		fs.watch = function(target, ...rest){
