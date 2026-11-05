@@ -7,6 +7,9 @@
 //   .home(id, day, name)           of(id), else where a new one goes: <day>/<name or session-<id8>> (the full uuid when another id holds session-<id8>). Not made.
 //   .all(id)                       every folder that holds the id, the home first (more than one is a twin)
 //   .twins()                       [{id, home, others}] for every id held by more than one folder
+//   .record_of(id)                 the folder that holds the session's RECORD (session.jsonl / task.jsonl): a spawned agent's record sits inside its parent's folder
+//                                  (claimed with .claim), else of(id). The day-level folder of(id) is still where the indexer writes index.json
+//   .claim(id, dir)                register a record folder nested below a day's folder (Agents.open_task does, .adopt_nested() backfills)
 //   SessionFolders.owner(dir)      the id a folder says it holds (the claim rule below), or null
 //
 // Why it exists (2026-11-01): five finders each had their own rule and their own cache. One knew only <uuid> and session-<id8> names,
@@ -56,6 +59,7 @@ export default class SessionFolders {
 		this.root = root;
 		this.days = new Map();   // "YYYY/MM/DD" -> { mt: the day folder's mtime when read, names: Map(folder name -> id, or null when it names none) }
 		this.ids = new Map();    // id -> Set of "YYYY/MM/DD/<name>"
+		this.nested = new Map(); // id -> "YYYY/MM/DD/<parent>/<child>" of a record folder nested inside another session's folder (claim)
 		this.quiet = new Map();  // "YYYY/MM/DD/<name>" of a folder that names no id -> its mtime when read (a claim arrives as a new file, which moves it)
 		this.file = path.join(root, "session-folders.json");   // what was read, so a one-shot process (the SessionStart hook, TaskDirs --new) need not read every folder again
 	}
@@ -87,6 +91,34 @@ export default class SessionFolders {
 		return this;
 	}
 
+	/** Register a record folder that sits below a day's folder (`<day>/<parent>/<child>`): the folder names its id on line 1 (owner()). Returns true when stored. */
+	claim(id, dir){
+		dir = path.resolve(dir);
+		const rel = path.relative(this.root, dir).split(path.sep).join("/");
+		if (!UUID.test(id ?? "") || rel.startsWith("..") || rel.split("/").length < 5 || SessionFolders.owner(dir) !== id) return false;
+		if (this.nested.get(id) === rel) return true;
+		this.nested.set(id, rel); this.save(); return true;
+	}
+
+	/** Claim every record folder one level below a session folder (a day's folder entry), the backfill for sessions spawned before claim() existed. Returns how many are new. */
+	adopt_nested(){
+		let n = 0; this.refresh();
+		for (const y of dirs(this.root)) if (/^\d{4}$/.test(y)) for (const m of dirs(path.join(this.root, y))) for (const d of dirs(path.join(this.root, y, m)))
+			for (const name of dirs(path.join(this.root, y, m, d))) for (const sub of dirs(path.join(this.root, y, m, d, name))){
+				const dir = path.join(this.root, y, m, d, name, sub), id = SessionFolders.owner(dir);
+				if (id && SessionFolders.owner(this.nested.has(id) ? path.join(this.root, ...this.nested.get(id).split("/")) : "") !== id && ["session.jsonl", "task.jsonl"].some(f => fs.existsSync(path.join(dir, f))) && this.claim(id, dir)) n++;
+			}
+		return n;
+	}
+
+	/** The folder that holds the session's record: its claimed nested folder when that is still on disk and still names the id, else of(id). */
+	record_of(id){
+		if (!this.days.size && !this.nested.size) this.load();
+		const rel = this.nested.get(id), dir = rel && path.join(this.root, ...rel.split("/"));
+		if (dir && SessionFolders.owner(dir) === id) return dir;
+		return this.of(id);
+	}
+
 	/** The saved map (session-folders.json, gitignored machine state). Only a starting point: refresh() checks it against the folders. */
 	load(){
 		let j = null; try { j = JSON.parse(fs.readFileSync(this.file, "utf8")); } catch { return; }
@@ -97,11 +129,12 @@ export default class SessionFolders {
 			for (const [name, id] of rec.names) if (id) (this.ids.get(id) ?? this.ids.set(id, new Set()).get(id)).add(`${day}/${name}`);
 		}
 		for (const [key, mt] of Object.entries(j.quiet ?? {})) this.quiet.set(key, mt);
+		for (const [id, rel] of Object.entries(j.nested ?? {})) this.nested.set(id, rel);
 	}
 	save(){
 		const days = {}; for (const [day, rec] of this.days) days[day] = { mt: rec.mt, names: Object.fromEntries(rec.names) };
 		const tmp = `${this.file}.tmp-${process.pid}`;   // ".tmp-" is the name Server/watch.js ignores
-		try { fs.writeFileSync(tmp, JSON.stringify({ v: 1, at: new Date().toISOString(), days, quiet: Object.fromEntries(this.quiet) })); fs.renameSync(tmp, this.file); }
+		try { fs.writeFileSync(tmp, JSON.stringify({ v: 1, at: new Date().toISOString(), days, quiet: Object.fromEntries(this.quiet), nested: Object.fromEntries(this.nested) })); fs.renameSync(tmp, this.file); }
 		catch { try { fs.rmSync(tmp, { force: true }); } catch {} }   // a cache: another process writing it at the same moment is fine
 	}
 

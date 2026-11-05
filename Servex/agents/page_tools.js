@@ -11,6 +11,8 @@ import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
 import ChatWriter from "./ChatWriter.js";
 import LogLine from "../../Server/LogLine.mjs";
 import { note_view } from "../../public/framework/ext/Chat/v3/placement.js";
+import Registry from "./Registry.js";
+import SessionFolders from "../../public/framework/core/Session/SessionFolders.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..");
@@ -114,6 +116,21 @@ async function resolve(url, target = [], item = false){
 	return file ? { file, target: target ?? [] } : null;
 }
 
+/* The record file behind a url that names a task or session: a session ROUTE (/framework/ai/sessions/<uuid or agent id>/) goes through
+ * SessionFolders.record_of (the one finder, nested record folders included), so the dated folder is found wherever it sits; every other
+ * url is the plain path. A handoff's `from` is the spawner's session route, which resolve_file alone cannot read (it looked for a folder
+ * named for the uuid and found none). Sync, so spawn() can read a task's origin before the move. */
+export function record_file(url){
+	const hit = SESSION_ROUTE.exec(String(url ?? ""));
+	if (hit && !/^d{4}$/.test(hit[1]) && !fs.existsSync(path.resolve(PUBLIC, "framework/ai/sessions", hit[1]))){
+		let uuid = UUID.test(hit[1]) ? hit[1] : null;
+		if (!uuid) try { uuid = new Registry().read()[hit[1]]?.session_id ?? null; } catch {}
+		const dir = uuid && SessionFolders.at(path.join(PUBLIC, "framework/ai/sessions")).record_of(uuid);
+		return dir ? resolve_file(app_path(dir), true) : null;
+	}
+	return resolve_file(url, true);
+}
+
 // The nearest real name to a typed one, as "; did you mean …?" or ".". A one-character drift is distance 1.
 function distance(a, b){
 	const d = Array.from({ length: b.length + 1 }, (_, j) => j);
@@ -146,6 +163,9 @@ async function session_file(id){
 		else name = Object.entries(agents).find(([, a]) => a?.session_id === uuid)?.[0] ?? null;
 	} catch {}
 	if (!uuid) return { why: `no session or Servex agent is called "${id}", so nothing was created${nearest(id, Object.keys(agents))} ${OMIT}` };
+	// A spawned agent's record sits inside its parent's folder (SessionFolders.claim): that folder, not the thin day-level one, is where its tasks and log live.
+	const folders = SessionFolders.at(path.join(PUBLIC, "framework/ai/sessions")), rec = folders.record_of(uuid);
+	if (rec && rec !== folders.of(uuid) && ["session.jsonl", "task.jsonl"].some(f => fs.existsSync(path.join(rec, f)))) return path.join(rec, "page.jsonl");
 	const slug = /^[a-z0-9][a-z0-9-]{2,60}$/.test(name ?? "") ? `${name}-${uuid.slice(0, 8)}` : undefined;
 	const { default: AISession } = await import("../../public/framework/ai/AISession/AISession.js");
 	if (!AISession.days.has(uuid)) AISession.scanned = false;   // a long-lived Servex: a folder made since the last scan must be found, never doubled
@@ -687,7 +707,7 @@ export async function move_nested_home(record, id, module, by = "PromptTasks"){
  * Returns {from, to, file} or {why}. Callers: the item tool's `move` key, open_task (handoff), move_nested_home. */
 // `entry` ({type, spawn}, a spawn's handoff): the reference left behind is the Session entry, so the subtask is upgraded in place.
 export async function move_item({ from, id, to, by = "agent", module, entry = null } = {}){
-	const pf = resolve_file(from, true), dir = typeof to === "string" ? path.resolve(PUBLIC, to.replace(/^[\\/]+/, "")) : null;
+	const pf = record_file(from), dir = typeof to === "string" ? path.resolve(PUBLIC, to.replace(/^[\\/]+/, "")) : null;
 	if (!pf || !fs.existsSync(pf)) return { why: `no record at ${from}` };
 	if (!dir || !dir.startsWith(PUBLIC + path.sep)) return { why: `"${to}" is not a folder under public/` };
 	const kind = path.basename(pf) === "session.jsonl" ? "Session" : class_of(pf);   // Session, not Task: it reads the owner's {decide} lines, which change a child without naming it
@@ -742,7 +762,7 @@ export async function move_item({ from, id, to, by = "agent", module, entry = nu
  * when `id` is never addressed. Called before a handoff moves the task (Agents.js spawn()), so Servex's own first-turn line can
  * quote the owner's words instead of only a path. */
 export function task_origin(from, id){
-	const pf = resolve_file(from, true);
+	const pf = record_file(from);
 	if (!pf || !fs.existsSync(pf)) return null;
 	let out = null;
 	for (const l of parse_lines(pf)){

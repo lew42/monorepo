@@ -2,6 +2,7 @@ import { query, getSessionInfo, getSessionMessages } from "@anthropic-ai/claude-
 import SessionRecord from "../../Server/SessionRecord.mjs";
 import LogLine from "../../Server/LogLine.mjs";
 import ChildLinks from "../../Server/ChildLinks.mjs";
+import SessionFolders from "../../public/framework/core/Session/SessionFolders.mjs";
 import fs from "node:fs";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -1120,6 +1121,8 @@ export function open_task(task, { session_id, agent, role, by, model, effort = n
 		model, effort: effort ?? undefined, role_readme: role_readme ?? undefined, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
 	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
 	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
+	// A record folder nested inside its parent (not a direct child of a day) is found by its session id only through a claim (SessionFolders.record_of).
+	if (session_id) try { SessionFolders.at(path.join(process.cwd(), "public/framework/ai/sessions")).claim(session_id, dir); } catch (e){ console.warn("session folder claim failed for", dir, e); }
 	// A task folder under a session or another task counts as its task: the parent's log gets one {"task":"<url>"} reference (never twice).
 	// A handoff (`task: {from, id}`) is referenced by move_item's own `as` line; a second plain one would replay as a twin child, so link only without a handoff (or when it is refused, below).
 	/* THE SESSION ENTRY (core/Session/readme.md, "Session entries"): the reference is {"task":url,"type":"Session","spawn":{…}}, nested under
