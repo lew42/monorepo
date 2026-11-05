@@ -146,7 +146,7 @@ export class TaskJSONL extends JSONL {
 	task = null;
 
 	skip(verb, entry){
-		if (this.task?.find(verb)){ this.skipped.push(entry); return; }
+		if (this.task?.find?.(verb)){ this.skipped.push(entry); return; }
 		super.skip(verb, entry);
 	}
 

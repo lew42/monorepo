@@ -82,7 +82,7 @@ export class Needs {
 				owner: ask.owner,
 				// A card to open when there is one; otherwise the ledger's own page, filtered to
 				// exactly this row's group, so the row is never a dead click.
-				url: ask.card ? "/framework/ai2/" + ask.card + "/" : "/framework/ai/asks/?status=stalled",
+				url: ask.card ? "/framework/ai/" + ask.card + "/" : "/framework/ai/asks/?status=stalled",
 				words: ask.words,
 				words_url: Needs.words_url(ask.words),
 				control: null,
@@ -115,7 +115,7 @@ export class Needs {
 		const rows = await Promise.all(live.map(async c => {
 			const text = await Needs.read_text(CardDir.url(c.id) + "page.jsonl");
 			if (!text) return [];
-			return NeedsRule.card_needs(c.id, Fold.parse_lines(text), c).map(n => ({ ...n, url: "/framework/ai2/" + c.id + "/" }));
+			return NeedsRule.card_needs(c.id, Fold.parse_lines(text), c).map(n => ({ ...n, url: "/framework/ai/" + c.id + "/" }));
 		}));
 		return rows.flat();
 	}
@@ -128,7 +128,7 @@ export class Needs {
 		try {
 			const res = await servex_fetch(servex_base() + "/waiting");
 			const rows = res.ok ? await res.json() : null;
-			return Array.isArray(rows) ? rows.map(n => ({ ...n, url: "/framework/ai2/" + n.card + "/" })) : null;
+			return Array.isArray(rows) ? rows.map(n => ({ ...n, url: "/framework/ai/" + n.card + "/" })) : null;
 		} catch { return null; }
 	}
 

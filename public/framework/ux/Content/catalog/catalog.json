@@ -1652,7 +1652,7 @@
   },
   "notes": "A Page pretending to be a card. · Needs a loaded task log (asks(m, base, to_prompt, redraw)); not drawn standalone. Click opens .ai-ask-sheet under it. · Spans the full grid row (.ai-ask-detail grid-column 1 / -1). · Scrolls itself (overflow-y auto).",
   "sheets": [
-   "/framework/ai2/ai2.css"
+   "/framework/ai/archive/ai2/ai2.css"
   ]
  },
  {
@@ -2324,7 +2324,7 @@
   },
   "notes": " · The site's main duplication: the same card as task card, inbox row, v3 tile and ask card. · Third one-line-row style in this realm; a bare div.c built outside its parent has once drawn into the page root (comment at overview.js:82).",
   "sheets": [
-   "/framework/ai2/ai2.css"
+   "/framework/ai/archive/ai2/ai2.css"
   ]
  },
  {
@@ -2605,7 +2605,7 @@
   },
   "notes": "Needs sub_rows(entries) from inbox.js. · A details element wearing a card ground.",
   "sheets": [
-   "/framework/ai2/ai2.css"
+   "/framework/ai/archive/ai2/ai2.css"
   ]
  },
  {
@@ -2646,7 +2646,7 @@
   },
   "notes": "",
   "sheets": [
-   "/framework/ai2/ai2.css"
+   "/framework/ai/archive/ai2/ai2.css"
   ]
  },
  {
@@ -2685,7 +2685,7 @@
   },
   "notes": "Three separate left-border quotes with different colors and paddings.",
   "sheets": [
-   "/framework/ai2/ai2.css"
+   "/framework/ai/archive/ai2/ai2.css"
   ]
  },
  {
@@ -2747,7 +2747,7 @@
   },
   "notes": "Built by a streaming function; needs a live source, not standalone. · Own size variable --size; padding is in rem, not the framework's --pad.",
   "sheets": [
-   "/framework/ai2/ai2.css"
+   "/framework/ai/archive/ai2/ai2.css"
   ]
  },
  {
@@ -2790,7 +2790,7 @@
   },
   "notes": "",
   "sheets": [
-   "/framework/ai2/ai2.css"
+   "/framework/ai/archive/ai2/ai2.css"
   ]
  },
  {
@@ -2845,7 +2845,7 @@
   },
   "notes": "Needs speech and a servex stream, so not standalone. A twin of v3's composer (ai/v/3/compose.js:37). · Twin of ai2/compose.js.",
   "sheets": [
-   "/framework/ai2/ai2.css"
+   "/framework/ai/archive/ai2/ai2.css"
   ]
  },
  {

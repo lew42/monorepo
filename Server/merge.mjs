@@ -23,7 +23,7 @@
  * IT FINDS THE CHANGED PAGES ITSELF (2026-09-28, smoke-links): every `page.js`/`page.jsonl` the
  * branch touches that still exists on the branch (skipping deleted/moved originals), from `git diff
  * --name-only BASE...branch`, is turned into that page's own site url (`pageUrlFor()` below — a card
- * folder under `public/framework/ai/YYYY/MM/DD/…` maps to `/framework/ai2/YYYY/MM/DD/…`; anything
+ * folder under `public/framework/ai/YYYY/MM/DD/…` maps to `/framework/ai/YYYY/MM/DD/…`; anything
  * else's url is just the directory holding the page.js) and handed to `smoke.mjs` alongside any
  * paths given by hand — which now also FOLLOWS every link on each page it loads, one level deep. Why:
  * 7 concept-tile links shipped 404ing because nothing had ever clicked them — not the landing
@@ -96,7 +96,7 @@ const asked = flag("--asked");
 const mergeStart = Date.now();
 const [dirArg, ...paths] = argv;
 if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--skip-tests] [--dry-run] [--quick [--asked <iso>]]"); process.exit(1); }
-// Git Bash rewrites "/framework/ai2/" into "C:/Program Files/Git/framework/ai2/"; the smoke run then
+// Git Bash rewrites "/framework/ai/" into "C:/Program Files/Git/framework/ai/"; the smoke run then
 // hunts for it while holding everyone's merge lock (node-reliability, 2026-09-30). Refuse before the lock.
 const mangled = [...paths, mainArg ?? ""].find(p => /Program Files[\\/]Git[\\/]/i.test(p));
 if (mangled) { console.error(`refused: "${mangled}" was rewritten by Git Bash. Rerun as MSYS_NO_PATHCONV=1 node Server/merge.mjs ...`); process.exit(1); }

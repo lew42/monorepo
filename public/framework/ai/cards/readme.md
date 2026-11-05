@@ -1,6 +1,6 @@
 # ai/cards: one card and what it shows
 
-Moved here from `ai2/` on 2026-10-09 (the old paths are one-line shims). A card is a task or conversation; this folder draws it, small in the rail and whole on its page.
+Moved here from the old `ai2/` folder on 2026-10-09; that folder was removed on 2026-11-04 (its archive: [ai/archive/ai2/](../archive/ai2/readme.md)). A card is a task or conversation; this folder draws it, small in the rail and whole on its page.
 
 - `card.js`: `Card`, the card page and its tabs (the biggest file; start here).
 - `CardChat.js`, `Compose.js`: the conversation and the box you talk into.

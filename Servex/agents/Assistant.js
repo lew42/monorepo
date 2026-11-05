@@ -370,7 +370,6 @@ You are a helper: read the repo (read-only) and answer that. `
 		} catch {} };
 		try {
 			group("ext"); group("ux");
-			try { page(path.join(this.root, "ai2"), "/framework/ai2/"); } catch {}
 			try { page(path.join(this.root, "ai/talk"), "/framework/ai/talk/"); } catch {}
 		} catch (e){ this.servex.say(`assistant could not read page titles: ${e.message || e}`); }
 		return this._titles = out.sort((a, b) => b.title.length - a.title.length);

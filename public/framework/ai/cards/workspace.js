@@ -11,7 +11,7 @@
  * AI 2 link you click carries it on (`keep()`), and so does every navigation AI 2 makes itself
  * (`url()`). Back to a url without it reloads, so the url is always the truth.
  */
-const ROOT = "/framework/ai2/";
+const ROOT = "/framework/ai/";
 const read = () => new URLSearchParams(location.search).get("view") === "workspace";
 
 export const workspace = {

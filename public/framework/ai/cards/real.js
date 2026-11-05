@@ -9,7 +9,7 @@ import { plain } from "../rail/inbox.js";
  * class right there in the inbox… it's the exact same page as the framework core
  * page. It's just a different way to jump there").
  *
- * `/framework/ai2/framework/core/Page/` shows the page that lives at
+ * `/framework/ai/framework/core/Page/` shows the page that lives at
  * `/framework/core/Page/` — the SAME Page object and the SAME view, found by the
  * Router's own walk (`load_segments`) and moved into this box. Nothing is copied and
  * the real page keeps its own parent, url and children, so it is unchanged when you
@@ -24,7 +24,7 @@ export class RealPage extends Page {
 	// I present myself, not my children — no row per visited path in the site's nav.
 	leaf = true;
 
-	// `/framework/ai2/framework/core/` → `/framework/ai2/framework/core/Page/`. A name
+	// `/framework/ai/framework/core/` → `/framework/ai/framework/core/Page/`. A name
 	// with a dot is a file and never a page.
 	route(name){
 		if (name.includes(".")) return undefined;

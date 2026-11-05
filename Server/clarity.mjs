@@ -87,11 +87,10 @@ async function main(){
 		const lines = fs.readFileSync(SessionRecord.log_or_old(arg), "utf8");
 		const out = String(lines.split("\n").map(l => { try { return JSON.parse(l); } catch { return {}; } }).filter(e => e.assign?.landed_at).pop()?.assign?.outcome || "");
 		pages = [...out.matchAll(/\]\((\/framework\/[^)\s#?]*\/)\)/g)].map(m => m[1]);
-		if (/framework\/ai2\//.test(lines)) pages.unshift("/framework/ai2/");
 		pages = [...new Set(pages)].slice(0, 5);
 	} catch {}
 	const prompt = kind === "look"
-		? `Load the \`clarity\` skill and run only its "Look at it as the owner would" section on AI 2, just after a merge changed it: the rail at http://monorepo.localhost/framework/ai2/, the three cards at the top of the rail, and one card marked done. Repo root: ${root.replaceAll("\\", "/")}. One pass, then stop.`
+		? `Load the \`clarity\` skill and run only its "Look at it as the owner would" section on AI 2, just after a merge changed it: the rail at http://monorepo.localhost/framework/ai/, the three cards at the top of the rail, and one card marked done. Repo root: ${root.replaceAll("\\", "/")}. One pass, then stop.`
 		: `Load the \`clarity\` skill, then check this ${kind === "landing" ? "landed task" : "proposal"}: ${target}. `
 		+ `Repo root: ${root.replaceAll("\\", "/")}. One pass, then stop.`
 		+ (pages.length ? ` Pages it changed, to look at as the owner would (host http://monorepo.localhost): ${pages.join(" ")}.` : "")

@@ -50,6 +50,7 @@ export default class PageJsonl {
 	}
 
 	static async log_class(host, module, url){
+		if (module === "/framework/ai2/card.js") module = "/framework/ai/cards/card.js";   // 531 card page.jsonl files still name the retired ai2 folder
 		const Class = (await import(new URL(module, location.origin + url).href)).default;
 		if (Class?.prototype instanceof this.Page) return Class;
 
