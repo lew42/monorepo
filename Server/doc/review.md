@@ -190,6 +190,8 @@ gets is not enough for a page.
 
 **The test gate (2026-10-23).** After the smoke test, `merge.mjs` runs the tests that cover the diff (`TestRunner.covers`, transitive) on the branch. A failing test is then re-run on the merge base; the merge is refused only when it passes on the base and fails on the branch (pass-to-fail), so a test that already failed on `michael/dev` never blocks. A timeout is no result. Base results are cached per sha in `core/Test/results.jsonl` (`trigger:"merge-base"`). `--skip-tests` turns the gate off; a dry run skips it. The code is `Server/MergeTests.mjs`. **The tests run inside the merge lock:** a failing test on a new base costs a checkout of about 10 s (7.6 s `git worktree add` plus 2.7 s remove, for 23k files, measured) plus up to 60 s per test.
 
+**The docs warning (2026-11-04).** `docsReminder` in `merge.mjs` prints `!!! Docs: …` when the diff changes a module's `.js`/`.mjs` (not tests) but none of that module's `readme.md` or `doc/*.md` (modules: `public/framework/<tier>/<Name>`, `Servex`, `Server`). A warning, not a refusal: it sees that a doc changed, not that the decision is in it. Why: decisions sat in task folders where later agents never read them ([audit](/framework/ai/sessions/2026/11/04/session-5132a480/docs-landing-check/report.md)).
+
 Before any of that, `merge.mjs`'s own smoke test (`Server/smoke.mjs`) fails the branch on two
 layout problems, same as a console error: text sitting within 2px of its box's own edge with no
 real padding between them (the "$1,128 of AI work" line that sat flush against a page's top
