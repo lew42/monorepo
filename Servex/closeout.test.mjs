@@ -129,6 +129,18 @@ try {
 	assert.equal(Pool.generated({ file: "public/framework/ai/new-notes.jsonl", code: "??" }), false);
 	assert.equal(Pool.generated({ file: "Servex/Pool.js", code: "M" }), false);
 	ok("Pool.generated: modified logs are machine-written; a new .jsonl and source files are real work");
+	/* 6. a worktree an agent still works in is kept (removing it would leave the agent in a gutted checkout); once the agent stops it is removed */
+	const { default: Worktrees } = await import("./Worktrees.js");
+	const wt3 = new_worktree(`closeout-test-${id}-held`);
+	const live = new Map([["held-agent", { id: "held-agent", state: "working", cwd: wt3 }]]);
+	const wts = new Worktrees({ main: MAIN, servex: { lifecycle: new Lifecycle(), agents: { live } } });
+	const k = await wts.close_now(wt3);
+	assert.equal(k.ok, false); assert.match(k.why, /held-agent/); assert.ok(wt_listed(wt3) && fs.existsSync(wt3), "a worktree with an agent inside must be kept");
+	live.get("held-agent").state = "stopped";
+	const k2 = await wts.close_now(wt3);
+	assert.equal(k2.ok, true, JSON.stringify(k2)); assert.ok(!wt_listed(wt3) && !fs.existsSync(wt3), "removed from git and disk once the agent stopped");
+	ok(`a worktree with a working agent inside is kept (${k.why.slice(0, 40)}...), then removed from git and disk once it stops`);
+
 
 	console.log(`\nALL ${passed} CHECKS PASSED`);
 } catch (e) {

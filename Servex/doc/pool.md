@@ -2,7 +2,7 @@
 
 **A quick fix goes into a worktree that is already warm.** Servex always keeps
 one worktree ready. It is branched from `compliance/dev`, its own dev server is
-answering, a page watcher is on, and git knows who you are. Any agent — a
+answering, its page watcher starts when an agent takes it (a ready slot holds no browser), and git knows who you are. Any agent — a
 minion, a mastermind, an assistant — takes it with one tool call and can start
 writing the same second.
 

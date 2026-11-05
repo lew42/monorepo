@@ -95,7 +95,7 @@ const keepWt = bool("--keep-worktree");   // leave the merged worktree in place 
 const asked = flag("--asked");
 const mergeStart = Date.now();
 const [dirArg, ...paths] = argv;
-if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--skip-tests] [--dry-run] [--quick [--asked <iso>]]"); process.exit(1); }
+if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--skip-tests] [--dry-run] [--keep-worktree] [--quick [--asked <iso>]]"); process.exit(1); }
 // Git Bash rewrites "/framework/ai2/" into "C:/Program Files/Git/framework/ai2/"; the smoke run then
 // hunts for it while holding everyone's merge lock (node-reliability, 2026-09-30). Refuse before the lock.
 const mangled = [...paths, mainArg ?? ""].find(p => /Program Files[\\/]Git[\\/]/i.test(p));
@@ -722,9 +722,9 @@ if (!dryRun && !mainArg) try { spawn(process.execPath, [path.join(MAIN, "Server/
 // A fully merged worktree is closed here, in code, not left for someone to ask (the owner, 2026-11-04): its servers and browser stop,
 // then git and the disk both lose it. A pool slot, an unmerged branch, a partial merge (paths named) or --keep-worktree keeps it.
 if (!dryRun && !mainArg && !quick && code === 0 && !paths.length && !keepWt) try {
-	const { pool_slot } = await import("../Servex/Lifecycle.js");
+	const { pool_slot, default: Lifecycle } = await import("../Servex/Lifecycle.js");
 	if (!pool_slot(dir)) {
-		const { default: Lifecycle } = await import("../Servex/Lifecycle.js"), { default: Worktrees } = await import("../Servex/Worktrees.js");
+		const { default: Worktrees } = await import("../Servex/Worktrees.js");
 		const lc = new Lifecycle(), r = await new Worktrees({ main: MAIN, servex: { lifecycle: lc } }).close_now(dir);
 		console.log(r.ok ? `worktree ${path.basename(dir)}: ${r.removed ? "closed and removed (git and disk)" : r.why}` : `worktree ${path.basename(dir)}: kept - ${r.why}`);
 	}

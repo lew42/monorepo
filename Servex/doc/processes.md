@@ -36,6 +36,12 @@ Not registered yet: tunnels, whisper-server and the recite python process (the i
 
 **Hand-started worktree servers back off.** `worktree-sweep.mjs` retries a failing `worktree-down` with a doubling wait (state in the Servex state folder, cap 6 h) instead of every pass, and posts one `risk` owner note on the 5th failure.
 
+**A worktree someone still works in is kept.** `Worktrees.close_now` refuses to remove a folder while a live agent, a not-yet-ended agent in the lifecycle records, or the calling process has its working directory inside it (on Windows that would delete the files and leave the folder, with the agent in a gutted checkout). The close reports it as `left`, and the sweep removes the worktree once that agent stops.
+
+**A close with `left` does not undo a landing.** By then the merge is done, so refusing would help nothing: `on-landing` writes the `LEFT: ...` line, `closeout` returns `ok: false`, and `Lifecycle.sweep()` keeps retrying every heartbeat. Closing a browser also ends its launcher script, but never when the browser was started from the main checkout itself (the dev server's screenshot plugin holds one in-process).
+
+**Is the live sweep running?** Yes. The empty process list under load was the cause of 'it closed nothing': it is now retried once and reported as `left` (above), and every sweep appends a `lifecycle-sweep` line to the `servex` log, so a quiet sweep is visible.
+
 **The proof is a test you can rerun:** `node Servex/closeout.test.mjs` (one to two minutes, needs global Playwright, uses a temp `SERVEX_HOME` and port 18999 so the live Servex is untouched). It starts a real server, a real Chromium and a real git worktree under a task, plus a server in a leftover folder git does not list; closes the task; and asserts from the OS process list, `git worktree list` and the disk that none remain. Then: an unmerged worktree is kept and reported; a launcher killed hard has its browser closed by the watchdog; with the watchdog off the sweep finds the orphan; machine-written logs do not block a return. Every artifact it makes is removed at the end.
 
 ## The process monitor

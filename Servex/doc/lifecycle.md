@@ -24,7 +24,7 @@ A process that is killed hard (`taskkill /F`) cannot write its own end line. The
 
 ## 2. The reaper
 
-- **On landing.** `Server/on-landing.mjs` calls `reap(task)`: everything that task owns stops — its server (the `server.js` wrapper first, because it restarts `run.js` if only the child dies), its health watcher, its browsers, and its idle helper agents.
+- **On landing.** `Server/on-landing.mjs` calls `closeout(task)` (`reap` plus removing its merged worktrees and a second check; see [processes.md](processes.md)): everything that task owns stops — its server (the `server.js` wrapper first, because it restarts `run.js` if only the child dies), its health watcher, its browsers, and its idle helper agents.
 - **On the heartbeat.** Servex wraps the heartbeat's tick (`Heartbeat.js` itself is unchanged) and runs `sweep()` at most every 5 minutes. It closes anything whose task has landed, whose task log has been silent for over 2 hours, or that has no task at all and has run over 2 hours. It also stops idle one-pass agents (reviewer, clarity, checker, critic, fork) once their answer is written, and it reclaims pool worktrees whose holder has stopped, only when nobody still works in them and they hold no work ([pool.md](pool.md#a-taken-worktree-stays-taken)).
 
 - **It must not block Servex.** The sweep runs inside Servex, so a blocking call stalls every route and every agent's prompt hook (the SDK gives a hook 30 s). The process list is read with async `execFile` (`processes_async()`), and `task_for_worktree()` reads one task-log index kept 30 s (`Server/worktree-sweep.mjs`) instead of re-walking `ai/` per worktree (that was ~20 s of frozen event loop per sweep). Measure stalls with the gaps between the 5-second heartbeat lines in `logs/crumbs.log`.
@@ -36,7 +36,7 @@ Every close writes an `end` line whose `why` says the reason in plain words.
 
 ## 3. What is never touched
 
-The main site (port 3104), Servex itself, the gate, whisper, and every port listed in [`Servex/keep.json`](../keep.json) — today `[8137]`, the owner's phone. A worktree that someone is **working** in right now is left alone, and so is the dev server of a worktree whose task asked for a preview until its branch merges ([worktree-preview.md](worktree-preview.md)). A worktree's files are never deleted by the reaper; only its processes stop. Removing the folder stays with `Server/worktree-sweep.mjs`, which waits until the branch is merged.
+The main site (port 3104), Servex itself, the gate, whisper, and every port listed in [`Servex/keep.json`](../keep.json) — today `[8137]`, the owner's phone. A worktree that someone is **working** in right now is left alone, and so is the dev server of a worktree whose task asked for a preview until its branch merges ([worktree-preview.md](worktree-preview.md)). The sweep (`sweep()`) never deletes a worktree's files; only its processes stop. A task's `closeout()` does remove a worktree, but only when it is clean, its branch is merged and nobody (no live agent, not the calling process) works inside it; otherwise it is reported as `left`. Anything else waits for `Server/worktree-sweep.mjs`, which waits until the branch is merged. A browser whose launcher script is gone is closed by the sweep, and closing a browser also ends the script that launched it (never the main checkout's own processes).
 
 **The main checkout is not a blanket keep.** Only port 3104 (and the other keep-list ports) is protected there — a hand-started `PORT=5000 node server.js` in the main checkout is reaped exactly like one anywhere else once it's old and has no owning task (review finding 8, 2026-09-29).
 
@@ -49,6 +49,7 @@ The main site (port 3104), Servex itself, the gate, whisper, and every port list
 ```
 node Servex/Lifecycle.js --dry               what the sweep would close, and why (touches nothing)
 node Servex/Lifecycle.js --reap <task dir>   close what one task owns (add --dry to preview)
+node Servex/Lifecycle.js --closeout <task dir>   the whole close: reap, remove merged worktrees, check again, write one closed line, exit 1 if anything is left
 node Servex/Lifecycle.js --stop <pid>        stop a server you started, wrapper first, and log its end
 node Servex/Lifecycle.js --salvage qf-2      empty a stuck pool slot into a salvage/ branch
 ```

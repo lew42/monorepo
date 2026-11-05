@@ -270,6 +270,18 @@ export default class Worktrees extends Events {
 		return null;
 	}
 
+	/* Who is working inside this folder right now: a live agent, a not-yet-ended agent in the lifecycle records, or this very process. Returns a name, or null. */
+	async held_by(dir){
+		if (same_or_under(process.cwd(), dir)) return `this process (${process.argv[1] ? path.basename(process.argv[1]) : "node"})`;
+		const a = this.agent_in(dir);
+		if (a) return `agent ${a.id}`;
+		try {
+			const r = (await this.servex?.lifecycle?.resources() ?? []).find(r => r.kind === "agent" && r.path && same_or_under(r.path, dir));
+			if (r) return `agent ${r.id}`;
+		} catch {}
+		return null;
+	}
+
 	alive(id){ const a = id && this.servex?.agents?.live?.get(id); return !!a && a.state !== "stopped"; }
 
 	applied(head){
@@ -378,6 +390,8 @@ export default class Worktrees extends Events {
 		const wt = (await this.list()).find(w => norm(w.path) === norm(dir));
 		if (!wt) return fs.existsSync(dir) ? this.clear_residue(dir) : { ok: true, removed: false, why: "already gone" };
 		if (wt.locked) return { ok: false, why: "locked with git worktree lock" };
+		const held = await this.held_by(wt.path);
+		if (held) return { ok: false, why: `${held} still works inside it; removing the folder now would leave it in a gutted checkout. The sweep removes it once that stops` };
 		const item = { name: wt.name, path: wt.path, branch: wt.branch };
 		if (wt.prunable || !fs.existsSync(wt.path)) Object.assign(item, { prune: true, why: "its folder is already gone" });
 		else {
