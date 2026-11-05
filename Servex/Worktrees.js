@@ -446,6 +446,11 @@ export default class Worktrees extends Events {
 			await new Promise(done => setTimeout(done, 3000));
 			r = await take_out();
 		}
+		// git unregisters the worktree first and can then fail to delete the folder (a process was still exiting): the retry says "not a working tree" and the folder would stay
+		if (!r.ok && /is not a working tree/i.test(r.out)){
+			if (!fs.existsSync(item.path)) r = { ok: true, out: "" };   // the first try already did it all
+			else { const c = await this.clear_residue(item.path); if (c.ok) r = { ok: true, out: "" }; }
+		}
 		if (r.ok && !item.prune && fs.existsSync(item.path)){ try { fs.rmdirSync(item.path); } catch {} }   // git can leave an empty folder; rmdir removes only an empty one
 		if (!r.ok){ item.state = "open"; item.why = `git refused to remove it: ${r.out.split("\n")[0]}`; this.log({ msg: `worktrees: ${name} not removed: ${r.out}` }); return false; }
 		this.forget(name);

@@ -191,8 +191,8 @@ try {
 	// lifecycle.jsonl. Servex/Lifecycle.js; Servex/doc/lifecycle.md.
 	try {
 		const { default: Lifecycle } = await import("../Servex/Lifecycle.js");
-		const rows = await new Lifecycle().reap(dir);
-		append(task, `lifecycle: ${rows.length ? `closed ${rows.map(r => `${r.kind} ${r.id}`).join(", ")}` : "nothing of this task's was left running"}`);
+		const r = await new Lifecycle().closeout(dir, { why: "landed" });
+		append(task, `lifecycle: ${r.closed.length ? `closed ${r.closed.map(x => `${x.kind} ${x.id}`).join(", ")}` : "nothing of this task's was left running"}${r.left.length ? `; LEFT: ${r.left.map(x => `${x.kind} ${x.id} (${x.why})`).join(", ")}` : ""}`);
 	} catch (e) {
 		try { append(task, "lifecycle: reap not run - " + String(e && e.message || e).slice(0, 200)); } catch {}
 	}

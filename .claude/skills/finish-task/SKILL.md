@@ -9,6 +9,8 @@ description: Run every time a task lands — the closing report the /framework/a
 
 If you own the task's docs and review (a task mastermind, or a minion whose brief hands them over; otherwise your mastermind does them): run `documentation` first if the task touched a module, then `node Server/review.mjs <taskdir> <worktree>` (sizes none/light/full, see `Server/doc/review.md`), answer every finding, and put `node Server/review.mjs --status <taskdir>`'s phrase ("reviewed: pass" / "reviewed: 2 fixed, 1 declined") and a link to `review.md` in the outcome. Then, in order:
 
+**Landing closes the task by code** (the owner, 2026-11-04): `on-landing.mjs` runs `Lifecycle.closeout`, which stops every server, browser and idle child agent the task owns and removes its merged worktrees, then writes one `task end` line (`closed`, `left`). Read that line (`node Servex/Lifecycle.js --closeout <task dir> --dry` shows it ahead of time); if `left` is not empty, the task is not closed: fix what it names. How it works: [Servex/doc/processes.md](/Servex/doc/processes.md).
+
 **Before you write anything the owner reads, load the `page` skill (for a page, card or view; it brings in `content`) or the `content` skill (for words alone), and follow it.** Show it first (a folder tree or `ext/files`, the live objects, a checklist, a screenshot), then use as few words as it takes. A card also follows [the card standard](/framework/ai/doc/ai2/card-standard.md). At landing, `text-check` flags any paragraph over 60 words, an outcome over 120 words, and any file of words with no picture.
 
 **A change the owner can see lands with a walkthrough** (the owner, 2026-09-25: "demos so simple

@@ -390,6 +390,21 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
 	t(g.admit({ role: "minion" }, 8000) === null, "4 working: admitted");
 }
 
+// The commit gate: 80% only masterminds and children of a live parent start; 90% nothing new; wakes and the desk never wait
+{
+	reset();
+	const f = fake_servex();
+	const g = new Global({ servex: f.servex, cap: 30, min_free_mb: 10 });
+	f.servex.agents.live.set("task-mastermind-x", { state: "working" });
+	t(g.admit({ role: "minion" }, 8000, 70) === null, "70% commit: admitted");
+	t(/80%/.test(g.admit({ role: "minion" }, 8000, 85) ?? ""), "85% commit: a loose minion waits");
+	t(g.admit({ role: "mastermind" }, 8000, 85) === null, "85% commit: a mastermind starts");
+	t(g.admit({ role: "minion", parent: "task-mastermind-x" }, 8000, 85) === null, "85% commit: a child of a live parent starts");
+	t(/90%/.test(g.admit({ role: "mastermind" }, 8000, 92) ?? ""), "92% commit: nothing new starts");
+	t(g.admit({ role: "minion", resume: "sid" }, 8000, 95) === null && g.admit({ role: "assistant" }, 8000, 95) === null, "95% commit: a wake and the front desk are never held");
+	t(g.admit({ role: "minion" }, 8000, null) === null, "no reading yet: admitted");
+}
+
 // The admission check: memory, then a ceiling a live parent's child skips
 {
 	reset();

@@ -19,6 +19,7 @@
  * card or a line in `--dry` output always names the real reason, never just "not yet". */
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { links_into_main } from "./junction-guard.mjs";
@@ -181,6 +182,26 @@ export async function can_stop(entry){
 	return { ok: true, reason: null, why: `${task.key} landed ${task.landed_at}, ${entry.branch} merged, no live agent working there` };
 }
 
+/* Failure memory for the retry loop (2026-11-04: worktree-down failed on the same entry every ~4 minutes for hours and told no one).
+ * Lives in Servex's state folder, outside git. The wait doubles per failure (4 min, 8, 16 ... capped at 6 h); the 5th failure tells the owner once. */
+const FAILS = path.join(process.env.SERVEX_HOME || path.join(process.env.LOCALAPPDATA || os.tmpdir(), "lew42", "servex"), "worktree-sweep-fails.json");
+const read_fails = () => { try { return JSON.parse(fs.readFileSync(FAILS, "utf8")); } catch { return {}; } };
+function backoff_left(name){
+	const f = read_fails()[name];
+	return f ? Math.max(0, f.last + Math.min(4 * 60000 * 2 ** (f.n - 1), 6 * 3600000) - Date.now()) : 0;
+}
+function note_result(name, ok, text){
+	const all = read_fails();
+	if (ok){ if (!all[name]) return; delete all[name]; }
+	else {
+		const n = (all[name]?.n ?? 0) + 1;
+		all[name] = { n, last: Date.now(), text: String(text).slice(0, 200) };
+		if (n === 5) fetch(`http://127.0.0.1:${process.env.SERVEX_PORT || 8090}/owner_note`, { method: "POST", headers: { "content-type": "application/json" },
+			body: JSON.stringify({ title: `worktree ${name} will not tear down`, text: `worktree-down failed 5 times in a row: ${String(text).slice(0, 200)}. It now retries every few hours.`, kind: "risk", by: "worktree-sweep" }), signal: AbortSignal.timeout(3000) }).catch(() => {});
+	}
+	try { fs.mkdirSync(path.dirname(FAILS), { recursive: true }); fs.writeFileSync(FAILS, JSON.stringify(all, null, 1)); } catch {}
+}
+
 /** Every registered worktree server: stop ones that are safe (worktree dir gone, or `can_stop`
  *  ok) by calling worktree-down.mjs, which already refuses a dirty tree. Never the main tree —
  *  it is never in this registry — and never Servex's own (same reason). `--dry` prints only. */
@@ -194,8 +215,11 @@ export async function sweep({ dry = false } = {}){
 		const row = links.length ? { name, ok: false, why: `holds a link into the main checkout: ${links.map(l => l.path).join(", ")} — remove the link only, then sweep again` } : { name, ok, why };
 		rows.push(row);
 		if (row.ok && !dry){
+			const wait = backoff_left(name);   // a teardown that keeps failing is retried less and less often, never every pass forever
+			if (wait > 0){ row.ok = false; row.why = `worktree-down failed before; next try in ${Math.ceil(wait / 60000)} min`; continue; }
 			const r = spawnSync(process.execPath, [path.join(ROOT, "Server/worktree-down.mjs"), name], { encoding: "utf8", windowsHide: true });
 			row.result = (r.stdout || r.stderr || "").trim().split("\n").pop() || (r.status === 0 ? "stopped" : "failed");
+			note_result(name, r.status === 0, row.result);
 		}
 	}
 	return rows;

@@ -91,6 +91,7 @@ const noReview = flag("--no-review");
 const noNav = flag("--no-nav");   // "why": merge an unlinked new page anyway (Server/doc/nav-check.md)
 const reviewDir = flag("--review-dir");   // the task dir to look in when it sits under a session older than the 4-day scan (a long-lived mastermind's tasks)
 const quick = bool("--quick");
+const keepWt = bool("--keep-worktree");   // leave the merged worktree in place (default: closed and removed, git and disk)
 const asked = flag("--asked");
 const mergeStart = Date.now();
 const [dirArg, ...paths] = argv;
@@ -718,6 +719,16 @@ if (!dryRun && !mainArg && code === 0 && git(MAIN, "rev-parse", BASE).stdout.tri
 }
 // Refresh the unmerged-branches list the In-flight block reads (Server/unmerged.mjs; ~30 s, so detached, never blocks a landing).
 if (!dryRun && !mainArg) try { spawn(process.execPath, [path.join(MAIN, "Server/unmerged.mjs"), "--write"], { cwd: MAIN, detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}
+// A fully merged worktree is closed here, in code, not left for someone to ask (the owner, 2026-11-04): its servers and browser stop,
+// then git and the disk both lose it. A pool slot, an unmerged branch, a partial merge (paths named) or --keep-worktree keeps it.
+if (!dryRun && !mainArg && !quick && code === 0 && !paths.length && !keepWt) try {
+	const { pool_slot } = await import("../Servex/Lifecycle.js");
+	if (!pool_slot(dir)) {
+		const { default: Lifecycle } = await import("../Servex/Lifecycle.js"), { default: Worktrees } = await import("../Servex/Worktrees.js");
+		const lc = new Lifecycle(), r = await new Worktrees({ main: MAIN, servex: { lifecycle: lc } }).close_now(dir);
+		console.log(r.ok ? `worktree ${path.basename(dir)}: ${r.removed ? "closed and removed (git and disk)" : r.why}` : `worktree ${path.basename(dir)}: kept - ${r.why}`);
+	}
+} catch (e) { console.error("worktree close-out skipped: " + String(e && e.message || e).slice(0, 200)); }
 // --quick's own last word: ONE line of JSON, always last on stdout when it lands, so the fixer
 // (or anything else driving this) can read it without parsing the human log above it.
 if (quick && code === 0) {

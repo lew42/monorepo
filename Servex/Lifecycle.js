@@ -158,8 +158,13 @@ export default class Lifecycle {
 	/** The same list without freezing Servex: the two blocking calls above took 20+ s on a busy machine, long enough to time out every agent's prompt hook (2026-10-23). */
 	async processes_async(){
 		const run = (cmd, args, maxBuffer) => promisify(execFile)(cmd, args, { encoding: "utf8", windowsHide: true, maxBuffer, timeout: 30000 }).then(r => r.stdout, () => "");
-		const [out, ns] = await Promise.all([run("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], 32 << 20), run("netstat", ["-ano", "-p", "TCP"], 8 << 20)]);
-		return this.process_map(out, ns);
+		let map;
+		for (let attempt = 0; attempt < 2; attempt++){   // a busy machine can time the query out; an empty list means it failed (this process itself is a node.exe)
+			const [out, ns] = await Promise.all([run("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], 32 << 20), run("netstat", ["-ano", "-p", "TCP"], 8 << 20)]);
+			map = this.process_map(out, ns);
+			if (map.size) break;
+		}
+		return map;
 	}
 
 	process_map(out, ns){
@@ -328,6 +333,10 @@ export default class Lifecycle {
 	/** Stop a process tree by its top pid (the wrapper, so nothing respawns), then any child still alive. */
 	kill(r){
 		for (const pid of [r.pid, r.child].filter(Boolean)) try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
+		// the script that launched a browser keeps its folder as its working directory, so it would block the worktree's removal;
+		// a plain `node script.mjs` is closed with its browser, Servex, an agent (claude) and this process never are
+		const l = r.kind === "browser" && r.launcher && r.launcher !== process.pid ? this.procs?.get(r.launcher) : null;
+		if (l && l.name === "node.exe" && !/Servex[\\/]+(index|sustain)|claude|mcp|vscode/i.test(l.cmd)) try { execFileSync("taskkill", ["/PID", String(r.launcher), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
 	}
 
 	/** One Servex tool, over its door (a CLI run has no Servex in-process). */
@@ -404,7 +413,9 @@ export default class Lifecycle {
 		}
 		if (!dry) {   // look again: anything the task still owns is reported, not assumed gone
 			this.tasks = new Map();
-			for (const r of (await this.plan(key)).filter(r => r.why || (r.owner_task === key && /is working there/.test(r.keep ?? "")))) left.push({ kind: r.kind, id: r.id, pid: r.pid ?? null, why: r.why ?? r.keep });
+			const again = await this.plan(key);
+			if (!this.procs?.size) left.push({ kind: "process-list", id: "processes", why: "the process list could not be read, so nothing was verified; run the close again" });
+			for (const r of again.filter(r => r.why || (r.owner_task === key && /is working there/.test(r.keep ?? "")))) left.push({ kind: r.kind, id: r.id, pid: r.pid ?? null, why: r.why ?? r.keep });
 			await record({ kind: "task", id: key, owner_task: key, event: "end", why: `${why}; ${closed.length} closed, ${left.length} left`, closed, left }, this.servex?.log);
 		}
 		return { ok: left.length === 0, key, closed, left };
