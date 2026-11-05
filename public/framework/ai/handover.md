@@ -17,7 +17,8 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 
 **Open:**
 - The task system check's record still reads `running`; its four idle subtasks need closing.
-- Worktrees qf-1 and qf-5 are held by uncommitted generated jsonl.
+- A finished agent and its parent tab can trade "done, idle" messages endlessly. The task system check sent the same one more than ten times after its work merged (9b3512983), costing a turn on both sides each time. A landed agent should go quiet; log it in `/Servex/improvements.jsonl`.
+- The close tool always records "closed by owner" and ignores who called it. A task also gets closed again after every Servex restart. Cause and the one-line fix are in [resume.md](sessions/2026/11/04/session-5132a480/completion-truth/resume.md).
 - Repo junk safe fixes, not yet done: [findings](sessions/2026/11/04/session-5132a480/repo-junk/findings.md).
 - Have the ai2 removal's `JSONL.skip` edit reviewed.
 - `DevBar/says.js` imports a missing file.
