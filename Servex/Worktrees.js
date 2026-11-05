@@ -9,6 +9,7 @@ import SessionRecord from "../Server/SessionRecord.mjs";
 import Landed from "./Landed.js";
 import WorktreePreview from "../Server/WorktreePreview.mjs";
 import { DEV_BRANCH } from "../Server/dev-branch.mjs";
+import { pool_slot } from "./Lifecycle.js";
 
 /* WORKTREE CLEAN-UP — a worktree is temporary (process-monitor, 2026-09-30).
  *
@@ -319,6 +320,7 @@ export default class Worktrees extends Events {
 			await this.serve_previews(items).catch(e => this.log({ msg: `worktrees: serve_previews failed: ${e.message}` }));
 			if (this.stopping) await this.stop_idle(items, tasks).catch(e => this.log({ msg: `worktrees: stop_idle failed: ${e.message}` }));
 			const finished = items.filter(i => i.state === "finished");
+			if (this.removing) for (const r of await this.residue(await this.list())) await this.clear_residue(r.path);
 			let junctions = null;
 			if (finished.length && this.removing){
 				junctions = await this.junctions();
@@ -329,6 +331,66 @@ export default class Worktrees extends Events {
 			this.emit("tick", this.last);
 			return this.last;
 		} finally { this.busy = false; }
+	}
+
+	/* A folder git no longer lists (a removal that stopped half way, or a server still running there that wrote files back: docs-gate,
+	 * usage-stale, 2026-11-04; 60+ more under worktrees/). Its processes are closed, then the folder is MOVED ASIDE to
+	 * ../moved-aside/worktree-residue/<name>-<date>, never deleted: a rename takes a junction with it without following it, and
+	 * nothing is lost if it held a file nobody committed. Returns { ok, removed, why }. */
+	async clear_residue(dir){
+		const name = path.basename(dir), item = { name, path: dir };
+		await this.close_under(item, `${name} is a leftover folder`);
+		const to = path.join(path.resolve(this.dir, ".."), "moved-aside", "worktree-residue", `${name}-${stamp().slice(0, 10)}-${Date.now()}`);
+		try {
+			fs.mkdirSync(path.dirname(to), { recursive: true });
+			fs.renameSync(dir, to);
+		} catch (e){
+			await this.close_under(item, `${name} is a leftover folder (retry)`);
+			await new Promise(done => setTimeout(done, 3000));
+			try { fs.renameSync(dir, to); } catch (e2){ this.log({ msg: `worktrees: leftover folder ${name} not moved: ${e2.message}` }); return { ok: false, why: `leftover folder could not be moved aside: ${e2.message}` }; }
+		}
+		this.forget(name);
+		this.unregister(item);
+		this.log({ msg: `worktrees: leftover folder ${name} moved aside to ${to}`, name, to });
+		return { ok: true, removed: true, why: `leftover folder moved aside to ${to}` };
+	}
+
+	/* Every folder directly under worktrees/ that git does not list, holds no listed worktree, is no pool slot, is not in use
+	 * and was last touched over an hour ago (a worktree being made right now is younger). */
+	async residue(listed){
+		let names; try { names = fs.readdirSync(this.dir, { withFileTypes: true }); } catch { return []; }
+		const out = [], reg = (() => { try { return Object.values(JSON.parse(fs.readFileSync(path.join(this.main, ".worktrees.json"), "utf8").replace(/^﻿/, ""))); } catch { return []; } })();
+		for (const e of names){
+			if (!e.isDirectory() || e.name.startsWith("_") || e.name.startsWith(".")) continue;
+			const p = path.join(this.dir, e.name);
+			if (listed.some(w => same_or_under(w.path, p) || same_or_under(p, w.path))) continue;
+			if (pool_slot(p) || reg.some(w => w?.path && norm(w.path) === norm(p)) || this.agent_in(p)) continue;
+			let age = 0; try { age = Date.now() - fs.statSync(p).mtimeMs; } catch { continue; }
+			if (age < 3600000) continue;
+			out.push({ name: e.name, path: p });
+		}
+		return out;
+	}
+
+	/* The task is closing: remove this worktree NOW if it is clean and its branch is merged (no quiet hours, no waiting for a landing).
+	 * Anything unmerged, dirty or locked is kept and the reason returned, so the close reports it as left. Lifecycle.closeout() calls this. */
+	async close_now(dir){
+		const wt = (await this.list()).find(w => norm(w.path) === norm(dir));
+		if (!wt) return fs.existsSync(dir) ? this.clear_residue(dir) : { ok: true, removed: false, why: "already gone" };
+		if (wt.locked) return { ok: false, why: "locked with git worktree lock" };
+		const item = { name: wt.name, path: wt.path, branch: wt.branch };
+		if (wt.prunable || !fs.existsSync(wt.path)) Object.assign(item, { prune: true, why: "its folder is already gone" });
+		else {
+			if (!wt.branch) return { ok: false, why: "a detached HEAD; its commits would have no name" };
+			const changes = await this.changes(wt.path), real = changes.filter(c => !noise(c));
+			if (real.length) return { ok: false, why: `${real.length} uncommitted file(s): ${real.slice(0, 3).map(c => c.path).join(", ")}` };
+			if (!(await this.merged(wt))) return { ok: false, why: `${wt.branch} holds commits ${this.base} does not; kept until it merges` };
+			Object.assign(item, { noise: changes, why: `${wt.branch} is merged into ${this.base}; closed with its task` });
+		}
+		const j = await this.junctions();
+		if (!j.ok) return { ok: false, why: `junction-check failed, nothing removed: ${j.out}` };
+		const ok = await this.remove(item);
+		return ok ? { ok: true, removed: true, why: item.why } : { ok: false, why: item.why };
 	}
 
 	/* Close EVERY process the lifecycle can see under this folder: its Servex-run server, a hand-started wrapper, its health

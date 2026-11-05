@@ -274,7 +274,9 @@ export default class Pool extends Events {
              * put the noise back to HEAD, fast-forward, and make a fresh slot: this one's server is gone. */
             this.kill(slot.watcher_pid, /health-supervisor/i);
             this.kill(slot.server_pid, this.server_cmd(slot));
-            await this.restore(slot, (await this.dirt(slot)).filter(d => Pool.server_log(d.file)).map(d => d.file));
+            const generated = (await this.dirt(slot)).filter(d => Pool.generated(d)).map(d => d.file);
+            this.aside(slot, generated);
+            await this.restore(slot, generated);
             ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
             if (ff.ok){
                 this.remove(slot);
@@ -771,7 +773,8 @@ export default class Pool extends Events {
             const h = await this.git(slot.path, ["hash-object", "--", ...chunk]);
             if (h.ok) h.out.split("\n").forEach((hash, j) => { hashes[chunk[j]] = hash.trim(); });
         }
-        return files.map(file => ({ file, hash: hashes[file] ?? "gone" }));
+        const codes = out ? out.split("\n").map(l => l.slice(0, 2).trim()) : [];   // the porcelain code: "M" = a tracked file edited in place, "??" = new
+        return files.map((file, i) => ({ file, hash: hashes[file] ?? "gone", code: codes[i] ?? "" }));
     }
 
     /* A dev server's own logs (page.jsonl, files.jsonl, the clarity flags) are its noise, never an
@@ -779,8 +782,25 @@ export default class Pool extends Events {
      * 2026-09-30: qf-6's salvage swept 233 of them into a branch; a slot with only these stayed leased). */
     static server_log(file){ return /(^|\/)(page|files)\.jsonl$/.test(file) || file === "public/framework/ai/board.jsonl" || file === ".claude/skills/clarity/flags.jsonl"; }
 
+    /* GENERATED, BY RULE (the owner, 2026-11-04: session-links.jsonl and task-moves.jsonl, both machine-written, kept a slot held):
+     * the named server logs, and any tracked *.jsonl edited in place. A NEW *.jsonl is a task's own and stays real. The rule is the same
+     * one Worktrees.js noise() applies to removals. Never discarded unseen: aside() keeps the diff first. */
+    static generated(d){ return Pool.server_log(d.file) || (/\.jsonl$/.test(d.file) && /^M+$/.test(d.code ?? "")); }
+
     async own_dirt(slot){
-        return (await this.dirt(slot)).filter(d => !Pool.server_log(d.file) && slot.baseline?.[d.file] !== d.hash);
+        return (await this.dirt(slot)).filter(d => !Pool.generated(d) && slot.baseline?.[d.file] !== d.hash);
+    }
+
+    /* Keep the diff of these tracked log files as a patch in .worktree-logs/ before they go back to HEAD. Returns the patch path or null. */
+    aside(slot, files){
+        files = files.filter(f => /\.jsonl$/.test(f));
+        if (!files.length) return null;
+        const out = path.join(this.main, ".worktree-logs", `${slot.id}-${stamp().slice(0, 10)}-logs-${Date.now()}.patch`);
+        fs.mkdirSync(path.dirname(out), { recursive: true });
+        const chunks = [];   // 100 paths a call stays under the Windows command line limit
+        for (let i = 0; i < files.length; i += 100) chunks.push(execFileSync("git", ["-C", slot.path, "diff", "HEAD", "--", ...files.slice(i, i + 100)], { windowsHide: true, maxBuffer: 256 << 20 }));
+        fs.writeFileSync(out, Buffer.concat(chunks));
+        return out;
     }
 
     /* Baseline files back to exactly what HEAD holds (one not in HEAD is deleted). NEVER one git call per file, and never a
