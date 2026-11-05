@@ -164,3 +164,12 @@ Test: `node Servex/agents/session-state.test.mjs`.
 - [doc/architecture.md](doc/architecture.md): decisions and why
 - [Dated folders shared by sessions and projects](/framework/core/Task/doc/owner-2026-10-20-projects-and-completion.md)
 - [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — the chat as one stored list on the session, and how a `session.jsonl` is created today (node only) and what would change.
+
+## Does the task system work? Findings of 2026-11-05
+
+Proved with two throwaway Haiku children, the item tool on real folders, and scripts over the store (`public/framework/ai/sessions/2026/11/04/session-5132a480/task-system-check/report.md`).
+
+- **Where a no-`path` item call lands.** `own_page()` in `Servex/agents/page_tools.js`: a spawned agent that has a task folder writes its `session.jsonl` (so its tasks count in its completion and the parent's tree); an agent with no task folder gets `/framework/ai/sessions/<id>/`, which makes a stray `session-<id8>/` holding only `page.jsonl` (a page, not a record: `tasks: 0`, `kind` wrongly `vscode-tab`); a VS Code tab (no agent id) is refused with the reason, never the site's root `public/page.jsonl` (fixed 2026-11-05; tests in `page_tools.test.mjs`). A tab passes its session url as `path`.
+- **Completion reads.** A finished spawned session with no tasks reads `completion: 1` (state `complete`). A session with tasks reads the mean of its tasks' own completions, not done/total: `mastermind-voice-system` is 27 of 44 done, 5 stopped, and reads 0.614, not 27/39. Both are by design, but the page should say which it shows.
+- **Unlinked children are not shrinking.** `e00f55c9`: `counts.children` = `{entries: 288, unlinked: 345}` (the handover's 170 of 186 was an older, smaller count). An unlinked child is a registry row with no entry on its parent's record; run `node Server/ChildLinks.mjs --entries --names e00f55c9` to see the plan.
+- **Asks filed as tasks.** Over the last 7 days, of 170 tab session folders with prompts (8,367 user turns in their `cache.jsonl`, which overcounts), 3 filed any task (9 tasks). Of the 62 tabs that have owner `Prompt` lines in `session.jsonl` (67 prompts), 1 filed any. The law "file each ask" is almost never followed by tabs.

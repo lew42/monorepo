@@ -85,6 +85,8 @@ const DATED_SESSION = /^\/?framework\/ai\/sessions\/(\d{4}\/\d{2}\/\d{2}\/[^/]+)
 const OMIT = "Omit `path` to mean your own page.";
 
 async function resolve(url, target = [], item = false){
+	// No path and no agent id (a VS Code tab): "your own page" has no meaning, and the site's root page is never the answer.
+	if (url == null || url === "") return { why: "no `path` was given and this caller has no Servex agent id, so there is no \"own page\" to write to; nothing was written. A VS Code tab passes its session page: /framework/ai/sessions/<session id>/." };
 	const hit = SESSION_ROUTE.exec(String(url ?? ""));
 	// A real folder under sessions/ that is not a session (sessions/tasks/<task>/, a task's own home) is a plain path: only a typed name with nothing on disk is refused.
 	const plain = hit && fs.existsSync(path.resolve(PUBLIC, "framework/ai/sessions", hit[1]));
@@ -159,7 +161,14 @@ async function session_file(id){
 
 // "This page" when an agent names none: its own session page. Servex passes the caller's
 // agent id; a VS Code tab has none here, so it is told its path instead (the prompt hook).
-const own_page = ctx => ctx?.caller && ctx.caller !== "owner" ? `/framework/ai/sessions/${ctx.caller}/` : null;
+// A spawned agent with a task folder gets that folder (its session.jsonl, where its tasks count); one without gets the session page for its id.
+function own_page(ctx, resolve_log){
+	const who = ctx?.caller;
+	if (!who || who === "owner") return null;
+	let log = null; try { log = (ctx.resolve_log ?? resolve_log)?.(who) ?? null; } catch {}
+	if (log && !path.relative(PUBLIC, log).startsWith("..")) return app_path(path.dirname(log));
+	return `/framework/ai/sessions/${who}/`;
+}
 
 // Nests `payload` one level per step in `target`, innermost (the payload itself) last —
 // `nest(["k2","answers"], {add: {...}})` → `{k2: {answers: {add: {...}}}}`. `nest([], x)`
@@ -1493,7 +1502,7 @@ export function page_tools(resolve_log = null){
 				args: { description: "The method's one argument — an object for `add`, a string id for `remove`, etc. If it's a plain object, `by` and `ts` are stamped onto it." } },
 			["method"],
 			async ({ path: url, target, method, args }, ctx = {}) => {
-				url ??= own_page(ctx);
+				url ??= own_page(ctx, resolve_log);
 				const at = await resolve(url, target, true);
 				if (!at || at.why) return not_a_page(url, at);
 				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, target, delta: { [method]: is_plain(args) ? args : {} } }, { resolve_log, ...ctx }, true));   // a task / session: the item path
@@ -1510,7 +1519,7 @@ export function page_tools(resolve_log = null){
 				after: { type: "string", description: "The id to land after. Omit to append at the end; `null` to land first." } },
 			["item"],
 			async ({ path: url, item, after }, ctx = {}) => {
-				url ??= own_page(ctx);
+				url ??= own_page(ctx, resolve_log);
 				const at = await resolve(url, ["content"], true);
 				if (!at || at.why) return not_a_page(url, at);
 				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, delta: { content: { add: { ...item, ...(after !== undefined ? { after } : {}) } } } }, { resolve_log, ...ctx }, true));
@@ -1554,7 +1563,7 @@ export function page_tools(resolve_log = null){
 				text: { type: "string", description: "What you're doing right now, in a few words, e.g. \"researching X\"." } },
 			["text"],
 			async ({ path: url, text }, ctx = {}) => {
-				url ??= own_page(ctx);
+				url ??= own_page(ctx, resolve_log);
 				const at = await resolve(url, undefined, true);
 				if (!at || at.why) return not_a_page(url, at);
 				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, delta: { now: { preview: text } } }, { resolve_log, ...ctx }, true));   // a task has no page log: its "now"
@@ -1569,7 +1578,7 @@ export function page_tools(resolve_log = null){
 				format: { type: "string", enum: ["markdown", "html"], description: "\"markdown\" (default, fewest tokens) or \"html\" (the content's own markup, no nav chrome)." } },
 			[],
 			async ({ path: url, format }, ctx = {}) => {
-				url ??= own_page(ctx);
+				url ??= own_page(ctx, resolve_log);
 				const at = await resolve(url);
 				if (!at || at.why) return not_a_page(url, at);
 				const file = at.file;

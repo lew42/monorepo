@@ -163,6 +163,26 @@ try {
 		} finally { if (folder) fs.rmSync(folder, { recursive: true, force: true }); }
 	}
 
+	// A call with no path from a caller with no agent id (a VS Code tab) is refused, never written to the root page.
+	{
+		const root = path.join(ROOT, "public/page.jsonl"), before = fs.existsSync(root) ? fs.statSync(root).size : -1;
+		for (const [name, args] of [["page_set", { delta: { title: "x" } }], ["page_add", { item: { title: "x" } }], ["page_log", { text: "x" }], ["page_call", { method: "add", args: { title: "x" } }]]){
+			const out = await call(name, args, undefined);
+			ok(!out.ok && /no `path` was given/.test(out.why), `${name} with no path and no caller is refused with the reason`);
+		}
+		ok((fs.existsSync(root) ? fs.statSync(root).size : -1) === before, "public/page.jsonl is untouched");
+	}
+
+	// A spawned agent that has a task folder writes there (its session.jsonl, where its tasks count), never a second session-<id8> folder.
+	{
+		const rec = path.join(DIR, "agent-task", "session.jsonl");
+		fs.mkdirSync(path.dirname(rec), { recursive: true });
+		fs.writeFileSync(rec, JSON.stringify({ assign: { session_id: "0f0f0f0f-1111-4222-8333-444455556666", agent: "probe" } }) + "\n");
+		const out = JSON.parse(await tools.item.handler({ delta: { tasks: { add: { title: "own task" } } } }, { caller: "probe", resolve_log: id => id === "probe" ? rec : null }));
+		ok(out.ok && out.size.file.endsWith("agent-task/session.jsonl"), "an agent with a task folder, no path: the task lands in its own session.jsonl");
+		ok(fs.readFileSync(rec, "utf8").includes('"own task"'), "the line is in that file");
+	}
+
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });
 }
