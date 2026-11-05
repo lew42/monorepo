@@ -1,46 +1,46 @@
 # Follow-up: what fell through the cracks
 
-Counted by the one state ([one-state.md](one-state.md), `Server/AIIndex.mjs`): every task below is a row of `ai/index.json`. Computed 2026-11-04 06:05 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
+Counted by the one state ([one-state.md](one-state.md), `Server/AIIndex.mjs`): every task below is a row of `ai/index.json`. Computed 2026-11-05 06:04 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
 
-**0 landed with unmerged commits · 0 merged but never landed · 37 quiet over 2 h · 0 landed with no outcome · 503 open tasks untouched over 7 days · 0 open asks with no live owner · 958 healthy of 995.**
+**0 landed with unmerged commits · 0 merged but never landed · 88 quiet over 2 h · 0 landed with no outcome · 503 open tasks untouched over 7 days · 0 open asks with no live owner · 809 healthy of 897.**
 
-## quiet: 37
+## quiet: 88
 
 the state calls it in_flight or stale and its log is silent for over 2 h: resume it or close it.
 
-- [ask456-placement](/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask456-placement/): no agent, last log 4 h ago, step 0/0, agent unknown
-- [research-notes](/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/research-notes/): no agent, last log 4 h ago, step 0/0, agent unknown
-- [ask8-session-mastermind](/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask8-session-mastermind/): no agent, last log 5 h ago, step 0/0, agent unknown
-- [ask9-raw-tap](/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask9-raw-tap/): no agent, last log 5 h ago, step 0/0, agent unknown
-- [ask7-question-cards](/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask7-question-cards/): no agent, last log 5 h ago, step 0/0, agent unknown
-- [ask10-thinking-sound](/framework/ai/sessions/2026/11/03/session-e9c8d0d3/mastermind-voice-system/ask10-thinking-sound/): no agent, last log 6 h ago, step 0/0, agent unknown
-- [session-e00f55c9](/framework/ai/sessions/2026/10/20/session-e00f55c9/): prompt-t, last log 7 h ago, step 0/0, agent unknown
-- [session-d6a90f5d](/framework/ai/sessions/2026/11/01/session-d6a90f5d/): no agent, last log 10 h ago, step 0/0, agent unknown
-- [session-d7935d19](/framework/ai/sessions/2026/11/01/session-d7935d19/): no agent, last log 10 h ago, step 0/0, agent unknown
-- [session-d91a39f6](/framework/ai/sessions/2026/11/01/session-d91a39f6/): no agent, last log 12 h ago, step 0/0, agent unknown
-- [session-d9eadbfb](/framework/ai/sessions/2026/11/01/session-d9eadbfb/): no agent, last log 12 h ago, step 0/0, agent unknown
-- [marked-lines-migrate-every-file-to-the-n](/framework/ai/sessions/2026/10/20/session-e00f55c9/marked-lines-migrate-every-file-to-the-n/): helper-m, last log 29 h ago, step 0/0, agent unknown
-- …25 more in [follow-up-full.md](follow-up-full.md)
+- [session-31416a71](/framework/ai/sessions/2026/11/01/session-31416a71/): no agent, last log 24 h ago, step 0/0, agent unknown
+- [session-39c72593](/framework/ai/sessions/2026/11/01/session-39c72593/): no agent, last log 24 h ago, step 0/0, agent unknown
+- [cloud-voice-app-20261101](/framework/ai/sessions/2026/11/01/cloud-voice-app-20261101/): no agent, last log 24 h ago, step 0/0, agent unknown
+- [session-174b74d6](/framework/ai/sessions/2026/11/01/session-174b74d6/): no agent, last log 24 h ago, step 0/0, agent unknown
+- [session-280e3460](/framework/ai/sessions/2026/11/01/session-280e3460/): no agent, last log 24 h ago, step 0/0, agent unknown
+- [session-2b478ef9](/framework/ai/sessions/2026/11/01/session-2b478ef9/): no agent, last log 24 h ago, step 0/0, agent unknown
+- [session-0f2b10fd](/framework/ai/sessions/2026/11/01/session-0f2b10fd/): no agent, last log 24 h ago, step 0/0, agent unknown
+- [session-13c9b2fa](/framework/ai/sessions/2026/11/01/session-13c9b2fa/): no agent, last log 24 h ago, step 0/0, agent unknown
+- [session-1a6f4d98](/framework/ai/sessions/2026/11/01/session-1a6f4d98/): no agent, last log 24 h ago, step 0/0, agent unknown
+- [session-86aa5baf](/framework/ai/sessions/2026/11/01/session-86aa5baf/): no agent, last log 24 h ago, step 0/0, agent unknown
+- [session-975c99ea](/framework/ai/sessions/2026/11/01/session-975c99ea/): no agent, last log 24 h ago, step 0/0, agent unknown
+- [session-bd9e0731](/framework/ai/sessions/2026/11/01/session-bd9e0731/): no agent, last log 24 h ago, step 0/0, agent unknown
+- …76 more in [follow-up-full.md](follow-up-full.md)
 
 ## unworked: 503
 
 Open tasks (idle, queued or waiting, none on the owner) whose last log line is over 7 days old. Nothing runs from the queue by itself, so these only get done if someone looks: do it, group it into a real task, or stop it with a reason (through the item tool). Newest first.
 
-- [v-9dvbbrn](/framework/ai/sessions/2026/10/25/v-9dvbbrn/): idle, last log 8 d ago
-- [module-folder-tasks-are-not-found-unless](/framework/ai/sessions/2026/10/25/v-9dvbbrn/module-folder-tasks-are-not-found-unless/): idle, last log 8 d ago
-- [mobile-sheet-page-cannot-scroll-to-the-b](/framework/ai/sessions/2026/10/25/v-9dvbbrn/mobile-sheet-page-cannot-scroll-to-the-b/): idle, last log 8 d ago
-- [chat-tab-on-every-session-page-talk-to-a](/framework/ai/sessions/2026/10/25/v-9dvbbrn/chat-tab-on-every-session-page-talk-to-a/): idle, last log 8 d ago
-- [session-page-overview-clear-the-leftover](/framework/ai/sessions/2026/10/25/v-9dvbbrn/session-page-overview-clear-the-leftover/): idle, last log 8 d ago
-- [core-page-the-page-s-cards-are-misaligne](/framework/core/Page/tasks/core-page-the-page-s-cards-are-misaligne/): idle, last log 9 d ago
-- [mention-voice-session-ids-become-icon-li](/framework/ext/Mention/tasks/mention-voice-session-ids-become-icon-li/): idle, last log 9 d ago
-- [v-sq8y7db](/framework/ai/sessions/2026/10/25/v-sq8y7db/): idle, last log 9 d ago
-- [v-hzpy68f](/framework/ai/sessions/2026/10/25/v-hzpy68f/): idle, last log 9 d ago
-- [tasks](/framework/ai/sessions/tasks/): idle, last log 10 d ago
+- [v-9dvbbrn](/framework/ai/sessions/2026/10/25/v-9dvbbrn/): idle, last log 9 d ago
+- [module-folder-tasks-are-not-found-unless](/framework/ai/sessions/2026/10/25/v-9dvbbrn/module-folder-tasks-are-not-found-unless/): idle, last log 9 d ago
+- [mobile-sheet-page-cannot-scroll-to-the-b](/framework/ai/sessions/2026/10/25/v-9dvbbrn/mobile-sheet-page-cannot-scroll-to-the-b/): idle, last log 9 d ago
+- [chat-tab-on-every-session-page-talk-to-a](/framework/ai/sessions/2026/10/25/v-9dvbbrn/chat-tab-on-every-session-page-talk-to-a/): idle, last log 9 d ago
+- [session-page-overview-clear-the-leftover](/framework/ai/sessions/2026/10/25/v-9dvbbrn/session-page-overview-clear-the-leftover/): idle, last log 9 d ago
+- [core-page-the-page-s-cards-are-misaligne](/framework/core/Page/tasks/core-page-the-page-s-cards-are-misaligne/): idle, last log 10 d ago
+- [mention-voice-session-ids-become-icon-li](/framework/ext/Mention/tasks/mention-voice-session-ids-become-icon-li/): idle, last log 10 d ago
+- [v-sq8y7db](/framework/ai/sessions/2026/10/25/v-sq8y7db/): idle, last log 10 d ago
+- [v-hzpy68f](/framework/ai/sessions/2026/10/25/v-hzpy68f/): idle, last log 10 d ago
+- [tasks](/framework/ai/sessions/tasks/): idle, last log 11 d ago
 - …493 more in [follow-up-full.md](follow-up-full.md)
 
 ## Check
 
-958 healthy + 37 flagged = 995; the state lists 995 tasks in the same 10 days: agree. The state's own self-check is ok. Source: ai/index.json (under a minute old). 417 local branches are not merged into `compliance/dev` (many are salvage or abandoned worktrees).
+809 healthy + 88 flagged = 897; the state lists 897 tasks in the same 10 days: agree. The state's own self-check is FAILING. Source: ai/index.json (under a minute old). 417 local branches are not merged into `compliance/dev` (many are salvage or abandoned worktrees).
 
 ## How each row is counted
 

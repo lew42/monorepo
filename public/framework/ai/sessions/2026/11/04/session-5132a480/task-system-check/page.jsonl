@@ -1,3 +1,5 @@
 {"inbox":{"id":"n-2pf22abv","from":"servex-heartbeat","text":"minion-task-system-check its agent is not running; Servex revived it and asked where it is at.","at":"2026-11-04T22:56:28.538-06:00"}}
 {"file":"session.jsonl"}
 {"file":"probe/page.jsonl"}
+{"inbox":{"id":"n-4brf60rf","from":"servex-heartbeat","text":"minion-task-system-check its agent is not running; Servex revived it and asked where it is at.","at":"2026-11-04T23:41:50.610-06:00"}}
+{"inbox":{"id":"n-4zgicdop","from":"servex-heartbeat","text":"minion-task-system-check its agent is not running; Servex revived it and asked where it is at.","at":"2026-11-05T00:00:16.212-06:00"}}

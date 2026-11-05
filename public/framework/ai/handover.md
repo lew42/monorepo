@@ -8,6 +8,21 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 
 **The last VS Code tab (e00f55c9, ran 10-20 to 11-03) left its state here:** [tab-state-2026-11-01.md](sessions/2026/10/20/session-e00f55c9/tab-state-2026-11-01.md), newest section last. **2026-11-04, memory, usage and the dirty tree:** [report.md](sessions/2026/11/04/session-5132a480/vscode-memory/report.md); process kill list awaiting a yes: [report.md](sessions/2026/11/04/spawned/mastermind-process-cleanup/report.md).
 
+**2026-11-04 night (tab 5132a480): landed.**
+- ai2 is removed, and old links redirect.
+- One completion score from one command, `node Server/session-query.mjs --report <id>`: [report](sessions/2026/11/04/session-5132a480/completion-truth/report.md).
+- The step-by-step process runs by itself, including across a restart.
+- Cleanup runs by node when a task closes: `node Servex/closeout.test.mjs` (merge c3a59f3ba).
+- The usage reading refuses stale numbers.
+
+**Open:**
+- The task system check's record still reads `running`; its four idle subtasks need closing.
+- Worktrees qf-1 and qf-5 are held by uncommitted generated jsonl.
+- Repo junk safe fixes, not yet done: [findings](sessions/2026/11/04/session-5132a480/repo-junk/findings.md).
+- Have the ai2 removal's `JSONL.skip` edit reviewed.
+- `DevBar/says.js` imports a missing file.
+- Clear up contradictions in the mastermind role text.
+
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->

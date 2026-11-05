@@ -44,3 +44,20 @@
 {"action":{"at":"2026-11-04T23:50:24-06:00","did":"edit","files":["public/framework/ai/sessions/2026/11/04/session-5132a480/completion-truth/resume.md"]},"by":"ledger","ts":"2026-11-05T05:50:24.446Z"}
 {"action":{"at":"2026-11-04T23:52:32-06:00","did":"edit","files":["public/framework/ai/sessions/2026/11/04/session-5132a480/completion-truth/report.md"]},"by":"ledger","ts":"2026-11-05T05:52:32.735Z"}
 {"d4":{"complete":{"outcome":"Process runs by itself with real Haiku steps: node starts each step, each completion starts the next, the last completes the process, parent score 0>33>67>100. Passed twice; the second across sustain --restart (cut-off step agent revived and finished). Stall cause found and fixed (settle_sessions).","evidence":["public/framework/ai/sessions/2026/11/04/session-5132a480/completion-truth/evidence/live-run1-pass.txt","public/framework/ai/sessions/2026/11/04/session-5132a480/completion-truth/evidence/live-run2-restart-process.jsonl","Servex/ProcessRunner.test.mjs","327940efe"]}},"by":"mastermind-completion-truth","ts":"2026-11-05T05:52:43.585Z"}
+{"log":{"text":"Landed. All four deliverables complete, report.md written, merged 327940efe, records committed cdc6f9eb5, parent notified. qf-1 not returned: two generated index files dirty (not mine)."},"by":"mastermind-completion-truth","ts":"2026-11-05T05:53:06.143Z"}
+{"log":{"at":"2026-11-04T23:57:42-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-05T05:57:42.521Z"}
+{"log":{"at":"2026-11-04T23:59:05-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-05T05:59:05.790Z"}
+{"log":{"at":"2026-11-04T23:59:33-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-05T05:59:33.526Z"}
+{"log":{"at":"2026-11-05T00:03:35-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-05T06:03:35.881Z"}
+{"log":{"at":"2026-11-05T00:09:11-06:00","msg":"task-loop status ask 1: asked mastermind-completion-truth","ask":1}}
+{"log":{"at":"2026-11-05T00:09:15-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-05T06:09:15.929Z"}
+{"complete":{"outcome":"All four deliverables landed and merged (327940efe); report written, tests before/after pass, live Haiku process proven twice incl. across sustain --restart.","evidence":["public/framework/ai/sessions/2026/11/04/session-5132a480/completion-truth/report.md","327940efe","cdc6f9eb5","public/framework/ai/sessions/2026/11/04/session-5132a480/completion-truth/evidence/tests-after.txt"],"confidence":"high","caveats":["qf-1 worktree not returned: two generated index files dirty, not mine","CloseLoop clean-end close_task wiring belongs to mastermind-process-cleanup"]},"by":"mastermind-completion-truth","ts":"2026-11-05T06:09:26.230Z"}
+{"assign":{"closed_by":"owner","closed_at":"2026-11-05T00:09:28-06:00","closed_why":"all four deliverables landed and merged"}}
+{"assign":{"closed_by":"owner","closed_at":"2026-11-05T00:09:35-06:00","closed_why":"all four deliverables landed and merged"}}
+{"log":"Completed on the loop's nudge. close_task twice returned ok:false, left process-list (could not be read); reported to mastermind-process-cleanup. Nothing of mine is running.","by":"mastermind-completion-truth","ts":"2026-11-05T06:09:42.563Z"}
+{"log":{"at":"2026-11-05T00:10:14-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"assign":{"closed_by":"owner","closed_at":"2026-11-05T00:10:22-06:00","closed_why":null}}
+{"log":{"at":"2026-11-05T00:13:41-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-05T06:13:41.842Z"}
+{"assign":{"closed_by":"owner","closed_at":"2026-11-05T00:24:58-06:00","closed_why":null}}
+{"assign":{"closed_by":"owner","closed_at":"2026-11-05T00:25:48-06:00","closed_why":null}}
+{"assign":{"closed_by":"owner","closed_at":"2026-11-05T00:32:25-06:00","closed_why":null}}
