@@ -2,6 +2,35 @@
 
 `use_figma` runs a Plugin API script inside a Figma file. On the Sept-2026 "Claude test page" (`124:1062`) it drew two 3440×1440 frames entirely from the file's own tokens: v1 `130:1062` (overflows), v2 `131:1062` (fits) and v3 `133:1072` (the mode model below). Four layout schemes for preview → detail at 3440 sit below them (A list/detail/inspector, B grid + docked detail, C Miller columns, D filmstrip + detail), and the clickable prototype has its own page.
 
+## The design system file (owner, 2026-11-05)
+
+System work (tokens, components) now lives in the **"November 2026"** file (the owner is renaming it "Lew42 Design System"), key `hbolzQ3Xnc78rhxAPj8xK2`. It sits in a project in the only paid team, "Michael's Starter team" (`team::1558244461354989578`, Pro; the other four teams are free Starter). This file *is* the library. Sept-2026 (`QYN0G2URSBHYH5I06MOjxU`) is in the same project and keeps its existing pages; the token tables below describe it.
+
+What the design system file holds:
+- **Colors** (1 mode): `prime`, `light`, `dark`, `error`, `ok`, `warn`. `prime`, `light` and `dark` are hidden from pickers.
+- **Scheme** (modes White, Light gray, Prime, Dark; roles `text`, `muted`, `surface`, `accent`, `on-accent`): the Sept-2026 `Text` collection, renamed.
+- **Resolution** (Default, Mobile, Mega): `pad-x`, `pad-y`, `gap`, `radius`, `btn-pad-x`, `btn-pad-y`, `h1-size`.
+- **Text styles** `h1`–`h4` and `body` (Montserrat); **components** Button and Card, inside the `Claude · working area` frame on Page 1.
+
+### How Claude works in a file (owner's rules, 2026-11-05)
+
+1. **One author frame.** Everything Claude builds goes inside one top-level frame named `Claude · working area`, headed by a Material Symbols Rounded `smart_toy` icon, an h1 "Claude" and a one-line context note. Claude edits only inside it.
+2. **Duplicate before editing.** To change something the owner made, duplicate it into Claude's frame and edit the copy. Never edit the owner's nodes in place.
+3. **Read before every edit.** Re-read the current page and nodes before each edit; never assume the owner hasn't changed something since the last read.
+4. **Explain on the canvas, not in chat.** Every group gets an on-canvas label (h4 kicker + h3 title + one plain-English line: what it is, why it exists, where it goes) and clear layer names (a bad name: "backdrop is review-only"). Chat replies stay short; the canvas carries the explanation.
+5. **Normal auto-layout frames, never Sections** (see the skill).
+6. **Doc and repo edits from a cloud chat** go through a spawned local SDK agent, not the chat running shell commands itself.
+
+### Libraries, teams and files
+
+- A library is just a published file, named by the file name. Publish from that file: Assets → Libraries (book icon) → This file → Publish. It needs a paid team, and the file must be in a project, not Drafts. Unpublish only from the library's own file.
+- Drafts are per team. Right-click → Move file in the file browser is how a draft becomes a project file.
+- UI kits are on by default in free teams, per file on Pro.
+- Modes per collection: Pro 10, Org 20 (raised from 4 on 2025-10-28).
+- **Agents can create files** (Figma MCP `create_new_file`).
+- The headless `use_figma` copy reports `figma.root.name` as "Document", so it can't read or rename the file. The owner renames files in Figma (the file key and links don't change).
+- **Trap: a Card whose fill is `surface` disappears on a ground of the same scheme** (white on white). A main component shown on the canvas needs a backdrop of a different shade, or the card must sit on a ground in another mode.
+
 ## The file's tokens (Sept-2026, `QYN0G2URSBHYH5I06MOjxU`)
 
 - **Colors** (one mode): `prime` #FF6157 (the site's; was #72C4FF until 2026-10-12), `light` #DDDDDD, `dark` #675F56 (the site's is #42404B: open), and `error` #CC0000, `ok` #15803D, `warn` #A16207, added 2026-10-12 to mirror the site's `--error`/`--ok`/`--warn`.
