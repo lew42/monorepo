@@ -60,7 +60,9 @@ try {
 	// item 26: {"completion":{}} answers the tally and the number at once, and writes nothing
 	const size = fs.statSync(path.join(DIR, "session.jsonl")).size;
 	const r = await run_item({ path: URL, delta: { completion: {} } }, { caller: "t" });
-	t.eq(r.answer?.completion, { stopped: 0, done: 2, total: 3, completion: 2 / 3 }, "completion query: the tally (done, total, stopped) and the number");
+	const { tally, ...c } = r.answer?.completion ?? {};
+	t.eq(c, { stopped: 0, done: 2, total: 3, completion: 2 / 3 }, "completion query: the tally (done, total, stopped) and the number");
+	t.ok(tally?.created === 4 && tally.finished === 2 && tally.unproven === 0, "completion query: the fuller Task.tally rides along");
 	t.eq(fs.statSync(path.join(DIR, "session.jsonl")).size, size, "and the query wrote nothing");
 	const kid_a = await run_item({ path: URL + "kid-a/", delta: { completion: {} } }, { caller: "t" });
 	t.ok(kid_a.ok && kid_a.answer?.completion?.total === 1, "a task folder answers it too");
