@@ -124,7 +124,7 @@ export default [
 		}
 	},
 	{
-		"url": "/framework/ai2/",
+		"url": "/framework/ai/",
 		"widths": {
 			"400": {
 				"tab_rows": 1,

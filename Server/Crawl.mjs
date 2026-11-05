@@ -75,9 +75,9 @@ function discoverStaticRoutes() {
 				} else if (f.name === "page.js" || f.name === "page.jsonl") {
 					const rel = path.relative(path.join(root, "public"), dir).replaceAll("\\", "/");
 					if (rel.startsWith("framework/ai/") && /\/\d{4}\/\d{2}\/\d{2}\//.test(rel)) {
-						// AI 2 card directory maps to /framework/ai2/YYYY/MM/DD/...
+						// AI 2 card directory maps to /framework/ai/YYYY/MM/DD/...
 						const cardSub = rel.replace(/^framework\/ai\//, "");
-						routes.add(`/framework/ai2/${cardSub}/`);
+						routes.add(`/framework/ai/${cardSub}/`);
 					} else {
 						routes.add(`/${rel}/`);
 					}

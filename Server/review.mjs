@@ -131,7 +131,7 @@ export function readTurns(taskDir) {
 const CARD_RE = /^public\/framework\/ai\/(\d{4})\/(\d{2})\/(\d{2})\/(.+)\/page\.(?:js|jsonl)$/;
 export function pageUrlFor(f) {
 	const card = CARD_RE.exec(f);
-	if (card) return `/framework/ai2/${card[1]}/${card[2]}/${card[3]}/${card[4]}/`;
+	if (card) return `/framework/ai/${card[1]}/${card[2]}/${card[3]}/${card[4]}/`;
 	if (!f.startsWith("public/") || !/\/page\.(?:js|jsonl)$/.test(f)) return null;
 	return "/" + f.slice("public/".length).replace(/page\.(?:js|jsonl)$/, "");
 }

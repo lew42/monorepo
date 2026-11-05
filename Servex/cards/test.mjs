@@ -111,7 +111,7 @@ await cards.attach(b.id, "minion-builder");
 await cards.attach(b.id, "mastermind-gone");
 await cards.attach(b.id, "assistant-gone-away");
 check("attached()", (await cards.attached(b.id)).length === 4);
-const p = await cards.append(b.id, { prompt: { raw: "um make the sidebar wider", via: "whisper", url: "/framework/ai2/" } });
+const p = await cards.append(b.id, { prompt: { raw: "um make the sidebar wider", via: "whisper", url: "/framework/ai/" } });
 check("prompt: id, at, by, on, text filled", /^p-[a-z0-9]+$/.test(p.line.prompt.id) && p.line.prompt.at && p.line.prompt.by === "owner"
 	&& p.line.prompt.on === b.id && p.line.prompt.text === "um make the sidebar wider" && p.fresh, p.line.prompt);
 check("prompt ref", p.ref === `${b.id}#${p.line.prompt.id}`);

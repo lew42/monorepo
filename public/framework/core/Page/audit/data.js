@@ -68,19 +68,19 @@ export default {
 			"page_js": 1,
 			"examples": [
 				{
-					"url": "/framework/ai2/",
+					"url": "/framework/ai/",
 					"title": "(394) AI 2"
 				},
 				{
-					"url": "/framework/ai2/2026/09/29/audio-a-library-of-audio-parts-transcrip/",
+					"url": "/framework/ai/2026/09/29/audio-a-library-of-audio-parts-transcrip/",
 					"title": "(396) AI 2"
 				},
 				{
-					"url": "/framework/ai2/2026/09/29/from-dictation-to-a-brief-with-nothing-l/",
+					"url": "/framework/ai/2026/09/29/from-dictation-to-a-brief-with-nothing-l/",
 					"title": "(400) AI 2"
 				},
 				{
-					"url": "/framework/ai2/2026/09/29/mobile-nav-back-an-ai-rail-at-the-bottom/",
+					"url": "/framework/ai/2026/09/29/mobile-nav-back-an-ai-rail-at-the-bottom/",
 					"title": "(396) AI 2"
 				}
 			],

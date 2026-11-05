@@ -10,7 +10,7 @@ import { servex_url } from "/framework/dev/servex_url.js";
  * in the task card, not retyped here — this page points at it instead of repeating
  * it (framework/doc/rules.md "Docs point, they don't explain"). Also used wherever a message
  * below needs a real place to click instead of a dangling "see the readme". */
-const REPORT_URL = "/framework/ai2/2026-10-01/local-ai/";
+const REPORT_URL = "/framework/ai/2026-10-01/local-ai/";
 
 /* THE LOCAL-MODELS CHAT HARNESS (requirements.md Phase 2 ask 2, Phase 3 ask 2) —
  * one page to actually TALK to a model running on this machine's own GPU,

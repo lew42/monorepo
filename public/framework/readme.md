@@ -20,7 +20,7 @@
 - [dev](./dev/) — local-only live reload and the dev bar
 - [research](./research/) — research projects, filed by date (`research/YYYY/MM/DD/<topic>/`); its readme lists them (read one only when your task needs it)
 - [tasks](./tasks/readme.md) — framework-wide work asked for and not done yet, newest date first
-- [ai](./ai/) — the daily working log and task board (its card rail and inbox are AI 2's old code, being migrated in place; `ai2/` itself is retired)
+- [ai](./ai/) — the daily working log and task board; its card rail and inbox are in `ai/rail/` and `ai/cards/`
 - [audit](./audit/) — the 2026-08-15 doc audit, a dated snapshot
 - [old](./old/) — the home page as it stood before the 2026-10-02 sprawl rebuild, kept reachable
 - [doc](./doc/decisions.md) — framework-wide decisions and doc-system notes; [doc/rules.md](./doc/rules.md) is the long form of the rules below; [doc/git.md](./doc/git.md) is how code gets from a worktree to the live site (proposal)

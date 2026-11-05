@@ -12,7 +12,7 @@ const ROWS = [
 	{ adds: "fs/", on: "every page", saves: "nothing (read-only)", built: true, href: "/framework/core/Page/fs/" },
 	{ adds: "its own AI assistant + chat", on: "any page, on first message", saves: "<page>ai/chat.jsonl", built: true, href: "/framework/core/Page/ai/" },
 	{ adds: "a day's task folders", on: "/framework/ai/<date>/", saves: "ai/<date>/<slug>/task.jsonl …", built: true, href: "/framework/ai/" },
-	{ adds: "a card's own folder", on: "/framework/ai2/<y>/<m>/<d>/<card>/", saves: "that folder's page.jsonl", built: true, href: "/framework/ai2/" },
+	{ adds: "a card's own folder", on: "/framework/ai/<y>/<m>/<d>/<card>/", saves: "that folder's page.jsonl", built: true, href: "/framework/ai/" },
 	{ adds: "<page>/edit/ workspace", on: "—", saves: "—", built: false, href: "/imagine/cms/edit/" },
 ];
 

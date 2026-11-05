@@ -40,7 +40,7 @@ class TalkCard extends View {
 		this.card_id = e.id ?? this.card_id;
 		const title = e.title ?? "";
 		if (!title) return;
-		// .md() renders page links (e.g. [AI 2](/framework/ai2/)) as clickable links
+		// .md() renders page links (e.g. [AI 2](/framework/ai/)) as clickable links
 		this.$title.rc("muted").md(title).attr("title", title);
 	}
 

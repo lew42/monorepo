@@ -10,11 +10,11 @@ View.stylesheet(import.meta, "Card.css");
 export default new Page({
 	meta: import.meta,
 	title: "Card",
-	description: "The look of an AI card's own page — its head, its outline, a Live-card row — the same CSS whether the card opens under /framework/ai/ or /framework/ai2/.",
+	description: "The look of an AI card's own page — its head, its outline, a Live-card row — the same CSS whether the card opens under /framework/ai/ or /framework/ai/.",
 	icon: "dashboard",
 
 	content(){
-		md("A card's own page, opened at [/framework/ai2/](/framework/ai2/) or [/framework/ai/](/framework/ai/), is always this shape: a head, then an outline of what was asked, then its chat column. This page shows the look alone — no log, no agent, nothing to click. Not the `.card` box: that is [ui/card](/framework/ui/card/), the one card page.");
+		md("A card's own page, opened at [/framework/ai/](/framework/ai/) or [/framework/ai/](/framework/ai/), is always this shape: a head, then an outline of what was asked, then its chat column. This page shows the look alone — no log, no agent, nothing to click. Not the `.card` box: that is [ui/card](/framework/ui/card/), the one card page.");
 
 		// Not the real `.page.ai2-card-page` grid — that expects the AI 2 shell's own
 		// height, which this plain doc page does not give it (it would just collapse to
@@ -72,7 +72,7 @@ export default new Page({
 
 		details.c("ai2-more", () => {
 			summary.c("ai2-more-head muted").text("Where each piece comes from");
-			md("The head, the outline, the properties sidebar and the grid are [`ai2/card.js`](/framework/ai/cards/card.js)'s own markup; this demo copies the classes by hand so the look can be seen with no real card to open. The Live row is the same `.ai2-live-item` every row in [the Live card](/framework/ai2/live/) wears.");
+			md("The head, the outline, the properties sidebar and the grid are [`ai2/card.js`](/framework/ai/cards/card.js)'s own markup; this demo copies the classes by hand so the look can be seen with no real card to open. The Live row is the same `.ai2-live-item` every row in [the Live card](/framework/ai/live/) wears.");
 		});
 
 		md("The whole look, as CSS alone: [`Card.css`](/framework/ux/Card/Card.css).");

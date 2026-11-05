@@ -233,7 +233,7 @@ export default class Card extends Page {
 		if (shell) this.$pages = shell.$sub;
 
 		if (sub) this.breadcrumb();
-		else a.c("ai2-back page-link").href(shell?.url ?? "/framework/ai2/").text("← all cards");
+		else a.c("ai2-back page-link").href(shell?.url ?? "/framework/ai/").text("← all cards");
 
 
 		div.c("ai2-full", () => {

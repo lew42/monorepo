@@ -38,6 +38,12 @@
 	<meta name="twitter:image" content="https://lew42.com/blog/framework/hello-lew42/no-build.png">
 	<meta name="twitter:image:alt" content="The framework's own front page: the no-build headline, the measured stats beside it, and the two-line page.js under them.">
 
+	<!-- OLD ADDRESS: /framework/ai2/ was merged into /framework/ai/ (2026-10-09) and its folder removed (2026-11-04).
+	     Static hosts serve this file for any unknown path, so rewrite the address before the app routes it. -->
+	<script>
+		if (/^\/framework\/ai2(\/|$)/.test(location.pathname))
+			history.replaceState(null, "", location.pathname.replace(/^\/framework\/ai2\/?(needs\/?)?(\d{4}\/\d{2}\/\d{2}\/)?/, (m, n, day) => "/framework/ai/" + (day ? "sessions/" + day : "")) + location.search + location.hash);
+	</script>
 	<script type="module" src="/app.js"></script>
 </head>
 <body></body>

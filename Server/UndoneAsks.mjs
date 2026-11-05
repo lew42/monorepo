@@ -164,7 +164,7 @@ export default class UndoneAsks {
 			const prefix = String(a.title).split(":")[0], card = a.card ? cards.get(a.card) : null;
 			const done = ["landed", "dropped"].includes(a.status) ? `ledger status ${a.status}` : ["done", "archived"].includes(card) ? `its card is ${card}` : null;
 						return { kind: "routed", at: a.at, text_full: a.title, text: UndoneAsks.first_sentence(a.title), module: String(a.title).includes(":") ? this.index.module_of(prefix) : null,
-				status: a.status, done, source: this.words_url(a.words), card_url: a.card ? "/framework/ai2/" + a.card + "/" : null };
+				status: a.status, done, source: this.words_url(a.words), card_url: a.card ? "/framework/ai/" + a.card + "/" : null };
 		});
 	}
 
