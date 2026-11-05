@@ -9,3 +9,5 @@
 {"review":{"at":"2026-10-24T01:32:22-05:00","answer":{"n":3,"reply":"fixed: 720edcb17, the readme no longer states a count (there are 22 part files today, so 23 was already off); doc/classes.md is the list."}}}
 {"review":{"at":"2026-10-24T01:32:22-05:00","answer":{"n":4,"reply":"noted: agrees with my read of the diff."}}}
 {"log":{"at":"2026-10-24T01:38:32-05:00","heartbeat":"deliberate","msg":"minion-narrow-page-2 its agent is not running: it was stopped on purpose by mastermind-page at 2026-10-24T01:32:37-05:00; not revived."}}
+{"complete":{"outcome":"core/Page doc of the loading statics move merged.","evidence":["8d1592623"],"confidence":"medium","caveats":[]},"by":"minion-review-stops","ts":"2026-10-25T13:34:44.425Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/core/Page/tasks/page-mastermind/narrow-page-2/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:44.426Z"}

@@ -567,7 +567,7 @@ export function items({ board, folders, prompts, landed, says, groups }){
 			hours_silent: hours,
 			sub: ["Stalled", ask.owner || null, "silent " + silent_words(hours)].filter(Boolean).join(" · "),
 			links: [
-				ask.card ? { url: "/framework/ai2/" + ask.card + "/", label: "its card" } : null,
+				ask.card ? { url: "/framework/ai/" + ask.card + "/", label: "its card" } : null,
 				words_url(ask.words) ? { url: words_url(ask.words), label: "its words" } : null,
 				{ url: "/framework/ai/asks/?status=stalled", label: "the asks ledger" },
 			].filter(Boolean),

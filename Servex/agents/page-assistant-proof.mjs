@@ -3,7 +3,7 @@
  * PROVE IT on three pages (ux/Tree, core/Page, one AI 2 card):
  * 1. /framework/ux/Tree/
  * 2. /framework/core/Page/
- * 3. /framework/ai2/2026/09/25/an-assistant-on-every-page/
+ * 3. /framework/ai/sessions/2026/09/25/cards/an-assistant-on-every-page/
  *
  * Steps per page:
  * - Open: baseline checkpoint verified/built, assistant opens.
@@ -29,7 +29,7 @@ const state_file = path.join(dir, "layers.json");
 const pages = [
 	"/framework/ux/Tree/",
 	"/framework/core/Page/",
-	"/framework/ai2/2026/09/25/an-assistant-on-every-page/"
+	"/framework/ai/sessions/2026/09/25/cards/an-assistant-on-every-page/"
 ];
 
 const calls = [];

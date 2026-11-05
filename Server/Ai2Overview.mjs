@@ -52,7 +52,7 @@ const CONCEPTS = [
 		match: ["view class", "core/view"], matchCase: ["View"] },
 	{ id: "app", name: "App", icon: "apps", url: "/framework/core/App/",
 		match: ["apps", "app class"] },
-	{ id: "ai2", name: "AI 2", icon: "dashboard", url: "/framework/ai2/",
+	{ id: "ai2", name: "AI 2", icon: "dashboard", url: "/framework/ai/",
 		match: ["ai2", "ai-2", "ai 2", "dashboard", "ai-log", "ai-ops", "ai-dashboard",
 			"ai-server", "ai-v3", "inbox", "card-to-task", "devbar-chat", "ai2-cards",
 			"card-folders", "cards-content"] },

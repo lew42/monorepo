@@ -1694,7 +1694,7 @@ Servex.Agents = class ServexAgents extends Agents {
         }, 5000));
     }
 
-    /* THE LIVE CARD'S UPDATES (AI 2's `/framework/ai2/live/`) — an agent
+    /* THE LIVE CARD'S UPDATES (AI 2's `/framework/ai/live/`) — an agent
      * starting, ending a turn, stopping or failing is one line on `cards/live`,
      * the card's own chat. Tokens and tool calls are not moments, and the two
      * always-on assistants are skipped: they end a turn on every sentence. */

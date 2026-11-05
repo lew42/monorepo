@@ -182,7 +182,7 @@ export class AIOverview {
 						{ name: "Agent SDK", icon: "terminal", gist: "How an agent is started, how its tools arrive, where its session is saved.", href: file_link("Servex/doc/sdk.md") },
 						{ name: "Models", icon: "query_stats", gist: "Anthropic, OpenRouter and local models, by value for the job.", href: url + "models/" },
 						{ name: "Sessions", icon: "forum", gist: "Voice and chat sessions, resumable.", href: "/framework/ai/sessions/" },
-						{ name: "Dashboard", icon: "dashboard", gist: "Talk to the assistants, see tasks and cost.", href: "/framework/ai2/" },
+						{ name: "Dashboard", icon: "dashboard", gist: "Talk to the assistants, see tasks and cost.", href: "/framework/ai/" },
 						{ name: "Inbox and tasks", icon: "inbox", gist: "What needs you, and every task by day.", href: base + "all-tasks/" },
 					]));
 					AIOverview.section("Concepts", "The same system in words: who works, what they know, how work lands.", () => {

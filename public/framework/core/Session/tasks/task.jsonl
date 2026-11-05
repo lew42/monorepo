@@ -1,0 +1,4 @@
+{"id":"tasks","path":"/framework/core/session/tasks/","title":"core/session tasks","mode":"parallel"}
+{"task":"/framework/core/session/tasks/do-not-move-the-ai-session-class-now-wri/","by":"PromptTasks","ts":"2026-10-25T04:18:48.450Z"}
+{"action":{"at":"2026-10-28T16:40:57-05:00","did":"edit","files":["public/framework/core/Session/tasks/data-shapes/requirements.md"]}}
+{"action":{"at":"2026-10-29T16:38:33-05:00","did":"edit","files":["public/framework/core/Session/tasks/data-shapes/plan.md"]}}

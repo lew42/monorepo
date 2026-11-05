@@ -2,3 +2,4 @@
 {"wait":{"on":"owner","what":"Proposed from an old ask (the sort pass over the undone asks): approve, improve or reject"},"by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:09.046Z"}
 {"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.191Z"}
 {"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ai/AITask/tasks/task-pages-grey-checkboxes-full-width-ba/"},{"id":"mastermind-deputy","task":"/framework/ai/AITask/tasks/task-pages-grey-checkboxes-full-width-ba/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.192Z"}
+{"stop":{"why":"Obsolete: the task pages were rebuilt (AITask, core/Task); these pixel asks no longer match them. Triaged 2026-10-24 (queue-triage).","at":"2026-10-24T23:05:01-05:00","by":"task-mastermind-queue-triage"}}

@@ -270,7 +270,7 @@ export default class AIRail extends Inbox.Rail {
 	/* "YOUR PROMPTS" — the SECOND pinned row (deliverable 5's ai2 addition, 2026-10-02): one
 	   line showing the latest prompt's topic and time, same `inbox-row-pinned` look the Now
 	   card already has (`render_pinned()`), reusing that one pinning mechanism rather than
-	   building a second (the owner's own instruction). Its own page (`/framework/ai2/
+	   building a second (the owner's own instruction). Its own page (`/framework/ai/
 	   your-prompts/`) shows every prompt newest-first — `faces.js`'s `full()`, the
 	   `prompts-pin` branch.
 	   STAND-IN (noted in task.jsonl): `topic` is not written by anything yet — minion-echo's

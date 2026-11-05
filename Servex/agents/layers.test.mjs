@@ -265,7 +265,7 @@ check("an owner's prompt on a card feeds the global session, not assistant-<card
 	assert.equal(spawns().length, before_owner_spawns, "no new assistant for the card");
 	assert.equal(calls.filter(c => c.verb === "send").length, before_owner_sends, "the old assistant is never sent to either");
 	const sent = session_calls.at(-1);
-	assert.equal(sent.path, `/framework/ai2/${CARD_OWNER}/`);
+	assert.equal(sent.path, `/framework/ai/${CARD_OWNER}/`);
 	assert.equal(sent.via, "text");
 	assert.match(sent.text, /let's fix the header next$/);
 });

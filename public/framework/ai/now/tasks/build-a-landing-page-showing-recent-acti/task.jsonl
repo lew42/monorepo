@@ -3,3 +3,4 @@
 {"title":"Build a recent-activity landing page as an iceberg","by":"helper-undone-to-tasks","ts":"2026-10-23T06:24:10.034Z"}
 {"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.574Z"}
 {"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ai/now/tasks/build-a-landing-page-showing-recent-acti/"},{"id":"mastermind-deputy","task":"/framework/ai/now/tasks/build-a-landing-page-showing-recent-acti/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.575Z"}
+{"stop":{"why":"Done: /framework/ai/now/ is the live in-flight page, and the AI dashboard is the recent-activity landing page. Triaged 2026-10-24 (queue-triage).","at":"2026-10-24T23:05:02-05:00","by":"task-mastermind-queue-triage"}}

@@ -3,3 +3,4 @@
 {"title":"Identify robust, versatile, simple layouts that can be mixed","by":"helper-undone-to-tasks","ts":"2026-10-23T06:24:09.960Z"}
 {"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.341Z"}
 {"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ai/tasks/identify-robust-versatile-simple-layouts/"},{"id":"mastermind-deputy","task":"/framework/ai/tasks/identify-robust-versatile-simple-layouts/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.342Z"}
+{"stop":{"why":"Done: styles/rules/robust.md is the shortlist of robust, mixable layouts. Triaged 2026-10-24 (queue-triage).","at":"2026-10-24T23:05:02-05:00","by":"task-mastermind-queue-triage"}}

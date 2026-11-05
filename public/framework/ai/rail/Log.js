@@ -55,7 +55,7 @@ export class Log {
 
 	static row(m){
 		const status = Log.status(m), words = task_words(m);
-		const base = `/framework/ai2/${m.date}/${m.slug}/`;
+		const base = `/framework/ai/${m.date}/${m.slug}/`;
 		a.c("ai2-row ai2-log-row").href(base).append(() => {
 			div.c("ai2-row-head flex gap-25", () => {
 				Log.dot(status);

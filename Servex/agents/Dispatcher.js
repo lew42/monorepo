@@ -140,7 +140,7 @@ export default class Dispatcher {
 			// no `page` here: this spawn has no real directory yet (its task folder is opened above, by `task`) — passing one would give `Agents.spawn()`'s
 			// readme-chain wiring a directory to prepend, and it would always be wrong
 			// (found by review, 2026-09-29: `context()` below used to hand back a fixed
-			// stub, "/framework/ai2/", read by nothing until directory_of() started
+			// stub, an old AI 2 address, read by nothing until directory_of() started
 			// reading `spec.page`).
 			topics
 		});

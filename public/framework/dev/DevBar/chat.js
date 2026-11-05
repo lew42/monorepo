@@ -1,7 +1,7 @@
 import View, { div, span, button, select, option } from "../../core/View/View.js";
 import { section } from "./parts.js";
 import { servex_url } from "../servex_url.js";
-import { AgentTalk } from "../../ai2/live.js";
+import { AgentTalk } from "../../ai/rail/live.js";
 import devbar from "./DevBar.js";
 import devshell from "../DevShell/DevShell.js";
 import { use_v1 } from "../DevShell/pref.js";

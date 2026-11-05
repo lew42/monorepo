@@ -11,7 +11,7 @@ const RAM_H = 60, CPU_H = 22;
 const TOP_GROUPS = 5;
 
 export class Processes {
-	// Processes section: `/framework/ai2/live/`'s "Processes" block; polls `/api/processes` snapshot, draws it. See doc/Processes-notes.md for data shape.
+	// Processes section: `/framework/ai/live/`'s "Processes" block; polls `/api/processes` snapshot, draws it. See doc/Processes-notes.md for data shape.
 
 	// Poller: skip while tab hidden, catch up on visibility; same pattern as poll_pool
 	static create(changed){

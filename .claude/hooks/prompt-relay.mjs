@@ -246,7 +246,7 @@ const run = async () => {
 	let page_url = null, prompt_item_id = null;
 	if (owner_interactive) {
 		page_url = session_page_url(session_id);
-		const out = await mcp_call("page_add", { path: page_url, item: { type: "Prompt", text: safe_text, redacted: secret || undefined } }, "owner");
+		const out = await mcp_call("page_add", { path: page_url, item: { type: "Prompt", text: safe_text, redacted: secret || undefined, counted: true } }, "owner");
 		prompt_item_id = out?.ok ? out.id : null;
 	}
 

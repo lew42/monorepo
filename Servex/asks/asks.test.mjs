@@ -130,10 +130,29 @@ async function test_mark_refuses_bad_input(){
 	fs.rmSync(path.dirname(file), { recursive: true, force: true });
 }
 
+async function test_landed_needs_proof(){
+	const file = tmpfile(), base = path.dirname(file);
+	const mk = (name, lines) => { const d = path.join(base, name); fs.mkdirSync(d, { recursive: true }); fs.writeFileSync(path.join(d, "task.jsonl"), lines.map(l => JSON.stringify(l)).join("\n") + "\n"); return d; };
+	const bare = mk("bare", [{ assign: { agent: "agent-p", at: "2026-11-04T10:00:00-06:00" } }, { assign: { landed_at: "2026-11-04T11:00:00-06:00" } }]);
+	const said = mk("said", [{ assign: { agent: "agent-q", at: "2026-11-04T10:00:00-06:00" } }, { assign: { landed_at: "2026-11-04T11:00:00-06:00", outcome: "the folder is gone" } }]);
+	const ask = (title, owner) => JSON.stringify({ ask: { at: "2026-11-04T10:00:00-05:00", title, owner, status: "building" } });
+	fs.writeFileSync(file, ask("Landed with nothing recorded", "agent-p") + "\n" + ask("Landed with an outcome only", "agent-q") + "\n");
+	const asks = new Asks({ file });
+	const live = { id: "agent-q", state: "idle", last_at: new Date().toISOString() };
+	asks.servex = { agents: { registry_list: () => [{ ...live, id: "agent-p", task_dir: bare }, { ...live, task_dir: said }], live: new Map() } };
+	await asks.tick();
+	const folded = await asks.read();
+	const a = folded[AskFold.id({ title: "Landed with nothing recorded" })], b = folded[AskFold.id({ title: "Landed with an outcome only" })];
+	check("a landed_at with no outcome and no evidence does NOT mark the ask landed", a.status === "building");
+	check("an outcome without evidence lands it, and the reason says no evidence", b.status === "landed" && /no evidence/.test(b.history.at(-1).why));
+	fs.rmSync(base, { recursive: true, force: true });
+}
+
 await test_fold();
 test_stalled_rules();
 await test_mark_once_and_speak_again();
 await test_mark_refuses_bad_input();
+await test_landed_needs_proof();
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -39,3 +39,17 @@
 {"sessions":[{"id":"mastermind-build-default-view","task":"/framework/core/Session/tasks/data-shapes/build/default-view/"}],"by":"mastermind-build-default-view","ts":"2026-10-28T22:09:07.762Z"}
 {"assign":{"title":"Object: one default view for every object, with a live demo","step":4,"landed_at":"2026-10-28T17:09:11-05:00","outcome":"**One default view for any object, live, and a demo to step through.** Branch `worktree/default-view` (4 commits), ready to merge, not merged. Server: http://default-view.localhost/framework/core/Item/watch/\n\n- [x] one view instead of three: `object()` and `inspect()` now draw `view()` (deprecated, old imports work)\n- [x] closed row: icon, id, class label, counts; open: data by type, owned objects nested lazily, references point (shots/9-all-1920.png)\n- [x] live: a change redraws only its row (DefaultView.test.js, 16 checks, shown on the page)\n- [x] `item.views`: apple drawn twice, both update (step 4-5)\n- [x] demo under core/Item: build, change, save, replay, lines beside (shots/5-steps-400.png)\n- [ ] `List.render()`: List.js is build A's; asked on its record\n\nreviewed: 7 fixed, 3 noted ([review](review/report.md))","links":[{"url":"/framework/core/Item/watch/","label":"Watch a tree being built (demo)"},{"url":"/framework/ux/Content/Object/","label":"ux/Content/Object"},{"url":"/framework/ux/Content/Object/doc/default-view.md","label":"default-view.md"},{"url":"/framework/core/Session/tasks/data-shapes/build/default-view/review/report.md","label":"review"}],"window":{"before":null,"after":0.1},"tokens":null}}
 {"commit":"657d3514fa55"}
+{"commit":"5a300b2a8b64"}
+{"log":{"at":"2026-10-28T17:09:36-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"commit":"cda2e950f5d9"}
+{"commit":"0366ede47e57"}
+{"log":{"at":"2026-10-28T17:10:07-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-28T17:10:07-05:00","msg":"card-check: card-check: path not found: C:\\Code\\lew42\\monorepo\\public\\framework\\ai\\ux\\Content\\Object: one default view for every Item, with a live demo (build B, not merged)"}}
+{"log":{"at":"2026-10-28T17:10:07-05:00","msg":"doc-check: public/framework/core/Session: 1 dead link (/framework/core/Task/md/doc/prompt/)"}}
+{"log":{"at":"2026-10-28T22:10:07.886Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-10-28T17:10:08-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-28T17:10:09-05:00","msg":"worktree-down: kept default-view running - no task.jsonl names this worktree (C:\\Code\\lew42\\worktrees\\default-view) in its line 1"}}
+{"commit":"f6d535acc854"}
+{"log":{"at":"2026-10-28T17:10:16-05:00","msg":"worktree-close: default-view - FAILED  ARCHIVE C:/Code/lew42/worktrees/default-view  worktree/default-view  ahead 5  diff-empty false  uncommitted 159 regenerated + 0 real  quiet 1 min; 5 unmerged commit(s) on worktree/default-view  [error: failed to delete 'C:/Code/lew42/worktrees/default-view': Directory not empty]"}}
+{"log":{"at":"2026-10-28T17:10:17-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-28T17:10:17-05:00","msg":"layout-check: skipped — the landing names no site pages"}}

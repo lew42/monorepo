@@ -41,5 +41,6 @@ Items, routing and JSONL streaming are part of the page system's mastermind unti
 
 ## Open
 
+- Which skills and roles exist and which are used (counts from the logs, retire and merge proposals): [../../doc/skills-and-roles.md](../../doc/skills-and-roles.md)
 - ⬜ Every readme here is over the 400-word target (words, 2026-10-22: mastermind 5,251 · minion 3,048 · reviewer 859 · clarity 689). They were moved whole, unchanged; trimming them is the next pass. Move: [moves.md](../../../public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/readme-roles/moves.md).
 - Improvements to a role still go in its skill folder's `improvements.md`.

@@ -99,7 +99,7 @@ export class Faces {
 	 * face cannot do itself — `flag()` and `unflag()`.
 	 */
 	static full(it, on){
-		// ITEM D, 2026-09-30: `/framework/ai2/ask:…/` is a STALLED ASK with no card of its own
+		// ITEM D, 2026-09-30: `/framework/ai/ask:…/` is a STALLED ASK with no card of its own
 		// (`resolve_card()`, inbox.js, redirects straight to the card when it has one — this page
 		// only draws when it does not) — say PLAINLY what the page is, before anything else, so it
 		// never reads like a broken or half-built card. `it.owner` and `it.at` (the stall's own
@@ -112,7 +112,7 @@ export class Faces {
 		div.c("ai2-full-head flex v-center gap-25", () => {
 			if (it.icon) icon(it.icon);
 			// `.md()` — the fast assistant wraps a known page mention in a real link
-			// (`[AI 2](/framework/ai2/)`), open-mic's item 6.
+			// (`[AI 2](/framework/ai/)`), open-mic's item 6.
 			span.c("ai2-full-title").md(it.title);
 			button.c("ai2-flag" + (it.flag ? " on" : "")).attr("type", "button")
 				.attr("title", it.flag ? "flagged — press to withdraw" : "not this — say why")

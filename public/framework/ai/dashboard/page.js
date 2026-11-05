@@ -47,7 +47,7 @@ function progress_bar(spent, budget){
 }
 
 function task_row(t){
-	const href = t.card ? "/framework/ai2/" + t.card + "/" : t.dir ? "/framework/ai/" + t.dir.replace(/^public\/framework\/ai\//, "") + "/" : null;
+	const href = t.card ? "/framework/ai/" + t.card + "/" : t.dir ? "/framework/ai/" + t.dir.replace(/^public\/framework\/ai\//, "") + "/" : null;
 	const inner = () => {
 		div.c("flex gap-50 v-center", () => {
 			span.c("dash-task-title", t.title || t.dir || "Untitled task");
@@ -136,7 +136,7 @@ function log_tile(get_excluded){
 			.sort((a, b) => Date.parse(b.last ?? b.created ?? 0) - Date.parse(a.last ?? a.created ?? 0))
 			.slice(0, 5);
 		if (!rows.length) return void empty_tile("Nothing logged yet.")();
-		rows.forEach(c => a.c("dash-task-row").href("/framework/ai2/" + c.id + "/").append(() => {
+		rows.forEach(c => a.c("dash-task-row").href("/framework/ai/" + c.id + "/").append(() => {
 			div.c("flex gap-50 v-center", () => {
 				span.c("dash-task-title", c.title || c.id);
 				if (c.status) small.c("muted", c.status);

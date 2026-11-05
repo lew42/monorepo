@@ -1,0 +1,2 @@
+{"tasks":{"add":{"type":"Task","title":"Log sweep writes a stray public/public/ folder (wrong path), so seven pages in review shots 404","why":"Seen 2026-11-03 in the review of chat-settings-per-session: the sweep's files land under public/public/ on michael/dev; the review's screenshots of those pages were 404s.","id":"dz0qizro"}},"by":"mastermind-chat-settings","ts":"2026-11-03T19:47:46.214Z"}
+{"sessions":[{"id":"mastermind-chat-settings","task":"/Servex/agents/"}],"by":"mastermind-chat-settings","ts":"2026-11-03T19:47:46.217Z"}

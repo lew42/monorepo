@@ -1,0 +1,127 @@
+[
+ {
+  "old": "public/framework/ai2/activity.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/agents.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/ai/files.jsonl",
+  "new": null,
+  "action": "removed: generated listing"
+ },
+ {
+  "old": "public/framework/ai2/ai2.css",
+  "new": "public/framework/ai/archive/ai2/ai2.css",
+  "action": "archived"
+ },
+ {
+  "old": "public/framework/ai2/card.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/chat.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/compose.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/doc/files.jsonl",
+  "new": null,
+  "action": "removed: generated listing"
+ },
+ {
+  "old": "public/framework/ai2/doc/img/files.jsonl",
+  "new": null,
+  "action": "removed: generated listing"
+ },
+ {
+  "old": "public/framework/ai2/faces.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/files.jsonl",
+  "new": null,
+  "action": "removed: generated listing"
+ },
+ {
+  "old": "public/framework/ai2/floating.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/fold.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/groups.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/inbox.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/live.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/meter.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/outline.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/page.js",
+  "new": "public/framework/ai/archive/ai2/page.js.archived",
+  "action": "archived"
+ },
+ {
+  "old": "public/framework/ai2/rail.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/readme.md",
+  "new": "public/framework/ai/archive/ai2/readme.md",
+  "action": "archived"
+ },
+ {
+  "old": "public/framework/ai2/real.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/rules.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/tasks.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ },
+ {
+  "old": "public/framework/ai2/workspace.js",
+  "new": null,
+  "action": "removed: one-line shim"
+ }
+]

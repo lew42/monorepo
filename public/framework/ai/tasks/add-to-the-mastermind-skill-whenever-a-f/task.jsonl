@@ -4,3 +4,4 @@
 {"approve":{"by":"mastermind-deputy","note":"serves priority 3: Agents that know the rules. The owner, 2026-10-23: don't wait for approval; accept what serves a top priority"},"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.452Z"}
 {"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ai/tasks/add-to-the-mastermind-skill-whenever-a-f/"},{"id":"mastermind-deputy","task":"/framework/ai/tasks/add-to-the-mastermind-skill-whenever-a-f/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.453Z"}
 {"priority":{"score":1,"big":3,"why":"serves priority 3: Agents that know the rules","by":"mastermind-deputy"},"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.455Z"}
+{"stop":{"why":"Duplicate of the CLAUDE.md file-change-rule task (/framework/ai/tasks/decide-whether-the-same-file-change-rule/); the skill copy is one sentence there. Triaged 2026-10-24 (queue-triage).","at":"2026-10-24T23:05:02-05:00","by":"task-mastermind-queue-triage"}}

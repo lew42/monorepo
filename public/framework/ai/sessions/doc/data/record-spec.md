@@ -65,6 +65,8 @@ To find past work (by tag or system) and see what it cost, run the same query th
 
 The answer is `{count, claude_api_equivalent_usd, openrouter_real_usd, rows}`. Claude sessions are priced at API-equivalent rates (what the plan saves); OpenRouter dollars are real money, so the two are never added together.
 
+**One session's completion:** `node Server/session-query.mjs --report <agent id | session id | folder name> [--root <repo>]` prints its prompts, tasks created/finished/stopped/open, finishes without proof, children (registered/linked/unlinked) and cost, then the one completion score and its formula; `--recent N` does it for the N latest. The formula and why: [core/Session readme](/framework/core/Session/readme.md#the-one-formula).
+
 Three example questions:
 
 1. *What did we do on dictation this week, and what did it cost?* `node Server/session-query.mjs --system dictat --since 2026-10-02 --json`

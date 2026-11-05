@@ -59,7 +59,7 @@ export default class CardAnswer {
 		socket.on("rpc:card_say", (args, index) => this.card_say(args[0] || {}, index));
 	}
 
-	/* card_say {id, say, note, quote} — the AI 2 inbox's one write (`public/framework/ai2/`,
+	/* card_say {id, say, note, quote} — the AI rail's one write (`public/framework/ai/rail/`,
 	 * 2026-09-22). Three words, and only three, because an inbox has only three things to
 	 * record about a card:
 	 *

@@ -36,7 +36,7 @@ const pipeline_tiles = () => div.c("flex wrap gap v-center wide ux-dictate-pipel
 	span.c("ux-dictate-pipeline-arrow muted", "→");
 	tile("Revise", "clean · edit · summary", "/framework/ux/Revise/");
 	span.c("ux-dictate-pipeline-arrow muted", "→");
-	tile("Where it goes", "a card, a composer, the prompt log", "/framework/ai2/");
+	tile("Where it goes", "a card, a composer, the prompt log", "/framework/ai/");
 }).style("--gap", "0.6em");
 
 /* The card's own context — a real textarea, dictated into live. `$out` mirrors

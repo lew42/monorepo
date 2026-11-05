@@ -3,3 +3,4 @@
 {"title":"Reject unknown verbs on AI v2 lines against the schema","by":"helper-undone-to-tasks","ts":"2026-10-23T06:24:10.046Z"}
 {"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.616Z"}
 {"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ai/v/2/tasks/logs-unknown-verbs-on-ai-2-the-validator/"},{"id":"mastermind-deputy","task":"/framework/ai/v/2/tasks/logs-unknown-verbs-on-ai-2-the-validator/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.617Z"}
+{"stop":{"why":"Obsolete: AI v2 is a retired variant; LogLine (.claude/hooks/jsonl-schema.mjs) validates every appended verb now. Triaged 2026-10-24 (queue-triage).","at":"2026-10-24T23:05:02-05:00","by":"task-mastermind-queue-triage"}}

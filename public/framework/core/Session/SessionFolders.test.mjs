@@ -42,5 +42,24 @@ try {
 
 	assert.equal(SessionFolders.owner(put("2026/09/04/flat-task", "session.jsonl", { assign: { session_id: A, tab: "monorepo" } })), null, "a tab-era task (assign, no agent) is not a session's folder");
 	assert.equal(SessionFolders.owner(put("2026/10/16/voice-x", "session.jsonl", { assign: { session_id: A, agent: "mastermind-voice-x" } })), A, "a Servex record (assign with an agent) is");
-	console.log("SessionFolders: 15 checks pass");
+	// A spawned agent's record sits INSIDE its parent's folder; its id (a uuid) and its folder must still find each other.
+	const P = "e0e0e0e0-0005-4a19-9b01-000000000005", K = "f0f0f0f0-0006-4a19-9b01-000000000006";
+	const parent = put("2026/11/04/session-e0e0e0e0", "cache.jsonl", { summary: { v: 2, id: P } });
+	const thin = put("2026/11/04/session-f0f0f0f0", "cache.jsonl", { summary: { v: 2, id: K } });   // the indexer's folder for the child
+	const kid = put("2026/11/04/session-e0e0e0e0/the-child", "session.jsonl", { assign: { session_id: K, agent: "mastermind-the-child" } });
+	s = fresh();
+	assert.equal(s.of(K), thin, "of(): the day-level folder (where the indexer writes), as before");
+	assert.equal(s.record_of(K), thin, "record_of() before any claim is of()");
+	assert.equal(s.claim(K, kid), true, "claim() accepts a nested folder that names the id");
+	assert.equal(s.claim(P, kid), false, "claim() refuses a folder that names another id");
+	assert.equal(s.record_of(K), kid, "record_of(): the nested record folder");
+	assert.equal(fresh().record_of(K), kid, "the claim is saved: a new process finds it");
+	assert.equal(fresh().of(K), thin, "of() is unchanged by a claim");
+	fs.rmSync(kid, { recursive: true });
+	assert.equal(fresh().record_of(K), thin, "a claimed folder that is gone falls back to of()");
+	const G = "a1a1a1a1-0007-4a19-9b01-000000000007", old = put("2026/11/04/session-e0e0e0e0/older-child", "task.jsonl", { assign: { session_id: G, agent: "minion-older" } });   // spawned before claim() existed
+	assert.equal(fresh().record_of(G), null, "an unclaimed nested folder is not found by id");
+	assert.equal(fresh().adopt_nested(), 1, "adopt_nested() claims the record folders below session folders");
+	assert.equal(fresh().record_of(G), old, "and record_of() then finds it");
+	console.log("SessionFolders: 25 checks pass");
 } finally { fs.rmSync(ROOT, { recursive: true, force: true }); }

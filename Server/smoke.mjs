@@ -1,6 +1,6 @@
 /* `node Server/smoke.mjs <worktree dir> [paths...] [--port N | --base URL] [--main <repo>]`
  * A smoke test: does the site still load, and do its links go anywhere? It opens
- * /framework/, /framework/ai2/ and every path you give (against the worktree's own dev
+ * /framework/, /framework/ai/ and every path you give (against the worktree's own dev
  * server, never the owner's), waits 1.5 s after each load, and counts what went wrong:
  * console errors, uncaught page errors, a failed request, an HTTP 404+ on a script,
  * stylesheet or page — OR the page rendering core/App's own "Page Load Error" screen
@@ -14,7 +14,7 @@
  * `javascript:`, and files (an extension in SKIP_EXT: images, .md, .json, .css, .js,
  * fonts, …) — deduplicated against everything already queued or loaded, and loaded in
  * turn. A link found on a FOLLOWED page is not itself followed (one level, not a
- * crawl). `/framework/` and `/framework/ai2/`, the two always-on canaries, are loaded
+ * crawl). `/framework/` and `/framework/ai/`, the two always-on canaries, are loaded
  * and checked but NOT link-followed — their own nav alone is 80+ links, which would
  * fill the whole cap before ever reaching the pages you actually meant to check. The
  * whole run is capped at CAP pages so one page full of links cannot turn a merge into
@@ -114,7 +114,7 @@ if (worktreeName && !baseOpt && !portOpt) {
 }
 base = base.replace(/\/$/, "");
 
-const canaries = ["/framework/", "/framework/ai2/"];
+const canaries = ["/framework/", "/framework/ai/"];
 const given = extra.map(p => (p.startsWith("/") ? p : "/" + p));
 const asset = new Set(["script", "stylesheet", "document"]);
 const CAP = 60;
@@ -124,14 +124,14 @@ const SKIP_EXT = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "ico", "pd
 
 /* A url whose folder the WORKTREE lacks but the MAIN tree holds uncommitted (a card dir another
  * agent is still writing) can never load here, and it is not this branch's fault: such a target is
- * reported "skip", never "FAIL" (node-reliability, 2026-09-30 — /framework/ai2/ links into card dirs
+ * reported "skip", never "FAIL" (node-reliability, 2026-09-30 — /framework/ai/ links into card dirs
  * that exist only uncommitted in the main tree failed every worktree merge with "Page Load Error").
  * One git call per FAILING url only. MAIN = the repo holding this smoke.mjs (merge.mjs runs the main
  * tree's copy). */
 const MAIN = mainOpt ? path.resolve(mainOpt) : path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");   // --main: proofs only
 function uncommitted_in_main(p){
 	const pathname = decodeURIComponent(new URL(p, "http://x").pathname);
-	const card = /^\/framework\/ai2\/(\d{4}\/\d{2}\/\d{2}\/.+?)\/?$/.exec(pathname);   // a card renders under ai2/, lives under ai/
+	const card = /^\/framework\/ai\/(\d{4}\/\d{2}\/\d{2}\/.+?)\/?$/.exec(pathname);   // an old dated card url; its folder is in the sessions store
 	const rel = "public" + (card ? "/framework/ai/" + CardDir.rel(card[1]) : pathname.replace(/\/$/, ""));   // its folder is in the sessions store
 	if (rel === "public" || norm(MAIN) === norm(dir)) return false;
 	if (fs.existsSync(path.join(dir, rel, "page.js")) || fs.existsSync(path.join(dir, rel, "page.jsonl"))) return false;
@@ -468,7 +468,7 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 
 	// Every warn/log line, deduped, split into what the allow-list already covers and what
 	// it doesn't. Over budget is a WARNING, never a failure (the owner, 2026-11-01: a merge that adds one Servex tool was
-	// refused because /framework/ai2/ logged 6 lines instead of 5, the same on the live site). Real errors still fail.
+	// refused because /framework/ai/ logged 6 lines instead of 5, the same on the live site). Real errors still fail.
 	const uniq_noise = [...new Set(noise)];
 	const covered = uniq_noise.filter(allowed);
 	const uncovered = uniq_noise.filter(t => !allowed(t));

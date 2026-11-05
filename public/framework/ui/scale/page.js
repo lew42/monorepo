@@ -35,7 +35,7 @@ export default new Page({
 			div.c("flex v gap", box).style({ width: "856px", maxWidth: "100%" });
 		});
 
-		md("Built for the Figma \"Sept 2026\" recreations, where a 856px-wide design had to fit a ~400px card column without reflowing what the Figma actually drew: [`/framework/ai2/2026/09/28/figma-sept-2026/`](/framework/ai2/2026/09/28/figma-sept-2026/).");
+		md("Built for the Figma \"Sept 2026\" recreations, where a 856px-wide design had to fit a ~400px card column without reflowing what the Figma actually drew: [`/framework/ai/2026/09/28/figma-sept-2026/`](/framework/ai/2026/09/28/figma-sept-2026/).");
 	},
 
 	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", box)); },

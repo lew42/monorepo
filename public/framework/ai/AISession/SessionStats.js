@@ -45,7 +45,8 @@ export default class SessionStats extends View {
 		const base = work.id ? AICost.session_url(work.id) : work.dir;
 		AICost.summary(base).then(({ summary }) => {
 			const p = summary?.progress;
-			$v.text(!p ? "—" : p.total ? `${p.done} of ${p.total} tasks done` : "no root tasks");   // no answer (Servex unreachable) is a dash, never "none"
+			const y = summary?.tally;   // the item tool's labelled counts (Task.tally): every task at any depth, and how many finished ones carry no proof
+			$v.text(!p ? "—" : p.total ? `${p.done} of ${p.total} tasks done` + (y?.unproven ? ` · ${y.unproven} finished without proof` : "") : "no root tasks");   // no answer (Servex unreachable) is a dash, never "none"
 		}).catch(() => $v.text("—"));
 	}
 

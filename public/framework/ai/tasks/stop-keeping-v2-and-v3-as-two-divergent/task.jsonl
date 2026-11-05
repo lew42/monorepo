@@ -2,3 +2,4 @@
 {"wait":{"on":"owner","what":"Proposed from an old ask (the sort pass over the undone asks): approve, improve or reject"},"by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:14.003Z"}
 {"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.431Z"}
 {"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ai/tasks/stop-keeping-v2-and-v3-as-two-divergent/"},{"id":"mastermind-deputy","task":"/framework/ai/tasks/stop-keeping-v2-and-v3-as-two-divergent/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.432Z"}
+{"stop":{"why":"Obsolete: the AI dashboard was rebuilt mobile-first on 2026-10-19 and the V2/V3 variants are views of it; this ask targeted the old layout. Triaged 2026-10-24 (queue-triage).","at":"2026-10-24T23:05:02-05:00","by":"task-mastermind-queue-triage"}}

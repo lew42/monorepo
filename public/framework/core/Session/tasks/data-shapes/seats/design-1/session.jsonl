@@ -13,3 +13,6 @@
 {"log":{"at":"2026-10-28T00:55:03-05:00","heartbeat":"answered","msg":"I'm idle: design seat 1 is finished and committed (`fb512ca8a`, `449115ac6`), and I'm waiting for the data-shapes mastermind."}}
 {"log":{"at":"2026-10-28T01:17:28-05:00","heartbeat":"check","msg":"status check sent to mastermind-shapes-design-1"}}
 {"complete":{"outcome":"Seat 1 design written: shape.md (class map + 7 sample JSONL lines) and notes.md (the 7 answers, alternatives, what today's code gets right and wrong).","evidence":["public/framework/core/Session/tasks/data-shapes/seats/design-1/shape.md","public/framework/core/Session/tasks/data-shapes/seats/design-1/notes.md","commit fb512ca8a","commit 449115ac6"]},"by":"mastermind-shapes-design-1","ts":"2026-10-28T06:18:04.442Z"}
+{"commit":"ffa8b020a5d6"}
+{"log":{"at":"2026-10-28T01:18:16-05:00","heartbeat":"answered","msg":"Design seat 1 is finished, and its task is now marked complete. It had been left in the \"running\" state, which is likely why the status checks kept coming. That change is committed as `ffa8b020a`; the"}}
+{"log":{"at":"2026-10-28T01:18:28-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}

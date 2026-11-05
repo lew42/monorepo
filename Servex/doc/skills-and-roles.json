@@ -1,0 +1,635 @@
+{
+  "at": "2026-11-05T04:42:50.378Z",
+  "notes": {
+    "servexLines": 2004,
+    "servexFirst": "2026-10-12T03:14:58-05:00",
+    "skillDirs": 35,
+    "roles": 20
+  },
+  "rows": [
+    {
+      "name": "auditor",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 1,
+      "last": "2026-09-19T15:57:34-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "check-claude-usage",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 1,
+      "n_all": 105,
+      "last": "2026-10-27T23:24:55-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "clarity",
+      "kind": "skill",
+      "n7": 192,
+      "n30": 1130,
+      "n_all": 1130,
+      "last": "2026-11-04T22:36:55-06:00",
+      "source": "Servex skills log (spawn); Servex skills log (inlined); Servex skills log (inlined role text)"
+    },
+    {
+      "name": "code",
+      "kind": "skill",
+      "n7": 1,
+      "n30": 21,
+      "n_all": 143,
+      "last": "2026-11-01T21:49:03-06:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "color",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "content",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 3,
+      "last": "2026-10-02T18:20:56-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "css",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 1,
+      "n_all": 116,
+      "last": "2026-10-15T21:42:25-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "decide",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 1,
+      "n_all": 2,
+      "last": "2026-10-08T00:21:50-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "documentation",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 2,
+      "n_all": 278,
+      "last": "2026-10-17T14:30:09-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "every-prompt",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 1,
+      "n_all": 1,
+      "last": "2026-10-20T15:16:36-05:00",
+      "source": "Servex skills log (inlined)"
+    },
+    {
+      "name": "figma",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 3,
+      "n_all": 3,
+      "last": "2026-10-22T20:59:19-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "finish-task",
+      "kind": "skill",
+      "n7": 4,
+      "n30": 94,
+      "n_all": 597,
+      "last": "2026-11-02T16:13:32-06:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "fork-claude-session",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "layout",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 1,
+      "n_all": 95,
+      "last": "2026-10-12T04:31:27-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "log-assistant",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "make",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "master-assistant",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "mastermind",
+      "kind": "skill",
+      "n7": 131,
+      "n30": 353,
+      "n_all": 353,
+      "last": "2026-11-04T22:42:42-06:00",
+      "source": "task.jsonl log (ledger.mjs); Servex skills log (spawn); Servex skills log (inlined role text)"
+    },
+    {
+      "name": "minion",
+      "kind": "skill",
+      "n7": 111,
+      "n30": 743,
+      "n_all": 842,
+      "last": "2026-11-04T22:36:22-06:00",
+      "source": "task.jsonl log (ledger.mjs); Servex skills log (spawn); Servex skills log (inlined); Servex skills log (inlined role text)"
+    },
+    {
+      "name": "navigation",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 1,
+      "last": "2026-10-04T22:21:34-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "new-css-class",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 71,
+      "last": "2026-09-29T16:02:39-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "new-task",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 26,
+      "last": "2026-10-04T21:33:47-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "openrouter",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "page",
+      "kind": "skill",
+      "n7": 1,
+      "n30": 186,
+      "n_all": 237,
+      "last": "2026-11-02T16:49:31-06:00",
+      "source": "task.jsonl log (ledger.mjs); Servex skills log (inlined)"
+    },
+    {
+      "name": "past-work",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 1,
+      "n_all": 1,
+      "last": "2026-10-12T16:00:29-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "research",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 5,
+      "last": "2026-09-29T19:06:25-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "review",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 166,
+      "n_all": 167,
+      "last": "2026-10-22T18:36:06-05:00",
+      "source": "task.jsonl log (ledger.mjs); Servex skills log (inlined)"
+    },
+    {
+      "name": "servex-mastermind",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 147,
+      "n_all": 147,
+      "last": "2026-10-23T19:20:43-05:00",
+      "source": "task.jsonl log (ledger.mjs); Servex skills log (inlined); Servex skills log (inlined role text)"
+    },
+    {
+      "name": "skill-improvement",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 52,
+      "last": "2026-10-01T21:18:06-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "sub-mastermind",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 183,
+      "n_all": 226,
+      "last": "2026-10-25T02:17:02-05:00",
+      "source": "task.jsonl log (ledger.mjs); Servex skills log (inlined)"
+    },
+    {
+      "name": "system-architect",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 5,
+      "n_all": 5,
+      "last": "2026-10-20T15:52:57-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "ui",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "ui-test",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 3,
+      "n_all": 67,
+      "last": "2026-10-19T17:22:25-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "voice-assistant",
+      "kind": "skill",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "voice-mastermind",
+      "kind": "skill",
+      "n7": 2,
+      "n30": 5,
+      "n_all": 5,
+      "last": "2026-11-01T17:57:40-06:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "ai-system-mastermind",
+      "kind": "role",
+      "n7": 0,
+      "n30": 4,
+      "n_all": 4,
+      "last": "2026-10-23T21:56:47-05:00",
+      "source": "Servex skills log (spawn); Servex skills log (inlined role text)"
+    },
+    {
+      "name": "assistant",
+      "kind": "role",
+      "n7": 0,
+      "n30": 1,
+      "n_all": 1,
+      "last": "2026-10-20T15:16:36-05:00",
+      "source": "Servex skills log (spawn)"
+    },
+    {
+      "name": "checker",
+      "kind": "role",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "clarity",
+      "kind": "role",
+      "n7": 192,
+      "n30": 1130,
+      "n_all": 1130,
+      "last": "2026-11-04T22:36:55-06:00",
+      "source": "Servex skills log (spawn); Servex skills log (inlined); Servex skills log (inlined role text)"
+    },
+    {
+      "name": "core-page-mastermind",
+      "kind": "role",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "directory-mastermind",
+      "kind": "role",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "log-assistant",
+      "kind": "role",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "master-assistant",
+      "kind": "role",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "mastermind",
+      "kind": "role",
+      "n7": 131,
+      "n30": 353,
+      "n_all": 353,
+      "last": "2026-11-04T22:42:42-06:00",
+      "source": "task.jsonl log (ledger.mjs); Servex skills log (spawn); Servex skills log (inlined role text)"
+    },
+    {
+      "name": "minion",
+      "kind": "role",
+      "n7": 111,
+      "n30": 743,
+      "n_all": 842,
+      "last": "2026-11-04T22:36:22-06:00",
+      "source": "task.jsonl log (ledger.mjs); Servex skills log (spawn); Servex skills log (inlined); Servex skills log (inlined role text)"
+    },
+    {
+      "name": "page-assistant",
+      "kind": "role",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "page-mastermind",
+      "kind": "role",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "reviewer",
+      "kind": "role",
+      "n7": 356,
+      "n30": 999,
+      "n_all": 999,
+      "last": "2026-11-04T22:40:34-06:00",
+      "source": "Servex skills log (spawn); Servex skills log (inlined role text)"
+    },
+    {
+      "name": "servex-mastermind",
+      "kind": "role",
+      "n7": 0,
+      "n30": 147,
+      "n_all": 147,
+      "last": "2026-10-23T19:20:43-05:00",
+      "source": "task.jsonl log (ledger.mjs); Servex skills log (inlined); Servex skills log (inlined role text)"
+    },
+    {
+      "name": "session-fast",
+      "kind": "role",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "session-smart",
+      "kind": "role",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "single-voice-assistant",
+      "kind": "role",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "voice-assistant",
+      "kind": "role",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "voter",
+      "kind": "role",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "vscode-mastermind",
+      "kind": "role",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 0,
+      "last": null,
+      "source": "none in logs"
+    },
+    {
+      "name": "new-page",
+      "kind": "skill (not in catalogue)",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 72,
+      "last": "2026-10-01T22:26:47-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "fans",
+      "kind": "skill (not in catalogue)",
+      "n7": 0,
+      "n30": 1,
+      "n_all": 34,
+      "last": "2026-10-12T12:30:59-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "naming",
+      "kind": "skill (not in catalogue)",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 1,
+      "last": "2026-09-29T18:18:43-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "dataviz",
+      "kind": "skill (not in catalogue)",
+      "n7": 0,
+      "n30": 0,
+      "n_all": 1,
+      "last": "2026-10-01T01:08:19-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "workflow-authoring",
+      "kind": "skill (not in catalogue)",
+      "n7": 0,
+      "n30": 1,
+      "n_all": 1,
+      "last": "2026-10-09T17:55:52-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "figma:figma-use",
+      "kind": "skill (not in catalogue)",
+      "n7": 0,
+      "n30": 32,
+      "n_all": 32,
+      "last": "2026-10-22T19:21:24-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "figma:figma-generate-design",
+      "kind": "skill (not in catalogue)",
+      "n7": 0,
+      "n30": 3,
+      "n_all": 3,
+      "last": "2026-10-22T19:21:26-05:00",
+      "source": "task.jsonl log (ledger.mjs)"
+    },
+    {
+      "name": "task-mastermind",
+      "kind": "role (not in catalogue)",
+      "n7": 0,
+      "n30": 192,
+      "n_all": 192,
+      "last": "2026-10-25T17:49:42-05:00",
+      "source": "Servex skills log (spawn); Servex skills log (inlined role text)"
+    },
+    {
+      "name": "expert",
+      "kind": "role (not in catalogue)",
+      "n7": 0,
+      "n30": 1,
+      "n_all": 1,
+      "last": "2026-10-13T22:44:34-05:00",
+      "source": "Servex skills log (spawn)"
+    },
+    {
+      "name": "proof",
+      "kind": "role (not in catalogue)",
+      "n7": 1,
+      "n30": 4,
+      "n_all": 4,
+      "last": "2026-11-02T03:55:45-06:00",
+      "source": "Servex skills log (spawn)"
+    },
+    {
+      "name": "helper",
+      "kind": "role (not in catalogue)",
+      "n7": 4,
+      "n30": 85,
+      "n_all": 85,
+      "last": "2026-11-02T16:39:06-06:00",
+      "source": "Servex skills log (spawn)"
+    }
+  ],
+  "retire": [
+    "auditor",
+    "color",
+    "content",
+    "fork-claude-session",
+    "log-assistant",
+    "make",
+    "master-assistant",
+    "navigation",
+    "new-css-class",
+    "new-task",
+    "openrouter",
+    "research",
+    "skill-improvement",
+    "ui",
+    "voice-assistant",
+    "checker",
+    "core-page-mastermind",
+    "directory-mastermind",
+    "log-assistant",
+    "master-assistant",
+    "page-assistant",
+    "page-mastermind",
+    "session-fast",
+    "session-smart",
+    "single-voice-assistant",
+    "voice-assistant",
+    "voter",
+    "vscode-mastermind"
+  ]
+}

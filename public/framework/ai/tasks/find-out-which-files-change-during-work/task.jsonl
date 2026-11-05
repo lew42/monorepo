@@ -3,3 +3,4 @@
 {"title":"Find out which files change during work and how","by":"helper-undone-to-tasks","ts":"2026-10-23T06:24:10.036Z"}
 {"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.578Z"}
 {"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ai/tasks/find-out-which-files-change-during-work/"},{"id":"mastermind-deputy","task":"/framework/ai/tasks/find-out-which-files-change-during-work/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.578Z"}
+{"stop":{"why":"Done: the clean-tree pass of 2026-10-07 (.gitignore:119) answered which files change during work. Triaged 2026-10-24 (queue-triage).","at":"2026-10-24T23:05:02-05:00","by":"task-mastermind-queue-triage"}}

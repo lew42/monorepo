@@ -191,6 +191,20 @@ try {
 	ok(!RL.some(l => l.pulse?.n === 2), "race: nor pulsed again");
 	ok(runner.read(RF).step?.id !== "questions" && runner.read(RF).step?.state !== "idle", "race: the next step started (" + runner.read(RF).step?.id + ")");
 
+	// THE LIVE STALL (2026-11-04): Agents.open_task nests the step's worker session under the step with a {task: ref} line. With that child open, the
+	// recorded-complete step read `running` (Task.reopened), so the next step never started. The runner now completes the step's own worker session.
+	await item({ tasks: { add: { title: "Nested", process: "investigate" } } }, "mm1");
+	const NF = path.join(DIR, "nested", "task.jsonl"), NURL = URL + "nested/"; await settle(NF);
+	const na = spawned.at(-1).id, sdir = path.join(DIR, "nested", "questions");
+	fs.mkdirSync(sdir, { recursive: true });
+	fs.writeFileSync(path.join(sdir, "session.jsonl"), JSON.stringify({ session: { id: "sess-q", kind: "agent", at: "2026-11-04T10:00:00.000Z" } }) + "\n" + JSON.stringify({ start: {} }) + "\n");
+	fs.appendFileSync(NF, JSON.stringify({ questions: { task: NURL + "questions/", type: "Session", spawn: { agent: na, session_id: "sess-q" } }, by: "agents", ts: "2026-11-04T10:00:01.000Z" }) + "\n");
+	await item({ questions: { complete: { outcome: "asked them all", evidence: ["test"] } } }, na, NURL); await settle(NF);
+	const nl = read(NF), kid_rec = read(path.join(sdir, "session.jsonl"));
+	ok(kid_rec.some(l => l.complete && l.by === "ProcessRunner"), "nested: the step's own worker session was completed by node");
+	ok(nl.some(l => l.scout?.start || l.scout?.spawn || l.spawn?.step === "scout") || runner.read(NF).step?.id !== "questions", "nested: the next step started (" + runner.read(NF).step?.id + "), not stalled on the step's own session");
+	ok(!nl.some(l => l.pulse?.step === "questions" && l.pulse.n > 1) && !nl.some(l => l.questions?.wait), "nested: no wait written on the completed step");
+
 	// CAUSE 2: a running process in an old-dated folder is resumed by the tick, found by the index, not by a date scan; with no index, one wide scan builds it.
 	const OLD_REL = "public/framework/ai/sessions/2020/01/01/.process-test-" + process.pid + "/old-run";
 	const OLD = path.join(ROOT, OLD_REL, "task.jsonl"); fs.mkdirSync(path.dirname(OLD), { recursive: true });
