@@ -137,6 +137,7 @@ export default class Pool extends Events {
             this.say(`pool: ${slot.id} taken by ${slot.taken_by}`, { id: slot.id, taken_by: slot.taken_by });
             try { this.servex?.lifecycle?.took(slot, slot.taken_by); } catch {}   // lifecycle.jsonl + the taker's task log learns its worktree
             this.page_watch(slot);
+            this.start_watcher(slot);
             this.top_up();
             return { id: slot.id, path: slot.path, branch: slot.branch, url: slot.url };
         }
@@ -165,6 +166,7 @@ export default class Pool extends Events {
         }
         try { this.servex?.lifecycle?.took(slot, slot.taken_by); } catch {}
         this.page_watch(slot);
+        this.start_watcher(slot);
         this.say(`pool: ${slot.id} taken by ${slot.taken_by} (sync)`, { id: slot.id, taken_by: slot.taken_by });
         this.top_up();
         return { id: slot.id, path: slot.path, branch: slot.branch, url: slot.url };
@@ -526,7 +528,7 @@ export default class Pool extends Events {
         const ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
         if (!ff.ok) throw new Error(`could not fast-forward to ${this.base}: ${ff.out}`);
         await this.identity(slot);
-        await this.watch(slot);
+        // no page watcher here: a ready slot has no editor to watch, and the watcher's Playwright browser cost ~500 MB per idle slot; take() starts it
         slot.baseline = Object.fromEntries((await this.dirt(slot)).map(d => [d.file, d.hash]));
         Object.assign(slot, { state: "ready", idle_since: stamp() });
         this.save();
@@ -584,7 +586,7 @@ export default class Pool extends Events {
             if (!fs.existsSync(slot.path)){ this.forget(slot); continue; }
             if (slot.state === "taken"){ this.page_watch(slot); continue; }
             if (slot.state !== "ready" || !(await this.answers(slot.url))){ this.remove(slot); continue; }
-            if (!this.alive(slot.watcher_pid)){ await this.watch(slot); this.save(); }
+            if (this.alive(slot.watcher_pid)){ this.kill(slot.watcher_pid, /health-supervisor/i); slot.watcher_pid = null; this.save(); }   // a ready slot holds no browser
         }
         if (this.slots.length) this.say(`pool: adopted ${this.slots.map(s => `${s.id} (${s.state})`).join(", ")}`);
     }
@@ -855,6 +857,11 @@ export default class Pool extends Events {
             if (!slot.watcher_pid) this.say(`pool: ${slot.id} page watcher did not start: ${e?.message ?? out}`, { id: slot.id });
             resolve(slot.watcher_pid);
         }));
+    }
+
+    /* Starts the health watcher (and so its browser) for a slot that was just taken; in the background, never fails the take. */
+    start_watcher(slot){
+        this.watch(slot).then(() => this.save()).catch(e => this.say(`pool: ${slot.id} health watcher did not start: ${e.message}`, { id: slot.id }));
     }
 
     /* The page watcher for a taken slot (WorktreeWatch.js): a break in a page its holder edits reaches the holder in about 10 s. Never fails the pool. */

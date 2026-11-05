@@ -54,6 +54,14 @@ export function main_repo(){
 		return main_cache = path.resolve(HERE, common, "..");
 	} catch { return main_cache = path.resolve(HERE, ".."); }
 }
+/** The pool slot whose folder holds `dir` (read from the pool's own file, cached 5 s), or null. A path that merely looks like qf-N is not a slot. */
+let pool_cache = { at: 0, slots: [] };
+export function pool_slot(dir){
+	if (!dir) return null;
+	if (Date.now() - pool_cache.at > 5000) { let slots = []; try { slots = JSON.parse(fs.readFileSync(path.join(main_repo(), ".worktree-pool.json"), "utf8")).slots ?? []; } catch {} pool_cache = { at: Date.now(), slots }; }
+	return pool_cache.slots.find(s => inside(dir, s.path)) ?? null;
+}
+
 const ai_dir = () => path.join(main_repo(), "public", "framework", "ai");
 
 /** A task's key: its dir relative to public/framework/ai/ ("2026-09-29/lifecycle/build"). */
@@ -262,7 +270,9 @@ export default class Lifecycle {
 		// itself Servex, the gate or whisper, or started by one of them (3 node/cmd parents up; an agent's bash is never read)
 		for (let p = this.procs?.get(r.pid), i = 0; p && i < 4 && /^(node|cmd)\.exe$/i.test(p.name); p = this.procs.get(p.ppid), i++)
 			if (/Servex[\\/](index|sustain|gate)\.m?js|whisper/i.test(p.cmd)) return "Servex, the gate or whisper owns it";
-		if (r.path && /[\\/]worktrees[\\/]qf-\d+/i.test(r.path)) return "a pool slot (Pool.js looks after it)";
+		// a pool slot's server is Pool.js's; its health watcher and browser are NOT kept while the slot is ready (nobody edits there) or when the slot is not in the pool file at all
+		const slot = pool_slot(r.path);
+		if (slot && (r.kind === "server" || slot.state === "taken")) return "a pool slot (Pool.js looks after it)";
 		// a dev server the owner's phone link points at, until its branch merges (build F, Servex/doc/worktree-preview.md)
 		if (r.path && r.kind === "server"){ const held = WorktreePreview.held(r.path, main_repo()); if (held) return held; }
 		// An unlogged chrome.exe (logged: false, from the Playwright-marker scan above) has no path
@@ -303,6 +313,7 @@ export default class Lifecycle {
 			return null;
 		}
 		if (only) return r.owner_task === only ? `its task ${only} has landed` : null;
+		if ((r.kind === "health" || r.kind === "browser") && pool_slot(r.path)?.state === "ready") return "a ready pool slot holds no browser (started again when the slot is taken)";
 		const t = this.task(r.owner_task), age = r.born ? Date.now() - r.born : 0;
 		if (t?.landed) return `its task ${t.key} has landed`;
 		if (t && Date.now() - t.mtime > DEAD_MS) return `its task ${t.key} has been silent for ${hours(Date.now() - t.mtime)} h`;

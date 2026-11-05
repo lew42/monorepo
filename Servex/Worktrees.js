@@ -78,12 +78,14 @@ export default class Worktrees extends Events {
 			(e, out, err) => resolve({ ok: !e, out: String(e ? err || out : out).trimEnd() })));   // trimEnd: a porcelain line starts with a space
 	}
 
-	/* `git worktree list --porcelain`, only the ones under `this.dir`. */
+	/* `git worktree list --porcelain`: every linked worktree except the main checkout, wherever it sits
+	 * (one beside the repo, monorepo-wt-readme-roles, was never listed here and so never removed, 2026-11-04). */
 	async list(){
 		const out = (await this.git(["worktree", "list", "--porcelain"])).out, rows = [];
-		for (const block of out.split(/\n\s*\n/)){
+		for (const [i, block] of out.split(/\n\s*\n/).entries()){
 			const wt = block.match(/^worktree (.+)$/m)?.[1];
-			if (!wt || !same_or_under(wt, this.dir) || norm(wt) === norm(this.dir)) continue;
+			// git always prints the main checkout first, even when this Servex runs from a linked one
+			if (i === 0 || !wt || norm(wt) === norm(this.main) || norm(wt) === norm(this.dir) || /^bare$/m.test(block)) continue;
 			rows.push({ path: wt, name: path.basename(wt), branch: block.match(/^branch refs\/heads\/(.+)$/m)?.[1] ?? null,
 				head: block.match(/^HEAD (\w+)/m)?.[1] ?? null, locked: /^locked/m.test(block), prunable: /^prunable/m.test(block) });
 		}
@@ -329,10 +331,38 @@ export default class Worktrees extends Events {
 		} finally { this.busy = false; }
 	}
 
-	/* Stop its server, remove the folder (git refuses anything unclean), forget the project. */
+	/* Close EVERY process the lifecycle can see under this folder: its Servex-run server, a hand-started wrapper, its health
+	 * watcher, a Playwright browser. Stopping only Servex's own runner left the rest holding the folder, so `git worktree remove`
+	 * could not finish (usage-stale, 2026-11-04). Returns how many were closed. */
+	async close_under(item, why){
+		const lc = this.servex?.lifecycle;
+		if (!lc) return 0;
+		let n = 0;
+		try {
+			for (const r of await lc.resources()){
+				if (r.kind === "agent" || !r.path || !same_or_under(r.path, item.path) || r.pid === process.pid) continue;
+				try { await lc.close(r, why); n++; } catch (e){ this.log({ msg: `worktrees: ${item.name}: could not close ${r.kind} ${r.id}: ${e.message}` }); }
+			}
+		} catch (e){ this.log({ msg: `worktrees: ${item.name}: could not list what runs there: ${e.message}` }); }
+		return n;
+	}
+
+	/* The registry (.worktrees.json, worktree-up.mjs) keeps an entry per hand-made worktree; one left behind keeps a dead pid on the sweep's list. */
+	unregister(item){
+		const file = path.join(this.main, ".worktrees.json");
+		try {
+			const reg = JSON.parse(fs.readFileSync(file, "utf8").replace(/^﻿/, ""));
+			let changed = false;
+			for (const [k, w] of Object.entries(reg)) if (w?.path && norm(w.path) === norm(item.path)){ delete reg[k]; changed = true; }
+			if (changed) Object.keys(reg).length ? fs.writeFileSync(file, JSON.stringify(reg, null, "	")) : fs.unlinkSync(file);
+		} catch {}
+	}
+
+	/* Stop everything running there, remove the folder (git refuses anything unclean), forget the project. */
 	async remove(item){
 		const sx = this.servex, name = item.name;
 		try { await sx?.processes?.get(name)?.terminate?.(); } catch {}
+		await this.close_under(item, `worktree ${name} is being removed`);
 		let kept = null, committed = 0, unmerged = 0, sha = null;
 		if (item.commit){
 			try {
@@ -346,10 +376,18 @@ export default class Worktrees extends Events {
 			catch (e){ item.state = "open"; item.why = `its log files could not be saved first: ${e.message}`; return false; }
 		}
 		// --force only when every change is log noise, and only after it was saved; otherwise git itself refuses
-		const r = item.prune ? await this.git(["worktree", "prune"])
-			: await this.git(["worktree", "remove", ...(item.noise?.length ? ["--force"] : []), item.path]);
+		const take_out = () => item.prune ? this.git(["worktree", "prune"])
+			: this.git(["worktree", "remove", ...(item.noise?.length ? ["--force"] : []), item.path]);
+		let r = await take_out();
+		if (!r.ok && /permission denied|in use|being used|not empty|cannot remove|unable to delete/i.test(r.out)){   // something still held the folder: close again, wait, one more try
+			await this.close_under(item, `worktree ${name} is being removed (retry)`);
+			await new Promise(done => setTimeout(done, 3000));
+			r = await take_out();
+		}
+		if (r.ok && !item.prune && fs.existsSync(item.path)){ try { fs.rmdirSync(item.path); } catch {} }   // git can leave an empty folder; rmdir removes only an empty one
 		if (!r.ok){ item.state = "open"; item.why = `git refused to remove it: ${r.out.split("\n")[0]}`; this.log({ msg: `worktrees: ${name} not removed: ${r.out}` }); return false; }
 		this.forget(name);
+		this.unregister(item);
 		item.state = "removed";
 		const entry = { at: stamp(), name, branch: item.branch, why: item.why, salvage: kept };
 		this.manifest({ path: item.path, branch: item.branch, sha, at: entry.at, why: item.why, committed, unmerged, restore: `git worktree add "${item.path}" ${item.branch}` }, unmerged);

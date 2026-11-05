@@ -69,6 +69,10 @@ import DatedFiles from "../Server/DatedFiles.mjs";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
 const SKIP = new Set(["node_modules", "dist", "build", "coverage"]);
+/* A linked git worktree has a `.git` FILE ("gitdir: ..."); a real checkout has a `.git` folder. */
+function is_linked_worktree(dir){
+    try { return fs.statSync(path.join(dir, ".git")).isFile(); } catch { return false; }
+}
 
 const INSTRUCTIONS = `Servex is the always-on process on this machine. It supervises dev servers`
     + ` (and whisper-server), owns every log file as the single writer, and answers here.`
@@ -388,6 +392,7 @@ export default class Servex extends Events {
         for (const entry of entries){
             if (!entry.isDirectory() || entry.name.startsWith(".") || SKIP.has(entry.name)) continue;
             const child = path.join(dir, entry.name);
+            if (is_linked_worktree(child)) continue;   // a git worktree is a checkout of a project, never a project: one found here came back after every kill (2026-11-04)
 
             if (fs.existsSync(path.join(child, "package.json"))) this.add(child);
             else if (depth > 1) this.scan(child, depth - 1);
