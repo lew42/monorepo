@@ -1,26 +1,25 @@
 verdict: fix
-1. [fix] The task folder has no `requirements.md` (the file this review was told to read), no `task.jsonl` and no outcome. What was approved lives only in one `session.jsonl` log line ("report section 7 items 1-6" plus an extras list). A fresh agent can't tell from this folder what was asked, what is done, or that the work sits unmerged on `worktree/qf-2` (commits ad482eb59, 8fcd09ffc). Write the brief and a short status note into the folder.
-2. [fix] Approved item 4 is only half done. A ready pool slot no longer holds a browser (`Servex/Pool.js:530`, `:588`), but whisper-server and the recite python still have no idle stop, and "only the newest tunnel per name" was not built: `Server/Tunnel.mjs:42` only blocks a second launch. `Servex/doc/processes.md:1000` calls this "an open improvement", but there is no task or `⬜` line for it anywhere.
-3. [fix] Landing now removes the worktree the landing agent may still be working in. `Server/merge.mjs:96` and `Lifecycle.closeout` (called by `on-landing.mjs:117`) call `Worktrees.close_now`, and `close_now` (`Servex/Worktrees.js:615`) never checks `agent_in()`; in merge.mjs the Worktrees object has no `agents` to check anyway. On Windows, a cwd inside the folder lets `git worktree remove` delete the files but not the folder, leaving the agent in a gutted checkout. Refuse when an agent or the calling process has its cwd inside the folder, and report that case as `left`.
-4. [fix] `Servex/doc/lifecycle.md` is now stale. Line 27 says on-landing calls `reap(task)` (it now calls `closeout`). Line 39 says "a worktree's files are never deleted by the reaper… removing the folder stays with worktree-sweep.mjs" (closeout now removes merged worktrees and moves leftover folders aside). The CLI list at line 51 lacks `--closeout`. Nothing there mentions the launcher-gone rule or the launcher kill.
-5. [fix] Other docs the diff touches are stale too. `Servex/doc/pool.md:5` still says a ready slot has "a page watcher on", but it now starts on take. `Server/doc/browser.md:5` doesn't mention `browser-watchdog.mjs` or `LEW_NO_BROWSER_WATCHDOG`. `Server/doc/scripts.md` lists neither `Server/browser-watchdog.mjs` nor `Servex/closeout.test.mjs`. merge.mjs's header usage line (`Server/merge.mjs:1`) lacks `--keep-worktree` and the new auto-removal. `Servex/doc/task-loop.md:47` describes `close_task({dir, why})` without the close-out or `by`.
-6. [note] `Lifecycle.kill` (`Servex/Lifecycle.js:333-336`) now also kills a browser's launcher node.exe unless its command line matches Servex/claude/mcp/vscode. A long-lived process that holds a Playwright browser in-process could have its server killed along with its browser: the main dev server's `Server/plugins/Shot.js` is one such process, and its browser has no owner task in the main checkout, so it would be swept after 2 h. Shot.js closes its browser on every call, so today the risk is small. An allow-list of short-lived scripts would be safer than a deny-list.
-7. [note] The report left one question open: does the live sweep actually close things (`report.md` §3.2, §7.1)? The task folder never says whether that was settled. The retry on an empty process list (`Lifecycle.js:222`) may be the answer; say so in the folder.
-8. [note] `finish-task` (`.claude/skills/finish-task/SKILL.md:9`) tells the agent to read `left`, but nothing refuses a landing when `left` is not empty. `on-landing.mjs:118` only appends "LEFT: …". The report's §5 proposed a refusal; if a log line is enough, write that decision down.
-9. [note] `worktree-up.mjs:182` now records an owner, but `start_server` (approved item 6) was not changed. Hand-started servers through Servex still carry `owner_task: null`.
-10. [note] Simpler to read: `merge.mjs:97-99` imports `Servex/Lifecycle.js` twice in a row. The good part: `Servex/closeout.test.mjs` is real, rerunnable proof, using real processes, git and disk.
+1. [fix] The not-built items (idle unload of whisper/recite, newest tunnel per name, `start_server` carrying the caller) are said to be "recorded in [improvements](/Servex/improvements.jsonl)" (requirements.md items 4 and 6, review.jsonl answer 9), but `Servex/improvements.jsonl` does not exist on `worktree/qf-2`, in the qf-2 folder, or on compliance/dev. Those three asks are not written down anywhere, and the link is dead.
+2. [fix] The proof leaves a footprint: `git worktree list` still shows `worktrees/closeout-test-bigjys` and `closeout-test-qt4dmy`, with their branches, from runs that never reached the test's `finally`. `Servex/closeout.test.mjs` should remove leftover `closeout-test-*` worktrees and branches when it starts.
+3. [fix] `Lifecycle.kill()` (Servex/Lifecycle.js, the new launcher kill after `kill(r)`) also kills a browser's launching node process, and only exempts the main checkout. `Server/plugins/Shot.js` and `MCP.js` open browsers inside a worktree's own dev server, so when that browser is closed (for example by the new rule "a ready pool slot holds no browser"), the slot's dev server is killed too, even though `kept()` protects it. Exempt `server.js`/`run.js` launchers, not just the main path.
+4. [note] In `Lifecycle.why()`, the new "launcher is gone" rule sits before `if (only)`. So one task's `closeout` closes other tasks' orphan browsers, and if one survives the kill, its re-check lists it in this task's `left`.
+5. [note] `Worktrees.list()` now returns every linked worktree, wherever it is, including ones a Claude Code tab makes under `.claude/worktrees/`. The header comment (Servex/Worktrees.js:14-18, "Every folder in C:/Code/lew42/worktrees/") is now stale.
+6. [note] `Pool.generated()` treats any tracked `*.jsonl` edited in place as machine-written. An agent's uncommitted edit to a tracked log (asks.jsonl, a task.jsonl) is put back to HEAD on return and survives only as a patch in `.worktree-logs/`. Say so in Servex/doc/pool.md.
+7. [note] Indexing: `Servex/closeout.test.mjs` is listed in Server/doc/scripts.md's `Server/` table. `Servex/closeout.fixture.mjs` and the state file `worktree-sweep-fails.json` are not named in any doc (processes.md only says "state in the Servex state folder").
 
 ## Requirements
-- Report §7.1 "narrow kept() to the pool file; settle the live sweep" — partly — `Lifecycle.js:246-248` uses `pool_slot()`; whether the sweep runs is not stated
-- §7.2 "back off the worktree-down retry" — yes — `Server/worktree-sweep.mjs:138-169`, doubling wait, one risk note on the 5th failure
-- §7.3 "sweep log line and commit-based spawn gate" — yes — `Servex.js:1584`, `agents/Global.js:719-733` with tests in `global.test.mjs:745`
-- §7.4 "idle timeout for ready slots, whisper and recite" — partly — ready slots only (finding 2)
-- §7.5 "close-out rule in the mastermind role, and the finish-task check" — yes as text; no refusal (finding 8)
-- §7.6 "owner record for hand-started servers" — partly — worktree-up yes, start_server no
-- Extras: leftover folder counted as a project — yes, `Servex.js:471-481`; merged worktree auto-removed — yes, but unsafe (finding 3); Playwright closes when its parent dies — yes, `browser-watchdog.mjs`; `Servex/doc/processes.md` — yes; zero-footprint check — yes, `closeout.test.mjs`
-- Live instances of a new class — n/a (no new class; new methods on Lifecycle/Worktrees/Pool)
-- Fresh agent can continue from the folder alone — no (finding 1)
+- 1 "kept() checks the pool file; live sweep logs every pass; empty list retried and reported" — yes — `pool_slot()` reads `.worktree-pool.json`; Servex.js appends `lifecycle-sweep`; `processes_async` retries; `closeout` adds a `process-list` left row
+- 2 "worktree-down retries back off, cap 6 h, one risk note on 5th" — yes — Server/worktree-sweep.mjs `backoff_left`/`note_result`
+- 3 "every sweep logged; spawns gated on commit charge 80/90" — yes — Global.js `commit_pct`/`admit`, with tests in global.test.mjs
+- 4 "ready slot holds no browser; Tunnel claim stops a second tunnel" — yes — Pool.js `start_watcher` on take, ready slots' watchers killed on adopt; Tunnel.mjs writes the state file first. Sub-item "recorded in improvements": no (finding 1)
+- 5 "close-out rule in mastermind.md and finish-task" — yes — both diffs
+- 6 "worktree-up records the owner of a hand-started server" — yes — falls back to `lc.owner_task()`. Sub-item "recorded in improvements": no (finding 1)
+- 7 "leftover folder not a project; merged clean worktree removed by closeout and merge.mjs; Playwright browsers closed by the watchdog" — yes, with the side effect in finding 3
+- Owner's sentence "zero footprint, zombies closed automatically, cause fixed" — mostly; the test's own worktrees are a footprint (finding 2)
+- Class with live instances — n/a (no new class; Lifecycle/Worktrees/Pool only gained methods)
+- Can a fresh agent continue from the folder? — yes: requirements.md names the branch (`worktree/qf-2`, not merged), the proof command and the decisions; report.md has the investigation
+
 ## Words
-- Plain, full sentences in processes.md and the role text — yes — `Servex/doc/processes.md:987-1021`, `mastermind.md:771`
-- Paragraph under 60 words — no, small — processes.md:1005 (step 2) and :1021 run long; a note, not a fix
-- Owner's words quoted for the ask — yes — `Lifecycle.js:308`, `mastermind.md:771`
+- Plain, full sentences in processes.md, finish-task and mastermind.md — yes
+- Each doc says one thing and links the long form (processes.md) — yes
+- processes.md's new section is long (about 40 lines), but it is the deep doc it links to, so that is fine

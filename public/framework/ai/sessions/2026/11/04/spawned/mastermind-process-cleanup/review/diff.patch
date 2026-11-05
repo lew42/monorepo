@@ -1,0 +1,1165 @@
+diff --git a/.claude/skills/finish-task/SKILL.md b/.claude/skills/finish-task/SKILL.md
+index 655621e174..7c27d313f1 100644
+--- a/.claude/skills/finish-task/SKILL.md
++++ b/.claude/skills/finish-task/SKILL.md
+@@ -9,6 +9,8 @@ description: Run every time a task lands — the closing report the /framework/a
+ 
+ If you own the task's docs and review (a task mastermind, or a minion whose brief hands them over; otherwise your mastermind does them): run `documentation` first if the task touched a module, then `node Server/review.mjs <taskdir> <worktree>` (sizes none/light/full, see `Server/doc/review.md`), answer every finding, and put `node Server/review.mjs --status <taskdir>`'s phrase ("reviewed: pass" / "reviewed: 2 fixed, 1 declined") and a link to `review.md` in the outcome. Then, in order:
+ 
++**Landing closes the task by code** (the owner, 2026-11-04): `on-landing.mjs` runs `Lifecycle.closeout`, which stops every server, browser and idle child agent the task owns and removes its merged worktrees, then writes one `task end` line (`closed`, `left`). Read that line (`node Servex/Lifecycle.js --closeout <task dir> --dry` shows it ahead of time); if `left` is not empty, the task is not closed: fix what it names. How it works: [Servex/doc/processes.md](/Servex/doc/processes.md).
++
+ **Before you write anything the owner reads, load the `page` skill (for a page, card or view; it brings in `content`) or the `content` skill (for words alone), and follow it.** Show it first (a folder tree or `ext/files`, the live objects, a checklist, a screenshot), then use as few words as it takes. A card also follows [the card standard](/framework/ai/doc/ai2/card-standard.md). At landing, `text-check` flags any paragraph over 60 words, an outcome over 120 words, and any file of words with no picture.
+ 
+ **A change the owner can see lands with a walkthrough** (the owner, 2026-09-25: "demos so simple
+diff --git a/Server/Browser.mjs b/Server/Browser.mjs
+index ae10271632..7ad3a4c82f 100644
+--- a/Server/Browser.mjs
++++ b/Server/Browser.mjs
+@@ -16,10 +16,10 @@
+  *
+  * The named exports `browser`, `close`, `pid` at the bottom are one-line aliases kept for the ~35 existing callers.
+  */
+-import { execSync } from "node:child_process";
++import { execSync, spawn } from "node:child_process";
+ import fs from "node:fs";
+ import path from "node:path";
+-import { pathToFileURL } from "node:url";
++import { pathToFileURL, fileURLToPath } from "node:url";
+ 
+ export default class Browser {
+ 	static chromium_promise;
+@@ -113,8 +113,12 @@ export default class Browser {
+ 			const m = await import("../Servex/Lifecycle.js");
+ 			const pid = await this.real_pid(b);
+ 			if (this.current === b) this.current_pid = pid;
+-			const base = { kind: "browser", id: `browser:${pid ?? Date.now()}`, pid, path: process.cwd(), owner_task: m.owner_task(), owner_agent: process.env.LEW_AGENT || null, script: this.launch_tag() };
++			const base = { kind: "browser", id: `browser:${pid ?? Date.now()}`, pid, launcher: process.pid, path: process.cwd(), owner_task: m.owner_task(), owner_agent: process.env.LEW_AGENT || null, script: this.launch_tag() };
+ 			m.record({ ...base, event: "start" });
++			// a separate process that closes the browser if THIS one is killed hard (no `exit` hook runs then)
++			if (pid && process.env.LEW_NO_BROWSER_WATCHDOG !== "1") try {
++				spawn(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), "browser-watchdog.mjs"), String(process.pid), String(pid)], { detached: true, stdio: "ignore", windowsHide: true }).unref();
++			} catch {}
+ 			b.on("disconnected", () => m.record({ ...base, event: "end", why: "browser closed" }));
+ 		} catch {}
+ 	}
+diff --git a/Server/Tunnel.mjs b/Server/Tunnel.mjs
+index 6e745c1ea0..a24b9661ce 100644
+--- a/Server/Tunnel.mjs
++++ b/Server/Tunnel.mjs
+@@ -39,6 +39,7 @@ export default class Tunnel {
+         const s = this.state();
+         if (s && this.alive(s.pid)) return console.log("already up (URL in remote.url)");
+         fs.mkdirSync(Tunnel.DIR, { recursive: true });
++        fs.writeFileSync(this.state_file, JSON.stringify({ pid: process.pid, child: null, port: null, at: new Date().toISOString() }));   // claim the name now: the keeper checks every 60 s and the URL takes up to 90 s, so without this a second cloudflared starts
+         const gw = this.gateway();
+         const named = this.named_token();   // present = permanent hostname (TunnelNamed.mjs setup); absent = quick tunnel
+         gw.on("error", e => { console.error("gateway port busy: " + e.message); process.exit(1); });
+diff --git a/Server/browser-watchdog.mjs b/Server/browser-watchdog.mjs
+new file mode 100644
+index 0000000000..f3f2d08878
+--- /dev/null
++++ b/Server/browser-watchdog.mjs
+@@ -0,0 +1,15 @@
++/* Server/browser-watchdog.mjs <launcherPid> <chromePid>: closes a Playwright chrome.exe when the process that launched it dies.
++ * Browser.mjs starts one beside every browser it launches. A hard kill (taskkill /F, a crash, a closed terminal) skips every
++ * `exit` hook, so the browser outlived its script (2026-11-04: 30+ orphans); this separate process notices and ends the tree. */
++import { execFileSync } from "node:child_process";
++
++const [launcher, chrome] = process.argv.slice(2).map(Number);
++const alive = pid => { try { process.kill(pid, 0); return true; } catch (e) { return e.code === "EPERM"; } };
++if (!launcher || !chrome) process.exit(0);
++
++const timer = setInterval(() => {
++	if (!alive(chrome)) process.exit(0);
++	if (alive(launcher)) return;
++	try { execFileSync("taskkill", ["/PID", String(chrome), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
++	process.exit(0);
++}, 2000);
+diff --git a/Server/doc/browser.md b/Server/doc/browser.md
+index bbddd3bb80..bfbbe4b612 100644
+--- a/Server/doc/browser.md
++++ b/Server/doc/browser.md
+@@ -1,6 +1,6 @@
+ # The one browser rule
+ 
+-Every script starts Chromium through [`Server/Browser.mjs`](/Server/Browser.mjs) — never `chromium.launch(` directly — so the channel that opens no window lives in one place. `.claude/hooks/syntax-guard.mjs` and `Server/window-lint.mjs` flag any `.launch(` elsewhere.
++Every script starts Chromium through [`Server/Browser.mjs`](/Server/Browser.mjs) — never `chromium.launch(` directly — so the channel that opens no window lives in one place. `Browser.mjs` also starts `Server/browser-watchdog.mjs` (detached), which kills that Chromium the moment the launching node process is gone, however it died; `LEW_NO_BROWSER_WATCHDOG=1` turns it off. The full rule set: [Servex/doc/processes.md](/Servex/doc/processes.md). `.claude/hooks/syntax-guard.mjs` and `Server/window-lint.mjs` flag any `.launch(` elsewhere.
+ 
+ A chrome.exe launched this way is already recognisable: `channel: "chromium"` runs the build Playwright caches under `%LOCALAPPDATA%/ms-playwright/...`, never the owner's own Chrome install (2026-10-03 — a `--user-data-dir` tag was tried and dropped; Playwright's `launch()` refuses that flag). `Servex/Lifecycle.js`'s heartbeat sweep reaps one of these that's orphaned (its launching node process is gone) or older than 30 minutes — see `public/framework/ai/sessions/2026/10/03/0df64c47-b244-4a73-babb-16d86535c9b8/playwright-reap/`.
+ 
+diff --git a/Server/doc/scripts.md b/Server/doc/scripts.md
+index 44be12d758..5242e59f8e 100644
+--- a/Server/doc/scripts.md
++++ b/Server/doc/scripts.md
+@@ -96,7 +96,9 @@ Windows note: `browser.mjs`, `collab.mjs` and `decide.mjs` are the same file as
+ | `Server/junction-guard.mjs` | live | 4307 | 2026-09-29 | JUNCTION GUARD: refuse to delete or reinstall a directory that has a link into the main checkout. | loaded by config in settings.json |
+ | `Server/layout-check.mjs` | tool | 19497 | 2026-09-30 | `node Server/layout-check.mjs <url...> [--widths 1280,1920,2560,3440] [--out dir] [--height 1000] [--bands]` | run by hand for layout review, documented in skills |
+ | `Server/m4a2wav.mjs` | tool | 2065 | 2026-09-28 | m4a2wav.mjs <in.m4a> <out.wav> — decode with headless Chromium's Web Audio (no ffmpeg on this machine), resample to 16 kHz mono, write 16-bit PCM WAV. | Unreferenced but touched 2026-09-28 (<30 days): kept. Haiku said: no references, no mention anywhere |
+-| `Server/merge.mjs` | live | 40881 | 2026-10-13 | `node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run] [--quick [--asked <iso>]]` — the one serialized way to land a worktree. | heavily used by hooks and skills for worktree landing |
++| `Server/browser-watchdog.mjs` | live | - | 2026-11-04 | `node Server/browser-watchdog.mjs <launcher pid> <chrome pid>` - started detached by `Browser.mjs`; kills the Chromium when its launcher is gone. | closes a browser whose script died |
++| `Servex/closeout.test.mjs` | live | - | 2026-11-04 | `node Servex/closeout.test.mjs` - starts a real server, browser and worktree under a task, closes it, and asserts from the process list, `git worktree list` and the disk that nothing is left. | the proof of [processes.md](/Servex/doc/processes.md) |
++| `Server/merge.mjs` | live | 40881 | 2026-10-13 | `node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run] [--keep-worktree] [--quick [--asked <iso>]]` — the one serialized way to land a worktree; a merged, clean worktree is then closed and removed (git and disk) unless `--keep-worktree`. | heavily used by hooks and skills for worktree landing |
+ | `Server/ModelsNow.mjs` | renamed (b77cda096) | 8388 | 2026-10-13 | ModelsNow.mjs — which agent runs on which model, computed (never recalled). Read-only except --backend / --write. | renamed to its class name; no importers, no alias |
+ | `Server/on-landing.mjs` | live | 13966 | 2026-10-13 | `node Server/on-landing.mjs <task dir>` — runs text-check (walls of text), doc-check | loaded by ledger hook for task landing checks |
+ | `Server/openrouter-attribute.mjs` | tool | 6332 | 2026-10-09 | Server/openrouter-attribute.mjs — put OpenRouter's own per-call dollars onto the session snapshots. | Unreferenced but touched 2026-10-09 (<30 days): kept. Haiku said: no references, no mention anywhere |
+diff --git a/Server/merge.mjs b/Server/merge.mjs
+index df5cb47ec7..35dcd0627b 100644
+--- a/Server/merge.mjs
++++ b/Server/merge.mjs
+@@ -92,10 +92,11 @@ const noReview = flag("--no-review");
+ const noNav = flag("--no-nav");   // "why": merge an unlinked new page anyway (Server/doc/nav-check.md)
+ const reviewDir = flag("--review-dir");   // the task dir to look in when it sits under a session older than the 4-day scan (a long-lived mastermind's tasks)
+ const quick = bool("--quick");
++const keepWt = bool("--keep-worktree");   // leave the merged worktree in place (default: closed and removed, git and disk)
+ const asked = flag("--asked");
+ const mergeStart = Date.now();
+ const [dirArg, ...paths] = argv;
+-if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--skip-tests] [--dry-run] [--quick [--asked <iso>]]"); process.exit(1); }
++if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--skip-tests] [--dry-run] [--keep-worktree] [--quick [--asked <iso>]]"); process.exit(1); }
+ // Git Bash rewrites "/framework/ai/" into "C:/Program Files/Git/framework/ai/"; the smoke run then
+ // hunts for it while holding everyone's merge lock (node-reliability, 2026-09-30). Refuse before the lock.
+ const mangled = [...paths, mainArg ?? ""].find(p => /Program Files[\\/]Git[\\/]/i.test(p));
+@@ -734,6 +735,16 @@ if (!dryRun && !mainArg && code === 0 && git(MAIN, "rev-parse", BASE).stdout.tri
+ }
+ // Refresh the unmerged-branches list the In-flight block reads (Server/unmerged.mjs; ~30 s, so detached, never blocks a landing).
+ if (!dryRun && !mainArg) try { spawn(process.execPath, [path.join(MAIN, "Server/unmerged.mjs"), "--write"], { cwd: MAIN, detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}
++// A fully merged worktree is closed here, in code, not left for someone to ask (the owner, 2026-11-04): its servers and browser stop,
++// then git and the disk both lose it. A pool slot, an unmerged branch, a partial merge (paths named) or --keep-worktree keeps it.
++if (!dryRun && !mainArg && !quick && code === 0 && !paths.length && !keepWt) try {
++	const { pool_slot, default: Lifecycle } = await import("../Servex/Lifecycle.js");
++	if (!pool_slot(dir)) {
++		const { default: Worktrees } = await import("../Servex/Worktrees.js");
++		const lc = new Lifecycle(), r = await new Worktrees({ main: MAIN, servex: { lifecycle: lc } }).close_now(dir);
++		console.log(r.ok ? `worktree ${path.basename(dir)}: ${r.removed ? "closed and removed (git and disk)" : r.why}` : `worktree ${path.basename(dir)}: kept - ${r.why}`);
++	}
++} catch (e) { console.error("worktree close-out skipped: " + String(e && e.message || e).slice(0, 200)); }
+ // --quick's own last word: ONE line of JSON, always last on stdout when it lands, so the fixer
+ // (or anything else driving this) can read it without parsing the human log above it.
+ if (quick && code === 0) {
+diff --git a/Server/on-landing.mjs b/Server/on-landing.mjs
+index 1d9f80bca1..e04c31dbf9 100644
+--- a/Server/on-landing.mjs
++++ b/Server/on-landing.mjs
+@@ -191,8 +191,8 @@ try {
+ 	// lifecycle.jsonl. Servex/Lifecycle.js; Servex/doc/lifecycle.md.
+ 	try {
+ 		const { default: Lifecycle } = await import("../Servex/Lifecycle.js");
+-		const rows = await new Lifecycle().reap(dir);
+-		append(task, `lifecycle: ${rows.length ? `closed ${rows.map(r => `${r.kind} ${r.id}`).join(", ")}` : "nothing of this task's was left running"}`);
++		const r = await new Lifecycle().closeout(dir, { why: "landed" });
++		append(task, `lifecycle: ${r.closed.length ? `closed ${r.closed.map(x => `${x.kind} ${x.id}`).join(", ")}` : "nothing of this task's was left running"}${r.left.length ? `; LEFT: ${r.left.map(x => `${x.kind} ${x.id} (${x.why})`).join(", ")}` : ""}`);
+ 	} catch (e) {
+ 		try { append(task, "lifecycle: reap not run - " + String(e && e.message || e).slice(0, 200)); } catch {}
+ 	}
+diff --git a/Server/worktree-sweep.mjs b/Server/worktree-sweep.mjs
+index 3e8919b7fc..601a707596 100644
+--- a/Server/worktree-sweep.mjs
++++ b/Server/worktree-sweep.mjs
+@@ -19,6 +19,7 @@
+  * card or a line in `--dry` output always names the real reason, never just "not yet". */
+ import { execFileSync, spawnSync } from "node:child_process";
+ import fs from "node:fs";
++import os from "node:os";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import { links_into_main } from "./junction-guard.mjs";
+@@ -181,6 +182,26 @@ export async function can_stop(entry){
+ 	return { ok: true, reason: null, why: `${task.key} landed ${task.landed_at}, ${entry.branch} merged, no live agent working there` };
+ }
+ 
++/* Failure memory for the retry loop (2026-11-04: worktree-down failed on the same entry every ~4 minutes for hours and told no one).
++ * Lives in Servex's state folder, outside git. The wait doubles per failure (4 min, 8, 16 ... capped at 6 h); the 5th failure tells the owner once. */
++const FAILS = path.join(process.env.SERVEX_HOME || path.join(process.env.LOCALAPPDATA || os.tmpdir(), "lew42", "servex"), "worktree-sweep-fails.json");
++const read_fails = () => { try { return JSON.parse(fs.readFileSync(FAILS, "utf8")); } catch { return {}; } };
++function backoff_left(name){
++	const f = read_fails()[name];
++	return f ? Math.max(0, f.last + Math.min(4 * 60000 * 2 ** (f.n - 1), 6 * 3600000) - Date.now()) : 0;
++}
++function note_result(name, ok, text){
++	const all = read_fails();
++	if (ok){ if (!all[name]) return; delete all[name]; }
++	else {
++		const n = (all[name]?.n ?? 0) + 1;
++		all[name] = { n, last: Date.now(), text: String(text).slice(0, 200) };
++		if (n === 5) fetch(`http://127.0.0.1:${process.env.SERVEX_PORT || 8090}/owner_note`, { method: "POST", headers: { "content-type": "application/json" },
++			body: JSON.stringify({ title: `worktree ${name} will not tear down`, text: `worktree-down failed 5 times in a row: ${String(text).slice(0, 200)}. It now retries every few hours.`, kind: "risk", by: "worktree-sweep" }), signal: AbortSignal.timeout(3000) }).catch(() => {});
++	}
++	try { fs.mkdirSync(path.dirname(FAILS), { recursive: true }); fs.writeFileSync(FAILS, JSON.stringify(all, null, 1)); } catch {}
++}
++
+ /** Every registered worktree server: stop ones that are safe (worktree dir gone, or `can_stop`
+  *  ok) by calling worktree-down.mjs, which already refuses a dirty tree. Never the main tree —
+  *  it is never in this registry — and never Servex's own (same reason). `--dry` prints only. */
+@@ -194,8 +215,11 @@ export async function sweep({ dry = false } = {}){
+ 		const row = links.length ? { name, ok: false, why: `holds a link into the main checkout: ${links.map(l => l.path).join(", ")} — remove the link only, then sweep again` } : { name, ok, why };
+ 		rows.push(row);
+ 		if (row.ok && !dry){
++			const wait = backoff_left(name);   // a teardown that keeps failing is retried less and less often, never every pass forever
++			if (wait > 0){ row.ok = false; row.why = `worktree-down failed before; next try in ${Math.ceil(wait / 60000)} min`; continue; }
+ 			const r = spawnSync(process.execPath, [path.join(ROOT, "Server/worktree-down.mjs"), name], { encoding: "utf8", windowsHide: true });
+ 			row.result = (r.stdout || r.stderr || "").trim().split("\n").pop() || (r.status === 0 ? "stopped" : "failed");
++			note_result(name, r.status === 0, row.result);
+ 		}
+ 	}
+ 	return rows;
+diff --git a/Server/worktree-up.mjs b/Server/worktree-up.mjs
+index b4efa959d4..b618f7cd23 100644
+--- a/Server/worktree-up.mjs
++++ b/Server/worktree-up.mjs
+@@ -216,7 +216,7 @@ try {
+ 		fs.mkdirSync(dir, { recursive: true });
+ 		fs.appendFileSync(SessionRecord.log_or_old(dir), JSON.stringify({ assign: { worktree: target, branch } }) + "\n");
+ 	}
+-	await lc.record({ kind: "worktree", id: name, path: target, port, pid: child.pid, owner_task: task_arg ? lc.task_key(task_arg) : null, owner_agent: process.env.LEW_AGENT || null, event: "start" });
++	await lc.record({ kind: "worktree", id: name, path: target, port, pid: child.pid, owner_task: task_arg ? lc.task_key(task_arg) : lc.owner_task(), owner_agent: process.env.LEW_AGENT || null, event: "start" });   // no --task: LEW_TASK, else the task that names this worktree, so the close-out always finds it
+ } catch {}
+ 
+ /* Servex is optional, always — a worktree must work with it stopped, so this
+diff --git a/Servex/Lifecycle.js b/Servex/Lifecycle.js
+index 20b2303be5..13b5ebe035 100644
+--- a/Servex/Lifecycle.js
++++ b/Servex/Lifecycle.js
+@@ -7,7 +7,9 @@
+  *                                    direct append when Servex is down). kind: agent task
+  *                                    worktree server health browser.
+  *   track(kind, id, extra)           a process logs its own start now and its own end on exit.
+- *   new Lifecycle().reap(task)       close everything one task owns (on-landing.mjs calls it).
++ *   new Lifecycle().closeout(task)   THE CLOSE: stop everything one task owns, remove its merged worktrees, check again, write one
++ *                                    line, `ok: false` when anything is left (on-landing.mjs, close_task and merge.mjs call it).
++ *   new Lifecycle().reap(task)       its first half: only the processes and idle agents.
+  *   new Lifecycle().sweep()          close what a landed / long-dead task still owns, and idle
+  *                                    one-pass agents; Servex runs it on the heartbeat tick.
+  *
+@@ -54,6 +56,14 @@ export function main_repo(){
+ 		return main_cache = path.resolve(HERE, common, "..");
+ 	} catch { return main_cache = path.resolve(HERE, ".."); }
+ }
++/** The pool slot whose folder holds `dir` (read from the pool's own file, cached 5 s), or null. A path that merely looks like qf-N is not a slot. */
++let pool_cache = { at: 0, slots: [] };
++export function pool_slot(dir){
++	if (!dir) return null;
++	if (Date.now() - pool_cache.at > 5000) { let slots = []; try { slots = JSON.parse(fs.readFileSync(path.join(main_repo(), ".worktree-pool.json"), "utf8")).slots ?? []; } catch {} pool_cache = { at: Date.now(), slots }; }
++	return pool_cache.slots.find(s => inside(dir, s.path)) ?? null;
++}
++
+ const ai_dir = () => path.join(main_repo(), "public", "framework", "ai");
+ 
+ /** A task's key: its dir relative to public/framework/ai/ ("2026-09-29/lifecycle/build"). */
+@@ -148,8 +158,13 @@ export default class Lifecycle {
+ 	/** The same list without freezing Servex: the two blocking calls above took 20+ s on a busy machine, long enough to time out every agent's prompt hook (2026-10-23). */
+ 	async processes_async(){
+ 		const run = (cmd, args, maxBuffer) => promisify(execFile)(cmd, args, { encoding: "utf8", windowsHide: true, maxBuffer, timeout: 30000 }).then(r => r.stdout, () => "");
+-		const [out, ns] = await Promise.all([run("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], 32 << 20), run("netstat", ["-ano", "-p", "TCP"], 8 << 20)]);
+-		return this.process_map(out, ns);
++		let map;
++		for (let attempt = 0; attempt < 2; attempt++){   // a busy machine can time the query out; an empty list means it failed (this process itself is a node.exe)
++			const [out, ns] = await Promise.all([run("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], 32 << 20), run("netstat", ["-ano", "-p", "TCP"], 8 << 20)]);
++			map = this.process_map(out, ns);
++			if (map.size) break;
++		}
++		return map;
+ 	}
+ 
+ 	process_map(out, ns){
+@@ -199,7 +214,7 @@ export default class Lifecycle {
+ 		const add = r => { if (r.pid && seen.has(r.pid)) return; if (r.pid) claim(r.pid); rows.push(r); };
+ 		for (const e of this.open()) if (this.alive(e) && ["server", "health", "browser"].includes(e.kind)) {
+ 			const top = this.wrapper(procs.get(e.pid));
+-			add({ kind: e.kind, id: e.id, pid: top.pid, child: top.pid !== e.pid ? e.pid : null, port: e.port, path: e.path, owner_task: e.owner_task, owner_agent: e.owner_agent, born: Date.parse(e.at), logged: true });
++			add({ kind: e.kind, id: e.id, pid: top.pid, child: top.pid !== e.pid ? e.pid : null, port: e.port, path: e.path, owner_task: e.owner_task, owner_agent: e.owner_agent, launcher: e.launcher, born: Date.parse(e.at), logged: true });
+ 		}
+ 		let reg = {}; try { reg = JSON.parse(fs.readFileSync(path.join(main, ".worktrees.json"), "utf8")); } catch {}
+ 		for (const w of Object.values(reg)) if (this.alive({ pid: w.pid, at: w.created_at }))
+@@ -262,7 +277,9 @@ export default class Lifecycle {
+ 		// itself Servex, the gate or whisper, or started by one of them (3 node/cmd parents up; an agent's bash is never read)
+ 		for (let p = this.procs?.get(r.pid), i = 0; p && i < 4 && /^(node|cmd)\.exe$/i.test(p.name); p = this.procs.get(p.ppid), i++)
+ 			if (/Servex[\\/](index|sustain|gate)\.m?js|whisper/i.test(p.cmd)) return "Servex, the gate or whisper owns it";
+-		if (r.path && /[\\/]worktrees[\\/]qf-\d+/i.test(r.path)) return "a pool slot (Pool.js looks after it)";
++		// a pool slot's server is Pool.js's; its health watcher and browser are NOT kept while the slot is ready (nobody edits there) or when the slot is not in the pool file at all
++		const slot = pool_slot(r.path);
++		if (slot && (r.kind === "server" || slot.state === "taken")) return "a pool slot (Pool.js looks after it)";
+ 		// a dev server the owner's phone link points at, until its branch merges (build F, Servex/doc/worktree-preview.md)
+ 		if (r.path && r.kind === "server"){ const held = WorktreePreview.held(r.path, main_repo()); if (held) return held; }
+ 		// An unlogged chrome.exe (logged: false, from the Playwright-marker scan above) has no path
+@@ -294,6 +311,8 @@ export default class Lifecycle {
+ 			if (owner && (owner.state === "stopped" || owner.state === "gone") && r.role === "minion") return `idle, and its parent ${owner.id} has stopped`;
+ 			return null;
+ 		}
++		// a browser whose launching script is gone is an orphan, wherever it was logged (Server/browser-watchdog.mjs usually closes it first)
++		if (r.kind === "browser" && r.logged && r.launcher && !this.procs?.has(r.launcher)) return `its launcher (pid ${r.launcher}) is gone`;
+ 		if (r.kind === "browser" && r.logged === false){
+ 			if (only) return null;   // no owning task to match against — only the sweep ever closes one of these
+ 			const launcher = this.procs?.get(this.procs.get(r.pid)?.ppid);
+@@ -303,6 +322,7 @@ export default class Lifecycle {
+ 			return null;
+ 		}
+ 		if (only) return r.owner_task === only ? `its task ${only} has landed` : null;
++		if ((r.kind === "health" || r.kind === "browser") && pool_slot(r.path)?.state === "ready") return "a ready pool slot holds no browser (started again when the slot is taken)";
+ 		const t = this.task(r.owner_task), age = r.born ? Date.now() - r.born : 0;
+ 		if (t?.landed) return `its task ${t.key} has landed`;
+ 		if (t && Date.now() - t.mtime > DEAD_MS) return `its task ${t.key} has been silent for ${hours(Date.now() - t.mtime)} h`;
+@@ -313,6 +333,12 @@ export default class Lifecycle {
+ 	/** Stop a process tree by its top pid (the wrapper, so nothing respawns), then any child still alive. */
+ 	kill(r){
+ 		for (const pid of [r.pid, r.child].filter(Boolean)) try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
++		// the script that launched a browser keeps its folder as its working directory, so it would block the worktree's removal;
++		// a plain `node script.mjs` is closed with its browser, Servex, an agent (claude) and this process never are
++		// never the main checkout's own processes (the dev server's screenshot plugin holds a browser in-process): only a script started inside a worktree or elsewhere
++		const in_main = r.path && path.resolve(String(r.path)).toLowerCase() === path.resolve(main_repo()).toLowerCase();
++		const l = r.kind === "browser" && r.launcher && r.launcher !== process.pid && !in_main ? this.procs?.get(r.launcher) : null;
++		if (l && l.name === "node.exe" && !/Servex[\\/]+(index|sustain)|claude|mcp|vscode/i.test(l.cmd)) try { execFileSync("taskkill", ["/PID", String(r.launcher), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
+ 	}
+ 
+ 	/** One Servex tool, over its door (a CLI run has no Servex in-process). */
+@@ -335,14 +361,68 @@ export default class Lifecycle {
+ 		return rows.map(r => ({ ...r, why: this.why(r, only), keep: this.kept(r) }));
+ 	}
+ 
+-	/** Close everything task `dir` owns — on-landing.mjs calls this. */
+-	async reap(dir, { dry = false } = {}){
++	/** Close the processes and idle agents task `dir` owns. closeout() is the whole close; this is its first half. */
++	async reap(dir, { dry = false, note = true } = {}){
+ 		const key = task_key(dir), rows = (await this.plan(key)).filter(r => r.why);
+ 		if (!dry) for (const r of rows) await this.close(r, r.why);
+-		if (!dry) await record({ kind: "task", id: key, owner_task: key, event: "end", why: `landed; ${rows.length} resource(s) closed` }, this.servex?.log);
++		if (!dry && note) await record({ kind: "task", id: key, owner_task: key, event: "end", why: `landed; ${rows.length} resource(s) closed` }, this.servex?.log);
+ 		return rows;
+ 	}
+ 
++	/** Worktrees a task made: its own log's `assign.worktree` lines, the hand-made registry, and the creation log's worktree starts. */
++	task_worktrees(dir){
++		const key = task_key(dir), found = new Map(), add = p => { if (p) found.set(norm(p), String(p).replace(/\\/g, "/")); };
++		try {
++			const file = SessionRecord.log_file(path.resolve(main_repo(), dir)) ?? path.join(path.resolve(main_repo(), dir), "task.jsonl");
++			for (const l of fs.readFileSync(file, "utf8").split("\n")) { let a; try { a = JSON.parse(l).assign; } catch { continue; } if (a?.worktree) add(a.worktree); }
++		} catch {}
++		try { for (const w of Object.values(JSON.parse(fs.readFileSync(path.join(main_repo(), ".worktrees.json"), "utf8").replace(/^﻿/, "")))) if (w?.path && task_for_worktree(w.path, main_repo())?.key === key) add(w.path); } catch {}
++		for (const e of this.open()) if (e.kind === "worktree" && e.owner_task === key) add(e.path);
++		return [...found.values()];
++	}
++
++	/**
++	 * THE CLOSE (the owner, 2026-11-04: "all the agent has to do is say task complete, and it automatically triggers the cleanup... if a
++	 * task has been closed, then everything it should have done has happened. That should be part of the code guarantee").
++	 * One node function: stops every process and idle child agent the task owns (registered at start by track(), Browser.mjs,
++	 * worktree-up and the pool, so no agent has to remember), hands back or removes its worktrees when they are merged and clean,
++	 * checks again, and writes ONE `task` end line listing what it closed and what it could not. `ok` is false when anything is left.
++	 * Called by on-landing.mjs, close_task and merge.mjs; `node Servex/Lifecycle.js --closeout <dir>` by hand.
++	 */
++	async closeout(dir, { dry = false, why = "closed", by = null } = {}){
++		const key = task_key(dir), closed = [], left = [];
++		const rows = await this.reap(dir, { dry, note: false });
++		for (const r of rows) closed.push({ kind: r.kind, id: r.id, pid: r.pid ?? null, why: r.why });
++		const { default: Worktrees } = await import("./Worktrees.js");
++		const wts = this.servex?.worktrees ?? new Worktrees({ main: main_repo(), servex: { lifecycle: this, log: this.servex?.log } });
++		for (const p of this.task_worktrees(dir)) {
++			const slot = pool_slot(p);
++			if (slot) {   // a pool slot goes back to the pool, which refuses one with unmerged work
++				if (slot.state !== "taken") continue;
++				if (dry) { closed.push({ kind: "worktree", id: slot.id, why: "would be returned to the pool" }); continue; }
++				try {
++					if (this.servex?.pool) await this.servex.pool.give_back(slot.id, slot.taken_by ?? by);
++					else await this.tool("return_worktree", { id: slot.id });
++					closed.push({ kind: "worktree", id: slot.id, why: "returned to the pool" });
++				} catch (e) { left.push({ kind: "worktree", id: slot.id, why: String(e.message || e).split("\n")[0] }); }
++				continue;
++			}
++			if (!fs.existsSync(p) && !(await wts.list()).some(w => norm(w.path) === norm(p))) continue;   // already gone
++			if (dry) { closed.push({ kind: "worktree", id: path.basename(p), why: "would be removed if merged and clean" }); continue; }
++			const r = await wts.close_now(p);
++			if (r.ok) { if (r.removed) closed.push({ kind: "worktree", id: path.basename(p), why: r.why }); }
++			else left.push({ kind: "worktree", id: path.basename(p), why: r.why });
++		}
++		if (!dry) {   // look again: anything the task still owns is reported, not assumed gone
++			this.tasks = new Map();
++			const again = await this.plan(key);
++			if (!this.procs?.size) left.push({ kind: "process-list", id: "processes", why: "the process list could not be read, so nothing was verified; run the close again" });
++			for (const r of again.filter(r => r.why || (r.owner_task === key && /is working there/.test(r.keep ?? "")))) left.push({ kind: r.kind, id: r.id, pid: r.pid ?? null, why: r.why ?? r.keep });
++			await record({ kind: "task", id: key, owner_task: key, event: "end", why: `${why}; ${closed.length} closed, ${left.length} left`, closed, left }, this.servex?.log);
++		}
++		return { ok: left.length === 0, key, closed, left };
++	}
++
+ 	/** The heartbeat's sweep: close what a landed / dead task still owns, end the log lines of what already died, reclaim dead pool holders. */
+ 	async sweep({ dry = false } = {}){
+ 		const rows = await this.plan(null), close = rows.filter(r => r.why), gone = [];
+@@ -400,6 +480,11 @@ if (path.resolve(process.argv[1] || "") === fileURLToPath(import.meta.url)) {
+ 		if (!slot) { console.log(`no pool slot ${id}`); process.exit(1); }
+ 		if (dry) console.log(`would stop pid ${slot.watcher_pid} and ${slot.server_pid}, then salvage ${slot.path} (held by ${slot.taken_by})`);
+ 		else console.log((await pool.salvage(slot, slot.taken_by)).what);
++	} else if (argv.includes("--closeout")) {
++		const r = await lc.closeout(argv[argv.indexOf("--closeout") + 1], { dry });
++		console.log(`closeout ${r.key}: ${r.ok ? "clean" : "NOT CLEAN"} — ${r.closed.length} ${dry ? "would close" : "closed"}, ${r.left.length} left`);
++		r.closed.forEach(c => console.log(`  closed ${c.kind} ${c.id}: ${c.why}`)); r.left.forEach(c => console.log(`  LEFT   ${c.kind} ${c.id}: ${c.why}`));
++		process.exit(r.ok ? 0 : 1);
+ 	} else if (argv.includes("--reap")) {
+ 		const rows = await lc.reap(argv[argv.indexOf("--reap") + 1], { dry });
+ 		console.log(`lifecycle reap: ${rows.length} ${dry ? "would close" : "closed"}`); rows.forEach(r => console.log(show(r)));
+diff --git a/Servex/Pool.js b/Servex/Pool.js
+index 8622c7f064..db4c0bc12c 100644
+--- a/Servex/Pool.js
++++ b/Servex/Pool.js
+@@ -137,6 +137,7 @@ export default class Pool extends Events {
+             this.say(`pool: ${slot.id} taken by ${slot.taken_by}`, { id: slot.id, taken_by: slot.taken_by });
+             try { this.servex?.lifecycle?.took(slot, slot.taken_by); } catch {}   // lifecycle.jsonl + the taker's task log learns its worktree
+             this.page_watch(slot);
++            this.start_watcher(slot);
+             this.top_up();
+             return { id: slot.id, path: slot.path, branch: slot.branch, url: slot.url };
+         }
+@@ -165,6 +166,7 @@ export default class Pool extends Events {
+         }
+         try { this.servex?.lifecycle?.took(slot, slot.taken_by); } catch {}
+         this.page_watch(slot);
++        this.start_watcher(slot);
+         this.say(`pool: ${slot.id} taken by ${slot.taken_by} (sync)`, { id: slot.id, taken_by: slot.taken_by });
+         this.top_up();
+         return { id: slot.id, path: slot.path, branch: slot.branch, url: slot.url };
+@@ -272,7 +274,9 @@ export default class Pool extends Events {
+              * put the noise back to HEAD, fast-forward, and make a fresh slot: this one's server is gone. */
+             this.kill(slot.watcher_pid, /health-supervisor/i);
+             this.kill(slot.server_pid, this.server_cmd(slot));
+-            await this.restore(slot, (await this.dirt(slot)).filter(d => Pool.server_log(d.file)).map(d => d.file));
++            const generated = (await this.dirt(slot)).filter(d => Pool.generated(d)).map(d => d.file);
++            this.aside(slot, generated);
++            await this.restore(slot, generated);
+             ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
+             if (ff.ok){
+                 this.remove(slot);
+@@ -526,7 +530,7 @@ export default class Pool extends Events {
+         const ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
+         if (!ff.ok) throw new Error(`could not fast-forward to ${this.base}: ${ff.out}`);
+         await this.identity(slot);
+-        await this.watch(slot);
++        // no page watcher here: a ready slot has no editor to watch, and the watcher's Playwright browser cost ~500 MB per idle slot; take() starts it
+         slot.baseline = Object.fromEntries((await this.dirt(slot)).map(d => [d.file, d.hash]));
+         Object.assign(slot, { state: "ready", idle_since: stamp() });
+         this.save();
+@@ -584,7 +588,7 @@ export default class Pool extends Events {
+             if (!fs.existsSync(slot.path)){ this.forget(slot); continue; }
+             if (slot.state === "taken"){ this.page_watch(slot); continue; }
+             if (slot.state !== "ready" || !(await this.answers(slot.url))){ this.remove(slot); continue; }
+-            if (!this.alive(slot.watcher_pid)){ await this.watch(slot); this.save(); }
++            if (this.alive(slot.watcher_pid)){ this.kill(slot.watcher_pid, /health-supervisor/i); slot.watcher_pid = null; this.save(); }   // a ready slot holds no browser
+         }
+         if (this.slots.length) this.say(`pool: adopted ${this.slots.map(s => `${s.id} (${s.state})`).join(", ")}`);
+     }
+@@ -769,7 +773,8 @@ export default class Pool extends Events {
+             const h = await this.git(slot.path, ["hash-object", "--", ...chunk]);
+             if (h.ok) h.out.split("\n").forEach((hash, j) => { hashes[chunk[j]] = hash.trim(); });
+         }
+-        return files.map(file => ({ file, hash: hashes[file] ?? "gone" }));
++        const codes = out ? out.split("\n").map(l => l.slice(0, 2).trim()) : [];   // the porcelain code: "M" = a tracked file edited in place, "??" = new
++        return files.map((file, i) => ({ file, hash: hashes[file] ?? "gone", code: codes[i] ?? "" }));
+     }
+ 
+     /* A dev server's own logs (page.jsonl, files.jsonl, the clarity flags) are its noise, never an
+@@ -777,8 +782,25 @@ export default class Pool extends Events {
+      * 2026-09-30: qf-6's salvage swept 233 of them into a branch; a slot with only these stayed leased). */
+     static server_log(file){ return /(^|\/)(page|files)\.jsonl$/.test(file) || file === "public/framework/ai/board.jsonl" || file === ".claude/skills/clarity/flags.jsonl"; }
+ 
++    /* GENERATED, BY RULE (the owner, 2026-11-04: session-links.jsonl and task-moves.jsonl, both machine-written, kept a slot held):
++     * the named server logs, and any tracked *.jsonl edited in place. A NEW *.jsonl is a task's own and stays real. The rule is the same
++     * one Worktrees.js noise() applies to removals. Never discarded unseen: aside() keeps the diff first. */
++    static generated(d){ return Pool.server_log(d.file) || (/\.jsonl$/.test(d.file) && /^M+$/.test(d.code ?? "")); }
++
+     async own_dirt(slot){
+-        return (await this.dirt(slot)).filter(d => !Pool.server_log(d.file) && slot.baseline?.[d.file] !== d.hash);
++        return (await this.dirt(slot)).filter(d => !Pool.generated(d) && slot.baseline?.[d.file] !== d.hash);
++    }
++
++    /* Keep the diff of these tracked log files as a patch in .worktree-logs/ before they go back to HEAD. Returns the patch path or null. */
++    aside(slot, files){
++        files = files.filter(f => /\.jsonl$/.test(f));
++        if (!files.length) return null;
++        const out = path.join(this.main, ".worktree-logs", `${slot.id}-${stamp().slice(0, 10)}-logs-${Date.now()}.patch`);
++        fs.mkdirSync(path.dirname(out), { recursive: true });
++        const chunks = [];   // 100 paths a call stays under the Windows command line limit
++        for (let i = 0; i < files.length; i += 100) chunks.push(execFileSync("git", ["-C", slot.path, "diff", "HEAD", "--", ...files.slice(i, i + 100)], { windowsHide: true, maxBuffer: 256 << 20 }));
++        fs.writeFileSync(out, Buffer.concat(chunks));
++        return out;
+     }
+ 
+     /* Baseline files back to exactly what HEAD holds (one not in HEAD is deleted). NEVER one git call per file, and never a
+@@ -857,6 +879,11 @@ export default class Pool extends Events {
+         }));
+     }
+ 
++    /* Starts the health watcher (and so its browser) for a slot that was just taken; in the background, never fails the take. */
++    start_watcher(slot){
++        this.watch(slot).then(() => this.save()).catch(e => this.say(`pool: ${slot.id} health watcher did not start: ${e.message}`, { id: slot.id }));
++    }
++
+     /* The page watcher for a taken slot (WorktreeWatch.js): a break in a page its holder edits reaches the holder in about 10 s. Never fails the pool. */
+     page_watch(slot){
+         this.page_unwatch(slot);
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 4545b84dad..9d0f737254 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -69,6 +69,10 @@ import DatedFiles from "../Server/DatedFiles.mjs";
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const REPO = path.resolve(HERE, "..");
+ const SKIP = new Set(["node_modules", "dist", "build", "coverage"]);
++/* A linked git worktree has a `.git` FILE ("gitdir: ..."); a real checkout has a `.git` folder. */
++function is_linked_worktree(dir){
++    try { return fs.statSync(path.join(dir, ".git")).isFile(); } catch { return false; }
++}
+ 
+ const INSTRUCTIONS = `Servex is the always-on process on this machine. It supervises dev servers`
+     + ` (and whisper-server), owns every log file as the single writer, and answers here.`
+@@ -388,6 +392,7 @@ export default class Servex extends Events {
+         for (const entry of entries){
+             if (!entry.isDirectory() || entry.name.startsWith(".") || SKIP.has(entry.name)) continue;
+             const child = path.join(dir, entry.name);
++            if (is_linked_worktree(child)) continue;   // a git worktree is a checkout of a project, never a project: one found here came back after every kill (2026-11-04)
+ 
+             if (fs.existsSync(path.join(child, "package.json"))) this.add(child);
+             else if (depth > 1) this.scan(child, depth - 1);
+@@ -1122,10 +1127,12 @@ export default class Servex extends Events {
+         /* The task loop's own two tools (Servex/doc/task-loop.md). */
+         this.mcp.tool("close_task", {
+             description: "The only way a task leaves the task loop besides landing. Appends {closed_by: \"owner\","
+-                + " closed_at, closed_why} to its task.jsonl; the loop then never chases or escalates it again.",
++                + " closed_at, closed_why} to its task.jsonl; the loop then never chases or escalates it again. It also runs the close-out: stops every server,"
++                + " health watcher, browser and idle agent the task started, returns or removes its worktrees, and answers {ok, closed:[…], left:[…]}; ok is false if anything is left.",
+             inputSchema: { type: "object", required: ["dir"], properties: {
+                 dir: { type: "string", description: "The task's directory, e.g. `public/framework/ai/2026-09-28/my-task` — repo-relative or absolute." },
+-                why: { type: "string", description: "One line: why it is being closed without landing." }
++                why: { type: "string", description: "One line: why it is being closed without landing." },
++                by: { type: "string", description: "Your agent id (a pool slot you hold is returned under it)." }
+             } }
+         }, async args => JSON.stringify(await this.task_loop.close_task(args)));
+ 
+@@ -1574,6 +1581,7 @@ export default class Servex extends Events {
+             last = Date.now();
+             const dry = !!process.env.SERVEX_REAPER_DRY;
+             const mine = this.reaping = this.lifecycle.sweep({ dry })
++                .then(r => { this.log.append("servex", { type: "lifecycle-sweep", dry, closed: r.close.length, gone: r.gone.length, kept: r.kept.length }).catch(() => {}); return r; })   // every sweep leaves a line, even an empty one
+                 .then(({ close, gone }) => (close.length || gone.length) && this.say(`lifecycle${dry ? " (dry)" : ""}: ${dry ? "would close" : "closed"} ${close.map(r => `${r.kind} ${r.id} (${r.why})`).join("; ") || "nothing"}; ${gone.length} dead log line(s) ended`))
+                 .catch(e => this.say(`lifecycle: sweep failed: ${e.message || e}`))
+                 .finally(() => { if (this.reaping === mine) this.reaping = null; });
+diff --git a/Servex/TaskLoop.js b/Servex/TaskLoop.js
+index 217ab3ffe7..8e425a8eb6 100644
+--- a/Servex/TaskLoop.js
++++ b/Servex/TaskLoop.js
+@@ -501,13 +501,16 @@ export default class TaskLoop {
+ 
+     /* The only other way a task leaves the loop — the owner's `close_task` tool
+      * (Servex.js) calls straight into this. */
+-    async close_task({ dir, why } = {}){
++    async close_task({ dir, why, by } = {}){
+         if (!dir) return { ok: false, why: "dir is required" };
+         const cdir = path.isAbsolute(dir) ? dir : path.join(this.root, dir), file = SessionRecord.log_file(cdir) ?? path.join(cdir, "task.jsonl");
+         if (!fs.existsSync(file)) return { ok: false, why: `no task.jsonl at "${dir}"` };
+         const at = stamp();
+         await this.write_line(file, { assign: { closed_by: "owner", closed_at: at, closed_why: why ?? null } });
+-        return { ok: true, dir, closed_at: at };
++        // the guarantee: closing a task stops what it started (Lifecycle.closeout) and says what it could not
++        let out = { ok: true, closed: [], left: [] };
++        try { out = await this.servex.lifecycle.closeout(cdir, { why: why ?? "closed", by }); } catch (e){ out = { ok: false, closed: [], left: [{ kind: "closeout", id: "error", why: String(e.message || e) }] }; }
++        return { ok: out.ok, dir, closed_at: at, closed: out.closed, left: out.left };
+     }
+ 
+     /* One append at a time per file — a chase and a close_task landing at the
+diff --git a/Servex/Worktrees.js b/Servex/Worktrees.js
+index 835fdc9a70..e9e9ce6fc1 100644
+--- a/Servex/Worktrees.js
++++ b/Servex/Worktrees.js
+@@ -9,6 +9,7 @@ import SessionRecord from "../Server/SessionRecord.mjs";
+ import Landed from "./Landed.js";
+ import WorktreePreview from "../Server/WorktreePreview.mjs";
+ import { DEV_BRANCH } from "../Server/dev-branch.mjs";
++import { pool_slot } from "./Lifecycle.js";
+ 
+ /* WORKTREE CLEAN-UP — a worktree is temporary (process-monitor, 2026-09-30).
+  *
+@@ -78,12 +79,14 @@ export default class Worktrees extends Events {
+ 			(e, out, err) => resolve({ ok: !e, out: String(e ? err || out : out).trimEnd() })));   // trimEnd: a porcelain line starts with a space
+ 	}
+ 
+-	/* `git worktree list --porcelain`, only the ones under `this.dir`. */
++	/* `git worktree list --porcelain`: every linked worktree except the main checkout, wherever it sits
++	 * (one beside the repo, monorepo-wt-readme-roles, was never listed here and so never removed, 2026-11-04). */
+ 	async list(){
+ 		const out = (await this.git(["worktree", "list", "--porcelain"])).out, rows = [];
+-		for (const block of out.split(/\n\s*\n/)){
++		for (const [i, block] of out.split(/\n\s*\n/).entries()){
+ 			const wt = block.match(/^worktree (.+)$/m)?.[1];
+-			if (!wt || !same_or_under(wt, this.dir) || norm(wt) === norm(this.dir)) continue;
++			// git always prints the main checkout first, even when this Servex runs from a linked one
++			if (i === 0 || !wt || norm(wt) === norm(this.main) || norm(wt) === norm(this.dir) || /^bare$/m.test(block)) continue;
+ 			rows.push({ path: wt, name: path.basename(wt), branch: block.match(/^branch refs\/heads\/(.+)$/m)?.[1] ?? null,
+ 				head: block.match(/^HEAD (\w+)/m)?.[1] ?? null, locked: /^locked/m.test(block), prunable: /^prunable/m.test(block) });
+ 		}
+@@ -267,6 +270,18 @@ export default class Worktrees extends Events {
+ 		return null;
+ 	}
+ 
++	/* Who is working inside this folder right now: a live agent, a not-yet-ended agent in the lifecycle records, or this very process. Returns a name, or null. */
++	async held_by(dir){
++		if (same_or_under(process.cwd(), dir)) return `this process (${process.argv[1] ? path.basename(process.argv[1]) : "node"})`;
++		const a = this.agent_in(dir);
++		if (a) return `agent ${a.id}`;
++		try {
++			const r = (await this.servex?.lifecycle?.resources() ?? []).find(r => r.kind === "agent" && r.path && same_or_under(r.path, dir));
++			if (r) return `agent ${r.id}`;
++		} catch {}
++		return null;
++	}
++
+ 	alive(id){ const a = id && this.servex?.agents?.live?.get(id); return !!a && a.state !== "stopped"; }
+ 
+ 	applied(head){
+@@ -317,6 +332,7 @@ export default class Worktrees extends Events {
+ 			await this.serve_previews(items).catch(e => this.log({ msg: `worktrees: serve_previews failed: ${e.message}` }));
+ 			if (this.stopping) await this.stop_idle(items, tasks).catch(e => this.log({ msg: `worktrees: stop_idle failed: ${e.message}` }));
+ 			const finished = items.filter(i => i.state === "finished");
++			if (this.removing) for (const r of await this.residue(await this.list())) await this.clear_residue(r.path);
+ 			let junctions = null;
+ 			if (finished.length && this.removing){
+ 				junctions = await this.junctions();
+@@ -329,10 +345,100 @@ export default class Worktrees extends Events {
+ 		} finally { this.busy = false; }
+ 	}
+ 
+-	/* Stop its server, remove the folder (git refuses anything unclean), forget the project. */
++	/* A folder git no longer lists (a removal that stopped half way, or a server still running there that wrote files back: docs-gate,
++	 * usage-stale, 2026-11-04; 60+ more under worktrees/). Its processes are closed, then the folder is MOVED ASIDE to
++	 * ../moved-aside/worktree-residue/<name>-<date>, never deleted: a rename takes a junction with it without following it, and
++	 * nothing is lost if it held a file nobody committed. Returns { ok, removed, why }. */
++	async clear_residue(dir){
++		const name = path.basename(dir), item = { name, path: dir };
++		await this.close_under(item, `${name} is a leftover folder`);
++		const to = path.join(path.resolve(this.dir, ".."), "moved-aside", "worktree-residue", `${name}-${stamp().slice(0, 10)}-${Date.now()}`);
++		try {
++			fs.mkdirSync(path.dirname(to), { recursive: true });
++			fs.renameSync(dir, to);
++		} catch (e){
++			await this.close_under(item, `${name} is a leftover folder (retry)`);
++			await new Promise(done => setTimeout(done, 3000));
++			try { fs.renameSync(dir, to); } catch (e2){ this.log({ msg: `worktrees: leftover folder ${name} not moved: ${e2.message}` }); return { ok: false, why: `leftover folder could not be moved aside: ${e2.message}` }; }
++		}
++		this.forget(name);
++		this.unregister(item);
++		this.log({ msg: `worktrees: leftover folder ${name} moved aside to ${to}`, name, to });
++		return { ok: true, removed: true, why: `leftover folder moved aside to ${to}` };
++	}
++
++	/* Every folder directly under worktrees/ that git does not list, holds no listed worktree, is no pool slot, is not in use
++	 * and was last touched over an hour ago (a worktree being made right now is younger). */
++	async residue(listed){
++		let names; try { names = fs.readdirSync(this.dir, { withFileTypes: true }); } catch { return []; }
++		const out = [], reg = (() => { try { return Object.values(JSON.parse(fs.readFileSync(path.join(this.main, ".worktrees.json"), "utf8").replace(/^﻿/, ""))); } catch { return []; } })();
++		for (const e of names){
++			if (!e.isDirectory() || e.name.startsWith("_") || e.name.startsWith(".")) continue;
++			const p = path.join(this.dir, e.name);
++			if (listed.some(w => same_or_under(w.path, p) || same_or_under(p, w.path))) continue;
++			if (pool_slot(p) || reg.some(w => w?.path && norm(w.path) === norm(p)) || this.agent_in(p)) continue;
++			let age = 0; try { age = Date.now() - fs.statSync(p).mtimeMs; } catch { continue; }
++			if (age < 3600000) continue;
++			out.push({ name: e.name, path: p });
++		}
++		return out;
++	}
++
++	/* The task is closing: remove this worktree NOW if it is clean and its branch is merged (no quiet hours, no waiting for a landing).
++	 * Anything unmerged, dirty or locked is kept and the reason returned, so the close reports it as left. Lifecycle.closeout() calls this. */
++	async close_now(dir){
++		const wt = (await this.list()).find(w => norm(w.path) === norm(dir));
++		if (!wt) return fs.existsSync(dir) ? this.clear_residue(dir) : { ok: true, removed: false, why: "already gone" };
++		if (wt.locked) return { ok: false, why: "locked with git worktree lock" };
++		const held = await this.held_by(wt.path);
++		if (held) return { ok: false, why: `${held} still works inside it; removing the folder now would leave it in a gutted checkout. The sweep removes it once that stops` };
++		const item = { name: wt.name, path: wt.path, branch: wt.branch };
++		if (wt.prunable || !fs.existsSync(wt.path)) Object.assign(item, { prune: true, why: "its folder is already gone" });
++		else {
++			if (!wt.branch) return { ok: false, why: "a detached HEAD; its commits would have no name" };
++			const changes = await this.changes(wt.path), real = changes.filter(c => !noise(c));
++			if (real.length) return { ok: false, why: `${real.length} uncommitted file(s): ${real.slice(0, 3).map(c => c.path).join(", ")}` };
++			if (!(await this.merged(wt))) return { ok: false, why: `${wt.branch} holds commits ${this.base} does not; kept until it merges` };
++			Object.assign(item, { noise: changes, why: `${wt.branch} is merged into ${this.base}; closed with its task` });
++		}
++		const j = await this.junctions();
++		if (!j.ok) return { ok: false, why: `junction-check failed, nothing removed: ${j.out}` };
++		const ok = await this.remove(item);
++		return ok ? { ok: true, removed: true, why: item.why } : { ok: false, why: item.why };
++	}
++
++	/* Close EVERY process the lifecycle can see under this folder: its Servex-run server, a hand-started wrapper, its health
++	 * watcher, a Playwright browser. Stopping only Servex's own runner left the rest holding the folder, so `git worktree remove`
++	 * could not finish (usage-stale, 2026-11-04). Returns how many were closed. */
++	async close_under(item, why){
++		const lc = this.servex?.lifecycle;
++		if (!lc) return 0;
++		let n = 0;
++		try {
++			for (const r of await lc.resources()){
++				if (r.kind === "agent" || !r.path || !same_or_under(r.path, item.path) || r.pid === process.pid) continue;
++				try { await lc.close(r, why); n++; } catch (e){ this.log({ msg: `worktrees: ${item.name}: could not close ${r.kind} ${r.id}: ${e.message}` }); }
++			}
++		} catch (e){ this.log({ msg: `worktrees: ${item.name}: could not list what runs there: ${e.message}` }); }
++		return n;
++	}
++
++	/* The registry (.worktrees.json, worktree-up.mjs) keeps an entry per hand-made worktree; one left behind keeps a dead pid on the sweep's list. */
++	unregister(item){
++		const file = path.join(this.main, ".worktrees.json");
++		try {
++			const reg = JSON.parse(fs.readFileSync(file, "utf8").replace(/^﻿/, ""));
++			let changed = false;
++			for (const [k, w] of Object.entries(reg)) if (w?.path && norm(w.path) === norm(item.path)){ delete reg[k]; changed = true; }
++			if (changed) Object.keys(reg).length ? fs.writeFileSync(file, JSON.stringify(reg, null, "	")) : fs.unlinkSync(file);
++		} catch {}
++	}
++
++	/* Stop everything running there, remove the folder (git refuses anything unclean), forget the project. */
+ 	async remove(item){
+ 		const sx = this.servex, name = item.name;
+ 		try { await sx?.processes?.get(name)?.terminate?.(); } catch {}
++		await this.close_under(item, `worktree ${name} is being removed`);
+ 		let kept = null, committed = 0, unmerged = 0, sha = null;
+ 		if (item.commit){
+ 			try {
+@@ -346,10 +452,23 @@ export default class Worktrees extends Events {
+ 			catch (e){ item.state = "open"; item.why = `its log files could not be saved first: ${e.message}`; return false; }
+ 		}
+ 		// --force only when every change is log noise, and only after it was saved; otherwise git itself refuses
+-		const r = item.prune ? await this.git(["worktree", "prune"])
+-			: await this.git(["worktree", "remove", ...(item.noise?.length ? ["--force"] : []), item.path]);
++		const take_out = () => item.prune ? this.git(["worktree", "prune"])
++			: this.git(["worktree", "remove", ...(item.noise?.length ? ["--force"] : []), item.path]);
++		let r = await take_out();
++		if (!r.ok && /permission denied|in use|being used|not empty|cannot remove|unable to delete/i.test(r.out)){   // something still held the folder: close again, wait, one more try
++			await this.close_under(item, `worktree ${name} is being removed (retry)`);
++			await new Promise(done => setTimeout(done, 3000));
++			r = await take_out();
++		}
++		// git unregisters the worktree first and can then fail to delete the folder (a process was still exiting): the retry says "not a working tree" and the folder would stay
++		if (!r.ok && /is not a working tree/i.test(r.out)){
++			if (!fs.existsSync(item.path)) r = { ok: true, out: "" };   // the first try already did it all
++			else { const c = await this.clear_residue(item.path); if (c.ok) r = { ok: true, out: "" }; }
++		}
++		if (r.ok && !item.prune && fs.existsSync(item.path)){ try { fs.rmdirSync(item.path); } catch {} }   // git can leave an empty folder; rmdir removes only an empty one
+ 		if (!r.ok){ item.state = "open"; item.why = `git refused to remove it: ${r.out.split("\n")[0]}`; this.log({ msg: `worktrees: ${name} not removed: ${r.out}` }); return false; }
+ 		this.forget(name);
++		this.unregister(item);
+ 		item.state = "removed";
+ 		const entry = { at: stamp(), name, branch: item.branch, why: item.why, salvage: kept };
+ 		this.manifest({ path: item.path, branch: item.branch, sha, at: entry.at, why: item.why, committed, unmerged, restore: `git worktree add "${item.path}" ${item.branch}` }, unmerged);
+diff --git a/Servex/agents/Global.js b/Servex/agents/Global.js
+index 442f07ab49..9c5f50d74c 100644
+--- a/Servex/agents/Global.js
++++ b/Servex/agents/Global.js
+@@ -85,7 +85,7 @@ export default class Global {
+ 			// more direct measurement of resume overhead alone ever crosses 3 s, raise this.
+ 			// Detail and the raw numbers: doc/dormant.md.
+ 			grace_ms: env("SERVEX_DORMANT_GRACE_MS", 0), dormant_freed_mb: 0,
+-			measure_every_ms: env("SERVEX_MEASURE_EVERY_MS", 5 * 60000), last_measure: 0, cap: env("SERVEX_AGENT_CAP", 30), min_free_mb: env("SERVEX_MIN_FREE_MB", 1024),
++			measure_every_ms: env("SERVEX_MEASURE_EVERY_MS", 5 * 60000), last_measure: 0, cap: env("SERVEX_AGENT_CAP", 30), min_free_mb: env("SERVEX_MIN_FREE_MB", 1024), commit_high: env("SERVEX_COMMIT_HIGH_PCT", 80), commit_full: env("SERVEX_COMMIT_FULL_PCT", 90),
+ 			pending: [], timer: null, last_sent: 0, touched: new Map(), idle_seen: new Map(), ready: null };
+ 	}
+ 
+@@ -407,7 +407,13 @@ export default class Global {
+ 		checks.push(spec => this.admit(spec));
+ 	}
+ 
+-	admit(spec = {}, free_mb = os.freemem() / 1048576){
++	/* The machine's commit charge as a percent of its limit (RAM plus pagefile), from the process monitor; null before its first reading. */
++	commit_pct(){
++		const p = this.servex?.procmon;
++		return p?.commit_mb && p?.commit_limit_mb ? 100 * p.commit_mb / p.commit_limit_mb : null;
++	}
++
++	admit(spec = {}, free_mb = os.freemem() / 1048576, commit_pct = this.commit_pct()){
+ 		/* ALWAYS ON (the owner, 2026-10-02): "the Servex mastermind should always stay
+ 		 * on… we can't afford to have it go down… just force it." The holder
+ 		 * (mastermind-servex or mastermind-servex-N) skips every gate: memory, the
+@@ -417,6 +423,13 @@ export default class Global {
+ 		/* THE WORKING CAP (Agents.working). A resume is a wake that must deliver its
+ 		 * message, and the front desk answers the owner: neither is held by it. */
+ 		const wake = !!spec.resume && !spec.fork, desk = DESK.test(spec.role ?? "") || STANDING.test(spec.id ?? "");
++		/* THE COMMIT GATE (the owner, 2026-11-04: the machine thrashes on commit charge, not free RAM). From `commit_high` percent
++		 * only a mastermind (or a child of a live parent, so parents never starve) is admitted; from `commit_full` nothing new is. */
++		if (!wake && !desk && commit_pct != null){
++			const parent = spec.parent && this.agents.live.get(spec.parent);
++			if (commit_pct >= this.commit_full) return `commit charge is ${Math.round(commit_pct)}% (limit ${this.commit_full}%): no new agents until it falls`;
++			if (commit_pct >= this.commit_high && spec.role !== "mastermind" && !(parent && parent.state !== "stopped")) return `commit charge is ${Math.round(commit_pct)}% (above ${this.commit_high}%): only masterminds and their children start until it falls`;
++		}
+ 		if (!wake && !desk && this.agents.working){
+ 			const working = this.agents.working().length, cap = this.agents.working_cap;
+ 			if (working >= cap) return `working ${working}/${cap}: waits for a working agent to end its turn`;
+diff --git a/Servex/agents/global.test.mjs b/Servex/agents/global.test.mjs
+index c8460f5ba2..efb553ce8a 100644
+--- a/Servex/agents/global.test.mjs
++++ b/Servex/agents/global.test.mjs
+@@ -390,6 +390,21 @@ const reset = () => { for (const f of ["claims.json", "global.json"]) fs.rmSync(
+ 	t(g.admit({ role: "minion" }, 8000) === null, "4 working: admitted");
+ }
+ 
++// The commit gate: 80% only masterminds and children of a live parent start; 90% nothing new; wakes and the desk never wait
++{
++	reset();
++	const f = fake_servex();
++	const g = new Global({ servex: f.servex, cap: 30, min_free_mb: 10 });
++	f.servex.agents.live.set("task-mastermind-x", { state: "working" });
++	t(g.admit({ role: "minion" }, 8000, 70) === null, "70% commit: admitted");
++	t(/80%/.test(g.admit({ role: "minion" }, 8000, 85) ?? ""), "85% commit: a loose minion waits");
++	t(g.admit({ role: "mastermind" }, 8000, 85) === null, "85% commit: a mastermind starts");
++	t(g.admit({ role: "minion", parent: "task-mastermind-x" }, 8000, 85) === null, "85% commit: a child of a live parent starts");
++	t(/90%/.test(g.admit({ role: "mastermind" }, 8000, 92) ?? ""), "92% commit: nothing new starts");
++	t(g.admit({ role: "minion", resume: "sid" }, 8000, 95) === null && g.admit({ role: "assistant" }, 8000, 95) === null, "95% commit: a wake and the front desk are never held");
++	t(g.admit({ role: "minion" }, 8000, null) === null, "no reading yet: admitted");
++}
++
+ // The admission check: memory, then a ceiling a live parent's child skips
+ {
+ 	reset();
+diff --git a/Servex/agents/roles/mastermind.md b/Servex/agents/roles/mastermind.md
+index cbb3966ba2..950652f184 100644
+--- a/Servex/agents/roles/mastermind.md
++++ b/Servex/agents/roles/mastermind.md
+@@ -32,6 +32,8 @@ You are the executive tier: you decide what is worth doing, brief workers, judge
+ 
+ **Prioritize before you spawn** (the owner, 2026-10-21): most asks are not for now. Build only what is needed now; everything else is logged where it belongs (a one-line `⬜` in the module readme, or a line on its task) so the ask is never lost, and nothing is spawned for it. Small fixes the owner mentions in passing are notes, not tasks. Do not write an owner-notes doc for every dictation: one essence line where it belongs, linking the prompt log. Ask: does this change what the owner can see or use this week?
+ 
++**Close every task; code does the work, you check the line** (the owner, 2026-11-04: "all the agent has to do is say task complete, and it automatically triggers the cleanup"): everything you or a child starts (server, browser, worktree, child agent) registers against its task when it starts. When a task is done, call `close_task` (or land it: `on-landing.mjs` does the same); the code stops all of it, removes merged worktrees and writes one `task end` line. Read it: `left` must be empty before you call the task done. Code, not your memory, is the guarantee ([Servex/doc/processes.md](/Servex/doc/processes.md)); a rule you forget still leaves nothing behind.
++
+ **Don't fall asleep with work in flight** (the owner, 2026-10-22): a mastermind only runs when something wakes it, so when it is working autonomously, above all when asked to finish something, it keeps itself awake until every task has landed. After each spawn or long job, set a one-shot wake-up (`CronCreate`, `recurring: false`) for when you expect it to finish: usually 5–15 minutes, longer for a long job. A Monitor on the task's log is the primary signal; the wake-up is the fallback. Never wake at exactly 60 minutes: the prompt cache lives 1 hour, so a long fallback is about 50 minutes. When nothing is running, set no timer: checking all night costs tokens for nothing. Finishing on pace may mean spreading the work out, slowing down and reprioritizing, never stopping with tasks open.
+ 
+ ## Skills you lean on
+diff --git a/Servex/closeout.fixture.mjs b/Servex/closeout.fixture.mjs
+new file mode 100644
+index 0000000000..f7253b18cf
+--- /dev/null
++++ b/Servex/closeout.fixture.mjs
+@@ -0,0 +1,37 @@
++/* Servex/closeout.fixture.mjs — the child processes closeout.test.mjs starts under a task: `node closeout.fixture.mjs server|browser <tag>`.
++ * server: a tiny http server registered through track(); browser: a real Playwright Chromium through Server/Browser.mjs.
++ * Prints "READY <own pid> [<chrome pid>]" once its lifecycle start line is written, then idles until it is stopped. */
++const [mode, tag] = process.argv.slice(2);
++const { track } = await import("./Lifecycle.js");
++const wait = ms => new Promise(r => setTimeout(r, ms));
++
++if (mode === "server") {
++	const http = await import("node:http");
++	const s = http.createServer((q, r) => r.end("ok")).listen(0, "127.0.0.1", async () => {
++		track("server", `closeout-test-${tag}-${process.cwd().replace(/.*[\\/]/, "")}`, { port: s.address().port });
++		await wait(700);
++		console.log(`READY ${process.pid}`);
++	});
++} else if (mode === "browser") {
++	const { default: Browser } = await import("../Server/Browser.mjs");
++	await Browser.browser();
++	for (let i = 0; i < 100 && !Browser.pid(); i++) await wait(100);
++	await wait(900);   // the start line and the watchdog are written just after the pid is known
++	console.log(`READY ${process.pid} ${Browser.pid()}`);
++	setInterval(() => {}, 1 << 30);
++} else if (mode === "orphan") {
++	// chrome started detached with no watchdog: it outlives its launcher, like the orphans a script that crashed once left behind
++	const { default: Browser } = await import("../Server/Browser.mjs");
++	const { spawn } = await import("node:child_process");
++	const { mkdtempSync } = await import("node:fs");
++	const { tmpdir } = await import("node:os");
++	const { join } = await import("node:path");
++	const chromium = await Browser.get_chromium();
++	const c = spawn(chromium.executablePath(), ["--headless", "--remote-debugging-port=0", `--user-data-dir=${mkdtempSync(join(tmpdir(), "closeout-orphan-"))}`, "about:blank"], { detached: true, stdio: "ignore", windowsHide: true });
++	c.unref();
++	const { record, owner_task } = await import("./Lifecycle.js");
++	await record({ kind: "browser", id: `browser:${c.pid}`, pid: c.pid, launcher: process.pid, path: process.cwd(), owner_task: owner_task(), owner_agent: process.env.LEW_AGENT || null, script: "closeout.fixture", event: "start" });
++	await wait(900);
++	console.log(`READY ${process.pid} ${c.pid}`);
++	setInterval(() => {}, 1 << 30);
++}
+diff --git a/Servex/closeout.test.mjs b/Servex/closeout.test.mjs
+new file mode 100644
+index 0000000000..8f9d61e1b6
+--- /dev/null
++++ b/Servex/closeout.test.mjs
+@@ -0,0 +1,163 @@
++/* node Servex/closeout.test.mjs — the proof that closing a task leaves nothing behind (2026-11-04). Rerun it any time; it needs
++ * global Playwright (npm i -g playwright) and takes one to two minutes. Every artifact it makes is its own and is removed at the end.
++ *
++ * It opens a task (a temp task log, an unused Servex port, a temp SERVEX_HOME so nothing touches the live Servex), then starts REAL things under it:
++ * an http server and a Chromium inside a real git worktree, and a node server inside a leftover folder git does not list (the docs-gate / usage-stale
++ * case). It calls Lifecycle.closeout() and asserts from the OS process list, `git worktree list` and the disk that none remain, and that the one
++ * `task end` line names what was closed. Then: (1) an unmerged worktree is reported as LEFT, ok=false; (2) a parent killed hard cannot leave its
++ * browser (the watchdog closes it); (3) a chrome left running with no watchdog (started detached) is found by the sweep's launcher-gone rule; (4) machine-written
++ * logs do not block a pool return but a new .jsonl does. Doc: Servex/doc/processes.md. */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { spawn, execFileSync, spawnSync } from "node:child_process";
++import { fileURLToPath } from "node:url";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const id = Math.random().toString(36).slice(2, 8);
++const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "closeout-test-"));
++const task = path.join(tmp, "task"); fs.mkdirSync(task);
++Object.assign(process.env, { SERVEX_HOME: path.join(tmp, "home"), SERVEX_PORT: "18999", LEW_TASK: task, LEW_AGENT: "closeout-test" });
++
++const { default: Lifecycle, main_repo } = await import("./Lifecycle.js");
++const { default: Pool } = await import("./Pool.js");
++const { DEV_BRANCH } = await import("../Server/dev-branch.mjs");
++const MAIN = main_repo(), WT_ROOT = path.join(path.dirname(MAIN), "worktrees");
++const git = (...a) => execFileSync("git", ["-C", MAIN, ...a], { encoding: "utf8", windowsHide: true }).trim();
++const slash = p => p.split(path.sep).join("/");
++const wt_listed = p => git("worktree", "list", "--porcelain").split("\n").some(l => l.startsWith("worktree ") && l.slice(9).toLowerCase() === slash(p).toLowerCase());
++const pid_alive = pid => { try { process.kill(pid, 0); return true; } catch { return false; } };
++const wait = ms => new Promise(r => setTimeout(r, ms));
++async function until(fn, ms = 15000) { const end = Date.now() + ms; while (Date.now() < end) { if (await fn()) return true; await wait(250); } return false; }
++
++const made = { pids: new Set(), worktrees: [], folders: [], branches: [] };
++let passed = 0;
++const ok = (name) => { passed++; console.log(`PASS  ${name}`); };
++
++function start(mode, cwd, extra = {}) {
++	return new Promise((resolve, reject) => {
++		const child = spawn(process.execPath, [path.join(HERE, "closeout.fixture.mjs"), mode, id], { cwd, env: { ...process.env, ...extra }, stdio: ["ignore", "pipe", "inherit"], windowsHide: true });
++		made.pids.add(child.pid);
++		let out = "";
++		child.stdout.on("data", d => { out += d; const m = out.match(/READY (\d+)(?: (\d+))?/); if (m) { if (m[2]) made.pids.add(+m[2]); resolve({ pid: +m[1], chrome: m[2] ? +m[2] : null }); } });
++		child.on("exit", c => reject(new Error(`${mode} fixture exited early (${c})`)));
++		setTimeout(() => reject(new Error(`${mode} fixture not ready in 40 s`)), 40000).unref();
++	});
++}
++function new_worktree(name, { commit = false } = {}) {
++	const p = path.join(WT_ROOT, name), br = name;
++	git("worktree", "add", "-q", "-b", br, p, DEV_BRANCH);
++	made.worktrees.push(p); made.branches.push(br);
++	if (commit) {
++		fs.writeFileSync(path.join(p, "unmerged.txt"), "x");
++		for (const args of [["add", "unmerged.txt"], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "closeout test commit"]]) {
++			const g = spawnSync("git", ["-C", p, ...args], { encoding: "utf8", windowsHide: true });
++			if (g.status !== 0) throw new Error(`git ${args[0]} failed in ${p}: ${g.stderr || g.stdout}`);
++		}
++	}
++	return p;
++}
++const assign_wt = (p) => fs.appendFileSync(path.join(task, "task.jsonl"), JSON.stringify({ assign: { worktree: p } }) + "\n");
++
++try {
++	console.log(`closeout test ${id}: task ${task}`);
++
++	/* 1. the happy path: server + browser in a real worktree, a server in a folder git does not list */
++	const wt = new_worktree(`closeout-test-${id}`);
++	const residue = path.join(WT_ROOT, `closeout-residue-${id}`); fs.mkdirSync(residue, { recursive: true }); fs.writeFileSync(path.join(residue, "log.txt"), "x"); made.folders.push(residue);
++	assign_wt(wt); assign_wt(residue);
++	const srv = await start("server", wt), brw = await start("browser", wt), res = await start("server", residue);
++	for (const p of [srv.pid, brw.pid, brw.chrome, res.pid]) assert.ok(pid_alive(p), `pid ${p} should be running before the close`);
++	assert.ok(wt_listed(wt) && fs.existsSync(wt) && fs.existsSync(residue));
++	ok(`started: server ${srv.pid}, browser ${brw.pid} (chrome ${brw.chrome}), residue server ${res.pid}, worktree ${path.basename(wt)}, folder ${path.basename(residue)}`);
++
++	const lc = new Lifecycle();
++	const r = await lc.closeout(task, { why: "test close" });
++	console.log("  closed:", r.closed.map(c => `${c.kind} ${c.id}`).join(", "), "| left:", JSON.stringify(r.left));
++	if (!r.ok) {   // show who still runs, so a failure explains itself
++		const ps = spawnSync("powershell", ["-NoProfile", "-Command", `Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match '${id}' } | Select ProcessId,ParentProcessId,Name | Format-Table -Auto | Out-String`], { encoding: "utf8", windowsHide: true });
++		console.log("  processes still naming this test:", ps.stdout.trim() || "(none)");
++	}
++	assert.equal(r.ok, true, `closeout must report ok, left=${JSON.stringify(r.left)}`);
++	assert.deepEqual(r.left, []);
++	for (const kind of ["server", "browser", "worktree"]) assert.ok(r.closed.some(c => c.kind === kind), `closed should list a ${kind}`);
++	ok("closeout() returned ok=true with nothing left");
++
++	assert.ok(await until(() => ![srv.pid, brw.pid, brw.chrome, res.pid].some(pid_alive), 15000), "server, browser, chrome and residue server must all be gone from the OS process list");
++	ok("no started process is left in the OS process list");
++	assert.ok(!wt_listed(wt), "git worktree list must not show the worktree"); assert.ok(!fs.existsSync(wt), "the worktree folder must be gone from disk");
++	ok("worktree is gone from `git worktree list` AND from disk");
++	assert.ok(!fs.existsSync(residue), "the leftover folder must be gone from disk"); ok("the leftover folder git does not list is gone from disk (moved aside, not deleted)");
++	const aside = path.join(path.dirname(WT_ROOT), "moved-aside", "worktree-residue");
++	const moved = fs.existsSync(aside) ? fs.readdirSync(aside).filter(n => n.startsWith(`closeout-residue-${id}`)) : [];
++	assert.equal(moved.length, 1, "the leftover folder should sit in moved-aside"); made.folders.push(path.join(aside, moved[0]));
++	const lines = fs.readFileSync(path.join(process.env.SERVEX_HOME, "logs", "lifecycle.jsonl"), "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
++	const end = lines.filter(l => l.kind === "task" && l.event === "end");
++	assert.equal(end.length, 1, "exactly one task end line"); assert.ok(end[0].closed.length >= 4 && end[0].left.length === 0);
++	ok(`one "task end" line: ${end[0].why}`);
++
++	/* 2. something that cannot be closed is reported, never claimed */
++	const wt2 = new_worktree(`closeout-test-${id}-unmerged`, { commit: true }); assign_wt(wt2);
++	const r2 = await new Lifecycle().closeout(task, { why: "test close 2" });
++	assert.equal(r2.ok, false); assert.ok(r2.left.some(l => l.kind === "worktree" && /merge/.test(l.why)), JSON.stringify(r2.left));
++	assert.ok(wt_listed(wt2) && fs.existsSync(wt2), "an unmerged worktree must be kept");
++	ok(`an unmerged worktree is kept and reported: ${r2.left[0].why}`);
++
++	/* 3. the parent dies hard: the watchdog closes the browser */
++	const a = await start("browser", tmp);
++	assert.ok(pid_alive(a.chrome)); spawnSync("taskkill", ["/PID", String(a.pid), "/F"], { windowsHide: true });
++	assert.ok(await until(() => !pid_alive(a.pid), 5000), "launcher should be dead");
++	assert.ok(await until(() => !pid_alive(a.chrome), 12000), "the watchdog must close chrome after its launcher is killed");
++	ok(`launcher ${a.pid} killed hard; the watchdog closed chrome ${a.chrome}`);
++
++	/* 4. no watchdog: chrome survives the kill, then the sweep's launcher-gone rule closes it */
++	const b = await start("orphan", tmp);
++	spawnSync("taskkill", ["/PID", String(b.pid), "/F"], { windowsHide: true });
++	assert.ok(await until(() => !pid_alive(b.pid), 5000)); await wait(3000);
++	assert.ok(pid_alive(b.chrome), "without the watchdog chrome is orphaned (that is the failure the sweep must catch)");
++	const lc2 = new Lifecycle(); const plan = await lc2.sweep({ dry: true });
++	const row = plan.close.find(x => x.kind === "browser" && x.pid === b.chrome);
++	assert.ok(row, "the sweep must plan to close the orphaned browser"); assert.match(row.why, /launcher/);
++	await lc2.close(row, row.why);
++	assert.ok(await until(() => !pid_alive(b.chrome), 10000), "chrome must be gone after the sweep closes it");
++	ok(`orphaned chrome ${b.chrome} found by the sweep (${row.why}) and closed`);
++
++	/* 5. machine-written files never block a return; real work does */
++	assert.equal(Pool.generated({ file: "public/framework/ai/session-links.jsonl", code: "M" }), true);
++	assert.equal(Pool.generated({ file: "public/framework/ai/task-moves.jsonl", code: "M" }), true);
++	assert.equal(Pool.generated({ file: "public/framework/ai/new-notes.jsonl", code: "??" }), false);
++	assert.equal(Pool.generated({ file: "Servex/Pool.js", code: "M" }), false);
++	ok("Pool.generated: modified logs are machine-written; a new .jsonl and source files are real work");
++	/* 6. a worktree an agent still works in is kept (removing it would leave the agent in a gutted checkout); once the agent stops it is removed */
++	const { default: Worktrees } = await import("./Worktrees.js");
++	const wt3 = new_worktree(`closeout-test-${id}-held`);
++	const live = new Map([["held-agent", { id: "held-agent", state: "working", cwd: wt3 }]]);
++	const wts = new Worktrees({ main: MAIN, servex: { lifecycle: new Lifecycle(), agents: { live } } });
++	const k = await wts.close_now(wt3);
++	assert.equal(k.ok, false); assert.match(k.why, /held-agent/); assert.ok(wt_listed(wt3) && fs.existsSync(wt3), "a worktree with an agent inside must be kept");
++	live.get("held-agent").state = "stopped";
++	const k2 = await wts.close_now(wt3);
++	assert.equal(k2.ok, true, JSON.stringify(k2)); assert.ok(!wt_listed(wt3) && !fs.existsSync(wt3), "removed from git and disk once the agent stopped");
++	ok(`a worktree with a working agent inside is kept (${k.why.slice(0, 40)}...), then removed from git and disk once it stops`);
++
++
++	console.log(`\nALL ${passed} CHECKS PASSED`);
++} catch (e) {
++	console.error(`\nFAIL after ${passed} passing check(s): ${e.stack || e}`);
++	process.exitCode = 1;
++} finally {
++	for (const pid of made.pids) if (pid_alive(pid)) spawnSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true });
++	await wait(1500);
++	for (const p of made.worktrees) try { if (wt_listed(p)) git("worktree", "remove", "--force", p); } catch {}
++	try { git("worktree", "prune"); } catch {}
++	for (const b of made.branches) try { git("branch", "-D", b); } catch {}
++	for (const f of made.folders) try { fs.rmSync(f, { recursive: true, force: true }); } catch {}
++	const aside_dir = path.join(path.dirname(WT_ROOT), "moved-aside", "worktree-residue");
++	try { for (const n of fs.readdirSync(aside_dir)) if (n.startsWith(`closeout-residue-${id}`)) fs.rmSync(path.join(aside_dir, n), { recursive: true, force: true }); } catch {}
++	for (const p of made.worktrees) try { fs.rmSync(p, { recursive: true, force: true }); } catch {}
++	try { fs.rmSync(tmp, { recursive: true, force: true }); } catch {}
++	const left = [...made.pids].filter(pid_alive), listed = made.worktrees.filter(wt_listed);
++	console.log(`cleanup: ${left.length} test process(es) still running, ${listed.length} test worktree(s) still listed`);
++	if (left.length || listed.length) process.exitCode = 1;
++}
+diff --git a/Servex/doc/lifecycle.md b/Servex/doc/lifecycle.md
+index 0f24d9835a..5bcc453467 100644
+--- a/Servex/doc/lifecycle.md
++++ b/Servex/doc/lifecycle.md
+@@ -24,7 +24,7 @@ A process that is killed hard (`taskkill /F`) cannot write its own end line. The
+ 
+ ## 2. The reaper
+ 
+-- **On landing.** `Server/on-landing.mjs` calls `reap(task)`: everything that task owns stops — its server (the `server.js` wrapper first, because it restarts `run.js` if only the child dies), its health watcher, its browsers, and its idle helper agents.
++- **On landing.** `Server/on-landing.mjs` calls `closeout(task)` (`reap` plus removing its merged worktrees and a second check; see [processes.md](processes.md)): everything that task owns stops — its server (the `server.js` wrapper first, because it restarts `run.js` if only the child dies), its health watcher, its browsers, and its idle helper agents.
+ - **On the heartbeat.** Servex wraps the heartbeat's tick (`Heartbeat.js` itself is unchanged) and runs `sweep()` at most every 5 minutes. It closes anything whose task has landed, whose task log has been silent for over 2 hours, or that has no task at all and has run over 2 hours. It also stops idle one-pass agents (reviewer, clarity, checker, critic, fork) once their answer is written, and it reclaims pool worktrees whose holder has stopped, only when nobody still works in them and they hold no work ([pool.md](pool.md#a-taken-worktree-stays-taken)).
+ 
+ - **It must not block Servex.** The sweep runs inside Servex, so a blocking call stalls every route and every agent's prompt hook (the SDK gives a hook 30 s). The process list is read with async `execFile` (`processes_async()`), and `task_for_worktree()` reads one task-log index kept 30 s (`Server/worktree-sweep.mjs`) instead of re-walking `ai/` per worktree (that was ~20 s of frozen event loop per sweep). Measure stalls with the gaps between the 5-second heartbeat lines in `logs/crumbs.log`.
+@@ -36,7 +36,7 @@ Every close writes an `end` line whose `why` says the reason in plain words.
+ 
+ ## 3. What is never touched
+ 
+-The main site (port 3104), Servex itself, the gate, whisper, and every port listed in [`Servex/keep.json`](../keep.json) — today `[8137]`, the owner's phone. A worktree that someone is **working** in right now is left alone, and so is the dev server of a worktree whose task asked for a preview until its branch merges ([worktree-preview.md](worktree-preview.md)). A worktree's files are never deleted by the reaper; only its processes stop. Removing the folder stays with `Server/worktree-sweep.mjs`, which waits until the branch is merged.
++The main site (port 3104), Servex itself, the gate, whisper, and every port listed in [`Servex/keep.json`](../keep.json) — today `[8137]`, the owner's phone. A worktree that someone is **working** in right now is left alone, and so is the dev server of a worktree whose task asked for a preview until its branch merges ([worktree-preview.md](worktree-preview.md)). The sweep (`sweep()`) never deletes a worktree's files; only its processes stop. A task's `closeout()` does remove a worktree, but only when it is clean, its branch is merged and nobody (no live agent, not the calling process) works inside it; otherwise it is reported as `left`. Anything else waits for `Server/worktree-sweep.mjs`, which waits until the branch is merged. A browser whose launcher script is gone is closed by the sweep, and closing a browser also ends the script that launched it (never the main checkout's own processes).
+ 
+ **The main checkout is not a blanket keep.** Only port 3104 (and the other keep-list ports) is protected there — a hand-started `PORT=5000 node server.js` in the main checkout is reaped exactly like one anywhere else once it's old and has no owning task (review finding 8, 2026-09-29).
+ 
+@@ -49,6 +49,7 @@ The main site (port 3104), Servex itself, the gate, whisper, and every port list
+ ```
+ node Servex/Lifecycle.js --dry               what the sweep would close, and why (touches nothing)
+ node Servex/Lifecycle.js --reap <task dir>   close what one task owns (add --dry to preview)
++node Servex/Lifecycle.js --closeout <task dir>   the whole close: reap, remove merged worktrees, check again, write one closed line, exit 1 if anything is left
+ node Servex/Lifecycle.js --stop <pid>        stop a server you started, wrapper first, and log its end
+ node Servex/Lifecycle.js --salvage qf-2      empty a stuck pool slot into a salvage/ branch
+ ```
+diff --git a/Servex/doc/pool.md b/Servex/doc/pool.md
+index f5f9d7f01b..5df9a9da94 100644
+--- a/Servex/doc/pool.md
++++ b/Servex/doc/pool.md
+@@ -2,7 +2,7 @@
+ 
+ **A quick fix goes into a worktree that is already warm.** Servex always keeps
+ one worktree ready. It is branched from `compliance/dev`, its own dev server is
+-answering, a page watcher is on, and git knows who you are. Any agent — a
++answering, its page watcher starts when an agent takes it (a ready slot holds no browser), and git knows who you are. Any agent — a
+ minion, a mastermind, an assistant — takes it with one tool call and can start
+ writing the same second.
+ 
+diff --git a/Servex/doc/processes.md b/Servex/doc/processes.md
+index b2fcfa5bc8..1c5c6f71a1 100644
+--- a/Servex/doc/processes.md
++++ b/Servex/doc/processes.md
+@@ -1,6 +1,50 @@
+-# The process monitor, orphans, and worktree clean-up
++# Processes: closing a task, the monitor, orphans, and worktree clean-up
+ 
+-**What it answers:** how much RAM and CPU is ours, how much belongs to everything else, which task uses how much, and what was left behind.
++**What it answers:** what a task started and how closing the task stops all of it by code; how much RAM and CPU is ours, how much belongs to everything else, which task uses how much, and what was left behind.
++
++## Closing a task leaves nothing behind (2026-11-04, the owner: "if a task has been closed, then everything it should have done has happened")
++
++The guarantee is code, not an agent remembering. Two halves.
++
++**1. Everything is registered where it starts** (`Lifecycle.record()`, written through Servex's `lifecycle` log, `%LOCALAPPDATA%/lew42/servex/logs/lifecycle.jsonl`; a start line carries `owner_task` and `owner_agent`, taken from the environment or the working directory):
++
++| started by | line kind | written by |
++|---|---|---|
++| a dev server, a health supervisor | `server` (`Server/run.js`), `health` (`Server/health-supervisor.mjs`) | `track()` in `Lifecycle.js`, called by the script itself |
++| a Playwright Chromium | `browser`, with `launcher` = the node pid that opened it | `Server/Browser.mjs` |
++| a worktree | `worktree` | `Server/worktree-up.mjs` (`owner_task` = the `--task` dir, else the caller's task), and the pool's `take`/`give_back` for `qf-*` slots |
++| a child agent | `agent` | Lifecycle's own agent hooks (start and end of every Servex agent) |
++
++Not registered yet: tunnels, whisper-server and the recite python process (the idle-timeout work, an open improvement).
++
++**2. Closing runs one function**, `Lifecycle.closeout(dir, {why, by})`, which `close_task` (MCP → `TaskLoop.close_task`), `Server/on-landing.mjs` and `Server/merge.mjs` (after a full landing, through `Worktrees.close_now`) all call. By hand: `node Servex/Lifecycle.js --closeout <task dir> [--dry]`. It:
++
++1. closes every process and idle child agent the task owns (`reap`);
++2. for each worktree the task made (its `assign.worktree` lines, `.worktrees.json`, the creation log): a pool slot (`qf-*`) goes back to the pool; any other is stopped, then removed from git AND from disk by `Worktrees.close_now` when its branch is merged and holds nothing real. A folder git no longer lists is moved aside to `<worktrees>/../moved-aside/worktree-residue/`, never deleted. An unmerged or dirty worktree is kept and reported;
++3. looks again at the live process list; anything still owned by the task is `left`;
++4. writes ONE `task`/`end` line `{closed: […], left: […]}` and returns `{ok, closed, left}`. `ok` is false when anything is left, so a close never claims what did not happen.
++
++**When nobody closes it** the sweep catches the rest. `Servex.reaper()` runs `Lifecycle.sweep()` on every heartbeat and always appends one `lifecycle-sweep` line to the `servex` log (what it closed, what it found gone, what it kept). Its rules (`Lifecycle.why()`): a task that landed or whose agent is dead owns nothing; a logged browser whose `launcher` pid is gone is closed; a ready pool slot holds no browser or health watcher (`kept()` checks the slot's pool file, not the `qf-N` path); a worktree folder git does not list is moved aside by the 10-minute `Worktrees.tick`.
++
++**A browser cannot outlive its launcher.** `Server/Browser.mjs` starts `Server/browser-watchdog.mjs <launcher pid> <chrome pid>` detached; it kills Chromium the moment the launcher is gone, even after a hard kill that skips `process.on("exit")`. `LEW_NO_BROWSER_WATCHDOG=1` turns it off (the test does, to prove the sweep rule alone). Closing a browser also ends its launcher (`Lifecycle.kill`), so a script that held the browser cannot keep a worktree folder locked; a launcher that looks like Servex, claude, an MCP server or VS Code is never killed.
++
++**A failed process listing is not an empty one.** `processes_async` asks PowerShell for every process (30 s limit) and retries once on an empty answer; if the list is still empty, `closeout` returns `left: [{kind: "process-list"}]` and `ok: false` instead of claiming everything closed.
++
++**New work is gated on commit charge.** `Global.admit` refuses a spawn when the machine's commit charge is at `SERVEX_COMMIT_HIGH_PCT` (default 80: only masterminds and children of a live parent get in) or `SERVEX_COMMIT_FULL_PCT` (default 90: nothing new), on top of the working cap and `SERVEX_MIN_FREE_MB` (default 1024). See "The commit charge" below.
++
++**Machine-written files never block a return.** `Pool.generated()` treats a modified tracked `*.jsonl` and the named server logs as machine-written: `give_back` sets them aside as a patch in `.worktree-logs/` and restores them, so the slot is returned. A NEW `.jsonl` or any source file is real work and still blocks the return, by name.
++
++**Hand-started worktree servers back off.** `worktree-sweep.mjs` retries a failing `worktree-down` with a doubling wait (state in the Servex state folder, cap 6 h) instead of every pass, and posts one `risk` owner note on the 5th failure.
++
++**A worktree someone still works in is kept.** `Worktrees.close_now` refuses to remove a folder while a live agent, a not-yet-ended agent in the lifecycle records, or the calling process has its working directory inside it (on Windows that would delete the files and leave the folder, with the agent in a gutted checkout). The close reports it as `left`, and the sweep removes the worktree once that agent stops.
++
++**A close with `left` does not undo a landing.** By then the merge is done, so refusing would help nothing: `on-landing` writes the `LEFT: ...` line, `closeout` returns `ok: false`, and `Lifecycle.sweep()` keeps retrying every heartbeat. Closing a browser also ends its launcher script, but never when the browser was started from the main checkout itself (the dev server's screenshot plugin holds one in-process).
++
++**Is the live sweep running?** Yes. The empty process list under load was the cause of 'it closed nothing': it is now retried once and reported as `left` (above), and every sweep appends a `lifecycle-sweep` line to the `servex` log, so a quiet sweep is visible.
++
++**The proof is a test you can rerun:** `node Servex/closeout.test.mjs` (one to two minutes, needs global Playwright, uses a temp `SERVEX_HOME` and port 18999 so the live Servex is untouched). It starts a real server, a real Chromium and a real git worktree under a task, plus a server in a leftover folder git does not list; closes the task; and asserts from the OS process list, `git worktree list` and the disk that none remain. Then: an unmerged worktree is kept and reported; a launcher killed hard has its browser closed by the watchdog; with the watchdog off the sweep finds the orphan; machine-written logs do not block a return. Every artifact it makes is removed at the end.
++
++## The process monitor
+ 
+ Every 10 seconds Servex reads every process on the machine. It sorts each one into a group:
+ 
+diff --git a/Servex/doc/task-loop.md b/Servex/doc/task-loop.md
+index 8be0707802..fac03d6959 100644
+--- a/Servex/doc/task-loop.md
++++ b/Servex/doc/task-loop.md
+@@ -44,7 +44,7 @@ Each tick, before the chase, `Dropped.tick()` ([Servex/Dropped.js](/Servex/Dropp
+ ## Close
+ 
+ A task can leave the loop two ways: it completes or stops, or the owner
+-closes it without landing. `close_task({dir, why})` is that second door — it appends
++closes it without landing. `close_task({dir, why, by})` is that second door — it first runs `Lifecycle.closeout` (stops what the task started, removes its merged worktrees) and then appends
+ `{"assign": {"closed_by": "owner", "closed_at", "closed_why"}}` to the task's own log, the only
+ other line that stops the chase for good. `task_loop_status()` answers `{open, quiet, chased,
+ escalated, last_tick}` — the last two are how many this Servex process has done since it started;
+diff --git a/Servex/readme.md b/Servex/readme.md
+index 5ad97ee58f..41853203e2 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -61,4 +61,4 @@ The local `servex` MCP and the remote door share one tool registry; the remote a
+ 
+ ## More
+ 
+-[doc/architecture.md](doc/architecture.md) · [doc/sdk.md](doc/sdk.md) (how an agent is started) · [doc/lifecycle.md](doc/lifecycle.md) · [doc/dormant.md](doc/dormant.md) · [doc/pool.md](doc/pool.md) · [doc/worktree-preview.md](doc/worktree-preview.md) (a worktree waiting for review, on your phone) · [doc/steps.md](doc/steps.md) · [doc/task-loop.md](doc/task-loop.md) · [doc/landing.md](doc/landing.md) · [doc/skills.md](doc/skills.md) · [doc/module-inbox.md](doc/module-inbox.md) · [doc/restart.md](doc/restart.md) (surviving a reboot) · [ext/remote/readme.md](ext/remote/readme.md) · [../Server/doc/scripts.md](../Server/doc/scripts.md) · the old readme with its dated notes: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md) and [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md).
++[doc/architecture.md](doc/architecture.md) · [doc/sdk.md](doc/sdk.md) (how an agent is started) · [doc/lifecycle.md](doc/lifecycle.md) · [doc/dormant.md](doc/dormant.md) · [doc/processes.md](doc/processes.md) (closing a task leaves nothing running) · [doc/pool.md](doc/pool.md) · [doc/worktree-preview.md](doc/worktree-preview.md) (a worktree waiting for review, on your phone) · [doc/steps.md](doc/steps.md) · [doc/task-loop.md](doc/task-loop.md) · [doc/landing.md](doc/landing.md) · [doc/skills.md](doc/skills.md) · [doc/module-inbox.md](doc/module-inbox.md) · [doc/restart.md](doc/restart.md) (surviving a reboot) · [ext/remote/readme.md](ext/remote/readme.md) · [../Server/doc/scripts.md](../Server/doc/scripts.md) · the old readme with its dated notes: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md) and [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md).
