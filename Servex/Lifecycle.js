@@ -157,7 +157,7 @@ export default class Lifecycle {
 
 	/** The same list without freezing Servex: the two blocking calls above took 20+ s on a busy machine, long enough to time out every agent's prompt hook (2026-10-23). */
 	async processes_async(){
-		const why = [], run = (cmd, args, maxBuffer) => promisify(execFile)(cmd, args, { encoding: "utf8", windowsHide: true, maxBuffer, timeout: 30000 }).then(r => typeof r === "string" ? r : r.stdout,
+		const why = [], run = (cmd, args, maxBuffer) => promisify(execFile)(cmd, args, { encoding: "utf8", windowsHide: true, maxBuffer, timeout: 30000 }).then(r => r.stdout,
 			e => { why.push(`${cmd}: ${e.code ?? (e.killed ? "timed out" : "failed")} ${String(e.stderr || e.message).trim().split("\n")[0].slice(0, 120)}`); return ""; });
 		let map;
 		for (let attempt = 0; attempt < 3; attempt++){   // a busy machine can time the query out; an empty list means it failed (this process itself is a node.exe)

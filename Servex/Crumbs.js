@@ -43,12 +43,13 @@ export default class Crumbs {
 		if (globalThis.__crumbs) return; globalThis.__crumbs = Crumbs;   // the class itself, so a caller drops a crumb without importing (an import installs)
 		for (const name of ["spawn", "spawnSync", "exec", "execFile", "execSync", "execFileSync", "fork"]){
 			const real = cp[name];
-			cp[name] = function(...args){
+			const crumb = args => {
 				const shown = [args[0], Array.isArray(args[1]) ? args[1].join(" ") : typeof args[1] === "string" ? args[1] : ""].join(" ").replace(/\s+/g, " ");
 				Crumbs.drop(`${name} len=${shown.length} ${shown.slice(0, 120)}`);
-				return real.apply(this, args);
 			};
-			if (real[promisify.custom]) cp[name][promisify.custom] = real[promisify.custom];   // without it promisify(execFile) resolves a bare string and every `.stdout` is undefined (the empty process list inside Servex, 2026-11-05)
+			cp[name] = function(...args){ crumb(args); return real.apply(this, args); };
+			// keep the promisify hook: without it promisify(execFile) resolves a bare string, so `.stdout` is undefined (the empty process list inside Servex, 2026-11-05)
+			if (real[promisify.custom]) cp[name][promisify.custom] = function(...args){ crumb(args); return real[promisify.custom].apply(this, args); };
 		}
 		const watch = fs.watch;
 		fs.watch = function(target, ...rest){
