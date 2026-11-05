@@ -17,3 +17,7 @@
 {"tool_call":{"at":"2026-11-05T21:57:45.436Z","tool":"list_agents","args_hash":"44136fa355b3","caller":"voice-app"}}
 {"tool_call":{"at":"2026-11-05T21:58:17.728Z","tool":"spawn_agent","args_hash":"cbf591f74bcf","caller":"voice-app"}}
 {"spawned":{"at":"2026-11-05T21:58:30.374Z","agent":"mastermind-figma-docs","task_dir":null,"caller":"voice-app"}}
+{"log":{"at":"2026-11-05T16:07:12-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-05T16:17:11-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"tool_call":{"at":"2026-11-05T22:21:25.501Z","tool":"shell","args_hash":"18ee23a26808","caller":"voice-app"}}
+{"log":{"at":"2026-11-05T16:27:11-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
