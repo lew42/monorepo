@@ -1,4 +1,6 @@
-# Dictation: how it really works today, and one chat view fed by the session log (you are a mastermind)
+# Dictation map: how it works today, and one chat view
+
+You are a mastermind. Deliver three files here: `map.md` (how it works), `answers.md` (the owner's questions), `plan.md` (one chat view).
 
 **The owner (2026-11-01), the essence:**
 - **Map it:** "study the dictation system to help answer some questions about how it works." There was a system-map fan-out for the voice agents: find it (`past-work`, `public/framework/ai/past-work-index.md`). The map covers the classes and **every role and its prompt** (the voice agents' descriptions).
@@ -13,12 +15,12 @@
   - **V2:** showed only refined prompts, never the live raw Whisper text.
   - **V3:** where is it, and does it work?
   - **The owner's view:** V1 was the best experience, because it showed the live transcript in real time.
-- **Work with the voice read-aloud mastermind** (`../voice-recite/`): you own Whisper and the chat views that turn the session log into messages; it owns reading replies aloud. Agree together where `Recite` plugs in.
+- **Work with the voice read-aloud mastermind** ([voice-recite](../voice-recite/)): you own Whisper and the chat views that turn the session log into messages; it owns reading replies aloud. Agree together where `Recite` plugs in.
 
 ## Do
 
 1. **`map.md` here, one screen first, detail below:**
-   - the path from mic to Whisper chunks, to raw text, to the cleaned text, to the prompt, to the session log, to each chat view, with the class and file at each step;
+   - the path as a drawn tree, one line per step, with the class and file at each: mic → Whisper chunks → raw text → cleaned text → prompt → session log → each chat view;
    - each assistant role, with its prompt file, its model and what it receives;
    - which of V1/V2/V3 read which lines;
    - what's dead or duplicated.

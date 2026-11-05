@@ -1,0 +1,197 @@
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 137c3359b..f9a5c5817 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -341,7 +341,8 @@ export default class AISessionDetail extends Page {
+ 				this.follow = f.start();   // tails the log and corrects the grid row (doc/realtime.md)
+ 				this.follow.then(() => { if (!conv.count) $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });
+ 			} else if (!this.follow && is_uuid) AISessionDetail.load_lines(session_id).then(lines => { if (lines){ conv.add(lines); coverage.add_raw(lines); } else $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });   // a voice session's id never has a transcript (the "no session id yet" message above already says so); asking /ai-logs/ for it only earns a 400
+-			Promise.all([AISessionRows.load_index(url), AISessionRows.load_tree(url)]).then(([index, tree]) => AISessionView.detail_section($session, session_id, index, tree));
++			if (is_uuid) Promise.all([AISessionRows.load_index(url), AISessionRows.load_tree(url)]).then(([index, tree]) => AISessionView.detail_section($session, session_id, index, tree));
++			else $session.empty(() => p.c("muted", "No Session class numbers: this id has no Claude Code transcript (it's a voice session), so GET /ai-logs/<id>/session needs a uuid it doesn't have."));   // was fetched unconditionally, which only ever earned a 400 for a voice session — the same is_uuid guard the transcript load above already uses
+ 			AISessionRows.load_index(url).then(async () => { const snap = await AISessionDetail.load_snapshot(session_id); $related.empty(() => AISessionDetail.render_related(snap, url)); });
+ 			// the card's page.jsonl and trace.json live in the session's own folder now; the old card folder is the fallback until a checkout is migrated
+ 			await AISessionRows.load_index(url);   // fills AISession.days; without this wait own_dir was computed before the index arrived, so the cost log and trace silently never showed
+diff --git a/public/framework/ai/AISession/SessionOutline.css b/public/framework/ai/AISession/SessionOutline.css
+index 61f364bfd..8213923d6 100644
+--- a/public/framework/ai/AISession/SessionOutline.css
++++ b/public/framework/ai/AISession/SessionOutline.css
+@@ -3,7 +3,11 @@
+ 	.soutline { width: 100%; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 1rem; }
+ 	.soutline-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; }
+ 	.soutline-count { margin: 0; font-weight: 600; }
+-	.soutline-toggle { font-size: .8rem; padding: .25em .75em; cursor: pointer; }
++	.soutline-sort { display: flex; gap: 2px; border: 1px solid var(--mob-line, color-mix(in srgb, var(--ink) 20%, transparent)); border-radius: 999px; padding: 2px; }
++	.soutline-toggle { font-size: .8rem; padding: .25em .9em; cursor: pointer; border: 0; border-radius: 999px; background: none; color: inherit; }
++	.soutline-toggle.is-on { background: var(--accent, color-mix(in srgb, var(--ink) 85%, transparent)); color: var(--on-accent, Canvas); }
++	.soutline-chat-link { font-style: italic; }
++	.soutline-chat-meta { display: block; }
+ 	.soutline-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr)); gap: 1rem; align-items: start; min-width: 0; }
+ 	.soutline-group { min-width: 0; box-sizing: border-box; padding: .5rem .75rem; }
+ 	.soutline-group.is-dropped { opacity: .55; }
+diff --git a/public/framework/ai/AISession/SessionOutline.js b/public/framework/ai/AISession/SessionOutline.js
+index ed2f54a9c..6c55c0475 100644
+--- a/public/framework/ai/AISession/SessionOutline.js
++++ b/public/framework/ai/AISession/SessionOutline.js
+@@ -103,7 +103,12 @@ export default class SessionOutline {
+ 		const url = SessionOutline.path_of(t), node = url ? this.by_url.get(url) ?? null : null;
+ 		const kids = [...(t._tasks ?? [])].map(k => this.record_item(k));
+ 		if (node && !this.used.has(node)){ this.used.add(node); kids.push(...node.kids.map(k => this.node_item(k)).filter(Boolean)); }
+-		return this.item({ kind: "record", id: t.id, title: t.get_one("title") ?? t.id, state: t.state, task: t, node, at: SessionOutline.time(t), kids });
++		// `type: "Prompt"/"Question"` on the record line picks the CLASS at replay time (Item.types) and is not itself stored data, so it
++		// can't be read back with get_one — `constructor.name` is what the record itself is (core/Task's own trace() reads it the same way,
++		// and this module stays import-free on purpose: DOM-free, so node and the browser build the same thing from the same lines).
++		const cn = t.constructor?.name, record_type = cn === "Prompt" || cn === "Question" ? cn : null;
++		const title = t.get_one("title") ?? (record_type === "Prompt" ? t.label : record_type === "Question" ? t.text : null) ?? t.id;
++		return this.item({ kind: "record", id: t.id, title, state: t.state, task: t, node, at: SessionOutline.time(t), kids, record_type });
+ 	}
+ 
+ 	/** An unreferenced, non-session folder node as an item; null for one a record task points at or a child heads (drawn elsewhere). */
+diff --git a/public/framework/ai/AISession/SessionOutlineView.js b/public/framework/ai/AISession/SessionOutlineView.js
+index 09b3bf2c2..aa9437b2e 100644
+--- a/public/framework/ai/AISession/SessionOutlineView.js
++++ b/public/framework/ai/AISession/SessionOutlineView.js
+@@ -53,13 +53,19 @@ export default class SessionOutlineView extends View {
+ 		this.el.dataset.children = JSON.stringify(outline.found.counts); this.el.dataset.drawn = outline.drawn;   // how many children each source found, and tasks drawn: read by the proofs
+ 	}
+ 
++	/** The "N tasks drawn" count that used to sit here counted every record task INCLUDING Prompt and Question chat records, so it read
++	 *  "201 tasks drawn" while every child card said "no tasks yet" — meaningless. Dropped rather than fixed here: "This session's own
++	 *  work" below already gives the session's own real count (`progress_text`), and the bigger fix (not counting chat as work at all)
++	 *  is the held "regroup Other work by Prompt" item. */
+ 	head(outline){
+ 		const n = outline.groups.filter(g => g.kind === "child").length;
+ 		div.c("soutline-head", () => {
+-			p.c("soutline-count", `${n} child session${n === 1 ? "" : "s"} · ${outline.drawn} task${outline.drawn === 1 ? "" : "s"} drawn`);
+-			button.c("soutline-toggle", this.mode === "ranked" ? "Ranked by cost · newest first" : "Newest first · ranked by cost")
+-				.attr("title", this.mode === "ranked" ? "Showing: ranked by cost, then recency. Click to sort by time only." : "Showing: newest first. Click to rank by cost again.")
+-				.on("click", () => { this.mode = this.mode === "ranked" ? "newest" : "ranked"; this.draw(); });
++			strong.c("soutline-count", `Child sessions (${n})`);
++			div.c("soutline-sort", () => {
++				const set = mode => { if (this.mode !== mode){ this.mode = mode; this.draw(); } };
++				button.c("soutline-toggle" + (this.mode === "ranked" ? " is-on" : ""), "Cost").attr("type", "button").attr("title", "Rank by cost, then recency").on("click", () => set("ranked"));
++				button.c("soutline-toggle" + (this.mode === "newest" ? " is-on" : ""), "Newest").attr("type", "button").attr("title", "Sort by time only").on("click", () => set("newest"));
++			});
+ 		});
+ 	}
+ 
+@@ -141,12 +147,20 @@ export default class SessionOutlineView extends View {
+ 		return icon("radio_button_unchecked").ac("soutline-state", "is-open").attr("title", state ?? "open");
+ 	}
+ 
+-	/** One task: ONE full-width row. A done task, or one with subtasks, is a fold: the row is its summary, the proof and the subtasks sit under it. */
++	/** One task: ONE full-width row. A done task, or one with subtasks, is a fold: the row is its summary, the proof and the subtasks sit under it.
++	 *  A Prompt or Question record (chat, not work) shows its own words as a link to the Timeline instead of a plain title — it has no page of
++	 *  its own yet (that's the Tasks-view redesign, still open), but the Timeline already lists every prompt in time order. */
+ 	item(i, scope){
+ 		const key = scope + "/" + i.kind + ":" + i.id, done = i.state === "complete", kids = i.kids.length, cls = "soutline-item" + (i.state === "stopped" ? " is-dropped" : "");
++		const chat = i.record_type === "Prompt" || i.record_type === "Question";
+ 		const row = () => div.c("soutline-row", () => {
+ 			SessionOutlineView.state_icon(i.state);
+-			div.c("soutline-main", () => { span.c("soutline-ttl", i.title); this.agent_line(i); });
++			div.c("soutline-main", () => {
++				if (chat) a.c("soutline-ttl soutline-chat-link", i.title).href(AICost.session_url(this.sid) + "?tab=timeline").on("click", e => e.stopPropagation());
++				else span.c("soutline-ttl", i.title);
++				if (chat) small.c("muted soutline-chat-meta", `${i.record_type} · ${this.when(i.at)}`);
++				this.agent_line(i);
++			});
+ 			if (kids){ const { done: d, total } = SessionOutline.progress(i.kids); small.c("muted soutline-prog", `${d}/${total}`); }
+ 		});
+ 		if (!done && !kids) return void div.c(cls, row);
+diff --git a/public/framework/ai/AISession/SessionOverview.css b/public/framework/ai/AISession/SessionOverview.css
+index 65f1b3ebf..6ea337433 100644
+--- a/public/framework/ai/AISession/SessionOverview.css
++++ b/public/framework/ai/AISession/SessionOverview.css
+@@ -2,6 +2,7 @@
+ @layer site {
+ 	/* the stats bar: four figures, the one bar, its caption; sticky under the page head on every tab */
+ 	.sov-stats { position: sticky; top: 0; z-index: 6; display: flex; flex-direction: column; gap: .5em; padding: .75em 1em; background: var(--surface); border-bottom: 1px solid var(--mob-line); border-radius: 4px; }
++	.sov-stats[hidden] { display: none; }   /* `display: flex` above is author-origin and always beats the UA [hidden] rule on specificity grounds, so without this the bar stays visible — empty but full height — whenever JS sets `hidden` instead of removing the class (2026-10-26: this is why a session with no task tree showed a blank sticky strip above the tabs) */
+ 	.sov-stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr)); gap: .5em 1.5em; }
+ 	.sov-stat { display: flex; flex-direction: column; min-width: 0; }
+ 	.sov-k { color: color-mix(in srgb, var(--ink) 60%, transparent); text-transform: uppercase; font-size: .7em; letter-spacing: .06em; }
+diff --git a/public/framework/ai/AISession/SessionTimeline.js b/public/framework/ai/AISession/SessionTimeline.js
+index c75de8fa6..1a58492d2 100644
+--- a/public/framework/ai/AISession/SessionTimeline.js
++++ b/public/framework/ai/AISession/SessionTimeline.js
+@@ -67,7 +67,7 @@ export default class SessionTimeline extends View {
+ 		all.forEach(r => per[r.kind] = (per[r.kind] ?? 0) + 1);
+ 		const rows = all.filter(r => this.on.has(r.kind)), stick = this.stick || this.at_bottom();
+ 		for (const [kind] of SessionTimelineRows.KINDS) if (this.counts[kind]) this.counts[kind].el.textContent = per[kind] ?? 0;
+-		this.$count.el.textContent = !all.length ? (this.seen.size >= 2 ? "No events" : "Reading this session's record…") : rows.length === all.length ? `${all.length} event${all.length === 1 ? "" : "s"}` : `${rows.length} of ${all.length} events`;
++		this.$count.el.textContent = !all.length ? (this.seen.size >= 2 ? "No events" : "Reading this session's record…") : rows.length === all.length ? `${all.length} event${all.length === 1 ? "" : "s"}` : `${rows.length} of ${all.length} events — ${all.length - rows.length} hidden by Filters ▾`;
+ 		this.el.dataset.total = all.length;
+ 		this.$list.empty(() => {
+ 			if (!all.length) return void (this.seen.size >= 2 && p.c("muted stl-none", "Nothing is recorded for this session yet: it has no prompts and no record lines."));
+diff --git a/public/framework/ai/AISession/SessionTimeline.test.mjs b/public/framework/ai/AISession/SessionTimeline.test.mjs
+index 5a61b7f47..e8a2292db 100644
+--- a/public/framework/ai/AISession/SessionTimeline.test.mjs
++++ b/public/framework/ai/AISession/SessionTimeline.test.mjs
+@@ -66,10 +66,24 @@ assert.equal(kinds("tag").length, 1);
+ assert.equal(Rows.rows([], [], []).length, 0);
+ assert.equal(Rows.rows([], prompts, []).length, 3);
+ 
+-// the default filter hides log and tag lines
+-assert.deepEqual(Rows.HIDDEN, ["log", "tag"]);
++// the default filter hides log, tag and voice-plumbing lines (none of this fixture's lines are "plumbing", so the count is unaffected)
++assert.deepEqual(Rows.HIDDEN, ["log", "tag", "plumbing"]);
+ assert.equal(rows.filter(r => !Rows.HIDDEN.includes(r.kind)).length, expected - 3);
+ 
++// the voice-session shapes that used to fall into the catch-all "other": chat, place, sent, quiet, and a prompt's word-by-word text
++const voice = Rows.rows([
++	{ chat: { from: { kind: "owner" }, text: "hello" }, at: at(0) },
++	{ chat: { from: { kind: "assistant" }, text: "hi" }, at: at(1) },
++	{ place: { text: "hello" }, at: at(2) },
++	{ sent: { to: "smart", re: [at(0)] }, at: at(3) },
++	{ quiet: { ms: 2500 }, at: at(4) },
++	{ "p-1": { raw: { push: "more words" } }, at: at(5) },
++	{ "p-1": { paragraphs: { append: { id: "a", text: "more words" } } }, at: at(6) },
++], [], []);
++assert.equal(voice.filter(r => r.kind === "chat").length, 2);
++assert.equal(voice.filter(r => r.kind === "plumbing").length, 5);
++assert.equal(voice.filter(r => r.kind === "other").length, 0, "no voice-session line shape should fall through to the unrecognized bucket");
++
+ // landed_of: only children whose snapshot says landed
+ const kids = [{ id: "a", name: "a", snap: { state: "complete", last_activity: at(3) } }, { id: "b", name: "b", snap: { state: "running" } }, { id: "c", name: "c", snap: null }, { id: "d", name: "d", snap: { closed: true, first_at: at(4) } }];
+ assert.deepEqual(Rows.landed_of(kids).map(k => k.id), ["a", "d"]);
+diff --git a/public/framework/ai/AISession/SessionTimelineRows.js b/public/framework/ai/AISession/SessionTimelineRows.js
+index 4c33a57c2..30c06a0c2 100644
+--- a/public/framework/ai/AISession/SessionTimelineRows.js
++++ b/public/framework/ai/AISession/SessionTimelineRows.js
+@@ -9,9 +9,10 @@ export default class SessionTimelineRows {
+ 		["prompt", "Prompts", "record_voice_over"], ["task", "Tasks added and changed", "add_task"], ["done", "Tasks done", "check_circle"],
+ 		["child", "Child sessions started", "play_circle"], ["landed", "Child sessions landed", "flag"], ["note", "Notes", "sticky_note_2"],
+ 		["decision", "Decisions", "gavel"], ["review", "Reviews", "rate_review"], ["commit", "Commits", "commit"],
+-		["session", "Session start and stop", "power_settings_new"], ["log", "Log lines", "notes"], ["tag", "Tag lines", "sell"], ["other", "Other lines", "more_horiz"],
++		["session", "Session start and stop", "power_settings_new"], ["chat", "Chat (owner and assistant)", "forum"],
++		["log", "Log lines", "notes"], ["tag", "Tag lines", "sell"], ["plumbing", "Voice plumbing (placement, relay, pauses, word-by-word text)", "cable"], ["other", "Other, unrecognized lines", "more_horiz"],
+ 	];
+-	static HIDDEN = ["log", "tag"];   // off until the reader turns them on
++	static HIDDEN = ["log", "tag", "plumbing"];   // off until the reader turns them on
+ 	static LANDED = ["landed", "complete", "done", "closed"];
+ 
+ 	// ---- rows: no DOM, so the test can call them ---------------------------------------------------------------------------------
+@@ -86,9 +87,22 @@ export default class SessionTimelineRows {
+ 		if (l.session && typeof l.session === "object") return { kind: "session", at, text: "Session started" + (l.session.kind ? " (" + l.session.kind + ")" : "") };
+ 		if (l.assign !== undefined || l.agent !== undefined) return { kind: "session", at, text: "Agent assigned" + (l.assign?.role ? ": " + l.assign.role : "") };
+ 		if (typeof l.msg === "string") return { kind: SessionTimelineRows.KINDS.some(k => k[0] === l.type) ? l.type : "log", at, text: clip(l.msg) };
++		// A voice session's own plumbing: `chat` is the real conversation (owner and assistant, by text — a different record of what prompts.jsonl
++		// also holds, but this one has the assistant's replies too); `place`, `sent` and `quiet` are internal relay/pause bookkeeping, worth
++		// keeping but not worth reading by default. Without these three branches almost every line of a voice session fell through to the
++		// catch-all "other" below (2026-10-26: "other lines: 1691" of 1818 in one session — this is what they were).
++		if (l.chat !== undefined) return { kind: "chat", at, text: (l.chat?.from?.kind === "owner" ? "You: " : "Reply: ") + clip(l.chat?.text ?? "") };
++		if (l.place !== undefined) return { kind: "plumbing", at, text: "Placed: " + clip(l.place?.text ?? "") };
++		if (l.sent !== undefined) return { kind: "plumbing", at, text: "Relayed to " + (l.sent?.to ?? "?") + (Array.isArray(l.sent?.re) ? ` (${l.sent.re.length} lines)` : "") };
++		if (l.quiet !== undefined) return { kind: "plumbing", at, text: "Quiet" + (l.quiet?.ms ? ` (${l.quiet.ms}ms)` : "") };
+ 		const inner = Object.values(l).find(v => v && typeof v === "object" && !Array.isArray(v) && (v.tasks || typeof v.task === "string"));
+ 		if (inner) return { ...SessionTimelineRows.row(inner, titles), at: at ?? SessionTimelineRows.time_of(inner) };
+-		const key = Object.keys(l).find(k => !["by", "ts", "at"].includes(k)) ?? "line";
++		// A prompt's own text arriving word by word (`{"raw":{"push":"…"}}`, `{"paragraphs":{"append":…}}`), nested under its p-<id> key:
++		// the biggest single source of "other" noise, one line per spoken fragment. The finished prompt already gets its own "prompt" row
++		// (from prompts.jsonl, below), so this is plumbing, not a second copy of it.
++		const only = Object.keys(l).find(k => !["by", "ts", "at"].includes(k)), ov = only ? l[only] : null;
++		if (ov && typeof ov === "object" && (ov.raw?.push !== undefined || ov.paragraphs !== undefined)) return { kind: "plumbing", at, text: "Prompt text updated" };
++		const key = only ?? "line";
+ 		return { kind: "other", at, text: key + ": " + clip(typeof l[key] === "string" ? l[key] : JSON.stringify(l[key]), 160) };
+ 	}
+ 

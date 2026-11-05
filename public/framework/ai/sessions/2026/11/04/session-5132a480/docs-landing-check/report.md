@@ -1,6 +1,11 @@
 # Do decisions reach the module readmes?
 
-**Short answer:** in the recent landings, yes. Of the last 8 merge landings (`Merge <slug>:` commits on `compliance/dev`), **8 of 8** changed module code and **8 of 8** also changed a readme or `doc/` file in a module. Measured with a script over `git diff --name-only` (code = `.js/.mjs` that is not a test, docs = `readme.md` or `doc/*.md` outside `sessions/`). The window is short because older history was rewritten by the git plan (branch rename, main fast-forward), and only the 8 merge commits there are real task landings. The remaining commits in the window: 4 of 22 had code and no docs, all infrastructure or PR merges (merge.mjs, security-inner-html, paths).
+**Short answer:** yes, in the recent landings decisions reach the module docs.
+
+- **8 of 8** recent merge landings changed module code, and **8 of 8** also changed a module `readme.md` or `doc/*.md`.
+- Measured by script over `git diff --name-only` (code = non-test `.js/.mjs`; docs = `readme.md` or `doc/*.md` outside `sessions/`).
+- The window is 8, not the 30 asked: older history was rewritten by the git plan (branch rename, main fast-forward), so only 8 merge commits are real task landings.
+- Of the other 22 commits, 4 had code and no docs: all infrastructure or PR merges.
 
 ## Sample of the biggest landings
 

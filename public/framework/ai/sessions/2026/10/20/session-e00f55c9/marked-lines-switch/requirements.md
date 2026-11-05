@@ -1,4 +1,6 @@
-# Marked lines: make every reader understand both spellings, then switch the writers (you are a mastermind, on Sonnet, medium effort)
+# Marked lines: one shared reader helper, then switch the writers
+
+Role: mastermind, Sonnet, medium effort. Fence partner: @mastermind-task-close-loop; restarts by @vscode-mastermind.
 
 **Why:** the owner (2026-11-02) asked that this switch not be left hanging. A Haiku scan found the readers that would break: [readers.md](../marked-lines-readers/readers.md).
 - **8 would miss the marked spelling:**

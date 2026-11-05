@@ -9,3 +9,4 @@
 {"tool_call":{"at":"2026-11-05T21:30:24.561Z","tool":"read_file","args_hash":"b55a5169e545","caller":"voice-app"}}
 {"tool_call":{"at":"2026-11-05T21:30:25.306Z","tool":"read_file","args_hash":"a5ad26a1b516","caller":"voice-app"}}
 {"tool_call":{"at":"2026-11-05T21:30:25.898Z","tool":"read_file","args_hash":"60f34b6cc543","caller":"voice-app"}}
+{"log":{"at":"2026-11-05T15:37:07-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}

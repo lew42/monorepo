@@ -1,0 +1,52 @@
+diff --git a/public/framework/ext/Chat/v3/ChatV3.css b/public/framework/ext/Chat/v3/ChatV3.css
+index a77fbaa36..c53b29c1f 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.css
++++ b/public/framework/ext/Chat/v3/ChatV3.css
+@@ -31,7 +31,6 @@
+ 	.chat-v3-raw-line { margin: 0; padding-left: .6rem; border-left: 2px solid color-mix(in srgb, currentColor 18%, transparent); font-size: .85em; color: color-mix(in srgb, currentColor 65%, transparent); }
+ 
+ 	.chat-v3-reply { display: flex; gap: .5rem; align-items: baseline; padding-top: .35rem; border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent); }
+-	.chat-v3-brain { flex: none; }
+ 	.chat-v3-reply-text { min-width: 0; overflow-wrap: anywhere; }
+ 	.chat-v3-reply-text > * { margin-block: 0; }
+ 	.chat-v3-reply-text :is(h1, h2, h3, h4) { font-size: 1.05em; margin-block: .5em .2em; line-height: 1.3; }   /* a heading in a reply is a label, not a page title */
+diff --git a/public/framework/ext/Chat/v3/ChatV3.js b/public/framework/ext/Chat/v3/ChatV3.js
+index 473910fa0..c907880ba 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.js
++++ b/public/framework/ext/Chat/v3/ChatV3.js
+@@ -112,9 +112,8 @@ export default class ChatV3 extends JSONL {
+ 		if (!card) return;
+ 		if (!this.$partial?.el.isConnected) { this.$partial = div.c("chat-v3-reply chat-v3-partial"); card.el.append(this.$partial.el); }
+ 		this.$partial.el.replaceChildren();
+-		const b = document.createElement("span"); b.className = "chat-v3-brain"; b.textContent = "🧠";
+ 		const t = document.createElement("div"); t.className = "chat-v3-reply-text md"; md_into(t, text);
+-		this.$partial.el.append(b, t);
++		this.$partial.el.append(t);
+ 	}
+ 
+ 	draw(){
+@@ -188,9 +187,9 @@ export default class ChatV3 extends JSONL {
+ 		if (open) div.c("chat-v3-raw", () => sentences.forEach(s => blockquote.c("chat-v3-raw-line", s.text)));
+ 	}
+ 
+-	// One assistant Reply: the brain mark and its markdown text. Small and overridable (V2 adds its ✓/🧠 marks, step 2).
++	// One assistant Reply: plain markdown text on the left, no avatar. Small and overridable (V2 adds its ✓/🧠 marks, step 2).
+ 	reply(r){
+-		const box = div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.text); }).attr("data-id", r.id);
++		const box = div.c("chat-v3-reply", () => { md_into(div.c("chat-v3-reply-text md").el, r.text); }).attr("data-id", r.id);
+ 		ReciteBubble.mount(box.el, { text: () => r.text });   // play / pause / back 10 s for this reply (Chat V2 draws replies through here too)
+ 	}
+ 
+diff --git a/public/framework/ext/Chat/v3/readme.md b/public/framework/ext/Chat/v3/readme.md
+index fd25d0254..f8b979bdd 100644
+--- a/public/framework/ext/Chat/v3/readme.md
++++ b/public/framework/ext/Chat/v3/readme.md
+@@ -7,7 +7,7 @@ Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws [fixture/messag
+ ## How it works
+ 
+ - `ChatV3.js`: `class ChatV3 extends JSONL`. Every line is replayed into a real `Session` (`core/Session`) with `replay_line`, the same replay the item tool uses, except V1's own `{chat}`/`{place}` lines (skipped: the real update is the separate `messages`/`sentences` mirror line `ChatWriter` already writes beside them).
+-- **A card per Prompt**, in the chat list's own order: its title (or, until the AI writes one, its first words, muted — dropped for a short chit-chat Prompt, below), then the body described below. Its Replies (🧠, markdown, found by `re.to`) and the Tasks/Questions that name its Prompt TASK (through the message Prompt's `prompt` link) sit inside the card. A plain `Message` (a note with no more structure) is its own small card. "show raw" opens the sentences' own raw words, when a `clean` override exists.
++- **A card per Prompt**, in the chat list's own order: its title (or, until the AI writes one, its first words, muted — dropped for a short chit-chat Prompt, below), then the body described below. Its Replies (plain markdown text on the left, no avatar, found by `re.to`) and the Tasks/Questions that name its Prompt TASK (through the message Prompt's `prompt` link) sit inside the card. A plain `Message` (a note with no more structure) is its own small card. "show raw" opens the sentences' own raw words, when a `clean` override exists.
+ - **The card body:** the AI's cleaned `text` when it exists; until then the dictation itself, in paragraphs (see below), clamped to a few lines with "show all (N words)", under a muted title of its first words. A 6,760-character Prompt had come up as one wall of text.
+ - **No title when it would just repeat the body** (`ChatV3.redundant_title`, the owner, 2026-11-02): a Prompt with no AI title and no refined text showed the same words twice — the muted first-words title, then the identical one-line body under it ("Hello" over "Hello"). That muted title is now skipped when it is the whole body verbatim, or the Prompt is at most two sentences with no refined version yet. An AI title or refined text always keeps the title; a longer untitled dictation (more than two sentences) still gets the muted first-words title, since there the title is a genuinely useful preview of a body the reader has to open.
+ - **Paragraphs** ([placement.js](placement.js), `ChatV3.paragraphs`/`PARAGRAPH_GAP_MS`): a new paragraph starts where the gap between two sentences' `at` is a long pause (4000ms default) — not the old "one paragraph per sent chunk, cut every 3 sentences". Pure logic, no DOM, node-testable ([placement.test.mjs](placement.test.mjs)).

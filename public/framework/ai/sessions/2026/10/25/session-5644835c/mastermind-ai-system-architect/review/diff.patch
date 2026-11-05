@@ -1,0 +1,470 @@
+diff --git a/Server/AIIndex.mjs b/Server/AIIndex.mjs
+index 24cf6da6b..8c15ecd8e 100644
+--- a/Server/AIIndex.mjs
++++ b/Server/AIIndex.mjs
+@@ -131,7 +131,18 @@ export default class AIIndex {
+ 		return { state, landed_at, started: d.started_at ?? d.requested_at ?? times[0] ?? null, last: times.length ? times.reduce((a, b) => Date.parse(b) > Date.parse(a) ? b : a) : null,
+ 			title: d.title ?? null, agent, session: t.session ?? d.sessions?.[0]?.id ?? null, module: d.module ?? null,
+ 			outcome: AIIndex.landing_text(d, f, lines), now: typeof d.now === "string" ? d.now : null,
+-			waiting_on: d.waiting_on ?? null, waiting_since: d.waiting_since ?? null, alias: lines.find(l => typeof l.home === "string")?.home ?? null };
++			waiting_on: d.waiting_on ?? null, waiting_since: d.waiting_since ?? null, alias: lines.find(l => typeof l.home === "string")?.home ?? null,
++			nested: this.nested(t) };
++	}
++
++	/** The open tasks written as lines inside a session.jsonl (a task with its own folder has its own row): a task filed in its session has no file of its own, so this is how the index and the module pages find it. */
++	static nested(t, out = []){
++		for (const k of t._tasks ?? []){
++			if (!k.data.path && !["complete", "stopped"].includes(k.state))
++				out.push({ id: k.id, title: k.data.title ?? k.id, state: k.state, module: k.data.module ?? null, waiting_on: k.data.waiting_on ?? null, waiting_since: k.data.waiting_since ?? null });
++			this.nested(k, out);
++		}
++		return out;
+ 	}
+ 
+ 	/** The first heading of the task dir's requirements.md, or null. */
+@@ -148,7 +159,8 @@ export default class AIIndex {
+ 		const row = { id: AIIndex.id(rel), home, dir: rel, url: AIIndex.url(rel), title: f.title ?? path.basename(rel).replaceAll("-", " "), state: f.state, bucket: null,
+ 			started, landed_at: f.landed_at, last: f.last ?? new Date(st.mtimeMs).toISOString(), day: AIIndex.day(f.landed_at ?? started),
+ 			agent: f.agent, session: f.session, module: f.module ?? (home === "module" ? rel.replace(/^public\/framework\//, "").split("/tasks/")[0] : null),
+-			line: AIIndex.first_sentence(f.state === "complete" ? (f.outcome ?? AIIndex.brief_heading(file) ?? AIIndex.NO_SUMMARY) : f.now), waiting_on: f.waiting_on, waiting_since: f.waiting_since, alias: home === "session" ? f.alias : null };
++			line: AIIndex.first_sentence(f.state === "complete" ? (f.outcome ?? AIIndex.brief_heading(file) ?? AIIndex.NO_SUMMARY) : f.now), waiting_on: f.waiting_on, waiting_since: f.waiting_since, alias: home === "session" ? f.alias : null,
++			nested: home === "session" ? f.nested : [] };
+ 		this.cache.set(file, { size: st.size, mtime: st.mtimeMs, row });
+ 		return row;
+ 	}
+@@ -271,12 +283,14 @@ export default class AIIndex {
+ 		const t0 = performance.now(), walked = this.refresh(full), now = this.now, today = AIIndex.day(now);
+ 		const reg = this.registry ?? [], held = new Map();
+ 		for (const a of reg) if (a.task_dir) held.set(slash(path.relative(this.root, path.resolve(a.task_dir))), a);
+-		const all = [...this.rows.values()].filter(Boolean), tasks = [], aliases = [];
++		const all = [...this.rows.values()].filter(Boolean), tasks = [], aliases = [], open_nested = [];
+ 		for (const r0 of all){
+ 			if (r0.alias){ aliases.push(r0.id); continue; }
+ 			const a = held.get(r0.dir), working = a?.state === "working", queued = a?.state === "queued";
+ 			const bucket = { complete: "landed", stopped: "stopped", waiting: "waiting", running: working ? "in_flight" : "stale", paused: working ? "in_flight" : "stale", idle: queued ? "queued" : "idle" }[r0.state] ?? null;
+-			tasks.push({ ...r0, bucket });
++			const { nested = [], ...r1 } = r0;
++			tasks.push({ ...r1, bucket });
++			for (const n of nested) open_nested.push({ ...n, id: r0.id + "~" + n.id, session: r0.session ?? r0.id, url: r0.url, home: "session" });
+ 		}
+ 		const counts = { tasks: Object.fromEntries(AIIndex.BUCKETS.map(b => [b, 0])), landed_by_day: {} };
+ 		for (const r of tasks) if (r.bucket) counts.tasks[r.bucket]++;
+@@ -294,8 +308,9 @@ export default class AIIndex {
+ 		const in_flight = live.filter(a => a.state === "working").map(a => { const r = agent_row(a); return { ...r, quiet: r.quiet_min >= AIIndex.QUIET_MIN }; })
+ 			.sort((a, b) => (b.quiet - a.quiet) || (b.quiet_min - a.quiet_min));
+ 		const queued = live.filter(a => a.state === "queued").map(agent_row);
+-		const waiting = tasks.filter(r => r.bucket === "waiting" && r.waiting_on === "owner")
+-			.map(r => ({ id: r.id, title: r.title, waiting_on: "owner", since: r.waiting_since, url: r.url, home: r.home })).sort((a, b) => Date.parse(a.since) - Date.parse(b.since));
++		const waiting = [...tasks.filter(r => r.bucket === "waiting" && r.waiting_on === "owner")
++			.map(r => ({ id: r.id, title: r.title, waiting_on: "owner", since: r.waiting_since, url: r.url, home: r.home })),
++			...open_nested.filter(n => n.state === "waiting" && n.waiting_on === "owner").map(n => ({ id: n.id, title: n.title, waiting_on: "owner", since: n.waiting_since, url: n.url, home: "session" }))].sort((a, b) => Date.parse(a.since) - Date.parse(b.since));
+ 		const since = AIIndex.day(now - (AIIndex.DAYS - 1) * 864e5);
+ 		const landed = tasks.filter(r => r.bucket === "landed" && r.day >= since && r.day <= today).sort((a, b) => Date.parse(b.landed_at) - Date.parse(a.landed_at))
+ 			.map(r => ({ id: r.id, title: r.title, line: r.line, landed_at: r.landed_at, day: r.day, url: r.url, home: r.home }));
+@@ -332,7 +347,7 @@ export default class AIIndex {
+ 		check.sessions = { in_sessions, with_session, ok: in_sessions === with_session };
+ 		check.ok = check.ok && check.cards.ok && check.asks.ok && check.sessions.ok;
+ 		const off = -new Date(now).getTimezoneOffset(), tz = (off < 0 ? "-" : "+") + p2(Math.floor(Math.abs(off) / 60)) + ":" + p2(Math.abs(off) % 60);
+-		return { at: new Date(now).toISOString(), today, tz, in_flight, queued, waiting, landed, counts, check,
++		return { at: new Date(now).toISOString(), today, tz, in_flight, queued, waiting, open_nested, landed, counts, check,
+ 			tasks: tasks.map(({ alias, ...r }) => r), sessions: [...sessions.values()], cards: cards.rows, asks: asks.rows,
+ 			agents: reg.map(a => ({ id: a.id, state: a.state, task_dir: a.task_dir ?? null, model: a.model ?? null, cost: a.cost ?? 0 })),
+ 			timing: { ms: +(performance.now() - t0).toFixed(1), full: walked, files: all.length } };
+diff --git a/Server/TaskToSession.mjs b/Server/TaskToSession.mjs
+new file mode 100644
+index 000000000..f05a6fb4c
+--- /dev/null
++++ b/Server/TaskToSession.mjs
+@@ -0,0 +1,18 @@
++#!/usr/bin/env node
++// Move task folders out of <module>/tasks/ into the session that filed them (the owner, 2026-10-26). Dry run unless --go.
++//   node Server/TaskToSession.mjs <session url> <task folder url>... [--go]
++// e.g. node Server/TaskToSession.mjs /framework/ai/sessions/2026/10/25/v-9dvbbrn/ /framework/ext/drawer/tasks/mobile-sheet-page-cannot-scroll-to-the-b/ --go
++// The mover is move_to_session (Servex/agents/page_tools.js): keeps id and history, git mv, one reference in the session, one in the old module list, one ledger line.
++import path from "node:path";
++import { move_to_session } from "../Servex/agents/page_tools.js";
++
++const args = process.argv.slice(2), go = args.includes("--go"), [session, ...tasks] = args.filter(a => a !== "--go");
++if (!session || !tasks.length){ console.error("usage: TaskToSession.mjs <session url> <task folder url>... [--go]"); process.exit(1); }
++const pub = path.resolve(import.meta.dirname, "..", "public");
++let bad = 0;
++for (const t of tasks){
++	const r = await move_to_session(path.join(pub, t.replace(/^\//, ""), "task.jsonl"), session, "TaskToSession", !go);
++	if (r.why) bad++;
++	console.log(r.why ? `SKIP ${t}: ${r.why}` : `${go ? "MOVED" : "would move"} ${r.from} -> ${r.to}`);
++}
++process.exit(bad ? 2 : 0);
+diff --git a/Servex/agents/PromptTasks.js b/Servex/agents/PromptTasks.js
+index 7cd87b948..31fbd935b 100644
+--- a/Servex/agents/PromptTasks.js
++++ b/Servex/agents/PromptTasks.js
+@@ -98,12 +98,15 @@ export default class PromptTasks {
+ 		return this.lives.get(rec.uuid);
+ 	}
+ 
+-	/* ON APPROVAL, HOME (the TaskLoop tick, every 5 minutes): an accepted prompt task moves to <module>/tasks/<slug>/ (move_nested_home,
++	/* ON APPROVAL, HOME (OFF by default, MODULE_HOMES; the TaskLoop tick, every 5 minutes): an accepted prompt task moves to <module>/tasks/<slug>/ (move_nested_home,
+ 	 * page_tools.js). Accepted = approved (idle with an approve verdict) or already started. Its module is `module_hint` (the parts model's
+ 	 * guess), else the module that holds its `file_hint` (PromptTasks.module_of). THE DEFAULT HOME (crack 2, core/Task/doc/cracks.md): a task
+ 	 * with neither, or a module that is not a folder, stays a task in its own session's record, where the session page lists it and the
+ 	 * session's completion counts it; it is not tried again until Servex restarts. */
++	// Off since 2026-10-26 (the owner): a task stays in the session that filed it; a module home only when asked. Set true to bring the sweep back.
++	static MODULE_HOMES = false;
+ 	async sweep({ days = 14, now = Date.now() } = {}){
++		if (!PromptTasks.MODULE_HOMES) return [];
+ 		const { move_nested_home } = await import("./page_tools.js");
+ 		const { default: Session } = await import("../../public/framework/core/Session/Session.js");
+ 		this.refused ??= new Set();
+diff --git a/Servex/agents/item_tool.test.mjs b/Servex/agents/item_tool.test.mjs
+index 1d6e49db7..6aa2a3da4 100644
+--- a/Servex/agents/item_tool.test.mjs
++++ b/Servex/agents/item_tool.test.mjs
+@@ -94,7 +94,7 @@ try {
+ 	try {
+ 		const add = async (delta, ctx = {}) => read_back(JSON.parse(JSON.stringify(await run_item({ path: URL, delta }, { caller: "t1", module_root: MODS, ...ctx }))), URL, "t1");
+ 		const before = lines().length;
+-		r = await add({ tasks: { add: { type: "Task", title: "Module job", module: "fakemod", expected: "it works" } } });
++		r = await add({ tasks: { add: { type: "Task", title: "Module job", module: "fakemod", home: "fakemod", expected: "it works" } } });
+ 		const home = path.join(MOD, "tasks", "module-job");
+ 		ok(r.ok && fs.existsSync(path.join(home, "task.jsonl")), "module task: <module>/tasks/<slug>/task.jsonl");
+ 		ok(TaskHomes.listed().has(app(path.join(MOD, "tasks"))), "a new module list joins the /tasks/ index");
+@@ -109,7 +109,7 @@ try {
+ 		ok(list_lines()[0].id === "tasks" && list_lines()[0].path === app(path.join(MOD, "tasks")) && list_lines()[0].title === "fakemod tasks" && list_lines()[0].mode === "parallel", "module list: line 1 once");
+ 		ok(list_lines().length === 2 && list_lines()[1].task === app(home), "module list: one reference per child");
+ 		ok(/TaskPage/.test(fs.readFileSync(path.join(home, "page.js"), "utf8")), "child folder gets a TaskPage page.js");
+-		await add({ tasks: { add: { title: "Second job", module: "fakemod" } } });
++		await add({ tasks: { add: { title: "Second job", module: "fakemod", home: "fakemod" } } });
+ 		ok(list_lines().filter(l => l.id === "tasks").length === 1 && list_lines().length === 3, "second child: no second line 1, one more reference");
+ 
+ 		r = await add({ tasks: { add: { title: "Plain job", module: "nomod" } } });
+@@ -117,7 +117,7 @@ try {
+ 		const n_before = lines().length;
+ 		r = await add({ tasks: { add: { title: "Plain job" } } });
+ 		ok(r.ok === false && r.suggest === "plain-job-2" && /plain-job-2/.test(r.why) && lines().length === n_before, "a repeated subtask id is refused, offers -2, writes nothing");
+-		r = await add({ tasks: { add: { title: "Module job", module: "fakemod" } } });
++		r = await add({ tasks: { add: { title: "Module job", module: "fakemod", home: "fakemod" } } });
+ 		ok(r.ok === false && r.suggest === "module-job-2", "an existing module slug is refused with a -2 offer");
+ 		ok(fs.existsSync(path.join(MOD, "tasks", "module-job", "task.jsonl")) && !fs.existsSync(path.join(MOD, "tasks", "module-job-2")), "refusal overwrote nothing and made nothing");
+ 
+@@ -145,20 +145,25 @@ try {
+ 		try {
+ 			const run = (url, delta, ctx = {}) => run_item({ path: url, delta }, { caller: "t1", ...ctx }).then(x => read_back(JSON.parse(JSON.stringify(x)), url, "t1"));
+ 			const clines = () => fs.readFileSync(CLOG, "utf8").trim().split("\n").map(l => JSON.parse(l));
+-			r = await run(URL, { tasks: { add: { title: "Ref job", module: MODN } } }, { caller_log: CLOG });
++			r = await run(URL, { tasks: { add: { title: "Ref job", module: MODN, home: MODN } } }, { caller_log: CLOG });
+ 			ok(clines().length === 2 && clines()[1].task === r.homes[0].path && clines()[1].by === "t1" && clines()[1].ts, "caller log: exactly one reference line");
+-			r = await run(URL, { tasks: { add: { title: "Resolver job", module: MODN } } }, { resolve_log: id => id === "t1" ? CLOG : null });
++			r = await run(URL, { tasks: { add: { title: "Resolver job", module: MODN, home: MODN } } }, { resolve_log: id => id === "t1" ? CLOG : null });
+ 			ok(clines().length === 3 && clines()[2].task === r.homes[0].path, "resolve_log(caller) finds the log");
+ 			const n0 = clines().length, f0 = lines().length;
+-			r = await run(URL, { tasks: { add: { title: "No log job", module: MODN } } });
++			r = await run(URL, { tasks: { add: { title: "No log job", module: MODN, home: MODN } } });
+ 			ok(r.ok && clines().length === n0 && lines().length === f0 + 1, "no caller log: nothing extra written");
+-			r = await run(URL, { tasks: { add: { title: "Self job", module: MODN } } }, { caller_log: FILE });
++			r = await run(URL, { tasks: { add: { title: "Self job", module: MODN, home: MODN } } }, { caller_log: FILE });
+ 			ok(r.ok && lines().length === f0 + 2, "caller log is the parent: no duplicate line");
+-			r = await run(URL, { tasks: { add: { title: "Broken log job", module: MODN } } }, { caller_log: path.join(CLOG_DIR, "no", "such", "x.jsonl") });
++			r = await run(URL, { tasks: { add: { title: "Broken log job", module: MODN, home: MODN } } }, { caller_log: path.join(CLOG_DIR, "no", "such", "x.jsonl") });
+ 			ok(r.ok, "an unwritable caller log never errors");
+ 
+ 			r = await run(`/framework/${MODN}/sub/`, { tasks: { add: { title: "Module from path" } } });
+-			ok(r.ok && fs.existsSync(path.join(MDIR, "tasks", "module-from-path", "task.jsonl")), "path inside a module, no module field: homes under <module>/tasks/");
++			ok(r.ok && !fs.existsSync(path.join(MDIR, "tasks", "module-from-path")), "path inside a module, no home field: the task does NOT go to <module>/tasks/ (it stays where it is filed)");
++			r = await run(`/framework/${MODN}/sub/`, { tasks: { add: { title: "Module tag only", module: MODN } } });
++			ok(r.ok && !fs.existsSync(path.join(MDIR, "tasks", "module-tag-only")), "module is a tag, not a home");
++			r = await run(`/framework/${MODN}/sub/`, { tasks: { add: { title: "Module from path", home: MODN, module: MODN } } });
++			ok(r.ok && fs.existsSync(path.join(MDIR, "tasks", "module-from-path", "task.jsonl")), "an explicit home field homes under <module>/tasks/");
++			ok(JSON.parse(fs.readFileSync(path.join(MDIR, "tasks", "module-from-path", "task.jsonl"), "utf8").split(String.fromCharCode(10))[0]).home === undefined, "the home key is not stored as data");
+ 			// Step 17: a call on a path inside a tasks/ folder keeps the child in the parent's folder, and the module list gets no second reference.
+ 			const GOAL = path.join(MDIR, "tasks", "module-from-path");
+ 			const list_refs = () => fs.readFileSync(path.join(MDIR, "tasks", "task.jsonl"), "utf8").trim().split(String.fromCharCode(10)).filter(l => JSON.parse(l).task).length;
+@@ -168,6 +173,24 @@ try {
+ 			r = await run(URL, { tasks: { add: { title: "Dated outside" } } });
+ 			ok(!fs.existsSync(path.join(DIR, "dated-outside")) && r.state.tasks.some(t => t.id === "dated-outside"), "a dated ai/sessions path: the subtask nests, no folder");
+ 
++			{	// move_to_session: a module task goes back into its filing session, with the three lines and the ledger
++				const { move_to_session } = await import("./page_tools.js");
++				const SDIR = DIR + "-tosession", SURL = URL.replace(/\/$/, "") + "-tosession/";
++				fs.mkdirSync(SDIR, { recursive: true });
++				fs.writeFileSync(path.join(SDIR, "session.jsonl"), JSON.stringify({ session: { id: "tosession-test", kind: "agent" } }) + String.fromCharCode(10));
++				try {
++					const from = path.join(MDIR, "tasks", "module-from-path");
++					const dry = await move_to_session(path.join(from, "task.jsonl"), SURL, "test", true);
++					ok(dry.dry && fs.existsSync(from), "move_to_session dry run reports and moves nothing");
++					const moved = await move_to_session(path.join(from, "task.jsonl"), SURL, "test");
++					ok(moved.file && !fs.existsSync(from) && fs.existsSync(path.join(SDIR, "module-from-path", "task.jsonl")), "the task folder is now inside the session folder");
++					const tl = fs.readFileSync(path.join(SDIR, "module-from-path", "task.jsonl"), "utf8").trim().split(String.fromCharCode(10)).map(l => JSON.parse(l));
++					ok(tl.some(l => l.set?.parent === SURL && l.set?.module === MODN && l.set?.moved_from), "the task records its new parent, module tag and where it came from");
++					ok(fs.readFileSync(path.join(SDIR, "session.jsonl"), "utf8").includes(moved.to), "the session log references the moved task");
++					ok(fs.readFileSync(path.join(MDIR, "tasks", "task.jsonl"), "utf8").includes('"moved_from"'), "the old module list references the new path");
++				} finally { fs.rmSync(SDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
++			}
++
+ 			r = await call("item", { path: URL, delta: { help: {} } }, "rules-caller");
+ 			ok(Array.isArray(r.instructions.rules) && r.instructions.rules.length === 5, "first-call instructions include rules");
+ 		} finally {
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index ae1ff1053..0c5adda80 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -468,9 +468,9 @@ async function instructions_for(kind, Class){
+ export const RULES = [
+ 	"A refinement of an existing task goes into that task: add to its `tasks`, or set its fields. It does not become a new task.",
+ 	"New tasks are only for new asks.",
+-	"One goal task per module holds the long-lived work; new related work goes under it.",
++	"A task stays in the session that files it (nested in that session's log). Tag the module with `module` so the module page can find it; give `home: \"<module>\"` only when the owner asked for a module home.",
+ 	"An idea to keep beside a module while designing is a note, not a task.",
+-	"The tool files the session reference and picks the home folder; never write either by hand.",
++	"The tool files the session reference; never write it by hand.",
+ ];
+ 
+ 
+@@ -485,24 +485,11 @@ const app_path = dir => "/" + path.relative(PUBLIC, dir).split(path.sep).join("/
+ const task_type = a => ["Project", "Process", "Session", "Prompt", "Question"].includes(a?.type) ? a.type : "Task";
+ export const slug_of = text => Task.slug(text);   // one slug rule, Task's (a string added in the browser gets the same id)
+ 
+-// The module an app path sits in: the nearest folder under public/framework/ with a readme.md. Never a dated ai/sessions/ folder.
+-function module_of(url, root = FRAMEWORK){
+-	const m = /^\/?framework\/(.+?)\/?$/.exec(String(url ?? ""));
+-	if (!m || /(^|\/)ai\/sessions(\/|$)/.test(m[1])) return "";
+-	const parts = m[1].split("/");
+-	for (; parts.length; parts.pop()){
+-		const rel = parts.join("/");
+-		if (MODULE_NAME.test(rel) && fs.existsSync(path.join(root, rel, "readme.md"))) return rel;
+-	}
+-	return "";
+-}
+-
+ // Which folder a new module task lives in, and its slug. Never suffixes: `taken` is true when the folder exists, and the caller refuses (offering `free`).
+-// A child gets a folder only under a real module (explicit `module`, or the module the call's path sits in); everything else nests in the parent's task.jsonl.
++// A task stays where it is filed: nested in the filing session's (or parent's) task.jsonl. It gets a module folder ONLY when the add carries an explicit
++// `home: "<module>"` (the owner asked for a module home, 2026-10-26). The call's path never picks one; `module` is just a tag a module page finds it by.
+ function task_home(parent_dir, add, root = FRAMEWORK, from_path = ""){
+-	// A call made on a path already inside a `tasks/` folder (a goal's own folder, a module list) is a subtask: it nests.
+-	const inside_tasks = /(^|\/)tasks(\/|$)/.test(String(from_path ?? ""));
+-	const mod = typeof add.module === "string" ? add.module.replace(/^\/+|\/+$/g, "") : inside_tasks ? "" : module_of(from_path, root);
++	const mod = typeof add.home === "string" ? add.home.replace(/^\/+|\/+$/g, "") : "";
+ 	const mod_dir = MODULE_NAME.test(mod) ? path.join(root, mod) : null;
+ 	if (!(mod_dir && fs.existsSync(mod_dir) && fs.statSync(mod_dir).isDirectory())) return null;
+ 	const base = path.join(mod_dir, "tasks"), slug = slug_of(add.id ?? add.title);
+@@ -519,7 +506,7 @@ const source_of = ctx => { const who = ctx?.caller && ctx.caller !== "owner" ? c
+ 
+ // One add -> child folder with line 1, returns { id, path }. Fields come from the add (a legacy `data` object is flattened).
+ function make_child(parent_dir, add, ctx, home){
+-	const { type: _t, id: _i, after: _a, data, ...fields } = add;
++	const { type: _t, id: _i, after: _a, home: _h, data, ...fields } = add;
+ 	const { slug, dir, list } = home;
+ 	const child = path.join(dir, "task.jsonl"), url = app_path(dir);
+ 	if (fs.existsSync(child)) throw new Error(`refused: ${app_path(dir)} already holds a task`);   // never overwrite
+@@ -567,7 +554,7 @@ function make_process(parent_dir, add, ctx, home){
+ export const ledgers = { task_moves: path.join(PUBLIC, "framework", "ai", "sessions", "task-moves.jsonl") };   // a test points it at a scratch file
+ export async function move_home(file, module, by = "ProcessRunner"){
+ 	const dir = path.dirname(path.resolve(file)), slug = path.basename(dir);
+-	const home = task_home(path.dirname(dir), { id: slug, module }, FRAMEWORK, "");
++	const home = task_home(path.dirname(dir), { id: slug, home: module }, FRAMEWORK, "");
+ 	if (!home) return { why: `no module folder public/framework/${module}` };
+ 	if (path.resolve(home.dir) === dir) return { why: "already home" };
+ 	if (fs.existsSync(home.dir)) return { why: `${app_path(home.dir)} already exists; the task stays in its session` };
+@@ -591,6 +578,33 @@ export async function move_home(file, module, by = "ProcessRunner"){
+ 	write_line(list, { task: to, by, ts: at }, true);
+ 	record_new_folder(home.list.dir, slug);
+ 	fs.appendFileSync(ledgers.task_moves, JSON.stringify({ at, kind: "task", from: rel(dir), to: rel(home.dir), session: parent ?? null, module, by, git: tracked }) + "\n");
++	await record_new_folder(sdir, slug);
++	return { from, to, file: nf };
++}
++
++/* MOVE A TASK FOLDER INTO A SESSION (the owner, 2026-10-26: a task stays in the session that files it). The reverse of move_home: the folder
++ * <module>/tasks/<slug>/ moves to <session folder>/<slug>/ (git mv when tracked), keeping id and history. Then one line on each side:
++ * the task records its new path, parent and module tag; the session log and the old module list reference the new path (same id replaces
++ * the old reference, Task.js), and the move is one line in task-moves.jsonl. dry = report only. Returns {from, to, file} or {why}. */
++export async function move_to_session(file, session_url, by = "move_to_session", dry = false){
++	const dir = path.dirname(path.resolve(file)), slug = path.basename(dir);
++	const sfile = resolve_file(session_url, true), sdir = sfile && path.dirname(sfile);
++	if (!sdir || !fs.existsSync(sfile)) return { why: `no session record at ${session_url}` };
++	const to_dir = path.join(sdir, slug), mod = path.relative(FRAMEWORK, path.dirname(path.dirname(dir))).split(path.sep).join("/");
++	if (path.basename(path.dirname(dir)) !== "tasks") return { why: "not in a <module>/tasks/ folder" };
++	if (fs.existsSync(to_dir)) return { why: `${app_path(to_dir)} already exists` };
++	const from = app_path(dir), to = app_path(to_dir), rel = p => path.relative(ROOT, p).split(path.sep).join("/");
++	if (dry) return { from, to, dry: true };
++	const { execFileSync } = await import("node:child_process");
++	const git = (...a) => execFileSync("git", a, { cwd: ROOT, encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "pipe"] }).trim();
++	let tracked = false; try { tracked = !!git("ls-files", "--", rel(dir)); } catch {}
++	if (tracked) git("mv", rel(dir), rel(to_dir)); else fs.renameSync(dir, to_dir);
++	const nf = path.join(to_dir, "task.jsonl"), at = now();
++	write_line(nf, { set: { path: to, parent: session_url, module: mod, moved_from: from }, by, ts: at }, true);
++	write_line(sfile, { task: to, by, ts: at }, true);
++	const list = path.join(path.dirname(dir), "task.jsonl");
++	if (fs.existsSync(list)) write_line(list, { task: to, moved_from: from, by, ts: at }, true);
++	fs.appendFileSync(ledgers.task_moves, JSON.stringify({ at, kind: "task", from: rel(dir), to: rel(to_dir), session: session_url, module: mod, by, git: tracked }) + String.fromCharCode(10));
+ 	return { from, to, file: nf };
+ }
+ 
+@@ -605,7 +619,7 @@ export async function move_nested_home(record, id, module, by = "PromptTasks"){
+ 	const kid = Session.replay(parse_lines(file))._tasks?.find(id);
+ 	if (!kid) return { why: `"${id}" is not a task in ${app_path(path.dirname(file))}` };
+ 	if (kid.data.path) return { why: "already has its own folder" };
+-	const home = task_home(path.dirname(file), { id, module }, FRAMEWORK, "");
++	const home = task_home(path.dirname(file), { id, home: module }, FRAMEWORK, "");
+ 	if (!home) return { why: `no module folder public/framework/${module}` };
+ 	if (fs.existsSync(home.dir)) return { why: `${app_path(home.dir)} already exists; the task stays in its session` };
+ 	const moved = await move_item({ from: app_path(path.dirname(file)), id, to: app_path(home.dir), by, module });   // the one mover: history, reference, ledger
+diff --git a/Servex/agents/prompt-tasks.test.mjs b/Servex/agents/prompt-tasks.test.mjs
+index 8d60577c1..d43f27b7c 100644
+--- a/Servex/agents/prompt-tasks.test.mjs
++++ b/Servex/agents/prompt-tasks.test.mjs
+@@ -97,6 +97,7 @@ try {
+ 	s = Session.replay([...read(REC), { tasks: { [t.id]: { start: {} } } }]);
+ 	ok(asks(s)[0].state === "running" && PromptTasks.accepted(asks(s)[0]), "a tab or agent that starts it (item tool start) accepts it");
+ 
++	PromptTasks.MODULE_HOMES = true;   // the sweep is off by default; this checks it still works when switched on
+ 	// 5. Started and naming a module: the TaskLoop sweep moves it to <module>/tasks/<slug>/, and the session references it there.
+ 	ok((await pt.sweep()).length === 0, "an idle task nobody started is not moved");
+ 	fs.appendFileSync(REC, JSON.stringify({ tasks: { [t.id]: { start: {} } } }) + String.fromCharCode(10));
+diff --git a/Servex/agents/session-smart.md b/Servex/agents/session-smart.md
+index 08637732b..ba573091a 100644
+--- a/Servex/agents/session-smart.md
++++ b/Servex/agents/session-smart.md
+@@ -37,7 +37,7 @@ If this session is about a card (you were told its id and its `page.jsonl` path)
+ - `dir_log({ dir: "<folder>", line: { task: { dir: "<its task folder>", event: "opened", title: "<its title>" } } })`.
+ Presence and decisions only, one line each: never step-by-step progress. When you start or route work, also say in your reply which mastermind has it and where its task folder is. A new session, on any page, must be able to pick up from the files alone.
+ 
+-**4b. "File a task about this page" / "ask this page's expert" (sheet step 8, 2026-10-17).** There is one conversation, yours, and it knows the page each line was said on. When the owner asks to file a task about the page they are on, or to ask that page's expert, hand it to that page's own pair with `ask_manager({ card: "<the page path, e.g. /framework/ext/drawer/>", text: "<the owner's words, polished, nothing dropped>" })`, then, in the same turn, make the task in that page's module home with `item({ path: "<the page path>tasks/", delta: { tasks: { add: { title: "<a short title>", description: "<the owner's words, polished>", module: "<e.g. ext/drawer>", source: "<this session's file>" } } } })` (the tool writes the task folder and its first line; never by hand; its answer has `homes[0].path`, the new task's page). Then write the feed line, because the item tool writes nothing to the page's `ai/log.jsonl`: `dir_log({ dir: "<the page's folder, e.g. public/framework/ext/drawer>", line: { task: { dir: "<the new task's folder, e.g. public/framework/ext/drawer/tasks/<slug>>", event: "opened", title: "<the same title>" } } })`. The page's sheet streams that folder's `ai/log.jsonl` and `ai/chat.jsonl` (AIFeed), so the task line (it links to the new task's folder), and the pair's answer (its `page_reply`), show in the page's feed by themselves. Say in one line that you handed it to the page's manager. Do not also spawn a `mastermind` for the same ask.
++**4b. "File a task about this page" / "ask this page's expert" (sheet step 8, 2026-10-17).** There is one conversation, yours, and it knows the page each line was said on. When the owner asks to file a task about the page they are on, or to ask that page's expert, hand it to that page's own pair with `ask_manager({ card: "<the page path, e.g. /framework/ext/drawer/>", text: "<the owner's words, polished, nothing dropped>" })`, then, in the same turn, file the task on YOUR OWN session (the owner, 2026-10-26: a task stays in the session that files it; a module home only when the owner asks for one) with `item({ path: "<your session folder url>", delta: { tasks: { add: { title: "<a short title>", description: "<the owner's words, polished>", module: "<e.g. ext/drawer>", source: "<this session's file>" } } } })`. `module` is only a tag: the module's page finds the task through the index. Add `home: "<module>"` ONLY if the owner said to put it in the module's folder. Never call the item tool on the module's `tasks/` path to file it. Say in one line that you handed it to the page's manager. Do not also spawn a `mastermind` for the same ask.
+ 
+ **5. What else you do:**
+ - Answer questions about the site and the code: read the files (a page `/a/b/` lives in `public/a/b/`), then answer.
+diff --git a/Servex/doc/item-tool.md b/Servex/doc/item-tool.md
+index 19a0407f0..8a4683f2d 100644
+--- a/Servex/doc/item-tool.md
++++ b/Servex/doc/item-tool.md
+@@ -13,14 +13,14 @@
+ - Test: `node Servex/agents/item_tool.test.mjs`. Servex must restart to load the tool.
+ - **In-process (step 12):** Servex-spawned agents also get this tool as `mcp__local__item` (same function, no HTTP; the `mcp__servex__` twin is disallowed). Off with `SERVEX_LOCAL_TOOLS=0`; test `Servex/agents/item-local.test.mjs`.
+ - **Step 3c supersedes the folder-by-default below:** `tasks.add` NESTS in the parent's file (`{"tasks":{"add":{…,"id"}}}`, later `{"<child id>":{…}}`); a folder is made only with a real module home, then listed in the module's `files.jsonl`. `{"folder":"<child id>"}` moves a nested child out. An existing slug or nested id is refused with `suggest: "<slug>-2"`. One cached root per file (`Item.Store.for`), re-read when the file changes on disk; `page_set/call/add/log` on a task folder take the same path.
+-- **Task homes (step 14a):** on a Task or Session, `{"tasks":{"add":{title, module?, …}}}` makes a child folder (`<module>/tasks/<slug>/` if the module folder exists, else `<parent>/<slug>/`, `-2`, `-3` on a repeat) with its app path on line 1, and writes only `{"task": path}` on the parent. The answer lists `homes`. Replay resolves references (`Task.from_ref`, `link_refs`). Tests: `item_tool.test.mjs`.
+-- **Filing (step 16):** every `tasks.add` also appends the same `{"task": path}` line to the caller's own task log (`ctx.caller_log`, or `resolve_log(caller)` from `page_tools(resolve_log)`; skipped with no caller, no task dir, or when that log is the parent). With no `module`, the module is the nearest folder under `public/framework/` that has a `readme.md`, taken from the path the call was made on (never a dated `ai/sessions/` folder).
++- **Task homes (step 14a; changed 2026-10-26):** a task stays in the session that files it: `{"tasks":{"add":{title, module?, home?, …}}}` nests in the parent's log. `module` is a tag for the module page; only an explicit `home: "<module>"` makes a child folder (`<module>/tasks/<slug>/` if the module folder exists, `-2`, `-3` on a repeat; the call's path never picks one) with its app path on line 1, and writes only `{"task": path}` on the parent. The answer lists `homes`. Replay resolves references (`Task.from_ref`, `link_refs`). Tests: `item_tool.test.mjs`.
++- **Filing (step 16):** every `tasks.add` also appends the same `{"task": path}` line to the caller's own task log (`ctx.caller_log`, or `resolve_log(caller)` from `page_tools(resolve_log)`; skipped with no caller, no task dir, or when that log is the parent). There is no default module home any more (it used to be the nearest folder with a readme).
+ - **Grouping rules** (returned as `rules` beside `describe()` on the first call; `RULES` in `page_tools.js`):
+   - A refinement of an existing task goes into that task (add to its `tasks`, or set its fields). It does not become a new task.
+   - New tasks are only for new asks.
+-  - One goal task per module holds the long-lived work; new related work goes under it.
++  - A task stays in the session that files it; `module` tags it, `home` (only when the owner asked) moves it into the module's folder.
+   - An idea to keep beside a module while designing is a note, not a task.
+-  - The tool files the session reference and picks the home folder; never write either by hand.
++  - The tool files the session reference; never write it by hand.
+ 
+ ## Queries: ask without writing (2026-10-23)
+ 
+diff --git a/public/framework/ai/doc/sessions-and-tasks.md b/public/framework/ai/doc/sessions-and-tasks.md
+index a089ff388..b74e9806c 100644
+--- a/public/framework/ai/doc/sessions-and-tasks.md
++++ b/public/framework/ai/doc/sessions-and-tasks.md
+@@ -1,5 +1,7 @@
+ # Sessions and tasks: a spawned agent is a session, a task is something to finish
+ 
++> **Superseded 2026-10-26 (the owner):** a task now stays in the session that files it; a module folder only with an explicit `home`. Read [the rule](/framework/ai/doc/tasks.md) first; what follows is the earlier module-primary decision.
++
+ **Decision (the owner, 2026-10-19).** The naming was the bug. An agent the SDK spawns is a **session**: it has a session id. It is not a task. We used to call it one, and that is where the system got confused. A **task** is something that needs to happen and can be finished. They are different things; tasks live inside sessions.
+ 
+ > "Every SDK session should be a session. It should be clear that this represents the session. Then you can have tasks within them. But we shouldn't be calling a session a task."
+diff --git a/public/framework/ai/doc/tasks.md b/public/framework/ai/doc/tasks.md
+index 15f7fc68b..71b5e87d4 100644
+--- a/public/framework/ai/doc/tasks.md
++++ b/public/framework/ai/doc/tasks.md
+@@ -2,6 +2,8 @@
+ 
+ Read this once instead of researching. Short index: [../tasks/readme.md](../tasks/readme.md). Plan and history: [one-state.md](one-state.md), [one-dashboard.md](one-dashboard.md), [task-folders.md](task-folders.md).
+ 
++> **The rule (the owner, 2026-10-26): a task stays in the session that files it** (a nested line in that session's `session.jsonl`, or `<session>/<slug>/` when it needs files). A module folder `<module>/tasks/<slug>/` only when the owner explicitly asks, with `home: "<module>"` on the add. `module: "<module>"` is just a tag: a module's page finds its tasks through the index (`index.json` carries `open_nested`: the open tasks written inside a session log, each with its `module` tag; `Server/AIIndex.mjs`, `nested`), never a copy. The old module-primary tasks (about 539) stay where they are until the owner asks to move them.
++
+ ## 1. What a task is
+ 
+ A **task** is a folder with one file, `task.jsonl`: a log where each line is one fact ("started", "log this", "finished"). Its state is never stored; it is worked out by replaying the lines ([`core/Task/Task.js`](/framework/core/Task/), `class Task extends Item`). States: idle, running, paused, waiting, stopped, complete.
+@@ -21,7 +23,7 @@ A **task** is a folder with one file, `task.jsonl`: a log where each line is one
+ |---|---|---|
+ | A Servex agent (SDK) | nothing to run: `spawn_agent` with `task: {dir, brief}` (or none: `Agents.default_task` picks `ai/sessions/<day>/<caller's session>/<agent id>/`) | `open_task` in `Servex/agents/Agents.js` writes line 1 (`assign`) before the first turn. The agent's prompt says "your task is already open". |
+ | A Claude Code tab (VS Code) | `node Server/TaskDirs.mjs --new <slug> [--session <uuid>] [--parent <dir>]` (the `new-task` skill; there is no MCP tool called `new-task`) | makes the folder and prints it; you then append line 1 with `node .claude/hooks/append.mjs` |
+-| Any agent, a sub-task or a task for a module | the **item tool**, `item({path, delta:{"tasks":{"add":{title, module?}}}})` (`mcp__local__item` in-process, `mcp__servex__item` over MCP) | makes the child in `<module>/tasks/<slug>/` and files the pointers. Detail: [Servex/doc/item-tool.md](/Servex/doc/item-tool.md) |
++| Any agent, a sub-task or a task for a module | the **item tool**, `item({path, delta:{"tasks":{"add":{title, module?, home?}}}})` (`mcp__local__item` in-process, `mcp__servex__item` over MCP) | nests the child in the session's log (`module` is a tag; `home` makes `<module>/tasks/<slug>/`, only when asked) and files the pointers. Detail: [Servex/doc/item-tool.md](/Servex/doc/item-tool.md) |
+ | Any script | `TaskDirs.dir({slug, session_id, parent})` | the one class that builds a path; never join a date by hand |
+ 
+ **A cloud voice agent** (`ai/sessions/YYYY/MM/DD/cloud-voice-<name>/`): the same tool works today, as `node Server/TaskDirs.mjs --new <slug> --parent public/framework/ai/sessions/YYYY/MM/DD/cloud-voice-<name>` (`--parent` takes any folder, so the session dir need not be a UUID), then line 1 by `append.mjs`; the `--session` flag alone cannot, because it accepts only a UUID and would name the folder `session-<id8>`. The cloud agent has the Servex `shell` and `write_file` tools, so it can run exactly that. What would make it one call: let `TaskDirs.dir` accept a session folder name (a `session_dir` argument) and expose it as a Servex tool; not built.
+@@ -107,6 +109,6 @@ Each row is a guess about where prompt, session, task, agent and landed change c
+ | `phase`, `Project extends Task` | concept | [task-lifecycle.md](task-lifecycle.md) |
+ 
+ **The three gaps, confirmed by reading the code.**
+-- **(a) Module placement is never automatic.** `TaskDirs.dir({slug, session_id, parent, day})` and `Agents.open_task` have no `module` argument. A task reaches `<module>/tasks/<slug>/` only when an agent calls the item tool's `tasks.add` (its choice), when `TaskMigrate` is run once, or when `UndoneToTasks` files an idle task for an undone ask.
++- **(a) Module placement is never automatic, and since 2026-10-26 never the item tool's default either:** only an explicit `home` puts a task in a module. `TaskDirs.dir({slug, session_id, parent, day})` and `Agents.open_task` have no `module` argument. A task reaches `<module>/tasks/<slug>/` only when an agent calls the item tool's `tasks.add` with `home` (the owner asked for it), when `TaskMigrate` is run once, or when `UndoneToTasks` files an idle task for an undone ask.
+ - **(b) Sessions do not list their tasks.** Corrected: the task is a folder inside the session folder, and 37 of the 42 session logs that exist also name it, but no session field lists tasks and the day `index.json` has `links.task: null`; "this session's tasks" is a query on `index.json` (`session`).
+ - **(c) No single page said how a prompt becomes a task:** section 7 above does, and [task-lifecycle.md](task-lifecycle.md) proposes the missing phases.
+diff --git a/public/framework/ai/tasks/readme.md b/public/framework/ai/tasks/readme.md
+index 394238d73..9b0fac7c4 100644
+--- a/public/framework/ai/tasks/readme.md
++++ b/public/framework/ai/tasks/readme.md
+@@ -6,7 +6,8 @@ A **task** is a folder whose `task.jsonl` is a log, one fact per line; its state
+ 
+ ```
+ ai/sessions/YYYY/MM/DD/<session>/<task>/      a task made from a session  (≈1,100)  task.jsonl, requirements.md, past-work.md, report.md
+-public/framework/<module>/tasks/<slug>/       a task that belongs to a module (≈500)  task.jsonl, …
++public/framework/<module>/tasks/<slug>/       a task the owner explicitly homed in a module (≈500, older ones; new tasks are not made here)  task.jsonl, …
++ai/sessions/…/<session>/session.jsonl         a task filed in its session is a `{"tasks":{"add":…}}` line here, no folder; index.json lists the open ones as `open_nested`, with their `module` tag
+ ai/index.json                                 the whole picture: every task in a bucket (generated)
+ ai/index.jsonl                          one line per change of the picture (generated, gitignored; the pulse)
+ ai/tasks/                                     this module: the 87 old task folders kept here, plus the files below
+@@ -18,7 +19,7 @@ Buckets in `index.json`: `landed`, `in_flight`, `queued`, `waiting`, `idle`, `st
+ 
+ | What | Writer, called from |
+ |---|---|
+-| a task folder and its line 1 `{"assign":{session_id,agent,title,model,requested_at,…}}` | `Agents.open_task()` (`Servex/agents/Agents.js`) when `spawn_agent` runs; or `node Server/TaskDirs.mjs --new <slug>` then `append.mjs` for a VS Code tab; or the item tool `tasks.add` for a module task |
++| a task folder and its line 1 `{"assign":{session_id,agent,title,model,requested_at,…}}` | `Agents.open_task()` (`Servex/agents/Agents.js`) when `spawn_agent` runs; or `node Server/TaskDirs.mjs --new <slug>` then `append.mjs` for a VS Code tab; or the item tool `tasks.add` (nests in the filing session's log; a module folder only with an explicit `home`). `node Server/TaskToSession.mjs <session url> <task folder url>… [--go]` moves an old module task back into its session |
+ | every later line (`log`, `decision`, `finish`, a landing `assign.landed_at`) | `node .claude/hooks/append.mjs <task.jsonl> <lines.json>` (validated by `.claude/hooks/jsonl-schema.mjs`) |
+ | `index.json` and `index.jsonl` | `Server/AIIndex.mjs`: replays every `task.jsonl` through `core/Task/Task.js`. `Server/AIIndex.mjs --watch` is the thin caller that Servex's `TaskLoop.js` runs; it re-checks the agent registry every 5 s and writes only on a change. `--print` shows one snapshot. |
+ 
+diff --git a/public/framework/core/Session/doc/prompt-tasks.md b/public/framework/core/Session/doc/prompt-tasks.md
+index 435659ec1..8456062d2 100644
+--- a/public/framework/core/Session/doc/prompt-tasks.md
++++ b/public/framework/core/Session/doc/prompt-tasks.md
+@@ -14,7 +14,7 @@
+    It lives in the session. No module folder is made until someone starts it and it moves home.
+ 5. **The page shows it live.** `SessionTasks` (`core/Session/SessionTasks.js`) streams `session.jsonl`, replays it into a `Session`, and draws each task with `TaskView.row`.
+ 6. **Older proposals (waiting on you) keep their buttons.** Tasks filed before 2026-10-24 are still `waiting`; your press is one line. `{"decide":{"task":"<id>","is":"approve"|"reject"|"project","by":"owner"}}` is appended through the dev socket. `Session.replay_line` applies it: Approve accepts the task (waiting → idle, with an approve verdict); Reject stops it; Make it a project replaces it with a `Project` (core/Task/Project.js) with the same id, data and place.
+-7. **Started, it moves home.** Every 5 minutes the TaskLoop tick runs `PromptTasks.sweep()`. An accepted task (started, running, paused or complete: `PromptTasks.accepted`; an idle task is not yet) whose module is a folder under `public/framework/` moves to `<module>/tasks/<slug>/`, by `move_nested_home()` in `Servex/agents/page_tools.js`. Its data and state go to that folder's `task.jsonl` line 1. The session gets a same-id `{"task":"<new path>"}` reference, which replaces the nested one. The module list references the task too, and `ai/sessions/task-moves.jsonl` records the move. Its module is `module_hint`, else the module that holds its `file_hint` (`PromptTasks.module_of`: the deepest folder with a readme). **The default home is the session itself:** a task with neither, or a module that is not a folder there, stays a task in its own session's record, where the session page lists it and the session's completion counts it (crack 2 in [cracks.md](/framework/core/Task/doc/cracks.md)).
++7. **Off since 2026-10-26: a task stays in its session** (the owner; `PromptTasks.MODULE_HOMES = false`, the sweep returns nothing). The rest of this item is how it worked, and how to switch it back on. **Started, it moved home.** Every 5 minutes the TaskLoop tick runs `PromptTasks.sweep()`. An accepted task (started, running, paused or complete: `PromptTasks.accepted`; an idle task is not yet) whose module is a folder under `public/framework/` moves to `<module>/tasks/<slug>/`, by `move_nested_home()` in `Servex/agents/page_tools.js`. Its data and state go to that folder's `task.jsonl` line 1. The session gets a same-id `{"task":"<new path>"}` reference, which replaces the nested one. The module list references the task too, and `ai/sessions/task-moves.jsonl` records the move. Its module is `module_hint`, else the module that holds its `file_hint` (`PromptTasks.module_of`: the deepest folder with a readme). **The default home is the session itself:** a task with neither, or a module that is not a folder there, stays a task in its own session's record, where the session page lists it and the session's completion counts it (crack 2 in [cracks.md](/framework/core/Task/doc/cracks.md)).
+ 
+ ## One writer: the splitter files the tasks, the tab starts them
+ 
+diff --git a/public/framework/core/Task/doc/owner-2026-10-16-top-down.md b/public/framework/core/Task/doc/owner-2026-10-16-top-down.md
+index ea64e87f1..af8096eba 100644
+--- a/public/framework/core/Task/doc/owner-2026-10-16-top-down.md
++++ b/public/framework/core/Task/doc/owner-2026-10-16-top-down.md
+@@ -1,5 +1,7 @@
+ # Owner notes, 2026-10-16 (night): the task system read top-down (dictated; decisions by voice-app where the owner left them open)
+ 
++> **Superseded 2026-10-26 (the owner):** a task now stays in the session that files it; a module folder only with an explicit `home`. Read [the rule](/framework/ai/doc/tasks.md) first; what follows is the earlier module-primary decision.
++
+ Third note of the day; read `owner-2026-10-16-task-system.md` and `owner-2026-10-16-composition.md` first. Where the owner said "I'm not sure", voice-app decided (marked **decided**) so the build never waits.
+ 
+ ## Classes
+diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
+index 0cec23274..2368b9031 100644
+--- a/public/framework/core/Task/readme.md
++++ b/public/framework/core/Task/readme.md
+@@ -6,7 +6,7 @@
+ - **Wired in:** `Server/AIIndex.mjs` replays every task through `Task.replay` into `ai/index.json`; Servex `open_task` and `TaskDirs --new` make the session-store folders that `Task` reads; the Inbox shows the result.
+ - **Wired in (2026-10-20):** [Project.js](Project.js) (`Project extends Task`: six stages, `completion` 0..1 = mean of subtasks, `Project.from_lines`; `node Project.test.mjs`, 9 of 9). `Server/ProjectMove.mjs` moves a project folder into a module and indexes it: [ai/tasks/doc/projects.md](/framework/ai/tasks/doc/projects.md).
+ - **Process:** [Process.js](Process.js) (`Process extends Task`: named steps node runs in series; `next()` decides, `Servex/ProcessRunner.js` writes the line and launches each step's session; one `tasks.add {process: "build"}` call creates one; or give your own `steps`). Templates, one subclass each in [processes/](/framework/servex/fs/?file=public/framework/core/Task/processes/): `build` (investigate to merge), `design` (Figma variants coded as pages), `investigate` (questions, scout, findings). The page, with a real run replayed live: [process/](process/). Design and status: [doc/process.md](doc/process.md); the names, decided: [doc/process-names.md](doc/process-names.md). Tests: [Process.test.mjs](Process.test.mjs), `node Servex/ProcessRunner.test.mjs`.
+-- **Concept only:** `AITask extends Task` (below), a `phase` field ([ai/doc/task-lifecycle.md](/framework/ai/doc/task-lifecycle.md)). **Not automatic:** a module home. `TaskDirs.dir()` does not know modules; only the item tool (an agent's choice), `TaskMigrate` (one-off) and `UndoneToTasks` (idle tasks from undone asks) put a task in `<module>/tasks/`.
++- **Concept only:** `AITask extends Task` (below), a `phase` field ([ai/doc/task-lifecycle.md](/framework/ai/doc/task-lifecycle.md)). **Not automatic:** a module home. `TaskDirs.dir()` does not know modules; only the item tool (an explicit `home`), `TaskMigrate` (one-off) and `UndoneToTasks` (idle tasks from undone asks) put a task in `<module>/tasks/`.
+ 
+ ## What it is
+ 
+@@ -56,7 +56,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
+ - `Task.replay(lines)` is `Item.replay` (inherited): `Item.Store.read` runs the same `replay_line` per entry in the browser. Task only overrides `replay_new`, `replay_line` and `replay_end` for the legacy mapping. It builds a task from parsed `task.jsonl` objects, using each line's own time (`at`, `assign.at|landed_at|requested_at`), never the wall clock, so the same file always gives the same task. Explicit lines (`{"start":{}}`, `pause`, `resume`, `stop`, `complete` (old `finish` too), `wait`, `approve`, `improve`, `reject`) call the method of that name; once one appears, they decide the state.
+ - No explicit line (an old file): `landed_at` alone is `complete`, `closed_by` is `stopped`, anything else is `running`. `assign` fields merge into `data` (latest wins; `session_id` becomes `session`).
+ - `waiting` is a sixth state: `wait({on, what})` (from idle, running, paused), then a verdict, each stored as `verdict: {is, note, by}`: `approve(note?)` (to running; a queue that delays it to idle does not exist yet), `improve(note)` (to running, to revise and wait again), `reject(note)` (to stopped). `stop` and `complete` accept it.
+-- **Homes and references (step 14a):** `tasks.add` through the item tool makes the child its own folder, `<module>/tasks/<slug>/` when `public/framework/<module>/` exists (never created), else `<parent folder>/<slug>/`. Line 1 is `{id, path, parent, title, module, …}`; the parent gets one `{"task": "<app path>"}` line and no copied data. Replay turns each such line into a live child with `Task.from_ref(path)`, using `Task.resolver` (node sets it, `page_tools.link_refs`); a missing file gives a stub child with `state: "missing"`. Old inline `{"tasks":{"add":…}}` lines still replay inline. A reference may carry `as`, the id the child had before it moved (`{"task": url, "as": "x"}`, written by the item tool's `move` key); replay then uses that id instead of the folder name, so a moved child keeps its id ([core/Item, moving](../Item/doc/architecture.md#an-item-moves-home-with-its-id-its-history-and-one-reference)). A reference with `"type":"Session","spawn":{…}` is a Session entry: `from_ref(ref, as, entry)` builds that class and keeps `spawn` on the child, and a child whose record holds a spawn's `{assign}` line is a Session too ([core/Session, "Session entries"](../Session/readme.md#session-entries)). The browser Store resolving them is step 14b.
++- **Homes and references (step 14a; changed 2026-10-26):** a task stays in the session that files it. `tasks.add` through the item tool nests the child in the parent's `task.jsonl`; only an explicit `home: "<module>"` makes its own folder `<module>/tasks/<slug>/` (when `public/framework/<module>/` exists, never created), and the call's path never picks a module. `module` is a tag the module page finds the task by. A child folder, when made, has line 1 `{id, path, parent, title, module, …}`; the parent gets one `{"task": "<app path>"}` line and no copied data. Replay turns each such line into a live child with `Task.from_ref(path)`, using `Task.resolver` (node sets it, `page_tools.link_refs`); a missing file gives a stub child with `state: "missing"`. Old inline `{"tasks":{"add":…}}` lines still replay inline. A reference may carry `as`, the id the child had before it moved (`{"task": url, "as": "x"}`, written by the item tool's `move` key); replay then uses that id instead of the folder name, so a moved child keeps its id ([core/Item, moving](../Item/doc/architecture.md#an-item-moves-home-with-its-id-its-history-and-one-reference)). A reference with `"type":"Session","spawn":{…}` is a Session entry: `from_ref(ref, as, entry)` builds that class and keeps `spawn` on the child, and a child whose record holds a spawn's `{assign}` line is a Session too ([core/Session, "Session entries"](../Session/readme.md#session-entries)). The browser Store resolving them is step 14b.
+ - `tasks` is made on first use, so a task with no subtasks costs no `List`.
+ - **Migration:** [`Server/TaskMigrate.mjs`](/Server/TaskMigrate.mjs) gives an old session task whose module is clear a home here. The home's `sessions` field (`[{id, task}]`) names the old folder, and the old folder gains one `{"home":"<url>"}` line, kept as `data.home`. It runs as a dry run by default and never deletes. [Plan](/framework/servex/fs/?file=public/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/plan.md) · [dry run](/framework/servex/fs/?file=public/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/dry-run.md).
+ 

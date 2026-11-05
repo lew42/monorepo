@@ -33,8 +33,12 @@
 **Fences:** commit by path; no `python -`. **Budget:** about $8. You are a mastermind on Sonnet, medium effort. If you're stuck after two honest tries, say so. Report to vscode-mastermind in 3 lines, then complete your own task and stop.
 
 ## The owner’s asks (tick only with proof)
-- [x] 3–5 major tasks in flight, each with progress (shot-session-1920.png)
-- [x] what is queued next
-- [x] simplest possible: no log, no history wall
-- [x] at the top of a session page
-- [~] across sessions at /framework/ai/ (built, shares the view; not shot: needs the live site after merge)
+- [x] 3–5 major tasks in flight, each with a progress bar: [shot-session-1920.png](shot-session-1920.png) (5 rows, "+ 31 more running")
+- [x] what is waiting on the owner: same shot, "Waiting on you" rows with the one thing needed
+- [x] simplest possible, no log, no history wall: same shot
+- [x] at the top of a session page: same shot, above the tabs
+- [x] phone first: [shot-session-360.png](shot-session-360.png)
+- [ ] what is queued next: no "Next" row is in either shot
+- [ ] Done today, a count, collapsed: not met; it shows all-time "N done" because a Task has no completion date
+- [ ] the same view at the top of /framework/ai/: built, never shot (needs the live site after merge)
+- [ ] live from session.jsonl: no proof recorded

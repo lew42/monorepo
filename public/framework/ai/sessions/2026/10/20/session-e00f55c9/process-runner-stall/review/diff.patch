@@ -1,0 +1,278 @@
+diff --git a/.gitignore b/.gitignore
+index 059868193..f44e1a771 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -121,6 +121,8 @@ public/framework/ai/openrouter-usage.json
+ public/framework/ai/servex-queue.json
+ # the dropped-work snapshot Servex/Dropped.js rewrites every task-loop tick (2026-10-25); the "Dropped" lines it writes into task logs are the record
+ public/framework/ai/queue/dropped.json
++# ProcessRunner's list of running processes (rebuilt by one wide scan if missing)
++public/framework/ai/queue/processes.json
+ # the Haiku "marked done, not done" verdicts Server/DoneCheck.mjs writes (2026-10-25); flagged asks also get a line in the log that holds the task
+ public/framework/ai/queue/done-check.json
+ 
+diff --git a/Servex/Dropped.js b/Servex/Dropped.js
+index 195fb067a..051203ada 100644
+--- a/Servex/Dropped.js
++++ b/Servex/Dropped.js
+@@ -2,6 +2,7 @@ import fs from "node:fs";
+ import path from "node:path";
+ import SessionRecord from "../Server/SessionRecord.mjs";
+ import Task from "../public/framework/core/Task/Task.js";
++import Process from "../public/framework/core/Task/Process.js";
+ 
+ /* THE RED FLAG FOR DROPPED WORK (the owner, 2026-10-25, "100% completion"). Doc: core/Task/doc/completion.md.
+  * Plain node over the task logs and the agent registry, no AI. Every `tick` it finds each OPEN task whose owner agent is not working and
+@@ -113,6 +114,15 @@ export default class Dropped {
+ 		return { code: "owner-stopped", why: `owner ${id} is ${row.state}` };
+ 	}
+ 
++	/* A process step's own session folder (<process>/<step id>/) whose step the process already records as complete: its agent
++	 * being stopped is the normal end of a step, not dropped work. */
++	step_complete(e){
++		const parent = SessionRecord.log_file(path.dirname(e.dir)); if (!parent) return false;
++		let lines; try { lines = fs.readFileSync(parent, "utf8").split("\n").filter(l => l.trim()).map(l => JSON.parse(l)); } catch { return false; }
++		if (lines[0]?.class !== "Process") return false;
++		try { return Process.replay(lines).steps.find(s => s.id === path.basename(e.dir))?.state === "complete"; } catch { return false; }
++	}
++
+ 	scan(registry, now = this.clock()){
+ 		const rows = [], red = [], unproven = [];
+ 		let checked = 0, queued = 0;
+@@ -126,6 +136,7 @@ export default class Dropped {
+ 			checked++;
+ 			const v = this.judge(e, registry, now);
+ 			if (!v) continue;
++			if (this.step_complete(e)) continue;
+ 			if (v.queued){ queued++; continue; }
+ 			const d = e.rec.task.data;
+ 			rows.push({ url: this.url_of(e.dir), title: d.title ?? path.basename(e.dir), state, code: v.code, why: v.why, owner: this.owner_of(d, registry).id,
+diff --git a/Servex/Dropped.test.mjs b/Servex/Dropped.test.mjs
+index 2dc80ce73..b699b6abc 100644
+--- a/Servex/Dropped.test.mjs
++++ b/Servex/Dropped.test.mjs
+@@ -36,20 +36,28 @@ make("defer-ok", [head("a-working"), { start: {} }, { wait: { on: "core/Task", w
+ make("defer-homeless", [head("a-working"), { start: {} }, { wait: { what: "later", deferred: true } }]);
+ make("defer-late", [head("a-working"), { start: {} }, { wait: { on: "core/Task", what: "after the merge", decide_by: iso(T - 3600e3), deferred: true } }]);
+ 
++// CAUSE 3 (2026-11-02): a process step's own session, its agent stopped, after the process recorded the step complete, is not dropped work; an open step's is.
++const proc = make("proc", [{ class: "Process", process: "steps", title: "P", by: "mm1" }, { tasks: { add: { type: "Task", id: "done-step", title: "A", session: { run: "fresh" } } } }, { tasks: { add: { type: "Task", id: "open-step", title: "B", session: { run: "fresh" } } } },
++	{ start: {} }, { "done-step": { start: {} } }, { "done-step": { complete: { outcome: "ok", evidence: ["x"] } } }, { "open-step": { start: {} } }]);
++for (const id of ["done-step", "open-step"]) make("proc/" + id, [head("a-stopped", { title: id }), { start: {} }]);
++
+ const written = [];
+ const dropped = new Dropped({ root, clock: () => T, write: async (f, o) => { written.push({ f, o }); fs.appendFileSync(f, line(o)); } });
+ const r1 = await dropped.tick(rows, T);
+ const by = Object.fromEntries(r1.rows.map(r => [path.basename(r.url.replace(/\/$/, "")), r.code]));
++assert.equal(by["done-step"], undefined, "a complete step's stopped agent is not dropped");
++delete by["open-step"];   // an open step with a dead agent still is
+ assert.deepEqual(by, { sleeps: "owner-dormant", dead: "owner-stopped", gone: "owner-gone", nobody: "never-assigned", "defer-homeless": "deferral-no-home", "defer-late": "deferral-overdue" });
+ assert.equal(r1.queued, 1, "the prioritised idle task is queued, not dropped");
+-assert.equal(r1.flagged, 6, "one parent line per dropped task");
++assert.ok(r1.rows.some(r => r.url.endsWith("/proc/open-step/")), "an open step's stopped agent is dropped");
++assert.equal(r1.flagged, 7, "one parent line per dropped task");
+ const parent_writes = written.filter(w => w.f === path.join(session, "session.jsonl"));
+-assert.ok(parent_writes.length === 6 && parent_writes.every(w => w.o.log.dropped && w.o.log.reason));
++assert.ok(parent_writes.length === 7 && parent_writes.every(w => w.o.log.dropped && w.o.log.reason));
+ const stop_writes = written.filter(w => w.o.stop);
+-assert.equal(stop_writes.length, 6, "each dropped task is also settled on its own file: running/idle/waiting never stays open forever");
++assert.equal(stop_writes.length, 7, "each dropped task is also settled on its own file: running/idle/waiting never stays open forever");
+ assert.ok(stop_writes.every(w => w.o.stop.why && w.f !== path.join(session, "session.jsonl")), "the stop line lands on the task's own file, not the parent's");
+ const snap = JSON.parse(fs.readFileSync(path.join(root, "public/framework/ai/queue/dropped.json"), "utf8"));
+-assert.equal(snap.dropped, 6);
++assert.equal(snap.dropped, 7);
+ 
+ const r2 = await dropped.tick(rows, T + 60000);
+ assert.equal(r2.flagged, 0, "a second tick writes nothing new");
+@@ -70,5 +78,5 @@ assert.equal(red_lines(red_file), 1);
+ assert.equal(red_lines(calm_file), 0);
+ await dropped.tick(rows, T + 240000);
+ assert.equal(red_lines(red_file), 1, "flagged once, not every tick");
+-console.log("PASS Dropped: 6 flagged once, queued/working/fresh/settled/owner-wait left alone, revived owner clears, a session over 20% stopped is red-flagged once");
++console.log("PASS Dropped: 7 flagged once, queued/working/fresh/settled/owner-wait left alone, revived owner clears, a session over 20% stopped is red-flagged once");
+ fs.rmSync(root, { recursive: true, force: true });
+diff --git a/Servex/ProcessRunner.js b/Servex/ProcessRunner.js
+index 302c7136c..1a8f714a8 100644
+--- a/Servex/ProcessRunner.js
++++ b/Servex/ProcessRunner.js
+@@ -22,6 +22,27 @@ export default class ProcessRunner {
+ 		this.pending = new Map();    // "<file>#<agent>" -> the after-turn wake already queued
+ 		this.grace = new Set();      // "<file>#<step>": sent to an agent mid-turn, so the turn that ends next is not this step's
+ 		this.pulse_after_ms ??= 1500;
++		this.index_file ??= path.join(this.public, "framework", "ai", "queue", "processes.json");   // every unfinished process, wherever its folder is dated (gitignored)
++		this.indexed = new Set(); this.index_loaded = false; this.need_seed = false;
++	}
++
++	// The index of unfinished processes: a tick or a restart finds a process in a folder of any date, not only a recent one.
++	load_index(){
++		if (this.index_loaded) return;
++		this.index_loaded = true;
++		try { for (const r of JSON.parse(fs.readFileSync(this.index_file, "utf8"))) this.indexed.add(path.resolve(this.root, r)); }
++		catch { this.need_seed = true; }   // no index yet: tick() builds it once from a wide scan
++	}
++	save_index(){
++		try { fs.mkdirSync(path.dirname(this.index_file), { recursive: true }); fs.writeFileSync(this.index_file, JSON.stringify([...this.indexed].map(f => this.rel(f)).sort())); } catch {}
++	}
++	// A process stays in the index until it is complete, or stopped with nothing left to halt.
++	track(file, p){
++		this.load_index();
++		const open = p.state !== "complete" && !(p.state === "stopped" && !p.next());
++		if (open === this.indexed.has(file)) return;
++		if (open) this.indexed.add(file); else this.indexed.delete(file);
++		this.save_index();
+ 	}
+ 
+ 	// The same file, read fresh: null when it is not a process.
+@@ -56,6 +77,7 @@ export default class ProcessRunner {
+ 			const p = this.read(file);
+ 			if (!p) return;
+ 			this.files.add(file);
++			this.track(file, p);
+ 			this.remember(p, file);
+ 			const a = p.next();
+ 			if (!a) return;
+@@ -77,6 +99,7 @@ export default class ProcessRunner {
+ 				const out = await move_home(file, a.move).catch(e => ({ why: e.message || String(e) }));
+ 				if (out.why){ await this.write(file, { set: { home_refused: out.why } }); continue; }
+ 				this.files.delete(file); this.files.add(out.file);
++				if (this.indexed.delete(file)) this.save_index();
+ 				for (const [k, v] of this.by_agent) if (v === file) this.by_agent.set(k, out.file);
+ 				this.tell(p.creator, `Process ${out.from} moved home to ${out.to} (its plan is approved).`);
+ 				this.step(out.file);
+@@ -163,6 +186,8 @@ export default class ProcessRunner {
+ 				await this.write(file, { measure: { step: ph.id, agent: id, usd: Number(usd.toFixed(4)), shared: sp.run !== "fresh" } });
+ 			}
+ 			if (ph.state !== "running") continue;
++			// The agent may have completed the step since the read above: look again right before writing, and leave a complete step alone.
++			if (this.read(file)?.steps.find(x => x.id === ph.id)?.state !== "running") continue;
+ 			holds = true;
+ 			if (busy) continue;
+ 			if (this.grace.delete(`${path.resolve(file)}#${ph.id}`)) continue;   // that turn began before this step was sent
+@@ -180,10 +205,19 @@ export default class ProcessRunner {
+ 		if (chained) await this.run(file); else await this.step(file);   // inside the chain, step() would wait on itself
+ 	}
+ 
+-	// The retry and the resume: every process in today's and yesterday's sessions, plus any seen since boot.
++	// The retry and the resume: every unfinished process in the index (any date), the recent ones, and any seen since boot.
++	// With no index yet (first boot after this change), one wide scan builds it.
+ 	async tick(){
+-		const found = this.servex?.task_loop?.find_task_files?.() ?? [];
+-		for (const file of new Set([...found.filter(f => this.is_process(f)), ...this.files])) await this.step(file);
++		this.load_index();
++		const tl = this.servex?.task_loop;
++		if (this.need_seed){
++			this.need_seed = false;
++			for (const f of tl?.find_task_files?.(60) ?? []) if (this.is_process(f)) this.indexed.add(path.resolve(f));
++			this.save_index();
++		}
++		for (const f of [...this.indexed]) if (!fs.existsSync(f)){ this.indexed.delete(f); this.save_index(); }
++		const found = tl?.find_task_files?.() ?? [];
++		for (const file of new Set([...this.indexed, ...found.filter(f => this.is_process(f)), ...this.files])) if (fs.existsSync(file)) await this.step(file);
+ 	}
+ 
+ 	tell(to, text){ if (!to || to === "owner") return; try { this.servex?.agents?.send(to, text, { from: "process-runner" }); } catch {} }
+diff --git a/Servex/ProcessRunner.test.mjs b/Servex/ProcessRunner.test.mjs
+index 14b76be79..0e485cca1 100644
+--- a/Servex/ProcessRunner.test.mjs
++++ b/Servex/ProcessRunner.test.mjs
+@@ -26,7 +26,7 @@ const agents = {
+ 	send(id, text){ if (!live.has(id)) throw new Error(`no agent ${id}`); sent.push({ id, text }); },
+ 	stopped: [], stop(id){ this.stopped.push(id); },
+ };
+-const runner = new ProcessRunner({ servex: { agents, say(){} }, root: ROOT, pulse_after_ms: 0 });
++const runner = new ProcessRunner({ servex: { agents, say(){} }, root: ROOT, pulse_after_ms: 0, index_file: path.join(DIR, "processes.json") });   // never the real index
+ hooks.changed = file => runner.step(file);
+ const settle = async file => { await runner.chains.get(path.resolve(file)); await runner.chains.get(path.resolve(file)); };
+ const item = (delta, caller, url = URL) => run_item({ path: url, delta }, { caller });
+@@ -93,7 +93,7 @@ try {
+ 	ok(sess.completion === 1 && sess._tasks.find("fix-x")?.constructor.name === "Process", "the session's completion counts it (replayed as a Process)");
+ 
+ 	const before = read(FILE).length;
+-	await new ProcessRunner({ servex: { agents, say(){} }, root: ROOT, files: new Set() }).step(FILE);
++	await new ProcessRunner({ servex: { agents, say(){} }, root: ROOT, files: new Set(), index_file: path.join(DIR, "processes-2.json") }).step(FILE);
+ 	ok(read(FILE).length === before, "a restart re-steps a finished process and writes nothing");
+ 
+ 	// A stall: the step agent ends two turns without completing; the step then waits on the creator.
+@@ -175,7 +175,40 @@ try {
+ 	await item({ stop: { why: "not needed" } }, "mm1", URL + "stop-me/"); await settle(T);
+ 	const tp = runner.read(T);
+ 	ok(agents.stopped.includes(ta) && tp.state === "stopped" && tp.steps.find(x => x.id === "questions").state === "stopped" && !agents.stopped.includes("mm1"), "a stopped process stops its running step and that step's agent");
++
++	// CAUSE 1 (2026-11-02): the agent completes its step after the runner's first read of the file. The runner must look again before it writes pulse/wait, so a complete step gets neither, and the next step starts.
++	await item({ tasks: { add: { title: "Race", process: "investigate" } } }, "mm1");
++	const RF = path.join(DIR, "race", "task.jsonl"); await settle(RF);
++	const ra = spawned.at(-1).id; live.set(ra, { state: "idle", cost: 0 });
++	await runner.after_turn(RF, ra);
++	ok(read(RF).some(l => l.pulse?.step === "questions" && l.pulse.n === 1), "race: a silent turn end pulses once");
++	const real_read = runner.read.bind(runner); let reads = 0;
++	runner.read = file => { const p0 = real_read(file); if (path.resolve(file) === path.resolve(RF) && reads++ === 0) fs.appendFileSync(RF, JSON.stringify({ questions: { complete: { outcome: "done between the read and the write", evidence: ["test"] } }, by: ra, ts: "2026-11-02T00:00:00.000Z" }) + "\n"); return p0; };
++	await runner.after_turn(RF, ra);
++	runner.read = real_read;
++	const RL = read(RF);
++	ok(!RL.some(l => l.questions?.wait), "race: a step completed after the runner's read is not put on wait");
++	ok(!RL.some(l => l.pulse?.n === 2), "race: nor pulsed again");
++	ok(runner.read(RF).step?.id !== "questions" && runner.read(RF).step?.state !== "idle", "race: the next step started (" + runner.read(RF).step?.id + ")");
++
++	// CAUSE 2: a running process in an old-dated folder is resumed by the tick, found by the index, not by a date scan; with no index, one wide scan builds it.
++	const OLD_REL = "public/framework/ai/sessions/2020/01/01/.process-test-" + process.pid + "/old-run";
++	const OLD = path.join(ROOT, OLD_REL, "task.jsonl"); fs.mkdirSync(path.dirname(OLD), { recursive: true });
++	const mk = () => fs.writeFileSync(OLD, Process.lines({ process: "build", title: "Old run" }).map((l, i) => JSON.stringify(i ? l : { ...l, by: "mm1" })).join("\n") + "\n");
++	mk();
++	const tick_of = (index, extra = {}) => { const days = []; const r = new ProcessRunner({ servex: { agents, say(){}, task_loop: { find_task_files: d => { days.push(d); return d >= 30 ? [OLD] : []; } } }, root: ROOT, index_file: path.join(DIR, index), ...extra }); return { r, days }; };
++	fs.writeFileSync(path.join(DIR, "idx-known.json"), JSON.stringify([OLD_REL + "/task.jsonl"]));
++	let t = tick_of("idx-known.json"); const n_spawn = spawned.length;
++	await t.r.tick(); await settle(OLD);
++	ok(spawned.length === n_spawn + 1 && read(OLD).some(l => l.spawn?.step === "investigate"), "old folder: the tick found the process through the index and started its next step");
++	ok(!t.days.includes(60), "old folder: with an index, no wide scan");
++	fs.rmSync(OLD); mk();
++	t = tick_of("idx-none.json");
++	await t.r.tick(); await settle(OLD);
++	ok(t.days.includes(60) && read(OLD).some(l => l.spawn?.step === "investigate"), "old folder: no index yet, one wide scan seeds it and the process resumes");
++	ok(JSON.parse(fs.readFileSync(path.join(DIR, "idx-none.json"), "utf8")).includes(OLD_REL + "/task.jsonl"), "old folder: the index now lists it");
+ } finally {
++	fs.rmSync(path.join(ROOT, "public/framework/ai/sessions/2020/01/01/.process-test-" + process.pid), { recursive: true, force: true });
+ 	fs.rmSync(DIR, { recursive: true, force: true });
+ 	fs.rmSync(path.join(ROOT, "public/framework/ai/process-test-" + process.pid), { recursive: true, force: true });
+ }
+diff --git a/Servex/TaskLoop.js b/Servex/TaskLoop.js
+index f564a2e15..fe5647fd3 100644
+--- a/Servex/TaskLoop.js
++++ b/Servex/TaskLoop.js
+@@ -183,9 +183,9 @@ export default class TaskLoop {
+     /* ── finding tasks ────────────────────────────────────────────────── */
+ 
+     /* The sessions store (ai/sessions/YYYY/MM/DD/..., Server/TaskDirs.mjs) PLUS the old ai/YYYY-MM-DD/ walk, de-duplicated. */
+-    find_task_files(){
++    find_task_files(days = 2){
+         const today = new Date(), out = [];
+-        try { for (const t of TaskDirs.list(2)) out.push((SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl"))); } catch {}
++        try { for (const t of TaskDirs.list(days)) out.push((SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl"))); } catch {}
+         for (const d of [today, new Date(today.getTime() - 86400000)])
+             this.walk(path.join(this.root, "public", "framework", "ai", this.date_id(d)), out);
+         return [...new Set(out.map(f => path.resolve(f)))];
+diff --git a/public/framework/ai/queue/readme.md b/public/framework/ai/queue/readme.md
+index 1488b1039..dad1c5fd6 100644
+--- a/public/framework/ai/queue/readme.md
++++ b/public/framework/ai/queue/readme.md
+@@ -13,6 +13,7 @@ Linked from the AI tab bar and page, the rail's footer words (`queue`, on the da
+ | `TaskQueueView.js` (`extends View`) | the page's view: the three views by `mode` (`top`, `all`, `ranking`, from `?view=`); asks the source, retries while it is cold, repaints on pushed rows; rows are keyed by `url` (two tasks can share a slug) |
+ | `dropped.json` | gitignored snapshot written by `Servex/Dropped.js` every task-loop tick: the open tasks nobody is working. The view reads it once (reload to refresh) and shows a short "Dropped" list under the cards and all of it at `?view=dropped`. Rules: [Task completion.md](/framework/core/Task/doc/completion.md) |
+ | `done-check.json` | gitignored verdicts from `Server/DoneCheck.mjs` (run by hand; Haiku, about $0.16 for every completed owner ask): the asks marked done that the outcome or evidence does not support. Shown on the dropped view. Rules: [completion.md](/framework/core/Task/doc/completion.md) |
++| `processes.json` | gitignored list of the running processes' `task.jsonl` paths, written by `Servex/ProcessRunner.js` (`track`, `save_index`) as processes start and finish. Servex's tick reads it to resume a process wherever its folder is dated; when the file is missing, one 60-day scan of the task logs rebuilds it. A process made by a raw file append (not the item tool) or older than 60 days joins it only when the item tool next touches it |
+ | `TaskQueueView.css` | `tq-` rules: preview cards, the side column, table columns when the list is 60em wide |
+ 
+ **The score:** `importance × (1 + 0.5 × re-asks) ÷ (1 + estimated cost ÷ $2)`. Importance is the big thing in [priority.md](../priority.md) (1 → 3, 2 → 2, 3 → 1, none → 1). The estimate is the median real cost of the 5 landed tasks whose titles share the most words with this one (filler words like "with" or "make" don't count; at least 2 shared, at least 3 such tasks); with fewer it falls back to the module median, then all landed, then $1.50. Hover the Cost cell for the basis. Re-asks are the other sessions that asked for it again. The numbers are statics on `TaskQueue`.
+diff --git a/public/framework/core/Task/doc/process.md b/public/framework/core/Task/doc/process.md
+index 626814f40..78f71e954 100644
+--- a/public/framework/core/Task/doc/process.md
++++ b/public/framework/core/Task/doc/process.md
+@@ -82,7 +82,8 @@ A step id never names a Task verb or field (`improve` would call `Task.improve()
+ |---|---|
+ | a step agent ends its turn without completing the step | ProcessRunner hears the turn end (`Agents` result event) and pulses it once with the step prompt; a second silent end puts the step `waiting` on the process's creator |
+ | a spawn refused (no slot, machine hot) | a `queue` line; ProcessRunner retries on the TaskLoop tick |
+-| Servex restarts mid-process | state is the file; the tick re-runs `next()` on every running process and resumes from the last line |
++| Servex restarts mid-process | state is the file; the tick re-runs `next()` on every running process and resumes from the last line. Running processes are found from `ai/queue/processes.json` (written by `ProcessRunner`, gitignored; if missing, one 60-day scan rebuilds it), not from the TaskLoop's recent-days scan, so a process in an old-dated folder is still resumed (before this, `find_task_files()` used `TaskDirs.list(2)` and never scanned a session folder dated days ago). A process made by a raw append, or older than the 60-day seed scan, is picked up when the item tool next writes to it |
++| the step agent completes just as the runner reads the file | `after_turn` re-reads the file before it writes `pulse`/`wait`, and skips a step that is complete; `Dropped` does not flag a complete step's stopped agent |
+ | a step's result only in chat | the outcome is the `complete` line's `outcome`; the next step's prompt is built from it |
+ 
+ ## Asking a session about itself: raw deltas in, an instance out

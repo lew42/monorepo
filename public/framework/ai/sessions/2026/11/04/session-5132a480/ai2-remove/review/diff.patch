@@ -1,0 +1,2721 @@
+diff --git a/Server/Ai2Overview.mjs b/Server/Ai2Overview.mjs
+index 0c059c8c41..87f9757cdd 100644
+--- a/Server/Ai2Overview.mjs
++++ b/Server/Ai2Overview.mjs
+@@ -52,7 +52,7 @@ const CONCEPTS = [
+ 		match: ["view class", "core/view"], matchCase: ["View"] },
+ 	{ id: "app", name: "App", icon: "apps", url: "/framework/core/App/",
+ 		match: ["apps", "app class"] },
+-	{ id: "ai2", name: "AI 2", icon: "dashboard", url: "/framework/ai2/",
++	{ id: "ai2", name: "AI 2", icon: "dashboard", url: "/framework/ai/",
+ 		match: ["ai2", "ai-2", "ai 2", "dashboard", "ai-log", "ai-ops", "ai-dashboard",
+ 			"ai-server", "ai-v3", "inbox", "card-to-task", "devbar-chat", "ai2-cards",
+ 			"card-folders", "cards-content"] },
+diff --git a/Server/Council.mjs b/Server/Council.mjs
+index e1ec596703..d460f7cfb7 100644
+--- a/Server/Council.mjs
++++ b/Server/Council.mjs
+@@ -183,8 +183,7 @@ export async function collect(targetDir) {
+ 	}
+ 
+ 	const cardFiles = [
+-		...walk(path.join(root, "public/framework/ai")),
+-		...walk(path.join(root, "public/framework/ai2"))
++		...walk(path.join(root, "public/framework/ai"))
+ 	];
+ 
+ 	for (const cf of cardFiles) {
+diff --git a/Server/Crawl.mjs b/Server/Crawl.mjs
+index 29047e8eff..8c4b7f487e 100644
+--- a/Server/Crawl.mjs
++++ b/Server/Crawl.mjs
+@@ -74,13 +74,7 @@ function discoverStaticRoutes() {
+ 					if (f.name !== "node_modules" && f.name !== ".git") walk(p);
+ 				} else if (f.name === "page.js" || f.name === "page.jsonl") {
+ 					const rel = path.relative(path.join(root, "public"), dir).replaceAll("\\", "/");
+-					if (rel.startsWith("framework/ai/") && /\/\d{4}\/\d{2}\/\d{2}\//.test(rel)) {
+-						// AI 2 card directory maps to /framework/ai2/YYYY/MM/DD/...
+-						const cardSub = rel.replace(/^framework\/ai\//, "");
+-						routes.add(`/framework/ai2/${cardSub}/`);
+-					} else {
+-						routes.add(`/${rel}/`);
+-					}
++					routes.add(`/${rel}/`);
+ 				}
+ 			}
+ 		} catch {}
+diff --git a/Server/UndoneAsks.mjs b/Server/UndoneAsks.mjs
+index 908d17827d..90f9489e70 100644
+--- a/Server/UndoneAsks.mjs
++++ b/Server/UndoneAsks.mjs
+@@ -164,7 +164,7 @@ export default class UndoneAsks {
+ 			const prefix = String(a.title).split(":")[0], card = a.card ? cards.get(a.card) : null;
+ 			const done = ["landed", "dropped"].includes(a.status) ? `ledger status ${a.status}` : ["done", "archived"].includes(card) ? `its card is ${card}` : null;
+ 						return { kind: "routed", at: a.at, text_full: a.title, text: UndoneAsks.first_sentence(a.title), module: String(a.title).includes(":") ? this.index.module_of(prefix) : null,
+-				status: a.status, done, source: this.words_url(a.words), card_url: a.card ? "/framework/ai2/" + a.card + "/" : null };
++				status: a.status, done, source: this.words_url(a.words), card_url: a.card ? "/framework/ai/" + a.card + "/" : null };
+ 		});
+ 	}
+ 
+diff --git a/Server/clarity.mjs b/Server/clarity.mjs
+index 35a0383e81..3dd34986a5 100644
+--- a/Server/clarity.mjs
++++ b/Server/clarity.mjs
+@@ -87,11 +87,10 @@ async function main(){
+ 		const lines = fs.readFileSync(SessionRecord.log_or_old(arg), "utf8");
+ 		const out = String(lines.split("\n").map(l => { try { return JSON.parse(l); } catch { return {}; } }).filter(e => e.assign?.landed_at).pop()?.assign?.outcome || "");
+ 		pages = [...out.matchAll(/\]\((\/framework\/[^)\s#?]*\/)\)/g)].map(m => m[1]);
+-		if (/framework\/ai2\//.test(lines)) pages.unshift("/framework/ai2/");
+ 		pages = [...new Set(pages)].slice(0, 5);
+ 	} catch {}
+ 	const prompt = kind === "look"
+-		? `Load the \`clarity\` skill and run only its "Look at it as the owner would" section on AI 2, just after a merge changed it: the rail at http://monorepo.localhost/framework/ai2/, the three cards at the top of the rail, and one card marked done. Repo root: ${root.replaceAll("\\", "/")}. One pass, then stop.`
++		? `Load the \`clarity\` skill and run only its "Look at it as the owner would" section on AI 2, just after a merge changed it: the rail at http://monorepo.localhost/framework/ai/, the three cards at the top of the rail, and one card marked done. Repo root: ${root.replaceAll("\\", "/")}. One pass, then stop.`
+ 		: `Load the \`clarity\` skill, then check this ${kind === "landing" ? "landed task" : "proposal"}: ${target}. `
+ 		+ `Repo root: ${root.replaceAll("\\", "/")}. One pass, then stop.`
+ 		+ (pages.length ? ` Pages it changed, to look at as the owner would (host http://monorepo.localhost): ${pages.join(" ")}.` : "")
+diff --git a/Server/merge.mjs b/Server/merge.mjs
+index de31243f35..df5cb47ec7 100644
+--- a/Server/merge.mjs
++++ b/Server/merge.mjs
+@@ -23,7 +23,7 @@
+  * IT FINDS THE CHANGED PAGES ITSELF (2026-09-28, smoke-links): every `page.js`/`page.jsonl` the
+  * branch touches that still exists on the branch (skipping deleted/moved originals), from `git diff
+  * --name-only BASE...branch`, is turned into that page's own site url (`pageUrlFor()` below — a card
+- * folder under `public/framework/ai/YYYY/MM/DD/…` maps to `/framework/ai2/YYYY/MM/DD/…`; anything
++ * folder under `public/framework/ai/YYYY/MM/DD/…` maps to `/framework/ai/YYYY/MM/DD/…`; anything
+  * else's url is just the directory holding the page.js) and handed to `smoke.mjs` alongside any
+  * paths given by hand — which now also FOLLOWS every link on each page it loads, one level deep. Why:
+  * 7 concept-tile links shipped 404ing because nothing had ever clicked them — not the landing
+@@ -96,7 +96,7 @@ const asked = flag("--asked");
+ const mergeStart = Date.now();
+ const [dirArg, ...paths] = argv;
+ if (!dirArg) { console.error("usage: node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--skip-tests] [--dry-run] [--quick [--asked <iso>]]"); process.exit(1); }
+-// Git Bash rewrites "/framework/ai2/" into "C:/Program Files/Git/framework/ai2/"; the smoke run then
++// Git Bash rewrites "/framework/ai/" into "C:/Program Files/Git/framework/ai/"; the smoke run then
+ // hunts for it while holding everyone's merge lock (node-reliability, 2026-09-30). Refuse before the lock.
+ const mangled = [...paths, mainArg ?? ""].find(p => /Program Files[\\/]Git[\\/]/i.test(p));
+ if (mangled) { console.error(`refused: "${mangled}" was rewritten by Git Bash. Rerun as MSYS_NO_PATHCONV=1 node Server/merge.mjs ...`); process.exit(1); }
+diff --git a/Server/plugins/CardAnswer.js b/Server/plugins/CardAnswer.js
+index ddd35b4011..8757df8ba5 100644
+--- a/Server/plugins/CardAnswer.js
++++ b/Server/plugins/CardAnswer.js
+@@ -59,7 +59,7 @@ export default class CardAnswer {
+ 		socket.on("rpc:card_say", (args, index) => this.card_say(args[0] || {}, index));
+ 	}
+ 
+-	/* card_say {id, say, note, quote} — the AI 2 inbox's one write (`public/framework/ai2/`,
++	/* card_say {id, say, note, quote} — the AI rail's one write (`public/framework/ai/rail/`,
+ 	 * 2026-09-22). Three words, and only three, because an inbox has only three things to
+ 	 * record about a card:
+ 	 *
+diff --git a/Server/review.mjs b/Server/review.mjs
+index 41795831ba..fd9403cc3b 100644
+--- a/Server/review.mjs
++++ b/Server/review.mjs
+@@ -131,7 +131,7 @@ export function readTurns(taskDir) {
+ const CARD_RE = /^public\/framework\/ai\/(\d{4})\/(\d{2})\/(\d{2})\/(.+)\/page\.(?:js|jsonl)$/;
+ export function pageUrlFor(f) {
+ 	const card = CARD_RE.exec(f);
+-	if (card) return `/framework/ai2/${card[1]}/${card[2]}/${card[3]}/${card[4]}/`;
++	if (card) return `/framework/ai/${card[1]}/${card[2]}/${card[3]}/${card[4]}/`;
+ 	if (!f.startsWith("public/") || !/\/page\.(?:js|jsonl)$/.test(f)) return null;
+ 	return "/" + f.slice("public/".length).replace(/page\.(?:js|jsonl)$/, "");
+ }
+diff --git a/Server/smoke.mjs b/Server/smoke.mjs
+index e57709f0c1..e34d90c32d 100644
+--- a/Server/smoke.mjs
++++ b/Server/smoke.mjs
+@@ -1,6 +1,6 @@
+ /* `node Server/smoke.mjs <worktree dir> [paths...] [--port N | --base URL] [--main <repo>]`
+  * A smoke test: does the site still load, and do its links go anywhere? It opens
+- * /framework/, /framework/ai2/ and every path you give (against the worktree's own dev
++ * /framework/, /framework/ai/ and every path you give (against the worktree's own dev
+  * server, never the owner's), waits 1.5 s after each load, and counts what went wrong:
+  * console errors, uncaught page errors, a failed request, an HTTP 404+ on a script,
+  * stylesheet or page — OR the page rendering core/App's own "Page Load Error" screen
+@@ -14,7 +14,7 @@
+  * `javascript:`, and files (an extension in SKIP_EXT: images, .md, .json, .css, .js,
+  * fonts, …) — deduplicated against everything already queued or loaded, and loaded in
+  * turn. A link found on a FOLLOWED page is not itself followed (one level, not a
+- * crawl). `/framework/` and `/framework/ai2/`, the two always-on canaries, are loaded
++ * crawl). `/framework/` and `/framework/ai/`, the two always-on canaries, are loaded
+  * and checked but NOT link-followed — their own nav alone is 80+ links, which would
+  * fill the whole cap before ever reaching the pages you actually meant to check. The
+  * whole run is capped at CAP pages so one page full of links cannot turn a merge into
+@@ -114,7 +114,7 @@ if (worktreeName && !baseOpt && !portOpt) {
+ }
+ base = base.replace(/\/$/, "");
+ 
+-const canaries = ["/framework/", "/framework/ai2/"];
++const canaries = ["/framework/", "/framework/ai/"];
+ const given = extra.map(p => (p.startsWith("/") ? p : "/" + p));
+ const asset = new Set(["script", "stylesheet", "document"]);
+ const CAP = 60;
+@@ -124,14 +124,14 @@ const SKIP_EXT = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "ico", "pd
+ 
+ /* A url whose folder the WORKTREE lacks but the MAIN tree holds uncommitted (a card dir another
+  * agent is still writing) can never load here, and it is not this branch's fault: such a target is
+- * reported "skip", never "FAIL" (node-reliability, 2026-09-30 — /framework/ai2/ links into card dirs
++ * reported "skip", never "FAIL" (node-reliability, 2026-09-30 — /framework/ai/ links into card dirs
+  * that exist only uncommitted in the main tree failed every worktree merge with "Page Load Error").
+  * One git call per FAILING url only. MAIN = the repo holding this smoke.mjs (merge.mjs runs the main
+  * tree's copy). */
+ const MAIN = mainOpt ? path.resolve(mainOpt) : path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");   // --main: proofs only
+ function uncommitted_in_main(p){
+ 	const pathname = decodeURIComponent(new URL(p, "http://x").pathname);
+-	const card = /^\/framework\/ai2\/(\d{4}\/\d{2}\/\d{2}\/.+?)\/?$/.exec(pathname);   // a card renders under ai2/, lives under ai/
++	const card = /^\/framework\/ai\/(\d{4}\/\d{2}\/\d{2}\/.+?)\/?$/.exec(pathname);   // an old dated card url; its folder is in the sessions store
+ 	const rel = "public" + (card ? "/framework/ai/" + CardDir.rel(card[1]) : pathname.replace(/\/$/, ""));   // its folder is in the sessions store
+ 	if (rel === "public" || norm(MAIN) === norm(dir)) return false;
+ 	if (fs.existsSync(path.join(dir, rel, "page.js")) || fs.existsSync(path.join(dir, rel, "page.jsonl"))) return false;
+@@ -468,7 +468,7 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
+ 
+ 	// Every warn/log line, deduped, split into what the allow-list already covers and what
+ 	// it doesn't. Over budget is a WARNING, never a failure (the owner, 2026-11-01: a merge that adds one Servex tool was
+-	// refused because /framework/ai2/ logged 6 lines instead of 5, the same on the live site). Real errors still fail.
++	// refused because /framework/ai/ logged 6 lines instead of 5, the same on the live site). Real errors still fail.
+ 	const uniq_noise = [...new Set(noise)];
+ 	const covered = uniq_noise.filter(allowed);
+ 	const uncovered = uniq_noise.filter(t => !allowed(t));
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index a71d4b9a8a..4545b84dad 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -1686,7 +1686,7 @@ Servex.Agents = class ServexAgents extends Agents {
+         }, 5000));
+     }
+ 
+-    /* THE LIVE CARD'S UPDATES (AI 2's `/framework/ai2/live/`) — an agent
++    /* THE LIVE CARD'S UPDATES (AI 2's `/framework/ai/live/`) — an agent
+      * starting, ending a turn, stopping or failing is one line on `cards/live`,
+      * the card's own chat. Tokens and tool calls are not moments, and the two
+      * always-on assistants are skipped: they end a turn on every sentence. */
+diff --git a/Servex/agents/Assistant.js b/Servex/agents/Assistant.js
+index 30cb9358d8..98b39fcbb0 100644
+--- a/Servex/agents/Assistant.js
++++ b/Servex/agents/Assistant.js
+@@ -370,7 +370,6 @@ You are a helper: read the repo (read-only) and answer that. `
+ 		} catch {} };
+ 		try {
+ 			group("ext"); group("ux");
+-			try { page(path.join(this.root, "ai2"), "/framework/ai2/"); } catch {}
+ 			try { page(path.join(this.root, "ai/talk"), "/framework/ai/talk/"); } catch {}
+ 		} catch (e){ this.servex.say(`assistant could not read page titles: ${e.message || e}`); }
+ 		return this._titles = out.sort((a, b) => b.title.length - a.title.length);
+diff --git a/Servex/agents/Dispatcher.js b/Servex/agents/Dispatcher.js
+index e8819e572d..9032a81295 100644
+--- a/Servex/agents/Dispatcher.js
++++ b/Servex/agents/Dispatcher.js
+@@ -140,7 +140,7 @@ export default class Dispatcher {
+ 			// no `page` here: this spawn has no real directory yet (its task folder is opened above, by `task`) — passing one would give `Agents.spawn()`'s
+ 			// readme-chain wiring a directory to prepend, and it would always be wrong
+ 			// (found by review, 2026-09-29: `context()` below used to hand back a fixed
+-			// stub, "/framework/ai2/", read by nothing until directory_of() started
++			// stub, an old AI 2 address, read by nothing until directory_of() started
+ 			// reading `spec.page`).
+ 			topics
+ 		});
+diff --git a/Servex/agents/Layers.js b/Servex/agents/Layers.js
+index 2460850668..7c14a7c190 100644
+--- a/Servex/agents/Layers.js
++++ b/Servex/agents/Layers.js
+@@ -517,10 +517,10 @@ export default class Layers {
+ 
+ 	/* THE OWNER'S WORDS ON A CARD (one-dictation, 2026-09-30): they used to wake
+ 	 * assistant-<card>; now they feed the one global session, addressed at the
+-	 * card's AI 2 page (`/framework/ai2/<card id>/`, not the old `/framework/ai/`
+-	 * board page) so the pair knows which card the owner is talking about. */
++	 * card's page (`/framework/ai/<card id>/`, not the
++	 * AI page itself) so the pair knows which card the owner is talking about. */
+ 	card_prompt_session(id, prompt){
+-		const path = `/framework/ai2/${id}/`;
++		const path = `/framework/ai/${id}/`;
+ 		const said = this.selected_block(prompt.context) + String(prompt.text ?? prompt.raw ?? "").trim();
+ 		// Inside the card listener: a throw here (an unknown card, an empty line) must never
+ 		// break the listener for every other card, so it is logged and dropped.
+diff --git a/Servex/agents/layers.test.mjs b/Servex/agents/layers.test.mjs
+index f95e7f4775..e1b9f9830d 100644
+--- a/Servex/agents/layers.test.mjs
++++ b/Servex/agents/layers.test.mjs
+@@ -265,7 +265,7 @@ check("an owner's prompt on a card feeds the global session, not assistant-<card
+ 	assert.equal(spawns().length, before_owner_spawns, "no new assistant for the card");
+ 	assert.equal(calls.filter(c => c.verb === "send").length, before_owner_sends, "the old assistant is never sent to either");
+ 	const sent = session_calls.at(-1);
+-	assert.equal(sent.path, `/framework/ai2/${CARD_OWNER}/`);
++	assert.equal(sent.path, `/framework/ai/${CARD_OWNER}/`);
+ 	assert.equal(sent.via, "text");
+ 	assert.match(sent.text, /let's fix the header next$/);
+ });
+diff --git a/Servex/agents/page-assistant-proof.mjs b/Servex/agents/page-assistant-proof.mjs
+index fbc3594344..4479387154 100644
+--- a/Servex/agents/page-assistant-proof.mjs
++++ b/Servex/agents/page-assistant-proof.mjs
+@@ -3,7 +3,7 @@
+  * PROVE IT on three pages (ux/Tree, core/Page, one AI 2 card):
+  * 1. /framework/ux/Tree/
+  * 2. /framework/core/Page/
+- * 3. /framework/ai2/2026/09/25/an-assistant-on-every-page/
++ * 3. /framework/ai/sessions/2026/09/25/cards/an-assistant-on-every-page/
+  *
+  * Steps per page:
+  * - Open: baseline checkpoint verified/built, assistant opens.
+@@ -29,7 +29,7 @@ const state_file = path.join(dir, "layers.json");
+ const pages = [
+ 	"/framework/ux/Tree/",
+ 	"/framework/core/Page/",
+-	"/framework/ai2/2026/09/25/an-assistant-on-every-page/"
++	"/framework/ai/sessions/2026/09/25/cards/an-assistant-on-every-page/"
+ ];
+ 
+ const calls = [];
+diff --git a/Servex/cards/test.mjs b/Servex/cards/test.mjs
+index 8a6d53db86..ec516a2ecf 100644
+--- a/Servex/cards/test.mjs
++++ b/Servex/cards/test.mjs
+@@ -111,7 +111,7 @@ await cards.attach(b.id, "minion-builder");
+ await cards.attach(b.id, "mastermind-gone");
+ await cards.attach(b.id, "assistant-gone-away");
+ check("attached()", (await cards.attached(b.id)).length === 4);
+-const p = await cards.append(b.id, { prompt: { raw: "um make the sidebar wider", via: "whisper", url: "/framework/ai2/" } });
++const p = await cards.append(b.id, { prompt: { raw: "um make the sidebar wider", via: "whisper", url: "/framework/ai/" } });
+ check("prompt: id, at, by, on, text filled", /^p-[a-z0-9]+$/.test(p.line.prompt.id) && p.line.prompt.at && p.line.prompt.by === "owner"
+ 	&& p.line.prompt.on === b.id && p.line.prompt.text === "um make the sidebar wider" && p.fresh, p.line.prompt);
+ check("prompt ref", p.ref === `${b.id}#${p.line.prompt.id}`);
+diff --git a/public/framework/ai/AIOverview.js b/public/framework/ai/AIOverview.js
+index f59df5a45b..393be6fbc0 100644
+--- a/public/framework/ai/AIOverview.js
++++ b/public/framework/ai/AIOverview.js
+@@ -182,7 +182,7 @@ export class AIOverview {
+ 						{ name: "Agent SDK", icon: "terminal", gist: "How an agent is started, how its tools arrive, where its session is saved.", href: file_link("Servex/doc/sdk.md") },
+ 						{ name: "Models", icon: "query_stats", gist: "Anthropic, OpenRouter and local models, by value for the job.", href: url + "models/" },
+ 						{ name: "Sessions", icon: "forum", gist: "Voice and chat sessions, resumable.", href: "/framework/ai/sessions/" },
+-						{ name: "Dashboard", icon: "dashboard", gist: "Talk to the assistants, see tasks and cost.", href: "/framework/ai2/" },
++						{ name: "Dashboard", icon: "dashboard", gist: "Talk to the assistants, see tasks and cost.", href: "/framework/ai/" },
+ 						{ name: "Inbox and tasks", icon: "inbox", gist: "What needs you, and every task by day.", href: base + "all-tasks/" },
+ 					]));
+ 					AIOverview.section("Concepts", "The same system in words: who works, what they know, how work lands.", () => {
+diff --git a/public/framework/ai/archive/ai2/ai2.css b/public/framework/ai/archive/ai2/ai2.css
+new file mode 100644
+index 0000000000..e1ac175ebd
+--- /dev/null
++++ b/public/framework/ai/archive/ai2/ai2.css
+@@ -0,0 +1,457 @@
++@layer base, theme, site, util;
++
++/* AI 2 — what is LEFT once merge 7 (inbox-ext) moved everything reusable into
++   ux/Card/Card.css: only AI 2's own v1 screens, which stay "until AI 2 is retired"
++   (the file's own words, since before this move) — the old Log tab's rows, the
++   Overview tab, the old Needs-you screen, and the old Log screen. Every other rule
++   that used to be here (a card's own grid, the Live card, the outline, card folders,
++   the tiny tabs) is ux/Card/Card.css now, loaded by card.js and this page's own
++   page.js. The Processes section (the Live card's RAM/CPU graph) is its own file,
++   ai/rail/processes.css, loaded by processes.js.
++   */
++@layer theme {
++
++	/* ── THE LOG TAB'S ROWS (log.js), AI 2's v1 Log ──
++	   The same row shape as the rail's (`.inbox-row`), kept here under the old names for
++	   log.js until AI 2 is retired; the AI page's Log is the rail itself at `?min=0`. */
++	.ai2-row {
++		display: block;
++		padding: var(--pad-card);
++		border-block-end: 1px solid var(--line);
++		border-inline-start: 3px solid transparent;
++		color: inherit;
++		text-decoration: none;
++		cursor: pointer;
++	}
++
++	.ai2-row:hover {
++		background: var(--fill-a04);
++	}
++
++	.ai2-row:is(.active, .in-path) {
++		background: var(--surface);
++		border-inline-start-color: var(--prime);
++	}
++
++	.ai2-row-head {
++		align-items: flex-start;
++	}
++
++	.ai2-row-title {
++		flex: 1;
++		min-width: 0;
++		font-weight: 600;
++		line-height: 1.35;
++		overflow-wrap: anywhere;
++	}
++
++	.ai2-row-when {
++		flex: none;
++		font-size: 0.8em;
++	}
++
++	/* One step between every part of a row, computed ONCE on the row (`--ai2-step`). */
++	@property --ai2-step {
++		syntax: "<length>";
++		inherits: true;
++		initial-value: 0px;
++	}
++
++	.ai2-log-rows .ai2-row {
++		--ai2-step: var(--gap-35);
++	}
++
++	.ai2-log-rows .ai2-row > * + * {
++		margin-block-start: var(--ai2-step);
++	}
++
++	/* The Log's "N updated ↑" pill — the rail's own (`.inbox-updated`), under its old name. */
++	.ai2-updated {
++		display: none;
++		position: sticky;
++		top: 0;
++		z-index: 2;
++		width: fit-content;
++		margin-block-end: var(--gap-35, 0.5em);
++		font-size: 0.8em;
++		padding: 0.25em 0.7em;
++		border-radius: 999px;
++		background: var(--surface);
++		border: 1px solid var(--line);
++		color: var(--subtle);
++		box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
++	}
++	.ai2-updated:hover { color: var(--ink); border-color: var(--prime); }
++	.ai2-updated:not([hidden]) { display: inline-flex; }
++
++}
++
++/* ── the head and the Overview (ai2-overview, 2026-09-28) ─────────────────── */
++@layer theme {
++
++	/* THE HEAD: "AI 2" and its tabs, one band — `.inbox-head`, ux/Inbox/Inbox.css. */
++
++	/* THE TAB ORDER READS "Inbox · Needs you · Log · Overview" (2026-09-30 — Inbox is the
++	   default again, see page.js), and Inbox also stays FIRST in the MARKUP on purpose —
++	   `page.js`'s own comment on `route()` says why: ext/tabs' fallback rule lights whichever
++	   tab is the bar's DOM `:first-child` once nothing else matches (a card url matches no
++	   tab's own href), so keeping Inbox first in the markup is what makes a card page light
++	   Inbox. `order` only changes where each one PAINTS. */
++	.ai2-tab-inbox { order: 1; }
++	.ai2-tab-needs { order: 2; }
++	.ai2-tab-log { order: 3; }
++	.ai2-tab-overview { order: 4; }
++
++	/* ⚠ THE TAB LABELS WERE PINNED TO THE FAR RIGHT (the owner, 2026-09-30: "I'm not sure why
++	   they got aligned right. Those kinds of things should never happen") — not from anything
++	   about alignment, but from `order`: every real `.tab` above was given an explicit `order`
++	   (1-4), and `.tabs.block > .tab-bar::after` (`tabs.css`) — the trailing hairline that fills
++	   whatever space the tabs don't use — has NO `order` of its own, so it defaults to `0`,
++	   lower than every tab. A flex item with the lowest `order` paints FIRST: the invisible
++	   spacer (`flex: 1`, all the leftover width) landed before the tabs instead of after them,
++	   shoving the actual labels to the far end of the bar. Doc's own tab strip never sets
++	   `order` on its tabs, so it never hit this — same markup, same classes, only this page
++	   added per-tab ordering. Giving the spacer the highest order restores the normal reading:
++	   title, then tabs immediately beside it (same placement as every class doc page), then the
++	   empty hairline soaking up whatever is left. */
++	.ai2-head .tab-bar::after { order: 5; }
++
++	/* The Overview is a routed page (`overview/`) that mounts in the detail column like a
++	   card; while it is the active page it takes the whole shell (`inbox-takeover`). */
++	.page.ai2-overview-page {
++		display: block;
++		padding: 0;
++	}
++	/* the tab already names this view */
++	.ai2-overview-page > .page-title { display: none; }
++	/* The Folder link's own fix is one rule for every AI 2 page, near the top of this file. */
++	.ai2-overview-page > .ai2-overview { margin: 0; }
++
++	/* NEEDS YOU AND THE LOG — routed children now (2026-09-30: Inbox moved BACK to the bare
++	   root url, so Needs you gave up living there and is a normal child page, `needs/`, drawn
++	   exactly like Overview above; `log/` is new and drawn the same way). Both take over the
++	   whole shell (`inbox-takeover`) while they are the active page. */
++	.page:is(.ai2-needs-page, .ai2-log-page) {
++		display: block;
++		padding: var(--pad);
++	}
++	:is(.ai2-needs-page, .ai2-log-page) > .page-title { display: none; }
++
++	.ai2-overview {
++		padding: var(--pad);
++		display: flex; flex-direction: column; gap: 1.5em;
++	}
++
++	/* THE GRID: the first concept is the big one (two tracks wide), the rest fill in. */
++	.ai2-ov-grid {
++		display: grid;
++		grid-template-columns: repeat(auto-fit, minmax(min(100%, 24em), 1fr));
++		gap: 1.5em;
++		align-items: start;
++	}
++	.ai2-ov-first { grid-column: span 2; }
++	@media (width < 56em) { .ai2-ov-first { grid-column: auto; } }
++
++	.ai2-ov-card { display: flex; flex-direction: column; gap: 1em; min-width: 0; }
++	.ai2-ov-head {
++		display: flex; align-items: center; gap: 0.8em;
++		color: inherit; text-decoration: none;
++	}
++	.ai2-ov-head h3 { margin: 0; }
++	.ai2-ov-icon { font-size: 2.6em; line-height: 1; color: var(--prime); }
++	.ai2-ov-first .ai2-ov-icon { font-size: 3.6em; }
++	.ai2-ov-first .ai2-ov-head h3 { font-size: 1.6em; }
++
++	/* ONE ROW PER ASK: the quote, a small state word, the result link; the timeline under it. */
++	.ai2-ov-asks { display: flex; flex-direction: column; gap: 0.6em; }
++	.ai2-ov-first > .ai2-ov-asks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22em), 1fr)); column-gap: 1.5em; }
++	.ai2-ov-ask-main { display: flex; align-items: baseline; gap: 0.5em; flex-wrap: wrap; line-height: 1.4; }
++	.ai2-ov-card > * { margin: 0; }
++	.ai2-ov-quote { flex: 1 1 12em; min-width: 0; color: inherit; text-decoration: none; }
++	a.ai2-ov-quote:hover { text-decoration: underline; }
++	.ai2-ov-state {
++		font-size: 0.75em; padding: 0.05em 0.5em; border-radius: 1em;
++		background: var(--fill-a08, rgba(127, 127, 127, 0.15)); color: var(--subtle);
++	}
++	.ai2-ov-result { font-size: 0.85em; white-space: nowrap; color: var(--prime); }
++	/* THE OWNER'S OWN RAW WORDS — one click away (brief D), never the headline: a quiet
++	   `<summary>` line, not the boxed `<details>` look `.ai2-ov-done` wears below, so it
++	   reads as "more detail" rather than a second collapsible section on the card. */
++	.ai2-ov-quote-full > summary {
++		cursor: pointer; font-size: 0.78em;
++		background: none; border: 0; padding: 0; min-height: 0;
++	}
++	.ai2-ov-quote-text {
++		margin: 0.3em 0 0; font-size: 0.85em; font-style: italic;
++		color: var(--subtle); overflow-wrap: anywhere;
++	}
++	.ai2-ov-line {
++		display: none;
++		font-size: 0.8em; color: var(--subtle); text-decoration: none;
++		padding-block-start: 0.15em;
++		white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
++	}
++	.ai2-ov-ask:hover > .ai2-ov-line,
++	.ai2-ov-timeline .ai2-ov-line { display: block; }
++
++	/* DONE IS ONE LINE — it opens to the done rows, never a wall of 100% bars. */
++	/* ⚠ framework.css draws a bare <summary> as a control (a box and a fill); this one is a line. */
++	.ai2-ov-done > summary {
++		cursor: pointer; color: var(--subtle);
++		background: none; border: 0; padding: 0; min-height: 0; font-size: 0.9em;
++	}
++	.ai2-ov-done[open] > summary { margin-block-end: 0.6em; }
++	.ai2-ov-top { gap: 1.5em; }
++	.ai2-ov-toggle { cursor: pointer; font-size: 0.85em; }
++}
++
++/* ── the Needs you tab (ai2-needs-row, 2026-09-29) ─────────────────────────
++   ONE BIG PLAIN LINE PER ITEM (brief D). Before this block existed, `.ai2-need*` had NO
++   rules of its own, so every row fell back to a bare `<a>` and `<div>`: default link-blue
++   underline, the icon on its own line, the title running straight into the meta text — the
++   mastermind's own judged miss. The row is icon, then a title/question/meta column that
++   grows, then the control (buttons or a reply box) at the right WHEN IT FITS — `flex-wrap`
++   drops the control to its own line once the row is too narrow for both. */
++@layer theme {
++	.ai2-needs-list { max-width: 56em; }
++
++	/* Padding is tighter than the module's usual `--gap-50` rows (mastermind's judged fix,
++	   2026-09-29: "aim for 8-10 items above the fold at 1920") — this list is read top to
++	   bottom in one sitting, not browsed like the rail, so a shorter row that still reads
++	   clearly beats spacing tuned for a different kind of list. */
++	.ai2-need {
++		display: flex;
++		flex-wrap: wrap;
++		align-items: flex-start;
++		gap: var(--gap-35);
++		padding-block: 0.6em;
++		border-block-end: 1px solid var(--line);
++	}
++
++	.ai2-need:first-child { padding-block-start: 0; }
++
++	/* The whole icon + title + question + meta column is ONE link to the card — plain, not
++	   the site's default blue-underline prose link (this is not `p`/`li` text, so nothing
++	   restyles it without this rule). */
++	.ai2-need-head {
++		display: flex;
++		align-items: flex-start;
++		gap: var(--gap-25);
++		flex: 1 1 24em;
++		min-width: 0;
++		color: inherit;
++		text-decoration: none;
++	}
++
++	.ai2-need-head:hover .ai2-need-title { text-decoration: underline; }
++
++	.ai2-need-head > .icon {
++		flex: none;
++		margin-block-start: 0.15em;
++		opacity: 0.7;
++	}
++
++	.ai2-need-body { flex: 1; min-width: 0; }
++
++	/* THE IMPORTANCE BADGE (asks-ledger/view, 2026-09-30) — `importance()`'s own number, shown
++	   on every row (brief D). `.inbox-score` (ux/Inbox) is the same look for the rail's own
++	   rows. Muted grey normally; only a
++	   score of 70+ (the "blocking" bands and up) turns it the error colour, so red means
++	   something on this page instead of decorating every row. */
++	.ai2-need-score {
++		flex: none;
++		display: inline-block;
++		min-width: 1.6em;
++		padding: 0.05em 0.4em;
++		border-radius: 1em;
++		background: var(--fill-a08);
++		font-size: 0.75em;
++		font-weight: 700;
++		text-align: center;
++	}
++
++	.ai2-need-score-hot {
++		background: var(--error);
++		color: white;
++	}
++
++	/* THE HEADLINE — the card's own SHORT title, big and plain (brief D: "a short title...
++	   not raw dictation"). A visible "Blocker" flag sits beside it only for that one kind;
++	   every kind still says its word once more, quietly, in the meta line below. */
++	.ai2-need-title {
++		font-weight: 600;
++		font-size: 1.1em;
++		line-height: 1.3;
++		overflow-wrap: anywhere;
++	}
++
++	.ai2-need-blocker-flag {
++		flex: none;
++		padding: 0.05em 0.5em;
++		border-radius: 1em;
++		background: var(--error);
++		color: white;
++		font-size: 0.75em;
++		font-weight: 700;
++		text-transform: uppercase;
++	}
++
++	/* THE FULL ASK, AS ONE QUIET LINE under the title — CSS-ellipsised (never `short_title()`'s
++	   word-cut), so a long dictated question never wraps to three or four lines and pushes the
++	   next item off the fold; the whole sentence survives in `title=` (a hover) and, unabridged,
++	   as the row's own link text one click into the card. */
++	.ai2-need-question {
++		display: block;
++		margin-block-start: 0.2em;
++		overflow: hidden;
++		white-space: nowrap;
++		text-overflow: ellipsis;
++	}
++
++	.ai2-need-meta {
++		display: block;
++		margin-block-start: 0.25em;
++		font-size: 0.8em;
++	}
++
++	/* THE CONTROL — buttons or a one-line reply box, at the right of the same row when the
++	   row is wide enough for both (`flex-wrap` on `.ai2-need` above drops it to its own full
++	   line otherwise, e.g. a narrow phone width). */
++	.ai2-need-control {
++		flex: 1 1 18em;
++		min-width: 14em;
++		max-width: 22em;
++	}
++
++	.ai2-need-options {
++		display: flex;
++		flex-wrap: wrap;
++		gap: 0.4em;
++	}
++
++	.ai2-need-opt {
++		flex: none;
++		padding: 0.3em 0.8em;
++		border: 1px solid var(--line);
++		border-radius: 0.3em;
++		background: var(--surface);
++		color: inherit;
++		font: inherit;
++		font-size: 0.9em;
++		cursor: pointer;
++	}
++
++	.ai2-need-opt:hover {
++		border-color: var(--prime);
++		color: var(--prime);
++	}
++
++	/* WRAPPED, not one tight row — a fixed-width control column (22em) left the field only
++	   ~8em beside the "Answer" button, showing just "Your" of "Your answer…" (mastermind's
++	   judged fix, 2026-09-29). The field takes the control's full width on its own line;
++	   "Answer" sits under it. */
++	.ai2-need-reply {
++		display: flex;
++		flex-wrap: wrap;
++		gap: 0.4em;
++	}
++
++	.ai2-need-field {
++		flex: 1 1 100%;
++		min-width: 10em;
++		height: 2.2em;
++		padding: 0.3em 0.5em;
++		border: 1px solid var(--line);
++		border-radius: 0.3em;
++		background: var(--surface);
++		color: inherit;
++		font: inherit;
++		font-size: 0.9em;
++		resize: none;
++		overflow: hidden;
++	}
++
++	.ai2-need-send {
++		flex: none;
++	}
++
++	/* ⚠ `:not([hidden])`, not a bare `display: block` — a plain `.ai2-need-err { display:
++	   block }` beats the browser's own `[hidden] { display: none }` (equal specificity,
++	   author beats UA regardless of layers), so every error line showed at rest — exactly
++	   the "`display: none` cannot hide a utility class" trap this module's own readme warns
++	   about, just with an attribute instead of a class. */
++	.ai2-need-err {
++		margin-block-start: 0.3em;
++		color: var(--error);
++		font-size: 0.8em;
++	}
++	.ai2-need-err:not([hidden]) { display: block; }
++
++	.ai2-needs-empty {
++		display: block;
++		padding-block: var(--gap-50);
++	}
++
++	/* Too narrow for the control beside the text (a phone, or the rail's own width if this
++	   tab is ever embedded narrower): the control takes the row's full width on its own line. */
++	@media (width < 34em) {
++		.ai2-need-control { flex-basis: 100%; max-width: none; }
++	}
++}
++
++/* ── the Log tab (ai2-log, 2026-09-30) ─────────────────────────────────────
++   "EVERYTHING IN FLIGHT" (the owner, verbatim: "anything that's being worked on should show
++   up in there... each card in on the log should have a status"). One row per TASK, the exact
++   same row shape the rail draws (`.ai2-row`, `.ai2-row-head`, `.ai2-row-title`,
++   `.ai2-row-when` — all bare classes, styled once, above, and reused here rather than
++   restated), with one thing added: the status dot. `log.js` is the data and the draw. */
++@layer theme {
++	.ai2-log-list { max-width: 56em; position: relative; }
++
++	.ai2-log-rows {
++		container: ai2-log-rows / inline-size;
++		display: flex;
++		flex-direction: column;
++	}
++
++	.ai2-log-line {
++		display: block;
++		font-size: 0.9em;
++		overflow-wrap: anywhere;
++	}
++
++	/* THE SAME "N UPDATED ↑" PILL AS THE RAIL (the owner: the reorder fix "applies to both") —
++	   `log.js` puts BOTH classes on its button (`ai2-updated ai2-log-updated`), so every rule
++	   above (position, size, colour) already applies; this adds only the one thing that differs,
++	   the gap below it before the first row (simplified, review finding 2026-09-30 — it used to
++	   restate `.ai2-updated`'s position/size/shadow rules with barely different numbers). */
++	.ai2-log-updated { margin-block-end: var(--gap-35, 0.5em); }
++
++	/* GREEN = DONE, YELLOW FLASHING = IN PROGRESS, RED = STALLED (the owner, verbatim: "the
++	   yellow flashing is sort of like in progress and green should be done"). `visibility`
++	   is never used here the way `.ai2-dot` (unread) uses it — a status dot is always
++	   meaningful, so it is always shown, just three different colours. */
++	.ai2-status-dot {
++		width: 0.65em;
++		height: 0.65em;
++		border-radius: 50%;
++		flex: none;
++		position: relative;
++		top: 0.425em;   /* same optical centring as `.ai2-row-head > .ai2-dot`, above */
++	}
++	.ai2-status-done { background: var(--success, #2e7d32); }
++	.ai2-status-failed { background: var(--error); }
++	.ai2-status-progress {
++		background: var(--warning, #c99a00);
++		animation: ai2-status-flash 1.4s ease-in-out infinite;
++	}
++	@keyframes ai2-status-flash {
++		0%, 100% { opacity: 1; }
++		50% { opacity: 0.35; }
++	}
++	/* A reader who asked the OS to cut down on motion never gets an insistently blinking dot —
++	   it still reads "in progress" by colour alone, just steady. */
++	@media (prefers-reduced-motion: reduce) {
++		.ai2-status-progress { animation: none; }
++	}
++}
+diff --git a/public/framework/ai/archive/ai2/files.jsonl b/public/framework/ai/archive/ai2/files.jsonl
+new file mode 100644
+index 0000000000..2eb565888f
+--- /dev/null
++++ b/public/framework/ai/archive/ai2/files.jsonl
+@@ -0,0 +1,3 @@
++{"file":"ai2.css"}
++{"file":"page.js.archived"}
++{"file":"readme.md"}
+diff --git a/public/framework/ai/archive/ai2/page.js.archived b/public/framework/ai/archive/ai2/page.js.archived
+new file mode 100644
+index 0000000000..2a23dc6847
+--- /dev/null
++++ b/public/framework/ai/archive/ai2/page.js.archived
+@@ -0,0 +1,170 @@
++import { Page, View, div, span, small, a, h1 } from "/app.js";
++import AIRail, { card_page } from "../ai/rail/rail.js";
++import { Overview } from "../ai/rail/Overview.js";
++import { Needs } from "../ai/rail/Needs.js";
++import { Log } from "../ai/rail/Log.js";
++import { LIVE } from "../ai/rail/live.js";
++
++// ai2.css is only the v1 screens this file routes to (needs/, log/, overview/);
++// everything about a card's own look is the ux block, loaded here too because this
++// page is the shell every card opens inside (merge 7, inbox-ext, 2026-10-01).
++View.stylesheet(import.meta, "ai2.css");
++View.stylesheet("/framework/ux/Card/Card.css");
++
++/**
++ * AI 2 — A LIST ON THE LEFT, ONE PAGE ON THE RIGHT, AND NOTHING EVER JUMPS
++ * (the owner, 2026-09-22: "as a new card is added, the whole thing gets pushed
++ * down. It's jumpy… We need a left sidebar that previews the things, and then
++ * when we click on one it stays selected and then I have a persistent page").
++ *
++ * THE SELECTION IS THE URL. A preview is a plain `<a>` to `/framework/ai2/<id>/`
++ * and `route()` below makes that a real address, so the Router navigates it,
++ * marks the row, and Back, a reload and a pasted link all just work. Nothing
++ * here draws a selection by hand.
++ *
++ * NOTHING JUMPS, for three separate reasons: the page on the right is a
++ * DIFFERENT PAGE from the list; the rail and the page each SCROLL INSIDE
++ * THEMSELVES; and a new row only enters the list WHEN THE LIST IS QUIET —
++ * otherwise it waits behind the pill. `doc/decisions.md` has the measurements
++ * and what was tried instead.
++ *
++ * The parts: `inbox.js` decides what there is to draw, `card.js` draws a card
++ * (small in the rail, whole on the page), `compose.js` is the box you talk to,
++ * `ai2.css` is the look. This file is the shell and the selection.
++ */
++export default new Page({
++	meta: import.meta,
++	title: "AI 2",
++	description: "Everything that happened and everything you said, as one inbox.",
++	icon: "smart_toy",
++	classes: "full fill",
++
++	/* ⚠ "I present myself, not my children" (core/Page). Without it every card
++	   you open becomes a row in the SITE'S nav tree: `route()` memoises each
++	   card page into `children` and the sidebar walks that map. */
++	leaf: true,
++
++	/* THE DEFAULT VIEW IS INBOX AGAIN (the owner, 2026-09-30: "the AI 2 root is confusing and
++	   jumpy" — Needs You as the bare-url default, tried 2026-09-29, is reverted). The rail + a
++	   card's own page is back at the bare url, same as every day before 2026-09-29; "Needs
++	   you" moved to its own address, `needs/`, drawn exactly like `overview/` — a routed page
++	   that takes over the whole shell. EVERY view here is a url, never a class flipped by a
++	   button (the owner, 2026-09-23: "we can't just have these buttons that when clicked
++	   switch the view manually").
++	   ⚠ CARD PAGES STILL LIVE AT `this.url + id + "/"`, unchanged. Inbox alone wears
++	     `.tab-default` (ext/tabs' own "not really a match" flag — see `.tab-bar` rules,
++	     `tabs.css`) because its href IS the root url, a prefix of every other route — without
++	     it `.in-path` would light Inbox for a card, Needs you or Overview too. With nothing
++	     else matching, `ext/tabs`' own fallback lights the tab-bar's DOM `:first-child` — which
++	     is Inbox, kept first in the markup on purpose (`ai2.css`'s `order` then draws it
++	     wherever it visually belongs). A card route matches no tab's own href, so it always
++	     falls through to that same fallback: Inbox lights, same as the bare url itself. */
++	/* ⚠ "NEEDS YOU" LEFT THE TAB STRIP, 2026-09-30 (the mastermind's own correction to this
++	   task's brief): it is now the rail's own filter CHIP (`InboxRail.needs_chip()`),
++	   carrying the same count badge this tab used to. `needs/` is still a real, working address (`route()` still answers it, just
++	   below) for an old link or a bookmark — it is only unlinked from the strip. */
++	content(){
++		div.c("inbox-head ai2-head", () => {
++			div.c("doc-well", () => h1.c("doc-title h2", "AI 2"));
++			div.c("tabs block", () => div.c("tab-bar", () => {
++				a.c("tab tab-default ai2-tab-inbox").href(this.url).text("Inbox");
++				a.c("tab ai2-tab-log").href(this.url + "log/").text("Log");
++				a.c("tab ai2-tab-overview").href(this.url + "overview/").text("Overview");
++			}));
++		});
++		// THE RAIL IS ALWAYS MOUNTED — every route shows it; `needs/`, `log/` and `overview/`
++		// take over the whole shell instead (`inbox-takeover`, ux/Inbox/Inbox.css). It is one
++		// class, `AIRail` (rail.js), the same one the AI page's Inbox and Log tabs build.
++		this.ai2 = new AIRail({ page: this }).mount();
++	},
++
++	/* A card's own address — or the overview's, Needs you's, or the Log's. ⚠ A name with a dot
++	   in it is a real file, and claiming it would answer a 404 with a card page that can
++	   never load. `overview`, `needs`, `log`, `live` and `now` are reserved: no card can be
++	   called any of them. `live` is an ordinary card page whose card comes from `live.js`;
++	   `now` (followup.md item 2, 2026-09-30) is a real card, but NOT at a fixed folder — it is
++	   rewritten fresh under a new dated folder each day (`ai/sessions/2026/10/03/cards/now/`), so `resolve_card()`
++	   (inbox.js) looks up the latest one by id suffix before reading it (bug fix, 2026-10-03: the
++	   literal id "now" used to resolve nowhere and the card vanished from the rail). Routed the
++	   same plain way as any other card id below — the only thing special about it is that
++	   the rail also pins its preview at the top, imported by hand (`AIRail.render_pinned()`).
++	   `live`, `view` and a card folder's year (`2026/09/24/<slug>/`) are answered by
++	   `AIRail.route()`, so every page with the rail opens them the same way. */
++	route(id){
++		if (id.includes(".")) return undefined;
++		if (id === "overview") return this.overview_page ??= overview_page(this);
++		if (id === "needs") return this.needs_page ??= needs_page(this);
++		if (id === "log") return this.log_page ??= log_page(this);
++		// THE OLD ADDRESS STILL WORKS (2026-09-29 to 2026-09-30, briefly the default) — a link
++		// or a bookmark made during that window still opens the same rail-and-card view the
++		// bare url shows again now.
++		if (id === "inbox") return this.inbox_page ??= inbox_page(this);
++		// `AIRail.handles()` is the ONE list this and `ai/page.js` both read (bug 4, 2026-10-03:
++		// each page used to hand-list its own shorter copy, so a rail link ahead of this list —
++		// "your-prompts" — 404'd on whichever page's copy forgot it).
++		if (AIRail.handles(id)) return AIRail.route(this, id);
++		if (id === "now") return this.now_page ??= card_page(this, "now");
++		// "Your prompts" (2026-10-02, prompt-refine): the second pinned row — a synthesized
++		// id `AIRail.build_prompts_pin_item()` puts in the list, never a real card folder,
++		// cached the same way "now" is for the same reason (not rebuilt on every visit).
++		if (id === "your-prompts") return this.your_prompts_page ??= card_page(this, "your-prompts");
++		return card_page(this, id);
++	},
++});
++
++/* The Overview tab: one big card per concept (overview.js), as a page of its own — it
++   mounts in the detail column like a card does, and takes the whole shell while it is
++   the active page (`inbox-takeover`). */
++function overview_page(root){
++	return new Page({
++		title: "Overview",
++		url: root.url + "overview/",
++		classes: "ai2-overview-page inbox-takeover",
++		content(){ Overview.view(); },
++	});
++}
++
++/* The Needs you tab (was the bare url, 2026-09-29 to 2026-09-30): one ranked list of
++   everything waiting on the owner, `needs_view()` (needs.js), as a page of its own — it takes
++   over the whole shell like Overview does, right below. */
++function needs_page(root){
++	return new Page({
++		title: "Needs you",
++		url: root.url + "needs/",
++		classes: "ai2-needs-page inbox-takeover",
++		content(){ Needs.view(); },
++	});
++}
++
++/* The Log tab (the owner, 2026-09-30): everything in flight, one row per task, each with a
++   status dot — `log_view()` (log.js). It reads the SAME task list Overview and a card's own
++   Tasks tab already load (`root.ai2.on_tasks`, AIRail's group hook), so nothing is
++   fetched twice; it takes over the whole shell like Overview and Needs you do. */
++function log_page(root){
++	return new Page({
++		title: "Log",
++		url: root.url + "log/",
++		classes: "ai2-log-page inbox-takeover",
++		content(){ Log.view(fn => root.ai2.on_tasks(fn)); },
++	});
++}
++
++/* The Inbox tab: exactly what the bare url used to show — nothing of its own beyond the
++   rail (always mounted) and its usual empty state, so a first click here (or the
++   `LIVEVIEW_KEY` redirect below) reads the same as it always has. */
++function inbox_page(root){
++	return new Page({
++		title: "Inbox",
++		url: root.url + "inbox/",
++		classes: "ai2-inbox-page",
++		content(){
++			div.c("inbox-empty muted", () => {
++				span("Live overview is active.");
++				small(() => {
++					a.c("page-link").href(root.url + "live/").text("Open Live");
++					span(" · Pick a card on the left to inspect its details.");
++				});
++			});
++		},
++	});
++}
+diff --git a/public/framework/ai/archive/ai2/readme.md b/public/framework/ai/archive/ai2/readme.md
+new file mode 100644
+index 0000000000..9d908bc0e9
+--- /dev/null
++++ b/public/framework/ai/archive/ai2/readme.md
+@@ -0,0 +1,9 @@
++# ai2 (archived 2026-11-04)
++
++`public/framework/ai2/` is gone. AI 2 was merged into AI on 2026-10-09: its code is in [ai/cards](/framework/ai/cards/) and [ai/rail](/framework/ai/rail/), its docs in [ai/doc/ai2](/framework/ai/doc/ai2/history.md).
++
++- `page.js.archived`: the old route page for `/framework/ai2/` (renamed so it never routes). `ai2.css`: its look.
++- The 18 one-line import shims and the generated file listings were removed; git has them. Every old and new path: [manifest.json](/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/manifest.json).
++- Old links still work: `public/index.html` rewrites `/framework/ai2/…` to `/framework/ai/…` (and `/framework/ai2/YYYY/MM/DD/…` to `/framework/ai/sessions/YYYY/MM/DD/…`) before the app routes, so it also works on the static host.
++
++Old addresses: a script in `public/index.html` rewrites `/framework/ai2/…` before the app routes it. A dated card (`/framework/ai2/2026/09/24/<card>/`) goes to `/framework/ai/2026/09/24/<card>/`. A session folder (`session-…` or a uuid) goes under `/framework/ai/sessions/`. The old `needs/` view goes to `/framework/ai/inbox/`, and anything else keeps its tail. 531 card `page.jsonl` files still name `"class": "/framework/ai2/card.js"`, so `core/Page/Jsonl.js` maps that one path to `/framework/ai/cards/card.js`.
+diff --git a/public/framework/ai/cards/Faces.js b/public/framework/ai/cards/Faces.js
+index 1d941d90fd..70437b1e98 100644
+--- a/public/framework/ai/cards/Faces.js
++++ b/public/framework/ai/cards/Faces.js
+@@ -99,7 +99,7 @@ export class Faces {
+ 	 * face cannot do itself — `flag()` and `unflag()`.
+ 	 */
+ 	static full(it, on){
+-		// ITEM D, 2026-09-30: `/framework/ai2/ask:…/` is a STALLED ASK with no card of its own
++		// ITEM D, 2026-09-30: `/framework/ai/ask:…/` is a STALLED ASK with no card of its own
+ 		// (`resolve_card()`, inbox.js, redirects straight to the card when it has one — this page
+ 		// only draws when it does not) — say PLAINLY what the page is, before anything else, so it
+ 		// never reads like a broken or half-built card. `it.owner` and `it.at` (the stall's own
+@@ -112,7 +112,7 @@ export class Faces {
+ 		div.c("ai2-full-head flex v-center gap-25", () => {
+ 			if (it.icon) icon(it.icon);
+ 			// `.md()` — the fast assistant wraps a known page mention in a real link
+-			// (`[AI 2](/framework/ai2/)`), open-mic's item 6.
++			// (`[AI 2](/framework/ai/)`), open-mic's item 6.
+ 			span.c("ai2-full-title").md(it.title);
+ 			button.c("ai2-flag" + (it.flag ? " on" : "")).attr("type", "button")
+ 				.attr("title", it.flag ? "flagged — press to withdraw" : "not this — say why")
+diff --git a/public/framework/ai/cards/Tasks.js b/public/framework/ai/cards/Tasks.js
+index 3a81823265..f025e495a8 100644
+--- a/public/framework/ai/cards/Tasks.js
++++ b/public/framework/ai/cards/Tasks.js
+@@ -145,7 +145,7 @@ export class Tasks {
+ 
+ 	/** A member that is a card, not a task: its own row, linking to it. */
+ 	static card_member(m){
+-		a.c("ui-row ai2-toc-row page-link").href("/framework/ai2/" + m.id + "/").append(() => {
++		a.c("ui-row ai2-toc-row page-link").href("/framework/ai/" + m.id + "/").append(() => {
+ 			icon("forum");
+ 			div.c("ai2-toc-body", () => {
+ 				span.c("ai2-toc-title").text(m.title || "A card");
+diff --git a/public/framework/ai/cards/card.js b/public/framework/ai/cards/card.js
+index 1cfb3eb75e..458ea53ec8 100644
+--- a/public/framework/ai/cards/card.js
++++ b/public/framework/ai/cards/card.js
+@@ -233,7 +233,7 @@ export default class Card extends Page {
+ 		if (shell) this.$pages = shell.$sub;
+ 
+ 		if (sub) this.breadcrumb();
+-		else a.c("ai2-back page-link").href(shell?.url ?? "/framework/ai2/").text("← all cards");
++		else a.c("ai2-back page-link").href(shell?.url ?? "/framework/ai/").text("← all cards");
+ 
+ 
+ 		div.c("ai2-full", () => {
+diff --git a/public/framework/ai/cards/readme.md b/public/framework/ai/cards/readme.md
+index dfe835326e..beabcf8917 100644
+--- a/public/framework/ai/cards/readme.md
++++ b/public/framework/ai/cards/readme.md
+@@ -1,6 +1,6 @@
+ # ai/cards: one card and what it shows
+ 
+-Moved here from `ai2/` on 2026-10-09 (the old paths are one-line shims). A card is a task or conversation; this folder draws it, small in the rail and whole on its page.
++Moved here from the old `ai2/` folder on 2026-10-09; that folder was removed on 2026-11-04 (its archive: [ai/archive/ai2/](../archive/ai2/readme.md)). A card is a task or conversation; this folder draws it, small in the rail and whole on its page.
+ 
+ - `card.js`: `Card`, the card page and its tabs (the biggest file; start here).
+ - `CardChat.js`, `Compose.js`: the conversation and the box you talk into.
+diff --git a/public/framework/ai/cards/real.js b/public/framework/ai/cards/real.js
+index efee8b5bfa..2f45eef1ee 100644
+--- a/public/framework/ai/cards/real.js
++++ b/public/framework/ai/cards/real.js
+@@ -9,7 +9,7 @@ import { plain } from "../rail/inbox.js";
+  * class right there in the inbox… it's the exact same page as the framework core
+  * page. It's just a different way to jump there").
+  *
+- * `/framework/ai2/framework/core/Page/` shows the page that lives at
++ * `/framework/ai/framework/core/Page/` shows the page that lives at
+  * `/framework/core/Page/` — the SAME Page object and the SAME view, found by the
+  * Router's own walk (`load_segments`) and moved into this box. Nothing is copied and
+  * the real page keeps its own parent, url and children, so it is unchanged when you
+@@ -24,7 +24,7 @@ export class RealPage extends Page {
+ 	// I present myself, not my children — no row per visited path in the site's nav.
+ 	leaf = true;
+ 
+-	// `/framework/ai2/framework/core/` → `/framework/ai2/framework/core/Page/`. A name
++	// `/framework/ai/framework/core/` → `/framework/ai/framework/core/Page/`. A name
+ 	// with a dot is a file and never a page.
+ 	route(name){
+ 		if (name.includes(".")) return undefined;
+diff --git a/public/framework/ai/cards/workspace.js b/public/framework/ai/cards/workspace.js
+index 93d331057e..addc376f41 100644
+--- a/public/framework/ai/cards/workspace.js
++++ b/public/framework/ai/cards/workspace.js
+@@ -11,7 +11,7 @@
+  * AI 2 link you click carries it on (`keep()`), and so does every navigation AI 2 makes itself
+  * (`url()`). Back to a url without it reloads, so the url is always the truth.
+  */
+-const ROOT = "/framework/ai2/";
++const ROOT = "/framework/ai/";
+ const read = () => new URLSearchParams(location.search).get("view") === "workspace";
+ 
+ export const workspace = {
+diff --git a/public/framework/ai/dashboard/page.js b/public/framework/ai/dashboard/page.js
+index 2ac81d9d79..8a71db3104 100644
+--- a/public/framework/ai/dashboard/page.js
++++ b/public/framework/ai/dashboard/page.js
+@@ -47,7 +47,7 @@ function progress_bar(spent, budget){
+ }
+ 
+ function task_row(t){
+-	const href = t.card ? "/framework/ai2/" + t.card + "/" : t.dir ? "/framework/ai/" + t.dir.replace(/^public\/framework\/ai\//, "") + "/" : null;
++	const href = t.card ? "/framework/ai/" + t.card + "/" : t.dir ? "/framework/ai/" + t.dir.replace(/^public\/framework\/ai\//, "") + "/" : null;
+ 	const inner = () => {
+ 		div.c("flex gap-50 v-center", () => {
+ 			span.c("dash-task-title", t.title || t.dir || "Untitled task");
+@@ -136,7 +136,7 @@ function log_tile(get_excluded){
+ 			.sort((a, b) => Date.parse(b.last ?? b.created ?? 0) - Date.parse(a.last ?? a.created ?? 0))
+ 			.slice(0, 5);
+ 		if (!rows.length) return void empty_tile("Nothing logged yet.")();
+-		rows.forEach(c => a.c("dash-task-row").href("/framework/ai2/" + c.id + "/").append(() => {
++		rows.forEach(c => a.c("dash-task-row").href("/framework/ai/" + c.id + "/").append(() => {
+ 			div.c("flex gap-50 v-center", () => {
+ 				span.c("dash-task-title", c.title || c.id);
+ 				if (c.status) small.c("muted", c.status);
+diff --git a/public/framework/ai/local/page.js b/public/framework/ai/local/page.js
+index 8de2d4124e..9d0e9838a9 100644
+--- a/public/framework/ai/local/page.js
++++ b/public/framework/ai/local/page.js
+@@ -10,7 +10,7 @@ import { servex_url } from "/framework/dev/servex_url.js";
+  * in the task card, not retyped here — this page points at it instead of repeating
+  * it (framework/doc/rules.md "Docs point, they don't explain"). Also used wherever a message
+  * below needs a real place to click instead of a dangling "see the readme". */
+-const REPORT_URL = "/framework/ai2/2026-10-01/local-ai/";
++const REPORT_URL = "/framework/ai/2026-10-01/local-ai/";
+ 
+ /* THE LOCAL-MODELS CHAT HARNESS (requirements.md Phase 2 ask 2, Phase 3 ask 2) —
+  * one page to actually TALK to a model running on this machine's own GPU,
+diff --git a/public/framework/ai/rail/Log.js b/public/framework/ai/rail/Log.js
+index cc0363d4c1..1553953e0f 100644
+--- a/public/framework/ai/rail/Log.js
++++ b/public/framework/ai/rail/Log.js
+@@ -55,7 +55,7 @@ export class Log {
+ 
+ 	static row(m){
+ 		const status = Log.status(m), words = task_words(m);
+-		const base = `/framework/ai2/${m.date}/${m.slug}/`;
++		const base = `/framework/ai/${m.date}/${m.slug}/`;
+ 		a.c("ai2-row ai2-log-row").href(base).append(() => {
+ 			div.c("ai2-row-head flex gap-25", () => {
+ 				Log.dot(status);
+diff --git a/public/framework/ai/rail/Needs.js b/public/framework/ai/rail/Needs.js
+index 213125d172..81d52a5c57 100644
+--- a/public/framework/ai/rail/Needs.js
++++ b/public/framework/ai/rail/Needs.js
+@@ -82,7 +82,7 @@ export class Needs {
+ 				owner: ask.owner,
+ 				// A card to open when there is one; otherwise the ledger's own page, filtered to
+ 				// exactly this row's group, so the row is never a dead click.
+-				url: ask.card ? "/framework/ai2/" + ask.card + "/" : "/framework/ai/asks/?status=stalled",
++				url: ask.card ? "/framework/ai/" + ask.card + "/" : "/framework/ai/asks/?status=stalled",
+ 				words: ask.words,
+ 				words_url: Needs.words_url(ask.words),
+ 				control: null,
+@@ -115,7 +115,7 @@ export class Needs {
+ 		const rows = await Promise.all(live.map(async c => {
+ 			const text = await Needs.read_text(CardDir.url(c.id) + "page.jsonl");
+ 			if (!text) return [];
+-			return NeedsRule.card_needs(c.id, Fold.parse_lines(text), c).map(n => ({ ...n, url: "/framework/ai2/" + c.id + "/" }));
++			return NeedsRule.card_needs(c.id, Fold.parse_lines(text), c).map(n => ({ ...n, url: "/framework/ai/" + c.id + "/" }));
+ 		}));
+ 		return rows.flat();
+ 	}
+@@ -128,7 +128,7 @@ export class Needs {
+ 		try {
+ 			const res = await servex_fetch(servex_base() + "/waiting");
+ 			const rows = res.ok ? await res.json() : null;
+-			return Array.isArray(rows) ? rows.map(n => ({ ...n, url: "/framework/ai2/" + n.card + "/" })) : null;
++			return Array.isArray(rows) ? rows.map(n => ({ ...n, url: "/framework/ai/" + n.card + "/" })) : null;
+ 		} catch { return null; }
+ 	}
+ 
+diff --git a/public/framework/ai/rail/Processes.js b/public/framework/ai/rail/Processes.js
+index 582b017a38..af16730157 100644
+--- a/public/framework/ai/rail/Processes.js
++++ b/public/framework/ai/rail/Processes.js
+@@ -11,7 +11,7 @@ const RAM_H = 60, CPU_H = 22;
+ const TOP_GROUPS = 5;
+ 
+ export class Processes {
+-	// Processes section: `/framework/ai2/live/`'s "Processes" block; polls `/api/processes` snapshot, draws it. See doc/Processes-notes.md for data shape.
++	// Processes section: `/framework/ai/live/`'s "Processes" block; polls `/api/processes` snapshot, draws it. See doc/Processes-notes.md for data shape.
+ 
+ 	// Poller: skip while tab hidden, catch up on visibility; same pattern as poll_pool
+ 	static create(changed){
+diff --git a/public/framework/ai/rail/inbox.js b/public/framework/ai/rail/inbox.js
+index 156be6bfbb..c044ac96ab 100644
+--- a/public/framework/ai/rail/inbox.js
++++ b/public/framework/ai/rail/inbox.js
+@@ -567,7 +567,7 @@ export function items({ board, folders, prompts, landed, says, groups }){
+ 			hours_silent: hours,
+ 			sub: ["Stalled", ask.owner || null, "silent " + silent_words(hours)].filter(Boolean).join(" · "),
+ 			links: [
+-				ask.card ? { url: "/framework/ai2/" + ask.card + "/", label: "its card" } : null,
++				ask.card ? { url: "/framework/ai/" + ask.card + "/", label: "its card" } : null,
+ 				words_url(ask.words) ? { url: words_url(ask.words), label: "its words" } : null,
+ 				{ url: "/framework/ai/asks/?status=stalled", label: "the asks ledger" },
+ 			].filter(Boolean),
+diff --git a/public/framework/ai/rail/rail.js b/public/framework/ai/rail/rail.js
+index ff78f71baa..e292468e4b 100644
+--- a/public/framework/ai/rail/rail.js
++++ b/public/framework/ai/rail/rail.js
+@@ -270,7 +270,7 @@ export default class AIRail extends Inbox.Rail {
+ 	/* "YOUR PROMPTS" — the SECOND pinned row (deliverable 5's ai2 addition, 2026-10-02): one
+ 	   line showing the latest prompt's topic and time, same `inbox-row-pinned` look the Now
+ 	   card already has (`render_pinned()`), reusing that one pinning mechanism rather than
+-	   building a second (the owner's own instruction). Its own page (`/framework/ai2/
++	   building a second (the owner's own instruction). Its own page (`/framework/ai/
+ 	   your-prompts/`) shows every prompt newest-first — `faces.js`'s `full()`, the
+ 	   `prompts-pin` branch.
+ 	   STAND-IN (noted in task.jsonl): `topic` is not written by anything yet — minion-echo's
+diff --git a/public/framework/ai/rail/readme.md b/public/framework/ai/rail/readme.md
+index 70498981a0..03b145b761 100644
+--- a/public/framework/ai/rail/readme.md
++++ b/public/framework/ai/rail/readme.md
+@@ -1,6 +1,6 @@
+ # ai/rail: the list on the left, and the data behind it
+ 
+-Moved here from `ai2/` on 2026-10-09 (the old paths are one-line shims). `AIRail` is the one rail the AI page's Inbox and Log tabs and the old `/framework/ai2/` address all draw.
++Moved here from the old `ai2/` folder on 2026-10-09; that folder was removed on 2026-11-04 (its archive: [ai/archive/ai2/](../archive/ai2/readme.md)). `AIRail` is the one rail the AI page's Inbox and Log tabs all draw (the old `/framework/ai2/` address now redirects to `/framework/ai/`).
+ 
+ - `rail.js`, `rail.css`: `AIRail`, the rail itself.
+ - `inbox.js`: `CardList`, `Board`, `Day`: where the cards come from (board, day logs, asks).
+diff --git a/public/framework/ai/readme.md b/public/framework/ai/readme.md
+index 4ba59468a0..d9bc233084 100644
+--- a/public/framework/ai/readme.md
++++ b/public/framework/ai/readme.md
+@@ -36,7 +36,7 @@
+ - **The AI dashboard** starts with the in-flight block ([core/Session/doc/in-flight.md](../core/Session/doc/in-flight.md)): what is running, what waits on the owner. The page itself (the default page at `/framework/ai/` since 2026-10-19, merge 6feb47b6f: sessions by origin, nested by parent, cost rolled up, mobile first; old Inbox at `/framework/ai/inbox/`): structure [AIDashboard/readme.md](AIDashboard/readme.md) · plan and data audit [doc/ai-dashboard-plan.md](doc/ai-dashboard-plan.md) · shots [400](doc/ai-dashboard-plan/shots5/localhost-51718-framework-ai/400.png), [1200](doc/ai-dashboard-plan/shots5/localhost-51718-framework-ai/1200.png)
+ - **Dashboard:** [doc/one-dashboard.md](doc/one-dashboard.md) · [doc/one-state.md](doc/one-state.md) · plan: [doc/ai-dashboard-plan.md](doc/ai-dashboard-plan.md) · known problem, asked 7 times: [doc/dashboard-layout-asks.md](doc/dashboard-layout-asks.md)
+ - **Ready to merge** (branches agents marked `ready:`, one Merge button each): [merge/readme.md](merge/readme.md) · [/framework/ai/merge/](/framework/ai/merge/)
+-- **Where things go:** [doc/organization.md](doc/organization.md) · [doc/task-folders.md](doc/task-folders.md) · [systems-map.md](systems-map.md) · [doc/repo-size.md](doc/repo-size.md)
++- **Where things go:** [doc/organization.md](doc/organization.md) · [doc/task-folders.md](doc/task-folders.md) · [systems-map.md](systems-map.md) · [doc/repo-size.md](doc/repo-size.md) · **folder map of `ai/`** (every folder: files, size, last commit, live or dead; its §4 lists the undeniably dead ones): [ai2-and-ai-folders/findings.md](sessions/2026/11/04/session-5132a480/ai2-and-ai-folders/findings.md) · the retired `ai2/` folder (route page and css, kept for reference): [archive/ai2/](archive/ai2/readme.md)
+ 
+ ## Classes and folders that draw them
+ 
+diff --git a/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/chat-proof.mjs b/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/chat-proof.mjs
+new file mode 100644
+index 0000000000..333f79ee12
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/chat-proof.mjs
+@@ -0,0 +1,16 @@
++import { browser } from "../../../../../../../../../Server/Browser.mjs";
++const base = process.argv[2];
++const b = await browser();
++const p = await b.newPage();
++const errs = [];
++p.on("pageerror", e => errs.push("pageerror " + e.message));
++p.on("response", r => r.status() >= 400 && /\.js/.test(r.url()) && errs.push(r.status() + " " + r.url()));
++await p.goto(base + "/framework/dev/DevBar/?chat=open", { waitUntil: "load" });
++await p.waitForTimeout(3000);
++const r = await p.evaluate(async () => {
++	const chat = await import("/framework/dev/DevBar/chat.js");
++	const live = await import("/framework/ai/rail/live.js");
++	return { chat_exports: Object.keys(chat), AgentTalk: typeof live.AgentTalk, panel: [...document.querySelectorAll("[class*=chat]")].length, chat_text: !!document.querySelector("[class*=chat]") };
++});
++console.log(JSON.stringify(r), "| js/page errors:", JSON.stringify(errs));
++await b.close();
+diff --git a/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/check.mjs b/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/check.mjs
+new file mode 100644
+index 0000000000..629c7c8a73
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/check.mjs
+@@ -0,0 +1,16 @@
++import { browser } from "../../../../../../../../../Server/Browser.mjs";
++const base = process.argv[2];
++const urls = ["/framework/ai2/", "/framework/ai2/needs/", "/framework/ai2/log/", "/framework/ai2/2026/10/20/session-e00f55c9/", "/framework/ai/", "/framework/dev/DevBar/"];
++const b = await browser();
++for (const u of urls) {
++	const p = await b.newPage();
++	const errs = [];
++	p.on("console", m => m.type() === "error" && errs.push(m.text()));
++	p.on("pageerror", e => errs.push("pageerror " + e.message));
++	p.on("requestfailed", r => errs.push("failed " + r.url()));
++	await p.goto(base + u, { waitUntil: "load" });
++	await p.waitForTimeout(3000);
++	console.log(u, "->", new URL(p.url()).pathname, "| title:", await p.title(), "| errors:", JSON.stringify(errs.filter(e => !/page-work|favicon|jsonl|Servex|socket|WebSocket/i.test(e))));
++	await p.close();
++}
++await b.close();
+diff --git a/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/err.mjs b/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/err.mjs
+new file mode 100644
+index 0000000000..99d4655b76
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/err.mjs
+@@ -0,0 +1,7 @@
++import { browser } from "../../../../../../../../../Server/Browser.mjs";
++const b = await browser(); const p = await b.newPage();
++p.on("response", r => r.status() >= 400 && /\.js/.test(r.url()) && console.log(r.status(), r.url()));
++p.on("pageerror", e => console.log("pageerror", e.message.slice(0,200)));
++await p.goto(process.argv[2] + process.argv[3], { waitUntil: "load" }); await p.waitForTimeout(3000);
++console.log(new URL(p.url()).pathname, "|", (await p.evaluate(() => document.body.innerText)).slice(0, 200).replace(/\n/g, " "));
++await b.close();
+diff --git a/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/lines-check.mjs b/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/lines-check.mjs
+new file mode 100644
+index 0000000000..732bb93870
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/lines-check.mjs
+@@ -0,0 +1,44 @@
++// READ-ONLY. For every record .jsonl in public/framework/ai2/ and the old dated places public/framework/ai/{2026,2026-10-13}/
++// as they were at the commit before the 2026-11-01 move (fa90c3a41^), count the lines whose exact text is in a .jsonl under
++// public/framework/ai/sessions today. Usage: node lines-check.mjs [--list]
++import { execFileSync } from "node:child_process";
++import fs from "node:fs";
++import path from "node:path";
++const REPO = process.cwd();
++const BEFORE = "fa90c3a41^";
++const git = (...a) => execFileSync("git", a, { cwd: REPO, encoding: "utf8", maxBuffer: 1 << 28, windowsHide: true });
++const store = new Set();
++(function walk(d) {
++	for (const e of fs.readdirSync(d, { withFileTypes: true })) {
++		const p = path.join(d, e.name);
++		if (e.isDirectory()) walk(p);
++		else if (e.name.endsWith(".jsonl")) for (const l of fs.readFileSync(p, "utf8").split("\n")) if (l.trim()) store.add(l.trim());
++	}
++})(path.join(REPO, "public/framework/ai/sessions"));
++const files = git("ls-tree", "-r", "--name-only", BEFORE, "--", "public/framework/ai2", "public/framework/ai/2026", "public/framework/ai/2026-10-13")
++	.split("\n").filter(f => f.endsWith(".jsonl") && !f.endsWith("/files.jsonl"));
++let total = 0, present = 0; const missing = {};
++for (const f of files) {
++	for (const l of git("show", `${BEFORE}:${f}`).split("\n")) {
++		if (!l.trim()) continue;
++		total++;
++		if (store.has(l.trim())) present++; else (missing[f] ??= []).push(l.trim());
++	}
++}
++console.log(JSON.stringify({ files: files.length, lines: total, in_store_today: present, missing: total - present, missing_by_file: Object.fromEntries(Object.entries(missing).map(([k, v]) => [k, v.length])) }, null, 1));
++if (process.argv.includes("--list")) for (const [f, v] of Object.entries(missing)) for (const l of v) console.log(f, "|", l.slice(0, 200));
++
++// Second pass: a missing line may have been rewritten (stub pointers, path prefixes). Its content counts as present when its
++// most distinctive string value (longest leaf, first 80 chars) is found in any store .jsonl; ids for session-start lines.
++const text = []; (function w(d){ for (const e of fs.readdirSync(d,{withFileTypes:true})){ const p=path.join(d,e.name); if(e.isDirectory()) w(p); else if(e.name.endsWith(".jsonl")) text.push(fs.readFileSync(p,"utf8")); } })(path.join(REPO,"public/framework/ai/sessions"));
++const blob = text.join("\n");
++const leaves = (o, out=[]) => (typeof o==="string" ? out.push(o) : o && typeof o==="object" && Object.values(o).forEach(v=>leaves(v,out)), out);
++let rewritten = 0; const gone = [];
++for (const [f, ls] of Object.entries(missing)) for (const l of ls) {
++	let j; try { j = JSON.parse(l); } catch { gone.push([f, l]); continue; }
++	if (j.by === "task-migrate") { const t = (j.sessions||[]).map(s=>s.task)[0]; if (t && fs.existsSync(path.join(REPO,"public",t.replace(/\/$/,""),"task.jsonl"))) { rewritten++; continue; } }
++	const best = leaves(j).filter(s=>s.length>=8).sort((a,b)=>b.length-a.length)[0];
++	if (best && blob.includes(JSON.stringify(best.slice(0,80)).slice(1,-1))) rewritten++; else gone.push([f, l]);
++}
++console.log(JSON.stringify({ missing_exact: total-present, content_found_in_store: rewritten, truly_missing: gone.length }));
++for (const [f,l] of gone) console.log("GONE", f, "|", l.slice(0,300));
+diff --git a/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/manifest.json b/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/manifest.json
+new file mode 100644
+index 0000000000..65d5622be9
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/manifest.json
+@@ -0,0 +1,127 @@
++[
++ {
++  "old": "public/framework/ai2/activity.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/agents.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/ai/files.jsonl",
++  "new": null,
++  "action": "removed: generated listing"
++ },
++ {
++  "old": "public/framework/ai2/ai2.css",
++  "new": "public/framework/ai/archive/ai2/ai2.css",
++  "action": "archived"
++ },
++ {
++  "old": "public/framework/ai2/card.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/chat.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/compose.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/doc/files.jsonl",
++  "new": null,
++  "action": "removed: generated listing"
++ },
++ {
++  "old": "public/framework/ai2/doc/img/files.jsonl",
++  "new": null,
++  "action": "removed: generated listing"
++ },
++ {
++  "old": "public/framework/ai2/faces.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/files.jsonl",
++  "new": null,
++  "action": "removed: generated listing"
++ },
++ {
++  "old": "public/framework/ai2/floating.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/fold.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/groups.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/inbox.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/live.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/meter.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/outline.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/page.js",
++  "new": "public/framework/ai/archive/ai2/page.js.archived",
++  "action": "archived"
++ },
++ {
++  "old": "public/framework/ai2/rail.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/readme.md",
++  "new": "public/framework/ai/archive/ai2/readme.md",
++  "action": "archived"
++ },
++ {
++  "old": "public/framework/ai2/real.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/rules.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/tasks.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ },
++ {
++  "old": "public/framework/ai2/workspace.js",
++  "new": null,
++  "action": "removed: one-line shim"
++ }
++]
+\ No newline at end of file
+diff --git a/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/move-ai2.mjs b/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/move-ai2.mjs
+new file mode 100644
+index 0000000000..6967c50433
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/move-ai2.mjs
+@@ -0,0 +1,38 @@
++#!/usr/bin/env node
++// Retire public/framework/ai2/. Dry run by default; --apply moves. Writes manifest.json beside this script.
++// Kept (archived, not live): page.js, ai2.css, readme.md -> public/framework/ai/archive/ai2/ (page.js is renamed so it never routes).
++// Removed (git keeps them): the 18 one-line shims and the generated files.jsonl listings.
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const REPO = path.resolve(HERE, "../../../../../../../../..");
++const OLD = path.join(REPO, "public/framework/ai2");
++const ARC = path.join(REPO, "public/framework/ai/archive/ai2");
++const apply = process.argv.includes("--apply");
++const KEEP = { "page.js": "page.js.archived", "ai2.css": "ai2.css", "readme.md": "readme.md" };
++
++const files = [];
++(function walk(d) { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); e.isDirectory() ? walk(p) : files.push(p); } })(OLD);
++
++const manifest = files.map(f => {
++	const rel = path.relative(OLD, f).split(path.sep).join("/");
++	const keep = KEEP[rel];
++	const body = fs.readFileSync(f, "utf8");
++	const why = keep ? "archived" : /^\/\/ Moved to /.test(body) || /^\/\*\s*Moved to /.test(body) || rel.endsWith("files.jsonl") ? "removed: " + (rel.endsWith("files.jsonl") ? "generated listing" : "one-line shim") : "UNKNOWN";
++	return { old: "public/framework/ai2/" + rel, new: keep ? "public/framework/ai/archive/ai2/" + keep : null, action: why };
++});
++fs.writeFileSync(path.join(HERE, "manifest.json"), JSON.stringify(manifest, null, 1));
++console.log(manifest.map(m => `${m.action.padEnd(28)} ${m.old} -> ${m.new ?? "-"}`).join("\n"));
++const unknown = manifest.filter(m => m.action === "UNKNOWN");
++if (unknown.length) { console.error("UNKNOWN files, stopping:", unknown.map(u => u.old)); process.exit(1); }
++if (!apply) { console.log("\ndry run; --apply to move"); process.exit(0); }
++fs.mkdirSync(ARC, { recursive: true });
++for (const m of manifest) {
++	const from = path.join(REPO, m.old);
++	if (m.new) fs.copyFileSync(from, path.join(REPO, m.new));
++	fs.rmSync(from);
++}
++(function prune(d) { for (const e of fs.readdirSync(d, { withFileTypes: true })) if (e.isDirectory()) prune(path.join(d, e.name)); if (!fs.readdirSync(d).length) fs.rmdirSync(d); })(OLD);
++console.log("\nmoved; ai2 exists:", fs.existsSync(OLD));
+diff --git a/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/result.md b/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/result.md
+new file mode 100644
+index 0000000000..5835a164e5
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/result.md
+@@ -0,0 +1,7 @@
++# ai2 removal: result
++
++- **Folder:** `public/framework/ai2/` is gone. `page.js` (renamed `page.js.archived`), `ai2.css` and `readme.md` are in `ai/archive/ai2/`; 18 one-line shims and 5 generated listings were removed (git keeps them). Script: `move-ai2.mjs` (dry run, `--apply`), manifest: `manifest.json`.
++- **295 audit lines:** `lines-check.mjs` reads `fa90c3a41^` (before the 2026-11-01 move) and compares with `ai/sessions` today. 19 files, 72 lines; 17 identical in the store; 55 rewritten in the store (task stubs point at real task folders that exist; the rest match by content). Missing: 0. The only line without a text match is the `v-js3vqn5` session start, and that session has its own record at `sessions/2026/10/12/v-js3vqn5/session.jsonl`. Nothing needed restoring.
++- **Dev bar chat:** `chat-proof.mjs`: `chat.js` exports `chat_button, default, open_page_chat`, `AgentTalk` resolves from `ai/rail/live.js`, 7 chat elements render on `/framework/dev/DevBar/?chat=open`. No page errors; the only 404s are generated, gitignored json files that `/framework/ai/` also lacks.
++- **Old addresses:** inline script in `public/index.html` (works on the static host). `check.mjs` / `urls.mjs` show `/framework/ai2/`, `/needs/`, `/log/`, a dated card and a session folder all land on a real page. 531 card `page.jsonl` still say `"class": "/framework/ai2/card.js"`, mapped in `core/Page/Jsonl.js` (found by the second review: the card page broke without it).
++- **Dead `ai/` folders** (not moved): see §4 of `../ai2-and-ai-folders/findings.md`.
+diff --git a/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/urls.mjs b/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/urls.mjs
+new file mode 100644
+index 0000000000..3e101149fa
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/04/session-5132a480/ai2-remove/urls.mjs
+@@ -0,0 +1,4 @@
++import { browser } from "../../../../../../../../../Server/Browser.mjs";
++const b = await browser();
++for (const u of process.argv.slice(3)) { const p = await b.newPage(); await p.goto(process.argv[2] + u, { waitUntil: "load" }); await p.waitForTimeout(2500); console.log(u, "->", new URL(p.url()).pathname, "|", await p.title(), "|", (await p.evaluate(() => document.body.innerText)).slice(0, 60).replace(/\n/g, " ")); await p.close(); }
++await b.close();
+diff --git a/public/framework/ai/talk/page.js b/public/framework/ai/talk/page.js
+index a8b678bef3..909f6572f8 100644
+--- a/public/framework/ai/talk/page.js
++++ b/public/framework/ai/talk/page.js
+@@ -40,7 +40,7 @@ class TalkCard extends View {
+ 		this.card_id = e.id ?? this.card_id;
+ 		const title = e.title ?? "";
+ 		if (!title) return;
+-		// .md() renders page links (e.g. [AI 2](/framework/ai2/)) as clickable links
++		// .md() renders page links (e.g. [AI 2](/framework/ai/)) as clickable links
+ 		this.$title.rc("muted").md(title).attr("title", title);
+ 	}
+ 
+diff --git a/public/framework/ai2/activity.js b/public/framework/ai2/activity.js
+deleted file mode 100644
+index 2c16caf4f4..0000000000
+--- a/public/framework/ai2/activity.js
++++ /dev/null
+@@ -1,2 +0,0 @@
+-// Moved to ai/cards/Activity.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/cards/Activity.js";
+diff --git a/public/framework/ai2/agents.js b/public/framework/ai2/agents.js
+deleted file mode 100644
+index 104f63cbfc..0000000000
+--- a/public/framework/ai2/agents.js
++++ /dev/null
+@@ -1,3 +0,0 @@
+-// Moved to ai/cards/Agents.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/cards/Agents.js";
+-export { default } from "../ai/cards/Agents.js";
+diff --git a/public/framework/ai2/ai/files.jsonl b/public/framework/ai2/ai/files.jsonl
+deleted file mode 100644
+index 3561a336d9..0000000000
+--- a/public/framework/ai2/ai/files.jsonl
++++ /dev/null
+@@ -1,9 +0,0 @@
+-{"file":"log.jsonl"}
+-{"file":"log.jsonl","gone":true}
+-{"file":"log.jsonl"}
+-{"file":"log.jsonl","gone":true}
+-{"file":"log.jsonl"}
+-{"file":"log.jsonl","gone":true}
+-{"file":"log.jsonl"}
+-{"file":"log.jsonl","gone":true}
+-{"file":"log.jsonl"}
+diff --git a/public/framework/ai2/ai2.css b/public/framework/ai2/ai2.css
+deleted file mode 100644
+index e1ac175ebd..0000000000
+--- a/public/framework/ai2/ai2.css
++++ /dev/null
+@@ -1,457 +0,0 @@
+-@layer base, theme, site, util;
+-
+-/* AI 2 — what is LEFT once merge 7 (inbox-ext) moved everything reusable into
+-   ux/Card/Card.css: only AI 2's own v1 screens, which stay "until AI 2 is retired"
+-   (the file's own words, since before this move) — the old Log tab's rows, the
+-   Overview tab, the old Needs-you screen, and the old Log screen. Every other rule
+-   that used to be here (a card's own grid, the Live card, the outline, card folders,
+-   the tiny tabs) is ux/Card/Card.css now, loaded by card.js and this page's own
+-   page.js. The Processes section (the Live card's RAM/CPU graph) is its own file,
+-   ai/rail/processes.css, loaded by processes.js.
+-   */
+-@layer theme {
+-
+-	/* ── THE LOG TAB'S ROWS (log.js), AI 2's v1 Log ──
+-	   The same row shape as the rail's (`.inbox-row`), kept here under the old names for
+-	   log.js until AI 2 is retired; the AI page's Log is the rail itself at `?min=0`. */
+-	.ai2-row {
+-		display: block;
+-		padding: var(--pad-card);
+-		border-block-end: 1px solid var(--line);
+-		border-inline-start: 3px solid transparent;
+-		color: inherit;
+-		text-decoration: none;
+-		cursor: pointer;
+-	}
+-
+-	.ai2-row:hover {
+-		background: var(--fill-a04);
+-	}
+-
+-	.ai2-row:is(.active, .in-path) {
+-		background: var(--surface);
+-		border-inline-start-color: var(--prime);
+-	}
+-
+-	.ai2-row-head {
+-		align-items: flex-start;
+-	}
+-
+-	.ai2-row-title {
+-		flex: 1;
+-		min-width: 0;
+-		font-weight: 600;
+-		line-height: 1.35;
+-		overflow-wrap: anywhere;
+-	}
+-
+-	.ai2-row-when {
+-		flex: none;
+-		font-size: 0.8em;
+-	}
+-
+-	/* One step between every part of a row, computed ONCE on the row (`--ai2-step`). */
+-	@property --ai2-step {
+-		syntax: "<length>";
+-		inherits: true;
+-		initial-value: 0px;
+-	}
+-
+-	.ai2-log-rows .ai2-row {
+-		--ai2-step: var(--gap-35);
+-	}
+-
+-	.ai2-log-rows .ai2-row > * + * {
+-		margin-block-start: var(--ai2-step);
+-	}
+-
+-	/* The Log's "N updated ↑" pill — the rail's own (`.inbox-updated`), under its old name. */
+-	.ai2-updated {
+-		display: none;
+-		position: sticky;
+-		top: 0;
+-		z-index: 2;
+-		width: fit-content;
+-		margin-block-end: var(--gap-35, 0.5em);
+-		font-size: 0.8em;
+-		padding: 0.25em 0.7em;
+-		border-radius: 999px;
+-		background: var(--surface);
+-		border: 1px solid var(--line);
+-		color: var(--subtle);
+-		box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
+-	}
+-	.ai2-updated:hover { color: var(--ink); border-color: var(--prime); }
+-	.ai2-updated:not([hidden]) { display: inline-flex; }
+-
+-}
+-
+-/* ── the head and the Overview (ai2-overview, 2026-09-28) ─────────────────── */
+-@layer theme {
+-
+-	/* THE HEAD: "AI 2" and its tabs, one band — `.inbox-head`, ux/Inbox/Inbox.css. */
+-
+-	/* THE TAB ORDER READS "Inbox · Needs you · Log · Overview" (2026-09-30 — Inbox is the
+-	   default again, see page.js), and Inbox also stays FIRST in the MARKUP on purpose —
+-	   `page.js`'s own comment on `route()` says why: ext/tabs' fallback rule lights whichever
+-	   tab is the bar's DOM `:first-child` once nothing else matches (a card url matches no
+-	   tab's own href), so keeping Inbox first in the markup is what makes a card page light
+-	   Inbox. `order` only changes where each one PAINTS. */
+-	.ai2-tab-inbox { order: 1; }
+-	.ai2-tab-needs { order: 2; }
+-	.ai2-tab-log { order: 3; }
+-	.ai2-tab-overview { order: 4; }
+-
+-	/* ⚠ THE TAB LABELS WERE PINNED TO THE FAR RIGHT (the owner, 2026-09-30: "I'm not sure why
+-	   they got aligned right. Those kinds of things should never happen") — not from anything
+-	   about alignment, but from `order`: every real `.tab` above was given an explicit `order`
+-	   (1-4), and `.tabs.block > .tab-bar::after` (`tabs.css`) — the trailing hairline that fills
+-	   whatever space the tabs don't use — has NO `order` of its own, so it defaults to `0`,
+-	   lower than every tab. A flex item with the lowest `order` paints FIRST: the invisible
+-	   spacer (`flex: 1`, all the leftover width) landed before the tabs instead of after them,
+-	   shoving the actual labels to the far end of the bar. Doc's own tab strip never sets
+-	   `order` on its tabs, so it never hit this — same markup, same classes, only this page
+-	   added per-tab ordering. Giving the spacer the highest order restores the normal reading:
+-	   title, then tabs immediately beside it (same placement as every class doc page), then the
+-	   empty hairline soaking up whatever is left. */
+-	.ai2-head .tab-bar::after { order: 5; }
+-
+-	/* The Overview is a routed page (`overview/`) that mounts in the detail column like a
+-	   card; while it is the active page it takes the whole shell (`inbox-takeover`). */
+-	.page.ai2-overview-page {
+-		display: block;
+-		padding: 0;
+-	}
+-	/* the tab already names this view */
+-	.ai2-overview-page > .page-title { display: none; }
+-	/* The Folder link's own fix is one rule for every AI 2 page, near the top of this file. */
+-	.ai2-overview-page > .ai2-overview { margin: 0; }
+-
+-	/* NEEDS YOU AND THE LOG — routed children now (2026-09-30: Inbox moved BACK to the bare
+-	   root url, so Needs you gave up living there and is a normal child page, `needs/`, drawn
+-	   exactly like Overview above; `log/` is new and drawn the same way). Both take over the
+-	   whole shell (`inbox-takeover`) while they are the active page. */
+-	.page:is(.ai2-needs-page, .ai2-log-page) {
+-		display: block;
+-		padding: var(--pad);
+-	}
+-	:is(.ai2-needs-page, .ai2-log-page) > .page-title { display: none; }
+-
+-	.ai2-overview {
+-		padding: var(--pad);
+-		display: flex; flex-direction: column; gap: 1.5em;
+-	}
+-
+-	/* THE GRID: the first concept is the big one (two tracks wide), the rest fill in. */
+-	.ai2-ov-grid {
+-		display: grid;
+-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 24em), 1fr));
+-		gap: 1.5em;
+-		align-items: start;
+-	}
+-	.ai2-ov-first { grid-column: span 2; }
+-	@media (width < 56em) { .ai2-ov-first { grid-column: auto; } }
+-
+-	.ai2-ov-card { display: flex; flex-direction: column; gap: 1em; min-width: 0; }
+-	.ai2-ov-head {
+-		display: flex; align-items: center; gap: 0.8em;
+-		color: inherit; text-decoration: none;
+-	}
+-	.ai2-ov-head h3 { margin: 0; }
+-	.ai2-ov-icon { font-size: 2.6em; line-height: 1; color: var(--prime); }
+-	.ai2-ov-first .ai2-ov-icon { font-size: 3.6em; }
+-	.ai2-ov-first .ai2-ov-head h3 { font-size: 1.6em; }
+-
+-	/* ONE ROW PER ASK: the quote, a small state word, the result link; the timeline under it. */
+-	.ai2-ov-asks { display: flex; flex-direction: column; gap: 0.6em; }
+-	.ai2-ov-first > .ai2-ov-asks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22em), 1fr)); column-gap: 1.5em; }
+-	.ai2-ov-ask-main { display: flex; align-items: baseline; gap: 0.5em; flex-wrap: wrap; line-height: 1.4; }
+-	.ai2-ov-card > * { margin: 0; }
+-	.ai2-ov-quote { flex: 1 1 12em; min-width: 0; color: inherit; text-decoration: none; }
+-	a.ai2-ov-quote:hover { text-decoration: underline; }
+-	.ai2-ov-state {
+-		font-size: 0.75em; padding: 0.05em 0.5em; border-radius: 1em;
+-		background: var(--fill-a08, rgba(127, 127, 127, 0.15)); color: var(--subtle);
+-	}
+-	.ai2-ov-result { font-size: 0.85em; white-space: nowrap; color: var(--prime); }
+-	/* THE OWNER'S OWN RAW WORDS — one click away (brief D), never the headline: a quiet
+-	   `<summary>` line, not the boxed `<details>` look `.ai2-ov-done` wears below, so it
+-	   reads as "more detail" rather than a second collapsible section on the card. */
+-	.ai2-ov-quote-full > summary {
+-		cursor: pointer; font-size: 0.78em;
+-		background: none; border: 0; padding: 0; min-height: 0;
+-	}
+-	.ai2-ov-quote-text {
+-		margin: 0.3em 0 0; font-size: 0.85em; font-style: italic;
+-		color: var(--subtle); overflow-wrap: anywhere;
+-	}
+-	.ai2-ov-line {
+-		display: none;
+-		font-size: 0.8em; color: var(--subtle); text-decoration: none;
+-		padding-block-start: 0.15em;
+-		white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+-	}
+-	.ai2-ov-ask:hover > .ai2-ov-line,
+-	.ai2-ov-timeline .ai2-ov-line { display: block; }
+-
+-	/* DONE IS ONE LINE — it opens to the done rows, never a wall of 100% bars. */
+-	/* ⚠ framework.css draws a bare <summary> as a control (a box and a fill); this one is a line. */
+-	.ai2-ov-done > summary {
+-		cursor: pointer; color: var(--subtle);
+-		background: none; border: 0; padding: 0; min-height: 0; font-size: 0.9em;
+-	}
+-	.ai2-ov-done[open] > summary { margin-block-end: 0.6em; }
+-	.ai2-ov-top { gap: 1.5em; }
+-	.ai2-ov-toggle { cursor: pointer; font-size: 0.85em; }
+-}
+-
+-/* ── the Needs you tab (ai2-needs-row, 2026-09-29) ─────────────────────────
+-   ONE BIG PLAIN LINE PER ITEM (brief D). Before this block existed, `.ai2-need*` had NO
+-   rules of its own, so every row fell back to a bare `<a>` and `<div>`: default link-blue
+-   underline, the icon on its own line, the title running straight into the meta text — the
+-   mastermind's own judged miss. The row is icon, then a title/question/meta column that
+-   grows, then the control (buttons or a reply box) at the right WHEN IT FITS — `flex-wrap`
+-   drops the control to its own line once the row is too narrow for both. */
+-@layer theme {
+-	.ai2-needs-list { max-width: 56em; }
+-
+-	/* Padding is tighter than the module's usual `--gap-50` rows (mastermind's judged fix,
+-	   2026-09-29: "aim for 8-10 items above the fold at 1920") — this list is read top to
+-	   bottom in one sitting, not browsed like the rail, so a shorter row that still reads
+-	   clearly beats spacing tuned for a different kind of list. */
+-	.ai2-need {
+-		display: flex;
+-		flex-wrap: wrap;
+-		align-items: flex-start;
+-		gap: var(--gap-35);
+-		padding-block: 0.6em;
+-		border-block-end: 1px solid var(--line);
+-	}
+-
+-	.ai2-need:first-child { padding-block-start: 0; }
+-
+-	/* The whole icon + title + question + meta column is ONE link to the card — plain, not
+-	   the site's default blue-underline prose link (this is not `p`/`li` text, so nothing
+-	   restyles it without this rule). */
+-	.ai2-need-head {
+-		display: flex;
+-		align-items: flex-start;
+-		gap: var(--gap-25);
+-		flex: 1 1 24em;
+-		min-width: 0;
+-		color: inherit;
+-		text-decoration: none;
+-	}
+-
+-	.ai2-need-head:hover .ai2-need-title { text-decoration: underline; }
+-
+-	.ai2-need-head > .icon {
+-		flex: none;
+-		margin-block-start: 0.15em;
+-		opacity: 0.7;
+-	}
+-
+-	.ai2-need-body { flex: 1; min-width: 0; }
+-
+-	/* THE IMPORTANCE BADGE (asks-ledger/view, 2026-09-30) — `importance()`'s own number, shown
+-	   on every row (brief D). `.inbox-score` (ux/Inbox) is the same look for the rail's own
+-	   rows. Muted grey normally; only a
+-	   score of 70+ (the "blocking" bands and up) turns it the error colour, so red means
+-	   something on this page instead of decorating every row. */
+-	.ai2-need-score {
+-		flex: none;
+-		display: inline-block;
+-		min-width: 1.6em;
+-		padding: 0.05em 0.4em;
+-		border-radius: 1em;
+-		background: var(--fill-a08);
+-		font-size: 0.75em;
+-		font-weight: 700;
+-		text-align: center;
+-	}
+-
+-	.ai2-need-score-hot {
+-		background: var(--error);
+-		color: white;
+-	}
+-
+-	/* THE HEADLINE — the card's own SHORT title, big and plain (brief D: "a short title...
+-	   not raw dictation"). A visible "Blocker" flag sits beside it only for that one kind;
+-	   every kind still says its word once more, quietly, in the meta line below. */
+-	.ai2-need-title {
+-		font-weight: 600;
+-		font-size: 1.1em;
+-		line-height: 1.3;
+-		overflow-wrap: anywhere;
+-	}
+-
+-	.ai2-need-blocker-flag {
+-		flex: none;
+-		padding: 0.05em 0.5em;
+-		border-radius: 1em;
+-		background: var(--error);
+-		color: white;
+-		font-size: 0.75em;
+-		font-weight: 700;
+-		text-transform: uppercase;
+-	}
+-
+-	/* THE FULL ASK, AS ONE QUIET LINE under the title — CSS-ellipsised (never `short_title()`'s
+-	   word-cut), so a long dictated question never wraps to three or four lines and pushes the
+-	   next item off the fold; the whole sentence survives in `title=` (a hover) and, unabridged,
+-	   as the row's own link text one click into the card. */
+-	.ai2-need-question {
+-		display: block;
+-		margin-block-start: 0.2em;
+-		overflow: hidden;
+-		white-space: nowrap;
+-		text-overflow: ellipsis;
+-	}
+-
+-	.ai2-need-meta {
+-		display: block;
+-		margin-block-start: 0.25em;
+-		font-size: 0.8em;
+-	}
+-
+-	/* THE CONTROL — buttons or a one-line reply box, at the right of the same row when the
+-	   row is wide enough for both (`flex-wrap` on `.ai2-need` above drops it to its own full
+-	   line otherwise, e.g. a narrow phone width). */
+-	.ai2-need-control {
+-		flex: 1 1 18em;
+-		min-width: 14em;
+-		max-width: 22em;
+-	}
+-
+-	.ai2-need-options {
+-		display: flex;
+-		flex-wrap: wrap;
+-		gap: 0.4em;
+-	}
+-
+-	.ai2-need-opt {
+-		flex: none;
+-		padding: 0.3em 0.8em;
+-		border: 1px solid var(--line);
+-		border-radius: 0.3em;
+-		background: var(--surface);
+-		color: inherit;
+-		font: inherit;
+-		font-size: 0.9em;
+-		cursor: pointer;
+-	}
+-
+-	.ai2-need-opt:hover {
+-		border-color: var(--prime);
+-		color: var(--prime);
+-	}
+-
+-	/* WRAPPED, not one tight row — a fixed-width control column (22em) left the field only
+-	   ~8em beside the "Answer" button, showing just "Your" of "Your answer…" (mastermind's
+-	   judged fix, 2026-09-29). The field takes the control's full width on its own line;
+-	   "Answer" sits under it. */
+-	.ai2-need-reply {
+-		display: flex;
+-		flex-wrap: wrap;
+-		gap: 0.4em;
+-	}
+-
+-	.ai2-need-field {
+-		flex: 1 1 100%;
+-		min-width: 10em;
+-		height: 2.2em;
+-		padding: 0.3em 0.5em;
+-		border: 1px solid var(--line);
+-		border-radius: 0.3em;
+-		background: var(--surface);
+-		color: inherit;
+-		font: inherit;
+-		font-size: 0.9em;
+-		resize: none;
+-		overflow: hidden;
+-	}
+-
+-	.ai2-need-send {
+-		flex: none;
+-	}
+-
+-	/* ⚠ `:not([hidden])`, not a bare `display: block` — a plain `.ai2-need-err { display:
+-	   block }` beats the browser's own `[hidden] { display: none }` (equal specificity,
+-	   author beats UA regardless of layers), so every error line showed at rest — exactly
+-	   the "`display: none` cannot hide a utility class" trap this module's own readme warns
+-	   about, just with an attribute instead of a class. */
+-	.ai2-need-err {
+-		margin-block-start: 0.3em;
+-		color: var(--error);
+-		font-size: 0.8em;
+-	}
+-	.ai2-need-err:not([hidden]) { display: block; }
+-
+-	.ai2-needs-empty {
+-		display: block;
+-		padding-block: var(--gap-50);
+-	}
+-
+-	/* Too narrow for the control beside the text (a phone, or the rail's own width if this
+-	   tab is ever embedded narrower): the control takes the row's full width on its own line. */
+-	@media (width < 34em) {
+-		.ai2-need-control { flex-basis: 100%; max-width: none; }
+-	}
+-}
+-
+-/* ── the Log tab (ai2-log, 2026-09-30) ─────────────────────────────────────
+-   "EVERYTHING IN FLIGHT" (the owner, verbatim: "anything that's being worked on should show
+-   up in there... each card in on the log should have a status"). One row per TASK, the exact
+-   same row shape the rail draws (`.ai2-row`, `.ai2-row-head`, `.ai2-row-title`,
+-   `.ai2-row-when` — all bare classes, styled once, above, and reused here rather than
+-   restated), with one thing added: the status dot. `log.js` is the data and the draw. */
+-@layer theme {
+-	.ai2-log-list { max-width: 56em; position: relative; }
+-
+-	.ai2-log-rows {
+-		container: ai2-log-rows / inline-size;
+-		display: flex;
+-		flex-direction: column;
+-	}
+-
+-	.ai2-log-line {
+-		display: block;
+-		font-size: 0.9em;
+-		overflow-wrap: anywhere;
+-	}
+-
+-	/* THE SAME "N UPDATED ↑" PILL AS THE RAIL (the owner: the reorder fix "applies to both") —
+-	   `log.js` puts BOTH classes on its button (`ai2-updated ai2-log-updated`), so every rule
+-	   above (position, size, colour) already applies; this adds only the one thing that differs,
+-	   the gap below it before the first row (simplified, review finding 2026-09-30 — it used to
+-	   restate `.ai2-updated`'s position/size/shadow rules with barely different numbers). */
+-	.ai2-log-updated { margin-block-end: var(--gap-35, 0.5em); }
+-
+-	/* GREEN = DONE, YELLOW FLASHING = IN PROGRESS, RED = STALLED (the owner, verbatim: "the
+-	   yellow flashing is sort of like in progress and green should be done"). `visibility`
+-	   is never used here the way `.ai2-dot` (unread) uses it — a status dot is always
+-	   meaningful, so it is always shown, just three different colours. */
+-	.ai2-status-dot {
+-		width: 0.65em;
+-		height: 0.65em;
+-		border-radius: 50%;
+-		flex: none;
+-		position: relative;
+-		top: 0.425em;   /* same optical centring as `.ai2-row-head > .ai2-dot`, above */
+-	}
+-	.ai2-status-done { background: var(--success, #2e7d32); }
+-	.ai2-status-failed { background: var(--error); }
+-	.ai2-status-progress {
+-		background: var(--warning, #c99a00);
+-		animation: ai2-status-flash 1.4s ease-in-out infinite;
+-	}
+-	@keyframes ai2-status-flash {
+-		0%, 100% { opacity: 1; }
+-		50% { opacity: 0.35; }
+-	}
+-	/* A reader who asked the OS to cut down on motion never gets an insistently blinking dot —
+-	   it still reads "in progress" by colour alone, just steady. */
+-	@media (prefers-reduced-motion: reduce) {
+-		.ai2-status-progress { animation: none; }
+-	}
+-}
+diff --git a/public/framework/ai2/card.js b/public/framework/ai2/card.js
+deleted file mode 100644
+index ae94729e74..0000000000
+--- a/public/framework/ai2/card.js
++++ /dev/null
+@@ -1,3 +0,0 @@
+-// Moved to ai/cards/card.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/cards/card.js";
+-export { default } from "../ai/cards/card.js";
+diff --git a/public/framework/ai2/chat.js b/public/framework/ai2/chat.js
+deleted file mode 100644
+index 5e91293b25..0000000000
+--- a/public/framework/ai2/chat.js
++++ /dev/null
+@@ -1,3 +0,0 @@
+-// Moved to ai/cards/CardChat.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/cards/CardChat.js";
+-export { default } from "../ai/cards/CardChat.js";
+diff --git a/public/framework/ai2/compose.js b/public/framework/ai2/compose.js
+deleted file mode 100644
+index 4cdaf7cee6..0000000000
+--- a/public/framework/ai2/compose.js
++++ /dev/null
+@@ -1,3 +0,0 @@
+-// Moved to ai/cards/Compose.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/cards/Compose.js";
+-export { default } from "../ai/cards/Compose.js";
+diff --git a/public/framework/ai2/doc/files.jsonl b/public/framework/ai2/doc/files.jsonl
+deleted file mode 100644
+index c4706947f6..0000000000
+--- a/public/framework/ai2/doc/files.jsonl
++++ /dev/null
+@@ -1,32 +0,0 @@
+-{"file":"card-standard.md"}
+-{"file":"cards.md"}
+-{"file":"columns-seams.md"}
+-{"file":"columns.md"}
+-{"file":"decisions.md"}
+-{"file":"groups.md"}
+-{"file":"img/"}
+-{"file":"logs.md"}
+-{"file":"overview.md"}
+-{"file":"owner-asks.md"}
+-{"file":"persistence.md"}
+-{"file":"img/page.jsonl"}
+-{"file":"img/"}
+-{"file":"img/page.jsonl"}
+-{"file":"needs-you.md"}
+-{"file":"img/"}
+-{"file":"img/"}
+-{"file":"one-ai.md"}
+-{"file":"processes.md"}
+-{"file":"card-standard.md","gone":true}
+-{"file":"cards.md","gone":true}
+-{"file":"columns-seams.md","gone":true}
+-{"file":"columns.md","gone":true}
+-{"file":"decisions.md","gone":true}
+-{"file":"groups.md","gone":true}
+-{"file":"logs.md","gone":true}
+-{"file":"overview.md","gone":true}
+-{"file":"owner-asks.md","gone":true}
+-{"file":"persistence.md","gone":true}
+-{"file":"needs-you.md","gone":true}
+-{"file":"one-ai.md","gone":true}
+-{"file":"processes.md","gone":true}
+diff --git a/public/framework/ai2/doc/img/files.jsonl b/public/framework/ai2/doc/img/files.jsonl
+deleted file mode 100644
+index 5877ddb07e..0000000000
+--- a/public/framework/ai2/doc/img/files.jsonl
++++ /dev/null
+@@ -1,20 +0,0 @@
+-{"file":"wide-after-1280-agent.jpg"}
+-{"file":"wide-after-1280.jpg"}
+-{"file":"wide-after-1920-agent.jpg"}
+-{"file":"wide-after-1920.jpg"}
+-{"file":"wide-after-2560-agent.jpg"}
+-{"file":"wide-after-2560.jpg"}
+-{"file":"wide-after-3440-agent.jpg"}
+-{"file":"wide-after-3440.jpg"}
+-{"file":"wide-before-3440.jpg"}
+-{"file":"needs-you-1920.png"}
+-{"file":"wide-after-1280-agent.jpg","gone":true}
+-{"file":"wide-after-1280.jpg","gone":true}
+-{"file":"wide-after-1920-agent.jpg","gone":true}
+-{"file":"wide-after-1920.jpg","gone":true}
+-{"file":"wide-after-2560-agent.jpg","gone":true}
+-{"file":"wide-after-2560.jpg","gone":true}
+-{"file":"wide-after-3440-agent.jpg","gone":true}
+-{"file":"wide-after-3440.jpg","gone":true}
+-{"file":"wide-before-3440.jpg","gone":true}
+-{"file":"needs-you-1920.png","gone":true}
+diff --git a/public/framework/ai2/faces.js b/public/framework/ai2/faces.js
+deleted file mode 100644
+index af60fbf165..0000000000
+--- a/public/framework/ai2/faces.js
++++ /dev/null
+@@ -1,2 +0,0 @@
+-// Moved to ai/cards/Faces.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/cards/Faces.js";
+diff --git a/public/framework/ai2/files.jsonl b/public/framework/ai2/files.jsonl
+deleted file mode 100644
+index e0e26686fe..0000000000
+--- a/public/framework/ai2/files.jsonl
++++ /dev/null
+@@ -1,77 +0,0 @@
+-{"file":"activity.js"}
+-{"file":"agents.js"}
+-{"file":"ai2.css"}
+-{"file":"card.js"}
+-{"file":"chat.js"}
+-{"file":"compose.js"}
+-{"file":"faces.js"}
+-{"file":"floating.js"}
+-{"file":"fold.js"}
+-{"file":"groups.js"}
+-{"file":"inbox.js"}
+-{"file":"live.js"}
+-{"file":"log.js"}
+-{"file":"meter.js"}
+-{"file":"needs-rule.js"}
+-{"file":"needs.js"}
+-{"file":"outline.js"}
+-{"file":"overview.js"}
+-{"file":"page.js"}
+-{"file":"processes.js"}
+-{"file":"rail.js"}
+-{"file":"readme.md"}
+-{"file":"real.js"}
+-{"file":"rules.js"}
+-{"file":"tasks.js"}
+-{"file":"weight.jsonl"}
+-{"file":"workspace.js"}
+-{"file":"doc/"}
+-{"file":"groups.js"}
+-{"file":"overview/"}
+-{"file":"doc/page.jsonl"}
+-{"file":"overview/page.jsonl"}
+-{"file":"groups.json"}
+-{"file":"doc/"}
+-{"file":"overview/"}
+-{"file":"needs-rule.js"}
+-{"file":"needs.js"}
+-{"file":"ai/"}
+-{"file":"log.js"}
+-{"file":"log.js"}
+-{"file":"ai/","gone":true}
+-{"file":"ai/"}
+-{"file":"processes.css"}
+-{"file":"processes.css"}
+-{"file":"rail.css"}
+-{"file":"rail.css"}
+-{"file":"processes.css"}
+-{"file":"rail.js"}
+-{"file":"rail.css"}
+-{"file":"rail.js"}
+-{"file":"ai/","gone":true}
+-{"file":"ai/","gone":true}
+-{"file":"ai/","gone":true}
+-{"file":"ai/"}
+-{"file":"ai/"}
+-{"file":"rail.css"}
+-{"file":"rail.js"}
+-{"file":"ai/","gone":true}
+-{"file":"ai/"}
+-{"file":"groups.json","gone":true}
+-{"file":"processes.css","gone":true}
+-{"file":"rail.css","gone":true}
+-{"file":"log.js","gone":true}
+-{"file":"needs-rule.js","gone":true}
+-{"file":"needs.js","gone":true}
+-{"file":"overview.js","gone":true}
+-{"file":"processes.js","gone":true}
+-{"file":"tasks/"}
+-{"file":"ai/","gone":true}
+-{"file":"overview/","gone":true}
+-{"file":"ai/"}
+-{"file":"overview/"}
+-{"file":"weight.jsonl","gone":true}
+-{"file":"ai/","gone":true}
+-{"file":"overview/","gone":true}
+-{"file":"tasks/","gone":true}
+-{"file":"ai/"}
+diff --git a/public/framework/ai2/floating.js b/public/framework/ai2/floating.js
+deleted file mode 100644
+index df2f2fd4f2..0000000000
+--- a/public/framework/ai2/floating.js
++++ /dev/null
+@@ -1,3 +0,0 @@
+-// Moved to ai/cards/floating.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/cards/floating.js";
+-export { default } from "../ai/cards/floating.js";
+diff --git a/public/framework/ai2/fold.js b/public/framework/ai2/fold.js
+deleted file mode 100644
+index 1ac2cf97fc..0000000000
+--- a/public/framework/ai2/fold.js
++++ /dev/null
+@@ -1,2 +0,0 @@
+-// Moved to ai/cards/Fold.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/cards/Fold.js";
+diff --git a/public/framework/ai2/groups.js b/public/framework/ai2/groups.js
+deleted file mode 100644
+index 20fb892f8a..0000000000
+--- a/public/framework/ai2/groups.js
++++ /dev/null
+@@ -1,2 +0,0 @@
+-// Moved to ai/rail/groups.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/rail/groups.js";
+diff --git a/public/framework/ai2/inbox.js b/public/framework/ai2/inbox.js
+deleted file mode 100644
+index aa92e2e56e..0000000000
+--- a/public/framework/ai2/inbox.js
++++ /dev/null
+@@ -1,2 +0,0 @@
+-// Moved to ai/rail/inbox.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/rail/inbox.js";
+diff --git a/public/framework/ai2/live.js b/public/framework/ai2/live.js
+deleted file mode 100644
+index 347ac2f822..0000000000
+--- a/public/framework/ai2/live.js
++++ /dev/null
+@@ -1,2 +0,0 @@
+-// Moved to ai/rail/live.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/rail/live.js";
+diff --git a/public/framework/ai2/meter.js b/public/framework/ai2/meter.js
+deleted file mode 100644
+index a53074fa4d..0000000000
+--- a/public/framework/ai2/meter.js
++++ /dev/null
+@@ -1,2 +0,0 @@
+-// Moved to ai/cards/Meter.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/cards/Meter.js";
+diff --git a/public/framework/ai2/outline.js b/public/framework/ai2/outline.js
+deleted file mode 100644
+index 59332e9296..0000000000
+--- a/public/framework/ai2/outline.js
++++ /dev/null
+@@ -1,2 +0,0 @@
+-// Moved to ai/cards/Outline.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/cards/Outline.js";
+diff --git a/public/framework/ai2/page.js b/public/framework/ai2/page.js
+deleted file mode 100644
+index 2a23dc6847..0000000000
+--- a/public/framework/ai2/page.js
++++ /dev/null
+@@ -1,170 +0,0 @@
+-import { Page, View, div, span, small, a, h1 } from "/app.js";
+-import AIRail, { card_page } from "../ai/rail/rail.js";
+-import { Overview } from "../ai/rail/Overview.js";
+-import { Needs } from "../ai/rail/Needs.js";
+-import { Log } from "../ai/rail/Log.js";
+-import { LIVE } from "../ai/rail/live.js";
+-
+-// ai2.css is only the v1 screens this file routes to (needs/, log/, overview/);
+-// everything about a card's own look is the ux block, loaded here too because this
+-// page is the shell every card opens inside (merge 7, inbox-ext, 2026-10-01).
+-View.stylesheet(import.meta, "ai2.css");
+-View.stylesheet("/framework/ux/Card/Card.css");
+-
+-/**
+- * AI 2 — A LIST ON THE LEFT, ONE PAGE ON THE RIGHT, AND NOTHING EVER JUMPS
+- * (the owner, 2026-09-22: "as a new card is added, the whole thing gets pushed
+- * down. It's jumpy… We need a left sidebar that previews the things, and then
+- * when we click on one it stays selected and then I have a persistent page").
+- *
+- * THE SELECTION IS THE URL. A preview is a plain `<a>` to `/framework/ai2/<id>/`
+- * and `route()` below makes that a real address, so the Router navigates it,
+- * marks the row, and Back, a reload and a pasted link all just work. Nothing
+- * here draws a selection by hand.
+- *
+- * NOTHING JUMPS, for three separate reasons: the page on the right is a
+- * DIFFERENT PAGE from the list; the rail and the page each SCROLL INSIDE
+- * THEMSELVES; and a new row only enters the list WHEN THE LIST IS QUIET —
+- * otherwise it waits behind the pill. `doc/decisions.md` has the measurements
+- * and what was tried instead.
+- *
+- * The parts: `inbox.js` decides what there is to draw, `card.js` draws a card
+- * (small in the rail, whole on the page), `compose.js` is the box you talk to,
+- * `ai2.css` is the look. This file is the shell and the selection.
+- */
+-export default new Page({
+-	meta: import.meta,
+-	title: "AI 2",
+-	description: "Everything that happened and everything you said, as one inbox.",
+-	icon: "smart_toy",
+-	classes: "full fill",
+-
+-	/* ⚠ "I present myself, not my children" (core/Page). Without it every card
+-	   you open becomes a row in the SITE'S nav tree: `route()` memoises each
+-	   card page into `children` and the sidebar walks that map. */
+-	leaf: true,
+-
+-	/* THE DEFAULT VIEW IS INBOX AGAIN (the owner, 2026-09-30: "the AI 2 root is confusing and
+-	   jumpy" — Needs You as the bare-url default, tried 2026-09-29, is reverted). The rail + a
+-	   card's own page is back at the bare url, same as every day before 2026-09-29; "Needs
+-	   you" moved to its own address, `needs/`, drawn exactly like `overview/` — a routed page
+-	   that takes over the whole shell. EVERY view here is a url, never a class flipped by a
+-	   button (the owner, 2026-09-23: "we can't just have these buttons that when clicked
+-	   switch the view manually").
+-	   ⚠ CARD PAGES STILL LIVE AT `this.url + id + "/"`, unchanged. Inbox alone wears
+-	     `.tab-default` (ext/tabs' own "not really a match" flag — see `.tab-bar` rules,
+-	     `tabs.css`) because its href IS the root url, a prefix of every other route — without
+-	     it `.in-path` would light Inbox for a card, Needs you or Overview too. With nothing
+-	     else matching, `ext/tabs`' own fallback lights the tab-bar's DOM `:first-child` — which
+-	     is Inbox, kept first in the markup on purpose (`ai2.css`'s `order` then draws it
+-	     wherever it visually belongs). A card route matches no tab's own href, so it always
+-	     falls through to that same fallback: Inbox lights, same as the bare url itself. */
+-	/* ⚠ "NEEDS YOU" LEFT THE TAB STRIP, 2026-09-30 (the mastermind's own correction to this
+-	   task's brief): it is now the rail's own filter CHIP (`InboxRail.needs_chip()`),
+-	   carrying the same count badge this tab used to. `needs/` is still a real, working address (`route()` still answers it, just
+-	   below) for an old link or a bookmark — it is only unlinked from the strip. */
+-	content(){
+-		div.c("inbox-head ai2-head", () => {
+-			div.c("doc-well", () => h1.c("doc-title h2", "AI 2"));
+-			div.c("tabs block", () => div.c("tab-bar", () => {
+-				a.c("tab tab-default ai2-tab-inbox").href(this.url).text("Inbox");
+-				a.c("tab ai2-tab-log").href(this.url + "log/").text("Log");
+-				a.c("tab ai2-tab-overview").href(this.url + "overview/").text("Overview");
+-			}));
+-		});
+-		// THE RAIL IS ALWAYS MOUNTED — every route shows it; `needs/`, `log/` and `overview/`
+-		// take over the whole shell instead (`inbox-takeover`, ux/Inbox/Inbox.css). It is one
+-		// class, `AIRail` (rail.js), the same one the AI page's Inbox and Log tabs build.
+-		this.ai2 = new AIRail({ page: this }).mount();
+-	},
+-
+-	/* A card's own address — or the overview's, Needs you's, or the Log's. ⚠ A name with a dot
+-	   in it is a real file, and claiming it would answer a 404 with a card page that can
+-	   never load. `overview`, `needs`, `log`, `live` and `now` are reserved: no card can be
+-	   called any of them. `live` is an ordinary card page whose card comes from `live.js`;
+-	   `now` (followup.md item 2, 2026-09-30) is a real card, but NOT at a fixed folder — it is
+-	   rewritten fresh under a new dated folder each day (`ai/sessions/2026/10/03/cards/now/`), so `resolve_card()`
+-	   (inbox.js) looks up the latest one by id suffix before reading it (bug fix, 2026-10-03: the
+-	   literal id "now" used to resolve nowhere and the card vanished from the rail). Routed the
+-	   same plain way as any other card id below — the only thing special about it is that
+-	   the rail also pins its preview at the top, imported by hand (`AIRail.render_pinned()`).
+-	   `live`, `view` and a card folder's year (`2026/09/24/<slug>/`) are answered by
+-	   `AIRail.route()`, so every page with the rail opens them the same way. */
+-	route(id){
+-		if (id.includes(".")) return undefined;
+-		if (id === "overview") return this.overview_page ??= overview_page(this);
+-		if (id === "needs") return this.needs_page ??= needs_page(this);
+-		if (id === "log") return this.log_page ??= log_page(this);
+-		// THE OLD ADDRESS STILL WORKS (2026-09-29 to 2026-09-30, briefly the default) — a link
+-		// or a bookmark made during that window still opens the same rail-and-card view the
+-		// bare url shows again now.
+-		if (id === "inbox") return this.inbox_page ??= inbox_page(this);
+-		// `AIRail.handles()` is the ONE list this and `ai/page.js` both read (bug 4, 2026-10-03:
+-		// each page used to hand-list its own shorter copy, so a rail link ahead of this list —
+-		// "your-prompts" — 404'd on whichever page's copy forgot it).
+-		if (AIRail.handles(id)) return AIRail.route(this, id);
+-		if (id === "now") return this.now_page ??= card_page(this, "now");
+-		// "Your prompts" (2026-10-02, prompt-refine): the second pinned row — a synthesized
+-		// id `AIRail.build_prompts_pin_item()` puts in the list, never a real card folder,
+-		// cached the same way "now" is for the same reason (not rebuilt on every visit).
+-		if (id === "your-prompts") return this.your_prompts_page ??= card_page(this, "your-prompts");
+-		return card_page(this, id);
+-	},
+-});
+-
+-/* The Overview tab: one big card per concept (overview.js), as a page of its own — it
+-   mounts in the detail column like a card does, and takes the whole shell while it is
+-   the active page (`inbox-takeover`). */
+-function overview_page(root){
+-	return new Page({
+-		title: "Overview",
+-		url: root.url + "overview/",
+-		classes: "ai2-overview-page inbox-takeover",
+-		content(){ Overview.view(); },
+-	});
+-}
+-
+-/* The Needs you tab (was the bare url, 2026-09-29 to 2026-09-30): one ranked list of
+-   everything waiting on the owner, `needs_view()` (needs.js), as a page of its own — it takes
+-   over the whole shell like Overview does, right below. */
+-function needs_page(root){
+-	return new Page({
+-		title: "Needs you",
+-		url: root.url + "needs/",
+-		classes: "ai2-needs-page inbox-takeover",
+-		content(){ Needs.view(); },
+-	});
+-}
+-
+-/* The Log tab (the owner, 2026-09-30): everything in flight, one row per task, each with a
+-   status dot — `log_view()` (log.js). It reads the SAME task list Overview and a card's own
+-   Tasks tab already load (`root.ai2.on_tasks`, AIRail's group hook), so nothing is
+-   fetched twice; it takes over the whole shell like Overview and Needs you do. */
+-function log_page(root){
+-	return new Page({
+-		title: "Log",
+-		url: root.url + "log/",
+-		classes: "ai2-log-page inbox-takeover",
+-		content(){ Log.view(fn => root.ai2.on_tasks(fn)); },
+-	});
+-}
+-
+-/* The Inbox tab: exactly what the bare url used to show — nothing of its own beyond the
+-   rail (always mounted) and its usual empty state, so a first click here (or the
+-   `LIVEVIEW_KEY` redirect below) reads the same as it always has. */
+-function inbox_page(root){
+-	return new Page({
+-		title: "Inbox",
+-		url: root.url + "inbox/",
+-		classes: "ai2-inbox-page",
+-		content(){
+-			div.c("inbox-empty muted", () => {
+-				span("Live overview is active.");
+-				small(() => {
+-					a.c("page-link").href(root.url + "live/").text("Open Live");
+-					span(" · Pick a card on the left to inspect its details.");
+-				});
+-			});
+-		},
+-	});
+-}
+diff --git a/public/framework/ai2/rail.js b/public/framework/ai2/rail.js
+deleted file mode 100644
+index 2df57f59b0..0000000000
+--- a/public/framework/ai2/rail.js
++++ /dev/null
+@@ -1,3 +0,0 @@
+-// Moved to ai/rail/rail.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/rail/rail.js";
+-export { default } from "../ai/rail/rail.js";
+diff --git a/public/framework/ai2/readme.md b/public/framework/ai2/readme.md
+deleted file mode 100644
+index f7c92c7078..0000000000
+--- a/public/framework/ai2/readme.md
++++ /dev/null
+@@ -1,11 +0,0 @@
+-# ai2: the old address of AI 2 (merged into AI on 2026-10-09)
+-
+-AI 2 is no longer a separate module. Its code moved into [ai/cards](/framework/ai/cards/) (a card and what it shows) and [ai/rail](/framework/ai/rail/) (the list on the left and the data behind it); its docs moved to [ai/doc/ai2](/framework/ai/doc/ai2/history.md).
+-
+-What stays here, on purpose:
+-
+-- `page.js`: the route for `/framework/ai2/` and `/framework/ai2/<card>/`, so every old link still opens.
+-- One-line shims (`card.js`, `rail.js`, `inbox.js` …): each re-exports the moved file, so an old `import` keeps working.
+-- `ai2.css`, `page.jsonl`, `weight.jsonl`: the route page's own look and logs.
+-
+-Nothing was deleted: [the old-path to new-path list](/framework/ai/sessions/2026/10/09/session-6784f3f5/ai2-merge/manifest.json) and [the inventory](/framework/ai/sessions/2026/10/09/session-6784f3f5/ai2-merge/inventory.md) show every move. Old page logs are in [ai/archive/ai2](/framework/ai/archive/ai2/readme.md).
+diff --git a/public/framework/ai2/real.js b/public/framework/ai2/real.js
+deleted file mode 100644
+index df7139550f..0000000000
+--- a/public/framework/ai2/real.js
++++ /dev/null
+@@ -1,2 +0,0 @@
+-// Moved to ai/cards/real.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/cards/real.js";
+diff --git a/public/framework/ai2/rules.js b/public/framework/ai2/rules.js
+deleted file mode 100644
+index babf1b96c4..0000000000
+--- a/public/framework/ai2/rules.js
++++ /dev/null
+@@ -1,2 +0,0 @@
+-// Moved to ai/cards/Rules.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/cards/Rules.js";
+diff --git a/public/framework/ai2/tasks.js b/public/framework/ai2/tasks.js
+deleted file mode 100644
+index eebab19718..0000000000
+--- a/public/framework/ai2/tasks.js
++++ /dev/null
+@@ -1,2 +0,0 @@
+-// Moved to ai/cards/Tasks.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/cards/Tasks.js";
+diff --git a/public/framework/ai2/workspace.js b/public/framework/ai2/workspace.js
+deleted file mode 100644
+index f4fc9adbe9..0000000000
+--- a/public/framework/ai2/workspace.js
++++ /dev/null
+@@ -1,3 +0,0 @@
+-// Moved to ai/cards/workspace.js (ai2 merged into ai, 2026-10-09). Old path kept so imports keep working.
+-export * from "../ai/cards/workspace.js";
+-export { default } from "../ai/cards/workspace.js";
+diff --git a/public/framework/core/Page/Jsonl.js b/public/framework/core/Page/Jsonl.js
+index e69024fb72..34a79872bd 100644
+--- a/public/framework/core/Page/Jsonl.js
++++ b/public/framework/core/Page/Jsonl.js
+@@ -50,6 +50,7 @@ export default class PageJsonl {
+ 	}
+ 
+ 	static async log_class(host, module, url){
++		if (module === "/framework/ai2/card.js") module = "/framework/ai/cards/card.js";   // 531 card page.jsonl files still name the retired ai2 folder
+ 		const Class = (await import(new URL(module, location.origin + url).href)).default;
+ 		if (Class?.prototype instanceof this.Page) return Class;
+ 
+diff --git a/public/framework/core/Page/ai/work.js b/public/framework/core/Page/ai/work.js
+index f50b96f0a9..f7eaae9c17 100644
+--- a/public/framework/core/Page/ai/work.js
++++ b/public/framework/core/Page/ai/work.js
+@@ -129,7 +129,7 @@ function fill_rows(data, extra = []){
+ 		...(data.agents ?? []).map(a => ({ at: a.started_at ?? "", done: false,
+ 			draw: () => row_line("smart_toy", `${a.id} · ${a.role} · ${a.state}`, null) })),
+ 		...(data.cards ?? []).map(c => ({ at: c.last ?? c.created ?? "", done: c.status === "done",
+-			draw: () => row_line(c.type === "note" ? "sticky_note_2" : "task_alt", c.title, "/framework/ai2/" + c.id + "/") })),
++			draw: () => row_line(c.type === "note" ? "sticky_note_2" : "task_alt", c.title, "/framework/ai/" + c.id + "/") })),
+ 		...extra.map(e => ({ at: e.at ?? "", done: !!e.done,
+ 			draw: () => row_line(e.icon ?? "history", e.title, e.url) })),
+ 	].sort((x, y) => (x.done !== y.done ? (x.done ? 1 : -1) : String(y.at).localeCompare(String(x.at))));
+diff --git a/public/framework/core/Page/audit/data.js b/public/framework/core/Page/audit/data.js
+index 39f935cfa7..f14be33712 100644
+--- a/public/framework/core/Page/audit/data.js
++++ b/public/framework/core/Page/audit/data.js
+@@ -68,19 +68,19 @@ export default {
+ 			"page_js": 1,
+ 			"examples": [
+ 				{
+-					"url": "/framework/ai2/",
++					"url": "/framework/ai/",
+ 					"title": "(394) AI 2"
+ 				},
+ 				{
+-					"url": "/framework/ai2/2026/09/29/audio-a-library-of-audio-parts-transcrip/",
++					"url": "/framework/ai/2026/09/29/audio-a-library-of-audio-parts-transcrip/",
+ 					"title": "(396) AI 2"
+ 				},
+ 				{
+-					"url": "/framework/ai2/2026/09/29/from-dictation-to-a-brief-with-nothing-l/",
++					"url": "/framework/ai/2026/09/29/from-dictation-to-a-brief-with-nothing-l/",
+ 					"title": "(400) AI 2"
+ 				},
+ 				{
+-					"url": "/framework/ai2/2026/09/29/mobile-nav-back-an-ai-rail-at-the-bottom/",
++					"url": "/framework/ai/2026/09/29/mobile-nav-back-an-ai-rail-at-the-bottom/",
+ 					"title": "(396) AI 2"
+ 				}
+ 			],
+diff --git a/public/framework/core/Page/audit/design/data.js b/public/framework/core/Page/audit/design/data.js
+index dccbfa4d31..52cbebfcb4 100644
+--- a/public/framework/core/Page/audit/design/data.js
++++ b/public/framework/core/Page/audit/design/data.js
+@@ -124,7 +124,7 @@ export default [
+ 		}
+ 	},
+ 	{
+-		"url": "/framework/ai2/",
++		"url": "/framework/ai/",
+ 		"widths": {
+ 			"400": {
+ 				"tab_rows": 1,
+diff --git a/public/framework/core/Page/ext/paths.js b/public/framework/core/Page/ext/paths.js
+index b8f1b06c14..e96b1eeb38 100644
+--- a/public/framework/core/Page/ext/paths.js
++++ b/public/framework/core/Page/ext/paths.js
+@@ -12,7 +12,7 @@ const ROWS = [
+ 	{ adds: "fs/", on: "every page", saves: "nothing (read-only)", built: true, href: "/framework/core/Page/fs/" },
+ 	{ adds: "its own AI assistant + chat", on: "any page, on first message", saves: "<page>ai/chat.jsonl", built: true, href: "/framework/core/Page/ai/" },
+ 	{ adds: "a day's task folders", on: "/framework/ai/<date>/", saves: "ai/<date>/<slug>/task.jsonl …", built: true, href: "/framework/ai/" },
+-	{ adds: "a card's own folder", on: "/framework/ai2/<y>/<m>/<d>/<card>/", saves: "that folder's page.jsonl", built: true, href: "/framework/ai2/" },
++	{ adds: "a card's own folder", on: "/framework/ai/<y>/<m>/<d>/<card>/", saves: "that folder's page.jsonl", built: true, href: "/framework/ai/" },
+ 	{ adds: "<page>/edit/ workspace", on: "—", saves: "—", built: false, href: "/imagine/cms/edit/" },
+ ];
+ 
+diff --git a/public/framework/core/Page/make/page.js b/public/framework/core/Page/make/page.js
+index b2e0e1ef18..3757fe49a2 100644
+--- a/public/framework/core/Page/make/page.js
++++ b/public/framework/core/Page/make/page.js
+@@ -96,7 +96,7 @@ export default new Page({
+ 		md("Live: [overview/route](/framework/core/Page/overview/route/) — the same textbook case, at its own url.");
+ 
+ 		h3("4. folders — an index with no folder on disk");
+-		md("`route()`'s biggest job: a page whose child is a *name*, read straight off disk instead of declared. This is the pattern behind `ai2/`'s day and card pages (`Card.Folder`, [`ai2/card.js`](/framework/ai2/card.js)) — the smallest real piece of it:");
++		md("`route()`'s biggest job: a page whose child is a *name*, read straight off disk instead of declared. This is the pattern behind the AI page's day and card pages (`Card.Folder`, [`ai/cards/card.js`](/framework/ai/cards/card.js)) — the smallest real piece of it:");
+ 		code.js(`async child(name, levels){
+     if (!/^\\d{4}$/.test(name)) return null;                 // not a name I answer for
+     return this.add(name, { title: name, content(){ … } })   // build it, on the fly
+diff --git a/public/framework/core/Page/overview/folders/page.js b/public/framework/core/Page/overview/folders/page.js
+index 889d208c39..eb7ffe08a3 100644
+--- a/public/framework/core/Page/overview/folders/page.js
++++ b/public/framework/core/Page/overview/folders/page.js
+@@ -2,7 +2,7 @@ import { Page, demo, md, div, a } from "/app.js";
+ 
+ // The AI 2 index pattern, at demo scale: a page whose CHILD is a name read off
+ // disk, never declared with a children: list. The real one is Card.Folder
+-// (public/framework/ai2/card.js:964-990) — this is its smallest real piece,
++// (public/framework/ai/cards/card.js, `Card.Folder`) — this is its smallest real piece,
+ // same shape, no calendar math: a name comes in, a page goes out, remembered.
+ const years = () => new Page({
+ 	title: "Years",
+diff --git a/public/framework/core/Sidebar/variants/walkthrough/page.js b/public/framework/core/Sidebar/variants/walkthrough/page.js
+index b108018dc2..da87d27d79 100644
+--- a/public/framework/core/Sidebar/variants/walkthrough/page.js
++++ b/public/framework/core/Sidebar/variants/walkthrough/page.js
+@@ -25,7 +25,7 @@ const STEPS = [
+ 		say: "Either the app swaps one rail as pages change (E), or every page keeps its own rail and an `active` class hides the rest (F)." },
+ 	{ title: "The floating page", pic: "floating-1920-top.png", open: "/framework/core/Page/layout/floating/",
+ 		say: "A different kind of page, not a sidebar variant: its own inner left nav, in a gray well, beside a white page that scrolls past it." },
+-	{ title: "AI 2 uses the same layout", pic: "ai2-system-design-floating.png", open: "/framework/ai2/2026/09/24/system-design/?view=workspace",
++	{ title: "AI 2 uses the same layout", pic: "ai2-system-design-floating.png", open: "/framework/ai/2026/09/24/system-design/?view=workspace",
+ 		say: "AI 2 uses the same layout: here is System design in it. The card's own tabs and sub-cards become the left nav; the card's content becomes the white page beside it." },
+ 	{ title: "Which one?", open: "/framework/core/Sidebar/variants/",
+ 		say: "None of this decides anything by itself — the choice among A–F lives on the task's card, as a Decision, for the owner." },
+diff --git a/public/framework/dev/DevBar/chat.js b/public/framework/dev/DevBar/chat.js
+index a6b38b1a3e..6c188bccc2 100644
+--- a/public/framework/dev/DevBar/chat.js
++++ b/public/framework/dev/DevBar/chat.js
+@@ -1,7 +1,7 @@
+ import View, { div, span, button, select, option } from "../../core/View/View.js";
+ import { section } from "./parts.js";
+ import { servex_url } from "../servex_url.js";
+-import { AgentTalk } from "../../ai2/live.js";
++import { AgentTalk } from "../../ai/rail/live.js";
+ import devbar from "./DevBar.js";
+ import devshell from "../DevShell/DevShell.js";
+ import { use_v1 } from "../DevShell/pref.js";
+diff --git a/public/framework/readme.md b/public/framework/readme.md
+index 6899b58b9d..97719470a0 100644
+--- a/public/framework/readme.md
++++ b/public/framework/readme.md
+@@ -20,7 +20,7 @@
+ - [dev](./dev/) — local-only live reload and the dev bar
+ - [research](./research/) — research projects, filed by date (`research/YYYY/MM/DD/<topic>/`); its readme lists them (read one only when your task needs it)
+ - [tasks](./tasks/readme.md) — framework-wide work asked for and not done yet, newest date first
+-- [ai](./ai/) — the daily working log and task board (its card rail and inbox are AI 2's old code, being migrated in place; `ai2/` itself is retired)
++- [ai](./ai/) — the daily working log and task board; its card rail and inbox are in `ai/rail/` and `ai/cards/`
+ - [audit](./audit/) — the 2026-08-15 doc audit, a dated snapshot
+ - [old](./old/) — the home page as it stood before the 2026-10-02 sprawl rebuild, kept reachable
+ - [doc](./doc/decisions.md) — framework-wide decisions and doc-system notes; [doc/rules.md](./doc/rules.md) is the long form of the rules below; [doc/git.md](./doc/git.md) is how code gets from a worktree to the live site (proposal)
+diff --git a/public/framework/ui/scale/page.js b/public/framework/ui/scale/page.js
+index ff1020e06b..bbcefbc2ce 100644
+--- a/public/framework/ui/scale/page.js
++++ b/public/framework/ui/scale/page.js
+@@ -35,7 +35,7 @@ export default new Page({
+ 			div.c("flex v gap", box).style({ width: "856px", maxWidth: "100%" });
+ 		});
+ 
+-		md("Built for the Figma \"Sept 2026\" recreations, where a 856px-wide design had to fit a ~400px card column without reflowing what the Figma actually drew: [`/framework/ai2/2026/09/28/figma-sept-2026/`](/framework/ai2/2026/09/28/figma-sept-2026/).");
++		md("Built for the Figma \"Sept 2026\" recreations, where a 856px-wide design had to fit a ~400px card column without reflowing what the Figma actually drew: [`/framework/ai/2026/09/28/figma-sept-2026/`](/framework/ai/2026/09/28/figma-sept-2026/).");
+ 	},
+ 
+ 	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", box)); },
+diff --git a/public/framework/ux/Card/page.js b/public/framework/ux/Card/page.js
+index cbc00512c9..7bcec219bb 100644
+--- a/public/framework/ux/Card/page.js
++++ b/public/framework/ux/Card/page.js
+@@ -5,16 +5,16 @@ View.stylesheet(import.meta, "Card.css");
+ /* THE SHAPE ONE CARD ALWAYS HAS (show, don't tell): a head (icon, title, a state word, the
+    "Reviewed ✓" control), an outline — what was asked and what came of it — and one row in
+    the Live card's own style, so a reader sees the three pieces this file actually styles
+-   without opening `ai2/card.js` at all. Plain markup, no class, no log: the real card reads
++   without opening `ai/cards/card.js` at all. Plain markup, no class, no log: the real card reads
+    its folder's `page.jsonl`; this is only its look. */
+ export default new Page({
+ 	meta: import.meta,
+ 	title: "Card",
+-	description: "The look of an AI card's own page — its head, its outline, a Live-card row — the same CSS whether the card opens under /framework/ai/ or /framework/ai2/.",
++	description: "The look of an AI card's own page — its head, its outline, a Live-card row — the same CSS whether the card opens in the AI rail or on its own page.",
+ 	icon: "dashboard",
+ 
+ 	content(){
+-		md("A card's own page, opened at [/framework/ai2/](/framework/ai2/) or [/framework/ai/](/framework/ai/), is always this shape: a head, then an outline of what was asked, then its chat column. This page shows the look alone — no log, no agent, nothing to click. Not the `.card` box: that is [ui/card](/framework/ui/card/), the one card page.");
++		md("A card's own page, opened from the AI rail or at its own address, is always this shape: a head, then an outline of what was asked, then its chat column. This page shows the look alone — no log, no agent, nothing to click. Not the `.card` box: that is [ui/card](/framework/ui/card/), the one card page.");
+ 
+ 		// Not the real `.page.ai2-card-page` grid — that expects the AI 2 shell's own
+ 		// height, which this plain doc page does not give it (it would just collapse to
+@@ -72,7 +72,7 @@ export default new Page({
+ 
+ 		details.c("ai2-more", () => {
+ 			summary.c("ai2-more-head muted").text("Where each piece comes from");
+-			md("The head, the outline, the properties sidebar and the grid are [`ai2/card.js`](/framework/ai/cards/card.js)'s own markup; this demo copies the classes by hand so the look can be seen with no real card to open. The Live row is the same `.ai2-live-item` every row in [the Live card](/framework/ai2/live/) wears.");
++			md("The head, the outline, the properties sidebar and the grid are [`ai/cards/card.js`](/framework/ai/cards/card.js)'s own markup; this demo copies the classes by hand so the look can be seen with no real card to open. The Live row is the same `.ai2-live-item` every row in [the Live card](/framework/ai/live/) wears.");
+ 		});
+ 
+ 		md("The whole look, as CSS alone: [`Card.css`](/framework/ux/Card/Card.css).");
+diff --git a/public/framework/ux/Dictate/page.js b/public/framework/ux/Dictate/page.js
+index 133e3aa0e4..26ffe8fa26 100644
+--- a/public/framework/ux/Dictate/page.js
++++ b/public/framework/ux/Dictate/page.js
+@@ -36,7 +36,7 @@ const pipeline_tiles = () => div.c("flex wrap gap v-center wide ux-dictate-pipel
+ 	span.c("ux-dictate-pipeline-arrow muted", "→");
+ 	tile("Revise", "clean · edit · summary", "/framework/ux/Revise/");
+ 	span.c("ux-dictate-pipeline-arrow muted", "→");
+-	tile("Where it goes", "a card, a composer, the prompt log", "/framework/ai2/");
++	tile("Where it goes", "a card, a composer, the prompt log", "/framework/ai/");
+ }).style("--gap", "0.6em");
+ 
+ /* The card's own context — a real textarea, dictated into live. `$out` mirrors
+diff --git a/public/framework/ux/Dictate/v1/page.js b/public/framework/ux/Dictate/v1/page.js
+index 5416b542dc..8c939ba8c1 100644
+--- a/public/framework/ux/Dictate/v1/page.js
++++ b/public/framework/ux/Dictate/v1/page.js
+@@ -30,7 +30,7 @@ const pipeline_tiles = () => div.c("flex wrap gap v-center wide ux-dictate-pipel
+ 	span.c("ux-dictate-pipeline-arrow muted", "→");
+ 	tile("Revise", "clean · edit · summary", "/framework/ux/Revise/");
+ 	span.c("ux-dictate-pipeline-arrow muted", "→");
+-	tile("Where it goes", "a card, a composer, the prompt log", "/framework/ai2/");
++	tile("Where it goes", "a card, a composer, the prompt log", "/framework/ai/");
+ }).style("--gap", "0.6em");
+ 
+ const demo_box = () => {
+diff --git a/public/index.html b/public/index.html
+index 38f2de0513..408a8de6d7 100644
+--- a/public/index.html
++++ b/public/index.html
+@@ -38,6 +38,12 @@
+ 	<meta name="twitter:image" content="https://lew42.com/blog/framework/hello-lew42/no-build.png">
+ 	<meta name="twitter:image:alt" content="The framework's own front page: the no-build headline, the measured stats beside it, and the two-line page.js under them.">
+ 
++	<!-- OLD ADDRESS: /framework/ai2/ was merged into /framework/ai/ (2026-10-09) and its folder removed (2026-11-04). A card keeps its dated address; a session folder (session-… or a uuid) lives under sessions/. The old needs/ view is now the inbox.
++	     Static hosts serve this file for any unknown path, so rewrite the address before the app routes it. -->
++	<script>
++		if (/^\/framework\/ai2(\/|$)/.test(location.pathname))
++			history.replaceState(null, "", location.pathname.replace(/^\/framework\/ai2\/?(needs\/?)?(\d{4}\/\d{2}\/\d{2}\/)?/, (m, n, day, at, all) => "/framework/ai/" + (day ? (/^(session-|[0-9a-f]{8}-)/.test(all.slice(m.length)) ? "sessions/" : "") + day : n ? "inbox/" : "")) + location.search + location.hash);
++	</script>
+ 	<script type="module" src="/app.js"></script>
+ </head>
+ <body></body>

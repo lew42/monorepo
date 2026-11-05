@@ -1,5 +1,53 @@
 # Git and deploying: how code gets from a worktree to production
 
+## The flow (the owner, 2026-11-05): this section rules; older text below is history
+
+| Branch | What it is | Moved by |
+|---|---|---|
+| `main` | The newest integrated code, and the Cloudflare preview address. Nobody develops on it. | Only the shipping steps below |
+| `production` | The live site. | Only by deliberately bringing `main` into it, on the owner's word |
+| `compliance/dev` | This machine's development branch. | `merge.mjs`, after each landing |
+| worktree branches | Agent work. They branch off `compliance/dev` and merge back into it, never into `main`. | `merge.mjs` |
+
+**Keeping `main` clean:** a machine's local `main` only ever moves by a fast-forward pull or by the shipping step. Conflicts are always resolved on `compliance/dev`, never on `main`.
+
+**Shipping to `main`:**
+1. `git checkout main && git pull --ff-only`
+2. `git checkout compliance/dev && git merge main`. Resolve any conflicts here.
+3. Run the tests and smoke checks, and review the diff (see below).
+4. `git checkout main && git merge --ff-only compliance/dev`
+5. `git push origin main`. The ruleset's bypass allows this without a pull request.
+
+The same steps without switching branches, for when the main folder has uncommitted work:
+```
+git fetch origin main:main
+git merge main
+git push origin compliance/dev:main
+git fetch origin main:main
+```
+These run on `compliance/dev`. The push refuses anything that isn't a fast-forward.
+
+**Rules**
+- Never force-push `main` or `production`.
+- Run the available tests and smoke checks before anything goes into `main`.
+- Anyone without the bypass uses a pull request.
+- **Who has the bypass (set 2026-11-05):** the owner's GitHub login. Agents on this PC push with that same login, so they can push too. A GitHub app or Action pushes under its own name and still needs a pull request.
+
+**Review before shipping (open):** the owner hasn't been reviewing code, so a bad change can reach `main` without anyone seeing it. The plan: before step 5, a reviewer agent reads `git diff origin/main..compliance/dev` and writes a one-screen summary of what changed and what looks risky. A GitHub pull request remains available as a place to read the diff when the owner wants one, but nothing requires it.
+
+**Never switch branches in the served folder (the owner, 2026-11-05).** The main folder is the one the dev server serves, so treat it like production. Checking out `main` there swaps every file under a running site. The sync to GitHub never needs it:
+- **The usual case: only this PC ships.** `compliance/dev` already contains all of `main`, so `git push origin compliance/dev:main` just moves a label on GitHub, and `git fetch origin main:main` moves the local one. No file in any folder changes.
+- **When GitHub's `main` has commits from someone else:** merge them in a dedicated *ship worktree*. This is a `git worktree`, not a second clone, so it shares commits with the main folder and nothing has to be copied across.
+  - In the ship worktree: `git fetch origin`, `git switch -C ship compliance/dev`, `git merge origin/main`, then run the tests.
+  - `merge.mjs` then lands branch `ship` into `compliance/dev` like any task. That is the same kind of file change every landing already makes in the served folder.
+  - After that, `main` is a plain step forward again: `git push origin compliance/dev:main`.
+- **Planned home:** this flow moves to `framework/code/git/readme.md` (by the move script, with links updated). The mastermind's skill points at it, and the close-out of every worktree follows it.
+
+**Open, 2026-11-05:**
+- `lew42.com` was found serving `main` on 2026-11-03 (below). Until Cloudflare's production branch is set to `production`, a push to `main` is a push to the live site.
+- [Server/DevPublish.mjs](../../../Server/DevPublish.mjs) still ships by opening a pull request. With the bypass it can push directly instead.
+- The main folder holds hundreds of uncommitted and untracked files, which have to be sorted before it is safe to check out `main` there.
+
 **Decided in principle (the owner, 2026-11-01):** the PC's work lands on its own branch (`compliance/dev`, renamed from `michael/dev` on 2026-11-03), which goes into `main`. `main` is staging: anyone may push to it, and its address shows the newest checked code. A separate `production` branch is what the public site (`lew42.com`) serves, and it moves up to `main` only when the owner says so.
 
 Words used here: **production** is the public site (`lew42.com`, later). **Staging** is `main`'s address. **Preview** is any other branch's address. Only production is "live" for visitors. This comes from two of the owner's dictations on 2026-11-01 (cloud session `e3fd9043`), with every fact checked that day. Nothing is built yet: the steps are at the end. The older rules for people joining the repo are in the [root readme](../../../readme.md#new-dev-onboarding).

@@ -1,0 +1,126 @@
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index e8da4395a..4c1bc0c60 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -1441,7 +1441,9 @@ Agents.Agent = class Agent {
+ 		const local = process.env.SERVEX_LOCAL_TOOLS === "0" ? null : local_page_tools(this.id, agent_log(this));
+ 		return {
+ 			mcpServers: { servex: { type: "http", url: url + (url.includes("?") ? "&" : "?") + "as=" + encodeURIComponent(this.id) }, ...(local ? { local: local.server } : {}), ...this.mcp_servers },
+-			...(local ? { disallowedTools: local.twins } : {}),
++			/* The owner's claude.ai "Servex" connector loads in every agent and reaches Servex through the remote door, which labels every call
++			 * caller "voice-app": a spawn made through it got parent voice-app (seen 2026-11-01). Agents use `mcp__servex__*` (`?as=<id>`). */
++			disallowedTools: [...(local ? local.twins : []), "mcp__claude_ai_Servex"],
+ 			env: { ...process.env, CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: process.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE ?? "95", SERVEX_MCP: url, ...(or_env ?? {}), ...task_env, ...this.env }
+ 		};
+ 	}
+diff --git a/Servex/agents/doc/architecture.md b/Servex/agents/doc/architecture.md
+index 9acd189b0..86c74bb27 100644
+--- a/Servex/agents/doc/architecture.md
++++ b/Servex/agents/doc/architecture.md
+@@ -92,6 +92,8 @@ minion can call `spawn_agent` itself, and the child lands in the **same** regist
+ throwing away the project's own MCP servers an agent may need. Servex's door is added beside
+ whatever it already has.
+ 
++**The parent of a spawn is the caller's own id.** `spawn_agent` takes `args.parent`, else `ctx.caller` (the `?as=<id>` of the agent's own door), else, from a tab, the `session_id` it passes. The remote door (`/mcp/remote`, `RemoteMCP.CALLER`) labels every call `voice-app`, and the owner's claude.ai "Servex" connector loads in every agent and goes through it, so a spawn made via `mcp__claude_ai_Servex__*` got parent `voice-app` (seen 2026-11-01). `door()` therefore disallows `mcp__claude_ai_Servex` for every agent; test `item-local.test.mjs`.
++
+ **A mastermind that spawns masterminds** works the same way — the host does not care what
+ `role` a caller asks for. `card()` carries `parent`, so the dashboard can draw the tree.
+ 
+diff --git a/Servex/agents/item-local.test.mjs b/Servex/agents/item-local.test.mjs
+index 2b8c3144a..0f685afc7 100644
+--- a/Servex/agents/item-local.test.mjs
++++ b/Servex/agents/item-local.test.mjs
+@@ -17,11 +17,11 @@ let d = door();
+ ok(d.mcpServers.local?.type === "sdk", "local is an in-process sdk server");
+ ok(d.mcpServers.servex?.type === "http", "HTTP servex entry stays");
+ ok(NAMES.every(t => d.disallowedTools.includes("mcp__servex__" + t)), "six HTTP twins disallowed");
+-ok(d.disallowedTools.length === 6, "only the twins");
++ok(d.disallowedTools.length === 7 && d.disallowedTools.includes("mcp__claude_ai_Servex"), "the twins plus the claude.ai Servex connector (its calls would be labelled voice-app)");
+ 
+ process.env.SERVEX_LOCAL_TOOLS = "0";
+ d = door();
+-ok(!d.mcpServers.local && !d.disallowedTools && d.mcpServers.servex, "SERVEX_LOCAL_TOOLS=0: HTTP only");
++ok(!d.mcpServers.local && d.disallowedTools.length === 1 && d.disallowedTools[0] === "mcp__claude_ai_Servex" && d.mcpServers.servex, "SERVEX_LOCAL_TOOLS=0: HTTP only, connector still blocked");
+ 
+ // The SDK server hides its handlers, so call the same function through page_tools().
+ const REL = "public/framework/ai/sessions/2026/10/16/.item-local-test-" + process.pid;
+diff --git a/Servex/agents/readme.md b/Servex/agents/readme.md
+index 7b64718b7..6dbfcb10c 100644
+--- a/Servex/agents/readme.md
++++ b/Servex/agents/readme.md
+@@ -39,6 +39,8 @@ alive. `stop` ends it, and it stays listed as `stopped`.
+ `assistant-fast` (`Assistant.js`, `assistant.md`) is the lobby: it answers words spoken with no
+ card. `SERVEX_NO_ASSISTANT=1` boots without it.
+ 
++The parent of a spawn is always the caller's own id (or a tab's `session_id`, registered as `vscode-<id8>`), never the remote door's `voice-app`: [`doc/architecture.md`](doc/architecture.md), "The parent of a spawn is the caller's own id".
++
+ ## A fresh, directory-bound agent starts with its readme chain
+ 
+ A FRESH spawn whose directory is named (`task: {dir}`, or `page`) gets the
+diff --git a/Servex/agents/spawn-parent.test.mjs b/Servex/agents/spawn-parent.test.mjs
+new file mode 100644
+index 000000000..935a94971
+--- /dev/null
++++ b/Servex/agents/spawn-parent.test.mjs
+@@ -0,0 +1,23 @@
++// The parent of a spawn is the caller's own id, never the remote door's "voice-app". `node Servex/agents/spawn-parent.test.mjs`
++import assert from "node:assert";
++import { tools } from "./tools.js";
++import RemoteMCP from "../ext/remote/RemoteMCP.js";
++import fs from "node:fs";
++assert.equal(RemoteMCP.CALLER, fs.readFileSync(new URL("./tools.js", import.meta.url), "utf8").match(/const REMOTE_CALLER = "([^"]+)"/)[1], "tools.js REMOTE_CALLER must equal RemoteMCP.CALLER");
++
++const seen = [];
++const agents = {
++	spawn: a => { seen.push(a.parent); return { card: () => ({ id: "x" }) }; },
++	external: { register: ({ id }) => ({ id }) },
++	reg: () => ({ read: () => ({}) }),
++	policy: { spawn: () => ({ ok: true }), parent: () => null }
++};
++const spawn = tools(agents).find(t => t.name === "spawn_agent");
++const parent_of = async (args, ctx) => { seen.length = 0; await spawn.handler({ prompt: "p", ...args }, ctx); return seen[0]; };
++
++assert.equal(await parent_of({}, { caller: "mastermind-a" }), "mastermind-a", "a Servex agent's own door names it");
++assert.equal(await parent_of({ parent: "mastermind-b" }, { caller: "voice-app" }), "mastermind-b", "an explicit parent wins");
++assert.equal(await parent_of({ session_id: "5b6b1e66-aaaa" }, { caller: "voice-app" }), "vscode-5b6b1e66", "a tab through the remote door is its tab, not voice-app");
++assert.equal(await parent_of({ session_id: "5b6b1e66-aaaa" }, { caller: null }), "vscode-5b6b1e66", "a tab on the local door");
++assert.equal(await parent_of({}, { caller: "voice-app" }), "voice-app", "the voice agent itself still parents its own spawns");
++console.log("spawn-parent: 5 checks passed");
+diff --git a/Servex/agents/tools.js b/Servex/agents/tools.js
+index 8ea000bba..7cb207a69 100644
+--- a/Servex/agents/tools.js
++++ b/Servex/agents/tools.js
+@@ -334,8 +334,11 @@ function log_tools(agents){
+ const caller_is_from = t => t.name !== "start_job" ? t
+ 	: { ...t, handler: (args = {}, ctx = {}) => t.handler({ ...args, from: args.from ?? ctx.caller ?? undefined }, ctx) };
+ 
++/* What the remote door (RemoteMCP.CALLER) calls every connector client; it says nothing about WHO called, so a tab's own session_id outranks it. Kept equal to RemoteMCP.CALLER by spawn-parent.test.mjs. */
++const REMOTE_CALLER = "voice-app";
++
+ /* The agent id for a session Servex does not hold: its registered external row, else one registered as vscode-<id8>. Null if it cannot. */
+-function tab_parent(agents, session_id){
++export function tab_parent(agents, session_id){
+ 	const ext = agents.external;
+ 	if (!ext || !/^[0-9a-f-]{8,}$/i.test(String(session_id))) return null;
+ 	const rows = agents.reg().read(), hit = Object.values(rows).find(r => r?.kind === "external" && r.session_id === session_id);
+@@ -391,7 +394,7 @@ return [
+ 			 * description) still works exactly as before whenever Servex has no caller to blame
+ 			 * either (a VS Code tab's own direct MCP call, ctx.caller null). */
+ 			const { session_id: tab_session, ...rest } = args;
+-			let parent = args.parent ?? ctx.caller ?? null;
++			let parent = args.parent ?? (ctx.caller === REMOTE_CALLER && tab_session ? tab_parent(agents, tab_session) : null) ?? ctx.caller ?? null;
+ 			/* A TAB'S SPAWN HAS A PARENT (2026-10-22, honest-completion): a VS Code tab's MCP call carries no `?as=`, so ctx.caller is null.
+ 			 * The tab passes its own session uuid; the registered external agent with that uuid is the parent (registered now if new). */
+ 			if (!parent && tab_session) parent = tab_parent(agents, tab_session);
+diff --git a/Servex/ext/remote/readme.md b/Servex/ext/remote/readme.md
+index fcd679173..6702b2129 100644
+--- a/Servex/ext/remote/readme.md
++++ b/Servex/ext/remote/readme.md
+@@ -1,6 +1,6 @@
+ # ext/remote — the tunnel MCP the Claude voice app talks to
+ 
+-`RemoteMCP.js` serves `POST /mcp/remote` (reached through `Server/Tunnel.mjs`, bearer token in the path or header). It serves the **whole Servex tool registry** (`servex.mcp`, the same tools every local session has) plus `ask_mastermind` (ask the voice mastermind, wait up to a minute). Calls run as caller `voice-app`. The voice-agent directives live only in `RemoteMCP.INSTRUCTIONS`. Test: `node Servex/ext/remote/RemoteMCP.test.mjs`.
++`RemoteMCP.js` serves `POST /mcp/remote` (reached through `Server/Tunnel.mjs`, bearer token in the path or header). It serves the **whole Servex tool registry** (`servex.mcp`, the same tools every local session has) plus `ask_mastermind` (ask the voice mastermind, wait up to a minute). Calls run as caller `voice-app`, which says nothing about who called: a spawn from a tab takes its parent from the tab's `session_id` ([rule](../agents/doc/architecture.md)), and Servex agents have this connector blocked (`disallowedTools` in `Agents.door()`) so they use their own door. The voice-agent directives live only in `RemoteMCP.INSTRUCTIONS`. Test: `node Servex/ext/remote/RemoteMCP.test.mjs`.
+ 
+ - Why one registry, fully exposed (and the shelved `local`/`remote` split): [doc/mcp-unify.md](doc/mcp-unify.md)
+ - The tunnel and its keeper (Servex restarts it, shows the connector URL, the named-tunnel steps), and **the site from anywhere** (`monorepo.lew42.com` through `Server/SiteGateway.mjs`): [doc/tunnel.md](doc/tunnel.md)

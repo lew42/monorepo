@@ -1,0 +1,156 @@
+diff --git a/public/framework/ext/Chat/Mic.js b/public/framework/ext/Chat/Mic.js
+index a9fcb7d28..093dce9e2 100644
+--- a/public/framework/ext/Chat/Mic.js
++++ b/public/framework/ext/Chat/Mic.js
+@@ -26,6 +26,7 @@ export const SETTINGS = {
+ 	into: "chat",   // "chat" = growing bubble in the chat log, "box" = the text box; see doc/mic-notes.md#settings
+ 	wake_gap_s: null,   // smart assistant: quiet seconds before it hears a batch (null = Servex's own default); pushed to the session
+ 	wake_every: null,   // smart assistant: or this many sentences, whichever comes first (null = Servex's default)
++	assistant: undefined,   // undefined = never picked (nothing sent); null = Servex's boot word; "single" | "voice" = this session's seat (ux/Dictate/doc/single-voice-assistant.md)
+ 	send_on_period: true,      // cut a send at . ! or … (one box: the three read as one "a sentence ended" mark)
+ 	send_on_question: true,   // cut a send at a question mark
+ 	send_on_comma: false,     // cut a send at a comma too; off by default — on, it fragments a sentence into pieces at every comma
+@@ -357,6 +358,7 @@ export class ComposerMic extends Dictate {
+ 			});
+ 			into.append(name, input);
+ 		}
++		this.assistant_row(panel);
+ 		this.wake_rows(panel);
+ 		this.segment_rows(more.querySelector("div"));   // same "More" grid as guess_ms/box_lines/… (round 4, item 8c)
+ 		panel.append(more);
+@@ -385,6 +387,37 @@ export class ComposerMic extends Dictate {
+ 		}
+ 	}
+ 
++	// One assistant or two: a per-session word in Servex (POST /api/session/settings {assistant}); the line under it is read back from the server (GET /api/session/<id>), never from localStorage.
++	assistant_row(panel){
++		const name = document.createElement("label"); name.textContent = "voice assistants";
++		const select = document.createElement("select"); select.dataset.key = "assistant"; select.style.width = "10em";
++		for (const [value, label] of [["", "Default"], ["single", "One assistant"], ["voice", "Two assistants (fast + smart)"]]) select.add(new Option(label, value));
++		select.value = SETTINGS.assistant ?? "";
++		const live = document.createElement("div"); live.className = "chatbox-mic-settings-live"; live.dataset.role = "assistant-live";
++		live.style.cssText = "grid-column: 1 / -1; font-size: 0.85em; opacity: 0.75";
++		const show = async () => {
++			const session = this.wake_session?.();
++			if (!session){ live.textContent = "No session yet: your pick is sent when you start talking."; return; }
++			try {
++				const { servex_url } = await import("/framework/dev/servex_url.js");
++				const res = await fetch(servex_url("/api/session/" + encodeURIComponent(session)), { signal: AbortSignal.timeout(10000) });
++				const out = await res.json();
++				if (!out.ok) throw new Error(out.error ?? res.status);
++				live.textContent = "Live now: " + ({ single: "one assistant", voice: "two assistants (fast + smart)", fast: "two assistants (old fast chatter)", off: "smart assistant only" }[out.assistant] ?? "Servex's default");
++			} catch (e){ live.textContent = "Could not read which is live: " + (e.message ?? e); }
++		};
++		select.addEventListener("change", async () => {
++			SETTINGS.assistant = select.value || null;
++			save_settings();
++			live.textContent = "Saving…";
++			try { await this.push_wake(true); } catch (e){ console.warn("[dictate] assistant seat:", e); }
++			show();
++		});
++		panel.append(name, select, live);
++		this.refresh_assistant = show;
++		show();
++	}
++
+ 	// The smart assistant's batch knobs live in Servex, per session (ux/Dictate/doc/wake-policy.md); the browser keeps the owner's pick and re-sends it to each session.
+ 	wake_rows(panel){
+ 		const head = document.createElement("div");
+@@ -412,12 +445,13 @@ export class ComposerMic extends Dictate {
+ 	// POST the saved batch knobs to the current voice session (null = back to Servex's default). `wake_session` is set by the widget.
+ 	async push_wake(force){
+ 		const session = this.wake_session?.();
+-		if (!session || !force && SETTINGS.wake_gap_s == null && SETTINGS.wake_every == null) return;
++		if (!session || !force && SETTINGS.wake_gap_s == null && SETTINGS.wake_every == null && SETTINGS.assistant === undefined) return;
+ 		const { servex_url } = await import("/framework/dev/servex_url.js");
+ 		const res = await fetch(servex_url("/api/session/settings"), { method: "POST", signal: AbortSignal.timeout(10000), headers: { "content-type": "application/json" },
+-			body: JSON.stringify({ session, gap_ms: SETTINGS.wake_gap_s == null ? null : SETTINGS.wake_gap_s * 1000, every: SETTINGS.wake_every }) });
++			body: JSON.stringify({ session, gap_ms: SETTINGS.wake_gap_s == null ? null : SETTINGS.wake_gap_s * 1000, every: SETTINGS.wake_every, ...(SETTINGS.assistant === undefined ? {} : { assistant: SETTINGS.assistant }) }) });
+ 		const out = await res.json().catch(() => ({ ok: false, error: "HTTP " + res.status }));
+ 		if (!out.ok) throw new Error("Servex refused session/settings: " + (out.error ?? res.status));
++		this.refresh_assistant?.();
+ 	}
+ 
+ 	// The owner typed or pasted: text before the dictated tail is theirs; an edit inside the dictation makes the whole box theirs.
+diff --git a/public/framework/ux/Dictate/doc/settings.md b/public/framework/ux/Dictate/doc/settings.md
+index 6dace83cb..00f45be40 100644
+--- a/public/framework/ux/Dictate/doc/settings.md
++++ b/public/framework/ux/Dictate/doc/settings.md
+@@ -9,6 +9,8 @@ One panel, the old one: `ComposerMic.settings_panel()` in `ext/Chat/Mic.js`, ope
+ - **Send delay (s), default 2.** Quiet that must pass before the words on screen leave as one prompt. Keep talking within it and the new sentence joins the same prompt. It sets both waits `auto_check()` uses, `SETTINGS.paragraph_pause_ms` (natural pause after a finished sentence) and `SETTINGS.pause_send_ms` (silence before the tail), to the same value.
+ - **Smart assistant: batch after quiet (s, 1 to 60) and after this many sentences (1 to 50).** These are Servex's `gap_ms` and `every` ([wake-policy.md](wake-policy.md)); empty means Servex's default (12 s, 6: `WAKE_DEFAULTS` in `Servex/agents/WakePolicy.js`; the placeholders in `Mic.js` repeat those two numbers). Changing one POSTs `/api/session/settings` to the current voice session (`ComposerMic.push_wake()`); `chat.js` also sends the saved values once to each new session at its first send.
+ 
++- **Voice assistants: Default / One assistant / Two assistants (fast + smart).** Picking one POSTs `{session, assistant: "single" | "voice" | null}` to `/api/session/settings` (`ComposerMic.assistant_row()`, then `push_wake()`; `chat.js` re-sends the pick to each new session). The line under it ("Live now: …") is read from `GET /api/session/<id>`, which reports the session's own `assistant` word; with none it says Servex's default. The pick is kept in `SETTINGS.assistant` only so a new session gets it.
++
+ The send delay is the first row. Guess every, box lines, safety chunks and filler words sit under a closed **More**; the rest of the panel is unchanged. The compact bar (the strip) has no ⚙ on purpose: only the full-size bar opens the panel.
+ 
+ ## Where the values live
+@@ -17,4 +19,4 @@ The send delay is the first row. Guess every, box lines, safety chunks and fille
+ 
+ ## Proof
+ 
+-`node ux/Dictate/test/settings.mjs <base-url>`: the delay holds across a reload; at 3 s two sentences 1 s apart are one prompt, at 0.5 s they are two; the batch seconds reach `/api/session/settings`. Shots: `ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/settings/shots/` (`panel-400.png`, `panel-1920.png`).
++`node ux/Dictate/test/settings.mjs <base-url>`: the delay holds across a reload; at 3 s two sentences 1 s apart are one prompt, at 0.5 s they are two; the batch seconds reach `/api/session/settings`; choosing One assistant posts `assistant: "single"`, the live line reads it back from the server, and it holds across a reload (shot `assistants-360.png`). Shots: `ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/settings/shots/` (`panel-400.png`, `panel-1920.png`).
+diff --git a/public/framework/ux/Dictate/doc/single-voice-assistant.md b/public/framework/ux/Dictate/doc/single-voice-assistant.md
+index ff8e9ef86..77c2ab27c 100644
+--- a/public/framework/ux/Dictate/doc/single-voice-assistant.md
++++ b/public/framework/ux/Dictate/doc/single-voice-assistant.md
+@@ -4,6 +4,7 @@
+ 
+ ## Turning it on
+ - **Every session:** write the word `single` in `session-assistant.txt` (or set `SERVEX_SESSION_ASSISTANT=single`); read at boot, so Servex restarts for it. The word is one of `fast`, `voice` (default), `single`, `off`.
++- **From the phone:** the gear panel's **voice assistants** row (One assistant / Two assistants / Default) does the per-session POST below; its line shows which is live ([settings.md](settings.md)).
+ - **One session:** `POST /api/session/settings {session, assistant: "single"}`. `assistant: null` drops it back to the boot word. If an agent is already awake for that session it is put to sleep; the next sentence wakes the new seat.
+ 
+ ## What happens to a sentence (`Servex/agents/Sessions.js`: `single_say`, `single_cue`, `heard`)
+diff --git a/public/framework/ux/Dictate/test/settings.mjs b/public/framework/ux/Dictate/test/settings.mjs
+index 8f8f40ca7..28ea763cc 100644
+--- a/public/framework/ux/Dictate/test/settings.mjs
++++ b/public/framework/ux/Dictate/test/settings.mjs
+@@ -14,6 +14,7 @@ const { default: Browser } = await import(new URL("../../../../../Server/Browser
+ const browser = await Browser.launch();
+ const kill = setTimeout(() => { console.log("FAIL killed after 120 s"); process.exit(2); }, 120000);
+ let fails = 0;
++let server_assistant = null;   // the stub Servex's per-session word, shared by every page of the run
+ const unstubbed = [];   // every API call no stub answered, over the whole run (must stay empty: this script never touches Servex)
+ const check = (ok, what) => { console.log((ok ? "ok   " : "FAIL ") + what); if (!ok) fails++; };
+ 
+@@ -27,7 +28,8 @@ async function stub(page, said, knobs){
+ 		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
+ 		let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
+ 		if (verb === "say"){ if (!body.kind) said.push(body.text);   /* a kind (error, click, context) is a diagnostic or context line, filed as a log line and never a prompt (ext/Chat/v2/report.js) */ return json(route, { ok: true, at: new Date().toISOString() }); }
+-		if (verb === "settings"){ knobs.push(body); return json(route, { ok: true }); }
++		if (verb === "settings"){ knobs.push(body); if ("assistant" in body) server_assistant = body.assistant; return json(route, { ok: true }); }
++		if (verb === "stub-session") return json(route, { ok: true, id: "stub-session", ...(server_assistant ? { assistant: server_assistant } : {}) });   // GET /api/session/<id>: the server's own word
+ 		return json(route, verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : { ok: true });
+ 	});
+ 	await page.route(/\/stub-session\.jsonl/, r => r.fulfill({ status: 200, contentType: "text/plain", body: "" }));
+@@ -78,6 +80,28 @@ const gear = async page => {   // open the gear panel (the old "Dictation settin
+ 	check(errors.length === 0, "no page errors" + (errors[0] ? ": " + errors[0] : ""));
+ 	await ctx.close();
+ }
++// 1b. the one/two assistants switch: it POSTs assistant "single", the live line is read from the server, and it holds across a reload
++{
++	const ctx = await browser.newContext({ viewport: { width: 360, height: 740 }, hasTouch: true, isMobile: true });
++	let { page, errors, knobs } = await open(ctx);
++	await page.evaluate(() => { globalThis.$dictate_widget.dictate.wake_session = () => "stub-session"; });
++	await gear(page);
++	check(await page.locator("select[data-key=assistant]").inputValue() === "", "the assistants switch starts on Default");
++	await page.selectOption("select[data-key=assistant]", "single");
++	await page.waitForFunction(() => /one assistant/.test(document.querySelector("[data-role=assistant-live]")?.textContent ?? ""), null, { timeout: 5000 }).catch(() => {});
++	check(knobs.some(k => k.session === "stub-session" && k.assistant === "single"), "choosing One assistant POSTed assistant: single: " + JSON.stringify(knobs.at(-1) ?? null));
++	check(/Live now: one assistant/.test(await page.locator("[data-role=assistant-live]").textContent()), "the live line reads the server: " + await page.locator("[data-role=assistant-live]").textContent());
++	await page.screenshot({ path: path.join(shots, "assistants-360.png") });
++	await page.close();
++	({ page, errors } = await open(ctx));
++	await page.evaluate(() => { globalThis.$dictate_widget.dictate.wake_session = () => "stub-session"; });
++	await gear(page);
++	check(await page.locator("select[data-key=assistant]").inputValue() === "single", "after a reload the switch still reads One assistant");
++	await page.waitForFunction(() => /one assistant/.test(document.querySelector("[data-role=assistant-live]")?.textContent ?? ""), null, { timeout: 5000 }).catch(() => {});
++	check(/Live now: one assistant/.test(await page.locator("[data-role=assistant-live]").textContent()), "after a reload the live line still says one assistant (from the server)");
++	check(errors.length === 0, "no page errors" + (errors[0] ? ": " + errors[0] : ""));
++	await ctx.close();
++}
+ // 2 and 3: the delay is the wait
+ // per = sentences_per_send: 1 is the default since views-fix item 0 (commit e7f8e5d36, 2026-11-01: every finished sentence goes out at once, the
+ // send delay only holds the unfinished tail); 0 is the older "join within the delay" path the delay knob still drives.

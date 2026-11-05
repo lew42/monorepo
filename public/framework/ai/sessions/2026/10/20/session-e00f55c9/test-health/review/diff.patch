@@ -1,0 +1,233 @@
+diff --git a/public/framework/core/Test/TestRunner.mjs b/public/framework/core/Test/TestRunner.mjs
+index 2bb3ac4f3..a4ed4b678 100644
+--- a/public/framework/core/Test/TestRunner.mjs
++++ b/public/framework/core/Test/TestRunner.mjs
+@@ -1,7 +1,8 @@
+ // Finds, runs, watches and records node tests (X.test.mjs). Node only. Design: tasks/test-system/plan.md
+ import fs from "node:fs";
++import os from "node:os";
+ import path from "node:path";
+-import { spawn, execFileSync } from "node:child_process";
++import { spawn, execFileSync, execSync } from "node:child_process";
+ import { fileURLToPath, pathToFileURL } from "node:url";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+@@ -14,6 +15,9 @@ export default class TestRunner {
+ 	results = process.env.TESTRUNNER_RESULTS || path.join(HERE, "results.jsonl");   // the env var is for proofs
+ 	timeout = Number(process.env.TESTRUNNER_TIMEOUT) || 60000;   // 60 s; the env var is for proofs
+ 	parallel = 4;
++	limits = (() => { try { return JSON.parse(fs.readFileSync(path.join(HERE, "timeouts.json"), "utf8")); } catch { return {}; } })();   // per-file limits, see timeouts.json
++
++	limit(file){ return process.env.TESTRUNNER_TIMEOUT ? this.timeout : (this.limits[file] || this.timeout); }
+ 	cache = new Map();   // abs file -> { mtime, deps }
+ 	running = new Set();
+ 
+@@ -117,18 +121,18 @@ export default class TestRunner {
+ 		return this._site;
+ 	}
+ 
+-	one(file, trigger, extra = {}){
++	one(file, trigger, extra = {}, { args = [], env = {}, timeout = this.limit(file) } = {}){
+ 		return new Promise(resolve => {
+ 			const t0 = Date.now(); let out = "", timedOut = false;
+-			const child = spawn(process.execPath, [...this.node_args(), file], { cwd: this.root, windowsHide: true, env: { ...(this._env ?? process.env), SITE_URL: process.env.SITE_URL || this.site_url() } });
+-			const timer = setTimeout(() => { timedOut = true; child.kill(); }, this.timeout);
++			const child = spawn(process.execPath, [...this.node_args(), file, ...args], { cwd: this.root, windowsHide: true, env: { ...(this._env ?? process.env), SITE_URL: process.env.SITE_URL || this.site_url(), ...env } });
++			const timer = setTimeout(() => { timedOut = true; child.kill(); }, timeout);
+ 			child.stdout.on("data", d => out += d);
+ 			child.stderr.on("data", d => out += d);
+ 			child.on("close", code => {
+ 				clearTimeout(timer);
+ 				const ok = code === 0 && !timedOut;
+ 				const line = { file, ok, ms: Date.now() - t0, at: new Date().toISOString(), trigger, ...extra };
+-				if (!ok) line.tail = (timedOut ? "TIMED OUT after " + this.timeout + "ms\n" : "") + out.trim().split(/\r?\n/).slice(-15).join("\n");
++				if (!ok) line.tail = (timedOut ? "TIMED OUT after " + timeout + "ms\n" : "") + out.trim().split(/\r?\n/).slice(-15).join("\n");
+ 				if (timedOut) line.timeout = true;
+ 				fs.appendFileSync(this.results, JSON.stringify(line) + "\n");
+ 				console.log(`${ok ? "PASS" : timedOut ? "TIME" : "FAIL"} ${file} (${line.ms} ms)`);
+@@ -149,6 +153,26 @@ export default class TestRunner {
+ 		return out;
+ 	}
+ 
++	/* The browser scripts in browser-scripts.mjs, one at a time (each opens its own headless browser).
++	   "pass" scripts must pass; "red" ones are reported and never fail the run. */
++	async browser(names = []){
++		const { SCRIPTS } = await import(pathToFileURL(path.join(HERE, "browser-scripts.mjs")).href);
++		const site = process.env.SITE_URL || this.site_url(), shots = fs.mkdtempSync(path.join(os.tmpdir(), "browser-shots-"));
++		const pw = path.dirname(execSync("npm root -g", { encoding: "utf8", windowsHide: true }).trim());
++		const wav = path.join(this.root, "public/framework/ai/recordings/jfk.wav");
++		const fill = a => a.replace("{site}", site).replace("{shots}", shots).replace("{repo}", this.root).replace("{wav}", wav);
++		const todo = SCRIPTS.filter(x => x.status !== "skip" && (!names.length || names.some(n => x.file.includes(n)))), results = [], red_now_passes = [];
++		for (const x of todo) {
++			const r = await this.one(x.file, "browser", { browser: true, status: x.status }, { args: x.args.map(fill), env: { PW_ROOT: pw, PWENTRY: path.join(pw, "node_modules/playwright/index.mjs"), WAV: wav }, timeout: x.ms || 120000 });
++			results.push({ ...r, status: x.status });
++			if (x.status === "red" && r.ok) red_now_passes.push(x.file);
++		}
++		const must = results.filter(r => r.status !== "red" && !r.ok), known = results.filter(r => r.status === "red" && !r.ok);
++		fs.rmSync(shots, { recursive: true, force: true });
++		console.log(`browser: ${results.length - must.length - known.length} passed, ${must.length} FAILED, ${known.length} known red${red_now_passes.length ? ", now passing (promote to pass): " + red_now_passes.join(", ") : ""}`);
++		return { results, must, red_now_passes };
++	}
++
+ 	watch(folders){
+ 		let pending = new Set(), timer;
+ 		const fire = () => {
+@@ -178,6 +202,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)
+ 	else if (args[0] === "--list" || i > -1 || n > -1) {
+ 		const files = n > -1 ? r.near(norm(args[n + 1])) : i > -1 ? r.covers(norm(args[i + 1])) : r.find(args.filter(a => a !== "--list").map(norm));
+ 		console.log(files.join("\n"));
++	} else if (args.includes("--browser")) {
++		const { must } = await r.browser(args.filter(a => a !== "--browser"));
++		process.exitCode = must.length ? 1 : 0;
+ 	} else {
+ 		const files = r.find(args.map(norm));
+ 		const res = await r.run(files);
+diff --git a/public/framework/core/Test/browser-scripts.mjs b/public/framework/core/Test/browser-scripts.mjs
+new file mode 100644
+index 000000000..658c215fc
+--- /dev/null
++++ b/public/framework/core/Test/browser-scripts.mjs
+@@ -0,0 +1,41 @@
++// The browser scripts (Playwright, run by hand before) that `TestRunner.mjs --browser` runs, and the allow-list.
++// status "pass": must pass, a red one fails the run. "red": known failing (why says what), reported but does not fail the run;
++// when a "red" one passes, the run says so, and you move it to "pass". "skip": never run (why says why).
++// args: "{site}" the checkout's SITE_URL, "{shots}" a temp folder, "{repo}" this checkout, "{wav}" the fake-mic clip.
++// ms: its own time limit (default 120000).
++export const SCRIPTS = [
++	{"file":"public/framework/ux/Dictate/test/active-session.mjs","args":["{site}","{repo}"],"status":"pass"},
++	{"file":"public/framework/ux/Dictate/test/chat-gray.mjs","args":["{site}","{shots}"],"status":"pass"},
++	{"file":"public/framework/ux/Dictate/test/chat-sent.mjs","args":["{site}","{shots}"],"status":"red","why":"v2 chat at 400px: scroll-pinning checks fail (scroll max 0, newest not in view)"},
++	{"file":"public/framework/ux/Dictate/test/debug-tab.mjs","args":["{site}","{shots}"],"status":"red","why":"Debug view shows llm=wait, not all eight lights green"},
++	{"file":"public/framework/ux/Dictate/test/deltas.mjs","args":["{site}"],"status":"red","why":"owner bubble should read One. Two. Three. once; the repeat is drawn or the late line is misplaced"},
++	{"file":"public/framework/ux/Dictate/test/dictation-bar.mjs","args":["{site}"],"status":"pass"},
++	{"file":"public/framework/ux/Dictate/test/docs-tab.mjs","args":["{site}","{shots}"],"status":"pass"},
++	{"file":"public/framework/ux/Dictate/test/earlier.mjs","args":["{site}"],"status":"red","why":"after show-earlier, the reader moved (144 -> -1115)"},
++	{"file":"public/framework/ux/Dictate/test/errors.mjs","args":["{site}"],"status":"pass"},
++	{"file":"public/framework/ux/Dictate/test/flicker.mjs","args":["{site}","{shots}"],"status":"pass"},
++	{"file":"public/framework/ux/Dictate/test/freeze.mjs","args":["{site}"],"status":"pass","ms":180000},
++	{"file":"public/framework/ux/Dictate/test/handoff.mjs","args":["{site}"],"status":"skip","why":"a real run: asks the live Servex, so it starts real agents"},
++	{"file":"public/framework/ux/Dictate/test/in-place.mjs","args":["{site}","{shots}"],"status":"red","why":"4 checks fail (see its output)"},
++	{"file":"public/framework/ux/Dictate/test/load.mjs","args":["{site}"],"status":"pass"},
++	{"file":"public/framework/ux/Dictate/test/marks.mjs","args":["{site}"],"status":"pass"},
++	{"file":"public/framework/ux/Dictate/test/new-session.mjs","args":["{site}","{repo}"],"status":"red","why":"A2: New session does not clear the demo chat"},
++	{"file":"public/framework/ux/Dictate/test/order.mjs","args":["{site}"],"status":"pass"},
++	{"file":"public/framework/ux/Dictate/test/raw-stays.mjs","args":["{site}","{shots}"],"status":"pass"},
++	{"file":"public/framework/ux/Dictate/test/reconnect.mjs","args":["{site}","{shots}"],"status":"red","why":"5 s outage should stay hidden (8 s grace); log lines not written"},
++	{"file":"public/framework/ux/Dictate/test/refresh.mjs","args":["{site}"],"status":"pass","ms":180000},
++	{"file":"public/framework/ux/Dictate/test/settings.mjs","args":["{site}","{shots}"],"status":"red","why":"delay 0.5 s: 3 prompts sent, wanted 2"},
++	{"file":"public/framework/ux/Dictate/test/sheet-steps.mjs","args":["{site}","{shots}"],"status":"pass"},
++	{"file":"public/framework/ux/Dictate/test/stall.mjs","args":["{site}"],"status":"red","why":"1 check fails after the reload step"},
++	{"file":"public/framework/ux/Dictate/test/swallow.mjs","args":["{site}","{shots}"],"status":"red","why":"page.evaluate: querySelectorAll of undefined"},
++	{"file":"public/framework/ux/Dictate/test/v1-order.mjs","args":["{site}","{shots}"],"status":"pass"},
++	{"file":"public/framework/ux/Dictate/test/watch.mjs","args":["{site}"],"status":"pass"},
++	{"file":"public/framework/ux/Dictate/test/repeat.mjs","args":[],"status":"pass"},
++	{"file":"public/framework/ext/Refine/test/composer-flow.mjs","args":["{site}","{shots}/composer.png"],"status":"red","why":"screenshot step fails (unsupported mime type); needs Whisper :8178 and Servex"},
++	{"file":"public/framework/ext/Refine/test/dictate-flow.mjs","args":["{site}","{wav}","{shots}"],"status":"red","why":"times out waiting for .voice-conn"},
++	{"file":"public/framework/ext/Refine/test/nothing-to-refine.mjs","args":["{site}","{shots}"],"status":"red","why":"loading Dictate.js request errors"},
++	{"file":"public/framework/ext/Refine/test/session-log.mjs","args":["{site}","{shots}"],"status":"pass"},
++	{"file":"public/framework/ext/Refine/test/refine-style.mjs","args":[],"status":"pass"},
++	{"file":"Servex/ext/refine/test/tag-router.mjs","args":[],"status":"pass"},
++	{"file":"Servex/ext/refine/test/live-refine-measure.mjs","args":[],"status":"skip","why":"spends model money (default cap 5 dollars) and writes into a session folder"},
++];
+diff --git a/public/framework/core/Test/doc/health.md b/public/framework/core/Test/doc/health.md
+index dbb9f6a92..f340290f8 100644
+--- a/public/framework/core/Test/doc/health.md
++++ b/public/framework/core/Test/doc/health.md
+@@ -23,12 +23,19 @@
+ - `Files.move.test.mjs`: the per-call answer limit was 4 s, shorter than a `move_plan` now takes (the repo scan reads ~39,500 files). Now 30 s.
+ 
+ ## Still red, filed rather than fixed
++- Seen red in the 2026-11-02 `run-all.mjs` run from the test-browser worktree (201 of 205 passed; line in [run-all.jsonl](../run-all.jsonl)): `Files.move.test.mjs` failed with `EPERM` after 64 s (the earlier run only timed out), `ChatV2.test.mjs` and `ChatV3.test.mjs` hit a Playwright `TimeoutError` against the worktree's site. Not yet re-run on the main checkout; a main-checkout `run-all` is the check.
+ - `jsonl-schema.test.mjs`: the schema lists verbs (`agent`, `chat`, `note`, …) that the task reader and `ai/cards/fold.js` do not list or mark `pending`. Needs a call on which reader owns them.
+ 
+-## Never run by any gate: the browser scripts
+-These are Playwright scripts taken by hand (`node <script> <base-url> [shots dir]`), not named `*.test.mjs`, so neither the runner nor `merge.mjs` ever runs them:
+-- `ux/Dictate/test/*.mjs` (27 scripts, plus fixtures). Two, `chat-sent.mjs` and `earlier.mjs`, were already failing before 3b1fae8d3 ([ux/Dictate/improvements.jsonl](/framework/ux/Dictate/improvements.jsonl)).
+-- `ext/Refine/test/` (`composer-flow`, `dictate-flow`, `nothing-to-refine`, `refine-style`, `session-log`), `Servex/ext/refine/test/` (`live-refine-measure`, `tag-router`).
+-- `ux/Content/Object/DefaultView.test.js`: reserved `.test.js` (browser), no runner.
++## The browser scripts: `--browser` (2026-11-02)
++Playwright scripts that take a site URL (not named `*.test.mjs`) are listed in [browser-scripts.mjs](../browser-scripts.mjs) with a status, and run by one command:
++- `node public/framework/core/Test/TestRunner.mjs --browser [name…]` runs the listed scripts one at a time, headless, with a fake mic (`jfk.wav`), against `SITE_URL` (this checkout's site by default). **pass** must pass; **red** is known failing and is reported but never fails the run (the run says when a red one now passes, so you can promote it); **skip** is never run.
++- `node public/framework/core/Test/run-all.mjs [--browser]` runs every node test (and the browser list) and appends one dated line to [run-all.jsonl](../run-all.jsonl): `{at, trigger, site, node:{total,passed,red[]}, browser?:{…}, ms, ok}`. **Not scheduled**: run it by hand; a nightly job can call it and read the last line.
++- A slow test gets its own limit in [timeouts.json](../timeouts.json) (file → ms) instead of one global number; a browser script sets `ms` in the list. `TESTRUNNER_TIMEOUT` still overrides everything.
+ 
+-I did not run these: they need a live site, Servex stubs and a fake mic, and the Dictate ones sit in dictation-v3's fence. **Proposal (not wired):** give them one entry, `TestRunner.mjs --browser`, that runs each with `SITE_URL`, headless, with an allow-list of the ones known to pass, so a red one is a real change. That is a larger job than a list in `merge.mjs` because the scripts take different arguments; it is queued for the Dictate owner.
++Per-script run against monorepo.localhost (2026-11-02, 32 scripts; each line is in [results.jsonl](../results.jsonl), trigger `browser`): 19 pass, 13 red. The one `run-all.mjs --browser` line in run-all.jsonl ran against the worktree's own site instead and shows 16 pass; see the three-script note below.
++- **Pass (19):** Dictate `active-session`, `chat-gray`, `dictation-bar`, `docs-tab`, `errors`, `flicker`, `freeze`, `load`, `marks`, `order`, `raw-stays`, `refresh`, `sheet-steps`, `v1-order`, `watch`; `repeat`; Refine `session-log`, `refine-style`; `tag-router`.
++- **Red (13):** `chat-sent` (v2 chat at 400px: scroll-pinning checks fail (scroll max 0, newest not in view)); `debug-tab` (Debug view shows llm=wait, not all eight lights green); `deltas` (owner bubble should read One. Two. Three. once; the repeat is drawn or the late line is misplaced); `earlier` (after show-earlier, the reader moved (144 -> -1115)); `in-place` (4 checks fail (see its output)); `new-session` (A2: New session does not clear the demo chat); `reconnect` (5 s outage should stay hidden (8 s grace); log lines not written); `settings` (delay 0.5 s: 3 prompts sent, wanted 2); `stall` (1 check fails after the reload step); `swallow` (page.evaluate: querySelectorAll of undefined); `composer-flow` (screenshot step fails (unsupported mime type); needs Whisper :8178 and Servex); `dictate-flow` (times out waiting for .voice-conn); `nothing-to-refine` (loading Dictate.js request errors).
++- **Skipped:** `handoff.mjs` (asks the live Servex and starts real agents) and `live-refine-measure.mjs` (spends model money).
++- `dictation-bar`, `docs-tab` and `refresh` failed once against a stale worktree site: these scripts check the code beside them, so run `--browser` from a checkout whose site is current.
++- The reds are filed: the Dictate ones with the ux/Dictate owner, the Refine ones in [ext/Refine/improvements.jsonl](/framework/ext/Refine/improvements.jsonl).
++- `ux/Content/Object/DefaultView.test.js`: reserved `.test.js` (browser), no runner.
+diff --git a/public/framework/core/Test/readme.md b/public/framework/core/Test/readme.md
+index 1325945ff..3dc3e18e5 100644
+--- a/public/framework/core/Test/readme.md
++++ b/public/framework/core/Test/readme.md
+@@ -8,7 +8,8 @@
+ - [TestResults.js](./TestResults.js) + [page.js](./page.js) — the live page of `results.jsonl`
+ - [Steps.js](./Steps.js) — `class Steps`: runs a class's core test written as steps (`X.steps.js`), the same in node and the browser
+ - [TestView.js](./TestView.js) + [view/](/framework/core/Test/view/) — watch a test run: every object drawn live in the default view, every line beside it
+-- [doc/health.md](./doc/health.md) — which tests exist, which gate runs them, what is red now, and the browser scripts nothing runs
++- [browser-scripts.mjs](./browser-scripts.mjs) · [run-all.mjs](./run-all.mjs) · [run-all.jsonl](./run-all.jsonl) · [timeouts.json](./timeouts.json) — the browser-script allow-list, the whole-suite command and its log, per-file time limits
++- [doc/health.md](./doc/health.md) — which tests exist, which gate runs them, what is red now, and the browser scripts and their results
+ - [tasks/test-system/plan.md](./tasks/test-system/plan.md) — the design and why
+ 
+ ## Use
+@@ -35,6 +36,7 @@ test.node("writes the real file", async t => { const fs = await import("node:fs"
+ - **Names:** `X.test.mjs` is a node test, passing when it exits 0 (old tests without `Test` count too). `X.test.js` is reserved for browser tests; none yet.
+ - **One test, node and the browser:** a class's core test can be a list of steps, `X.steps.js` (`{title, code, note, run(t), check(t), show(t)}`; Item, List, Task have one). `X.steps.test.mjs` runs it in node with `new Steps(steps).all()`; [the test view](/framework/core/Test/view/?test=Item) runs the same steps on screen, one painted frame per step. `?step` waits for Next and stops at a `debugger` after each step, so DevTools shows that step's view. `t.click(label, fn)` is the UI path (a real button in the browser, a call in node); `t.same(a, b)` compares two objects as data and, on screen, as their drawn views (the `.store` row left out). Each test ends by rebuilding its object from the saved lines and checking the two views match.
+ - **The one command:** `node public/framework/core/Test/TestRunner.mjs [folders…]`: whole repo by default, each file in its own process, 60 s timeout, 4 at once.
++- **Browser scripts and everything:** `TestRunner.mjs --browser [name]` runs the Playwright scripts listed in `browser-scripts.mjs` (headless, fake mic); `run-all.mjs [--browser]` runs all and appends one line to `run-all.jsonl` (not scheduled). A slow test gets its limit in `timeouts.json`. See [health.md](./doc/health.md).
+ - **Coverage:** a test covers its own folder plus every file it imports, transitively. `--covers <file>` lists them; `--list [folders]` lists tests.
+ - **Near:** `--near <file>` lists the tests *near* a changed file: the `*.test.mjs` in its folder plus the tests that import it directly (one level, cheaper than `--covers`). A single test file path runs that file.
+ - **On change:** `TestRunner.mjs --watch core/Item core/Task` runs the covering tests (300 ms debounce, `.js`/`.mjs` only).
+diff --git a/public/framework/core/Test/run-all.jsonl b/public/framework/core/Test/run-all.jsonl
+new file mode 100644
+index 000000000..1ebabcfd0
+--- /dev/null
++++ b/public/framework/core/Test/run-all.jsonl
+@@ -0,0 +1 @@
++{"at":"2026-11-02T05:35:27.326Z","trigger":"proof","site":"http://test-browser.localhost","node":{"total":205,"passed":201,"red":[".claude/hooks/jsonl-schema.test.mjs","Server/plugins/SocketServer/Files.move.test.mjs","public/framework/ext/Chat/v2/ChatV2.test.mjs","public/framework/ext/Chat/v3/ChatV3.test.mjs"]},"browser":{"total":32,"passed":16,"red":["public/framework/ux/Dictate/test/dictation-bar.mjs","public/framework/ux/Dictate/test/docs-tab.mjs","public/framework/ux/Dictate/test/refresh.mjs"],"known_red":["public/framework/ux/Dictate/test/chat-sent.mjs","public/framework/ux/Dictate/test/debug-tab.mjs","public/framework/ux/Dictate/test/deltas.mjs","public/framework/ux/Dictate/test/earlier.mjs","public/framework/ux/Dictate/test/in-place.mjs","public/framework/ux/Dictate/test/new-session.mjs","public/framework/ux/Dictate/test/reconnect.mjs","public/framework/ux/Dictate/test/settings.mjs","public/framework/ux/Dictate/test/stall.mjs","public/framework/ux/Dictate/test/swallow.mjs","public/framework/ext/Refine/test/composer-flow.mjs","public/framework/ext/Refine/test/dictate-flow.mjs","public/framework/ext/Refine/test/nothing-to-refine.mjs"],"promote":[]},"ms":1292438,"ok":false}
+diff --git a/public/framework/core/Test/run-all.mjs b/public/framework/core/Test/run-all.mjs
+new file mode 100644
+index 000000000..27986b4e9
+--- /dev/null
++++ b/public/framework/core/Test/run-all.mjs
+@@ -0,0 +1,26 @@
++// The whole suite in one command, with one dated result line in run-all.jsonl so a nightly run can be scheduled later.
++//   node public/framework/core/Test/run-all.mjs [--browser]
++// Runs every *.test.mjs (TestRunner), then with --browser the allow-listed browser scripts (browser-scripts.mjs).
++// Exit 1 if a node test fails, or an allow-listed ("pass") browser script fails. Known-slow tests: timeouts.json.
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import TestRunner from "./TestRunner.mjs";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const r = new TestRunner(), t0 = Date.now();
++const node = await r.run(r.find());
++const line = {
++	at: new Date().toISOString(), trigger: process.env.RUN_ALL_TRIGGER || "manual", site: r.site_url(),
++	node: { total: node.length, passed: node.filter(x => x.ok).length, red: node.filter(x => !x.ok).map(x => x.file) },
++};
++let bad = node.some(x => !x.ok);
++if (process.argv.includes("--browser")) {
++	const b = await r.browser();
++	line.browser = { total: b.results.length, passed: b.results.filter(x => x.ok).length, red: b.must.map(x => x.file), known_red: b.results.filter(x => x.status === "red" && !x.ok).map(x => x.file), promote: b.red_now_passes };
++	bad ||= b.must.length > 0;
++}
++line.ms = Date.now() - t0; line.ok = !bad;
++fs.appendFileSync(path.join(HERE, "run-all.jsonl"), JSON.stringify(line) + "\n");
++console.log(`run-all: ${bad ? "RED" : "green"} in ${Math.round(line.ms / 1000)} s -> core/Test/run-all.jsonl`);
++process.exitCode = bad ? 1 : 0;
+diff --git a/public/framework/core/Test/timeouts.json b/public/framework/core/Test/timeouts.json
+new file mode 100644
+index 000000000..02e2a9dd3
+--- /dev/null
++++ b/public/framework/core/Test/timeouts.json
+@@ -0,0 +1,5 @@
++{
++	"_why": "Per-file time limits in ms for known-slow tests (the default is 60000). Key = repo-relative path. Add a line here rather than raising the global limit.",
++	"Server/plugins/SocketServer/Files.move.test.mjs": 150000,
++	"Servex/agents/page_tools.test.mjs": 120000
++}

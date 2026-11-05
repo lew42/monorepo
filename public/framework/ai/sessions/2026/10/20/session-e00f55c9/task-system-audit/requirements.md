@@ -1,4 +1,6 @@
-# Tasks: is the task system working? Measure it, then say what must change (you are a mastermind, on Sonnet, medium effort; the reading goes to Haiku)
+# Tasks: is the task system working? Measure it, then say what must change
+
+*You are a mastermind on Sonnet, medium effort; the reading goes to Haiku.*
 
 **The owner (2026-11-02, about 14:20, dictated; verbatim in the tab's prompt log):**
 - "I don't think our task system is really working the way it should be. Use some cheap agents, Haiku, or Sonnet if Haiku doesn't figure it out."

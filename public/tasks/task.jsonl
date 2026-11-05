@@ -122,3 +122,6 @@
 {"task":"/framework/ai/v/2/tasks/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:24.932Z"}
 {"task":"/framework/core/Page/settings/tasks/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:27.689Z"}
 {"task":"/framework/ext/Shots/tasks/","by":"TaskHomes","ts":"2026-10-23T06:00:29.238Z"}
+{"task":"/framework/core/session/tasks/","by":"PromptTasks","ts":"2026-10-25T04:18:48.473Z"}
+{"task":"/framework/ai/merge/tasks/","by":"PromptTasks","ts":"2026-10-25T04:18:49.374Z"}
+{"task":"/framework/ai/queue/tasks/","by":"PromptTasks","ts":"2026-10-25T04:18:49.847Z"}

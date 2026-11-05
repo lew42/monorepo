@@ -1,8 +1,24 @@
-# Which engine made the phone's live transcript? Whisper, every time, including through the restart
+# The phone's live transcript is made by Whisper, including through the 17:37 restart
 
-Times below are local (UTC-6) unless marked `Z`. Read-only; nothing was changed.
+Times are local (UTC-6). Read-only: nothing was changed.
 
-- **Whisper or browser: Whisper.** All 69 voice lines of session `v-u48msei` (`ai/sessions/2026/11/01/v-u48msei/session.jsonl`) match a Whisper final in the raw Whisper log `public/framework/ai/whisper/bucket.jsonl` (checked by script, 69 of 69, none unmatched). Each logged reply is a whisper.cpp answer, not Chrome's: it carries `server.task:"transcribe"`, per-word `t_dtw`, `avg_logprob`, `language_probabilities`, and `ms`/`bytes`/`req`/`segment` from our POST (example, `seq 475`, run `mvygmd19tap`, 23:37:54.910Z, "Does this still work? Probably not."). The bucket holds only two `src` values, `server` and `connection`, and the session file has zero browser-recognizer marks. The page is opened as `10.0.0.135:3104`, a non-localhost host, so `default_whisper_url()` (`ux/Dictate/Dictate.js:799-803`) points at `<origin>/whisper`; the dev server proxies that to whisper-server (`Server/plugins/Whisper.js:94-120`, behind the same LAN/Host guard).
-- **During the restart: Whisper.** Servex went down about 17:37 and was "adopted" back at 17:37:56 (`%LOCALAPPDATA%/lew42/servex/logs/monorepo.jsonl`: "adopted: pid 32820 on port 3104, started 23:20:06Z, still running from the last Servex"). The dev server, which hosts `/whisper`, never stopped, and the separate `whisper-server.exe` (pid 21324) never stopped either. The raw log shows Whisper replies right in the gap: connection `lost` 23:37:32Z, five `retry failed` lines, then seq 473-475 (23:37:52-54Z) from whisper-server, then `reconnected` 23:38:04Z (down 32 s). That utterance reached the session as the voice line at 17:37:59. The connection lines are the socket to Servex; the transcript path is the HTTP proxy, which is why dictation survived. The dev server itself restarted later, at 17:40:46 (`Server listening on 0.0.0.0:3104`), which shows as `lost`/`reconnected` 23:40:44-49Z in the new run `mvyh3o4uuui`, with Whisper replies again straight after.
-- **The label does not show it.** `name_engine()` (`Dictate.js:227-229`) writes an empty string for Whisper and `the browser's recognizer` only for the browser engine, so a blank `ux-dictate-engine` means Whisper and the label never says "Whisper". The page's own "Whisper: connected" line is in `ux-dictate-diag` (`draw_diag()`, `Dictate.js:199-203`). I did not load the public URL headless: the logs settle the question, and the label rule is plain in the code.
-- **Ever used Whisper on the phone: yes today; "ever before" is unproven.** The raw log has 356 finals today from 23:05:10Z (17:05) on, and its first run lines up with the session's first line ("All right, are we working?", 17:05:11). The raw log has no device field, so it cannot tell phone from PC mic. Two things point to the phone path: the session opened with Host `10.0.0.135:3104`, which is exactly what `SiteGateway.mjs:48-51,87-93` sends the dev server for traffic coming in at `monorepo.lew42.com`, and `10.0.0.135` is this PC's own address, so it is the gateway's forwarded traffic (a PC browser would use `localhost`). Opening `http://10.0.0.135:3104` directly on this PC would look the same, so treat the phone as likely, not proven. Chrome's engine could only run if `whisper_seen` was never set in that browser and the Whisper health check failed (`Dictate.js:211-224`); once set, it returns `whisper-down` instead of falling back.
+| You asked | Answer | Proof |
+|---|---|---|
+| Whisper or Chrome's speech API? | **Whisper** | All 69 voice lines of session `v-u48msei` match a Whisper reply in `ai/whisper/bucket.jsonl` (69 of 69). Each reply carries whisper.cpp fields (`task:"transcribe"`, `t_dtw`, `avg_logprob`), which Chrome's engine never produces. |
+| Which engine during the 17:37 restart? | **Whisper** | The dev server (hosts `/whisper`) and `whisper-server.exe` (pid 21324) never stopped. Only the socket to Servex dropped (23:37:32Z to 23:38:04Z), and Whisper replies 473-475 arrived inside that gap. |
+| Does the `ux-dictate-engine` label show it? | **No** | `name_engine()` (`ux/Dictate/Dictate.js:227-229`) prints nothing for Whisper and text only for the browser engine. A blank label means Whisper. "Whisper: connected" shows in `ux-dictate-diag` (`Dictate.js:199-203`). |
+| Ever used Whisper on the phone? | **Yes today; "ever" is unproven** | 356 Whisper finals since 17:05 today, from Host `10.0.0.135:3104`, the address the gateway (`SiteGateway.mjs:48-93`) sends for `monorepo.lew42.com`. The log has no device field, so a direct visit on this PC would look the same: likely the phone, not proven. |
+
+## How audio reaches Whisper from the phone
+
+```
+phone → monorepo.lew42.com → gateway → dev server :3104 /whisper → whisper-server
+```
+
+- `default_whisper_url()` (`Dictate.js:799-803`) uses `<origin>/whisper` on any non-localhost host.
+- The proxy is `Server/plugins/Whisper.js:94-120`.
+- Chrome's engine runs only if Whisper was never seen in that browser and its health check fails (`Dictate.js:211-224`).
+
+## Not done
+
+I did not load the public URL headless. The logs settle the question.

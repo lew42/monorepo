@@ -244,3 +244,17 @@ public/framework/ai/sessions/session-twins.json
 # the session-folder finder's saved map (core/Session/SessionFolders.mjs): a cache of what each day folder holds, checked against the folders on every read
 public/framework/ai/sessions/session-folders.json
 public/framework/ai/sessions/session-folders.json.tmp-*
+
+# 2026-11-05 tidy (git status should read clean; public/framework/doc/git.md):
+# computed at every spawn by Server/PastWork.mjs ("do not hand-edit"), regenerable, no reader on the site
+**/past-work.md
+# full-page screenshots written by the layout check, regenerable by re-running it
+**/layout-check/
+# root scratch from agents; scratch belongs in the session scratchpad (CLAUDE.md, "Where to look")
+/Temp_*
+# a path-join bug doubles the prefix and writes here; the writer is being fixed
+public/public/
+# per-run debug fixtures
+public/framework/ext/Chat/v2/fixture/dbg-*.jsonl
+# temp folders left by the page-tools test
+**/.page-tools-test-*/

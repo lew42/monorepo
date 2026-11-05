@@ -1,4 +1,6 @@
-# What is all this in the repo?
+# Repo junk census: what are 450 changed files?
+
+**Goal:** count every kind of file git shows, say what writes it, and rank what to ignore, stop writing, commit or archive. **Read-only: change nothing.**
 
 Expected cost: about $1.50. Haiku. Follow [findings-method.md](../findings-method.md); write only `findings.md` and your log.
 

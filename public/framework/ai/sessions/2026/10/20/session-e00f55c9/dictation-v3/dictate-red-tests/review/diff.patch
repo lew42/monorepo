@@ -1,134 +1,151 @@
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/dictate-red-tests/session.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/dictate-red-tests/session.jsonl
+index bb8991ca8..ee73b6411 100644
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/dictate-red-tests/session.jsonl
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/dictate-red-tests/session.jsonl
+@@ -42,3 +42,4 @@
+ {"log":{"at":"2026-11-02T02:24:48-06:00","heartbeat":"answered","msg":"Seven of the 12 scripts are green (swallow, new-session, deltas, in-place, settings, earlier and chat-sent). Batch 2 is merged, and `earlier` and `chat-sent` are committed on the worktree but not merg"}}
+ {"log":{"at":"2026-11-02T02:35:40-06:00","heartbeat":"check","msg":"status check sent to mastermind-dictate-red-tests"}}
+ {"log":{"at":"2026-11-02T02:36:06-06:00","heartbeat":"answered","msg":"Still waiting on the full fenced browser run, which gates the batch 3 merge of `earlier` and `chat-sent` (both committed on the worktree). Seven of the 12 scripts are green. Debug-tab, reconnect, stal"}}
++{"log":{"at":"2026-11-02T03:31:23-06:00","msg":"refresh race found: the say stub counted every POST /api/session/say, including diagnostics (kind field) that Recite files as the sheet opens; its text had three word characters so a round could pass or fail by when that diagnostic landed. Fix: count only !body.kind. All six scenarios green. dictation-bar and stall had the same cause; debug-tab was a fixed 1.2 s wait against a 1.5 s poll."},"by":"append.mjs","ts":"2026-11-02T09:31:23.193Z"}
 diff --git a/public/framework/core/Test/browser-scripts.mjs b/public/framework/core/Test/browser-scripts.mjs
-index ea381c57f..96211fc69 100644
+index 020949682..06b6433a1 100644
 --- a/public/framework/core/Test/browser-scripts.mjs
 +++ b/public/framework/core/Test/browser-scripts.mjs
-@@ -19,7 +19,7 @@ export const SCRIPTS = [
- 	{"file":"public/framework/ux/Dictate/test/in-place.mjs","args":["{site}","{shots}"],"status":"red","why":"4 checks fail (see its output)"},
- 	{"file":"public/framework/ux/Dictate/test/load.mjs","args":["{site}"],"status":"pass"},
- 	{"file":"public/framework/ux/Dictate/test/marks.mjs","args":["{site}"],"status":"pass"},
--	{"file":"public/framework/ux/Dictate/test/new-session.mjs","args":["{site}","{repo}"],"status":"red","why":"A2: New session does not clear the demo chat"},
-+	{"file":"public/framework/ux/Dictate/test/new-session.mjs","args":["{site}","{repo}"],"status":"pass"},
+@@ -9,7 +9,7 @@ export const SCRIPTS = [
+ 	{"file":"public/framework/ux/Dictate/test/chat-sent.mjs","args":["{site}","{shots}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/debug-tab.mjs","args":["{site}","{shots}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/deltas.mjs","args":["{site}"],"status":"pass"},
+-	{"file":"public/framework/ux/Dictate/test/dictation-bar.mjs","args":["{site}"],"status":"red","why":"flaky under load: passed in 19 s once, failed in later runs"},
++	{"file":"public/framework/ux/Dictate/test/dictation-bar.mjs","args":["{site}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/docs-tab.mjs","args":["{site}","{shots}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/earlier.mjs","args":["{site}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/errors.mjs","args":["{site}"],"status":"pass"},
+@@ -22,11 +22,11 @@ export const SCRIPTS = [
+ 	{"file":"public/framework/ux/Dictate/test/new-session.mjs","args":["{site}","{repo}"],"status":"pass"},
  	{"file":"public/framework/ux/Dictate/test/order.mjs","args":["{site}"],"status":"pass"},
  	{"file":"public/framework/ux/Dictate/test/raw-stays.mjs","args":["{site}","{shots}"],"status":"pass"},
- 	{"file":"public/framework/ux/Dictate/test/reconnect.mjs","args":["{site}","{shots}"],"status":"red","why":"5 s outage should stay hidden (8 s grace); log lines not written"},
-@@ -27,7 +27,7 @@ export const SCRIPTS = [
- 	{"file":"public/framework/ux/Dictate/test/settings.mjs","args":["{site}","{shots}"],"status":"red","why":"delay 0.5 s: 3 prompts sent, wanted 2"},
+-	{"file":"public/framework/ux/Dictate/test/reconnect.mjs","args":["{site}","{shots}"],"status":"red","why":"5 s outage should stay hidden (8 s grace); log lines not written"},
+-	{"file":"public/framework/ux/Dictate/test/refresh.mjs","args":["{site}"],"status":"red","why":"flaky or slow: passed in 93 s once, failed and timed out at 180 s later","ms":180000},
++	{"file":"public/framework/ux/Dictate/test/reconnect.mjs","args":["{site}","{shots}"],"status":"pass"},
++	{"file":"public/framework/ux/Dictate/test/refresh.mjs","args":["{site}"],"status":"pass","ms":180000},
+ 	{"file":"public/framework/ux/Dictate/test/settings.mjs","args":["{site}","{shots}"],"status":"pass"},
  	{"file":"public/framework/ux/Dictate/test/sheet-steps.mjs","args":["{site}","{shots}"],"status":"pass"},
- 	{"file":"public/framework/ux/Dictate/test/stall.mjs","args":["{site}"],"status":"red","why":"1 check fails after the reload step"},
--	{"file":"public/framework/ux/Dictate/test/swallow.mjs","args":["{site}","{shots}"],"status":"red","why":"page.evaluate: querySelectorAll of undefined"},
-+	{"file":"public/framework/ux/Dictate/test/swallow.mjs","args":["{site}","{shots}"],"status":"pass"},
+-	{"file":"public/framework/ux/Dictate/test/stall.mjs","args":["{site}"],"status":"red","why":"1 check fails after the reload step"},
++	{"file":"public/framework/ux/Dictate/test/stall.mjs","args":["{site}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/swallow.mjs","args":["{site}","{shots}"],"status":"pass"},
  	{"file":"public/framework/ux/Dictate/test/v1-order.mjs","args":["{site}","{shots}"],"status":"pass"},
  	{"file":"public/framework/ux/Dictate/test/watch.mjs","args":["{site}"],"status":"pass"},
- 	{"file":"public/framework/ux/Dictate/test/repeat.mjs","args":[],"status":"pass"},
-diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
-index e86b80a1a..b44926801 100644
---- a/public/framework/ux/Dictate/chat.js
-+++ b/public/framework/ux/Dictate/chat.js
-@@ -44,6 +44,7 @@ function create_controller({ persist }){
- 	const ctl = {
- 		session: null,
- 		file: null,
-+		epoch: 0,   // bumped by reset(): a session start that began before it must not land after it
- 		fresh: false,     // true after New session until the next session starts: Session.start({fresh})
- 		starting: null,   // a pending Session.start() promise — two mounts' first sentence at once share ONE session
- 		nav_path: null,   // the path last actually reported to the session (report_nav's own dedupe)
-@@ -78,13 +79,14 @@ function create_controller({ persist }){
- 		if (ctl.session) return;
- 		if (!ctl.starting && !ctl.fresh){
- 			// Another tab, a link opened in a new tab, the Recite page: join the voice session in use rather than start a second one.
-+			const epoch = ctl.epoch;
- 			ctl.starting = Session.recent_project({ limit: 5 }).then(rows => {
- 				const latest = (rows ?? []).filter(r => /^v-/.test(r.session ?? ""))
- 					.sort((a, b) => Date.parse(b.last_at ?? b.at ?? 0) - Date.parse(a.last_at ?? a.at ?? 0))[0];
- 				if (!latest || Date.now() - Date.parse(latest.last_at ?? latest.at ?? 0) > JOIN_IDLE_MS) return null;
- 				return Session.resume(latest.session);
- 			}).catch(() => null).then(made => {
--				if (!made || ctl.session) return;
-+				if (!made || ctl.session || epoch !== ctl.epoch) return;
- 				ctl.session = made.session; ctl.file = made.file;
- 				if (persist) write_saved({ session: made.session, file: made.file });
- 				broadcast();
-@@ -93,8 +95,10 @@ function create_controller({ persist }){
- 			if (ctl.session) return;
- 		}
- 		if (!ctl.starting){
-+			const epoch = ctl.epoch;
- 			// fresh: after New session, never resume the last hour's session on this page (doc/chat.md#new-session-and-the-mic-indicator)
- 			ctl.starting = Session.start({ path: target.path, card: target.card, fresh: ctl.fresh }).then(made => {
-+				if (epoch !== ctl.epoch) return;   // New session was pressed while this one was starting
- 				ctl.session = made.session; ctl.file = made.file; ctl.fresh = false;
- 				if (persist) write_saved({ session: made.session, file: made.file });
- 				broadcast();
-@@ -123,6 +127,7 @@ function create_controller({ persist }){
- 	}
+diff --git a/public/framework/ux/Dictate/test/active-session.mjs b/public/framework/ux/Dictate/test/active-session.mjs
+index 5663d0576..c85e133de 100644
+--- a/public/framework/ux/Dictate/test/active-session.mjs
++++ b/public/framework/ux/Dictate/test/active-session.mjs
+@@ -7,6 +7,7 @@ const [base, repo] = process.argv.slice(2);
+ const WT = process.env.WT || repo;   // serve THIS checkout's chat.js and Sheet.js in place of the main tree's
+ const b = await Browser.browser({});
+ const p = await (await b.newContext({ viewport: { width: 400, height: 800 } })).newPage();
++await p.route(/\/(cards\?|api\/agents)/, r => r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: "[]" }));   // core/Page/ai/work.js wants an array; unstubbed the fence answers 502
+ const errs = [], said = [], streams = [];
+ if (WT) for (const f of ["ux/Dictate/chat.js", "ext/drawer/Sheet.js"])
+ 	await p.route(new RegExp("/framework/" + f.replace(/[./]/g, "\\$&") + "(\\?.*)?$"), r => r.fulfill({ path: WT + "/public/framework/" + f, contentType: "application/javascript" }));
+diff --git a/public/framework/ux/Dictate/test/deltas.mjs b/public/framework/ux/Dictate/test/deltas.mjs
+index 9463fd87c..7b022a078 100644
+--- a/public/framework/ux/Dictate/test/deltas.mjs
++++ b/public/framework/ux/Dictate/test/deltas.mjs
+@@ -10,6 +10,7 @@ const PW = process.env.PWENTRY ?? "C:/Users/mike/AppData/Roaming/npm/node_module
+ const { chromium } = await import(pathToFileURL(PW).href);
+ const browser = await chromium.launch();
+ const page = await (await browser.newContext({ viewport: { width: 1200, height: 900 } })).newPage();
++await page.route(/\/(cards\?|api\/agents)/, r => r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: "[]" }));   // core/Page/ai/work.js wants an array; unstubbed the fence answers 502
+ const errors = [];
+ page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
+ let failed = 0;
+diff --git a/public/framework/ux/Dictate/test/dictation-bar.mjs b/public/framework/ux/Dictate/test/dictation-bar.mjs
+index 01d1980dd..c02dbf9cd 100644
+--- a/public/framework/ux/Dictate/test/dictation-bar.mjs
++++ b/public/framework/ux/Dictate/test/dictation-bar.mjs
+@@ -29,7 +29,7 @@ page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
+ await page.route(/\/api\/session\//, async route => {
+ 	const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
+ 	let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
+-	if (verb === "say") said.push(body.text);
++	if (verb === "say" && !body.kind) said.push(body.text);   // a post with a kind is a diagnostic (Recite files one when the sheet opens, at a varying moment): it is not a sentence, and counting it ended the wait early
+ 	const out = verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : verb === "say" ? { ok: true, at: new Date().toISOString() } : { ok: true };
+ 	await route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify(out) });
+ });
+diff --git a/public/framework/ux/Dictate/test/new-session.mjs b/public/framework/ux/Dictate/test/new-session.mjs
+index 00aca6d32..2e68c0f2f 100644
+--- a/public/framework/ux/Dictate/test/new-session.mjs
++++ b/public/framework/ux/Dictate/test/new-session.mjs
+@@ -6,6 +6,11 @@ import Browser from "../../../../../Server/Browser.mjs";
+ const [base, repo] = process.argv.slice(2);
+ const b = await Browser.browser({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream"] });
+ const p = await (await b.newContext({ viewport: { width: 1400, height: 1000 } })).newPage();
++await p.route(/\/(cards\?|api\/agents)/, r => r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: "[]" }));   // core/Page/ai/work.js wants an array; unstubbed the fence answers 502
++let made = 0;   // a Servex that only answers the session verbs: the fence keeps the live one out, so the test stands one in
++await p.route(/\/api\/session\/(new|resume|say|nav|floor|quiet|react|pause|select)/, r => { const id = "stub-" + ++made; r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify({ ok: true, session: id, file: "/" + id + ".jsonl", at: new Date().toISOString() }) }); });
++await p.route(/\/stub-\d+\.jsonl/, r => r.fulfill({ status: 200, contentType: "text/plain", body: "" }));
++await p.route(/\/api\/session\/[^/]+\/stream/, r => r.fulfill({ status: 200, contentType: "text/event-stream", headers: { "access-control-allow-origin": "*" }, body: "retry: 1000\n\n" }));
+ const errs = [];
+ // WT=<worktree dir>: serve THIS checkout's chat.js (the fix) in place of the main tree's copy, so the test proves the fix before merge.
+ const WT = process.env.WT;
+diff --git a/public/framework/ux/Dictate/test/reconnect.mjs b/public/framework/ux/Dictate/test/reconnect.mjs
+index d37f14b00..f5b81d73a 100644
+--- a/public/framework/ux/Dictate/test/reconnect.mjs
++++ b/public/framework/ux/Dictate/test/reconnect.mjs
+@@ -22,6 +22,7 @@ const errors = [];
+ page.on("pageerror", e => errors.push(e.message));
+ const json = (r, body) => r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify(body) });
+ await page.route(/\/api\/session\/(new|resume|say|nav|floor|quiet|react|pause|select)/, r => json(r, { ok: true, session: "stub-session", file: "/stub-session.jsonl", at: new Date().toISOString() }));
++await page.route(/\/(cards\?|api\/agents)/, r => json(r, []));   // the Dictate page lists live cards and agents (core/Page/ai/live.js); unstubbed it asks Servex
+ await page.route(/\/api\/sessions\?/, r => json(r, { ok: true, sessions: [] }));
+ await page.route(/\/stub-session\.jsonl/, r => r.fulfill({ status: 200, contentType: "text/plain", body: "" }));
+ let phase = "blip", hits = 0;
+@@ -29,11 +30,12 @@ await page.route(/\/api\/session\/[^/]+\/stream/, r => {
+ 	hits++;
+ 	if (phase === "blip") return r.fulfill({ status: 200, contentType: "text/event-stream", headers: { "access-control-allow-origin": "*" }, body: "retry: 1000\n\n" });
+ 	if (phase === "down") return r.fulfill({ status: 502, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: '{"error":"Servex unreachable"}' });
+-	return r.fallback();   // not continue(): that goes to the live Servex; the fence answers
++	return r.fulfill({ status: 200, contentType: "text/event-stream", headers: { "access-control-allow-origin": "*" }, body: "retry: 1000\n\n" });   // Servex back: a stream that opens (continue() would reach the live Servex; fallback() leaves the fence answering 502)
+ });
+ const logged = [];
+ page.on("websocket", ws => ws.on("framesent", f => { const s = String(f.payload ?? ""); if (s.includes('"connection"')) logged.push(s); }));
+ await page.addInitScript(() => {
++	window.$WHISPER_LOG_FORCE = true;   // scripted browsers skip connection lines (audio/Whisper/WhisperLog.js automated()); this proof reads them
+ 	sessionStorage.setItem("lew42-voice-session", JSON.stringify({ session: "stub-session", file: "/stub-session.jsonl" }));
+ 	// Count the live wires (EventSources on a session stream) and every time the button becomes visible.
+ 	const ES = window.EventSource; window.__wires = new Set(); window.__shows = 0;
+@@ -45,7 +47,7 @@ await page.addInitScript(() => {
+ 	new MutationObserver(() => { const b = document.querySelector(".dev-link"); const v = !!b && !b.hidden; if (v && !was) window.__shows++; was = v; })
+ 		.observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden"] });
+ });
+-const shown = () => page.evaluate(() => !document.querySelector(".dev-link")?.hidden);
++const shown = () => page.evaluate(() => { const b = document.querySelector(".dev-link"); return !!b && !b.hidden; });   // dev/Socket/Link.js builds the banner only once a source has been down its grace, so no element means not shown
+ const label = () => page.evaluate(() => document.querySelector(".dev-link")?.textContent ?? "");
+ const wires = () => page.evaluate(() => window.__wires.size);
  
- 	function reset(){
-+		ctl.epoch++;
- 		ctl.session = null; ctl.file = null; ctl.starting = null; ctl.fresh = true;
- 		if (persist) write_saved({ fresh: true });   // a keep:false demo must not overwrite the global key
- 		broadcast();
-@@ -367,7 +372,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
- 		on_link(fn){ on_link.add(fn); fn(link); return () => on_link.delete(fn); },
- 		/** The Reconnect button: reopen the live wire now (it also retries by itself, 1 s doubling to 15 s). Never throws; false = nothing to do. */
- 		reconnect(){ try { return !!stop_stream?.reconnect?.(); } catch (e){ console.error("chat reconnect:", e); return false; } },
--		reset(){ owner.reset(); },
-+		reset(){ owner.reset(); if (watching === null) panel.reset(); },   // attach() clears only on a session change; with none yet (first send still starting) the drawn lines go here
- 		remove(){
- 			unsubscribe();
- 			stop_watch?.(); stop_watch = null;
-diff --git a/public/framework/ux/Dictate/doc/chat.md b/public/framework/ux/Dictate/doc/chat.md
-index 3fbd08a0b..c65f2857c 100644
---- a/public/framework/ux/Dictate/doc/chat.md
-+++ b/public/framework/ux/Dictate/doc/chat.md
-@@ -268,7 +268,7 @@ bubble instead of opening a new one each time, and made `Widget.Composer` the sa
- 
- ## New session, and the mic indicator
- 
--**New session** is one button, `new_session_button()` in `chat.js`; the phone sheet's head (next to More, one tap), the drawer's AI tab and the Dictate page all call it. Pressing it calls the mount's `reset()`, which clears the one shared voice session (`GLOBAL.reset()`: the saved session id in `sessionStorage` is dropped and the thread is cleared). Nothing is created at that moment: the next sentence you say or type starts a fresh session through `Session.start()`, which writes that session's own file, and the session then shows on the Sessions page. The url does not change on the press. **The next session is always new** (fixed 2026-10-13, [walk](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-e2e-review/review.md)): `reset()` marks the tab `fresh` (also in `sessionStorage`, so a reload keeps it) and `ensure()` passes `Session.start({ fresh: true })`; before, Servex's "resume the last hour on this page" rule brought the old conversation straight back on the first sentence. The resume offer is not shown after New session. Proof (`ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-session/proof.mjs`): pressed on the 400 px sheet and on the 1200 px drawer, both go from a session id to none and clear the thread.
-+**New session** is one button, `new_session_button()` in `chat.js`; the phone sheet's head (next to More, one tap), the drawer's AI tab and the Dictate page all call it. Pressing it calls the mount's `reset()`, which clears the one shared voice session (`GLOBAL.reset()`: the saved session id in `sessionStorage` is dropped and the thread is cleared). It is safe to press while the first sentence's session is still starting: `reset()` bumps the controller's `epoch`, so that late start is dropped instead of resurrecting a session, and the lines drawn so far are cleared (`test/new-session.mjs`). Nothing is created at that moment: the next sentence you say or type starts a fresh session through `Session.start()`, which writes that session's own file, and the session then shows on the Sessions page. The url does not change on the press. **The next session is always new** (fixed 2026-10-13, [walk](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-e2e-review/review.md)): `reset()` marks the tab `fresh` (also in `sessionStorage`, so a reload keeps it) and `ensure()` passes `Session.start({ fresh: true })`; before, Servex's "resume the last hour on this page" rule brought the old conversation straight back on the first sentence. The resume offer is not shown after New session. Proof (`ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-session/proof.mjs`): pressed on the 400 px sheet and on the 1200 px drawer, both go from a session id to none and clear the thread.
- 
- **The mic indicator** is one class, `MicIndicator.js`: a red dot, "listening" and a level bar, visible only while a mic is open. `Dictate.js` tells it the state and level, so every instance follows. It sits under the composer (the full variant with the level bar, so in the sheet, the drawer's AI tab and anywhere else `Widget` mounts); the dot-only `compact` variant (no bar: the buttons are too small) sits on the floating mic, the ✦ button of the bottom rail and the ☰, so a collapsed surface still shows the mic is on. Dropped with the duplicate button: `new_session()` in `ext/drawer/tabs/ai.js`, which also asked Servex to recycle a card's assistant; the live sheet never used it. The URL is not created on the press (the alternative, starting the session at once and routing to its page, would pull the reader off the page they are on).
- 
-diff --git a/public/framework/ux/Dictate/test/settings.mjs b/public/framework/ux/Dictate/test/settings.mjs
-index aa5049957..cc5c576da 100644
---- a/public/framework/ux/Dictate/test/settings.mjs
-+++ b/public/framework/ux/Dictate/test/settings.mjs
-@@ -27,7 +27,7 @@ async function open(ctx, store){
+diff --git a/public/framework/ux/Dictate/test/refresh.mjs b/public/framework/ux/Dictate/test/refresh.mjs
+index 28f228597..13ccedd3d 100644
+--- a/public/framework/ux/Dictate/test/refresh.mjs
++++ b/public/framework/ux/Dictate/test/refresh.mjs
+@@ -40,7 +40,7 @@ async function context(){
  		if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
  		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
  		let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
--		if (verb === "say"){ said.push(body.text); return json(route, { ok: true, at: new Date().toISOString() }); }
-+		if (verb === "say"){ if (!body.kind) said.push(body.text);   /* a kind (error, click, context) is a diagnostic or context line, filed as a log line and never a prompt (ext/Chat/v2/report.js) */ return json(route, { ok: true, at: new Date().toISOString() }); }
- 		if (verb === "settings"){ knobs.push(body); return json(route, { ok: true }); }
- 		return json(route, verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : { ok: true });
+-		if (verb === "say") run.said.push({ text: body.text, t: Date.now() });
++		if (verb === "say" && !body.kind) run.said.push({ text: body.text, t: Date.now() });   // a post with a kind is a diagnostic (Recite files one as the sheet opens): its text has words too, so counting it passed a round with no sentence, or not, by when it landed
+ 		const out = verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : verb === "say" ? { ok: true, at: new Date().toISOString() } : { ok: true };
+ 		await route.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify(out) });
  	});
-diff --git a/public/framework/ux/Dictate/test/swallow.mjs b/public/framework/ux/Dictate/test/swallow.mjs
-index 70f80dccf..ab6f1a917 100644
---- a/public/framework/ux/Dictate/test/swallow.mjs
-+++ b/public/framework/ux/Dictate/test/swallow.mjs
-@@ -42,11 +42,14 @@ for (const width of [400, 1200]){
- 		const at = n => `2026-10-17T00:00:0${n}.000-05:00`;
- 		const words = ["The sheet should open at sixty percent.", "And it should remember the height I drag it to.", "Separately, the inbox labels need a count.",
- 			"Each label shows how many notes wait.", "The count turns zero when you read them."];
--		words.forEach((text, i) => w.say({ chat: { at: at(i), from: { kind: "owner" }, via: "voice", text } }));
-+		const say = i => w.say({ chat: { at: at(i), from: { kind: "owner" }, via: "voice", text: words[i] } });
-+		// The card is placed while its first line is still the bubble's last: a later placement stays put (Widget.place, "late card placements stay put").
-+		[0, 1, 2].forEach(say);
-+		w.say({ place: { re: at(2), to: "card", where: "up", title: "Inbox labels" } });
-+		[3, 4].forEach(say);
- 		const raw_all = document.querySelectorAll(".ux-dictate-raw").length;
- 		w.say({ place: { re: at(0), to: "same" } });
- 		const raw_after_place = document.querySelectorAll(".ux-dictate-raw").length;
--		w.say({ place: { re: at(2), to: "card", where: "up", title: "Inbox labels" } });
- 		w.say({ place: { re: at(3), to: "same" } }); w.say({ place: { re: at(4), to: "same" } });
- 		const card = [...document.querySelectorAll(".ux-dictate-placed-card")];
- 		const before = { visible: card[0].querySelectorAll("[data-re]").length, summary: !!card[0].querySelector(".ux-dictate-summary") };
-@@ -59,7 +62,7 @@ for (const width of [400, 1200]){
- 			summary: b.querySelector(".ux-dictate-summary-text")?.textContent, toggle: b.querySelector(".ux-dictate-fold-toggle")?.textContent,
- 			count: b.querySelectorAll("[data-re]").length };
- 	});
--	check(t.raw_all === 5 && t.raw_after_place === 4, `${width}: five raw lines, and a placed one loses the look (${t.raw_all} -> ${t.raw_after_place})`);
-+	check(t.raw_all === 4 && t.raw_after_place === 3, `${width}: four raw lines (the card line is placed), and a placed one loses the look (${t.raw_all} -> ${t.raw_after_place})`);
- 	check(!t.before.summary && t.before.visible === 3, `${width}: before the summary the card shows its ${t.before.visible} lines`);
- 	check(t.hidden && t.ms < 1000 && /^Inbox labels show/.test(t.summary ?? ""), `${width}: the summary folded the lines in ${t.ms} ms`);
- 	check(t.toggle?.startsWith("3 raw lines"), `${width}: the toggle says "${t.toggle}"`);
+diff --git a/public/framework/ux/Dictate/test/stall.mjs b/public/framework/ux/Dictate/test/stall.mjs
+index f8d46c7d9..1d66bdb61 100644
+--- a/public/framework/ux/Dictate/test/stall.mjs
++++ b/public/framework/ux/Dictate/test/stall.mjs
+@@ -31,7 +31,7 @@ async function open({ say = "ok", whisper_dies_after = Infinity } = {}){
+ 		if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" } });
+ 		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: { "access-control-allow-origin": "*" }, body: "retry: 60000\n\n" });
+ 		let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
+-		if (verb === "say"){
++		if (verb === "say" && !body.kind){   // a post with a kind is a diagnostic line (Recite, errors), filed as a log line and never a prompt: only prompts count and get stalled
+ 			run.said.push(body.text);
+ 			if (say === "hang" && run.said.length === 1){ run.hung++; return; }   // never answered: the request stays open
+ 			if (say === "late" && run.said.length === 1){   // a slow success: written at once, answered after the client gave up

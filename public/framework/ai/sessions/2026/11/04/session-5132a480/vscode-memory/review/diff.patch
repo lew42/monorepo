@@ -1,0 +1,118 @@
+diff --git a/Server/UsagePace.mjs b/Server/UsagePace.mjs
+index 9b4d2817d..4a149b011 100644
+--- a/Server/UsagePace.mjs
++++ b/Server/UsagePace.mjs
+@@ -13,7 +13,11 @@ export function usage_pace(json, now = Date.now()){
+ 	const limits = json?.utilization?.limits ?? [];
+ 	const week = limits.find(l => l.kind === "weekly_all") ?? { percent: json?.utilization?.seven_day?.utilization, resets_at: json?.utilization?.seven_day?.resets_at };
+ 	const session = limits.find(l => l.kind === "session");
+-	return { week: window_pace(week, WEEK, now), session: session ? window_pace(session, FIVE_HOUR, now) : null };
++	const pace = window_pace(week, WEEK, now);
++	/* a failed fetch falls back to a cache that can be days old (2026-11-04: 12 hours of "27%, OK to spawn" at 75%+), so an old reading counts as over pace: spend nothing on a number nobody can trust */
++	const old = (json?.source === "cache" && json?.age_minutes > 60) || !(Date.parse(week?.resets_at) > now);
++	if (old) Object.assign(pace, { stale: true, over: true, advice: "stale reading" });
++	return { week: pace, session: session ? window_pace(session, FIVE_HOUR, now) : null };
+ }
+ 
+ /* pace % = used ÷ gone: under ~75 spend more, ~90 slow down, 100 is the line (the owner, 2026-10-12) */
+@@ -29,5 +33,6 @@ export function time_left(ms){
+ 
+ /* the report line, all three numbers (the owner, 2026-10-23): used, gone, and used ÷ gone as "% of pace" */
+ export function report_line(week){
++	if (week.stale) return `Week: UNKNOWN, the usage reading is stale (it says ${week.used}%, do not trust it); spawn nothing until a live fetch works: python ~/.claude/bin/claude-usage.py`;
+ 	return `Week: ${week.used}% used · ${week.gone.toFixed(0)}% gone · ${week.pace}% of pace (${week.advice}, ${time_left(week.left_ms)} left)`;
+ }
+diff --git a/Server/UsagePace.test.mjs b/Server/UsagePace.test.mjs
+index 511943a16..efd33ded2 100644
+--- a/Server/UsagePace.test.mjs
++++ b/Server/UsagePace.test.mjs
+@@ -22,4 +22,13 @@ const hot = usage_pace({ utilization: { limits: [{ kind: "weekly_all", percent:
+ assert.equal(hot.over, true);
+ assert.equal(hot.advice, "slow right down");
+ 
++const limits = [{ kind: "weekly_all", percent: 27, resets_at: "2026-11-05T03:00:00Z" }];
++const cached = usage_pace({ source: "cache", age_minutes: 15913, utilization: { limits } }, now).week;
++assert.equal(cached.stale, true);
++assert.equal(cached.over, true);
++assert.match(report_line(cached), /UNKNOWN/);
++const past = usage_pace({ source: "api", utilization: { limits: [{ kind: "weekly_all", percent: 27, resets_at: "2026-10-29T02:59:59Z" }] } }, now).week;
++assert.equal(past.stale, true);
++assert.equal(usage_pace({ source: "api", age_minutes: 0, utilization: { limits } }, now).week.stale, undefined);
++
+ console.log("UsagePace: ok");
+diff --git a/Server/doc/scripts.md b/Server/doc/scripts.md
+index 4708f78cb..44be12d75 100644
+--- a/Server/doc/scripts.md
++++ b/Server/doc/scripts.md
+@@ -144,7 +144,7 @@ Windows note: `browser.mjs`, `collab.mjs` and `decide.mjs` are the same file as
+ | `Server/text-check.mjs` | live | 2910 | 2026-09-28 | `node Server/text-check.mjs <task dir>` — flags walls of text in what a landed task wrote for the owner. | Text-checking tool actively used in clarity and finish-task skills, on-landing hooks |
+ | `Server/untrack-pictures.mjs` | live | 2207 | 2026-10-13 | Untrack the pictures under public/framework/ai/ that .gitignore now ignores (files stay on disk; history unchanged). | Recently updated script for untracking gitignored pictures; referenced in repo-size and cleanup |
+ | `Server/usage-now.mjs` | live | 2565 | 2026-10-12 | usage-now.mjs — the ONE way an agent checks Claude usage: node Server/usage-now.mjs | Core tool: THE ONE way agents check Claude usage; heavily documented |
+-| `Server/UsagePace.mjs` | live | 33 | 2026-10-29 | the pace rule: used against share of window gone; read by usage-now.mjs, Servex/Usage.js and check_usage | Shared module, no CLI |
++| `Server/UsagePace.mjs` | live | 33 | 2026-10-29 | the pace rule: used against share of window gone; a stale reading (cache over 60 minutes old, or reset time past) reads as UNKNOWN and over pace; read by usage-now.mjs, Servex/Usage.js and check_usage | Shared module, no CLI |
+ | `Server/UsagePace.test.mjs` | test | 25 | 2026-10-29 | node Server/UsagePace.test.mjs: the pace rule on a fixed clock | Test |
+ | `Server/week-cost.mjs` | tool | 11953 | 2026-10-09 | Server/week-cost.mjs — this week's REAL Claude $ and OpenRouter $, against the $200/week Max | Unreferenced but touched 2026-10-09 (<30 days): kept. Haiku said: Function bag with minimal usage; not active in current workflows or handover |
+ | `Server/whisper-test.mjs` | tool | 4617 | 2026-10-12 | `node Server/whisper-test.mjs` — runs every recording the owner has saved | Hand-run test script for transcription recordings; documented in handover for manual use |
+diff --git a/Server/usage-now.mjs b/Server/usage-now.mjs
+index 082048cef..bc70ecff0 100644
+--- a/Server/usage-now.mjs
++++ b/Server/usage-now.mjs
+@@ -1,7 +1,8 @@
+ /* usage-now.mjs — the ONE way an agent checks Claude usage: node Server/usage-now.mjs
+  * Reads public/framework/ai/usage.json (Servex refreshes it every 15 min). Only if that file is older
+  * than 5 minutes does it re-run the usage script (one caller at a time, via a lock), so many masterminds
+- * can ask often without hammering the endpoint (it answers 429). Prints the pace line, then a detail line; exit code 2 = over pace.
++ * can ask often without hammering the endpoint (it answers 429). Prints the pace line, then a detail line; exit code 2 = over pace,
++ * or a stale reading (a cache over 60 minutes old, or a reset time already past: UsagePace.mjs), which prints UNKNOWN.
+  * Pace = weekly % used vs % of the week gone. */
+ import fs from "node:fs";
+ import os from "node:os";
+@@ -29,5 +30,6 @@ if (age() > MAX_AGE_MS){
+ }
+ const { week, session } = usage_pace(JSON.parse(fs.readFileSync(FILE, "utf8")));
+ console.log(report_line(week));
++if (week.stale){ console.log("STALE: no new spawns."); process.exit(2); }
+ console.log(`week ${week.used}% used, ${week.gone.toFixed(1)}% of the week gone (${week.margin >= 0 ? "under" : "OVER"} pace by ${Math.abs(week.margin)} pts); 5h session ${session?.used}%; data ${Math.round(age() / 60000)} min old. ${week.over ? "OVER PACE: no new spawns, finish up." : "OK to spawn within budget."}`);
+ process.exit(week.over ? 2 : 0);
+diff --git a/Servex/LogSweeper.js b/Servex/LogSweeper.js
+index 90c93c8a3..b0ce4240b 100644
+--- a/Servex/LogSweeper.js
++++ b/Servex/LogSweeper.js
+@@ -38,6 +38,8 @@ export default class LogSweeper {
+         /^public\/framework\/ai\/handover\.md$/, // its NOW block is written daily by Server/HandoverNow.mjs (TaskLoop.handover_daily)
+         /^public\/framework\/ai\/asks\/undone\.json$/, // written daily by Server/UndoneAsks.mjs (TaskLoop.undone_asks_daily)
+         /^public\/.+\/(page|inbox|prompts|essence|review|files)\.jsonl$|^public\/framework\/ai\/sessions\/.+\/digest\.json$/, // session records (sessions/doc/commit-rule.md, 2026-10-17); caches (cache.jsonl, index.json) stay out
++        /^public\/.+\/tasks\/(.+\/)?(task|session)\.jsonl$/, // task records in module homes (<module>/tasks/, since 2026-10-16): no rule covered them, so 100+ sat modified for weeks
++        /^public\/.+\/(ai\/log|improvements)\.jsonl$|^public\/framework\/ai\/asks\.jsonl$/, // module logs and the asks ledger, appended the same way
+     ];
+     /* Never swept, even if an ALLOW pattern would match. */
+     static DENY = [/^(?!public\/framework\/ai\/(doc\/follow-up(-full)?|handover)\.md$).*\.(js|mjs|css|html|md)$/, /(^|\/)index\.tmp\.json$/, /node_modules/];
+diff --git a/Servex/LogSweeper.test.mjs b/Servex/LogSweeper.test.mjs
+index fbe588ad7..cb46bb2a2 100644
+--- a/Servex/LogSweeper.test.mjs
++++ b/Servex/LogSweeper.test.mjs
+@@ -39,7 +39,8 @@ console.log("LogSweeper: ok");
+     const a = new LogSweeper({ root: dir, branch: "main" });
+     const S = "public/framework/ai/sessions/2026/10/16/session-ab12cd34/";
+     for (const p of [S + "page.jsonl", S + "prompts.jsonl", S + "inbox.jsonl", S + "essence.jsonl", S + "review.jsonl", S + "digest.json",
+-        "public/framework/ux/Dictate/inbox.jsonl", "public/framework/ux/Dictate/page.jsonl", "public/framework/ux/Dictate/files.jsonl", "public/framework/ai/handover.md"])
++        "public/framework/ux/Dictate/inbox.jsonl", "public/framework/ux/Dictate/page.jsonl", "public/framework/ux/Dictate/files.jsonl", "public/framework/ai/handover.md",
++        "public/framework/core/Page/tasks/task.jsonl", "public/framework/core/Session/tasks/data-shapes/build/backbone/session.jsonl", "public/framework/core/Page/ai/log.jsonl", "public/framework/core/Item/improvements.jsonl", "public/framework/ai/asks.jsonl"])
+         assert.ok(a.allowed(p), "allowed: " + p);
+     for (const p of [S + "cache.jsonl", S + "index.json", S + "index.tmp.json", "public/framework/ux/Dictate/Dictate.js", "public/framework/ux/Dictate/readme.md", "Servex/page.jsonl"])
+         assert.ok(!a.allowed(p), "not allowed: " + p);
+diff --git a/public/framework/ai/sessions/doc/commit-rule.md b/public/framework/ai/sessions/doc/commit-rule.md
+index b37f23ba7..be2e9e3b3 100644
+--- a/public/framework/ai/sessions/doc/commit-rule.md
++++ b/public/framework/ai/sessions/doc/commit-rule.md
+@@ -28,7 +28,9 @@
+ - Each sweep writes one line to Servex's `sweeper` log.
+ - Proof: `node Servex/LogSweeper.test.mjs` builds a throwaway repo and checks all of the above.
+ 
+-To add a log type, add one pattern to `LogSweeper.ALLOW`.
++Also swept since 2026-11-04: task records in module homes (`<module>/tasks/**/task.jsonl`, `session.jsonl`), module `ai/log.jsonl`, `improvements.jsonl` and `ai/asks.jsonl`.
++
++To add a log type, add one pattern to `LogSweeper.ALLOW` and a path to its test. Servex runs the sweeper, so a new pattern takes effect at the next Servex restart.
+ 
+ ## Why agents do not always work in worktrees (decided 2026-10-13)
+ 

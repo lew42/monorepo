@@ -1,0 +1,146 @@
+diff --git a/public/framework/ext/Chat/v2/ChatV2.js b/public/framework/ext/Chat/v2/ChatV2.js
+index 1ed18db60..2cf9ecb41 100644
+--- a/public/framework/ext/Chat/v2/ChatV2.js
++++ b/public/framework/ext/Chat/v2/ChatV2.js
+@@ -1,9 +1,8 @@
+ // ChatV2.js — `class ChatV2 extends ChatV3` (views-on-messages.md, step 2): everything is ChatV3 (session.messages, a card per
+ // Prompt, Replies found by `re.to`, pause-based paragraphs, the live draft). V2 adds only: the ✓/🧠 marks beside the newest
+ // Prompt's title, a Reply drawn beside the sentence it answers (instead of in the trailing list), and its own CSS.
+-// The marks stay on the Prompt TASK this step (sent.fast/sent.smart; step 3 moves them onto the message): Sessions.mark_sent
+-// still writes `{sent:{to,at,re:[owner line "at"...]}}` as a broadcast line, matched to a Prompt TASK id through the V1 `{chat}`
+-// line's `prompt` field — the same small lookup ChatV2Model used to do, kept here (not the whole old model) until step 3.
++// The marks now read straight off the Prompt MESSAGE (step 3): `Sessions.mark_sent` writes `{messages:{<mid>:{sent:{<to>:{at}}}}}`
++// through `ChatWriter.sent_line`, and `Prompt.sent` on `core/Session/Chat/Prompt.js` reads it back as `{fast?, smart?}` — no lookup needed.
+ import View, { span, div } from "/framework/core/View/View.js";
+ import ChatV3 from "../v3/ChatV3.js";
+ import Prompt from "/framework/core/Session/Chat/Prompt.js";
+@@ -12,40 +11,22 @@ View.stylesheet(import.meta, "ChatV2.css");
+ View.stylesheet(import.meta, "../cursors.css");
+ 
+ export default class ChatV2 extends ChatV3 {
+-	prompt_of = new Map();     // an owner line's `at` -> the Prompt TASK id it belongs to, from V1 `{chat}` lines
+-	sent_by_task = new Map();  // Prompt TASK id -> {fast?: {at}, smart?: {at}}, from `{sent}` broadcast lines
+-
+-	// Track the V1 `{chat}`/`{sent}` broadcast lines ChatV3 skips (they carry no `session.messages` shape of their own) so the
+-	// marks below can still find them, same lookup ChatV2Model used to do; everything else replays exactly as ChatV3 does.
+ 	// The `chat-v3` class goes on `$box` HERE, not in each caller (review finding 1): every caller (the demo page, the
+ 	// session page's Chat tab, the drawer/✦ sheet) gets ChatV3.css's own column/padding rules, with no fence crossing.
+ 	read(entries){
+ 		this.$box?.el.classList.add("chat-v3");
+-		for (const raw of entries) {
+-			if (raw?.chat?.from?.kind === "owner" && raw.chat.prompt && raw.chat.at) this.prompt_of.set(raw.chat.at, raw.chat.prompt);
+-			if (raw?.sent?.to) {
+-				for (const at of raw.sent.re ?? []) {
+-					const task_id = this.prompt_of.get(at);
+-					if (!task_id) continue;
+-					const rec = this.sent_by_task.get(task_id) ?? {};
+-					rec[raw.sent.to] = { at: raw.sent.at };
+-					this.sent_by_task.set(task_id, rec);
+-				}
+-			}
+-		}
+ 		return super.read(entries);
+ 	}
+-	reset(){ this.prompt_of.clear(); this.sent_by_task.clear(); return super.reset(); }
+ 
+ 	// The ✓ (fast)/🧠 (smart) marks, moving: both sit beside the title of the NEWEST Prompt only (never more than one of
+-	// each on screen), read through its Prompt TASK (`p.prompt`). ✓ colours once the fast seat has the line (`sent.fast`);
+-	// 🧠 colours once an answer actually exists — a Reply after `sent.smart.at`, or the Prompt's own title/text
+-	// (views-on-messages.md, "One meaning for the brain icon"). Gray while sent but not yet answered.
++	// each on screen), read straight off the Prompt message's own `sent`. ✓ colours once the fast seat has the line
++	// (`sent.fast`); 🧠 colours once an answer actually exists — a Reply after `sent.smart.at`, or the Prompt's own
++	// title/text (views-on-messages.md, "One meaning for the brain icon"). Gray while sent but not yet answered.
+ 	marks(p){
+ 		const newest = this.card_roots().filter(r => r instanceof Prompt).at(-1);
+ 		if (p !== newest) return null;
+-		const sent = p.prompt && this.sent_by_task.get(p.prompt);
+-		if (!sent) return null;
++		const sent = p.sent;
++		if (!sent.fast && !sent.smart) return null;
+ 		const wrap = span.c("chat-v2-marks");
+ 		if (sent.fast || sent.smart) { const fast = cursor_el(); fast.classList.toggle("done", !!sent.fast); wrap.el.append(fast); }
+ 		if (sent.smart) { const smart = smart_cursor_el(); smart.classList.toggle("done", this.smart_answered(p, sent.smart.at)); wrap.el.append(smart); }
+diff --git a/public/framework/ext/Chat/v2/ChatV2.test.mjs b/public/framework/ext/Chat/v2/ChatV2.test.mjs
+index f6958653c..10cf27c33 100644
+--- a/public/framework/ext/Chat/v2/ChatV2.test.mjs
++++ b/public/framework/ext/Chat/v2/ChatV2.test.mjs
+@@ -81,10 +81,23 @@ try {
+ 	appendFileSync(here + "fixture/" + live, JSON.stringify({ sentences: { add: { id: sid, at, text: "A live sentence." } }, messages: { add: { type: "Prompt", id: "m-live-1", by: "owner", at, sentences: [sid] } } }) + "\n");
+ 	await page.waitForSelector(".chat-v3-prompt[data-id='m-live-1']", { timeout: 15000 });
+ 	check("appended prompt appears, last, without a reload", (await ids(".chat-v3 > .chat-v3-card")).at(-1) === "m-live-1" && await page.evaluate(() => window.__no_reload === true));
++
++	// the marks themselves, replayed live off the message (views step 3): fast's mark lands, then smart's, then a Reply
++	// after smart.at turns 🧠 done — each read straight off `m-live-1`'s own `sent`, no separate broadcast line.
++	const newest_sel = ".chat-v3-prompt[data-id='m-live-1']";
++	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { "m-live-1": { sent: { fast: { at: "2026-11-01T20:39:40.000-06:00" } } } } }) + "\n");
++	await page.waitForSelector(newest_sel + " .chat-v2-marks .chat-cursor.done", { timeout: 15000 });
++	check("✓ appears live once fast's sent line lands", await page.$(newest_sel + " .chat-v2-marks .chat-smart-cursor") === null);
++	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { "m-live-1": { sent: { smart: { at: "2026-11-01T20:39:50.000-06:00" } } } } }) + "\n");
++	await page.waitForSelector(newest_sel + " .chat-v2-marks .chat-smart-cursor", { timeout: 15000 });
++	check("🧠 appears live once smart's sent line lands, not yet done (no reply)", await page.$eval(newest_sel + " .chat-v2-marks .chat-smart-cursor", e => !e.classList.contains("done")));
++
+ 	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { add: { id: "m-live-2", type: "Reply", by: "smart", at, text: "Seen, live.", re: { to: sid } } } }) + "\n");
+ 	await page.waitForFunction(sid => document.querySelector(`[data-sentence="${sid}"] .chat-v2-beside`)?.textContent.includes("Seen, live."), sid, { timeout: 15000 });
+ 	const live_card_replies = await page.$$eval("[data-id='m-live-1'] .chat-v3-reply", els => els.length);
+ 	check("a live reply lands beside its sentence, drawn exactly once (not also in the trailing list)", live_card_replies === 1, live_card_replies);
++	await page.waitForSelector(newest_sel + " .chat-v2-marks .chat-smart-cursor.done", { timeout: 15000 });
++	check("🧠 turns done once the Reply (after smart.at) lands", true);
+ 
+ 	check("no page errors", errors.length === 0, errors);
+ } finally {
+diff --git a/public/framework/ext/Chat/v2/fixture/messages-session.jsonl b/public/framework/ext/Chat/v2/fixture/messages-session.jsonl
+index 6ec351fcc..9a72f23a9 100644
+--- a/public/framework/ext/Chat/v2/fixture/messages-session.jsonl
++++ b/public/framework/ext/Chat/v2/fixture/messages-session.jsonl
+@@ -34,8 +34,6 @@
+ {"p-1793586760764":{"tasks":{"add":{"id":"q-1793586760765","type":"Question","text":"Should I refresh now?","from":"p-1793586760764"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:32:43.962Z"}
+ {"sentences":{"add":{"id":"s-test-2","at":"2026-11-01T20:27:53.878-06:00","text":"A second thought, no pause.","via":"voice"}},"messages":{"m-1793586471880":{"sentences":{"push":"s-test-2"}}},"by":"test-fixture","ts":"2026-11-02T02:27:53.880Z"}
+ {"sentences":{"add":{"id":"s-test-3","at":"2026-11-01T20:28:01.878-06:00","text":"A third thought, after a long pause.","via":"voice"}},"messages":{"m-1793586471880":{"sentences":{"push":"s-test-3"}}},"by":"test-fixture","ts":"2026-11-02T02:28:01.880Z"}
+-{"at":"2026-11-01T22:28:07-06:00","chat":{"from":{"kind":"owner"},"prompt":"p-1793586471873","at":"2026-11-01T20:27:51.878-06:00"},"ts":"2026-11-02T02:27:51.879Z","by":"test-fixture"}
+-{"at":"2026-11-01T22:28:07-06:00","sent":{"to":"fast","at":"2026-11-02T02:27:52.000Z","re":["2026-11-01T20:27:51.878-06:00"]},"ts":"2026-11-02T02:27:52.000Z","by":"test-fixture"}
+-{"at":"2026-11-01T22:28:07-06:00","chat":{"from":{"kind":"owner"},"prompt":"p-1793586760764","at":"2026-11-01T20:32:40.766-06:00"},"ts":"2026-11-02T02:32:40.800Z","by":"test-fixture"}
+-{"at":"2026-11-01T22:28:07-06:00","sent":{"to":"fast","at":"2026-11-02T02:32:41.000Z","re":["2026-11-01T20:32:40.766-06:00"]},"ts":"2026-11-02T02:32:41.000Z","by":"test-fixture"}
+-{"at":"2026-11-01T22:28:07-06:00","sent":{"to":"smart","at":"2026-11-02T02:32:41.200Z","re":["2026-11-01T20:32:40.766-06:00"]},"ts":"2026-11-02T02:32:41.200Z","by":"test-fixture"}
++{"messages":{"m-1793586471880":{"sent":{"fast":{"at":"2026-11-02T02:27:52.000Z"}}}},"ts":"2026-11-02T02:27:52.000Z","by":"test-fixture"}
++{"messages":{"m-1793586760769":{"sent":{"fast":{"at":"2026-11-02T02:32:41.000Z"}}}},"ts":"2026-11-02T02:32:41.000Z","by":"test-fixture"}
++{"messages":{"m-1793586760769":{"sent":{"smart":{"at":"2026-11-02T02:32:41.200Z"}}}},"ts":"2026-11-02T02:32:41.200Z","by":"test-fixture"}
+diff --git a/public/framework/ext/Chat/v2/readme.md b/public/framework/ext/Chat/v2/readme.md
+index 0a7da9a67..5c5e31395 100644
+--- a/public/framework/ext/Chat/v2/readme.md
++++ b/public/framework/ext/Chat/v2/readme.md
+@@ -2,11 +2,11 @@
+ 
+ `class ChatV2 extends ChatV3` ([`../v3/`](../v3/readme.md), step 2 of [views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md)). Everything is ChatV3: it draws `session.messages` (a card per Prompt, in the chat list's own order, with the Replies that answer it found by `re.to`), the live draft, pause-based paragraphs, "show raw". V2 adds only three things:
+ 
+-- **The ✓/🧠 marks**, beside the title of the newest Prompt only. ✓ colours once the fast seat has the line; 🧠 colours once an answer actually exists (a Reply after the smart seat's receipt, or the Prompt's own title/text). They still read the Prompt TASK's `sent.fast`/`sent.smart` (`Sessions.mark_sent`), not a field on the message — step 3 of the plan moves them there. Until then, `ChatV2.js` keeps a small tracker (`prompt_of`, `sent_by_task`) over the V1 `{chat}`/`{sent}` broadcast lines ChatV3 skips, the one piece of the old `ChatV2Model` this step still needs.
++- **The ✓/🧠 marks**, beside the title of the newest Prompt only. ✓ colours once the fast seat has the line; 🧠 colours once an answer actually exists (a Reply after the smart seat's receipt, or the Prompt's own title/text). Step 3 of the plan: they now read `p.sent` (`{fast?: {at}, smart?: {at}}`) straight off the Prompt message — `Sessions.mark_sent` writes it there (`ChatWriter.sent_line`), so the V1 `{chat}`/`{sent}` broadcast-line tracker is gone. A session recorded before step 3 has no `sent` on its messages, so its newest Prompt shows no marks; only sessions written after the switch do.
+ - **A Reply beside the sentence it answers**, while a Prompt has no refined text yet (dictation mode): `ChatV2.js` overrides two small hooks ChatV3 exposes for this (`paragraph()`, `trailing_replies()`) to draw one row per sentence, with the Reply whose `re.to` names it drawn right beside, instead of in the trailing list below the whole card. Once a Prompt gets refined text, replies go back to the normal trailing list, same as plain ChatV3. "Show raw" (ChatV3's own feature, shown when `Prompt.clean` has entries) stays ChatV3's: V2 adds nothing to it this step — a raw-toggled, already-refined Prompt still lists its replies in the trailing list, not beside the raw lines (see Decisions).
+ - **Its own CSS** (`ChatV2.css`): the marks and the beside-sentence layout only; everything else is `../v3/ChatV3.css`'s own rules. `ChatV2.read()` adds the `chat-v3` class to `$box` itself, so every caller (this demo, the session page's Chat tab, the drawer/✦ sheet) gets ChatV3's column width and phone padding for free, with no change needed at the call site.
+ 
+-Try it: [/framework/ext/Chat/v2/](/framework/ext/Chat/v2/) draws [fixture/messages-session.jsonl](fixture/messages-session.jsonl) (V3's own fixture, plus a few `{chat}`/`{sent}` lines so the marks have data); `?src=<url of any session.jsonl>` draws that session, live. Shot with both the marks and the live draft visible: [shots/chat-v2-marks-and-live-draft.png](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v2-subclass/shots/chat-v2-marks-and-live-draft.png).
++Try it: [/framework/ext/Chat/v2/](/framework/ext/Chat/v2/) draws [fixture/messages-session.jsonl](fixture/messages-session.jsonl) (V3's own fixture, plus a few `sent` lines on two of its Prompt messages so the marks have data); `?src=<url of any session.jsonl>` draws that session, live. Shot with both the marks and the live draft visible: [shots/chat-v2-marks-and-live-draft.png](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v2-subclass/shots/chat-v2-marks-and-live-draft.png).
+ 
+ ## Files
+ 
+@@ -36,7 +36,7 @@ The session page's Chat tab under its **Chat v2** chip (`?tab=chat&chat_view=v2`
+ 
+ ## Test
+ 
+-- `ChatV2.test.mjs` (headless Playwright, `node ChatV2.test.mjs [base-url] [shots-dir]`): card order/nesting match ChatV3's own; the marks show only on the newest Prompt (an older Prompt with the same sent/answered data shows none); a Reply drawn beside its sentence is not duplicated in the trailing list; a sentence with no reply has no beside box; live append of a Prompt and a Reply beside its sentence, no reload. Checked against the first and the live-appended Prompt, not every Reply in the fixture (a worthwhile follow-up: loop every Reply and assert its `re.to` sentence holds it).
++- `ChatV2.test.mjs` (headless Playwright, `node ChatV2.test.mjs [base-url] [shots-dir]`): card order/nesting match ChatV3's own; the marks show only on the newest Prompt (an older Prompt with the same sent/answered data shows none); a Reply drawn beside its sentence is not duplicated in the trailing list; a sentence with no reply has no beside box; live append of a Prompt and a Reply beside its sentence, no reload; and live, straight off `sent` (views step 3): ✓ appears once `sent.fast` lands, 🧠 appears once `sent.smart` lands (not done yet), then 🧠 turns done once a Reply after `sent.smart.at` lands. Checked against the first and the live-appended Prompt, not every Reply in the fixture (a worthwhile follow-up: loop every Reply and assert its `re.to` sentence holds it).
+ - `live-guess.test.mjs`: the live draft (owner item 6, "V2 shows no live Whisper text") — inherited unchanged from ChatV3's own `draft()`, fires the shared `chat-live` window event.
+ - `resurface.test.mjs`: the old model's own logic (`old/ChatV2Model.js`), for the record — see "What moved to old/" above.
+ 
+diff --git a/public/framework/ext/Chat/v3/ChatV3.js b/public/framework/ext/Chat/v3/ChatV3.js
+index d89cfa394..12dd3cedd 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.js
++++ b/public/framework/ext/Chat/v3/ChatV3.js
+@@ -160,7 +160,7 @@ export default class ChatV3 extends JSONL {
+ 		const title = p.title, refined = p.text, open = this.raw_open.has(p.id), sentences = p.sentence_items;
+ 		div.c("chat-v3-head", () => {
+ 			if (title) h3.c("chat-v3-title", title);
+-			else h3.c("chat-v3-title is-untitled", ChatV3.first_words(p.cleaned || p.said));   // no AI title yet: its first words, muted
++			else h3.c("chat-v3-title is-untitled", ChatV3.first_words(p.cleaned || p.raw));   // no AI title yet: its first words, muted
+ 			this.marks(p);
+ 		});
+ 		/* Gray is only for words Whisper has not finished (the draft at the end, the owner 2026-10-26: "light gray to black reserved

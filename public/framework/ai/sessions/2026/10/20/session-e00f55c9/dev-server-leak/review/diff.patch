@@ -1,0 +1,294 @@
+diff --git a/Server/README.md b/Server/README.md
+index c67a99967..d205c7aa9 100644
+--- a/Server/README.md
++++ b/Server/README.md
+@@ -10,6 +10,7 @@ Slow or crashing again (2026-10-09 first look): [`doc/perf-2026-10-09.md`](./doc
+ 
+ Dictation failing while the page will not reload: Whisper died with a Servex restart, now fixed, with the loop that reproduces it: [`doc/transcription-crash-2026-10-12.md`](./doc/transcription-crash-2026-10-12.md).
+ Clear out landed worktrees, with a plan first and a manifest (`node Server/Worktrees.mjs --plan`): [`doc/worktrees.md`](./doc/worktrees.md).
++Worktree dev servers: what stops them, and the list / stop-stale tool (`node Server/worktree-servers.mjs`): [`doc/worktree-servers.md`](./doc/worktree-servers.md).
+ Every task log held in memory and queryable (module, landed, text, raw-log paths): [`doc/session-index.md`](./doc/session-index.md).
+ The dev socket's server half (`Tail`, `Append`, the numbered append that never writes a line twice): [`plugins/SocketServer/readme.md`](./plugins/SocketServer/readme.md).
+ 
+diff --git a/Server/Server.js b/Server/Server.js
+index 15bf3999b..aa3e37338 100644
+--- a/Server/Server.js
++++ b/Server/Server.js
+@@ -82,5 +82,21 @@ export default class Server extends Events {
+             console.log(`Server listening on ${host}:${port}`);
+             this.emit("listening", { port, host });
+         });
++        this.idle_exit();
++    }
++
++    /* A worktree's dev server (worktree-up sets IDLE_EXIT_MIN) ends itself after that many minutes with no
++     * HTTP request, so an abandoned one never lingers. Under the server.js supervisor it asks the supervisor
++     * to stop (a bare exit would be respawned); bare, it exits. Server/doc/worktree-servers.md. */
++    idle_exit(){
++        const min = Number(process.env.IDLE_EXIT_MIN);
++        if (!(min > 0) || process.env.BOOT_TEST) return;
++        let last = Date.now();
++        this.http.on("request", () => { last = Date.now(); });
++        setInterval(() => {
++            if (Date.now() - last < min * 60000) return;
++            console.log(`[idle] no request for ${min} min — stopping this worktree server`);
++            if (process.send) process.send({ idle_exit: true }); else process.exit(0);
++        }, 60000).unref();
+     }
+ }
+diff --git a/Server/doc/worktree-servers.md b/Server/doc/worktree-servers.md
+new file mode 100644
+index 000000000..44fdc980e
+--- /dev/null
++++ b/Server/doc/worktree-servers.md
+@@ -0,0 +1,38 @@
++# Worktree dev servers: how they stop
++
++Every worktree gets its own dev server (`worktree-up.mjs`). Left alone they pile up: 68 ran at once on 2026-11-01, 4.6 GB, 60 of them for worktrees already merged or removed. This page says what stops one, and how you list and clear the rest.
++
++## What stops a server
++
++| When | By what |
++|---|---|
++| The task lands | `Server/on-landing.mjs` → `Lifecycle.reap()` ([lifecycle.md](../../Servex/doc/lifecycle.md#2-the-reaper)) |
++| Servex is running | its sweep (every 5 min): landed task, task silent 2 h, or no task and up 2 h. The sweep has a 30 s limit on its process scan and a 3 min watchdog, so one hung scan cannot stop every later sweep. |
++| `worktree-down.mjs`, `worktree-prune.mjs`, removing the worktree | they stop the server first |
++| **Nobody has opened it for 30 min** | the server stops itself (below). Pool slots (`qf-N`) are exempt: `Pool.js` owns them. |
++| You run `worktree-servers.mjs --stop-stale` | everything the list marks `*` |
++
++**Idle exit.** `worktree-up.mjs` and `worktree-restart.mjs` start the server with `IDLE_EXIT_MIN=30` (change it with `WORKTREE_IDLE_MIN=<min>` in the launching shell; `0` turns it off). `Server/Server.js` `idle_exit()` watches HTTP requests; after that many quiet minutes the child tells `server.js` (the supervisor) over IPC, which shuts everything down. A plain exit would be respawned by the supervisor, so the message is needed. Open the page again and nothing is there: run `node Server/worktree-restart.mjs <name>`. Files are never touched.
++
++## The tool
++
++```
++node Server/worktree-servers.mjs                 list (a dry run, stops nothing)
++node Server/worktree-servers.mjs --stop-stale --dry   say what would stop
++node Server/worktree-servers.mjs --stop-stale    stop the stale ones
++node Server/worktree-servers.mjs --stop-stale --older-than 24   also stop open worktrees' servers up over 24 h
++```
++
++The list shows each server's worktree, pid (the wrapper, the process whose death stops the whole tree), age in hours, MB for the wrapper and everything under it, and a state. A `*` marks a stale one:
++
++- `gone`: the worktree folder is not a git worktree any more.
++- `merged into michael/dev`: its branch is an ancestor of `michael/dev`.
++- `task landed`: the task that owns the worktree has landed.
++- `pool slot, returned`: a `qf-N` slot nobody holds (`.worktree-pool.json`).
++- `open (older than N h)`: only with `--older-than`.
++
++It never stops: port 3104 and the other `Servex/keep.json` ports, Servex, the gate, whisper, a worktree an agent is working in, a taken pool slot, a preview held for your phone (`Lifecycle.kept()`). It reuses `Servex/Lifecycle.js` for the process list, the keep rules, the kill (`taskkill /T /F` on the wrapper) and the `end` line in `lifecycle.jsonl`, so there is no second implementation.
++
++## Where the pid is recorded
++
++One place per fact: `.worktrees.json` (the launcher writes `pid`, `port`, `path`) and the `start` line of `lifecycle.jsonl` in `%LOCALAPPDATA%/lew42/servex/logs/`. The tool also finds servers in neither (a wrapper whose child died, one started by hand) from the process list.
+diff --git a/Server/worktree-restart.mjs b/Server/worktree-restart.mjs
+index 8ef9e4096..7076ccee9 100644
+--- a/Server/worktree-restart.mjs
++++ b/Server/worktree-restart.mjs
+@@ -116,7 +116,8 @@ console.log(`worktree-restart: booting node server.js in ${entry.path} on PORT $
+  * inherit. Start-Process must not get -RedirectStandardOutput/-Error: that
+  * forces a fresh console per launch regardless of -WindowStyle. */
+ const cmdline = `/d /c ""${process.execPath}" server.js >>"${log_path}" 2>>"${log_path}.err""`;
+-const ps = `$env:PORT='${entry.port}'; $p = Start-Process -FilePath $env:ComSpec -ArgumentList '${cmdline.replaceAll("'", "''")}' -WorkingDirectory '${entry.path.replaceAll("'", "''")}' -WindowStyle Hidden -PassThru; $p.Id`;
++const idle_min = new RegExp(`^${process.env.SERVEX_POOL_PREFIX || "qf"}-\\d+$`).test(name) ? 0 : Number(process.env.WORKTREE_IDLE_MIN ?? 30);   // as worktree-up.mjs
++const ps = `$env:PORT='${entry.port}'; ${idle_min > 0 ? `$env:IDLE_EXIT_MIN='${idle_min}'; ` : ""}$p = Start-Process -FilePath $env:ComSpec -ArgumentList '${cmdline.replaceAll("'", "''")}' -WorkingDirectory '${entry.path.replaceAll("'", "''")}' -WindowStyle Hidden -PassThru; $p.Id`;
+ const started = spawnSync("powershell.exe", ["-NoProfile", "-Command", ps], { encoding: "utf8", windowsHide: true });
+ if (started.stderr?.trim()) console.error("worktree-restart: launcher said:", started.stderr.trim());
+ const pid = Number(String(started.stdout).trim()) || null;
+diff --git a/Server/worktree-servers.mjs b/Server/worktree-servers.mjs
+new file mode 100644
+index 000000000..64871899c
+--- /dev/null
++++ b/Server/worktree-servers.mjs
+@@ -0,0 +1,82 @@
++/* `node Server/worktree-servers.mjs` — every worktree dev server running now: worktree, pid, age, MB, and
++ * whether its worktree is still wanted. A dry run; it stops nothing.
++ *
++ *   --list                   (default) the table
++ *   --stop-stale             stop the servers whose worktree is merged, gone, a returned pool slot, or whose task landed
++ *   --stop-stale --older-than <h>
++ *                            also stop a server of an unmerged worktree older than <h> hours with no agent working there
++ *   --dry                    with --stop-stale: say what would stop
++ *
++ * A stop is the cmd wrapper first (`taskkill /T`, so nothing respawns), then an `end` line in lifecycle.jsonl.
++ * Never touches: the main site (:3104), Servex, the gate, whisper, a keep-list port, a worktree an agent works in,
++ * a taken pool slot, a preview held for the owner's phone (Lifecycle.kept). A worktree's files are never touched.
++ * Doc: Server/doc/worktree-servers.md. */
++import { execFileSync } from "node:child_process";
++import fs from "node:fs";
++import path from "node:path";
++import Lifecycle, { main_repo } from "../Servex/Lifecycle.js";
++
++const argv = process.argv.slice(2), arg = k => argv.includes(k) ? argv[argv.indexOf(k) + 1] : null;
++const STOP = argv.includes("--stop-stale"), DRY = argv.includes("--dry"), OLDER_H = Number(arg("--older-than")) || 0;
++const BASE = "michael/dev", main = main_repo();
++const git = (...a) => { try { return { ok: true, out: execFileSync("git", ["-C", main, ...a], { encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "ignore"] }) }; } catch { return { ok: false, out: "" }; } };
++const slash = s => String(s || "").replace(/\\/g, "/").toLowerCase();
++
++const lc = new Lifecycle();
++const rows = (await lc.resources()).filter(r => r.kind === "server" && r.path);
++await lc.plan();   // fills lc.tasks and lc.all_agents the way the sweep does
++
++const branch_of = {};   // worktree path -> branch, from git
++for (const b of git("worktree", "list", "--porcelain").out.split(/\r?\n\r?\n/)) {
++	const p = /^worktree (.*)$/m.exec(b)?.[1], br = /^branch refs\/heads\/(.*)$/m.exec(b)?.[1];
++	if (p) branch_of[slash(p)] = br ?? null;
++}
++let pool = []; try { pool = JSON.parse(fs.readFileSync(path.join(main, ".worktree-pool.json"), "utf8")).slots || []; } catch {}
++const slot_of = p => pool.find(s => slash(s.path) === slash(p));
++
++/* resident MB of a server's whole tree (wrapper + children), one PowerShell call */
++const mem = new Map();
++try {
++	const out = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", "Get-Process node,cmd -ErrorAction SilentlyContinue | ForEach-Object { [pscustomobject]@{id=$_.Id;ws=$_.WorkingSet64} } | ConvertTo-Json -Compress"], { encoding: "utf8", windowsHide: true, maxBuffer: 8 << 20 });
++	for (const p of [].concat(JSON.parse(out || "[]"))) mem.set(p.id, p.ws);
++} catch {}
++const tree_mb = pid => {
++	let sum = 0;
++	for (const stack = [pid], seen = new Set(); stack.length;) {
++		const x = stack.pop(); if (seen.has(x)) continue; seen.add(x); sum += mem.get(x) ?? 0;
++		for (const p of lc.procs.values()) if (p.ppid === x) stack.push(p.pid);
++	}
++	return Math.round(sum / 1048576);
++};
++
++const out = [];
++for (const r of rows) {
++	const age_h = r.born ? (Date.now() - r.born) / 3600e3 : null, name = path.basename(r.path);
++	const kept = lc.kept(r), slot = slot_of(r.path), branch = branch_of[slash(r.path)];
++	let state, stale = false;
++	if (kept && !(slot && /pool slot/.test(kept))) state = `kept: ${kept}`;
++	else if (slot) { stale = !slot.taken_by && slot.state !== "taken"; state = !stale ? `pool slot, ${slot.state}${slot.taken_by ? ", taken by " + slot.taken_by : ""}` : `pool slot, ${slot.state} (returned)`; }
++	else if (!fs.existsSync(r.path) || !(slash(r.path) in branch_of)) { state = "gone (worktree removed)"; stale = true; }
++	else if (branch && git("merge-base", "--is-ancestor", branch, BASE).ok) { state = `merged into ${BASE}`; stale = true; }
++	else if (!branch && git("merge-base", "--is-ancestor", "HEAD", BASE).ok && false) { state = "detached"; }
++	else if (lc.task(r.owner_task)?.landed) { state = "task landed"; stale = true; }
++	else if (OLDER_H && age_h > OLDER_H) { state = `open, but up ${age_h.toFixed(0)} h (older than ${OLDER_H} h)`; stale = true; }
++	else state = "open (in use or unmerged)";
++	out.push({ name, pid: r.pid, child: r.child, age_h, mb: tree_mb(r.pid), state, stale, r });
++}
++out.sort((a, b) => (b.stale - a.stale) || (b.age_h ?? 0) - (a.age_h ?? 0));
++
++const pad = (s, n) => String(s).padEnd(n);
++console.log(`${out.length} worktree dev server(s), ${out.reduce((n, o) => n + o.mb, 0)} MB, ${out.filter(o => o.stale).length} stale\n`);
++console.log(`${pad("worktree", 30)}${pad("pid", 8)}${pad("age h", 8)}${pad("MB", 6)}state`);
++for (const o of out) console.log(`${o.stale ? "*" : " "}${pad(o.name, 29)}${pad(o.pid, 8)}${pad(o.age_h == null ? "?" : o.age_h.toFixed(1), 8)}${pad(o.mb, 6)}${o.state}`);
++
++if (!STOP) { if (out.some(o => o.stale)) console.log(`\n* = stale. Stop them: node Server/worktree-servers.mjs --stop-stale${OLDER_H ? ` --older-than ${OLDER_H}` : ""}   (add --dry to preview)`); process.exit(0); }
++let n = 0;
++for (const o of out.filter(o => o.stale)) {
++	console.log(`${DRY ? "would stop" : "stopping"} ${o.name} (pid ${o.pid}): ${o.state}`);
++	if (DRY) continue;
++	await lc.close(o.r, `worktree-servers --stop-stale: ${o.state}`);
++	n++;
++}
++console.log(DRY ? "dry run, nothing stopped" : `${n} stopped`);
+diff --git a/Server/worktree-up.mjs b/Server/worktree-up.mjs
+index 179c41c85..b4efa959d 100644
+--- a/Server/worktree-up.mjs
++++ b/Server/worktree-up.mjs
+@@ -191,7 +191,9 @@ console.log(`worktree-up: booting node server.js in ${target} on PORT ${port}…
+  * stays a plain hidden launch. (-NoNewWindow is no way out: the child keeps the launcher's stdout
+  * pipe, so spawnSync below would wait until the server exits.) The pid is cmd's; taskkill /T takes the tree. */
+ const cmdline = `/d /c ""${process.execPath}" server.js >>"${log_path}" 2>>"${log_path}.err""`;
+-const ps = `$env:PORT='${port}'; $p = Start-Process -FilePath $env:ComSpec -ArgumentList '${cmdline.replaceAll("'", "''")}' -WorkingDirectory '${target.replaceAll("'", "''")}' -WindowStyle Hidden -PassThru; $p.Id`;
++/* A server nobody asks for ends itself (Server/Server.js idle_exit). Pool slots are the Pool's: no idle stop. */
++const idle_min = new RegExp(`^${process.env.SERVEX_POOL_PREFIX || "qf"}-\\d+$`).test(name) ? 0 : Number(process.env.WORKTREE_IDLE_MIN ?? 30);
++const ps = `$env:PORT='${port}'; ${idle_min > 0 ? `$env:IDLE_EXIT_MIN='${idle_min}'; ` : ""}$p = Start-Process -FilePath $env:ComSpec -ArgumentList '${cmdline.replaceAll("'", "''")}' -WorkingDirectory '${target.replaceAll("'", "''")}' -WindowStyle Hidden -PassThru; $p.Id`;
+ const started = spawnSync("powershell.exe", ["-NoProfile", "-Command", ps], { encoding: "utf8", windowsHide: true });
+ if (started.stderr?.trim()) console.error("worktree-up: launcher said:", started.stderr.trim());
+ const child = { pid: Number(String(started.stdout).trim()) || null };
+diff --git a/Servex/Lifecycle.js b/Servex/Lifecycle.js
+index 022976d63..20b2303be 100644
+--- a/Servex/Lifecycle.js
++++ b/Servex/Lifecycle.js
+@@ -147,7 +147,7 @@ export default class Lifecycle {
+ 
+ 	/** The same list without freezing Servex: the two blocking calls above took 20+ s on a busy machine, long enough to time out every agent's prompt hook (2026-10-23). */
+ 	async processes_async(){
+-		const run = (cmd, args, maxBuffer) => promisify(execFile)(cmd, args, { encoding: "utf8", windowsHide: true, maxBuffer }).then(r => r.stdout, () => "");
++		const run = (cmd, args, maxBuffer) => promisify(execFile)(cmd, args, { encoding: "utf8", windowsHide: true, maxBuffer, timeout: 30000 }).then(r => r.stdout, () => "");
+ 		const [out, ns] = await Promise.all([run("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], 32 << 20), run("netstat", ["-ano", "-p", "TCP"], 8 << 20)]);
+ 		return this.process_map(out, ns);
+ 	}
+diff --git a/Servex/Monitor.js b/Servex/Monitor.js
+index 0649df351..1587a790a 100644
+--- a/Servex/Monitor.js
++++ b/Servex/Monitor.js
+@@ -34,7 +34,7 @@ import { ONE_PASS } from "./Lifecycle.js";
+  * sends ONE message to the mastermind and one line on the Live card; it then
+  * stays quiet until the flag clears.
+  *
+- * Thresholds: SERVEX_HOT_CPU (90), SERVEX_HOT_SECONDS (60), SERVEX_LOW_RAM_GB (3),
++ * Thresholds: SERVEX_HOT_CPU (90), SERVEX_HOT_SECONDS (60), SERVEX_LOW_RAM_GB (1.5),
+  * and changeable at runtime through `set()` — the `system_health` tool's own
+  * arguments — so a test can trip the flag and clear it without a restart. */
+ export default class Monitor extends Events {
+@@ -43,7 +43,7 @@ export default class Monitor extends Events {
+         this.every ??= 5000;
+         this.hot_cpu ??= Number(process.env.SERVEX_HOT_CPU) || 90;
+         this.hot_seconds ??= Number(process.env.SERVEX_HOT_SECONDS) || 60;
+-        this.low_ram_gb ??= Number(process.env.SERVEX_LOW_RAM_GB) || 3;
++        this.low_ram_gb ??= Number(process.env.SERVEX_LOW_RAM_GB) || 1.5;
+         this.notify ??= "mastermind-servex";   // who hears the flag go up
+         this.card ??= "live";                  // where the owner sees it
+ 
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index ce7db48bc..e2161b719 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -1098,7 +1098,7 @@ export default class Servex extends Events {
+             inputSchema: { type: "object", properties: {
+                 hot_cpu: { type: "number", description: "Flag when total CPU % stays at or above this. Default 90." },
+                 hot_seconds: { type: "number", description: "…for this many seconds. Default 60." },
+-                low_ram_gb: { type: "number", description: "Flag when free RAM falls under this many GB. Default 3." }
++                low_ram_gb: { type: "number", description: "Flag when free RAM falls under this many GB. Default 1.5." }
+             } }
+         }, args => {
+             this.monitor?.set(args ?? {});
+@@ -1562,6 +1562,7 @@ export default class Servex extends Events {
+         if (process.env.SERVEX_NO_REAPER) return;
+         let last = 0;
+         const sweep = () => {
++            if (this.reaping && Date.now() - last > 3 * 60000) this.reaping = null;   // a wedged sweep must not stop every later one
+             if (this.reaping || Date.now() - last < 5 * 60000) return;
+             last = Date.now();
+             const dry = !!process.env.SERVEX_REAPER_DRY;
+diff --git a/Servex/doc/lifecycle.md b/Servex/doc/lifecycle.md
+index 60c5904c3..ec1b57bd4 100644
+--- a/Servex/doc/lifecycle.md
++++ b/Servex/doc/lifecycle.md
+@@ -29,6 +29,9 @@ A process that is killed hard (`taskkill /F`) cannot write its own end line. The
+ 
+ - **It must not block Servex.** The sweep runs inside Servex, so a blocking call stalls every route and every agent's prompt hook (the SDK gives a hook 30 s). The process list is read with async `execFile` (`processes_async()`), and `task_for_worktree()` reads one task-log index kept 30 s (`Server/worktree-sweep.mjs`) instead of re-walking `ai/` per worktree (that was ~20 s of frozen event loop per sweep). Measure stalls with the gaps between the 5-second heartbeat lines in `logs/crumbs.log`.
+ 
++- **A wedged sweep recovers.** The process scan has a 30 s timeout and `reaper()` clears a sweep that has run over 3 min, so one hung PowerShell cannot silence the reaper.
++- **Idle worktree servers stop themselves** after 30 quiet minutes, and `node Server/worktree-servers.mjs` lists and clears stale ones by hand: [Server/doc/worktree-servers.md](../../Server/doc/worktree-servers.md).
++
+ Every close writes an `end` line whose `why` says the reason in plain words.
+ 
+ ## 3. What is never touched
+diff --git a/Servex/doc/readme-full-2026-10-12.md b/Servex/doc/readme-full-2026-10-12.md
+index d7bd89b59..4da6dba18 100644
+--- a/Servex/doc/readme-full-2026-10-12.md
++++ b/Servex/doc/readme-full-2026-10-12.md
+@@ -178,7 +178,7 @@ It is cheap on purpose: one hidden PowerShell loop and one `nvidia-smi` for its
+ whole life, never a new process per sample.
+ 
+ **The flag** goes up when CPU stays above 90% for 60 seconds, or free RAM drops
+-under 3 GB (`SERVEX_HOT_CPU`, `SERVEX_HOT_SECONDS`, `SERVEX_LOW_RAM_GB`, or the
++under 1.5 GB (`SERVEX_HOT_CPU`, `SERVEX_HOT_SECONDS`, `SERVEX_LOW_RAM_GB`, or the
+ tool's own three arguments while it runs). Going up sends one message to
+ `mastermind-servex` and one line to the Live card; clearing says one line more.
+ **While it is up, new agents wait in a queue** instead of starting: `spawn_agent`
+diff --git a/server.js b/server.js
+index 05056b7b7..016d33968 100644
+--- a/server.js
++++ b/server.js
+@@ -163,6 +163,7 @@ function supervise(){
+ 		const child = fork(entry_for_this_boot(), [], { stdio: "inherit", cwd: __dirname, env: { ...process.env } });   // ⚠ no windowsHide here: a child with NO console makes its own children pop VISIBLE consoles (2026-09-22, the node-window storm); the root is launched with a hidden console and everyone inherits it
+ 		live = child;
+ 		const started_at = Date.now();
++		child.on("message", m => { if (m?.idle_exit) shutdown("idle (no request, IDLE_EXIT_MIN)"); });
+ 
+ 		child.on("exit", (code, signal) => {
+ 			if (shutting_down) return;

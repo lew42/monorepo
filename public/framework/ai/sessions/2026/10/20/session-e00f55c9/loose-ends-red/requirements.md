@@ -1,4 +1,6 @@
-# Close the filed red items from the night (you are a mastermind, on Sonnet)
+# Close the night's red items
+
+You are a mastermind, on Sonnet.
 
 **Source:** the night's open list, [../night-2026-11-01/morning.md](../night-2026-11-01/morning.md) ("Still open"), plus `core/Test/doc/health.md`. The owner: "we keep starting things and barely finishing them"; finish them.
 

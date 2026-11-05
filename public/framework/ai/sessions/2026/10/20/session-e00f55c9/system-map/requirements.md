@@ -1,6 +1,10 @@
-# A map of dictation's background work, and an index of what's been built (you are a mastermind, on Sonnet; audits go to Haiku)
+# Dictation: map the background work
 
-**The owner (2026-11-01, about 21:45, [../night-2026-11-01/requirements.md](../night-2026-11-01/requirements.md), point 7):** "We need better system maps because frankly we're doing so many of these fix-this, do-this things… I can't even find all the things that we've done." Study the prompt refinement system with a Haiku fan-out. Find out what the fast assistant actually does: refinement, placement, one fresh agent per prompt? "I really don't know. There's all kinds of different things happening."
+You are a mastermind on Sonnet; audits go to Haiku.
+
+**The ask** ([owner, 2026-11-01, point 7](../night-2026-11-01/requirements.md)): "We need better system maps… I can't even find all the things that we've done."
+- **Find out** what the fast assistant does with a spoken sentence: refinement, placement, a fresh agent per prompt? The owner: "I really don't know."
+- **Method:** study the prompt refinement system with a Haiku fan-out.
 
 ## Do
 1. **Inventory every background job that touches a spoken sentence,** verified in code with file:line:

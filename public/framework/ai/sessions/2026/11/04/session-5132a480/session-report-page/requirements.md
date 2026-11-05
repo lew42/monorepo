@@ -8,7 +8,7 @@ The test page is this session: `/framework/ai/sessions/5132a480-c10b-4dc0-8d72-8
 
 ## 1. Look first
 
-Screenshot `/framework/ai/sessions/` and this session's page at 400, 1200 and 1920, headless. Say in a few lines what's wrong, and whether the list page is worth saving. Reuse `ai/AISession/` classes; don't start a second page.
+Screenshot `/framework/ai/sessions/` and this session's page at 400, 1200 and 1920, headless. Say in a few lines what's wrong, and whether the list page is worth saving. Reuse the [`ai/AISession/`](/framework/ai/AISession/readme.md) classes; don't start a second page.
 
 ## 2. Build the detail page so the top screen answers, in order
 
@@ -27,7 +27,7 @@ If it's worth saving: one clean list, newest first, with title, completion, cost
 
 ## Done means
 
-- Screenshots at all three widths in `shots/`; the top screen readable by someone who has never seen it.
-- `check_page` clean on both pages, and the same number on the page as from the item tool.
-- Landed with `merge.mjs` after a review; the page's readme current.
-- Report the URL. Zero footprint.
+- [ ] Screenshots at all three widths in `shots/`; the top screen readable by someone who has never seen it.
+- [ ] `check_page` clean on both pages, and the same number on the page as from the item tool.
+- [ ] Landed with `merge.mjs` after a review; the page's readme current.
+- [ ] Report the URL. Zero footprint.

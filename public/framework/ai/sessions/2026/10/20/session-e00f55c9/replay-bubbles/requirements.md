@@ -1,4 +1,6 @@
-# Replay any reply: per-bubble play, pause and back 10 s (you are a mastermind, on Sonnet, high effort)
+# Replay any reply: play, pause and back 10 s on every reply bubble
+
+Role: mastermind, Sonnet, high effort.
 
 **The owner (2026-11-02, about 13:00):** "So it doesn't seem like there's a way to restart or replay the responses in the V3 or any of them."
 
@@ -16,16 +18,16 @@ Earlier asks for the same thing ([../dictation-v3/owner-notes-2026-11-01-2040.md
 - Read-aloud follows the session's replies (`ext/drawer/Sheet.js` `read_aloud()`).
 
 ## Do (worktree; review; `Server/merge.mjs`; never commit straight to `michael/dev`)
-1. **One small control per assistant reply bubble,** shared by V1, V2 and V3 (Law 6: one component, mounted by each view): **▶/⏸** and **↺10**. A tap on the bubble's text (not on a link, mention chip or button) plays or pauses that bubble.
+1. **One small control per assistant reply bubble,** shared by V1, V2 and V3 (CLAUDE.md law 6, one of everything: one component, mounted by each view): **▶/⏸** and **↺10**. A tap on the bubble's text (not on a link, mention chip or button) plays or pauses that bubble.
 2. **Play a finished bubble:**
    - from the word where it last stopped, if it was interrupted;
    - otherwise from the start;
    - with ↺10 stepping back about 10 s in that bubble's text.
 
-   Synthesize again through Recite (Kokoro), sentence by sentence, keeping the highlight. Playing one bubble stops whatever else is playing, and the queue rules stay as they are.
+   Synthesize again through [Recite](/framework/audio/Recite/readme.md) (Kokoro), sentence by sentence, keeping the highlight. Playing one bubble stops whatever else is playing, and the queue rules stay as they are.
 3. **Remember each bubble's last read word** (in memory, plus per-browser storage for a reload). The read-word lighting already shows it.
 4. **Tests:**
-   - a headless test per view: it taps a finished bubble, sees "speak asked" for that bubble's first sentence, then pauses;
+   - a headless test per view: it taps a finished bubble, checks that the speech request for that bubble's first sentence was sent, then pauses;
    - a unit test for resume-from-word.
 
    Use the TestRunner Servex fence; never hit the live Servex.

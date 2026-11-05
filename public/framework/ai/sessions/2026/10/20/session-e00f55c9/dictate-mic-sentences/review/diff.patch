@@ -1,0 +1,416 @@
+diff --git a/public/framework/core/Test/browser-scripts.mjs b/public/framework/core/Test/browser-scripts.mjs
+index 738a1fed1..4da8a65c0 100644
+--- a/public/framework/core/Test/browser-scripts.mjs
++++ b/public/framework/core/Test/browser-scripts.mjs
+@@ -24,6 +24,8 @@ export const SCRIPTS = [
+ 	{"file":"public/framework/ux/Dictate/test/marks.mjs","args":["{site}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/new-session.mjs","args":["{site}","{repo}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/order.mjs","args":["{site}"],"status":"pass"},
++	{"file":"public/framework/ux/Dictate/test/mic-release.mjs","args":["{site}"],"status":"pass"},
++	{"file":"public/framework/ux/Dictate/test/sentences.mjs","args":["{site}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/raw-stays.mjs","args":["{site}","{shots}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/reconnect.mjs","args":["{site}","{shots}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/refresh.mjs","args":["{site}"],"status":"pass","ms":180000},
+diff --git a/public/framework/ext/Chat/Mic.js b/public/framework/ext/Chat/Mic.js
+index 4f91f9361..b52833da0 100644
+--- a/public/framework/ext/Chat/Mic.js
++++ b/public/framework/ext/Chat/Mic.js
+@@ -12,7 +12,8 @@ import { strip_words, strip_sent } from "./strip.js";
+ // Every knob of the whisper-to-box flow, read live everywhere. see doc/mic-notes.md#settings
+ export const SETTINGS = {
+ 	send_mode: "pause",         // "pause" (sentences + the silence remainder) | "sentences" (no silence send)
+-	sentences_per_send: 1,      // N = one message per N finished sentences, while still listening; 0 = off (views-fix item 0, 2026-11-01: "sent off sentence by sentence" was going unmet — arm() only ever took the check_chunk() safety path with this at 0, which flushes everything held as ONE message instead of one per sentence)
++	early_sentences: true,      // a sentence goes out when it ends (live guess), not at the pause; false = only finals send
++	sentences_per_send: 1,     // N = one message per N finished sentences, while still listening; 0 = off (views-fix item 0, 2026-11-01: "sent off sentence by sentence" was going unmet — arm() only ever took the check_chunk() safety path with this at 0, which flushes everything held as ONE message instead of one per sentence)
+ 	paragraph_pause_ms: 2000,   // quiet after a finished sentence that sends everything so far; see doc/mic-notes.md#settings
+ 	chunk_chars: 1200,          // safety: a message this long is cut at the next sentence end
+ 	chunk_ms: 60000,            // safety: words waiting this long are cut at the next sentence end
+@@ -600,7 +601,7 @@ export class ComposerMic extends Dictate {
+ 
+ 	// Finished sentences go out now; the unfinished tail stays held. Sends the joined RAW text as `raw`. see doc/mic-notes.md#send_sentences
+ 	async send_sentences(n = Math.max(1, SETTINGS.sentences_per_send | 0)){
+-		if (this.sending_sentences) return;   // `await_clean()` below can take up to 5s — never two of these reading/cutting `held` at once
++		if (this.sending_sentences){ this.send_again = n; return; }   // `await_clean()` below can take up to 5s — never two of these reading/cutting `held` at once; words that arrive meanwhile get one more pass after
+ 		this.sending_sentences = true;
+ 		try {
+ 			await this.await_clean();
+@@ -625,7 +626,54 @@ export class ComposerMic extends Dictate {
+ 			this.draw_caption();
+ 			this.enqueue(items);
+ 		} catch (e){ DictateHealth.fail("sentence", e, "sending the finished sentences"); }
+-		finally { this.sending_sentences = false; }
++		finally {
++			this.sending_sentences = false;
++			if (this.send_again != null){ const again = this.send_again; this.send_again = null; this.send_sentences(again); }
++		}
++	}
++
++	// A sentence goes out when it ends, not when you pause: the live guess (Whisper re-hears the growing segment) holds a finished
++	// sentence (ends in . ? ! and more words follow) -> send it now. The final of that segment then loses those sentences (drop_early),
++	// so nothing is sent twice. Limit: no in-place correction exists server-side, so a final that hears an early sentence differently
++	// keeps the early wording; the difference is logged (DictateHealth "sentence"). see ux/Dictate/doc/upload.md#a-sentence-goes-out-when-it-ends
++	early_from_guess(text, epoch){
++		try {
++			if (!SETTINGS.early_sentences || this.mode_now() === "manual" || this.state !== "listening") return;
++			if (this.sending_sentences || this.sending_screen || this.base?.trim() || (this.held ?? []).some(h => !h.gone)) return;
++			const guess = String(text ?? "").trim();
++			const done = [];
++			for (const m of guess.matchAll(this.cut_re())) if (m.index + m[0].length < guess.length) done.push(m[0].trim());   // "more words follow"
++			const early = (this.early_sent ??= new Map());
++			for (const k of early.keys()) if (k < epoch - 3) early.delete(k);
++			const mine = early.get(epoch) ?? [];
++			if (done.length > mine.length){
++				const fresh = done.slice(mine.length);
++				early.set(epoch, mine.concat(fresh));
++				const items = fresh.map(t => this.take_out({ text: t, raw: null })).filter(Boolean);
++				if (items.length) this.enqueue(items);
++			}
++			// The draft shows only what has not left yet: a sentence on screen twice could be sent twice by the pause send.
++			const sent = early.get(epoch)?.length ?? 0;
++			if (sent){
++				const all = [...guess.matchAll(this.cut_re())], last = all[Math.min(sent, all.length) - 1];
++				const rest = last ? guess.slice(last.index + last[0].length).trim() : guess;
++				if (rest !== this.partial_text){ this.partial_text = rest; this.draw_caption(); }
++			}
++		} catch (e){ DictateHealth.fail("sentence", e, "sending a finished sentence from the live guess"); }
++	}
++
++	// The final text of a segment, minus the sentences early_from_guess() already sent.
++	drop_early(text){
++		const epoch = this.final_epoch; this.final_epoch = undefined;
++		const mine = this.early_sent?.get(epoch);
++		if (!mine?.length) return text;
++		this.early_sent.delete(epoch);
++		const sents = String(text).match(this.cut_re()) ?? [];
++		const norm = s => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
++		if (norm(sents.slice(0, mine.length).join(" ")) !== norm(mine.join(" ")))
++			DictateHealth.event("sentence", "wait", `the final heard the early sentences differently; kept what was sent: “${mine.join(" ").slice(0, 80)}” (final: “${String(text).slice(0, 80)}”)`, { early: mine, final: text });
++		const all = [...String(text).matchAll(this.cut_re())], last = all[mine.length - 1];
++		return last ? String(text).slice(last.index + last[0].length).trim() : "";
+ 	}
+ 
+ 	// Messages leave in order; `posting` keeps a live reload waiting. Items are `{text, raw}` or a string.
+@@ -665,14 +713,20 @@ export class ComposerMic extends Dictate {
+ 			if (!text) return;   // the owner cleared the box, or a stop already sent it, while this was waiting
+ 			this.notify_if_failed((this.held ?? []).filter(h => !h.gone));
+ 			const raw = (this.base + (this.base && !/\s$/.test(this.base) ? " " : "") + this.build_tail(true)).trim() || text;
+-			const item = this.take_out({ text, raw });   // in the chat now, where the draft was: the waits below never empty the screen
++			// Several sentences on screen leave as several lines, in order (raw on the first only); an unfinished tail is the last line.
++			const found = [...text.matchAll(this.cut_re())], sents = found.map(m => m[0].trim());
++			const tail = found.length ? text.slice(found.at(-1).index + found.at(-1)[0].length).trim() : "";
++			const parts = sents.length > 1 || (sents.length && tail) ? [...sents, ...(tail ? [tail] : [])] : [text];
++			const items = parts.map((t, i) => this.take_out({ text: t, raw: i === 0 ? raw : null })).filter(Boolean);   // in the chat now, where the draft was: the waits below never empty the screen
+ 			this.consume_sent();
+ 			this.draw_caption();   // empty the box now, in this same tick, so no second check can send it again
+-			if (!item) return;
++			if (!items.length) return;
+ 			// One last live-refine call (`final: true`); paragraphed slots replace `text` when the route answers (the drawn piece is patched in place).
+-			const live = await this.refine_final(raw);
+-			if (live?.slots?.length) item.text = ComposerMic.paragraph_from_slots(live.slots, live.outline);
+-			this.enqueue([item]);
++			if (items.length === 1){
++				const live = await this.refine_final(raw);
++				if (live?.slots?.length) items[0].text = ComposerMic.paragraph_from_slots(live.slots, live.outline);
++			}
++			this.enqueue(items);
+ 		} finally { this.sending_screen = false; }
+ 	}
+ 
+diff --git a/public/framework/ext/Chat/doc/mic-notes.md b/public/framework/ext/Chat/doc/mic-notes.md
+index 1c7f258bb..81a47f6d9 100644
+--- a/public/framework/ext/Chat/doc/mic-notes.md
++++ b/public/framework/ext/Chat/doc/mic-notes.md
+@@ -35,6 +35,10 @@ but merge 11 ("one widget," 2026-10-01) removed every way to reach it: it is no
+ `MODES` row (`ux/Dictate/Widget.js`) or a gear choice (`settings_panel()`, below) — autosend
+ is the default and the only behaviour a reader can pick, everywhere.
+ 
++## Settings: early_sentences
++
++`SETTINGS.early_sentences` (default `true`, not in the gear panel): a sentence the live guess has finished (ends in `.` `?` `!`, more words after it) is sent at once by `early_from_guess()`, and the segment’s final loses it (`drop_early()`); the draft shows only the unsent rest. `false` = only finals send. See [upload.md](/framework/ux/Dictate/doc/upload.md#a-sentence-goes-out-when-it-ends-not-when-you-pause).
++
+ ## Settings: paragraph_pause_ms history
+ 
+ 2026-10-01 — the owner asked for "500 to 1000 milliseconds" so a finished sentence goes out quickly;
+diff --git a/public/framework/ux/Dictate/Dictate.js b/public/framework/ux/Dictate/Dictate.js
+index 95cc1dab2..9801e2542 100644
+--- a/public/framework/ux/Dictate/Dictate.js
++++ b/public/framework/ux/Dictate/Dictate.js
+@@ -363,8 +363,10 @@ export default class Dictate extends View {
+ 		this.set_state("transcribing");
+ 
+ 		if (this.engine === "whisper"){
+-			await this.close_segment("manual");
++			// The mic goes off NOW: close_segment() takes its snapshot before its first await, so the light never waits for the upload.
++			const closing = this.close_segment("manual");
+ 			this.mic?.stop();
++			await closing;
+ 			if (this.state !== "error"){
+ 				this.set_state("idle");
+ 				if (!this.settled && this.skipped_silent)
+@@ -514,6 +516,7 @@ export default class Dictate extends View {
+ 		if (epoch !== this.segment_epoch || seq <= this.applied_seq){ this.on_trace?.("stale", { kind: "interim", req: seq, msg: text }); return; }
+ 		this.applied_seq = seq;
+ 		this.partial_text = text; this.draw_caption(); this.on_guess?.(text);
++		this.early_from_guess?.(text, epoch);   // ComposerMic sends a finished sentence now, not at the pause (doc/upload.md)
+ 	}
+ 
+ 	/** The guess is cleared only in the same draw_caption() that shows the final. see doc/notes.md#never-clear-the-guess-early */
+@@ -556,6 +559,7 @@ export default class Dictate extends View {
+ 			return;
+ 		}
+ 		this.applied_seq = seq;
++		this.final_epoch = epoch - 1;   // the segment whose guesses this final replaces (close_segment() already counted epoch up)
+ 		this.commit(text, reason);
+ 	}
+ 
+@@ -711,6 +715,7 @@ export default class Dictate extends View {
+ 
+ 
+ 	commit(text, reason){
++		if (this.drop_early) text = this.drop_early(text);   // sentences already sent from the guess are not sent again
+ 		if (!text || this.annotation(text)){ this.clear_guess(); return; }
+ 		this.settled = this.settled ? this.settled + " " + text : text;
+ 		(this.settled_lines ??= []).push(text);
+diff --git a/public/framework/ux/Dictate/capture.js b/public/framework/ux/Dictate/capture.js
+index 0a12cd83d..ef80d8656 100644
+--- a/public/framework/ux/Dictate/capture.js
++++ b/public/framework/ux/Dictate/capture.js
+@@ -41,6 +41,7 @@ export default class Capture {
+ 
+ 	async start(on_level){
+ 		this.fell_back = this.recovered = false;
++		this.stopped = false;
+ 		try {
+ 			this.stream = await navigator.mediaDevices.getUserMedia({ audio: this.constraint() });
+ 		} catch (e){
+@@ -56,6 +57,7 @@ export default class Capture {
+ 			this.stream = await navigator.mediaDevices.getUserMedia({ audio: this.constraint() });
+ 		}
+ 
++		if (this.stopped) return this.stop();   // stop() landed while the browser opened the mic: release it now, the light must go off
+ 		this.ctx = new AudioContext({ sampleRate: this.sample_rate });
+ 		try { await this.load_worklet(); }
+ 		catch (e){   // never hold the mic after a failed start
+@@ -63,6 +65,7 @@ export default class Capture {
+ 			throw Object.assign(new Error(`the mic’s audio module (pcm-worklet.js) did not load after 3 tries: ${e?.message ?? e}`), { name: "WorkletError" });
+ 		}
+ 
++		if (this.stopped) return this.stop();
+ 		this.node = new AudioWorkletNode(this.ctx, "dictate-pcm");
+ 		this.chunks = [];
+ 		this.node.port.onmessage = e => {
+@@ -157,6 +160,7 @@ export default class Capture {
+ 	 *  can run while a normal stop is still finishing, and a second `close()` on a
+ 	 *  closed AudioContext rejects. */
+ 	stop(){
++		this.stopped = true;
+ 		if (this.ctx && this.ctx.state !== "closed") this.ctx.close().catch(() => {});
+ 		this.stream?.getTracks().forEach(t => t.stop());
+ 	}
+diff --git a/public/framework/ux/Dictate/doc/pipeline.md b/public/framework/ux/Dictate/doc/pipeline.md
+index a7958f89a..d2e15e873 100644
+--- a/public/framework/ux/Dictate/doc/pipeline.md
++++ b/public/framework/ux/Dictate/doc/pipeline.md
+@@ -10,6 +10,7 @@ The whole path of one spoken sentence, with the file that does each step. Line n
+ 
+  SPEAK      Dictate.js:575        transcribe(): audio → whisper-server /inference (:584)
+             ext/Chat/Mic.js:20    guess_ms 900: the growing sentence is re-sent to Whisper
++            (a finished sentence in the guess leaves NOW, see doc/upload.md#a-sentence-goes-out-when-it-ends-not-when-you-pause)
+               │                   settled words + a still-moving "guess" tail
+               ▼
+  LIVE       ext/Chat/Chat.js:794  live({text, settled, guess}): ONE growing bubble (the draft)
+diff --git a/public/framework/ux/Dictate/doc/upload.md b/public/framework/ux/Dictate/doc/upload.md
+index 813cf3424..c18d3a54c 100644
+--- a/public/framework/ux/Dictate/doc/upload.md
++++ b/public/framework/ux/Dictate/doc/upload.md
+@@ -40,3 +40,18 @@ Proof: `node public/framework/ai/sessions/2026/10/20/session-e00f55c9/whisper-pa
+ - **4-bit IMA ADPCM** (a quarter of the bytes): tested, and it garbled quiet speech ("Festing, festing"). Not used.
+ - **Opus** (about a tenth of the bytes): needs whisper-server's `--convert` (ffmpeg on the PC) and an Ogg writer in the page. Worth doing if the phone is often on mobile data.
+ - **Send only the new audio for guesses**: the bytes no longer grow with the segment, but the guess text then has to be stitched together. A bigger change.
++
++## A sentence goes out when it ends, not when you pause
++
++Whisper closes a segment only on a pause, so a long run of speech used to leave as one line, after the pause. Now (2026-11-02):
++
++- **From the live guess.** Each guess re-hears the growing segment. When it holds a finished sentence (ends in `.` `?` `!`, with more words after it), `ComposerMic.early_from_guess()` (`ext/Chat/Mic.js`) sends that sentence at once, one line each, in order. `SETTINGS.early_sentences = false` turns it off.
++- **The final loses what was sent.** `drop_early()` removes those sentences from the segment's final, so there is never a second copy. If the final heard an early sentence differently, the early wording stays (no server-side in-place correction exists) and the difference is logged as a `sentence` health event.
++- **A final or a pause-send with several sentences** leaves as several lines, in order (`send_screen()` splits it; `send_sentences()` runs again for words that arrived while it was busy), with `raw` on the first.
++- **Correction in place: not built.** The `fix` line in `chat.js` / `ChatPanel.deliver_rename` renames a chat title; it cannot change a sent sentence’s text in the session file, and Servex has no verb for that. So the early wording stays (V1 shows what was sent). A `session/amend` verb would be the way; until then the difference is logged.
++- A split send (several lines) skips the paragraph clean-up (`refine_final`); a single line still gets it.
++- The draft shows only the unsent rest of the guess, so a slow final can never make the pause send repeat a sentence.
++- It only runs when nothing else is held, nothing is sending and the typed `base` is empty, so ordering is never at risk.
++- **The mic light.** Stop (or pause) ends every `MediaStreamTrack` at once, not after the final upload, and a stop that lands while `getUserMedia` is still opening releases the late stream (`capture.js`, `Dictate.stop()`).
++
++Tests: `test/mic-release.mjs`, `test/sentences.mjs`.
+diff --git a/public/framework/ux/Dictate/doc/wake-policy.md b/public/framework/ux/Dictate/doc/wake-policy.md
+index b92a14b27..cc737b355 100644
+--- a/public/framework/ux/Dictate/doc/wake-policy.md
++++ b/public/framework/ux/Dictate/doc/wake-policy.md
+@@ -62,3 +62,7 @@ Cost: about half a day of Sonnet, plus a review. It is a shape change, so the pl
+ - The browser's mic sends after 2 s of quiet (`pause_send_ms` and `paragraph_pause_ms` in [`ext/Chat/Mic.js`](../../../ext/Chat/Mic.js)).
+ - The 12 s here is the smart seat's batch gap, a separate wait.
+ - Lowering it to about 4 s is one setting (POST `/api/session/settings {session, gap_ms: 4000}`), with no restart. Each wake is an Opus turn, so the cost grows with it.
++
++## A sentence goes out when it ends, not when you pause
++
++The fast assistant gets each finished sentence as it ends (from the live guess), not at the pause that closes the Whisper segment. The smart assistant's rules above are unchanged. Detail: [upload.md](upload.md#a-sentence-goes-out-when-it-ends-not-when-you-pause).
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index 2494ec900..6df82382c 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -38,7 +38,7 @@ You speak and Whisper turns the sound into text, one sentence at a time. The pag
+ - The Debug panel in the phone sheet has a resize handle whose height survives a reload ([`SheetPanel.tabs_grip`](/framework/ext/drawer/doc/sheet.md#the-debug-panel-handle-2026-10-25)).
+ - **Running the proofs in a fresh worktree:** the mic scripts need the gitignored `ai/recordings/jfk.wav`, and any script that loads the AI pages needs the gitignored `ai/tasks.json` and `ai/page-work.json` (without them a page logs same-origin 404s and fails); copy all three from the main checkout. `chat.js` keeps a controller `epoch`: **New session** while the first send's session is still starting clears the lines drawn and drops that late start, so it cannot bring the old session back (`test/new-session.mjs`, [`doc/chat.md`](doc/chat.md#new-session-and-the-mic-indicator)). A `say` carrying a `kind` (error, click, context) is a diagnostic or context line, never a prompt (`ext/Chat/v2/report.js`).
+ - **Stub what the page asks Servex, and count only prompts:** a fenced run answers every Servex call with a 502, and `core/Page/ai/work.js` throws on a non-array `/cards` answer, so a script that opens the Dictate page stubs `/cards?` and `/api/agents` with `[]` (and the session verbs, if it sends). A `POST /api/session/say` with a `kind` is a diagnostic, not a prompt (Recite files one when the sheet opens): a say stub counts only `!body.kind`. A scripted browser skips Whisper `connection` log lines unless `window.$WHISPER_LOG_FORCE = true`. The gear label ("keep talking within it and the words join one prompt") describes `sentences_per_send` above 1; the default is 1. ⬜ A late `Session.resume` join after a reset has no test.
+-- Proofs `test/errors.mjs` (every error is caught and shown), `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs` (repeated, late and fixed lines; the moving ✓/🧠 cursors are not text), `test/in-place.mjs` (words grow in the bubble and settle in place), `test/repeat.mjs` (Whisper's repeated tail), `test/active-session.mjs` (the send, the view and read-aloud agree on the active session through first open, switch, New session and reload: [`doc/chat.md#the-active-session`](doc/chat.md)), `test/order.mjs` (bubbles in the order spoken; a reply between two sentences stays between), `test/v1-order.mjs` (a reply never ends up above an owner line it arrived after: the incident replayed from `test/v1-order-fixture.jsonl` plus the live open-bubble case; nothing on screen swaps places), `test/flicker.mjs` (no word vanishes or moves), `test/chat-sent.mjs` (the two moving cursors reach "done"; the scroll lock and the ↓ button; Questions under their Prompt, their source bubble still visible; bubbles and Chat v2), `test/raw-stays.mjs` (the raw-log rule: a sentence stays on screen once it has a Question or a Task), `test/chat-gray.mjs` (gray-state labels and the faded sent bubble), `test/refresh.mjs` (reload, then dictate: [`doc/debug-tab.md#refresh-then-dictate`](doc/debug-tab.md#refresh-then-dictate)).
++- Proofs `test/mic-release.mjs` (stop/pause ends every mic track at once; resume reopens it) and `test/sentences.mjs` (a sentence is sent when it ends, [upload.md](doc/upload.md#a-sentence-goes-out-when-it-ends-not-when-you-pause)), `test/errors.mjs` (every error is caught and shown), `test/stall.mjs`, `test/debug-tab.mjs`, `test/deltas.mjs` (repeated, late and fixed lines; the moving ✓/🧠 cursors are not text), `test/in-place.mjs` (words grow in the bubble and settle in place), `test/repeat.mjs` (Whisper's repeated tail), `test/active-session.mjs` (the send, the view and read-aloud agree on the active session through first open, switch, New session and reload: [`doc/chat.md#the-active-session`](doc/chat.md)), `test/order.mjs` (bubbles in the order spoken; a reply between two sentences stays between), `test/v1-order.mjs` (a reply never ends up above an owner line it arrived after: the incident replayed from `test/v1-order-fixture.jsonl` plus the live open-bubble case; nothing on screen swaps places), `test/flicker.mjs` (no word vanishes or moves), `test/chat-sent.mjs` (the two moving cursors reach "done"; the scroll lock and the ↓ button; Questions under their Prompt, their source bubble still visible; bubbles and Chat v2), `test/raw-stays.mjs` (the raw-log rule: a sentence stays on screen once it has a Question or a Task), `test/chat-gray.mjs` (gray-state labels and the faded sent bubble), `test/refresh.mjs` (reload, then dictate: [`doc/debug-tab.md#refresh-then-dictate`](doc/debug-tab.md#refresh-then-dictate)).
+ - **Two moving cursors (2026-10-25):** the bubble chat draws the same ✓ (fast seat) / 🧠 (smart seat) cursors Chat v2 has — the one shared pair for the whole bubble (`ext/Chat/cursors.js`), moved onto whichever live piece is newest, never one pair per piece. `ext/Chat/chunks.js` says what a fast chunk / a finished sentence is; `Chat.js`'s `place_live_cursors()` moves the pair. The green Understand check is off for now, the yellow `?` stays: [`ux/Understand/readme.md`](/framework/ux/Understand/readme.md).
+ - Errors: [failures.jsonl](/framework/ux/Dictate/failures.jsonl) (dev only: git-ignored, written on this machine at the first failure).
+ 
+diff --git a/public/framework/ux/Dictate/test/mic-release.mjs b/public/framework/ux/Dictate/test/mic-release.mjs
+new file mode 100644
+index 000000000..0b79cb7a4
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/mic-release.mjs
+@@ -0,0 +1,75 @@
++// The mic light: after stop (or pause), every MediaStreamTrack must be "ended" at once, even while Whisper is slow, and even when
++// stop lands while getUserMedia is still opening. Headless, fake mic, Whisper stubbed.
++//   node public/framework/ux/Dictate/test/mic-release.mjs <base-url>
++import { pathToFileURL } from "url";
++const [base = "http://monorepo.localhost"] = process.argv.slice(2);
++const { default: Browser } = await import(new URL("../../../../../Server/Browser.mjs", import.meta.url).href);
++const browser = await Browser.launch({ args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"] });
++const ctx = await browser.newContext({ permissions: ["microphone"] });
++const page = await ctx.newPage();
++const errors = []; page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
++await page.route(/\/(cards\?|api\/agents)/, r => r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: "[]" }));
++await page.route(/127\.0\.0\.1:8178/, async route => {   // Whisper: up, but each transcription takes 4 s
++	const req = route.request(), h = { "access-control-allow-origin": "*", "access-control-allow-headers": "*" };
++	if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: h });
++	if (req.method() === "GET") return route.fulfill({ status: 200, contentType: "text/html", headers: h, body: "ok" });
++	await new Promise(r => setTimeout(r, 4000));
++	return route.fulfill({ status: 200, contentType: "application/json", headers: h, body: JSON.stringify({ text: " hello there. ", segments: [] }) });
++});
++let failed = 0;
++const check = (ok, msg) => { console.log(ok ? "ok  " : "FAIL", msg); if (!ok) failed++; };
++await page.goto(base + "/framework/ux/Dictate/", { waitUntil: "domcontentloaded" });
++await page.waitForFunction(() => document.querySelector(".page"), null, { timeout: 20000 });
++const out = await page.evaluate(async () => {
++	const live = [];
++	const gum = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
++	navigator.mediaDevices.getUserMedia = async c => { const s = await gum(c); live.push(s); return s; };   // every stream ever opened
++	const open = () => live.flatMap(s => s.getTracks()).filter(t => t.readyState === "live").length;
++	const { default: Capture } = await import("/framework/ux/Dictate/capture.js");
++	const { View } = await import("/framework/core/View/View.js");
++	const { default: Dictate } = await import("/framework/ux/Dictate/Dictate.js");
++	const wait = ms => new Promise(r => setTimeout(r, ms));
++	const r = {};
++	// 1. plain start / stop
++	let c = new Capture(); await c.start(() => {}); r.cap_open = open(); c.stop(); r.cap_after_stop = open();
++	// 2. stop lands while getUserMedia is still opening
++	c = new Capture(); const p = c.start(() => {}).catch(() => {}); c.stop(); await p; await wait(300); r.cap_race = open();
++	// 3. Dictate: stop while the final transcription is slow
++	const host = document.createElement("div"); document.body.append(host);
++	let d; new View({ el: host, capture: false }).append(() => { d = new Dictate({}); });
++	await d.start(); r.dictate_state = d.state; r.dictate_open = open();
++	d.mic.chunks.push(new Float32Array(16000).fill(0.3)); d.has_speech = true;   // a second of loud audio
++	const stopping = d.stop(); await wait(300);
++	r.dictate_after_stop_slow_whisper = open(); r.dictate_state_during = d.state;
++	await stopping; r.dictate_final = open();
++	// 4. press, press, press (start, stop, start while the first is connecting) then settle
++	const d2h = document.createElement("div"); document.body.append(d2h);
++	let d2; new View({ el: d2h, capture: false }).append(() => { d2 = new Dictate({}); });
++	d2.toggle(); await wait(50); d2.toggle(); await wait(50); d2.toggle(); await wait(1500); d2.toggle(); await wait(6000);
++	r.rapid_state = d2.state; r.rapid_open = open();
++	// 5. the composer mic (what the bar taps): tap -> listening, tap -> paused with 0 live tracks, tap -> listening again with a fresh live track
++	const { ComposerMic } = await import("/framework/ext/Chat/Mic.js");
++	const ch = document.createElement("div"); document.body.append(ch);
++	let cm; new View({ el: ch, capture: false }).append(() => { cm = new ComposerMic({ deliver: async () => true }); });
++	cm.toggle(); await wait(1500); r.cm_on = [cm.state, open()];
++	cm.mic.chunks.push(new Float32Array(16000).fill(0.3)); cm.has_speech = true; cm.toggle(); await wait(500); r.cm_live_at_once = open(); await wait(5000); r.cm_paused = [cm.state, open()];
++	cm.toggle(); await wait(1500); r.cm_resumed = [cm.state, open()];
++	cm.toggle(); await wait(800); r.cm_off = [cm.state, open()];
++	return r;
++});
++console.log(JSON.stringify(out));
++check(out.cap_open > 0 && out.cap_after_stop === 0, "Capture.stop ends every track");
++check(out.cap_race === 0, "stop during getUserMedia: the late stream is released (" + out.cap_race + " live)");
++check(out.dictate_state === "listening", "Dictate listens: " + out.dictate_state);
++check(out.dictate_after_stop_slow_whisper === 0, "stop with Whisper slow: tracks ended at once, not after the upload (" + out.dictate_after_stop_slow_whisper + " live)");
++check(out.dictate_final === 0, "after the final lands: none live");
++check(out.rapid_open === 0 && out.rapid_state === "idle", `press-press-press-press ends off: ${out.rapid_state}, ${out.rapid_open} live`);
++check(out.cm_on[0] === "listening" && out.cm_on[1] > 0, "composer mic: tap starts listening with a live track: " + out.cm_on);
++check(out.cm_live_at_once === 0, "composer mic: tracks ended 0.5 s after the tap, while Whisper is still working: " + out.cm_live_at_once);
++check(out.cm_paused[0] === "idle" && out.cm_paused[1] === 0, "composer mic: tap again pauses and every track is ended: " + out.cm_paused);
++check(out.cm_resumed[0] === "listening" && out.cm_resumed[1] > 0, "composer mic: tap resumes, the mic is opened again: " + out.cm_resumed);
++check(out.cm_off[1] === 0, "composer mic: and off again, none live: " + out.cm_off);
++check(!errors.length, "no page errors: " + errors.join(" | "));
++await browser.close();
++console.log(failed ? `${failed} FAILED` : "all passed");
++process.exit(failed ? 1 : 0);
+diff --git a/public/framework/ux/Dictate/test/sentences.mjs b/public/framework/ux/Dictate/test/sentences.mjs
+new file mode 100644
+index 000000000..9f4e8da29
+--- /dev/null
++++ b/public/framework/ux/Dictate/test/sentences.mjs
+@@ -0,0 +1,60 @@
++// A sentence goes out when it ends, not when you pause. Headless; the mic is driven by hand (guesses and finals are fed in).
++//   node public/framework/ux/Dictate/test/sentences.mjs <base-url>
++// A: three sentences, no pause, the guess grows word by word: 3 sends in order, each sent as soon as the next words follow it,
++//    and the final (same three sentences) adds no duplicate.
++// B: a final that holds three sentences and was never guessed leaves as three lines, in order.
++// C: the final hears an early sentence differently: still no second copy (the early wording stays, the difference is logged).
++// D: early_sentences off: nothing leaves before the final.
++const [base = "http://monorepo.localhost"] = process.argv.slice(2);
++const { default: Browser } = await import(new URL("../../../../../Server/Browser.mjs", import.meta.url).href);
++const browser = await Browser.launch();
++const page = await (await browser.newContext()).newPage();
++const errors = []; page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
++await page.route(/\/(cards\?|api\/agents)/, r => r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: "[]" }));
++let failed = 0;
++const check = (ok, msg) => { console.log(ok ? "ok  " : "FAIL", msg); if (!ok) failed++; };
++await page.goto(base + "/framework/ux/Dictate/", { waitUntil: "domcontentloaded" });
++await page.waitForFunction(() => document.querySelector(".page"), null, { timeout: 20000 });
++const out = await page.evaluate(async () => {
++	const { View } = await import("/framework/core/View/View.js");
++	const { ComposerMic, SETTINGS } = await import("/framework/ext/Chat/Mic.js");
++	const wait = ms => new Promise(r => setTimeout(r, ms));
++	SETTINGS.send_mode = "pause"; SETTINGS.sentences_per_send = 1;
++	async function scenario(guesses, final, { early = true } = {}){
++		SETTINGS.early_sentences = early;
++		const host = document.createElement("div"); document.body.append(host);
++		const sent = [];
++		let m; new View({ el: host, capture: false }).append(() => { m = new ComposerMic({ deliver: async e => { sent.push({ t: Math.round(performance.now()), text: e.text }); return true; } }); });
++		m.state = "listening"; m.base = ""; m.segment_epoch = 0;
++		const marks = [];   // which guess index was being fed when each send appeared
++		for (let i = 0; i < guesses.length; i++){
++			const epoch = m.segment_epoch;
++			m.partial_text = guesses[i]; m.early_from_guess(guesses[i], epoch);
++			await wait(120);
++			marks.push(sent.length);
++		}
++		m.segment_epoch++; m.final_epoch = m.segment_epoch - 1;   // what close_segment() does just before commit()
++		m.commit(final, "pause");
++		await wait(600);
++		return { sent: sent.map(s => s.text), marks };
++	}
++	const G = ["One thing is first.", "One thing is first. Then", "One thing is first. Then the second thing happens.", "One thing is first. Then the second thing happens. And", "One thing is first. Then the second thing happens. And finally the third?", "One thing is first. Then the second thing happens. And finally the third? Done"];
++	const F = "One thing is first. Then the second thing happens. And finally the third?";
++	return {
++		a: await scenario(G, F),
++		b: await scenario([], "Open the window now. The dog barked loudly. Tomorrow we ship it."),
++		c: await scenario(["The cat sat down. And"], "The cat sat down! And then it slept."),
++		d: await scenario(G, F, { early: false }),
++	};
++});
++console.log(JSON.stringify(out));
++const A = out.a;
++check(JSON.stringify(A.sent) === JSON.stringify(["One thing is first.", "Then the second thing happens.", "And finally the third?"]), "A: three sends in order, no duplicates: " + JSON.stringify(A.sent));
++check(A.marks[0] === 0 && A.marks[1] === 1 && A.marks[2] === 1 && A.marks[3] === 2 && A.marks[4] === 2 && A.marks[5] === 3, "A: each went out as its sentence ended, before the pause: " + A.marks.join(","));
++check(JSON.stringify(out.b.sent) === JSON.stringify(["Open the window now.", "The dog barked loudly.", "Tomorrow we ship it."]), "B: a final of three sentences leaves as three lines: " + JSON.stringify(out.b.sent));
++check(out.c.sent.length === 2 && out.c.sent[0] === "The cat sat down." && /then it slept/.test(out.c.sent[1]), "C: no second copy of the early sentence: " + JSON.stringify(out.c.sent));
++check(out.d.sent.length === 3, "D: early off, the final still sends all three: " + JSON.stringify(out.d.sent));
++check(!errors.length, "no page errors: " + errors.join(" | "));
++await browser.close();
++console.log(failed ? `${failed} FAILED` : "all passed");
++process.exit(failed ? 1 : 0);

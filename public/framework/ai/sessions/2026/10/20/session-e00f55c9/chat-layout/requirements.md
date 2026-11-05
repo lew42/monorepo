@@ -9,9 +9,27 @@ The essence:
 4. **The point is visual hierarchy:** the owner's words and the assistant's words are told apart at a glance.
 5. **The bubbles come from the list's ids:** every bubble is one item of `session.messages` (the Chat List: `core/Session/Chat/readme.md`), keyed by its id (`m-<ms>`), so a growing Prompt updates its own bubble in place.
 
+The target, drawn (the owner's pills hug their text on the right; the assistant is plain text on the left; both stop at 80%):
+
+```
+┌──────────────────────────────────────┐
+│ Plain assistant text, no box,        │
+│ wraps before 80% of the width.       │
+│                          ╭─────────╮ │
+│                          │ /compact│ │
+│                          ╰─────────╯ │
+│                ╭─────────────────────╮│
+│                │ A long owner message ││
+│                │ wraps at 80%.        ││
+│                ╰─────────────────────╯│
+└──────────────────────────────────────┘
+```
+
 ## What exists
 - **The views:** V1 is `ext/Chat/Chat.js` + `Chat.css`, still drawn from `{chat}` lines. `core/Session/Chat/V1Bubbles.js` is its ready adapter onto `session.messages` (0 diffs). V2 is `ext/Chat/v2/`, and V3 is `ext/Chat/v3/ChatV3.js` + `ChatV3.css`. V2 and V3 already draw from `session.messages`.
-- **A sibling at work:** `mastermind-replay-bubbles` is adding ▶/⏸ and ↺10 controls to every reply bubble, in all three views ([its brief](../replay-bubbles/requirements.md)). Its controls must sit well in the new layout: under or beside the assistant's text, small, and not in a box. Message it (`send_to_agent`) before you touch the same files, and merge after it lands, or rebase onto it.
+- **A sibling at work:** `mastermind-replay-bubbles` ([its brief](../replay-bubbles/requirements.md)) is adding ▶/⏸ and ↺10 controls to every reply bubble, in all three views.
+  - Its controls sit under or beside the assistant's text, small, not in a box.
+  - Message it (`send_to_agent`) before you touch the same files; merge after it lands, or rebase onto it.
 
 ## Do (worktree; `node Server/review.mjs <this dir> <worktree>`; `node Server/merge.mjs`; never commit straight to `michael/dev`)
 1. **Write one shared layout rule set** (law 6) that all three views use: owner right with a hugging bubble (`width: fit-content`, `max-width: 80%`), assistant left with no fill and no border (`max-width: 80%`). Agent updates and notes stay muted. Put it where all three views can load it (a shared `ext/Chat` css, or the role classes in `roles.js`). Don't make three copies.
