@@ -44,7 +44,7 @@ Each time it was asked for, and where it stopped:
 
 ## 3. Map of `public/framework/ai/` (partial)
 
-The map script hit a 120 s timeout and was still writing when I stopped it at `screenshots`. Rows below are complete for the names shown. Files, size and last commit are receipts from `find`, `du -sk` and `git log -1 -- <path>`. "index-links" counts `ai/readme.md` and `public/framework/readme.md` matches. "code-importers" is noisy (it matched date strings and common words), so I do not use it as evidence.
+The map script timed out at `screenshots`, so the rows stop there. Files, size and last commit come from `find`, `du -sk` and `git log -1`. "Index link" counts matches in the two readmes. Code-importer counts were too noisy to use.
 
 | Folder | Files | KB | Last commit | Index link | Note |
 |---|---|---|---|---|---|
@@ -81,7 +81,23 @@ The map script hit a 120 s timeout and was still writing when I stopped it at `s
 | review | 12 | 61 | 2026-10-23 | 0 | |
 | screenshots | 6 | 778 | (gitignored) | 0 | Playwright output, gitignored by `.gitignore:171` `**/screenshots/` |
 
-Not yet mapped (the script did not reach them): `sessions`, `system`, `talk`, `tasks`, `tests`, `usage`, `v`, `audits`, `dashboard` (partly), `ai2`, `ai`. `ai2` is §1.
+The script finished (background job `bx3r42djx`, exit 0). Rows after `screenshots`:
+
+| Folder | Files | KB | Last commit | Index link | Note |
+|---|---|---|---|---|---|
+| sessions | 51450 | 1709917 | 2026-11-04 | 2 | the session store, live |
+| skills | 6 | 26 | 2026-10-25 | 1 | |
+| system | 11 | 60 | 2026-11-03 | 1 | live, System tab |
+| systems | 5 | 9 | 2026-10-13 | 0 | JS classes, see below |
+| talk | 7 | 38 | 2026-10-23 | 0 | 7 code files |
+| tasks | 456 | 28006 | 2026-11-03 | 2 | live |
+| tests | 58 | 290 | 2026-10-14 | 0 | 10 code files |
+| tracking | 7 | 170 | 2026-11-03 | 1 | live |
+| usage | 7 | 26 | 2026-10-23 | 1 | live |
+| v | 57 | 808 | 2026-11-01 | 0 | the v/3 dashboard, 47 code files |
+| whisper | 4 | 11405 | 2026-11-03 | 0 | 11 MB |
+
+Top-level files (`ai/*`) are not mapped row by row. The large ones: `index.jsonl` 155 MB, `state.json` 2.4 MB, `index.json` 3.8 MB, `stale-closes.jsonl` 550 KB, `unclose-manifest.jsonl` 184 KB.
 
 ## 4. Undeniably dead `ai/` folders
 
@@ -90,6 +106,8 @@ Only one passes the receipt test:
 - **`ai/prompt-tasks-test-3984/`** (undeniable). One file, `files.jsonl`, with two lines: `{"file":"tasks/"}` and `{"file":"tasks/","gone":true}`. Zero references outside sessions: `rg -l "ai/prompt-tasks-test-3984" public Servex Server .claude` → no match outside `sessions/`. It is a test artifact from 2026-10-22.
 
 Candidates that are not dead, though they look it:
+
+- **`ai/systems/`** (questionable). Five JS classes (`System.js`, `Systems.js`, `ReadmeSystem.js`, `NavigationSystem.js`, `page.jsonl`), zero references in code. It is named in `ai/system-map.md`, `ai/system-proposal.md` and `ext/System/readme.md`, so the docs point at it. Not in the `ai/readme.md` index. Settling it needs a check of whether `ai/system/` (the System tab, 11 files, live) already covers these classes.
 
 - **`ai/landed/`** is live. `public/framework/ai/cards.jsonl:124` says the page `/framework/ai/landed/` is computed. The code is `Servex/Landed.js` (found by `find Server Servex -iname "*landed*"`); the cards note's `Server/Landed.mjs` is stale. `ai/tasks/doc/week-2026-10-17.md` links the page. Keep.
 - **`ai/recordings/`** is live: `Server/plugins/Recordings.js:5`, `Server/TranscribeLoop.mjs:42` and the whisper tests use it. Gitignored by design (`.gitignore:43, 91`). Keep.
