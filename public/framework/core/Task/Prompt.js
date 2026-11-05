@@ -39,7 +39,7 @@ export class Prompt extends Task {
 	// migrated `refined` cards and `notes` (Server/PromptsToSession.mjs).
 	static plain_lists = ["raw", "parts", "refined", "notes"];
 	// Plain fields a log line may set (Task.replay_line reads Task.FIELDS and these).
-	static line_fields = ["subject", "process", "handled", "refined", "notes", "text", "working"];
+	static line_fields = ["subject", "process", "handled", "refined", "notes", "text", "working", "counted", "no_action"];
 	static queries = [...Task.queries, "sentences", "settled_parts"];
 
 	static KINDS = ["ask", "question", "rule", "idea", "conversation"];
@@ -120,13 +120,18 @@ export class Prompt extends Task {
 	settled_parts(){ return this.parts.filter(p => Prompt.settled(p, ref => this.task_state(ref))); }
 	/* With parts recorded, completion is settled parts over parts + uncited sentences; else the asks filed under it (the average of their own completions, as Task.completion); else
 	   my own stored state. Never reads `this.state`, which is computed from this. */
-	get completion(){
+	completion_score(){
 		if (this.data.checked_by) return 1;
 		if (this.parts.length){ const { done, total } = this.progress_parts(); return total ? done / total : 0; }
 		const kids = [...(this._tasks ?? [])].filter(t => t.state !== "stopped");
-		if (kids.length) return kids.reduce((sum, t) => sum + (typeof t.completion === "number" ? t.completion : t.state === "complete" ? 1 : 0), 0) / kids.length;
-		return super.state === "complete" ? 1 : 0;
+		if (kids.length) return kids.reduce((sum, t) => sum + t.completion_score(), 0) / kids.length;
+		return super.state === "complete" || this.no_action ? 1 : 0;
 	}
+	/* THE OWNER'S WORDS COUNT AGAINST THE SCORE WITH NOBODY ACTING (the owner, 2026-11-04). The prompt-relay hook writes `counted: true` on every
+	   NEW prompt; one with that flag is a part of its session's score (Task.score_parts) and reads 0 until it is resolved: an agent files
+	   its asks under it (`tasks`), settles its parts, or marks it `{"no_action": "<why>"}` (a question answered, a remark). Old prompts have no flag and count nowhere. */
+	get counts_toward_score(){ return !!this.get_one("counted"); }
+	get no_action(){ return !!this.get_one("no_action"); }
 	/* A prompt reads complete the moment everything it asks is settled, with nobody calling complete(): the session's tally then counts it. */
 	get state(){
 		const s = super.state;
