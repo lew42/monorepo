@@ -29,5 +29,6 @@ if (age() > MAX_AGE_MS){
 }
 const { week, session } = usage_pace(JSON.parse(fs.readFileSync(FILE, "utf8")));
 console.log(report_line(week));
+if (week.stale){ console.log("STALE: no new spawns."); process.exit(2); }
 console.log(`week ${week.used}% used, ${week.gone.toFixed(1)}% of the week gone (${week.margin >= 0 ? "under" : "OVER"} pace by ${Math.abs(week.margin)} pts); 5h session ${session?.used}%; data ${Math.round(age() / 60000)} min old. ${week.over ? "OVER PACE: no new spawns, finish up." : "OK to spawn within budget."}`);
 process.exit(week.over ? 2 : 0);

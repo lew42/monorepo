@@ -22,4 +22,13 @@ const hot = usage_pace({ utilization: { limits: [{ kind: "weekly_all", percent: 
 assert.equal(hot.over, true);
 assert.equal(hot.advice, "slow right down");
 
+const limits = [{ kind: "weekly_all", percent: 27, resets_at: "2026-11-05T03:00:00Z" }];
+const cached = usage_pace({ source: "cache", age_minutes: 15913, utilization: { limits } }, now).week;
+assert.equal(cached.stale, true);
+assert.equal(cached.over, true);
+assert.match(report_line(cached), /UNKNOWN/);
+const past = usage_pace({ source: "api", utilization: { limits: [{ kind: "weekly_all", percent: 27, resets_at: "2026-10-29T02:59:59Z" }] } }, now).week;
+assert.equal(past.stale, true);
+assert.equal(usage_pace({ source: "api", age_minutes: 0, utilization: { limits } }, now).week.stale, undefined);
+
 console.log("UsagePace: ok");
