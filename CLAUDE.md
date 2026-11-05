@@ -8,7 +8,7 @@ This file holds the laws, safety and cost rules every agent needs. The framework
 ## Read first, in this order
 
 1. **`public/framework/readme.md`** — mandatory for every agent: the module index and the framework's rules. Before you write a page, a readme, a class or anything the owner reads, also read the rule it links (`public/framework/doc/rules.md`).
-2. **Your role's readme** — `Servex/agents/roles/readme.md` lists them (minion, mastermind, task mastermind, reviewer, clarity). A Servex agent gets its own readme in its first message; a VS Code tab reads it by hand.
+2. **Your role's readme** — `Servex/agents/roles/readme.md` lists them (minion, mastermind, reviewer, clarity). A Servex agent gets its own readme in its first message; a VS Code tab reads it by hand.
 3. **`public/framework/ai/handover.md`** and `git log --oneline -20` (below, "Where to look").
 
 Any agent, Claude or not, starts from the short base in `public/framework/ai/agents.md`.
