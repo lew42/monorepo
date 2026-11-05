@@ -1,19 +1,17 @@
 verdict: fix
-1. [fix] The task folder doesn't mention this follow-up. The change is commit 3f5d9f788 on `worktree/qf-8` and is not merged into compliance/dev, yet `requirements.md` still says "Status: built, reviewed and merged (c3a59f3ba)" and has no line for this work. A fresh agent can't tell from the folder that the change exists or that it is waiting to merge. Add a deliverable line that names the branch and its state.
-2. [fix] Two docs now describe the old behaviour. `requirements.md:9` says the list "is retried once", and `requirements.md:21` says the test has "11 checks" (it now has 12). `Servex/doc/processes.md:43` says "it is now retried once", which contradicts line 31 of the same file, now "retries twice".
-3. [note] A closeout that can't read the process list still goes on to remove worktrees (`Servex/Lifecycle.js` closeout loop → `Worktrees.close_now`). With an empty list, `close_under` and `held_by` see no processes inside the folder, so a dev server running in a merged worktree goes unseen and the removal can be only partly done. The final report still says `ok: false` with the cause, so nothing is hidden. Skipping the worktree step when `!this.procs?.size` would be the safer choice.
-4. [note] When PowerShell answers but `netstat` fails, the error is dropped (`process_error` is set only when the map is empty, `Lifecycle.js` `processes_async`). The listing then has no ports, and nothing says why.
-5. [note] The commit message says "retried three times", but the code makes three attempts, which is two retries. `processes.md:31` gets this right ("retries twice, after 1.5 s, then 3 s").
-6. [note] It works: I ran `node Servex/closeout.test.mjs` on `worktree/qf-8` and got "ALL 12 CHECKS PASSED", with 0 test processes and 0 test worktrees left at cleanup. The new check fakes `processes_async`, which is the simplest honest way to test this. Guarding `sweep`'s "found gone" lines with `this.procs?.size` is the right minimal fix: an unreadable list used to mark every live process dead.
+1. [fix] The task folder does not record this change: `requirements.md` ends at deliverable 8 (still "merge recorded below once landed", with no merge line) and says nothing about the Crumbs cause, branch `worktree/qf-2` or commit 0a403a6b0. A fresh agent reading this folder would not know the real cause of the empty process list was found, or that it still has to be merged. Add a deliverable 9 with the branch, the test and the merge once it lands.
+2. [fix] The Crumbs module's own doc is now stale. `Servex/doc/restart.md:34` and `:52` describe `Crumbs.js`, but neither says it must keep `util.promisify.custom`. The new test `Servex/Crumbs.test.mjs` is not indexed in `Servex/readme.md` either; only `processes.md:31` mentions it. Add one line to `restart.md` saying that a wrapper must copy the promisify hook, and name the test there.
+3. [note] With the hook copied as-is (`Servex/Crumbs.js:51`), a promisified call goes through Node's original `execFile`/`exec` and drops no breadcrumb. So `processes_async`'s PowerShell and netstat calls leave no crumb, though those slow calls are exactly what the crumb log is meant to name. A small wrapper keeps both: `cp[name][promisify.custom] = function(...a){ Crumbs.drop(...); return real[promisify.custom].apply(this, a); }`.
+4. [note] `Servex/Lifecycle.js:160` `typeof r === "string" ? r : r.stdout` is a second guard against a bug the Crumbs fix already removes. It is harmless, but it would hide a future regression that the test is meant to catch. Either drop it, or add a comment saying why it stays.
+5. [note] The change is right and small: `cp.exec` and `cp.execFile` both carry `promisify.custom` in Node 24 (checked), and only those two of the seven wrapped names have one, so the `if (real[promisify.custom])` guard is exact. `node Servex/Crumbs.test.mjs` on `worktree/qf-2` prints PASS. I did not re-run `closeout.test.mjs`. This is a Servex-only diff with no page, so it has no shots.
 
 ## Requirements
-- 1 "an empty process list is retried once and reported as `left` (the cause of 'it closed nothing')" — yes, and more: now three tries with a backoff (1.5 s, then 3 s), the `left` line names the cause, and the sweep no longer writes "found gone" lines from a blind list. Proof: closeout.test.mjs check 12 passes.
-- "every mastermind who spawns anything leaves zero footprint" — yes for this change: the test run left 0 processes and 0 worktrees.
-- "with the cause fixed so nobody has to ask again" — yes: a failed listing now says which command failed and why (ENOENT, a timeout, or zero processes parsed).
-- New class or changed class shown live — n/a (no new class; `Lifecycle` changed only internally).
-- A fresh agent can continue from the folder alone — no: see finding 1.
+- 1 "an empty process list … reported as `left` with its cause" — yes. The real cause (the Crumbs wrapper) is now fixed, and `Crumbs.test.mjs` passes.
+- 8 "a failure names its cause" — yes. Inside Servex the list is no longer empty, so the sweep's `found gone` lines are true again (`processes.md:31`).
+- "zero footprint, with the cause fixed so nobody has to ask again" — partly. The cause is fixed in code, but not yet merged or recorded in the task folder (finding 1).
+- Show the class and its live instances — n/a (no class added or changed in shape).
 
 ## Words
-- The `left` message, "the process list could not be read (<cause>), so nothing was verified; run the close again", is plain and says what to do next — yes.
-- The new comments in `Lifecycle.js` and `closeout.test.mjs` are short and say why — yes.
-- `processes.md:31` is clear, but line 43 of the same file contradicts it — no (finding 2).
+- content: plain sentences, one takeaway — yes. `processes.md:31` explains the cause, the effect and the proof in three sentences.
+- content: no undefined jargon — yes. "promisify hook" is defined by what it does ("resolved a bare string").
+- content: no restated caveats — yes.

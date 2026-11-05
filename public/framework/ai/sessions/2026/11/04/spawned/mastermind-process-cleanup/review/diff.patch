@@ -1,80 +1,66 @@
+diff --git a/Servex/Crumbs.js b/Servex/Crumbs.js
+index 4aab86a84..42fc95e8e 100644
+--- a/Servex/Crumbs.js
++++ b/Servex/Crumbs.js
+@@ -2,6 +2,7 @@ import fs from "node:fs";
+ import cp from "node:child_process";
+ import { syncBuiltinESMExports } from "node:module";
+ import { Worker, isMainThread } from "node:worker_threads";
++import { promisify } from "node:util";
+ import { place } from "./home.js";
+ 
+ /* BREADCRUMBS — the last thing Servex did before a native fast-fail kills it with no stack, no report, no event.
+@@ -47,6 +48,7 @@ export default class Crumbs {
+ 				Crumbs.drop(`${name} len=${shown.length} ${shown.slice(0, 120)}`);
+ 				return real.apply(this, args);
+ 			};
++			if (real[promisify.custom]) cp[name][promisify.custom] = real[promisify.custom];   // without it promisify(execFile) resolves a bare string and every `.stdout` is undefined (the empty process list inside Servex, 2026-11-05)
+ 		}
+ 		const watch = fs.watch;
+ 		fs.watch = function(target, ...rest){
+diff --git a/Servex/Crumbs.test.mjs b/Servex/Crumbs.test.mjs
+new file mode 100644
+index 000000000..d6ca85420
+--- /dev/null
++++ b/Servex/Crumbs.test.mjs
+@@ -0,0 +1,14 @@
++/* The crumb wrappers must keep child_process's promisify hook: promisify(execFile) has to resolve {stdout, stderr}. Run: node Servex/Crumbs.test.mjs */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { spawnSync } from "node:child_process";
++const crumbs = new URL("./Crumbs.js", import.meta.url).href;
++const dir = fs.mkdtempSync(path.join(os.tmpdir(), "crumbs-test-")), probe = path.join(dir, "probe.mjs");
++fs.writeFileSync(probe, `import {execFile} from "node:child_process"; import {promisify} from "node:util";
++const r = await promisify(execFile)(process.execPath, ["-p", "40+2"]); console.log(typeof r === "object" ? r.stdout.trim() : "bare string");`);
++const r = spawnSync(process.execPath, ["--import", crumbs, probe], { encoding: "utf8", windowsHide: true, env: { ...process.env, SERVEX_HOME: path.join(dir, "home") } });
++fs.rmSync(dir, { recursive: true, force: true });
++assert.equal(r.stdout.trim(), "42", `promisify(execFile) under Crumbs: ${r.stdout} ${r.stderr}`);
++console.log("PASS  promisify(execFile) still resolves {stdout, stderr} with Crumbs installed");
 diff --git a/Servex/Lifecycle.js b/Servex/Lifecycle.js
-index f1709a947..614e2fbd6 100644
+index 2efea1073..c337f17a2 100644
 --- a/Servex/Lifecycle.js
 +++ b/Servex/Lifecycle.js
-@@ -157,13 +157,18 @@ export default class Lifecycle {
+@@ -157,7 +157,7 @@ export default class Lifecycle {
  
  	/** The same list without freezing Servex: the two blocking calls above took 20+ s on a busy machine, long enough to time out every agent's prompt hook (2026-10-23). */
  	async processes_async(){
--		const run = (cmd, args, maxBuffer) => promisify(execFile)(cmd, args, { encoding: "utf8", windowsHide: true, maxBuffer, timeout: 30000 }).then(r => r.stdout, () => "");
-+		const why = [], run = (cmd, args, maxBuffer) => promisify(execFile)(cmd, args, { encoding: "utf8", windowsHide: true, maxBuffer, timeout: 30000 }).then(r => r.stdout,
-+			e => { why.push(`${cmd}: ${e.code ?? (e.killed ? "timed out" : "failed")} ${String(e.stderr || e.message).trim().split("\n")[0].slice(0, 120)}`); return ""; });
+-		const why = [], run = (cmd, args, maxBuffer) => promisify(execFile)(cmd, args, { encoding: "utf8", windowsHide: true, maxBuffer, timeout: 30000 }).then(r => r.stdout,
++		const why = [], run = (cmd, args, maxBuffer) => promisify(execFile)(cmd, args, { encoding: "utf8", windowsHide: true, maxBuffer, timeout: 30000 }).then(r => typeof r === "string" ? r : r.stdout,
+ 			e => { why.push(`${cmd}: ${e.code ?? (e.killed ? "timed out" : "failed")} ${String(e.stderr || e.message).trim().split("\n")[0].slice(0, 120)}`); return ""; });
  		let map;
--		for (let attempt = 0; attempt < 2; attempt++){   // a busy machine can time the query out; an empty list means it failed (this process itself is a node.exe)
-+		for (let attempt = 0; attempt < 3; attempt++){   // a busy machine can time the query out; an empty list means it failed (this process itself is a node.exe)
-+			if (attempt) await new Promise(r => setTimeout(r, attempt * 1500));
-+			why.length = 0;
- 			const [out, ns] = await Promise.all([run("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], 32 << 20), run("netstat", ["-ano", "-p", "TCP"], 8 << 20)]);
- 			map = this.process_map(out, ns);
-+			if (!map.size && !why.length) why.push(`powershell.exe: answered ${out.length} bytes, none parsed as a process list`);
- 			if (map.size) break;
- 		}
-+		this.process_error = map.size ? null : why.join("; ");
- 		return map;
- 	}
- 
-@@ -416,7 +421,7 @@ export default class Lifecycle {
- 		if (!dry) {   // look again: anything the task still owns is reported, not assumed gone
- 			this.tasks = new Map();
- 			const again = await this.plan(key);
--			if (!this.procs?.size) left.push({ kind: "process-list", id: "processes", why: "the process list could not be read, so nothing was verified; run the close again" });
-+			if (!this.procs?.size) left.push({ kind: "process-list", id: "processes", why: `the process list could not be read (${this.process_error ?? "unknown"}), so nothing was verified; run the close again` });
- 			for (const r of again.filter(r => r.why || (r.owner_task === key && /is working there/.test(r.keep ?? "")))) left.push({ kind: r.kind, id: r.id, pid: r.pid ?? null, why: r.why ?? r.keep });
- 			await record({ kind: "task", id: key, owner_task: key, event: "end", why: `${why}; ${closed.length} closed, ${left.length} left`, closed, left }, this.servex?.log);
- 		}
-@@ -426,7 +431,8 @@ export default class Lifecycle {
- 	/** The heartbeat's sweep: close what a landed / dead task still owns, end the log lines of what already died, reclaim dead pool holders. */
- 	async sweep({ dry = false } = {}){
- 		const rows = await this.plan(null), close = rows.filter(r => r.why), gone = [];
--		for (const e of this.open()) if (e.pid && e.kind !== "agent" && e.kind !== "worktree" && !this.alive(e)) gone.push(e);
-+		// an unreadable process list makes every process look dead: write no "found gone" lines from it
-+		if (this.procs?.size) for (const e of this.open()) if (e.pid && e.kind !== "agent" && e.kind !== "worktree" && !this.alive(e)) gone.push(e);
- 		if (!dry) {
- 			for (const r of close) await this.close(r, r.why);
- 			for (const { at, ...e } of gone) await record({ ...e, event: "end", why: "found gone (killed without a goodbye)" }, this.servex?.log);
-diff --git a/Servex/closeout.test.mjs b/Servex/closeout.test.mjs
-index 174904056..c3ca959ad 100644
---- a/Servex/closeout.test.mjs
-+++ b/Servex/closeout.test.mjs
-@@ -148,6 +148,18 @@ try {
- 	assert.equal(k2.ok, true, JSON.stringify(k2)); assert.ok(!wt_listed(wt3) && !fs.existsSync(wt3), "removed from git and disk once the agent stopped");
- 	ok(`a worktree with a working agent inside is kept (${k.why.slice(0, 40)}...), then removed from git and disk once it stops`);
- 
-+	// an unreadable process list: the close says so and why, and the sweep writes no "found gone" line for a process it simply could not see
-+	const blind = new Lifecycle();
-+	blind.processes_async = async function(){ this.process_error = "powershell.exe: ENOENT test"; return new Map(); };
-+	await blind.record({ kind: "server", id: "blind-check", pid: process.pid, event: "start" });
-+	const sw = await blind.sweep({ dry: true });
-+	assert.equal(sw.gone.length, 0, "an unreadable list must not mark live processes gone");
-+	const r3 = await blind.closeout(task, { why: "blind close" });
-+	assert.equal(r3.ok, false);
-+	assert.match(r3.left.find(x => x.kind === "process-list")?.why ?? "", /ENOENT test/, "the failure names its cause");
-+	await blind.record({ kind: "server", id: "blind-check", event: "end", why: "test over" });
-+	ok("an unreadable process list is reported with its cause, and marks nothing gone");
-+
- 
- 	console.log(`\nALL ${passed} CHECKS PASSED`);
- } catch (e) {
+ 		for (let attempt = 0; attempt < 3; attempt++){   // a busy machine can time the query out; an empty list means it failed (this process itself is a node.exe)
 diff --git a/Servex/doc/processes.md b/Servex/doc/processes.md
-index 562587612..c3c8fe7be 100644
+index ccdc7b916..1f5ba870b 100644
 --- a/Servex/doc/processes.md
 +++ b/Servex/doc/processes.md
-@@ -28,7 +28,7 @@ Not registered yet: tunnels, whisper-server and the recite python process (the i
+@@ -28,6 +28,8 @@ Not registered yet: tunnels, whisper-server and the recite python process (the i
  
  **A browser cannot outlive its launcher.** `Server/Browser.mjs` starts `Server/browser-watchdog.mjs <launcher pid> <chrome pid>` detached; it kills Chromium the moment the launcher is gone, even after a hard kill that skips `process.on("exit")`. `LEW_NO_BROWSER_WATCHDOG=1` turns it off (the test does, to prove the sweep rule alone). Closing a browser also ends its launcher (`Lifecycle.kill`), so a script that held the browser cannot keep a worktree folder locked; a launcher that looks like Servex, claude, an MCP server or VS Code is never killed.
  
--**A failed process listing is not an empty one.** `processes_async` asks PowerShell for every process (30 s limit) and retries once on an empty answer; if the list is still empty, `closeout` returns `left: [{kind: "process-list"}]` and `ok: false` instead of claiming everything closed.
-+**A failed process listing is not an empty one.** `processes_async` asks PowerShell for every process (30 s limit) and retries twice (after 1.5 s, then 3 s) on an empty answer; if the list is still empty, `closeout` returns `left: [{kind: "process-list", why: "... (<the PowerShell or netstat error>) ..."}]` and `ok: false` instead of claiming everything closed, and the sweep writes no `found gone` line (an unreadable list makes every process look dead). `closeout.test.mjs` check 12 covers both.
++**Why the list was empty inside Servex (found 2026-11-05).** `Crumbs.js` wraps every `child_process` function to drop a breadcrumb, and the wrapper lost Node's `util.promisify.custom` hook, so `promisify(execFile)` resolved a bare string and `.stdout` was `undefined`: every listing inside the live Servex came back empty (a plain script was fine, which hid it). `Crumbs.js` now copies the hook back; `node Servex/Crumbs.test.mjs` proves it. Until then the sweep could not see any process, and wrote `found gone` for everything it had logged.
++
+ **A failed process listing is not an empty one.** `processes_async` asks PowerShell for every process (30 s limit) and retries twice (after 1.5 s, then 3 s) on an empty answer; if the list is still empty, `closeout` returns `left: [{kind: "process-list", why: "... (<the PowerShell or netstat error>) ..."}]` and `ok: false` instead of claiming everything closed, and the sweep writes no `found gone` line (an unreadable list makes every process look dead). `closeout.test.mjs` check 12 covers both.
  
  **New work is gated on commit charge.** `Global.admit` refuses a spawn when the machine's commit charge is at `SERVEX_COMMIT_HIGH_PCT` (default 80: only masterminds and children of a live parent get in) or `SERVEX_COMMIT_FULL_PCT` (default 90: nothing new), on top of the working cap and `SERVEX_MIN_FREE_MB` (default 1024). See "The commit charge" below.
- 
