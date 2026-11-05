@@ -157,13 +157,18 @@ export default class Lifecycle {
 
 	/** The same list without freezing Servex: the two blocking calls above took 20+ s on a busy machine, long enough to time out every agent's prompt hook (2026-10-23). */
 	async processes_async(){
-		const run = (cmd, args, maxBuffer) => promisify(execFile)(cmd, args, { encoding: "utf8", windowsHide: true, maxBuffer, timeout: 30000 }).then(r => r.stdout, () => "");
+		const why = [], run = (cmd, args, maxBuffer) => promisify(execFile)(cmd, args, { encoding: "utf8", windowsHide: true, maxBuffer, timeout: 30000 }).then(r => r.stdout,
+			e => { why.push(`${cmd}: ${e.code ?? (e.killed ? "timed out" : "failed")} ${String(e.stderr || e.message).trim().split("\n")[0].slice(0, 120)}`); return ""; });
 		let map;
-		for (let attempt = 0; attempt < 2; attempt++){   // a busy machine can time the query out; an empty list means it failed (this process itself is a node.exe)
+		for (let attempt = 0; attempt < 3; attempt++){   // a busy machine can time the query out; an empty list means it failed (this process itself is a node.exe)
+			if (attempt) await new Promise(r => setTimeout(r, attempt * 1500));
+			why.length = 0;
 			const [out, ns] = await Promise.all([run("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", ps], 32 << 20), run("netstat", ["-ano", "-p", "TCP"], 8 << 20)]);
 			map = this.process_map(out, ns);
+			if (!map.size && !why.length) why.push(`powershell.exe: answered ${out.length} bytes, none parsed as a process list`);
 			if (map.size) break;
 		}
+		this.process_error = map.size ? null : why.join("; ");
 		return map;
 	}
 
@@ -409,6 +414,7 @@ export default class Lifecycle {
 			}
 			if (!fs.existsSync(p) && !(await wts.list()).some(w => norm(w.path) === norm(p))) continue;   // already gone
 			if (dry) { closed.push({ kind: "worktree", id: path.basename(p), why: "would be removed if merged and clean" }); continue; }
+			if (!this.procs?.size) { left.push({ kind: "worktree", id: path.basename(p), why: "kept: the process list could not be read, so what runs inside it is unknown" }); continue; }
 			const r = await wts.close_now(p);
 			if (r.ok) { if (r.removed) closed.push({ kind: "worktree", id: path.basename(p), why: r.why }); }
 			else left.push({ kind: "worktree", id: path.basename(p), why: r.why });
@@ -416,7 +422,7 @@ export default class Lifecycle {
 		if (!dry) {   // look again: anything the task still owns is reported, not assumed gone
 			this.tasks = new Map();
 			const again = await this.plan(key);
-			if (!this.procs?.size) left.push({ kind: "process-list", id: "processes", why: "the process list could not be read, so nothing was verified; run the close again" });
+			if (!this.procs?.size) left.push({ kind: "process-list", id: "processes", why: `the process list could not be read (${this.process_error ?? "unknown"}), so nothing was verified; run the close again` });
 			for (const r of again.filter(r => r.why || (r.owner_task === key && /is working there/.test(r.keep ?? "")))) left.push({ kind: r.kind, id: r.id, pid: r.pid ?? null, why: r.why ?? r.keep });
 			await record({ kind: "task", id: key, owner_task: key, event: "end", why: `${why}; ${closed.length} closed, ${left.length} left`, closed, left }, this.servex?.log);
 		}
@@ -426,7 +432,8 @@ export default class Lifecycle {
 	/** The heartbeat's sweep: close what a landed / dead task still owns, end the log lines of what already died, reclaim dead pool holders. */
 	async sweep({ dry = false } = {}){
 		const rows = await this.plan(null), close = rows.filter(r => r.why), gone = [];
-		for (const e of this.open()) if (e.pid && e.kind !== "agent" && e.kind !== "worktree" && !this.alive(e)) gone.push(e);
+		// an unreadable process list makes every process look dead: write no "found gone" lines from it
+		if (this.procs?.size) for (const e of this.open()) if (e.pid && e.kind !== "agent" && e.kind !== "worktree" && !this.alive(e)) gone.push(e);
 		if (!dry) {
 			for (const r of close) await this.close(r, r.why);
 			for (const { at, ...e } of gone) await record({ ...e, event: "end", why: "found gone (killed without a goodbye)" }, this.servex?.log);
