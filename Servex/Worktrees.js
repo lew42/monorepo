@@ -13,7 +13,7 @@ import { pool_slot } from "./Lifecycle.js";
 
 /* WORKTREE CLEAN-UP — a worktree is temporary (process-monitor, 2026-09-30).
  *
- * Every folder in C:/Code/lew42/worktrees/ with a package.json becomes a Servex
+ * Every linked worktree git lists (C:/Code/lew42/worktrees/, and the .claude/worktrees/ ones a Claude Code tab makes) with a package.json becomes a Servex
  * project: a port, a `<name>.localhost`, sometimes a running dev server. Nothing
  * removed them; 57 had piled up, 17 of them already merged.
  *

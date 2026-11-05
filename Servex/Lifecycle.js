@@ -334,11 +334,11 @@ export default class Lifecycle {
 	kill(r){
 		for (const pid of [r.pid, r.child].filter(Boolean)) try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
 		// the script that launched a browser keeps its folder as its working directory, so it would block the worktree's removal;
-		// a plain `node script.mjs` is closed with its browser, Servex, an agent (claude) and this process never are
+		// a plain `node script.mjs` is closed with its browser; Servex, an agent (claude), a dev server (server.js / run.js, which opens browsers for its own screenshots) and this process never are
 		// never the main checkout's own processes (the dev server's screenshot plugin holds a browser in-process): only a script started inside a worktree or elsewhere
 		const in_main = r.path && path.resolve(String(r.path)).toLowerCase() === path.resolve(main_repo()).toLowerCase();
 		const l = r.kind === "browser" && r.launcher && r.launcher !== process.pid && !in_main ? this.procs?.get(r.launcher) : null;
-		if (l && l.name === "node.exe" && !/Servex[\\/]+(index|sustain)|claude|mcp|vscode/i.test(l.cmd)) try { execFileSync("taskkill", ["/PID", String(r.launcher), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
+		if (l && l.name === "node.exe" && !/Servex[\\/]+(index|sustain)|claude|mcp|vscode|(^|[\\/\s"])(server|run)\.m?js\b/i.test(l.cmd)) try { execFileSync("taskkill", ["/PID", String(r.launcher), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
 	}
 
 	/** One Servex tool, over its door (a CLI run has no Servex in-process). */

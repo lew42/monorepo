@@ -34,7 +34,7 @@ Not registered yet: tunnels, whisper-server and the recite python process (the i
 
 **Machine-written files never block a return.** `Pool.generated()` treats a modified tracked `*.jsonl` and the named server logs as machine-written: `give_back` sets them aside as a patch in `.worktree-logs/` and restores them, so the slot is returned. A NEW `.jsonl` or any source file is real work and still blocks the return, by name.
 
-**Hand-started worktree servers back off.** `worktree-sweep.mjs` retries a failing `worktree-down` with a doubling wait (state in the Servex state folder, cap 6 h) instead of every pass, and posts one `risk` owner note on the 5th failure.
+**Hand-started worktree servers back off.** `worktree-sweep.mjs` retries a failing `worktree-down` with a doubling wait (state in `worktree-sweep-fails.json` in the Servex state folder, cap 6 h) instead of every pass, and posts one `risk` owner note on the 5th failure.
 
 **A worktree someone still works in is kept.** `Worktrees.close_now` refuses to remove a folder while a live agent, a not-yet-ended agent in the lifecycle records, or the calling process has its working directory inside it (on Windows that would delete the files and leave the folder, with the agent in a gutted checkout). The close reports it as `left`, and the sweep removes the worktree once that agent stops.
 
@@ -42,7 +42,7 @@ Not registered yet: tunnels, whisper-server and the recite python process (the i
 
 **Is the live sweep running?** Yes. The empty process list under load was the cause of 'it closed nothing': it is now retried once and reported as `left` (above), and every sweep appends a `lifecycle-sweep` line to the `servex` log, so a quiet sweep is visible.
 
-**The proof is a test you can rerun:** `node Servex/closeout.test.mjs` (one to two minutes, needs global Playwright, uses a temp `SERVEX_HOME` and port 18999 so the live Servex is untouched). It starts a real server, a real Chromium and a real git worktree under a task, plus a server in a leftover folder git does not list; closes the task; and asserts from the OS process list, `git worktree list` and the disk that none remain. Then: an unmerged worktree is kept and reported; a launcher killed hard has its browser closed by the watchdog; with the watchdog off the sweep finds the orphan; machine-written logs do not block a return. Every artifact it makes is removed at the end.
+**The proof is a test you can rerun:** `node Servex/closeout.test.mjs` (one to two minutes, needs global Playwright, uses a temp `SERVEX_HOME` and port 18999 so the live Servex is untouched). It starts a real server, a real Chromium and a real git worktree under a task, plus a server in a leftover folder git does not list; closes the task; and asserts from the OS process list, `git worktree list` and the disk that none remain. Then: an unmerged worktree is kept and reported; a launcher killed hard has its browser closed by the watchdog; with the watchdog off the sweep finds the orphan; machine-written logs do not block a return. Every artifact it makes is removed at the end, and debris of an earlier run that died first (`closeout-test-*` worktrees and branches) is removed when it starts. `closeout.fixture.mjs` is the small server/browser/orphan program the test launches.
 
 ## The process monitor
 

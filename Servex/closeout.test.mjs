@@ -31,6 +31,13 @@ const pid_alive = pid => { try { process.kill(pid, 0); return true; } catch { re
 const wait = ms => new Promise(r => setTimeout(r, ms));
 async function until(fn, ms = 15000) { const end = Date.now() + ms; while (Date.now() < end) { if (await fn()) return true; await wait(250); } return false; }
 
+/* debris of an earlier run that died before its cleanup is removed first */
+for (const l of git("worktree", "list", "--porcelain").split("\n")) if (l.startsWith("worktree ") && /[\\/]closeout-test-/.test(l)) {
+	const p = l.slice(9), br = path.basename(p);
+	try { git("worktree", "remove", "--force", p); } catch {}
+	try { fs.rmSync(p, { recursive: true, force: true }); git("worktree", "prune"); git("branch", "-D", br); } catch {}
+}
+
 const made = { pids: new Set(), worktrees: [], folders: [], branches: [] };
 let passed = 0;
 const ok = (name) => { passed++; console.log(`PASS  ${name}`); };
