@@ -122,7 +122,24 @@ A slot does **not** detach anything. The instance stays linked to its main compo
 | is one of a small, known set | a VARIANT (style or state) or an INSTANCE_SWAP (pick one thing from a list) | icon, button style, size |
 | is open-ended content | a SLOT, filled with instances of small components | a page body, a card body, a dialog body |
 
-A page is a `Page` template: its nav, title (a TEXT property) and footer live in the main component, and its body is a `Content` slot holding Card, List and Section instances. Don't make a variant per page. That means editing the main component for every new page, which is the awkward loop. A variant is for a handful of styles, never for content.
+A page is a `Page` template: its nav, title and footer live in the main component, and its body is a `Content` slot holding Card, List and Section instances. Don't make a variant per page. That means editing the main component for every new page, which is the awkward loop. A variant is for a handful of styles, never for content.
+
+### Design system file: Card, Button, Page and the slot rules (owner, 2026-11-05)
+
+Decisions:
+- **No text properties on components.** With placeholder text, a plain override is fine and a property is just more to manage. Keep component properties for real toggles and swaps. (This supersedes the TEXT-property rows in the table above and the kit's Label/Sub/Meta properties for new work in the design system file.)
+- **Card is a thin shell:** a padded `surface` with one `Content` SLOT. Its default content (kicker, title, body, Button) is starter content only; the Kicker/Title/Body/Show toggles were removed.
+- **Master components live on the root canvas, not nested in frames.** A nested master loses its purple component label, which the owner wants visible.
+- **Button is a component set:** `Style=Primary` (accent fill) and `Style=Transparent` (10% black fill, `text` label; works on any ground).
+- **Page** (owner-built, file `hbolzQ3Xnc78rhxAPj8xK2`): a wrapper frame (no padding, gap bound to `gap`) holding a Toolbar row of `Button Style=Transparent` instances, then a Card instance.
+
+How a slot behaves in copies (verified by the owner by testing):
+1. Anything in the master outside the slot (toolbar, fill, radius) always propagates to every copy.
+2. Slot contents and their order follow the master until you add, remove or reorder items in that copy's slot. After that, the copy's list is its own and stops following.
+3. Overriding the slot node's own properties (for example a bigger corner radius on the slot in a copy) does **not** break that: contents and order still follow the master. This holds through nesting (a slot inside a Card instance inside the Page).
+4. So shared chrome (toolbars, headers, footers) goes in the master around the slot; the slot holds only what changes per page.
+
+Open: should Page wrap a Card instance (one extra layer, lets things sit outside the card) or be flat, the surface itself?
 
 A worked example: `Kit · Slots vs components` (`238:30989`) builds the same card three ways and a nested Site template > Section template navigation system with a clickable prototype: [report](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/slots.md).
 
@@ -203,4 +220,4 @@ Page 7 shows the pattern the owner wants for libraries. `The Palette` (`112:1289
 - The old blue (`#72c4ff`, 123 fills and 9 strokes) now binds to `accent`. It reads as prime on white, gray and dark, and as the dark colour on the prime copy, so nothing turns prime-on-prime.
 - Still blue: two agent-avatar colours (`#8068d8`, `#527ec5`) inside the `Section · darken` instance on the same page. They are identity colours, not the scheme, so they were left as they are.
 - **When to use four copies, and when to use the permutation page** (2026-10-13). A card with a fixed fill looks the same in all four copies, so the four-up view only helps where colours adapt to the ground. For "which colour on which", use `Colour · Permutations` (page `218:1062`). It shows every ground × ink and every card × ground, with WCAG contrast computed by the script that drew it, graded AAA / AA / Large / Decorative / Invisible. Build the real design once, in one scheme.
-- **`figma.createFrame()` starts with a WHITE fill.** A wrapper made only for layout (Tiles, Specimens, rows, columns) must be given `fills = []` straight away. Otherwise every grouping frame paints a white box behind cards that already have their own grounds, which the owner had to remove by hand on the DS pages (2026-10-13). A frame gets a fill only when it is meant to be a ground.
+- **`figma.createFrame()` gives a WHITE fill when the frame is created unparented** (our scripts do this); frames the owner draws inside another frame in the UI don't necessarily have one (corrected 2026-11-05). A wrapper made only for layout (Tiles, Specimens, rows, columns) must be given `fills = []` straight away. Otherwise every grouping frame paints a white box behind cards that already have their own grounds, which the owner had to remove by hand on the DS pages (2026-10-13). A frame gets a fill only when it is meant to be a ground.
