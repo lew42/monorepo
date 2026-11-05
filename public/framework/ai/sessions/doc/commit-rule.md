@@ -28,7 +28,9 @@
 - Each sweep writes one line to Servex's `sweeper` log.
 - Proof: `node Servex/LogSweeper.test.mjs` builds a throwaway repo and checks all of the above.
 
-To add a log type, add one pattern to `LogSweeper.ALLOW`.
+Also swept since 2026-11-04: task records in module homes (`<module>/tasks/**/task.jsonl`, `session.jsonl`), module `ai/log.jsonl`, `improvements.jsonl` and `ai/asks.jsonl`.
+
+To add a log type, add one pattern to `LogSweeper.ALLOW` and a path to its test. Servex runs the sweeper, so a new pattern takes effect at the next Servex restart.
 
 ## Why agents do not always work in worktrees (decided 2026-10-13)
 

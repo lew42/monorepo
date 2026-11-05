@@ -13,7 +13,11 @@ export function usage_pace(json, now = Date.now()){
 	const limits = json?.utilization?.limits ?? [];
 	const week = limits.find(l => l.kind === "weekly_all") ?? { percent: json?.utilization?.seven_day?.utilization, resets_at: json?.utilization?.seven_day?.resets_at };
 	const session = limits.find(l => l.kind === "session");
-	return { week: window_pace(week, WEEK, now), session: session ? window_pace(session, FIVE_HOUR, now) : null };
+	const pace = window_pace(week, WEEK, now);
+	/* a failed fetch falls back to a cache that can be days old (2026-11-04: 12 hours of "27%, OK to spawn" at 75%+), so an old reading counts as over pace: spend nothing on a number nobody can trust */
+	const old = (json?.source === "cache" && json?.age_minutes > 60) || !(Date.parse(week?.resets_at) > now);
+	if (old) Object.assign(pace, { stale: true, over: true, advice: "stale reading" });
+	return { week: pace, session: session ? window_pace(session, FIVE_HOUR, now) : null };
 }
 
 /* pace % = used ÷ gone: under ~75 spend more, ~90 slow down, 100 is the line (the owner, 2026-10-12) */
@@ -29,5 +33,6 @@ export function time_left(ms){
 
 /* the report line, all three numbers (the owner, 2026-10-23): used, gone, and used ÷ gone as "% of pace" */
 export function report_line(week){
+	if (week.stale) return `Week: UNKNOWN, the usage reading is stale (it says ${week.used}%, do not trust it); spawn nothing until a live fetch works: python ~/.claude/bin/claude-usage.py`;
 	return `Week: ${week.used}% used · ${week.gone.toFixed(0)}% gone · ${week.pace}% of pace (${week.advice}, ${time_left(week.left_ms)} left)`;
 }
