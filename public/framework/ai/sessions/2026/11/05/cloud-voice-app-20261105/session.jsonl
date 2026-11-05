@@ -21,3 +21,13 @@
 {"log":{"at":"2026-11-05T16:17:11-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
 {"tool_call":{"at":"2026-11-05T22:21:25.501Z","tool":"shell","args_hash":"18ee23a26808","caller":"voice-app"}}
 {"log":{"at":"2026-11-05T16:27:11-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-05T16:32:11-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-05T16:37:11-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-05T16:42:11-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"tool_call":{"at":"2026-11-05T22:52:34.122Z","tool":"send_to_agent","args_hash":"da8f7442150d","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-05T22:52:43.177Z","tool":"send_to_agent","args_hash":"3c91216242a8","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-05T22:54:28.813Z","tool":"send_to_agent","args_hash":"d2109b4ad1ac","caller":"voice-app"}}
+{"log":{"at":"2026-11-05T17:02:07-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"tool_call":{"at":"2026-11-05T23:02:31.431Z","tool":"read_file","args_hash":"6dc5fe7da48c","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-05T23:02:31.935Z","tool":"read_file","args_hash":"4fe9a903415f","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-05T23:07:18.895Z","tool":"send_to_agent","args_hash":"cd7ab21a8ea8","caller":"voice-app"}}
