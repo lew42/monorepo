@@ -3,3 +3,4 @@
 {"file":"probe/page.jsonl"}
 {"inbox":{"id":"n-4brf60rf","from":"servex-heartbeat","text":"minion-task-system-check its agent is not running; Servex revived it and asked where it is at.","at":"2026-11-04T23:41:50.610-06:00"}}
 {"inbox":{"id":"n-4zgicdop","from":"servex-heartbeat","text":"minion-task-system-check its agent is not running; Servex revived it and asked where it is at.","at":"2026-11-05T00:00:16.212-06:00"}}
+{"inbox":{"id":"n-2ta09vb4","from":"servex-heartbeat","text":"minion-task-system-check its agent is not running: it was stopped on purpose by unknown at 2026-11-05T15:41:52-06:00; not revived.","at":"2026-11-05T15:47:14.793-06:00"}}
