@@ -1126,7 +1126,7 @@ export default class Servex extends Events {
 
         /* The task loop's own two tools (Servex/doc/task-loop.md). */
         this.mcp.tool("close_task", {
-            description: "The only way a task leaves the task loop besides landing. Appends {closed_by: \"owner\","
+            description: "The only way a task leaves the task loop besides landing. Appends {closed_by: <your id>,"
                 + " closed_at, closed_why} to its task.jsonl; the loop then never chases or escalates it again. It also runs the close-out: stops every server,"
                 + " health watcher, browser and idle agent the task started, returns or removes its worktrees, and answers {ok, closed:[…], left:[…]}; ok is false if anything is left.",
             inputSchema: { type: "object", required: ["dir"], properties: {
