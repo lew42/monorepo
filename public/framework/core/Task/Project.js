@@ -25,14 +25,8 @@ export class Project extends Task {
 		return this;
 	}
 
-	// 0..1, computed: the mean of the subtasks' own completion (recursive); no subtasks, 0 until landed.
-	get completed(){
-		const kids = [...(this._tasks ?? [])];
-		if (!kids.length) return super.completion;
-		return kids.reduce((sum, k) => sum + (k.completed ?? k.completion ?? (k.get_one?.("state") === "complete" ? 1 : 0)), 0) / kids.length;
-	}
-	// The name every reader of a task already uses (index rows, TaskView); the same number as `completed`.
-	get completion(){ return this.completed; }
+	// 0..1: the one score (Task.completion_score); `completed` is the project's older name for it.
+	get completed(){ return this.completion_score(); }
 
 	// Replays a project.jsonl (lines already parsed) into a Project. Reading the file is Server/ProjectMove.mjs's job.
 	static from_lines(lines){ return this.replay(lines); }

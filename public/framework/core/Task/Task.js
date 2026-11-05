@@ -206,7 +206,7 @@ export class Task extends Item {
 
 	/* QUERIES: what the item tool answers without writing a line (`{"summary":{}}`). Each only reads.
 	   `children` are the child SESSIONS: child tasks (referenced or inline) whose `path` folder holds a session record (`session_resolver`, wired by node). */
-	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "rates", "unread"];
+	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "completion_score", "tally", "rates", "unread"];
 	/* A child is a SESSION when it replayed as one (a Session entry, or a folder whose record is a session's), or, for an old plain
 	   reference node has not replayed, when its folder holds session.jsonl (`session_resolver`). */
 	static session_resolver = null;
@@ -312,11 +312,19 @@ export class Task extends Item {
 		return this;
 	}
 
-	// 0..1. Order: owner check, subtasks (the average of their own completions, so it recurses), old `steps`, agent's value.
-	get completion(){
+	/* THE ONE SCORE, 0..1 (the owner, 2026-11-02 and 2026-11-04). A plain method: read it here, call it anywhere. In order:
+	   1. the owner checked it off (`checked_by`)  -> 1
+	   2. it has parts: its subtasks that are not stopped (any depth; a child SESSION is one), plus the counted owner Prompts in its `content`
+	      (`counts_toward_score`)  -> the mean of each part's OWN score, so it recurses to any depth
+	   3. old `steps`/`step`, or the agent's `data.completion`  -> that
+	   4. otherwise  -> 1 if complete, else 0
+	   One complete task makes its session 1; finishing the deepest task moves every parent above it; an unresolved counted Prompt keeps its session
+	   below 1 with nobody acting. A stopped part is left out of the mean (dropped on purpose). The counts beside it (created, finished, open,
+	   unproven) come from `tally()`. `completion` is this method as a getter, so every page and the item tool show the same number. */
+	completion_score(){
 		if (this.data.checked_by) return 1;
-		const kids = [...(this._tasks ?? [])].filter(t => t.state !== "stopped");
-		if (kids.length) return kids.reduce((sum, t) => sum + (typeof t.completion === "number" ? t.completion : t.state === "complete" ? 1 : 0), 0) / kids.length;   // the average of each subtask's own completion (the owner, 2026-11-02); a stopped one is left out
+		const parts = this.score_parts();
+		if (parts.length) return parts.reduce((sum, t) => sum + t.completion_score(), 0) / parts.length;
 		const steps = this.data.steps;
 		if (Array.isArray(steps) && steps.length){
 			const step = Math.max(1, Math.min(Number(this.data.step) || 1, steps.length));
@@ -325,6 +333,32 @@ export class Task extends Item {
 		const c = this.data.completion ?? this.data.complete;
 		if (typeof c === "number") return Math.max(0, Math.min(1, c));
 		return this.state === "complete" ? 1 : 0;
+	}
+	get completion(){ return this.completion_score(); }
+	// What the score averages: subtasks that are not stopped, then the owner Prompts in `content` that count (Prompt.counts_toward_score).
+	score_parts(){
+		const parts = [...(this._tasks ?? [])].filter(t => t.state !== "stopped");
+		for (const c of this._content ?? []) if (c.counts_toward_score && c.state !== "stopped") parts.push(c);
+		return parts;
+	}
+	/* The labelled counts beside the score: {created, finished, stopped, open, sessions, unproven, prompts: {counted, unresolved}}. Every task below me,
+	   at any depth; a child session counts as one task and its own tasks count too. `unproven` = finished with no outcome and no evidence
+	   (Task.proof_problem), whoever asked for it: a task is not done on the agent's word alone. */
+	tally(){
+		const t = { created: 0, finished: 0, stopped: 0, open: 0, sessions: 0, unproven: 0, prompts: { counted: 0, unresolved: 0 } };
+		const walk = node => {
+			for (const c of node._content ?? []) if (c.counts_toward_score){ t.prompts.counted++; if (c.completion_score() < 1 && c.state !== "stopped") t.prompts.unresolved++; }
+			for (const k of node._tasks ?? []){
+				t.created++;
+				if (k.is_session) t.sessions++;
+				if (k.state === "complete"){ t.finished++; if (Task.proof_problem(k)) t.unproven++; }
+				else if (k.state === "stopped") t.stopped++;
+				else t.open++;
+				walk(k);
+			}
+		};
+		walk(this);
+		return t;
 	}
 
 	// May this verb run from the task's state now? The same CAN map the verbs check; a button uses it to show only what works.

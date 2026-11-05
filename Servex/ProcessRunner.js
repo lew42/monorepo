@@ -2,7 +2,10 @@ import fs from "fs";
 import path from "path";
 import { stamp } from "./home.js";
 import Process from "../public/framework/core/Task/Process.js";
+
 import { move_home } from "./agents/page_tools.js";
+
+const OPEN = new Set(["idle", "running", "paused", "waiting"]);   // a child in one of these keeps its parent reading running (Task.js)
 
 /* THE PROCESS RUNNER: a process's steps run in order because node runs them, never because an agent remembers.
  * Process.next() (core/Task/Process.js) decides; this class writes the line it asks for and launches the step's session.
@@ -79,10 +82,11 @@ export default class ProcessRunner {
 			this.files.add(file);
 			this.track(file, p);
 			this.remember(p, file);
+			if (await this.settle_sessions(file, p)) continue;   // a step's own worker session was still open: closed, so read again
 			const a = p.next();
 			if (!a) return;
 			if (a.start === true) await this.write(file, { start: {} });
-			else if (a.complete){ await this.write(file, { complete: {} }); this.tell(p.creator, `Process ${this.url(file)} is complete: every step is done.`); return; }
+			else if (a.complete){ await this.write(file, { complete: {} }); this.tell(p.creator, `Process ${this.url(file)} is complete: every step is done.`); await this.close_out(file); return; }
 			else if (a.wait){
 				const ph = p.steps.find(x => x.id === a.wait);
 				await this.write(file, { [a.wait]: { wait: { on: "owner", what: ph?.get_one("do") ?? a.wait } } });
@@ -218,6 +222,33 @@ export default class ProcessRunner {
 		for (const f of [...this.indexed]) if (!fs.existsSync(f)){ this.indexed.delete(f); this.save_index(); }
 		const found = tl?.find_task_files?.() ?? [];
 		for (const file of new Set([...this.indexed, ...found.filter(f => this.is_process(f)), ...this.files])) if (fs.existsSync(file)) await this.step(file);
+	}
+
+	// A step recorded complete whose own worker session (the {task: ref} child Agents.open_task links under it) is still open reads `running`
+	// (Task.reopened), so next() never starts the next step: the live run of 2026-11-04 stalled there. The step's complete line is the worker's
+	// finish, so node completes that session record with the step's outcome. Returns true when it closed any.
+	async settle_sessions(file, p){
+		let closed = 0;
+		for (const ph of p.steps){
+			if (ph.get_one("state") !== "complete" || ph.state === "complete") continue;
+			for (const kid of ph._tasks ?? []){
+				if (!OPEN.has(kid.state)) continue;
+				const dir = path.resolve(this.public, String(kid.get_one("path") ?? "").replace(/^\/+/, ""));
+				if (!dir.startsWith(this.public + path.sep)) continue;
+				const rec = ["session.jsonl", "task.jsonl"].map(f => path.join(dir, f)).find(f => fs.existsSync(f));
+				if (!rec) continue;
+				const outcome = ph.get_one("outcome") ?? "the step is complete";
+				await this.write(rec, { complete: { outcome: `${ph.id}: ${outcome}`, evidence: [`${this.url(file)} (step ${ph.id} complete)`] } });
+				closed++;
+			}
+		}
+		return closed > 0;
+	}
+
+	// Hand the finished process to the one task close function (TaskLoop.close_task, mastermind-process-cleanup's Lifecycle). Absent or failing: only logged, the process stays complete.
+	async close_out(file){
+		try { const r = await this.servex?.task_loop?.close_task?.({ dir: path.dirname(file), why: "process complete", by: "ProcessRunner" }); if (r?.left?.length) this.say(`process-runner: ${this.url(file)} closed with ${r.left.length} left over`); }
+		catch (e){ this.say(`process-runner: close_task failed: ${e.message || e}`); }
 	}
 
 	tell(to, text){ if (!to || to === "owner") return; try { this.servex?.agents?.send(to, text, { from: "process-runner" }); } catch {} }

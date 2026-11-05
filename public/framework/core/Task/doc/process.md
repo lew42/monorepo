@@ -1,6 +1,6 @@
 # Process — a task whose children are named steps, and node runs them in order
 
-**Short term (the owner, 2026-11-02):** agents follow the same steps by hand from [processes/build.md](../processes/build.md), because the runner stalled between steps twice on 2026-11-02 (`ai/sessions/2026/10/20/session-e00f55c9/process-runner-stall/`).
+**Agents may still follow the same steps by hand** from [processes/build.md](../processes/build.md). The runner stalled between steps on 2026-11-02 and again on the first live run of 2026-11-04; the cause of the last one is found and fixed (see "The live stall" under Status), and `node Servex/process-live.mjs --root <repo>` re-proves it with three real Haiku steps.
 
 **The name's scope:** here a process is a *way of working* (a Task subclass). Not `Servex/Process.js` (one supervised child program, such as a dev server), not `Servex/Processes.js` (the OS process monitor), and not the old [ai/process](/framework/ai/process/) page (how the agents' work was going, 2026-09-19, stale).
 
@@ -146,6 +146,9 @@ The prompt audit ([ai/doc/prompt-audit.md](/framework/ai/doc/prompt-audit.md)) a
 5. **No AI writes the bookkeeping.** The audit's model only judges; node writes every line.
 
 ## Status
+
+- ✅ **The live stall, found and fixed (2026-11-04).** A step's own worker session is a child of the step: `Agents.open_task` writes `{"<step-id>": {"task": <step folder>, "type": "Session", ...}}` into the process file. When the worker records the step complete, that child session is still open, and `Task.state` reads a task with an open child as `running` (`reopened()`), so `next()` saw the step still running, the after-turn check pulsed it once and then wrote `wait`. The 27 tests passed because the fake host never writes the ref line and nothing sets `Task.resolver`. Fix: `ProcessRunner.settle_sessions` completes the worker session record of any step whose own `complete` line is recorded, then reads again; a regression test with the ref line is in `Servex/ProcessRunner.test.mjs` (fails without it). When the last step completes, the runner also calls `servex.task_loop.close_task({dir, why: "process complete", by: "ProcessRunner"})` (guarded: absent or failing only logs).
+- ✅ **Rerunnable live proof:** `node Servex/process-live.mjs --root <repo>` writes a 3-step process under a new parent session, waits for the live Servex (its TaskLoop tick finds it within about 5 minutes), prints a timeline with the parent's completion score at each step (0, 1/3, 2/3, 1) and exits 0 only if every step started, spawned and completed in order and the process completed. Costs a few cents (Haiku, low effort). Results of each run: the completion-truth report.
 
 - ✅ **Fixed 2026-10-22:** a task that has landed and then gets a new open child reads `running` until that child is done, then `complete` again. `Task.state` computes it on read (`reopened()`); nothing is written. Test: `Task.test.mjs`.
 

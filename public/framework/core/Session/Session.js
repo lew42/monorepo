@@ -136,6 +136,8 @@ export default class Session extends Task {
 			for (const kid of this._tasks) if (!had.has(kid)) kid._created_at ??= Task.clock;   // the line's time, in memory only (never data: a move compares data): Task.created_at
 		}
 		delete delta.tasks;
+		// The owner's prompts and page cards: the same `content` list a Task has, so a Prompt written with `counted: true` is part of the score (Task.score_parts).
+		if (delta.content && typeof delta.content === "object"){ this.content.set(delta.content); delete delta.content; }
 		// The chat: sentences first, so a Prompt added on the same line finds the sentence it names (one act, one line).
 		if (delta.sentences && typeof delta.sentences === "object") this.sentences.set(delta.sentences);
 		if (delta.messages && typeof delta.messages === "object") this.messages.set(delta.messages);
@@ -157,7 +159,7 @@ export default class Session extends Task {
 			delete delta.decide;
 		}
 		for (const k of Object.keys(delta)){   // a nested task changed: {"<task id>":{…}} goes to that task
-			const kid = delta[k] && typeof delta[k] === "object" && this._tasks ? this.find(k) : undefined;   // at any depth: a bare id may name a grandchild
+			const kid = delta[k] && typeof delta[k] === "object" ? (this._tasks ? this.find(k) : undefined) ?? this._content?.find(k) : undefined;   // at any depth: a bare id may name a grandchild; or a Prompt in `content` ({"<prompt id>":{"no_action":"why"}})
 			if (kid?.replay_line) { kid.replay_line(delta[k]); delete delta[k]; }
 		}
 		// DEPRECATED (2026-10-28): use list deltas (`chat.add`, `place.add`, …); an unknown key falls through to `put` and loses its history. Guide: /framework/core/Session/doc/one-replay-plan.md. Remove when: the one-replay plan is built and the history is replayed through a named shim.
