@@ -6,6 +6,8 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 
 **Latest night run (2026-11-01 to 11-02): what landed, what's open, and the owner's five decisions:** [morning.md](sessions/2026/10/20/session-e00f55c9/night-2026-11-01/morning.md).
 
+**The last VS Code tab (e00f55c9, ran 10-20 to 11-03) left its state here:** [tab-state-2026-11-01.md](sessions/2026/10/20/session-e00f55c9/tab-state-2026-11-01.md), newest section last. **2026-11-04, memory, usage and the dirty tree:** [report.md](sessions/2026/11/04/session-5132a480/vscode-memory/report.md); process kill list awaiting a yes: [report.md](sessions/2026/11/04/spawned/mastermind-process-cleanup/report.md).
+
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
