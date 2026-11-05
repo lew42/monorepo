@@ -414,6 +414,7 @@ export default class Lifecycle {
 			}
 			if (!fs.existsSync(p) && !(await wts.list()).some(w => norm(w.path) === norm(p))) continue;   // already gone
 			if (dry) { closed.push({ kind: "worktree", id: path.basename(p), why: "would be removed if merged and clean" }); continue; }
+			if (!this.procs?.size) { left.push({ kind: "worktree", id: path.basename(p), why: "kept: the process list could not be read, so what runs inside it is unknown" }); continue; }
 			const r = await wts.close_now(p);
 			if (r.ok) { if (r.removed) closed.push({ kind: "worktree", id: path.basename(p), why: r.why }); }
 			else left.push({ kind: "worktree", id: path.basename(p), why: r.why });
