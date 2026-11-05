@@ -7,6 +7,7 @@ import { stalled } from "./stalled.js";
 import { build_tasks, write_tasks_json } from "./tasks.js";
 import SessionRecord from "../../Server/SessionRecord.mjs";
 import Landed from "../Landed.js";
+import Task from "../../public/framework/core/Task/Task.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_FILE = path.resolve(HERE, "../../public/framework/ai/asks.jsonl");
@@ -141,7 +142,10 @@ export default class Asks {
 		if (stalled.NOT_WATCHED.includes(ask.status)) return;   // closed, parked or queued: nobody owes a turn yet
 		const row = this.owner_row(ask, registry);
 
-		if (row?.task_landed){ await this.mark(ask.id, "landed", "owner's task.jsonl has a landed_at line", BY_TICK); return; }
+		// A landed_at line is the agent's word, not proof (Task.proof_problem; ask 209, "AI 2: finish the retirement", was marked landed on it with the folder still there):
+		// no outcome AND no evidence leaves the ask where it is; an outcome without evidence lands it, and the reason says so.
+		if (row?.task_landed && row.task_proof === "no outcome and no evidence") return;
+		if (row?.task_landed){ await this.mark(ask.id, "landed", "owner's task.jsonl has a landed_at line" + (row.task_proof ? ` (${row.task_proof} recorded)` : ""), BY_TICK); return; }
 
 		const verdict = stalled(ask, row, Date.now());
 		if (verdict.stalled && ask.status !== "stalled") await this.mark(ask.id, "stalled", verdict.why, BY_TICK);
@@ -160,8 +164,8 @@ export default class Asks {
 		const live = this.servex?.agents?.live?.get?.(ask.owner);
 		const queued = live?.queue?.items?.length ?? 0;
 		const dir = row.task_dir ?? this.servex?.agents?.task_dir_for?.(row) ?? null;
-		const { last_at, landed } = dir ? this.task_state(dir) : { last_at: null, landed: false };
-		return { ...row, last_task_line_at: last_at, task_landed: landed, queued };
+		const { last_at, landed, proof } = dir ? this.task_state(dir) : { last_at: null, landed: false, proof: null };
+		return { ...row, last_task_line_at: last_at, task_landed: landed, task_proof: proof, queued };
 	}
 
 	/* A task dir's task.jsonl, read cold — Asks never writes here, only reads,
@@ -172,18 +176,21 @@ export default class Asks {
 	 * already uses: a non-empty `outcome` alongside `landed_at`. */
 	task_state(dir){
 		let text;
-		try { text = fs.readFileSync(SessionRecord.log_or_old(dir), "utf8"); } catch { return { last_at: null, landed: false }; }
-		const state = {};
+		try { text = fs.readFileSync(SessionRecord.log_or_old(dir), "utf8"); } catch { return { last_at: null, landed: false, proof: null }; }
+		const state = {}, parsed = [];
 		let last_at = null;
 		for (const raw of text.split("\n")){
 			if (!raw.trim()) continue;
 			let obj; try { obj = JSON.parse(raw); } catch { continue; }
+			parsed.push(obj);
 			if (obj.assign && typeof obj.assign === "object") Object.assign(state, obj.assign);
 			// most task lines carry `at` at the top level ({"decision":{…},"at":…}); some nest it
 			const at = obj.at ?? obj.assign?.at ?? obj.assign?.landed_at ?? obj.log?.at ?? obj.action?.at ?? obj.decision?.at;
 			if (at) last_at = at;
 		}
-		return { last_at, landed: Landed.of_dir(dir) };
+		const landed = Landed.of_dir(dir);
+		let proof = null; if (landed) try { const t = Task.replay(parsed); proof = t.state === "complete" ? Task.proof_problem(t) : null; } catch {}   // a log that will not replay keeps the old answer
+		return { last_at, landed, proof };
 	}
 
 	/* ---------- close_task wraps: landing a task lands the asks its agent owned ---------- */
