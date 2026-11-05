@@ -11,6 +11,7 @@
  * NAV GATE (the owner, 2026-10-23: a page nobody can click to does not exist): every NEW page.js/page.jsonl must be
  * reachable by an `a[href]` on its parent page, loaded headless on the worktree's own server (`Server/NavCheck.mjs`).
  * An unlinked new page refuses the merge and prints each page with its parent; `--no-nav "why"` merges anyway, loudly.
+ * A branch that changes a module's code but none of its readme.md or doc/ prints a "Docs:" warning (docsReminder, 2026-11-04); not a refusal.
  *
  * REVIEW GATE (2026-09-28, fresh-eyes-review; page report added 2026-09-30, review-gate): before
  * the smoke test, a light or full-size branch (`Server/review.mjs`'s `sizeOf`) needs a review newer
@@ -185,6 +186,20 @@ function shotsReminder(changed, pages, branch){
 	try { runs = fs.readFileSync(path.join(MAIN, "public/framework/ext/Shots/runs.jsonl"), "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l).run).filter(Boolean); } catch {}
 	const missing = pages.filter(u => !runs.some(r => r.url === u && (!since || new Date(r.at) >= new Date(since))));
 	if (missing.length) console.warn(`!!! Shots: no screenshot round since this branch began for ${missing.join(", ")} — shoot, read, judge: node Server/shots.mjs <url> !!!`);
+}
+
+/* Docs reminder (docs-landing-check, 2026-11-04): code in a module changed but nothing in that module's
+ * readme.md or doc/ did. A warning, not a refusal. */
+function docsReminder(changed){
+	const mod = f => { const m = f.match(/^(public\/framework\/[a-z]+\/[^/]+|Servex|Server)\//); return m && m[1]; };
+	const code = new Set(), docs = new Set();
+	for (const f of changed) {
+		const m = mod(f); if (!m) continue;
+		if (/(^|\/)(readme\.md|doc\/.*\.md)$/.test(f)) docs.add(m);
+		else if (/\.(js|mjs)$/.test(f) && !/\.test\.(js|mjs)$/.test(f)) code.add(m);
+	}
+	const missing = [...code].filter(m => !docs.has(m));
+	if (missing.length) console.warn(`!!! Docs: code changed in ${missing.join(", ")} but no readme.md or doc/ there did. Is a decision or changed fact only in the task folder? (CLAUDE.md law 9) !!!`);
 }
 
 /* The task dirs a branch's own work sits in: every changed path (committed on the branch, or still
@@ -562,6 +577,7 @@ try {
 		const autoPages = [...new Set(changed.filter(f => !deleted.has(f) && fs.existsSync(path.join(dir, f))).map(pageUrlFor).filter(Boolean))].filter(u => !paths.includes(u));
 		if (autoPages.length) console.log(`merge.mjs found ${autoPages.length} changed page(s) from the diff: ${autoPages.join(", ")}`);
 		shotsReminder(changed, autoPages, branch);
+		docsReminder(changed);
 		const ignoredPics = IgnoredImageLinks.find(dir, changed.filter(f => !deleted.has(f)));
 		if (ignoredPics.length) console.warn(IgnoredImageLinks.sentence(ignoredPics));
 		/* Visibility gate (the owner, 2026-10-12): a branch that touches ext/Figma may not leave a page.js no parent declares. */
