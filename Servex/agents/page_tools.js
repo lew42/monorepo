@@ -122,7 +122,7 @@ async function resolve(url, target = [], item = false){
  * named for the uuid and found none). Sync, so spawn() can read a task's origin before the move. */
 export function record_file(url){
 	const hit = SESSION_ROUTE.exec(String(url ?? ""));
-	if (hit && !/^d{4}$/.test(hit[1]) && !fs.existsSync(path.resolve(PUBLIC, "framework/ai/sessions", hit[1]))){
+	if (hit && !/^\d{4}$/.test(hit[1]) && !fs.existsSync(path.resolve(PUBLIC, "framework/ai/sessions", hit[1]))){
 		let uuid = UUID.test(hit[1]) ? hit[1] : null;
 		if (!uuid) try { uuid = new Registry().read()[hit[1]]?.session_id ?? null; } catch {}
 		const dir = uuid && SessionFolders.at(path.join(PUBLIC, "framework/ai/sessions")).record_of(uuid);

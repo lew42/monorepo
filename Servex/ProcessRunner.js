@@ -3,8 +3,9 @@ import path from "path";
 import { stamp } from "./home.js";
 import Process from "../public/framework/core/Task/Process.js";
 
-const OPEN = new Set(["idle", "running", "paused", "waiting"]);   // a child in one of these keeps its parent reading running (Task.js)
 import { move_home } from "./agents/page_tools.js";
+
+const OPEN = new Set(["idle", "running", "paused", "waiting"]);   // a child in one of these keeps its parent reading running (Task.js)
 
 /* THE PROCESS RUNNER: a process's steps run in order because node runs them, never because an agent remembers.
  * Process.next() (core/Task/Process.js) decides; this class writes the line it asks for and launches the step's session.
