@@ -16,7 +16,7 @@ Receipt: `find public/framework/ai2 -type f | wc -l` → 26 files, `du -sh` → 
 ### Real imports of an ai2 path (code, not comments or data)
 
 - **Undeniable, one live import:** `public/framework/dev/DevBar/chat.js:4` reads `import { AgentTalk } from "../../ai2/live.js";`. It goes through the shim `ai2/live.js` to `ai/rail/live.js`. Removing the shim breaks the dev bar unless this line changes too.
-- **Not confirmed:** the earlier audit (`ai/sessions/2026/10/20/session-e00f55c9/ai2-retire/audit.md`, §Counts) says `core/Page/Jsonl.js` imports `/framework/ai2/card.js`. Receipt: `rg "ai2" public/framework/core/Page/Jsonl.js` → no match. The same audit says 531 record files name that class in their `class` field. That is data, not an import, and the audit's count was not re-run here.
+- **Not confirmed:** the earlier audit says `core/Page/Jsonl.js` imports `/framework/ai2/card.js`. `rg "ai2" public/framework/core/Page/Jsonl.js` → no match.
 
 ### The URL is live, and most references are links
 
@@ -38,13 +38,13 @@ Each time it was asked for, and where it stopped:
 | 2026-11-01 | `retire-ai2 merge 1: drop AI 2 from the nav` (`a02d9b0448`) | nav dropped |
 | 2026-11-01 | `ai2 move` (`fa90c3a41`), `cleanup` (`55348bb9e`) | 795 duplicate session folders removed; `ai2/` itself kept |
 
-**Step where it stopped:** merged but kept on purpose. The 2026-11-01 move report (`ai/sessions/2026/10/20/session-e00f55c9/ai2-retire/move-report.md`) says the duplicates are gone and nothing was lost. The 2026-11-01 audit (`ai2-retire/audit.md`) says `ai2/` may move only after two things: (1) 295 lines copied into 14 store files, (2) 531 card records given a class alias. Neither was reported done in the move report.
+**Where it stopped:** merged but kept on purpose. The 2026-11-01 audit (`ai2-retire/audit.md`) says `ai2/` may move only after 295 lines are copied into 14 store files and 531 card records get a class alias. The move report does not say either happened.
 
-**Questionable:** whether those 295 lines are now in the store. The move report says `.jsonl lines in the sessions store +474`, which may cover them. Settling it means re-running the audit's line count (`ai/sessions/2026/10/20/session-e00f55c9/ai2-retire/audit-ai2.mjs`) against the current tree. Not re-run here.
+**Questionable:** whether the 295 lines are in the store now. Re-run `ai2-retire/audit-ai2.mjs` to settle it; not done here.
 
-## 3. Map of `public/framework/ai/` (partial)
+## 3. Map of `public/framework/ai/`
 
-The map script timed out at `screenshots`, so the rows stop there. Files, size and last commit come from `find`, `du -sk` and `git log -1`. "Index link" counts matches in the two readmes. Code-importer counts were too noisy to use.
+Files, size and last commit come from `find`, `du -sk` and `git log -1`. "Index link" counts matches in the two readmes. Code-importer counts were too noisy to use.
 
 | Folder | Files | KB | Last commit | Index link | Note |
 |---|---|---|---|---|---|
