@@ -6,7 +6,7 @@ Owner's words: "every mastermind who spawns anything leaves zero footprint, and 
 
 Status: built, reviewed and merged into compliance/dev (merge c3a59f3ba, 2026-11-04). Ticked = built, unticked = not built.
 
-- [x] 1. `Lifecycle.kept()` checks the pool file, not the `qf-N` path. The live sweep runs and now logs every pass; an empty process list is retried once and reported as `left` (the cause of "it closed nothing").
+- [x] 1. `Lifecycle.kept()` checks the pool file, not the `qf-N` path. The live sweep runs and now logs every pass; an empty process list is retried twice and reported as `left` with its cause (the cause of "it closed nothing").
 - [x] 2. `worktree-down` retries back off (doubling, cap 6 h, one `risk` note on the 5th failure).
 - [x] 3. Every sweep is logged. New spawns are gated on commit charge (`SERVEX_COMMIT_HIGH_PCT` 80, `SERVEX_COMMIT_FULL_PCT` 90).
 - [x] 4. A ready pool slot holds no browser; the claim state file in `Tunnel.mjs` stops a second tunnel. 
@@ -16,9 +16,11 @@ Status: built, reviewed and merged into compliance/dev (merge c3a59f3ba, 2026-11
   - [ ] Not built: `start_server` cannot carry the caller (recorded in improvements).
 - [x] 7. Extras: a leftover folder is not a project; a merged clean worktree is removed from git and disk by `Lifecycle.closeout` and `merge.mjs` (never while an agent or the calling process works inside it); every Playwright launcher's browser is closed by `Server/browser-watchdog.mjs`, and closing a browser also ends its launcher script (not the main checkout's own).
 
+- [x] 8. Follow-up 2026-11-05 (`mastermind-completion-truth` reported `close_task` returning "process list could not be read" twice): the list now retries three times, a failure names its cause (PowerShell or netstat error), the sweep writes no `found gone` line from an unreadable list, and a worktree is kept while the list is unreadable. Check 12 covers it. Branch `worktree/qf-8`; merge recorded below once landed.
+
 ## The proof
 
-`node Servex/closeout.test.mjs` (1 to 2 minutes, temp `SERVEX_HOME`, port 18999): 11 checks on real servers, browsers and worktrees, asserting from the OS process list, `git worktree list` and the disk. Rule set and decisions: [Servex/doc/processes.md](/Servex/doc/processes.md).
+`node Servex/closeout.test.mjs` (1 to 2 minutes, temp `SERVEX_HOME`, port 18999): 12 checks on real servers, browsers and worktrees, asserting from the OS process list, `git worktree list` and the disk. Rule set and decisions: [Servex/doc/processes.md](/Servex/doc/processes.md).
 
 ## Decisions
 
