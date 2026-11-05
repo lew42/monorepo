@@ -107,3 +107,14 @@
 {"session":{"id":"v-8slfpnj","event":"started","title":"Dictate demo sentences after reset","file":"/framework/ux/Dictate/ai/v-8slfpnj.jsonl","at":"2026-10-16T23:53:48.099-05:00"}}
 {"session":{"id":"v-9hcjtbw","event":"started","title":"Dictate demo sentences","file":"/framework/ux/Dictate/ai/v-9hcjtbw.jsonl","at":"2026-10-16T23:54:20.179-05:00"}}
 {"session":{"id":"v-9xsb941","event":"started","title":"Dictate sessions demo","file":"/framework/ux/Dictate/ai/v-9xsb941.jsonl","at":"2026-10-16T23:54:41.483-05:00"}}
+{"session":{"id":"v-uw6epgr","event":"started","title":null,"file":"/framework/ai/sessions/2026/10/25/v-uw6epgr/session.jsonl","at":"2026-10-25T13:28:10.216-05:00"}}
+{"session":{"id":"v-uw6epgr","event":"ended","title":null,"file":"/framework/ai/sessions/2026/10/25/v-uw6epgr/session.jsonl","at":"2026-10-25T14:00:22.019-05:00"}}
+{"session":{"id":"v-xo1zyzx","event":"started","title":null,"file":"/framework/ai/sessions/2026/10/25/v-xo1zyzx/session.jsonl","at":"2026-10-25T19:34:14.665-05:00"}}
+{"decision":{"text":"2026-10-25 owner design: fast chunks = comma/period/question (check gray to green); smart gets finished sentences only (. ? !), every sentence, wake every:1 (brain gray to pink); a Prompt closes after 8 s quiet or an assistant reply; V1 cursors first, V2 after; green Understand checks removed from V1 (may return); Question card = his question, right-aligned, red/yellow/green ?, answer inside the card, moves to newest end, no animation; no site-wide animation work; smart owns tasks/titles/refined prompt, fast does punctuation/names/? upgrade; models start high then trim.","file":"public/framework/ai/sessions/2026/10/25/v-sq8y7db/session.jsonl","at":"2026-10-25T19:42:18.567-05:00"}}
+{"session":{"id":"v-xo1zyzx","event":"ended","title":null,"file":"/framework/ai/sessions/2026/10/25/v-xo1zyzx/session.jsonl","at":"2026-10-25T19:43:21.396-05:00"}}
+{"session":{"id":"v-2j0i176","event":"started","title":null,"file":"/framework/ai/sessions/2026/11/01/v-2j0i176/session.jsonl","at":"2026-11-01T23:15:39.333-06:00"}}
+{"session":{"id":"v-j32xjjb","event":"started","title":null,"file":"/framework/ai/sessions/2026/11/02/v-j32xjjb/session.jsonl","at":"2026-11-02T00:24:31.077-06:00"}}
+{"session":{"id":"v-lzxm297","event":"started","title":null,"file":"/framework/ai/sessions/2026/11/02/v-lzxm297/session.jsonl","at":"2026-11-02T00:26:46.956-06:00"}}
+{"session":{"id":"v-urmyr2k","event":"started","title":null,"file":"/framework/ai/sessions/2026/11/02/v-urmyr2k/session.jsonl","at":"2026-11-02T02:53:34.191-06:00"}}
+{"session":{"id":"v-t74agmf","event":"started","title":null,"file":"/framework/ai/sessions/2026/11/02/v-t74agmf/session.jsonl","at":"2026-11-02T03:48:20.173-06:00"}}
+{"session":{"id":"v-t74agmf","event":"ended","title":null,"file":"/framework/ai/sessions/2026/11/02/v-t74agmf/session.jsonl","at":"2026-11-02T04:18:45.594-06:00"}}

@@ -3,3 +3,4 @@
 {"title":"Find one in-between padding that suits both V2 and V3 sidebars","by":"helper-undone-to-tasks","ts":"2026-10-23T06:24:10.000Z"}
 {"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.433Z"}
 {"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ai/tasks/find-an-in-between-padding-and-spacing-t/"},{"id":"mastermind-deputy","task":"/framework/ai/tasks/find-an-in-between-padding-and-spacing-t/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.434Z"}
+{"stop":{"why":"Obsolete: the AI dashboard was rebuilt mobile-first on 2026-10-19 and the V2/V3 variants are views of it; this ask targeted the old layout. Triaged 2026-10-24 (queue-triage).","at":"2026-10-24T23:05:02-05:00","by":"task-mastermind-queue-triage"}}

@@ -41,3 +41,39 @@
 {"assign":{"outcome":"Item and List class pages now show the class instead of describing it. Not merged; merge build B first.\n- [x] Live instance on top: [Item](/framework/core/Item/), [List](/framework/core/List/) (shots: [item-1920.png](/framework/ext/Doc/doc/class-doc/item-1920.png), [list-1920.png](/framework/ext/Doc/doc/class-doc/list-1920.png))\n- [x] Core test drawn step by step: Item 6/6, List 7/7, same steps pass in node\n- [x] How a change is saved, as one picture from delta-flow.md: [class-doc.md](/framework/ext/Doc/doc/class-doc.md)\n- [x] Method sub-pages from one route, [methods/set](/framework/core/Item/methods/set/) ([shot](/framework/ext/Doc/doc/class-doc/method-set-1920.png))\n- [x] Phone width checked: [item-400.png](/framework/ext/Doc/doc/class-doc/item-400.png)\nReview: [report](/framework/core/Session/tasks/data-shapes/build/class-docs/review/report.md), 5 fixed, 4 declines accepted ([reply](/framework/core/Session/tasks/data-shapes/build/class-docs/review/reply.md)). Branch worktree/class-docs, merges cleanly."}}
 {"log":{"at":"2026-10-28T17:55:43-05:00","heartbeat":"check","msg":"status check sent to mastermind-build-class-docs"}}
 {"log":{"at":"2026-10-28T17:55:46-05:00","msg":"session resumed"}}
+{"commit":"082ac884e777"}
+{"log":{"at":"2026-10-28T17:56:29-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-28T17:56:29-05:00","msg":"card-check: card-check: path not found: C:\\Code\\lew42\\monorepo\\public\\framework\\ai\\ext\\Doc: class pages that show, not tell, Item and List first (build C, not merged)"}}
+{"log":{"at":"2026-10-28T17:56:29-05:00","msg":"doc-check: public/framework/core/Session: 1 dead link (/framework/core/Task/md/doc/prompt/)"}}
+{"log":{"at":"2026-10-28T17:56:31-05:00","msg":"landed but 13 commits are not on michael/dev: public/files.jsonl, public/framework/ai/2026/10/12/files.jsonl, public/framework/ai/2026/10/13/files.jsonl, public/framework/ai/2026/10/23/files.jsonl, public/framework/ai/2026/10/25/files.jsonl, public/framework/ai/2026/10/files.jsonl …+94 (new file not on dev: public/framework/core/Item/Item.life.js, public/framework/core/Item/Item.methods.js, public/framework/core/Item/Item.steps.js, public/framework/core/Item/Item.steps.test.mjs, public/framework/core/Item/watch/Box.js, public/framework/core/Item/watch/ScratchStore.js …+17)"}}
+{"log":{"at":"2026-10-28T17:56:29-05:00","heartbeat":"answered","msg":"Build C (the class docs) is finished and ready to merge. As the brief says, I have not merged it.\n\n- **Branch:** `worktree/class-docs` at df73aa8c5. It merges into michael/dev without conflicts, but b"}}
+{"log":{"at":"2026-10-28T17:56:31-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-28T17:56:34-05:00","msg":"worktree-down: kept class-docs running - no task.jsonl names this worktree (C:\\Code\\lew42\\worktrees\\class-docs) in its line 1"}}
+{"log":{"at":"2026-10-28T17:56:35-05:00","msg":"worktree-close: class-docs - 0 non-pool worktree(s): 0 REMOVE, 0 ARCHIVE, 0 KEEP. 0 removed, 0 failed."}}
+{"log":{"at":"2026-10-28T17:56:37-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-28T17:56:37-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-10-28T18:10:39-05:00","heartbeat":"check","msg":"status check sent to mastermind-build-class-docs"}}
+{"log":{"at":"2026-10-28T18:10:41-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-28T18:11:11-05:00","heartbeat":"answered","msg":"Nothing is running, and I'm not working on anything now. The class docs are on branch `worktree/class-docs`, reviewed, ready to merge after build B, and not merged."}}
+{"log":{"at":"2026-10-28T18:35:40-05:00","heartbeat":"check","msg":"status check sent to mastermind-build-class-docs"}}
+{"log":{"at":"2026-10-28T18:35:42-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-28T18:36:12-05:00","heartbeat":"answered","msg":"I'm idle: the class docs work is done, reviewed and not merged. It's on branch `worktree/class-docs`, waiting to merge after build B, and nothing of mine is running."}}
+{"log":{"at":"2026-10-28T19:17:44-05:00","heartbeat":"check","msg":"status check sent to mastermind-build-class-docs"}}
+{"log":{"at":"2026-10-28T19:17:46-05:00","msg":"session resumed"}}
+{"wait":{"at":"2026-10-28T19:18:22-05:00","on":"owner","what":"the merge of worktree/class-docs (after build B); build C is done, reviewed, not merged per the brief","links":["/framework/core/Session/tasks/data-shapes/build/class-docs/review/report.md"]}}
+{"log":{"at":"2026-10-28T19:18:24-05:00","heartbeat":"answered","msg":"I'm idle, and the class docs work is done. To stop the status checks, I marked the task as waiting on your merge of `worktree/class-docs`, which goes in after build B. I haven't merged it, as the brie"}}
+{"log":{"at":"2026-10-28T20:41:45-05:00","heartbeat":"check","msg":"status check sent to mastermind-build-class-docs"}}
+{"log":{"at":"2026-10-28T20:41:48-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-28T20:42:19-05:00","heartbeat":"answered","msg":"I'm still idle: the class docs work is finished and waiting on your merge of `worktree/class-docs`, after build B. Nothing is running, and the status checks keep coming even though the task is marked "}}
+{"log":{"at":"2026-10-28T22:05:44-05:00","heartbeat":"check","msg":"status check sent to mastermind-build-class-docs"}}
+{"log":{"at":"2026-10-28T22:05:46-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-28T22:06:22-05:00","heartbeat":"answered","msg":"Build C is still done and not merged; it is waiting on you to merge `worktree/class-docs`, after build B. The status checks keep coming because the heartbeat still lists this task as working with a ch"}}
+{"log":{"at":"2026-10-28T23:30:48-05:00","heartbeat":"check","msg":"status check sent to mastermind-build-class-docs"}}
+{"log":{"at":"2026-10-28T23:30:51-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-28T23:31:19-05:00","heartbeat":"answered","msg":"I'm idle: build C is done and waiting on your merge of `worktree/class-docs`, after build B. Nothing is running."}}
+{"log":{"at":"2026-10-29T00:55:49-05:00","heartbeat":"check","msg":"status check sent to mastermind-build-class-docs"}}
+{"log":{"at":"2026-10-29T00:55:53-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-29T00:56:22-05:00","heartbeat":"answered","msg":"I'm idle. Build C (the class docs) is finished and reviewed but not merged; it's waiting on you to merge `worktree/class-docs`, after build B. Nothing of mine is running."}}
+{"log":{"at":"2026-10-29T02:18:51-05:00","heartbeat":"check","msg":"status check sent to mastermind-build-class-docs"}}
+{"log":{"at":"2026-10-29T02:18:55-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-29T02:19:23-05:00","heartbeat":"answered","msg":"I'm still idle: build C is finished and waiting on you to merge `worktree/class-docs`, after build B. Nothing of mine is running."}}

@@ -1,3 +1,4 @@
 {"id":"tasks","path":"/framework/ext/Mention/tasks/","title":"ext/Mention tasks","mode":"parallel"}
 {"task":"/framework/ext/Mention/tasks/build-2/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
 {"task":"/framework/ext/Mention/tasks/mention-auto-sync/","by":"task-migrate","ts":"2026-10-17T04:29:42.785Z"}
+{"task":"/framework/ext/Mention/tasks/mention-voice-session-ids-become-icon-li/","by":"session-smart-v-9dvbbrn","ts":"2026-10-26T04:23:26.916Z"}

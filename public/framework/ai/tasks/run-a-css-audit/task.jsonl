@@ -2,3 +2,4 @@
 {"wait":{"on":"owner","what":"Proposed from an old ask (the sort pass over the undone asks): approve, improve or reject"},"by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:12.738Z"}
 {"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.402Z"}
 {"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ai/tasks/run-a-css-audit/"},{"id":"mastermind-deputy","task":"/framework/ai/tasks/run-a-css-audit/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.403Z"}
+{"stop":{"why":"Done: CSS, taste, layout and ui-behaviors audits ran (ai/audits/index.jsonl); a new audit would be a new ask, not this one. Triaged 2026-10-24 (queue-triage).","at":"2026-10-24T23:05:02-05:00","by":"task-mastermind-queue-triage"}}

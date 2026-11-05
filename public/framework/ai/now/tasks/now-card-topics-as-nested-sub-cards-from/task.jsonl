@@ -3,3 +3,4 @@
 {"title":"Now card: nested topic sub-cards from refined prompts, updated marks","by":"helper-undone-to-tasks","ts":"2026-10-23T06:24:09.920Z"}
 {"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.218Z"}
 {"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ai/now/tasks/now-card-topics-as-nested-sub-cards-from/"},{"id":"mastermind-deputy","task":"/framework/ai/now/tasks/now-card-topics-as-nested-sub-cards-from/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.218Z"}
+{"stop":{"why":"Duplicate of /framework/ai/tasks/now-card-topics-as-nested-sub-cards-from/. Triaged 2026-10-24 (queue-triage).","at":"2026-10-24T23:05:02-05:00","by":"task-mastermind-queue-triage"}}

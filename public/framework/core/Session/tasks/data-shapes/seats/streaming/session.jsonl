@@ -14,3 +14,6 @@
 {"log":{"at":"2026-10-28T00:58:33-05:00","msg":"session resumed"}}
 {"commit":"36218e84235f"}
 {"finish":{"at":"2026-10-28T00:59:26-05:00","outcome":"Seat (e) streaming: [shape.md](shape.md) (the write-to-tab flow with file:line per hop) and [notes.md](notes.md) (sizes, replay timings at 1x and 10x, two stream bugs, scope splits, compaction, store interface, persistence test matrix). Commit 4b591f5d9."}}
+{"commit":"977aea21a7f2"}
+{"log":{"at":"2026-10-28T00:59:29-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-10-28T00:59:32-05:00","msg":"session ended (other) without landing"}}

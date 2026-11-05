@@ -3,3 +3,4 @@
 {"title":"Check what is committed to Git, whether worktrees should be pushed","by":"helper-undone-to-tasks","ts":"2026-10-23T06:24:10.039Z"}
 {"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.600Z"}
 {"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ai/tasks/check-what-is-committed-to-git-whether-w/"},{"id":"mastermind-deputy","task":"/framework/ai/tasks/check-what-is-committed-to-git-whether-w/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.601Z"}
+{"stop":{"why":"Done: .gitignore keeps machine-output screenshots out of git (**/screenshots/, .gitignore:161); the alternative is already chosen. Triaged 2026-10-24 (queue-triage).","at":"2026-10-24T23:05:02-05:00","by":"task-mastermind-queue-triage"}}

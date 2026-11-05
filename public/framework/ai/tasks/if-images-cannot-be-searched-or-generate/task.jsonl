@@ -3,3 +3,4 @@
 {"stop":"Same ask as /framework/ai/tasks/find-generic-images-through-image-search/ (folded at review, crack 2)","by":"helper-undone-to-tasks","ts":"2026-10-23T06:24:09.903Z"}
 {"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.318Z"}
 {"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ai/tasks/if-images-cannot-be-searched-or-generate/"},{"id":"mastermind-deputy","task":"/framework/ai/tasks/if-images-cannot-be-searched-or-generate/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.318Z"}
+{"stop":{"why":"Same ask as /framework/ai/tasks/find-generic-images-through-image-search/ (image search first, generation API as its fallback). Triaged 2026-10-24 (queue-triage).","at":"2026-10-24T23:05:02-05:00","by":"task-mastermind-queue-triage"}}

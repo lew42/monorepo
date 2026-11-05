@@ -2,3 +2,4 @@
 {"wait":{"on":"owner","what":"Proposed from an old ask (the sort pass over the undone asks): approve, improve or reject"},"by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:12.011Z"}
 {"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.381Z"}
 {"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ai/tasks/explore-using-darken-and-lighten-togethe/"},{"id":"mastermind-deputy","task":"/framework/ai/tasks/explore-using-darken-and-lighten-togethe/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.382Z"}
+{"stop":{"why":"Done: ui/words/words.js makes darken/lighten one light-dark pair. Triaged 2026-10-24 (queue-triage).","at":"2026-10-24T23:05:02-05:00","by":"task-mastermind-queue-triage"}}

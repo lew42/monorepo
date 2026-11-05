@@ -25,3 +25,10 @@
 {"session":{"id":"v-519tckm","event":"ended","title":null,"file":"/framework/ext/drawer/ai/v-519tckm.jsonl","at":"2026-10-17T13:28:41.965-05:00"}}
 {"session":{"id":"v-8sqhbnl","event":"ended","title":null,"file":"/framework/ext/drawer/ai/v-8sqhbnl.jsonl","at":"2026-10-17T13:31:42.041-05:00"}}
 {"task":{"dir":"public/framework/ext/drawer","event":"landed","title":"README links the architecture doc","at":"2026-10-17T13:52:52.451-05:00"}}
+{"session":{"id":"v-7bnqmeh","event":"started","title":null,"file":"/framework/ai/sessions/2026/10/20/v-7bnqmeh/session.jsonl","at":"2026-10-20T19:47:23.849-05:00"}}
+{"session":{"id":"v-7bnqmeh","event":"started","title":"Drawer page: stale README badge","file":"/framework/ai/sessions/2026/10/20/v-7bnqmeh/session.jsonl","at":"2026-10-20T19:47:34.743-05:00"}}
+{"task":{"dir":"public/framework/ext/drawer/tasks/amber-badge-when-readme-is-stale","event":"opened","title":"Amber badge when README is stale","at":"2026-10-20T19:47:37.372-05:00"}}
+{"session":{"id":"v-8olmat5","event":"started","title":null,"file":"/framework/ai/sessions/2026/10/25/v-8olmat5/session.jsonl","at":"2026-10-25T20:10:48.204-05:00"}}
+{"session":{"id":"v-8olmat5","event":"ended","title":null,"file":"/framework/ai/sessions/2026/10/25/v-8olmat5/session.jsonl","at":"2026-10-25T20:22:17.885-05:00"}}
+{"session":{"id":"v-aets8o8","event":"started","title":null,"file":"/framework/ai/sessions/2026/11/01/v-aets8o8/session.jsonl","at":"2026-11-01T18:41:50.993-06:00"}}
+{"session":{"id":"v-fjge6gc","event":"started","title":null,"file":"/framework/ai/sessions/2026/11/01/v-fjge6gc/session.jsonl","at":"2026-11-01T18:45:50.271-06:00"}}

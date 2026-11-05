@@ -29,3 +29,9 @@
 {"log":{"at":"2026-10-22T20:55:17-05:00","msg":"session resumed"}}
 {"log":{"at":"2026-10-22T20:56:34-05:00","msg":"session resumed"}}
 {"tasks":{"child-verb-walk":{"complete":{}}},"by":"mastermind-item","ts":"2026-10-23T01:56:59.462Z"}
+{"log":{"at":"2026-10-22T21:45:53-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-22T21:45:53-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T03:20:47-05:00","msg":"dropped: build: owner minion-item-act is stopped","dropped":"/framework/core/Item/tasks/ui-actions-as-deltas/build/","reason":"owner-stopped"}}
+{"wait":{"on":"/framework/core/Item/","what":"UI actions as deltas: owner-dormant; build minion stopped; real work remains (item.act tool, verb serialization).","decide_by":"2026-10-31T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:34:21.438Z"}
+{"sessions":[{"id":"mastermind-item","task":"/framework/core/Item/tasks/ui-actions-as-deltas/"},{"id":"minion-review-stops","task":"/framework/core/Item/tasks/ui-actions-as-deltas/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:21.440Z"}
+{"stop":{"at":"2026-10-30T19:02:30-05:00","why":"dropped: deferral to /framework/core/Item/ is past its decide-by time (2026-10-31T00:00:00Z)"}}

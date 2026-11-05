@@ -2,3 +2,4 @@
 {"wait":{"on":"owner","what":"Proposed from an old ask (the sort pass over the undone asks): approve, improve or reject"},"by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:23.367Z"}
 {"waiting_on":"backlog","by":"mastermind-deputy","ts":"2026-10-24T00:44:26.594Z"}
 {"sessions":[{"id":"helper-undone-to-tasks","task":"/framework/ai/quick-fix/tasks/make-quick-fix-worktrees-reusable/"},{"id":"mastermind-deputy","task":"/framework/ai/quick-fix/tasks/make-quick-fix-worktrees-reusable/"}],"by":"mastermind-deputy","ts":"2026-10-24T00:44:26.595Z"}
+{"stop":{"why":"Done: Servex keeps a pool of reusable quick-fix worktrees (take_worktree / return_worktree). Triaged 2026-10-24 (queue-triage).","at":"2026-10-24T23:05:02-05:00","by":"task-mastermind-queue-triage"}}

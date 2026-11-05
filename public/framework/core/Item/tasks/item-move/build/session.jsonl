@@ -2,3 +2,5 @@
 {"commit":"46cf04015924"}
 {"commit":"1e2529a1f663"}
 {"log":{"at":"2026-10-22T21:10:31-05:00","heartbeat":"check","msg":"status check sent to minion-item-move"}}
+{"complete":{"outcome":"Item move: all 7 review findings answered fixed; merged.","evidence":["1e2529a1f"],"confidence":"medium","caveats":[]},"by":"minion-review-stops","ts":"2026-10-25T13:34:20.648Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/core/Item/tasks/item-move/build/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:20.651Z"}

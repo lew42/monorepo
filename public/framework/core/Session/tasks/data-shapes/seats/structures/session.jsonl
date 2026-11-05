@@ -20,3 +20,6 @@
 {"log":{"at":"2026-10-28T02:47:29-05:00","heartbeat":"check","msg":"status check sent to mastermind-shapes-structures"}}
 {"log":{"at":"2026-10-28T02:47:33-05:00","msg":"session resumed"}}
 {"complete":{"outcome":"Seat (f) structures is written: every structure (editor layers, table, board, graph, timeline, form, user, team, topic, channel, comments, doc) is an Item with named Lists; ten shared base features, none in today's base; pick editor, then channels with comments, then table.","evidence":["public/framework/core/Session/tasks/data-shapes/seats/structures/shape.md","public/framework/core/Session/tasks/data-shapes/seats/structures/notes.md","commit 8bae33e46"],"confidence":"high","caveats":["Editor, table and channel line rates are estimates with stated assumptions; only the chat, notes and doc rates are measured."]},"by":"mastermind-shapes-structures","ts":"2026-10-28T07:48:20.830Z"}
+{"commit":"d4c9cc36027c"}
+{"log":{"at":"2026-10-28T02:48:29-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-10-28T02:48:30-05:00","msg":"session ended (other) without landing"}}

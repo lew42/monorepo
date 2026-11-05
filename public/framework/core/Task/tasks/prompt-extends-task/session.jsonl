@@ -13,3 +13,13 @@
 {"commit":"14529321474e"}
 {"commit":"f617cb1ba3f5"}
 {"assign":{"landed_at":"2026-10-25T02:47:56-05:00","title":"Prompt and Question extend Task","outcome":"Prompt and Question are Tasks in session.jsonl; PromptRecords mirrors new dictations there, 6 sessions migrated (17 older folders have no session.jsonl), trace query and docs landed. Live Servex mirrors only after node Servex/sustain.mjs --restart.","links":["/framework/core/Task/md/doc/prompt/","/framework/core/Task/tasks/prompt-extends-task/"]}}
+{"commit":"9b1296ccfca5"}
+{"log":{"at":"2026-10-25T02:48:04-05:00","msg":"text-check: past-work.md: 789 words of prose (500 at most); review.md: a 120-word paragraph (\"1. [fix] `Servex/agents/page_tools.js` is rewritte…\"); review.md: a 84-word paragraph (\"2. [fix] The exact mechanism that makes a Question…\"); review.md: 791 words of prose (500 at most); review.md: 791 words and no picture"}}
+{"log":{"at":"2026-10-25T02:48:04-05:00","msg":"card-check: card-check: path not found: C:\\Code\\lew42\\monorepo\\public\\framework\\ai\\core\\Task: Prompt and Question extend Task"}}
+{"log":{"at":"2026-10-25T02:48:04-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-25T02:48:04-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-25T02:48:07-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-25T02:48:07-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-10-25T02:48:31-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-10-25T02:53:33-05:00","msg":"session resumed"}}
+{"set":{"state":"complete","completed_at":"2026-10-25T02:47:56-05:00"},"by":"owner","ts":"2026-11-02T23:02:50.072Z","client":"d6aa194c"}

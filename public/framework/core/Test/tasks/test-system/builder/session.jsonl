@@ -1,3 +1,6 @@
 {"assign":{"session_id":"29e36ac5-67b3-4bca-9d19-69f737300a53","agent":"minion-test-builder","brief":"public/framework/core/Test/tasks/test-system/builder-brief.md","model":"claude-sonnet-5-5","worktree":"C:/Code/lew42/worktrees/test-system","parent_task":"public/framework/core/Test/tasks/test-system","home":"/framework/core/Test/","requested_at":"2026-10-22T21:09:44-05:00","now":"starting"}}
 {"log":{"at":"2026-10-22T21:20:05-05:00","heartbeat":"check","msg":"status check sent to minion-test-builder"}}
 {"log":{"at":"2026-10-22T21:20:40-05:00","heartbeat":"answered","msg":"Status: the build is finished. All six steps are committed on `task/test-system`, and the final report is above. The one thing I couldn't do is look at the results page in a browser.\n\nThe only change "}}
+{"wait":{"on":"/framework/core/Test/","what":"Test system builder: six steps committed on task/test-system, not merged to michael/dev; real work remains.","decide_by":"2026-10-31T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:34:22.890Z"}
+{"sessions":[{"id":"minion-review-stops","task":"/framework/core/Test/tasks/test-system/builder/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:22.892Z"}
+{"stop":{"at":"2026-10-30T19:02:30-05:00","why":"dropped: deferral to /framework/core/Test/ is past its decide-by time (2026-10-31T00:00:00Z)"}}
