@@ -173,6 +173,16 @@ try {
 		ok((fs.existsSync(root) ? fs.statSync(root).size : -1) === before, "public/page.jsonl is untouched");
 	}
 
+	// A spawned agent that has a task folder writes there (its session.jsonl, where its tasks count), never a second session-<id8> folder.
+	{
+		const rec = path.join(DIR, "agent-task", "session.jsonl");
+		fs.mkdirSync(path.dirname(rec), { recursive: true });
+		fs.writeFileSync(rec, JSON.stringify({ assign: { session_id: "0f0f0f0f-1111-4222-8333-444455556666", agent: "probe" } }) + "\n");
+		const out = JSON.parse(await tools.item.handler({ delta: { tasks: { add: { title: "own task" } } } }, { caller: "probe", resolve_log: id => id === "probe" ? rec : null }));
+		ok(out.ok && out.size.file.endsWith("agent-task/session.jsonl"), "an agent with a task folder, no path: the task lands in its own session.jsonl");
+		ok(fs.readFileSync(rec, "utf8").includes('"own task"'), "the line is in that file");
+	}
+
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });
 }
