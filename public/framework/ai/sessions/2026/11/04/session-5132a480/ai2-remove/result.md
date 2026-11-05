@@ -1,0 +1,7 @@
+# ai2 removal: result
+
+- **Folder:** `public/framework/ai2/` is gone. `page.js` (renamed `page.js.archived`), `ai2.css` and `readme.md` are in `ai/archive/ai2/`; 18 one-line shims and 5 generated listings were removed (git keeps them). Script: `move-ai2.mjs` (dry run, `--apply`), manifest: `manifest.json`.
+- **295 audit lines:** `lines-check.mjs` reads `fa90c3a41^` (before the 2026-11-01 move) and compares with `ai/sessions` today. 19 files, 72 lines; 17 identical in the store; 55 rewritten in the store (task stubs point at real task folders that exist; the rest match by content). Missing: 0. The only line without a text match is the `v-js3vqn5` session start, and that session has its own record at `sessions/2026/10/12/v-js3vqn5/session.jsonl`. Nothing needed restoring.
+- **Dev bar chat:** `chat-proof.mjs`: `chat.js` exports `chat_button, default, open_page_chat`, `AgentTalk` resolves from `ai/rail/live.js`, 7 chat elements render on `/framework/dev/DevBar/?chat=open`. No page errors; the only 404s are generated, gitignored json files that `/framework/ai/` also lacks.
+- **Old addresses:** inline script in `public/index.html` (works on the static host). `check.mjs` / `urls.mjs` show `/framework/ai2/`, `/needs/`, `/log/`, a dated card and a session folder all land on a real page. 531 card `page.jsonl` still say `"class": "/framework/ai2/card.js"`, mapped in `core/Page/Jsonl.js` (found by the second review: the card page broke without it).
+- **Dead `ai/` folders** (not moved): see §4 of `../ai2-and-ai-folders/findings.md`.

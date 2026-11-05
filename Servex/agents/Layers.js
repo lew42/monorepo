@@ -517,8 +517,8 @@ export default class Layers {
 
 	/* THE OWNER'S WORDS ON A CARD (one-dictation, 2026-09-30): they used to wake
 	 * assistant-<card>; now they feed the one global session, addressed at the
-	 * card's AI 2 page (`/framework/ai/<card id>/`, not the old `/framework/ai/`
-	 * board page) so the pair knows which card the owner is talking about. */
+	 * card's page (`/framework/ai/<card id>/`, not the
+	 * AI page itself) so the pair knows which card the owner is talking about. */
 	card_prompt_session(id, prompt){
 		const path = `/framework/ai/${id}/`;
 		const said = this.selected_block(prompt.context) + String(prompt.text ?? prompt.raw ?? "").trim();
