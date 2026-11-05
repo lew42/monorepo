@@ -23,10 +23,28 @@ Fresh window, private MB: extension host 650, window 443, GPU 260, second render
 
 ## The dirty tree: records, not code
 
-409 paths on `compliance/dev`, none of them modified code. `main` itself was not inspected for dirt; it is not checked out here.
+409 paths on `compliance/dev`, none of them code (`main` was not inspected).
 
-- **Modified (159):** 137 JSONL logs. `LogSweeper.ALLOW` had no rule for task records in module homes (`<module>/tasks/`, since 10-16). Added, along with module `ai/log.jsonl`, `improvements.jsonl` and `asks.jsonl`; live after a Servex restart, as is the stale guard inside Servex. A few logs outside `public/` stay dirty (`.claude/skills/clarity/flags.jsonl`, `Server/console-allow.jsonl`, `Servex/agents/inbox.jsonl`).
-- **Untracked (234):** task folders' `page.js`, briefs, reviews and PNGs that no agent committed.
-- **Deleted (16):** voice logs under `<module>/ai/`, left for a person by design.
-- **Junk:** six `Temp_*.mjs` files in the repo root from 10-24.
-- **Unpushed:** the sweeper commits but does not push, so sweeps wait for the next `merge.mjs` (52 waiting tonight).
+```
+409 dirty paths
+├── modified 159   137 JSONL logs: LogSweeper.ALLOW lacked <module>/tasks/ rules (now added; live after a Servex restart)
+├── untracked 234  task page.js, briefs, reviews, PNGs no agent committed
+├── deleted 16     voice logs, left for a person by design
+└── junk 6         Temp_*.mjs in the repo root (10-24)
+```
+
+A few logs outside `public/` stay dirty (`.claude/skills/clarity/flags.jsonl`, `Server/console-allow.jsonl`, `Servex/agents/inbox.jsonl`). The sweeper commits but does not push, so 52 sweeps wait for the next `merge.mjs`. The usage-guard fix also needs a Servex restart.
+
+## Page file: the limit is commit, not the file
+
+Read 2026-11-04 with `Win32_PageFileUsage` and `Win32_OperatingSystem`. The page file is system-managed: 25.9 GB allocated, 3.8 GB in use, 9.1 GB peak since the 10-20 boot. Commit was 42.6 of 57.0 GB. The "64" is the commit limit (RAM plus page file), so the file itself was never close to full. No Resource-Exhaustion events were found in 30 days. Free RAM did fall to 209 MB (10-25) and 231 MB (11-02), which more page file does not help.
+
+Recommendation: a custom size of 64 GB initial and 96 GB maximum on C: (732 GB free). It costs disk only and stops out-of-memory failures at the commit limit; it makes nothing faster.
+
+## Main as staging: the order of steps
+
+Measured 2026-11-04: the repo is public, and `lew42.com`, `monorepo.lew42.workers.dev` and `production-monorepo.lew42.workers.dev` all answer without a login and serve the same files, including `handover.md` and `asks.jsonl`. `main` and `production` are the same commit (b816f9f27), and the last tab's notes say `lew42.com` follows `main`. `Server/publish.json` keeps publishing off.
+
+1. Give `lew42.com` its own Worker that follows `production`, and leave `monorepo` on `main`. On one Worker, setting the production branch to `production` moves the clean address to production and staging to `main-monorepo.lew42.workers.dev` ([doc/git.md](/framework/doc/git.md)).
+2. On GitHub, remove "Require a pull request" from Rule 1 and keep the force-push and deletion blocks. A bypass entry would skip those blocks too.
+3. Turn `main` on in `Server/publish.json`.
