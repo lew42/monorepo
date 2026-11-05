@@ -295,3 +295,4 @@
 {"log":{"at":"2026-11-05T16:07:12-06:00","msg":"task-loop status ask 3: minion-task-system-check was stopped on purpose; not woken","ask":3}}
 {"log":{"at":"2026-11-05T16:17:11-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
 {"log":{"at":"2026-11-05T16:47:16-06:00","heartbeat":"orphaned","msg":"minion-task-system-check its agent is not running: its working directory C:/Code/lew42/worktrees/qf-5 no longer exists; not revived."}}
+{"log":{"at":"2026-11-05T17:22:09-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
