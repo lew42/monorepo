@@ -85,6 +85,8 @@ const DATED_SESSION = /^\/?framework\/ai\/sessions\/(\d{4}\/\d{2}\/\d{2}\/[^/]+)
 const OMIT = "Omit `path` to mean your own page.";
 
 async function resolve(url, target = [], item = false){
+	// No path and no agent id (a VS Code tab): "your own page" has no meaning, and the site's root page is never the answer.
+	if (url == null || url === "") return { why: "no `path` was given and this caller has no Servex agent id, so there is no \"own page\" to write to; nothing was written. A VS Code tab passes its session page: /framework/ai/sessions/<session id>/." };
 	const hit = SESSION_ROUTE.exec(String(url ?? ""));
 	// A real folder under sessions/ that is not a session (sessions/tasks/<task>/, a task's own home) is a plain path: only a typed name with nothing on disk is refused.
 	const plain = hit && fs.existsSync(path.resolve(PUBLIC, "framework/ai/sessions", hit[1]));

@@ -163,6 +163,16 @@ try {
 		} finally { if (folder) fs.rmSync(folder, { recursive: true, force: true }); }
 	}
 
+	// A call with no path from a caller with no agent id (a VS Code tab) is refused, never written to the root page.
+	{
+		const root = path.join(ROOT, "public/page.jsonl"), before = fs.existsSync(root) ? fs.statSync(root).size : -1;
+		for (const [name, args] of [["page_set", { delta: { title: "x" } }], ["page_add", { item: { title: "x" } }], ["page_log", { text: "x" }], ["page_call", { method: "add", args: { title: "x" } }]]){
+			const out = await call(name, args, undefined);
+			ok(!out.ok && /no `path` was given/.test(out.why), `${name} with no path and no caller is refused with the reason`);
+		}
+		ok((fs.existsSync(root) ? fs.statSync(root).size : -1) === before, "public/page.jsonl is untouched");
+	}
+
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });
 }
