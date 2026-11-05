@@ -39,7 +39,8 @@ console.log("LogSweeper: ok");
     const a = new LogSweeper({ root: dir, branch: "main" });
     const S = "public/framework/ai/sessions/2026/10/16/session-ab12cd34/";
     for (const p of [S + "page.jsonl", S + "prompts.jsonl", S + "inbox.jsonl", S + "essence.jsonl", S + "review.jsonl", S + "digest.json",
-        "public/framework/ux/Dictate/inbox.jsonl", "public/framework/ux/Dictate/page.jsonl", "public/framework/ux/Dictate/files.jsonl", "public/framework/ai/handover.md"])
+        "public/framework/ux/Dictate/inbox.jsonl", "public/framework/ux/Dictate/page.jsonl", "public/framework/ux/Dictate/files.jsonl", "public/framework/ai/handover.md",
+        "public/framework/core/Page/tasks/task.jsonl", "public/framework/core/Session/tasks/data-shapes/build/backbone/session.jsonl", "public/framework/core/Page/ai/log.jsonl", "public/framework/core/Item/improvements.jsonl", "public/framework/ai/asks.jsonl"])
         assert.ok(a.allowed(p), "allowed: " + p);
     for (const p of [S + "cache.jsonl", S + "index.json", S + "index.tmp.json", "public/framework/ux/Dictate/Dictate.js", "public/framework/ux/Dictate/readme.md", "Servex/page.jsonl"])
         assert.ok(!a.allowed(p), "not allowed: " + p);

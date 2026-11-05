@@ -1,7 +1,8 @@
 /* usage-now.mjs — the ONE way an agent checks Claude usage: node Server/usage-now.mjs
  * Reads public/framework/ai/usage.json (Servex refreshes it every 15 min). Only if that file is older
  * than 5 minutes does it re-run the usage script (one caller at a time, via a lock), so many masterminds
- * can ask often without hammering the endpoint (it answers 429). Prints the pace line, then a detail line; exit code 2 = over pace.
+ * can ask often without hammering the endpoint (it answers 429). Prints the pace line, then a detail line; exit code 2 = over pace,
+ * or a stale reading (a cache over 60 minutes old, or a reset time already past: UsagePace.mjs), which prints UNKNOWN.
  * Pace = weekly % used vs % of the week gone. */
 import fs from "node:fs";
 import os from "node:os";
