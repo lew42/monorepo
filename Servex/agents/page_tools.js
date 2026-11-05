@@ -982,7 +982,7 @@ export function session_state(task, tasks = []){
 	const unlinked = nest_agents(agents.filter(a => !counted.has(a.id))).map(a => ({ ...a, agent: a.id, linked: false }));
 	const child_cost = entries.reduce((s, c) => s + c.total, 0) + unlinked.reduce((s, a) => s + (a.total || 0), 0);
 	const biggest = costed.sort((a, b) => b.cost - a.cost).slice(0, 5).map(t => ({ id: t.id, title: t.get_one("title"), cost: r2(t.cost), state: t.state }));
-	return { class: "Session", id: task.id, completion: task.completion, progress: task.progress(), rates: task.rates(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
+	return { class: "Session", id: task.id, completion: task.completion, tally: task.tally(), progress: task.progress(), rates: task.rates(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
 		cost: { total: r2((own?.usd ?? 0) + child_cost), own, children: r2(child_cost), tasks: r2(task_cost) },
 		counts: { direct: counts(task._tasks ?? []), all: counts(all), children: { entries: count_entries(entries), unlinked: agents.filter(a => !counted.has(a.id)).length } },
 		biggest, children: [...entries, ...unlinked], agents: agents.length,
@@ -1086,7 +1086,7 @@ export function tell_parent_caveats(task_dir, caveats, by = "node"){
 function query_args(arg){ return Array.isArray(arg) ? arg : is_plain(arg) && Object.keys(arg).length ? [arg] : []; }
 // A Session's queries are answered here, from session_state (its one picture), because its cost needs node: own_cost reads cache.jsonl.
 // `completion` is the one tally every Task-family node answers: its tasks' current states and the number computed from them.
-const TALLY = n => ({ stopped: 0, ...n.progress(), completion: n.completion });
+const TALLY = n => ({ stopped: 0, ...n.progress(), completion: n.completion, ...(n.tally ? { tally: n.tally() } : {}) });
 const NODE_QUERIES = { Session: { progress: n => n.progress(), cost: n => session_state(n, []).cost, children: n => session_state(n, []).children, summary: n => session_state(n, []) } };
 function walk_queries(node, delta, trail = "", out = { answer: {}, queried: false, other: [], set: [] }){
 	const into = (kid, sub, here, put) => { const r = walk_queries(kid, sub, here); out.queried ||= r.queried; out.other.push(...r.other); out.set.push(...r.set); if (r.queried) put(r.answer); };
