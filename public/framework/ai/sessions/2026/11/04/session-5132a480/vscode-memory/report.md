@@ -25,7 +25,7 @@ Fresh window, private MB: extension host 650, window 443, GPU 260, second render
 
 409 paths on `compliance/dev`, none of them modified code. `main` itself was not inspected for dirt; it is not checked out here.
 
-- **Modified (159):** 137 JSONL logs. `LogSweeper.ALLOW` had no rule for task records in module homes (`<module>/tasks/`, since 10-16). Added, along with module `ai/log.jsonl`, `improvements.jsonl` and `asks.jsonl`.
+- **Modified (159):** 137 JSONL logs. `LogSweeper.ALLOW` had no rule for task records in module homes (`<module>/tasks/`, since 10-16). Added, along with module `ai/log.jsonl`, `improvements.jsonl` and `asks.jsonl`; live after a Servex restart, as is the stale guard inside Servex. A few logs outside `public/` stay dirty (`.claude/skills/clarity/flags.jsonl`, `Server/console-allow.jsonl`, `Servex/agents/inbox.jsonl`).
 - **Untracked (234):** task folders' `page.js`, briefs, reviews and PNGs that no agent committed.
 - **Deleted (16):** voice logs under `<module>/ai/`, left for a person by design.
 - **Junk:** six `Temp_*.mjs` files in the repo root from 10-24.
