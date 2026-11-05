@@ -1,0 +1,10 @@
+mastermind-completion-truth  2509f430-cc37-4e3c-9358-cdac40de5928
+  record     public/framework/ai/sessions/2026/11/04/session-5132a480/completion-truth  (running)
+  prompts    0 said · 0 counted toward the score · 0 unresolved
+  tasks      0 created · 0 finished · 0 stopped · 0 open   (0 of the created are child sessions)
+  proof      0 of 0 finished have no outcome or evidence (Task.proof_problem)
+  children   2 registered · 0 linked · 0 unlinked · 2 one-pass (reviewer/clarity/checker: no record by design)
+  cost       $11.33 own · $11.33 with children
+  SCORE      0.0%   = mean of 0 top-level parts (sum 0); 0 of them complete = 0.0%, the rest count by how far along they are
+  formula    score(task) = 1 if the owner checked it; else the MEAN of score(part) over its parts (subtasks not stopped, child sessions as one part each, counted owner prompts), recursing to any depth; a task with no parts is 1 if complete else 0
+  not used   finished/created = 0/0 = 0.0% counts every nested task flat; the score weights each part by its own completion

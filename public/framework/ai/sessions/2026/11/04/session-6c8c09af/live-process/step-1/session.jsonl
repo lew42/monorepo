@@ -1,2 +1,0 @@
-{"assign":{"session_id":"4848dcc1-78ac-48ba-9c71-5137c870ee1d","agent":"helper-task-step-1","role":"helper","brief":"A rerunnable test. Do only what your step says.","title":"process-live: three Haiku steps: Step 1","model":"claude-haiku-4-5-20251001","effort":"low","requested_at":"2026-11-04T23:15:59-06:00","now":"starting"}}
-{"log":{"at":"2026-11-04T23:20:10-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-05T05:20:10.366Z"}

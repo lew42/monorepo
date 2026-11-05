@@ -2,7 +2,10 @@
 
 Expected cost: about $10. Sonnet. Report the actual. Earlier work on this cost $129.73 (`process-system`) and did not stick, so read it before building, and extend it. Don't build a second system.
 
-The owner's words (2026-11-04): "You should be able to query the last session, VS Code session, any past mastermind session. You should be able to query how many tasks it created, how many tasks it finished, mathematically with a computation for its completion score." And on Process: define the steps, node starts step 1, completing a step starts the next, completing the last step completes the process, "and so then whatever session that process belonged to, or whatever task that process belonged to, can be completed properly."
+The owner's words (2026-11-04):
+
+- **Query:** "You should be able to query the last session, VS Code session, any past mastermind session. You should be able to query how many tasks it created, how many tasks it finished, mathematically with a computation for its completion score."
+- **Process:** define the steps. Node starts step 1. Completing a step starts the next. Completing the last step completes the process, "and so then whatever session that process belonged to, or whatever task that process belonged to, can be completed properly."
 
 ## What's already measured (2026-11-04), so don't re-derive it
 

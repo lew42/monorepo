@@ -1,0 +1,42 @@
+public/framework/core/Item/Dated.test.mjs: Dated.test.mjs: 26 checks passed 
+public/framework/core/Item/Item.basic.test.mjs: Item basic: 13 checks passed 
+public/framework/core/Item/Item.steps.test.mjs: PASS Item steps (6 checks) 
+public/framework/core/Item/Item.test.mjs: Item — a line named the member "k" by its id alone (an old line): it now names its list, {"kids":{"k":…}} ok — 28 assertions passed 
+public/framework/core/Item/Outbox.test.mjs: PASS core/Item/Outbox (8 checks) 
+public/framework/core/Item/RecordWriter.test.mjs: PASS RecordWriter (9 checks) 
+public/framework/core/Item/Ref.test.mjs: Item — a line gave Task "w1" the key "moved_to" with an object value, but it has no method, field, child or data of that name (a newer wri
+public/framework/core/Item/Store.test.mjs: PASS core/Item/Store (10 checks) 
+public/framework/core/Item/act.test.mjs: PASS edge: the store's echo skip ignores by/ts (1 checks) PASS act on the last child saves the child's verb only, not the parent's derived c
+public/framework/core/Item/batch.test.mjs: PASS batch(fn) holds the store until fn ends, also across an await (4 checks) PASS every change event says where the change came from (3 che
+public/framework/core/Item/call.test.mjs: PASS edge: no change saves no line; a throwing body saves none and releases the mute (4 checks) PASS edge: act() still saves its one verb li
+public/framework/core/Item/coalesce.test.mjs: PASS any other line sends what is held first, in order (3 checks) PASS blur sends at once (2 checks) PASS edge: off (null) saves on the next
+public/framework/core/Item/delta-flow.test.mjs: PASS core/Item: the delta path round-trips (seat g's demo), and the breaks it found stay fixed (10 checks) 
+public/framework/core/Item/hooks.test.mjs: PASS a line read from another tab and a replayed line both call the hook; the tab saves nothing (4 checks) PASS edge: a hook that sets its o
+public/framework/core/Item/item-core.test.mjs: PASS 1c: set() refuses a value that cannot be saved and names the key (12 checks) PASS 1e: a child's replayed line completes the parent but 
+public/framework/core/Item/line-format.test.mjs: PASS act() and a list-item change save the bare shape by default and the marked shape when switched on, and both replay (10 checks) Task —
+public/framework/core/Item/line-readers.test.mjs: PASS Dropped.read, DatedFiles and TaskMigrate read marked lines like bare ones (3 checks) PASS CloseLoop.finished and StaleClose.worked read
+public/framework/core/Item/persistence.test.mjs:    Page | own file        F    F    F    F    F       Page | nested part     F    F    F    F    F    PASS core/Item: the persistence matrix
+public/framework/core/Item/replay-vs-open.test.mjs: PASS core/Item: Item.replay and Item.open build the same plain Item from one file (3 checks) 
+public/framework/core/Item/replay.test.mjs: PASS asking an AI: a set line saves the text, an act() line saves only the verb and asks (and pays) again (6 checks) PASS a drag saves 5 cha
+public/framework/core/Item/reset.test.mjs: Item.Store: /snap.jsonl started from a snapshot and its log was rewritten — it cannot tell which lines the snapshot already holds, so it s
+public/framework/core/Item/snapshot.test.mjs: PASS an Item held in a data slot is still an Item (same id, same parent) when restored from a snapshot, and a later line reaches it (5 check
+public/framework/core/Item/transport.test.mjs: New socket initialized New socket initialized PASS core/Item transport: lines through the socket (38 checks) 
+public/framework/core/Item/unknown-key.test.mjs: PASS an object under a list member that names nothing the member has is reported (an unknown verb) (3 checks) PASS real data is never report
+public/framework/core/Item/unset.test.mjs: PASS set({k: undefined}) is an unset (2 checks) PASS a list member's unset names its list and id; a Task reads a top-level unset (5 checks) 
+public/framework/core/List/List.steps.test.mjs: PASS List steps (7 checks) 
+public/framework/core/List/List.test.mjs: PASS core/List (37 checks) 
+public/framework/core/Task/Process.test.mjs: Process: 16 checks passed 
+public/framework/core/Task/Project.test.mjs: PASS — unknown stage falls back to requirements  9 / 9 passing 
+public/framework/core/Task/Prompt.test.mjs: PASS — trace: words find the prompt, its time, the tasks made from it and their states PASS — a replayed log gives the same Prompt twice
+public/framework/core/Task/Question.test.mjs: PASS — a Question under a Prompt appears in its trace PASS — also_from: empty by default, a plain array once set (ask7 — a repeated qu
+public/framework/core/Task/Task.steps.test.mjs: PASS Task steps (7 checks) 
+public/framework/core/Task/Task.test.mjs: PASS — unproven(): a completed owner ask with no outcome or evidence is listed; a proven one and an agent-filed one are not  67 / 67 passi
+public/framework/core/Task/TaskQueue.test.mjs: PASS — other module with no similar falls back to all landed PASS — no landed tasks gives the fixed fallback ALL PASS 
+public/framework/core/Task/TasksPage.test.mjs: ok - /tasks/ draws TasksPage with task rows (125 groups) ok - the /tasks/ index lists tasks from two modules or more (125 modules) TasksPage
+public/framework/core/Task/child-verb.test.mjs: PASS Task: children added by delta; a verb on a child by id changes only that child (4 checks) 
+public/framework/core/Task/legacy-open.test.mjs: PASS Task.replay_end: reading a legacy log appends 0 lines (3 checks) 
+public/framework/core/Session/InFlight.real.test.mjs: PASS InFlight: a session's {task} refs to real folders are picked by their state (4 checks) 
+public/framework/core/Session/InFlight.test.mjs: PASS InFlight: pick() sorts a session's tasks into in flight, waiting, next and done (11 checks) 
+public/framework/core/Session/Session.test.mjs: PASS — the session snapshot (2026-10-23): line times, a reopened session, stopped tasks folded PASS — replay: a bare child id walks to a
+public/framework/core/Session/SessionFolders.test.mjs: SessionFolders: 15 checks pass 
+public/framework/core/Session/session-task.test.mjs: Task — complete(): "A" isn't complete yet — complete that first PASS Session: a Session is a Task; tasks.add takes a string or an object

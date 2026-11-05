@@ -1,0 +1,1025 @@
+diff --git a/.claude/hooks/prompt-relay.mjs b/.claude/hooks/prompt-relay.mjs
+index 9f8f8d104e..24115d35ed 100644
+--- a/.claude/hooks/prompt-relay.mjs
++++ b/.claude/hooks/prompt-relay.mjs
+@@ -246,7 +246,7 @@ const run = async () => {
+ 	let page_url = null, prompt_item_id = null;
+ 	if (owner_interactive) {
+ 		page_url = session_page_url(session_id);
+-		const out = await mcp_call("page_add", { path: page_url, item: { type: "Prompt", text: safe_text, redacted: secret || undefined } }, "owner");
++		const out = await mcp_call("page_add", { path: page_url, item: { type: "Prompt", text: safe_text, redacted: secret || undefined, counted: true } }, "owner");
+ 		prompt_item_id = out?.ok ? out.id : null;
+ 	}
+ 
+diff --git a/Server/session-query.mjs b/Server/session-query.mjs
+index c7f5e35b15..d684281bbf 100644
+--- a/Server/session-query.mjs
++++ b/Server/session-query.mjs
+@@ -1,17 +1,22 @@
+ #!/usr/bin/env node
+-// Server/session-query.mjs — find past sessions the way the Sessions dashboard does, and say what they cost.
+-// Doc: public/framework/ai/sessions/doc/data/record-spec.md ("Asking about past sessions")
++// Server/session-query.mjs — find past sessions the way the Sessions dashboard does, and say what they cost; or report one session's completion.
++// Doc: public/framework/ai/sessions/doc/data/record-spec.md ("Asking about past sessions"); the completion report: public/framework/core/Session/readme.md
+ //
+ //   node Server/session-query.mjs --tag transcription --since 2026-10-01 --json
+ //   node Server/session-query.mjs --system dictation --since 2026-10-02 --sort cost
++//   node Server/session-query.mjs --report <session id | 8-hex | agent id | folder path>     one session: prompts, tasks, children, cost, ONE completion score + its formula
++//   node Server/session-query.mjs --recent 5 [--report-json]                                the N most recently active sessions (tabs and spawned masterminds)
+ //
+ // It asks DatedFiles.sessions.find, which reads the day composites `sessions/YYYY/MM/DD/index.json` (live or closed), one snapshot per session.
+ // A session is counted once, on the day of its last activity. Rows are capped (default 25) so an answer never floods a caller's context;
+ // the totals always cover EVERY match, not only the rows shown.
++import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import DatedFiles from "./DatedFiles.mjs";
+ 
++const SELF_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++
+ /** query({ since, until, tags, system, state, model, provider, parent, min_cost, text, sort, limit }) -> { count, shown, usd, claude_usd, openrouter_usd, rows }.
+  *  The filter itself is DatedFiles.sessions.find (the one reader of the day indexes, Server/doc/dated-files.md); `snapshots` lets a test pass its own. */
+ export function query(args = {}, { snapshots } = {}){ return DatedFiles.sessions.find(args, snapshots); }
+@@ -23,15 +28,120 @@ export function format(result){
+ 	return lines.join("\n");
+ }
+ 
++/* ---- THE COMPLETION REPORT (completion-truth, 2026-11-04) ---------------------------------------------------------------------------------
++ * One session, replayed from its record with its child folders resolved, then read through the SAME methods the session page and the item
++ * tool use: `completion_score()` (the one score) and `tally()` (the labelled counts). Nothing here counts a second way (completion.test.mjs
++ * recomputes the score independently). Children come from the registry (ChildLinks.plan). */
++const FORMULA = "score(task) = 1 if the owner checked it; else the MEAN of score(part) over its parts (subtasks not stopped, child sessions as one part each, counted owner prompts), recursing to any depth; a task with no parts is 1 if complete else 0";
++const ONE_PASS = /^(reviewer|clarity|checker)/;
++
++const read_lines = f => { try { return fs.readFileSync(f, "utf8").split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); } catch { return []; } };
++const registry = async () => { try { return new (await import("../Servex/agents/Registry.js")).default().read(); } catch { return {}; } };
++
++/** Which record folder a reference names: a session id, its first 8 characters, a folder name, a repo path or a site path, or an agent id. Returns {dir, id, agent} or null. */
++export async function locate(ref, { root = SELF_ROOT, rows = null } = {}){
++	const { default: SessionFolders } = await import("../public/framework/core/Session/SessionFolders.mjs");
++	const { default: SessionRecord } = await import("./SessionRecord.mjs");
++	const store = SessionFolders.at(path.join(root, "public/framework/ai/sessions"));
++	ref = String(ref).trim();
++	const abs = [path.resolve(ref), path.join(root, "public", ref.replace(/^\/+/, ""))].find(p => fs.existsSync(p) && fs.statSync(p).isDirectory());
++	if (abs) return { dir: abs, id: SessionFolders.owner(abs), agent: null };
++	rows ??= await registry();
++	let id = DatedFiles.UUID.test(ref) ? ref : rows[ref]?.session_id ?? null;
++	if (!id && /^(session-|v-)?[0-9a-f]{8}$/.test(ref)){
++		const p8 = ref.slice(-8);
++		id = store.homes().map(h => h.id).find(i => i.startsWith(p8)) ?? Object.values(rows).map(r => r?.session_id).find(i => i?.startsWith(p8)) ?? null;
++	}
++	if (!id) return null;
++	const agent = rows[ref] ? ref : Object.keys(rows).find(a => rows[a]?.session_id === id) ?? null;
++	const has = d => d && SessionRecord.file(d);
++	let dir = store.record_of(id);
++	if (!has(dir)){ store.adopt_nested(); dir = store.record_of(id); }   // a nested record nobody claimed yet: one pass finds every such folder (SessionFolders.adopt_nested)
++	if (!has(dir) && rows[agent]?.task_dir) dir = path.resolve(root, rows[agent].task_dir);
++	return has(dir) ? { dir, id, agent } : null;
++}
++
++/** report(ref, { root, rows }) -> everything the CLI prints, as data. `rows` is the registry (a test passes its own). */
++export async function report(ref, { root = SELF_ROOT, rows = null, cost = true } = {}){
++	const { default: Task } = await import("../public/framework/core/Task/Task.js");
++	const { default: Session } = await import("../public/framework/core/Session/Session.js");
++	const { default: SessionRecord } = await import("./SessionRecord.mjs");
++	const { default: ChildLinks } = await import("./ChildLinks.mjs");
++	rows ??= await registry();
++	if (root !== SELF_ROOT) DatedFiles.ROOT = root;   // cost and day indexes come from the same tree as the records
++	const hit = await locate(ref, { root, rows });
++	if (!hit) return { ref, error: `no session record found for "${ref}"` };
++	const pub = path.join(root, "public"), file = SessionRecord.log_file(hit.dir), lines = read_lines(file);
++	const keep = [Task.resolver, Task.session_resolver, console.warn]; console.warn = () => {};
++	Task.resolver = u => { const d = path.resolve(pub, String(u).replace(/^\/+/, "")), ls = read_lines(SessionRecord.log_file(d) ?? path.join(d, "task.jsonl")); return ls.length ? ls : null; };
++	Task.session_resolver = u => { const d = path.resolve(pub, String(u ?? "").replace(/^\/+/, "")); return path.basename(SessionRecord.file(d) ?? "") === "session.jsonl"; };
++	let s; try { s = (lines[0]?.session ? Session : Task).replay(lines); } finally { [Task.resolver, Task.session_resolver, console.warn] = keep; }
++	const tally = s.tally(), score = s.completion_score(), top = s.score_parts().map(t => t.completion_score());
++	const said = lines.filter(l => l.type === "Prompt" || l.content?.add?.type === "Prompt" || l.tasks?.add?.type === "Prompt").length;
++	const prompts = { said, ...tally.prompts };
++	// Children: registered spawns under this session, and whether the record references each (ChildLinks.plan: inside | referenced | self = linked).
++	const plan = ChildLinks.plan(Object.fromEntries(Object.entries(rows).filter(([, r]) => r?.parent_session === hit.id)), root);
++	const linked = plan.filter(p => ["inside", "referenced", "self"].includes(p.why)), loose = plan.filter(p => !["inside", "referenced", "self"].includes(p.why));
++	const one_pass = loose.filter(p => ONE_PASS.test(rows[p.agent]?.role ?? p.agent));
++	const children = { registered: plan.length, linked: linked.length, unlinked: loose.length - one_pass.length, one_pass: one_pass.length };
++	let usd = null, tree_usd = null;
++	if (cost) try {
++		const day = path.relative(path.join(pub, "framework/ai/sessions"), hit.dir).split(path.sep).slice(0, 3).join("-");
++		const snap = DatedFiles.sessions.snapshots({ from: /^\d{4}-\d\d-\d\d$/.test(day) ? day : undefined }).find(x => x.id === hit.id);
++		usd = snap?.usd ?? null; tree_usd = snap?.tree_usd ?? null;
++	} catch {}
++	return { ref, id: hit.id, agent: hit.agent, dir: path.relative(root, hit.dir).split(path.sep).join("/"), state: s.state, title: s.get_one?.("title") ?? null,
++		prompts, tasks: { created: tally.created, finished: tally.finished, stopped: tally.stopped, open: tally.open, child_sessions: tally.sessions }, unproven: tally.unproven, children,
++		cost: { usd, tree_usd }, score, formula: FORMULA, top: { parts: top.length, complete: s.score_parts().filter(t => t.state === "complete").length, sum: +top.reduce((a, b) => a + b, 0).toFixed(3) } };
++}
++
++/** The lines the CLI prints for one report. */
++export function format_report(r){
++	if (r.error) return r.error;
++	const pct = x => (x * 100).toFixed(1) + "%", t = r.tasks, money = x => x == null ? "n/a" : "$" + x.toFixed(2);
++	return [
++		`${r.agent ?? r.id}  ${r.id}${r.title ? "  " + r.title : ""}`,
++		`  record     ${r.dir}  (${r.state})`,
++		`  prompts    ${r.prompts.said} said · ${r.prompts.counted} counted toward the score · ${r.prompts.unresolved} unresolved`,
++		`  tasks      ${t.created} created · ${t.finished} finished · ${t.stopped} stopped · ${t.open} open   (${t.child_sessions} of the created are child sessions)`,
++		`  proof      ${r.unproven} of ${t.finished} finished have no outcome or evidence (Task.proof_problem)`,
++		`  children   ${r.children.registered} registered · ${r.children.linked} linked · ${r.children.unlinked} unlinked · ${r.children.one_pass} one-pass (reviewer/clarity/checker: no record by design)`,
++		`  cost       ${money(r.cost.usd)} own · ${money(r.cost.tree_usd)} with children`,
++		`  SCORE      ${pct(r.score)}   = mean of ${r.top.parts} top-level parts (sum ${r.top.sum}); ${r.top.complete} of them complete = ${pct(r.top.parts ? r.top.complete / r.top.parts : 0)}, the rest count by how far along they are`,
++		`  formula    ${r.formula}`,
++		`  not used   finished/created = ${t.finished}/${t.created} = ${pct(t.created ? t.finished / t.created : 0)} counts every nested task flat; the score weights each part by its own completion`
++	].join("\n");
++}
++
++/** The ids of the N most recently active sessions (tabs and spawned masterminds), newest first, from the day indexes. Asks for extra rows so `recent_reports` can skip sessions with no record (one-pass roles). */
++export function recent(n = 5, extra = 8){ return DatedFiles.sessions.find({ sort: "recent", limit: n * extra }).rows.map(r => r.id); }
++
++/** The reports of the N most recent sessions that have a record folder; `skipped` counts the ones passed over. */
++export async function recent_reports(n = 5, opts = {}){
++	const out = []; let skipped = 0;
++	for (const id of recent(n)){ if (out.length >= n) break; const r = await report(id, opts); if (r.error) skipped++; else out.push(r); }
++	return { reports: out, skipped };
++}
++
+ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
+ 	const args = {}, argv = process.argv.slice(2);
+-	let json = false;
++	let json = false, ref = null, n = null, root;
+ 	for (let i = 0; i < argv.length; i++){
+ 		const a = argv[i];
+-		if (a === "--json") json = true;
+-		else if (a === "--help" || a === "-h"){ console.log("usage: node Server/session-query.mjs [--since YYYY-MM-DD] [--until YYYY-MM-DD] [--tag a,b] [--system module|category] [--state active|idle|closed] [--model part] [--provider claude|openrouter] [--parent id] [--min-cost usd] [--text word] [--sort recent|oldest|cost] [--limit 25] [--json]"); process.exit(0); }
++		if (a === "--json" || a === "--report-json") json = true;
++		else if (a === "--report") ref = argv[++i];
++		else if (a === "--root") root = path.resolve(argv[++i]);
++		else if (a === "--recent") n = Number(argv[++i]) || 5;
++		else if (a === "--help" || a === "-h"){ console.log("usage: node Server/session-query.mjs [--since YYYY-MM-DD] [--until YYYY-MM-DD] [--tag a,b] [--system module|category] [--state active|idle|closed] [--model part] [--provider claude|openrouter] [--parent id] [--min-cost usd] [--text word] [--sort recent|oldest|cost] [--limit 25] [--json]\n       node Server/session-query.mjs --report <session id | 8-hex | agent id | folder> [--report-json]\n       node Server/session-query.mjs --recent N [--report-json]   completion report for the N most recent sessions"); process.exit(0); }
+ 		else if (a.startsWith("--")){ args[a.slice(2).replaceAll("-", "_")] = argv[++i]; }
+ 	}
+-	const result = query(args);
+-	console.log(json ? JSON.stringify(result) : format(result));
++	if (root) DatedFiles.ROOT = root;
++	if (ref || n){
++		let out, skipped = 0;
++		if (ref) out = [await report(ref, { root })]; else ({ reports: out, skipped } = await recent_reports(n, { root }));
++		console.log(json ? JSON.stringify(ref ? out[0] : out) : out.map(format_report).join("\n\n") + (skipped ? "\n\n(" + skipped + " more recent session(s) have no record folder and were skipped)" : ""));
++	} else {
++		const result = query(args);
++		console.log(json ? JSON.stringify(result) : format(result));
++	}
+ }
+diff --git a/Server/session-query.test.mjs b/Server/session-query.test.mjs
+new file mode 100644
+index 0000000000..78519d1c5a
+--- /dev/null
++++ b/Server/session-query.test.mjs
+@@ -0,0 +1,87 @@
++// `node Server/session-query.mjs --report` against a scratch repo tree: a parent session, a NESTED child session with nested tasks, a counted owner prompt,
++// a stopped task and an unproven finish. The score is recomputed here from the raw JSONL with a separate little recursion (no Task code), and must equal the report.
++// `node Server/session-query.test.mjs`
++import assert from "node:assert";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { randomUUID } from "node:crypto";
++import { report, format_report, locate } from "./session-query.mjs";
++
++const root = fs.mkdtempSync(path.join(os.tmpdir(), "session-query-"));
++const day = path.join(root, "public/framework/ai/sessions/2026/11/04");
++const P = "aaaaaaaa" + randomUUID().slice(8), K = randomUUID();
++const pdir = path.join(day, "session-aaaaaaaa"), kdir = path.join(pdir, "kid");
++const url = d => "/" + path.relative(path.join(root, "public"), d).split(path.sep).join("/") + "/";
++const write = (d, lines) => { fs.mkdirSync(d, { recursive: true }); fs.writeFileSync(path.join(d, "session.jsonl"), lines.map(l => JSON.stringify(l)).join("\n") + "\n"); };
++const ok = (c, m) => { assert.ok(c, m); console.log("ok", m); };
++const eq = (a, b, m) => { assert.strictEqual(a, b, `${m}: ${a} !== ${b}`); console.log("ok", m); };
++const finish = (id, ts) => ({ tasks: { [id]: { complete: { outcome: "done", evidence: ["a test"] } } }, ts });
++
++try {
++	// Parent: a counted prompt it answered with a filed task, one own task (done), one stopped task, the child session by reference.
++	write(pdir, [
++		{ session: { id: P, kind: "vscode-tab", at: "2026-11-04T10:00:00.000Z" } },
++		{ content: { add: { id: "pr1", type: "Prompt", text: "do the thing", counted: true } }, by: "owner", ts: "2026-11-04T10:01:00.000Z" },
++		{ content: { add: { id: "pr2", type: "Prompt", text: "a remark", counted: true } }, by: "owner", ts: "2026-11-04T10:01:30.000Z" },
++		{ tasks: { add: { type: "Task", id: "mine", title: "Mine" } }, ts: "2026-11-04T10:02:00.000Z" },
++		{ tasks: { add: { type: "Task", id: "dropped", title: "Dropped" } }, ts: "2026-11-04T10:02:30.000Z" },
++		{ task: url(kdir), type: "Session", spawn: { agent: "mastermind-kid", session_id: K }, ts: "2026-11-04T10:03:00.000Z" },
++		finish("mine", "2026-11-04T10:04:00.000Z"),
++		{ tasks: { dropped: { stop: { why: "not needed" } } }, ts: "2026-11-04T10:04:30.000Z" }
++	]);
++	// Child: task a with a nested task `deep`, and task b; only `deep` is finished.
++	write(kdir, [
++		{ session: { id: K, kind: "agent", at: "2026-11-04T10:03:00.000Z" } },
++		{ tasks: { add: { type: "Task", id: "a", title: "A" } }, ts: "2026-11-04T10:03:10.000Z" },
++		{ tasks: { a: { tasks: { add: { type: "Task", id: "deep", title: "Deep" } } } }, ts: "2026-11-04T10:03:20.000Z" },
++		{ tasks: { add: { type: "Task", id: "b", title: "B" } }, ts: "2026-11-04T10:03:30.000Z" },
++		{ tasks: { a: { tasks: { deep: { complete: { outcome: "done", evidence: ["a test"] } } } } }, ts: "2026-11-04T10:05:00.000Z" }
++	]);
++	const rows = { "mastermind-kid": { session_id: K, parent_session: P, role: "mastermind", task_dir: path.relative(root, kdir) } };
++
++	// THE SECOND WAY: parse the two files as plain data and average (no Task / Session code).
++	const lines = d => fs.readFileSync(path.join(d, "session.jsonl"), "utf8").trim().split("\n").map(JSON.parse);
++	const second = () => {
++		// child: a = (deep=1)/1 = 1 (a has one part, done); b = 0  =>  mean 0.5
++		const k = lines(kdir); const a_parts = {}; let kids = ["a", "b"], deep = k.some(l => l.tasks?.a?.tasks?.deep?.complete);
++		const a = deep ? 1 : 0, b = k.some(l => l.tasks?.b?.complete) ? 1 : 0, child = (a + b) / kids.length;
++		// parent: parts = counted prompts (pr1 unresolved 0, pr2 unresolved 0) + mine (1) + child session (0.5); `dropped` is stopped: left out
++		const p = lines(pdir), mine = p.some(l => l.tasks?.mine?.complete) ? 1 : 0;
++		return (0 + 0 + mine + child) / 4;
++	};
++
++	const r = await report(P, { root, rows, cost: false });
++	ok(!r.error, "the parent session is found by its session id");
++	eq(Math.round(r.score * 1e9), Math.round(second() * 1e9), "the report's score equals the independent recomputation (3 + 0.5) / 4 = " + second());
++	eq(r.prompts.counted, 2, "two counted owner prompts");
++	eq(r.prompts.unresolved, 2, "both are unresolved: they count against the score with nobody acting");
++	eq(r.tasks.stopped, 1, "one stopped task, left out of the score");
++	eq(r.tasks.child_sessions, 1, "one child session");
++	eq(r.children.registered, 1, "the registry lists one child");
++	eq(r.children.linked, 1, "it is linked (the parent's record references the nested folder)");
++	eq(r.children.unlinked, 0, "no unlinked children");
++	eq(r.unproven, 0, "every finish carries evidence");
++	ok(/SCORE\s+\d/.test(format_report(r)) && /formula/.test(format_report(r)), "the printed report shows the score and its formula");
++
++	// Same session by agent id and by 8-hex folder name; the nested child by its session id (the folder sits inside the parent's).
++	eq((await report("session-aaaaaaaa", { root, rows, cost: false })).id, P, "found by its folder name");
++	const kid = await report(K, { root, rows, cost: false });
++	ok(!kid.error && kid.dir.endsWith("session-aaaaaaaa/kid"), "the nested child is found by its session id wherever its folder sits");
++	eq(kid.score, 0.5, "the child alone scores 0.5 (a done, b open)");
++	eq((await locate("mastermind-kid", { root, rows }))?.id, K, "and by its agent id");
++
++	// Resolve a prompt: filing a task under it settles the part by that task's own completion; then the score is the plain mean again.
++	const more = [
++		{ content: { pr1: { tasks: { add: { type: "Task", id: "filed", title: "Filed ask" } } } }, ts: "2026-11-04T11:00:00.000Z" },
++		{ content: { pr1: { tasks: { filed: { complete: { outcome: "done", evidence: ["x"] } } } } }, ts: "2026-11-04T11:01:00.000Z" },
++		{ content: { pr2: { no_action: "a remark, nothing to do" } }, ts: "2026-11-04T11:02:00.000Z" }
++	];
++	fs.appendFileSync(path.join(pdir, "session.jsonl"), more.map(l => JSON.stringify(l)).join("\n") + "\n");
++	const r2 = await report(P, { root, rows, cost: false });
++	eq(r2.prompts.unresolved, 0, "both prompts resolved (one by a finished filed task, one marked no-action)");
++	eq(Math.round(r2.score * 1e9), Math.round(0.875 * 1e9), "resolving both prompts lifts the score to (1 + 1 + 1 + 0.5) / 4 = 0.875 and nothing else changed");
++	console.log("all ok");
++} finally {
++	fs.rmSync(root, { recursive: true, force: true });
++}
+diff --git a/Servex/ProcessRunner.js b/Servex/ProcessRunner.js
+index 1a8f714a83..e3e409ef33 100644
+--- a/Servex/ProcessRunner.js
++++ b/Servex/ProcessRunner.js
+@@ -2,6 +2,8 @@ import fs from "fs";
+ import path from "path";
+ import { stamp } from "./home.js";
+ import Process from "../public/framework/core/Task/Process.js";
++
++const OPEN = new Set(["idle", "running", "paused", "waiting"]);   // a child in one of these keeps its parent reading running (Task.js)
+ import { move_home } from "./agents/page_tools.js";
+ 
+ /* THE PROCESS RUNNER: a process's steps run in order because node runs them, never because an agent remembers.
+@@ -79,10 +81,11 @@ export default class ProcessRunner {
+ 			this.files.add(file);
+ 			this.track(file, p);
+ 			this.remember(p, file);
++			if (await this.settle_sessions(file, p)) continue;   // a step's own worker session was still open: closed, so read again
+ 			const a = p.next();
+ 			if (!a) return;
+ 			if (a.start === true) await this.write(file, { start: {} });
+-			else if (a.complete){ await this.write(file, { complete: {} }); this.tell(p.creator, `Process ${this.url(file)} is complete: every step is done.`); return; }
++			else if (a.complete){ await this.write(file, { complete: {} }); this.tell(p.creator, `Process ${this.url(file)} is complete: every step is done.`); await this.close_out(file); return; }
+ 			else if (a.wait){
+ 				const ph = p.steps.find(x => x.id === a.wait);
+ 				await this.write(file, { [a.wait]: { wait: { on: "owner", what: ph?.get_one("do") ?? a.wait } } });
+@@ -220,6 +223,33 @@ export default class ProcessRunner {
+ 		for (const file of new Set([...this.indexed, ...found.filter(f => this.is_process(f)), ...this.files])) if (fs.existsSync(file)) await this.step(file);
+ 	}
+ 
++	// A step recorded complete whose own worker session (the {task: ref} child Agents.open_task links under it) is still open reads `running`
++	// (Task.reopened), so next() never starts the next step: the live run of 2026-11-04 stalled there. The step's complete line is the worker's
++	// finish, so node completes that session record with the step's outcome. Returns true when it closed any.
++	async settle_sessions(file, p){
++		let closed = 0;
++		for (const ph of p.steps){
++			if (ph.get_one("state") !== "complete" || ph.state === "complete") continue;
++			for (const kid of ph._tasks ?? []){
++				if (!OPEN.has(kid.state)) continue;
++				const dir = path.resolve(this.public, String(kid.get_one("path") ?? "").replace(/^\/+/, ""));
++				if (!dir.startsWith(this.public + path.sep)) continue;
++				const rec = ["session.jsonl", "task.jsonl"].map(f => path.join(dir, f)).find(f => fs.existsSync(f));
++				if (!rec) continue;
++				const outcome = ph.get_one("outcome") ?? "the step is complete";
++				await this.write(rec, { complete: { outcome: `${ph.id}: ${outcome}`, evidence: [`${this.url(file)} (step ${ph.id} complete)`] } });
++				closed++;
++			}
++		}
++		return closed > 0;
++	}
++
++	// Hand the finished process to the one task close function (TaskLoop.close_task, mastermind-process-cleanup's Lifecycle). Absent or failing: only logged, the process stays complete.
++	async close_out(file){
++		try { const r = await this.servex?.task_loop?.close_task?.({ dir: path.dirname(file), why: "process complete", by: "ProcessRunner" }); if (r?.left?.length) this.say(`process-runner: ${this.url(file)} closed with ${r.left.length} left over`); }
++		catch (e){ this.say(`process-runner: close_task failed: ${e.message || e}`); }
++	}
++
+ 	tell(to, text){ if (!to || to === "owner") return; try { this.servex?.agents?.send(to, text, { from: "process-runner" }); } catch {} }
+ 	say(text){ try { this.servex?.say?.(text); } catch {} }
+ }
+diff --git a/Servex/ProcessRunner.test.mjs b/Servex/ProcessRunner.test.mjs
+index 0e485cca1d..0850f9c1da 100644
+--- a/Servex/ProcessRunner.test.mjs
++++ b/Servex/ProcessRunner.test.mjs
+@@ -191,6 +191,20 @@ try {
+ 	ok(!RL.some(l => l.pulse?.n === 2), "race: nor pulsed again");
+ 	ok(runner.read(RF).step?.id !== "questions" && runner.read(RF).step?.state !== "idle", "race: the next step started (" + runner.read(RF).step?.id + ")");
+ 
++	// THE LIVE STALL (2026-11-04): Agents.open_task nests the step's worker session under the step with a {task: ref} line. With that child open, the
++	// recorded-complete step read `running` (Task.reopened), so the next step never started. The runner now completes the step's own worker session.
++	await item({ tasks: { add: { title: "Nested", process: "investigate" } } }, "mm1");
++	const NF = path.join(DIR, "nested", "task.jsonl"), NURL = URL + "nested/"; await settle(NF);
++	const na = spawned.at(-1).id, sdir = path.join(DIR, "nested", "questions");
++	fs.mkdirSync(sdir, { recursive: true });
++	fs.writeFileSync(path.join(sdir, "session.jsonl"), JSON.stringify({ session: { id: "sess-q", kind: "agent", at: "2026-11-04T10:00:00.000Z" } }) + "\n" + JSON.stringify({ start: {} }) + "\n");
++	fs.appendFileSync(NF, JSON.stringify({ questions: { task: NURL + "questions/", type: "Session", spawn: { agent: na, session_id: "sess-q" } }, by: "agents", ts: "2026-11-04T10:00:01.000Z" }) + "\n");
++	await item({ questions: { complete: { outcome: "asked them all", evidence: ["test"] } } }, na, NURL); await settle(NF);
++	const nl = read(NF), kid_rec = read(path.join(sdir, "session.jsonl"));
++	ok(kid_rec.some(l => l.complete && l.by === "ProcessRunner"), "nested: the step's own worker session was completed by node");
++	ok(nl.some(l => l.scout?.start || l.scout?.spawn || l.spawn?.step === "scout") || runner.read(NF).step?.id !== "questions", "nested: the next step started (" + runner.read(NF).step?.id + "), not stalled on the step's own session");
++	ok(!nl.some(l => l.pulse?.step === "questions" && l.pulse.n > 1) && !nl.some(l => l.questions?.wait), "nested: no wait written on the completed step");
++
+ 	// CAUSE 2: a running process in an old-dated folder is resumed by the tick, found by the index, not by a date scan; with no index, one wide scan builds it.
+ 	const OLD_REL = "public/framework/ai/sessions/2020/01/01/.process-test-" + process.pid + "/old-run";
+ 	const OLD = path.join(ROOT, OLD_REL, "task.jsonl"); fs.mkdirSync(path.dirname(OLD), { recursive: true });
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 1e5c1b7c03..f04213e940 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -2,6 +2,7 @@ import { query, getSessionInfo, getSessionMessages } from "@anthropic-ai/claude-
+ import SessionRecord from "../../Server/SessionRecord.mjs";
+ import LogLine from "../../Server/LogLine.mjs";
+ import ChildLinks from "../../Server/ChildLinks.mjs";
++import SessionFolders from "../../public/framework/core/Session/SessionFolders.mjs";
+ import fs from "node:fs";
+ import { spawn } from "node:child_process";
+ import { randomUUID } from "node:crypto";
+@@ -1120,6 +1121,8 @@ export function open_task(task, { session_id, agent, role, by, model, effort = n
+ 		model, effort: effort ?? undefined, role_readme: role_readme ?? undefined, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
+ 	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
+ 	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
++	// A record folder nested inside its parent (not a direct child of a day) is found by its session id only through a claim (SessionFolders.record_of).
++	if (session_id) try { SessionFolders.at(path.join(process.cwd(), "public/framework/ai/sessions")).claim(session_id, dir); } catch (e){ console.warn("session folder claim failed for", dir, e); }
+ 	// A task folder under a session or another task counts as its task: the parent's log gets one {"task":"<url>"} reference (never twice).
+ 	// A handoff (`task: {from, id}`) is referenced by move_item's own `as` line; a second plain one would replay as a twin child, so link only without a handoff (or when it is refused, below).
+ 	/* THE SESSION ENTRY (core/Session/readme.md, "Session entries"): the reference is {"task":url,"type":"Session","spawn":{…}}, nested under
+diff --git a/Servex/agents/handoff-route.test.mjs b/Servex/agents/handoff-route.test.mjs
+new file mode 100644
+index 0000000000..56d958a7b5
+--- /dev/null
++++ b/Servex/agents/handoff-route.test.mjs
+@@ -0,0 +1,45 @@
++// A handoff names the spawner by SESSION ROUTE (/framework/ai/sessions/<uuid>/), and an agent's record sits inside its parent's folder.
++// move_item must move the task out of the real record (no idle original left), and record_file must find a nested record by uuid.
++// `node Servex/agents/handoff-route.test.mjs`
++import assert from "node:assert";
++import fs from "node:fs";
++import path from "node:path";
++import { randomUUID } from "node:crypto";
++import { fileURLToPath } from "node:url";
++import { run_item, move_item, record_file, task_origin } from "./page_tools.js";
++import SessionFolders from "../../public/framework/core/Session/SessionFolders.mjs";
++import Session from "../../public/framework/core/Session/Session.js";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
++const SESSIONS = path.join(ROOT, "public/framework/ai/sessions"), tag = process.pid;
++const PARENT = randomUUID(), KID = randomUUID();
++const parent_dir = path.join(SESSIONS, "2026/11/03", `.handoff-route-${tag}`), kid_dir = path.join(parent_dir, "the-child"), moved_dir = path.join(parent_dir, "moved-here");
++const url = d => "/" + path.relative(path.join(ROOT, "public"), d).split(path.sep).join("/") + "/";
++const read = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
++let n = 0; const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok", m); };
++
++fs.mkdirSync(kid_dir, { recursive: true });
++try {
++	fs.writeFileSync(path.join(parent_dir, "session.jsonl"), JSON.stringify({ session: { id: PARENT, kind: "vscode-tab", at: "2026-11-03T10:00:00-06:00" } }) + "\n");
++	fs.writeFileSync(path.join(kid_dir, "session.jsonl"), JSON.stringify({ assign: { session_id: KID, agent: "mastermind-route-test" } }) + "\n");
++	const folders = SessionFolders.at(SESSIONS);
++	ok(folders.claim(KID, kid_dir), "the nested child folder is claimed");
++
++	const route = `/framework/ai/sessions/${PARENT}/`;
++	ok(record_file(route) === path.join(parent_dir, "session.jsonl"), "a session route by uuid finds the dated record");
++	ok(record_file(`/framework/ai/sessions/${KID}/`) === path.join(kid_dir, "session.jsonl"), "the nested child is found by its session id, wherever its folder sits");
++
++	const add = await run_item({ path: url(parent_dir), delta: { tasks: { add: { title: "Hand this off", from: { prompt: "p-1" }, text: "the words" } } } }, { caller: "t" });
++	const id = add.ids[0];
++	ok(task_origin(route, id)?.text === "the words", "task_origin reads the task through the session route");
++
++	const r = await move_item({ from: route, id, to: url(moved_dir), by: "test", entry: { type: "Session", spawn: { placed: "handoff" } } });
++	ok(!r.why, `move_item by session route is not refused (${r.why ?? "moved"})`);
++	const lines = read(path.join(parent_dir, "session.jsonl"));
++	const ref = lines.find(l => l.task === url(moved_dir) && l.as === id);
++	ok(ref && ref.type === "Session", "the parent keeps one Session entry for it, with the id it had");
++	const live = Session.replay(lines);
++	ok(live._tasks.find(id)?.is_session !== false, "the moved task replays as one child, not an idle twin and an entry");
++	ok(fs.existsSync(path.join(moved_dir, "task.jsonl")) || fs.existsSync(path.join(moved_dir, "session.jsonl")), "the history lives in the new folder");
++	console.log(`handoff-route: ${n} checks pass`);
++} finally { fs.rmSync(parent_dir, { recursive: true, force: true }); }
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 616acc9efc..ce5b5419ce 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -11,6 +11,8 @@ import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
+ import ChatWriter from "./ChatWriter.js";
+ import LogLine from "../../Server/LogLine.mjs";
+ import { note_view } from "../../public/framework/ext/Chat/v3/placement.js";
++import Registry from "./Registry.js";
++import SessionFolders from "../../public/framework/core/Session/SessionFolders.mjs";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const ROOT = path.resolve(HERE, "..", "..");
+@@ -114,6 +116,21 @@ async function resolve(url, target = [], item = false){
+ 	return file ? { file, target: target ?? [] } : null;
+ }
+ 
++/* The record file behind a url that names a task or session: a session ROUTE (/framework/ai/sessions/<uuid or agent id>/) goes through
++ * SessionFolders.record_of (the one finder, nested record folders included), so the dated folder is found wherever it sits; every other
++ * url is the plain path. A handoff's `from` is the spawner's session route, which resolve_file alone cannot read (it looked for a folder
++ * named for the uuid and found none). Sync, so spawn() can read a task's origin before the move. */
++export function record_file(url){
++	const hit = SESSION_ROUTE.exec(String(url ?? ""));
++	if (hit && !/^d{4}$/.test(hit[1]) && !fs.existsSync(path.resolve(PUBLIC, "framework/ai/sessions", hit[1]))){
++		let uuid = UUID.test(hit[1]) ? hit[1] : null;
++		if (!uuid) try { uuid = new Registry().read()[hit[1]]?.session_id ?? null; } catch {}
++		const dir = uuid && SessionFolders.at(path.join(PUBLIC, "framework/ai/sessions")).record_of(uuid);
++		return dir ? resolve_file(app_path(dir), true) : null;
++	}
++	return resolve_file(url, true);
++}
++
+ // The nearest real name to a typed one, as "; did you mean …?" or ".". A one-character drift is distance 1.
+ function distance(a, b){
+ 	const d = Array.from({ length: b.length + 1 }, (_, j) => j);
+@@ -146,6 +163,9 @@ async function session_file(id){
+ 		else name = Object.entries(agents).find(([, a]) => a?.session_id === uuid)?.[0] ?? null;
+ 	} catch {}
+ 	if (!uuid) return { why: `no session or Servex agent is called "${id}", so nothing was created${nearest(id, Object.keys(agents))} ${OMIT}` };
++	// A spawned agent's record sits inside its parent's folder (SessionFolders.claim): that folder, not the thin day-level one, is where its tasks and log live.
++	const folders = SessionFolders.at(path.join(PUBLIC, "framework/ai/sessions")), rec = folders.record_of(uuid);
++	if (rec && rec !== folders.of(uuid) && ["session.jsonl", "task.jsonl"].some(f => fs.existsSync(path.join(rec, f)))) return path.join(rec, "page.jsonl");
+ 	const slug = /^[a-z0-9][a-z0-9-]{2,60}$/.test(name ?? "") ? `${name}-${uuid.slice(0, 8)}` : undefined;
+ 	const { default: AISession } = await import("../../public/framework/ai/AISession/AISession.js");
+ 	if (!AISession.days.has(uuid)) AISession.scanned = false;   // a long-lived Servex: a folder made since the last scan must be found, never doubled
+@@ -687,7 +707,7 @@ export async function move_nested_home(record, id, module, by = "PromptTasks"){
+  * Returns {from, to, file} or {why}. Callers: the item tool's `move` key, open_task (handoff), move_nested_home. */
+ // `entry` ({type, spawn}, a spawn's handoff): the reference left behind is the Session entry, so the subtask is upgraded in place.
+ export async function move_item({ from, id, to, by = "agent", module, entry = null } = {}){
+-	const pf = resolve_file(from, true), dir = typeof to === "string" ? path.resolve(PUBLIC, to.replace(/^[\\/]+/, "")) : null;
++	const pf = record_file(from), dir = typeof to === "string" ? path.resolve(PUBLIC, to.replace(/^[\\/]+/, "")) : null;
+ 	if (!pf || !fs.existsSync(pf)) return { why: `no record at ${from}` };
+ 	if (!dir || !dir.startsWith(PUBLIC + path.sep)) return { why: `"${to}" is not a folder under public/` };
+ 	const kind = path.basename(pf) === "session.jsonl" ? "Session" : class_of(pf);   // Session, not Task: it reads the owner's {decide} lines, which change a child without naming it
+@@ -742,7 +762,7 @@ export async function move_item({ from, id, to, by = "agent", module, entry = nu
+  * when `id` is never addressed. Called before a handoff moves the task (Agents.js spawn()), so Servex's own first-turn line can
+  * quote the owner's words instead of only a path. */
+ export function task_origin(from, id){
+-	const pf = resolve_file(from, true);
++	const pf = record_file(from);
+ 	if (!pf || !fs.existsSync(pf)) return null;
+ 	let out = null;
+ 	for (const l of parse_lines(pf)){
+@@ -962,7 +982,7 @@ export function session_state(task, tasks = []){
+ 	const unlinked = nest_agents(agents.filter(a => !counted.has(a.id))).map(a => ({ ...a, agent: a.id, linked: false }));
+ 	const child_cost = entries.reduce((s, c) => s + c.total, 0) + unlinked.reduce((s, a) => s + (a.total || 0), 0);
+ 	const biggest = costed.sort((a, b) => b.cost - a.cost).slice(0, 5).map(t => ({ id: t.id, title: t.get_one("title"), cost: r2(t.cost), state: t.state }));
+-	return { class: "Session", id: task.id, completion: task.completion, progress: task.progress(), rates: task.rates(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
++	return { class: "Session", id: task.id, completion: task.completion, tally: task.tally(), progress: task.progress(), rates: task.rates(), first_at: task.first_at, last_at: task.last_at, span_ms: task.span_ms,
+ 		cost: { total: r2((own?.usd ?? 0) + child_cost), own, children: r2(child_cost), tasks: r2(task_cost) },
+ 		counts: { direct: counts(task._tasks ?? []), all: counts(all), children: { entries: count_entries(entries), unlinked: agents.filter(a => !counted.has(a.id)).length } },
+ 		biggest, children: [...entries, ...unlinked], agents: agents.length,
+@@ -1066,7 +1086,7 @@ export function tell_parent_caveats(task_dir, caveats, by = "node"){
+ function query_args(arg){ return Array.isArray(arg) ? arg : is_plain(arg) && Object.keys(arg).length ? [arg] : []; }
+ // A Session's queries are answered here, from session_state (its one picture), because its cost needs node: own_cost reads cache.jsonl.
+ // `completion` is the one tally every Task-family node answers: its tasks' current states and the number computed from them.
+-const TALLY = n => ({ stopped: 0, ...n.progress(), completion: n.completion });
++const TALLY = n => ({ stopped: 0, ...n.progress(), completion: n.completion, ...(n.tally ? { tally: n.tally() } : {}) });
+ const NODE_QUERIES = { Session: { progress: n => n.progress(), cost: n => session_state(n, []).cost, children: n => session_state(n, []).children, summary: n => session_state(n, []) } };
+ function walk_queries(node, delta, trail = "", out = { answer: {}, queried: false, other: [], set: [] }){
+ 	const into = (kid, sub, here, put) => { const r = walk_queries(kid, sub, here); out.queried ||= r.queried; out.other.push(...r.other); out.set.push(...r.set); if (r.queried) put(r.answer); };
+diff --git a/Servex/asks/Asks.js b/Servex/asks/Asks.js
+index b276bff8a9..d1d5e43045 100644
+--- a/Servex/asks/Asks.js
++++ b/Servex/asks/Asks.js
+@@ -7,6 +7,7 @@ import { stalled } from "./stalled.js";
+ import { build_tasks, write_tasks_json } from "./tasks.js";
+ import SessionRecord from "../../Server/SessionRecord.mjs";
+ import Landed from "../Landed.js";
++import Task from "../../public/framework/core/Task/Task.js";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const DEFAULT_FILE = path.resolve(HERE, "../../public/framework/ai/asks.jsonl");
+@@ -141,7 +142,10 @@ export default class Asks {
+ 		if (stalled.NOT_WATCHED.includes(ask.status)) return;   // closed, parked or queued: nobody owes a turn yet
+ 		const row = this.owner_row(ask, registry);
+ 
+-		if (row?.task_landed){ await this.mark(ask.id, "landed", "owner's task.jsonl has a landed_at line", BY_TICK); return; }
++		// A landed_at line is the agent's word, not proof (Task.proof_problem; ask 209, "AI 2: finish the retirement", was marked landed on it with the folder still there):
++		// no outcome AND no evidence leaves the ask where it is; an outcome without evidence lands it, and the reason says so.
++		if (row?.task_landed && row.task_proof === "no outcome and no evidence") return;
++		if (row?.task_landed){ await this.mark(ask.id, "landed", "owner's task.jsonl has a landed_at line" + (row.task_proof ? ` (${row.task_proof} recorded)` : ""), BY_TICK); return; }
+ 
+ 		const verdict = stalled(ask, row, Date.now());
+ 		if (verdict.stalled && ask.status !== "stalled") await this.mark(ask.id, "stalled", verdict.why, BY_TICK);
+@@ -160,8 +164,8 @@ export default class Asks {
+ 		const live = this.servex?.agents?.live?.get?.(ask.owner);
+ 		const queued = live?.queue?.items?.length ?? 0;
+ 		const dir = row.task_dir ?? this.servex?.agents?.task_dir_for?.(row) ?? null;
+-		const { last_at, landed } = dir ? this.task_state(dir) : { last_at: null, landed: false };
+-		return { ...row, last_task_line_at: last_at, task_landed: landed, queued };
++		const { last_at, landed, proof } = dir ? this.task_state(dir) : { last_at: null, landed: false, proof: null };
++		return { ...row, last_task_line_at: last_at, task_landed: landed, task_proof: proof, queued };
+ 	}
+ 
+ 	/* A task dir's task.jsonl, read cold — Asks never writes here, only reads,
+@@ -172,18 +176,21 @@ export default class Asks {
+ 	 * already uses: a non-empty `outcome` alongside `landed_at`. */
+ 	task_state(dir){
+ 		let text;
+-		try { text = fs.readFileSync(SessionRecord.log_or_old(dir), "utf8"); } catch { return { last_at: null, landed: false }; }
+-		const state = {};
++		try { text = fs.readFileSync(SessionRecord.log_or_old(dir), "utf8"); } catch { return { last_at: null, landed: false, proof: null }; }
++		const state = {}, parsed = [];
+ 		let last_at = null;
+ 		for (const raw of text.split("\n")){
+ 			if (!raw.trim()) continue;
+ 			let obj; try { obj = JSON.parse(raw); } catch { continue; }
++			parsed.push(obj);
+ 			if (obj.assign && typeof obj.assign === "object") Object.assign(state, obj.assign);
+ 			// most task lines carry `at` at the top level ({"decision":{…},"at":…}); some nest it
+ 			const at = obj.at ?? obj.assign?.at ?? obj.assign?.landed_at ?? obj.log?.at ?? obj.action?.at ?? obj.decision?.at;
+ 			if (at) last_at = at;
+ 		}
+-		return { last_at, landed: Landed.of_dir(dir) };
++		const landed = Landed.of_dir(dir);
++		let proof = null; if (landed) try { const t = Task.replay(parsed); proof = t.state === "complete" ? Task.proof_problem(t) : null; } catch {}   // a log that will not replay keeps the old answer
++		return { last_at, landed, proof };
+ 	}
+ 
+ 	/* ---------- close_task wraps: landing a task lands the asks its agent owned ---------- */
+diff --git a/Servex/asks/asks.test.mjs b/Servex/asks/asks.test.mjs
+index 0d629238ce..04ae37f201 100644
+--- a/Servex/asks/asks.test.mjs
++++ b/Servex/asks/asks.test.mjs
+@@ -130,10 +130,29 @@ async function test_mark_refuses_bad_input(){
+ 	fs.rmSync(path.dirname(file), { recursive: true, force: true });
+ }
+ 
++async function test_landed_needs_proof(){
++	const file = tmpfile(), base = path.dirname(file);
++	const mk = (name, lines) => { const d = path.join(base, name); fs.mkdirSync(d, { recursive: true }); fs.writeFileSync(path.join(d, "task.jsonl"), lines.map(l => JSON.stringify(l)).join("\n") + "\n"); return d; };
++	const bare = mk("bare", [{ assign: { agent: "agent-p", at: "2026-11-04T10:00:00-06:00" } }, { assign: { landed_at: "2026-11-04T11:00:00-06:00" } }]);
++	const said = mk("said", [{ assign: { agent: "agent-q", at: "2026-11-04T10:00:00-06:00" } }, { assign: { landed_at: "2026-11-04T11:00:00-06:00", outcome: "the folder is gone" } }]);
++	const ask = (title, owner) => JSON.stringify({ ask: { at: "2026-11-04T10:00:00-05:00", title, owner, status: "building" } });
++	fs.writeFileSync(file, ask("Landed with nothing recorded", "agent-p") + "\n" + ask("Landed with an outcome only", "agent-q") + "\n");
++	const asks = new Asks({ file });
++	const live = { id: "agent-q", state: "idle", last_at: new Date().toISOString() };
++	asks.servex = { agents: { registry_list: () => [{ ...live, id: "agent-p", task_dir: bare }, { ...live, task_dir: said }], live: new Map() } };
++	await asks.tick();
++	const folded = await asks.read();
++	const a = folded[AskFold.id({ title: "Landed with nothing recorded" })], b = folded[AskFold.id({ title: "Landed with an outcome only" })];
++	check("a landed_at with no outcome and no evidence does NOT mark the ask landed", a.status === "building");
++	check("an outcome without evidence lands it, and the reason says no evidence", b.status === "landed" && /no evidence/.test(b.history.at(-1).why));
++	fs.rmSync(base, { recursive: true, force: true });
++}
++
+ await test_fold();
+ test_stalled_rules();
+ await test_mark_once_and_speak_again();
+ await test_mark_refuses_bad_input();
++await test_landed_needs_proof();
+ 
+ console.log(`\n${pass} passed, ${fail} failed`);
+ process.exit(fail ? 1 : 0);
+diff --git a/Servex/process-live.mjs b/Servex/process-live.mjs
+new file mode 100644
+index 0000000000..24492da507
+--- /dev/null
++++ b/Servex/process-live.mjs
+@@ -0,0 +1,67 @@
++// LIVE proof that a process runs by itself: 3 real Haiku steps, node starts each, finishing a step starts the next, the last step completes the process,
++// and the parent session's completion score moves 0 -> 1/3 -> 2/3 -> 1. Needs the running Servex (its TaskLoop tick finds the new process within ~5 min).
++// `node Servex/process-live.mjs [--root <repo>] [--minutes 25] [--keep]`   Rerun it across a Servex restart with: node Servex/sustain.mjs --restart (mid-run).
++import fs from "node:fs";
++import path from "node:path";
++import { randomUUID } from "node:crypto";
++import { fileURLToPath, pathToFileURL } from "node:url";
++
++const argv = process.argv.slice(2), arg = (k, d) => { const i = argv.indexOf(k); return i < 0 ? d : argv[i + 1]; };
++const ROOT = path.resolve(arg("--root", path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")));
++const MINUTES = Number(arg("--minutes", 25)), KEEP = argv.includes("--keep");
++const CODE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");   // classes come from this checkout; ROOT is only where the data is written (the live Servex scans its own tree)
++const imp = rel => import(pathToFileURL(path.join(CODE, rel)).href);
++const { default: Process } = await imp("public/framework/core/Task/processes/index.js");
++const { report } = await imp("Server/session-query.mjs");
++
++const now = new Date(), pad = n => String(n).padStart(2, "0");
++const P = randomUUID(), hex = P.slice(0, 8);
++const day = path.join(ROOT, "public/framework/ai/sessions", String(now.getFullYear()), pad(now.getMonth() + 1), pad(now.getDate()));
++const pdir = path.join(day, "session-" + hex), proc = path.join(pdir, "live-process");
++const url = d => "/" + path.relative(path.join(ROOT, "public"), d).split(path.sep).join("/") + "/";
++const write = (f, lines) => { fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, lines.map(l => JSON.stringify(l)).join("\n") + "\n"); };
++const lines = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
++
++const haiku = { run: "fresh", model: "claude-haiku-4-5-20251001", effort: "low" };
++const steps = [1, 2, 3].map(n => ({ id: "step-" + n, title: `Step ${n}`, session: haiku,
++	do: `Write the file step-${n}.txt in the process folder (${url(proc)}) containing the single word "${n}". Do nothing else. Then record the step complete exactly as the last paragraph says.` }));
++const first = { ...Process.lines({ process: "steps", steps, title: "process-live: three Haiku steps", brief: "A rerunnable test. Do only what your step says." })[0], by: "process-live" };
++const adds = Process.lines({ process: "steps", steps }).slice(1);
++
++write(path.join(pdir, "session.jsonl"), [
++	{ session: { id: P, kind: "vscode-tab", at: now.toISOString() } },
++	{ task: url(proc), type: "Task", ts: now.toISOString() }
++]);
++write(path.join(proc, "task.jsonl"), [first, ...adds]);
++console.log(`created ${url(proc)} (parent session ${P})`);
++
++const file = path.join(proc, "task.jsonl"), seen = new Set(), t0 = Date.now(), timeline = [];
++const mark = (what, score) => { const m = ((Date.now() - t0) / 60000).toFixed(1); timeline.push({ min: m, what, score }); console.log(`${m} min  ${what.padEnd(34)} parent score ${(score * 100).toFixed(1)}%`); };
++const score = async () => (await report(P, { root: ROOT, rows: {}, cost: false })).score;
++let last = -1, fail = null;
++mark("process written, nothing started", await score());
++for (;;){
++	await new Promise(r => setTimeout(r, 4000));
++	const L = lines(file);
++	for (const [i, l] of L.entries()){
++		if (seen.has(i)) continue;
++		seen.add(i);
++		const what = l.start ? "process started" : l.complete ? "process complete" : l.spawn ? `spawned ${l.spawn.step} (${l.spawn.agent})` : l.measure ? `measured ${l.measure.step} $${l.measure.usd}` :
++			Object.entries(l).filter(([k, v]) => /^step-\d$/.test(k) && v && typeof v === "object" && (v.start || v.complete)).map(([k, v]) => `${k} ${v.start ? "started" : "complete"}`)[0];
++		if (!what || /^measured/.test(what)) continue;
++		const s = await score();
++		if (s < last - 1e-9) fail = `the parent score went DOWN at "${what}"`;
++		last = s; mark(what, s);
++	}
++	if (L.some(l => l.complete && !l.tasks)) break;
++	if (Date.now() - t0 > MINUTES * 60000){ fail = `timed out after ${MINUTES} min; last line: ${JSON.stringify(L.at(-1)).slice(0, 200)}`; break; }
++}
++const L = lines(file), at = k => L.findIndex(l => k(l));
++const order = [1, 2, 3].map(n => [at(l => l[`step-${n}`]?.start), at(l => l.spawn?.step === `step-${n}`), at(l => l[`step-${n}`]?.complete)]);
++const flat = order.flat();
++const ok = !fail && flat.every(i => i >= 0) && flat.every((v, i) => i === 0 || v > flat[i - 1]) && at(l => l.complete && !l.tasks) > flat[8] && Math.abs((await score()) - 1) < 1e-9;
++const files = [1, 2, 3].map(n => fs.existsSync(path.join(proc, `step-${n}.txt`)));
++console.log(ok && files.every(Boolean) ? "PASS: node started each step, each completion started the next, the last completed the process, the parent went to 100%"
++	: `FAIL: ${fail ?? "order or completion wrong"} (line order [start, spawn, complete] per step: ${JSON.stringify(order)}; step files ${files})`);
++console.log(`left in place: ${pdir}${KEEP ? "" : " (delete it when done reading)"}`);
++process.exit(ok && files.every(Boolean) ? 0 : 1);
+diff --git a/public/framework/ai/AISession/SessionStats.js b/public/framework/ai/AISession/SessionStats.js
+index b28aba8800..a92b75787f 100644
+--- a/public/framework/ai/AISession/SessionStats.js
++++ b/public/framework/ai/AISession/SessionStats.js
+@@ -45,7 +45,8 @@ export default class SessionStats extends View {
+ 		const base = work.id ? AICost.session_url(work.id) : work.dir;
+ 		AICost.summary(base).then(({ summary }) => {
+ 			const p = summary?.progress;
+-			$v.text(!p ? "—" : p.total ? `${p.done} of ${p.total} tasks done` : "no root tasks");   // no answer (Servex unreachable) is a dash, never "none"
++			const y = summary?.tally;   // the item tool's labelled counts (Task.tally): every task at any depth, and how many finished ones carry no proof
++			$v.text(!p ? "—" : p.total ? `${p.done} of ${p.total} tasks done` + (y?.unproven ? ` · ${y.unproven} finished without proof` : "") : "no root tasks");   // no answer (Servex unreachable) is a dash, never "none"
+ 		}).catch(() => $v.text("—"));
+ 	}
+ 
+diff --git a/public/framework/core/Session/Session.js b/public/framework/core/Session/Session.js
+index 7fc979689c..4c78875f95 100644
+--- a/public/framework/core/Session/Session.js
++++ b/public/framework/core/Session/Session.js
+@@ -136,6 +136,8 @@ export default class Session extends Task {
+ 			for (const kid of this._tasks) if (!had.has(kid)) kid._created_at ??= Task.clock;   // the line's time, in memory only (never data: a move compares data): Task.created_at
+ 		}
+ 		delete delta.tasks;
++		// The owner's prompts and page cards: the same `content` list a Task has, so a Prompt written with `counted: true` is part of the score (Task.score_parts).
++		if (delta.content && typeof delta.content === "object"){ this.content.set(delta.content); delete delta.content; }
+ 		// The chat: sentences first, so a Prompt added on the same line finds the sentence it names (one act, one line).
+ 		if (delta.sentences && typeof delta.sentences === "object") this.sentences.set(delta.sentences);
+ 		if (delta.messages && typeof delta.messages === "object") this.messages.set(delta.messages);
+@@ -157,7 +159,7 @@ export default class Session extends Task {
+ 			delete delta.decide;
+ 		}
+ 		for (const k of Object.keys(delta)){   // a nested task changed: {"<task id>":{…}} goes to that task
+-			const kid = delta[k] && typeof delta[k] === "object" && this._tasks ? this.find(k) : undefined;   // at any depth: a bare id may name a grandchild
++			const kid = delta[k] && typeof delta[k] === "object" ? (this._tasks ? this.find(k) : undefined) ?? this._content?.find(k) : undefined;   // at any depth: a bare id may name a grandchild; or a Prompt in `content` ({"<prompt id>":{"no_action":"why"}})
+ 			if (kid?.replay_line) { kid.replay_line(delta[k]); delete delta[k]; }
+ 		}
+ 		// DEPRECATED (2026-10-28): use list deltas (`chat.add`, `place.add`, …); an unknown key falls through to `put` and loses its history. Guide: /framework/core/Session/doc/one-replay-plan.md. Remove when: the one-replay plan is built and the history is replayed through a named shim.
+diff --git a/public/framework/core/Session/SessionFolders.mjs b/public/framework/core/Session/SessionFolders.mjs
+index 8b2d611ddc..c6b50080a4 100644
+--- a/public/framework/core/Session/SessionFolders.mjs
++++ b/public/framework/core/Session/SessionFolders.mjs
+@@ -7,6 +7,9 @@
+ //   .home(id, day, name)           of(id), else where a new one goes: <day>/<name or session-<id8>> (the full uuid when another id holds session-<id8>). Not made.
+ //   .all(id)                       every folder that holds the id, the home first (more than one is a twin)
+ //   .twins()                       [{id, home, others}] for every id held by more than one folder
++//   .record_of(id)                 the folder that holds the session's RECORD (session.jsonl / task.jsonl): a spawned agent's record sits inside its parent's folder
++//                                  (claimed with .claim), else of(id). The day-level folder of(id) is still where the indexer writes index.json
++//   .claim(id, dir)                register a record folder nested below a day's folder (Agents.open_task does, .adopt_nested() backfills)
+ //   SessionFolders.owner(dir)      the id a folder says it holds (the claim rule below), or null
+ //
+ // Why it exists (2026-11-01): five finders each had their own rule and their own cache. One knew only <uuid> and session-<id8> names,
+@@ -56,6 +59,7 @@ export default class SessionFolders {
+ 		this.root = root;
+ 		this.days = new Map();   // "YYYY/MM/DD" -> { mt: the day folder's mtime when read, names: Map(folder name -> id, or null when it names none) }
+ 		this.ids = new Map();    // id -> Set of "YYYY/MM/DD/<name>"
++		this.nested = new Map(); // id -> "YYYY/MM/DD/<parent>/<child>" of a record folder nested inside another session's folder (claim)
+ 		this.quiet = new Map();  // "YYYY/MM/DD/<name>" of a folder that names no id -> its mtime when read (a claim arrives as a new file, which moves it)
+ 		this.file = path.join(root, "session-folders.json");   // what was read, so a one-shot process (the SessionStart hook, TaskDirs --new) need not read every folder again
+ 	}
+@@ -87,6 +91,34 @@ export default class SessionFolders {
+ 		return this;
+ 	}
+ 
++	/** Register a record folder that sits below a day's folder (`<day>/<parent>/<child>`): the folder names its id on line 1 (owner()). Returns true when stored. */
++	claim(id, dir){
++		dir = path.resolve(dir);
++		const rel = path.relative(this.root, dir).split(path.sep).join("/");
++		if (!UUID.test(id ?? "") || rel.startsWith("..") || rel.split("/").length < 5 || SessionFolders.owner(dir) !== id) return false;
++		if (this.nested.get(id) === rel) return true;
++		this.nested.set(id, rel); this.save(); return true;
++	}
++
++	/** Claim every record folder one level below a session folder (a day's folder entry), the backfill for sessions spawned before claim() existed. Returns how many are new. */
++	adopt_nested(){
++		let n = 0; this.refresh();
++		for (const y of dirs(this.root)) if (/^\d{4}$/.test(y)) for (const m of dirs(path.join(this.root, y))) for (const d of dirs(path.join(this.root, y, m)))
++			for (const name of dirs(path.join(this.root, y, m, d))) for (const sub of dirs(path.join(this.root, y, m, d, name))){
++				const dir = path.join(this.root, y, m, d, name, sub), id = SessionFolders.owner(dir);
++				if (id && SessionFolders.owner(this.nested.has(id) ? path.join(this.root, ...this.nested.get(id).split("/")) : "") !== id && ["session.jsonl", "task.jsonl"].some(f => fs.existsSync(path.join(dir, f))) && this.claim(id, dir)) n++;
++			}
++		return n;
++	}
++
++	/** The folder that holds the session's record: its claimed nested folder when that is still on disk and still names the id, else of(id). */
++	record_of(id){
++		if (!this.days.size && !this.nested.size) this.load();
++		const rel = this.nested.get(id), dir = rel && path.join(this.root, ...rel.split("/"));
++		if (dir && SessionFolders.owner(dir) === id) return dir;
++		return this.of(id);
++	}
++
+ 	/** The saved map (session-folders.json, gitignored machine state). Only a starting point: refresh() checks it against the folders. */
+ 	load(){
+ 		let j = null; try { j = JSON.parse(fs.readFileSync(this.file, "utf8")); } catch { return; }
+@@ -97,11 +129,12 @@ export default class SessionFolders {
+ 			for (const [name, id] of rec.names) if (id) (this.ids.get(id) ?? this.ids.set(id, new Set()).get(id)).add(`${day}/${name}`);
+ 		}
+ 		for (const [key, mt] of Object.entries(j.quiet ?? {})) this.quiet.set(key, mt);
++		for (const [id, rel] of Object.entries(j.nested ?? {})) this.nested.set(id, rel);
+ 	}
+ 	save(){
+ 		const days = {}; for (const [day, rec] of this.days) days[day] = { mt: rec.mt, names: Object.fromEntries(rec.names) };
+ 		const tmp = `${this.file}.tmp-${process.pid}`;   // ".tmp-" is the name Server/watch.js ignores
+-		try { fs.writeFileSync(tmp, JSON.stringify({ v: 1, at: new Date().toISOString(), days, quiet: Object.fromEntries(this.quiet) })); fs.renameSync(tmp, this.file); }
++		try { fs.writeFileSync(tmp, JSON.stringify({ v: 1, at: new Date().toISOString(), days, quiet: Object.fromEntries(this.quiet), nested: Object.fromEntries(this.nested) })); fs.renameSync(tmp, this.file); }
+ 		catch { try { fs.rmSync(tmp, { force: true }); } catch {} }   // a cache: another process writing it at the same moment is fine
+ 	}
+ 
+diff --git a/public/framework/core/Session/SessionFolders.test.mjs b/public/framework/core/Session/SessionFolders.test.mjs
+index 0ebfdfddd8..4b1e430dbe 100644
+--- a/public/framework/core/Session/SessionFolders.test.mjs
++++ b/public/framework/core/Session/SessionFolders.test.mjs
+@@ -42,5 +42,24 @@ try {
+ 
+ 	assert.equal(SessionFolders.owner(put("2026/09/04/flat-task", "session.jsonl", { assign: { session_id: A, tab: "monorepo" } })), null, "a tab-era task (assign, no agent) is not a session's folder");
+ 	assert.equal(SessionFolders.owner(put("2026/10/16/voice-x", "session.jsonl", { assign: { session_id: A, agent: "mastermind-voice-x" } })), A, "a Servex record (assign with an agent) is");
+-	console.log("SessionFolders: 15 checks pass");
++	// A spawned agent's record sits INSIDE its parent's folder; its id (a uuid) and its folder must still find each other.
++	const P = "e0e0e0e0-0005-4a19-9b01-000000000005", K = "f0f0f0f0-0006-4a19-9b01-000000000006";
++	const parent = put("2026/11/04/session-e0e0e0e0", "cache.jsonl", { summary: { v: 2, id: P } });
++	const thin = put("2026/11/04/session-f0f0f0f0", "cache.jsonl", { summary: { v: 2, id: K } });   // the indexer's folder for the child
++	const kid = put("2026/11/04/session-e0e0e0e0/the-child", "session.jsonl", { assign: { session_id: K, agent: "mastermind-the-child" } });
++	s = fresh();
++	assert.equal(s.of(K), thin, "of(): the day-level folder (where the indexer writes), as before");
++	assert.equal(s.record_of(K), thin, "record_of() before any claim is of()");
++	assert.equal(s.claim(K, kid), true, "claim() accepts a nested folder that names the id");
++	assert.equal(s.claim(P, kid), false, "claim() refuses a folder that names another id");
++	assert.equal(s.record_of(K), kid, "record_of(): the nested record folder");
++	assert.equal(fresh().record_of(K), kid, "the claim is saved: a new process finds it");
++	assert.equal(fresh().of(K), thin, "of() is unchanged by a claim");
++	fs.rmSync(kid, { recursive: true });
++	assert.equal(fresh().record_of(K), thin, "a claimed folder that is gone falls back to of()");
++	const G = "a1a1a1a1-0007-4a19-9b01-000000000007", old = put("2026/11/04/session-e0e0e0e0/older-child", "task.jsonl", { assign: { session_id: G, agent: "minion-older" } });   // spawned before claim() existed
++	assert.equal(fresh().record_of(G), null, "an unclaimed nested folder is not found by id");
++	assert.equal(fresh().adopt_nested(), 1, "adopt_nested() claims the record folders below session folders");
++	assert.equal(fresh().record_of(G), old, "and record_of() then finds it");
++	console.log("SessionFolders: 25 checks pass");
+ } finally { fs.rmSync(ROOT, { recursive: true, force: true }); }
+diff --git a/public/framework/core/Task/Project.js b/public/framework/core/Task/Project.js
+index 5bdc8f6b72..be49d296bc 100644
+--- a/public/framework/core/Task/Project.js
++++ b/public/framework/core/Task/Project.js
+@@ -25,14 +25,8 @@ export class Project extends Task {
+ 		return this;
+ 	}
+ 
+-	// 0..1, computed: the mean of the subtasks' own completion (recursive); no subtasks, 0 until landed.
+-	get completed(){
+-		const kids = [...(this._tasks ?? [])];
+-		if (!kids.length) return super.completion;
+-		return kids.reduce((sum, k) => sum + (k.completed ?? k.completion ?? (k.get_one?.("state") === "complete" ? 1 : 0)), 0) / kids.length;
+-	}
+-	// The name every reader of a task already uses (index rows, TaskView); the same number as `completed`.
+-	get completion(){ return this.completed; }
++	// 0..1: the one score (Task.completion_score); `completed` is the project's older name for it.
++	get completed(){ return this.completion_score(); }
+ 
+ 	// Replays a project.jsonl (lines already parsed) into a Project. Reading the file is Server/ProjectMove.mjs's job.
+ 	static from_lines(lines){ return this.replay(lines); }
+diff --git a/public/framework/core/Task/Prompt.js b/public/framework/core/Task/Prompt.js
+index 6a77b3f62b..0d98679533 100644
+--- a/public/framework/core/Task/Prompt.js
++++ b/public/framework/core/Task/Prompt.js
+@@ -39,7 +39,7 @@ export class Prompt extends Task {
+ 	// migrated `refined` cards and `notes` (Server/PromptsToSession.mjs).
+ 	static plain_lists = ["raw", "parts", "refined", "notes"];
+ 	// Plain fields a log line may set (Task.replay_line reads Task.FIELDS and these).
+-	static line_fields = ["subject", "process", "handled", "refined", "notes", "text", "working"];
++	static line_fields = ["subject", "process", "handled", "refined", "notes", "text", "working", "counted", "no_action"];
+ 	static queries = [...Task.queries, "sentences", "settled_parts"];
+ 
+ 	static KINDS = ["ask", "question", "rule", "idea", "conversation"];
+@@ -120,13 +120,18 @@ export class Prompt extends Task {
+ 	settled_parts(){ return this.parts.filter(p => Prompt.settled(p, ref => this.task_state(ref))); }
+ 	/* With parts recorded, completion is settled parts over parts + uncited sentences; else the asks filed under it (the average of their own completions, as Task.completion); else
+ 	   my own stored state. Never reads `this.state`, which is computed from this. */
+-	get completion(){
++	completion_score(){
+ 		if (this.data.checked_by) return 1;
+ 		if (this.parts.length){ const { done, total } = this.progress_parts(); return total ? done / total : 0; }
+ 		const kids = [...(this._tasks ?? [])].filter(t => t.state !== "stopped");
+-		if (kids.length) return kids.reduce((sum, t) => sum + (typeof t.completion === "number" ? t.completion : t.state === "complete" ? 1 : 0), 0) / kids.length;
+-		return super.state === "complete" ? 1 : 0;
++		if (kids.length) return kids.reduce((sum, t) => sum + t.completion_score(), 0) / kids.length;
++		return super.state === "complete" || this.no_action ? 1 : 0;
+ 	}
++	/* THE OWNER'S WORDS COUNT AGAINST THE SCORE WITH NOBODY ACTING (the owner, 2026-11-04). The prompt-relay hook writes `counted: true` on every
++	   NEW prompt; one with that flag is a part of its session's score (Task.score_parts) and reads 0 until it is resolved: an agent files
++	   its asks under it (`tasks`), settles its parts, or marks it `{"no_action": "<why>"}` (a question answered, a remark). Old prompts have no flag and count nowhere. */
++	get counts_toward_score(){ return !!this.get_one("counted"); }
++	get no_action(){ return !!this.get_one("no_action"); }
+ 	/* A prompt reads complete the moment everything it asks is settled, with nobody calling complete(): the session's tally then counts it. */
+ 	get state(){
+ 		const s = super.state;
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index 87d1ab54f4..821877f8dc 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -206,7 +206,7 @@ export class Task extends Item {
+ 
+ 	/* QUERIES: what the item tool answers without writing a line (`{"summary":{}}`). Each only reads.
+ 	   `children` are the child SESSIONS: child tasks (referenced or inline) whose `path` folder holds a session record (`session_resolver`, wired by node). */
+-	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "rates", "unread"];
++	static queries = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "completion_score", "tally", "rates", "unread"];
+ 	/* A child is a SESSION when it replayed as one (a Session entry, or a folder whose record is a session's), or, for an old plain
+ 	   reference node has not replayed, when its folder holds session.jsonl (`session_resolver`). */
+ 	static session_resolver = null;
+@@ -312,11 +312,19 @@ export class Task extends Item {
+ 		return this;
+ 	}
+ 
+-	// 0..1. Order: owner check, subtasks (the average of their own completions, so it recurses), old `steps`, agent's value.
+-	get completion(){
++	/* THE ONE SCORE, 0..1 (the owner, 2026-11-02 and 2026-11-04). A plain method: read it here, call it anywhere. In order:
++	   1. the owner checked it off (`checked_by`)  -> 1
++	   2. it has parts: its subtasks that are not stopped (any depth; a child SESSION is one), plus the counted owner Prompts in its `content`
++	      (`counts_toward_score`)  -> the mean of each part's OWN score, so it recurses to any depth
++	   3. old `steps`/`step`, or the agent's `data.completion`  -> that
++	   4. otherwise  -> 1 if complete, else 0
++	   One complete task makes its session 1; finishing the deepest task moves every parent above it; an unresolved counted Prompt keeps its session
++	   below 1 with nobody acting. A stopped part is left out of the mean (dropped on purpose). The counts beside it (created, finished, open,
++	   unproven) come from `tally()`. `completion` is this method as a getter, so every page and the item tool show the same number. */
++	completion_score(){
+ 		if (this.data.checked_by) return 1;
+-		const kids = [...(this._tasks ?? [])].filter(t => t.state !== "stopped");
+-		if (kids.length) return kids.reduce((sum, t) => sum + (typeof t.completion === "number" ? t.completion : t.state === "complete" ? 1 : 0), 0) / kids.length;   // the average of each subtask's own completion (the owner, 2026-11-02); a stopped one is left out
++		const parts = this.score_parts();
++		if (parts.length) return parts.reduce((sum, t) => sum + t.completion_score(), 0) / parts.length;
+ 		const steps = this.data.steps;
+ 		if (Array.isArray(steps) && steps.length){
+ 			const step = Math.max(1, Math.min(Number(this.data.step) || 1, steps.length));
+@@ -326,6 +334,32 @@ export class Task extends Item {
+ 		if (typeof c === "number") return Math.max(0, Math.min(1, c));
+ 		return this.state === "complete" ? 1 : 0;
+ 	}
++	get completion(){ return this.completion_score(); }
++	// What the score averages: subtasks that are not stopped, then the owner Prompts in `content` that count (Prompt.counts_toward_score).
++	score_parts(){
++		const parts = [...(this._tasks ?? [])].filter(t => t.state !== "stopped");
++		for (const c of this._content ?? []) if (c.counts_toward_score && c.state !== "stopped") parts.push(c);
++		return parts;
++	}
++	/* The labelled counts beside the score: {created, finished, stopped, open, sessions, unproven, prompts: {counted, unresolved}}. Every task below me,
++	   at any depth; a child session counts as one task and its own tasks count too. `unproven` = finished with no outcome and no evidence
++	   (Task.proof_problem), whoever asked for it: a task is not done on the agent's word alone. */
++	tally(){
++		const t = { created: 0, finished: 0, stopped: 0, open: 0, sessions: 0, unproven: 0, prompts: { counted: 0, unresolved: 0 } };
++		const walk = node => {
++			for (const c of node._content ?? []) if (c.counts_toward_score){ t.prompts.counted++; if (c.completion_score() < 1 && c.state !== "stopped") t.prompts.unresolved++; }
++			for (const k of node._tasks ?? []){
++				t.created++;
++				if (k.is_session) t.sessions++;
++				if (k.state === "complete"){ t.finished++; if (Task.proof_problem(k)) t.unproven++; }
++				else if (k.state === "stopped") t.stopped++;
++				else t.open++;
++				walk(k);
++			}
++		};
++		walk(this);
++		return t;
++	}
+ 
+ 	// May this verb run from the task's state now? The same CAN map the verbs check; a button uses it to show only what works.
+ 	can(verb){ return Task.can(this.state, verb); }
+diff --git a/public/framework/core/Task/completion.test.mjs b/public/framework/core/Task/completion.test.mjs
+new file mode 100644
+index 0000000000..5a33ce919a
+--- /dev/null
++++ b/public/framework/core/Task/completion.test.mjs
+@@ -0,0 +1,90 @@
++// The one completion score (the owner, 2026-11-04): a plain method, recomputed here a second way, nested to any depth, with a child session and
++// with counted owner Prompts. DOM-free. `node public/framework/core/Task/completion.test.mjs`
++import Test from "../Test/Test.js";
++import Task from "./Task.js";
++import Session from "../Session/Session.js";
++
++const t = new Test("Task: completion_score() is one plain method; a child session and a counted Prompt move the parent");
++const at = m => `2026-11-04T10:${String(m).padStart(2, "0")}:00.000Z`;
++const done = (outcome = "done") => ({ complete: { outcome, evidence: ["a test"] } });
++
++// THE SECOND WAY: read the task tree as plain data and average it with a separate little recursion (no Task code).
++const plain = n => ({ state: n.state, checked: !!n.data.checked_by, kids: [...(n._tasks ?? [])].map(plain),
++	prompts: [...(n._content ?? [])].filter(c => c.counts_toward_score).map(c => ({ state: c.state, ok: c.completion_score() === 1, kids: [...(c._tasks ?? [])].map(plain) })) });
++const second = p => {
++	if (p.checked) return 1;
++	const parts = [...p.kids.filter(k => k.state !== "stopped"), ...p.prompts];
++	if (!parts.length) return p.state === "complete" ? 1 : 0;
++	return parts.reduce((s, k) => s + (k.ok !== undefined ? (k.ok ? 1 : k.kids.length ? second(k) : 0) : second(k)), 0) / parts.length;
++};
++const same = (n, why) => t.eq(Math.round(n.completion_score() * 1e9), Math.round(second(plain(n)) * 1e9), why);
++
++// 1. A parent session holding a child session that holds nested tasks.
++const parent = Session.replay([
++	{ session: { id: "p1", kind: "vscode-tab", at: at(0) } },
++	{ tasks: { add: { type: "Task", id: "mine", title: "My own task" } }, ts: at(1) },
++	{ tasks: { add: { type: "Session", id: "child", title: "A spawned agent" } }, ts: at(2) },
++	{ tasks: { child: { tasks: { add: { type: "Task", id: "a", title: "A" } } } }, ts: at(3) },
++	{ tasks: { child: { tasks: { a: { tasks: { add: { type: "Task", id: "deep", title: "Deepest" } } } } } }, ts: at(4) },
++	{ tasks: { child: { tasks: { add: { type: "Task", id: "b", title: "B" } } } }, ts: at(5) },
++]);
++const child = parent.find("child");
++t.ok(child?.is_session, "the child session is a Session inside the parent's tasks");
++t.eq(parent.completion_score(), 0, "nothing finished: 0");
++same(parent, "the second recomputation agrees (nothing finished)");
++
++parent.find("deep").complete(done().complete);
++const afterDeep = parent.completion_score();
++t.ok(afterDeep > 0, "finishing the DEEPEST task moves the parent's number");
++t.eq(afterDeep, (0 + (1 + 0) / 2) / 2, "the number is the mean of means: mine 0, child (a 1 via its deepest task, b 0) 0.5");
++t.eq(parent.completion, parent.completion_score(), "`completion` is the same number as the method");
++same(parent, "the second recomputation agrees (deepest done)");
++
++parent.find("mine").complete(done().complete);
++t.ok(parent.completion_score() < 1, "everything but one task (b) is done: still below 1");
++t.eq(parent.completion_score(), (1 + (1 + 0) / 2) / 2, "the number is the mean of means: mine 1, child (a 1, b 0) 0.5");
++parent.find("b").complete(done().complete);
++t.eq(parent.completion_score(), 1, "finishing all of them is exactly 1");
++same(parent, "the second recomputation agrees (all done)");
++t.eq(parent.tally().created, 5, "tally: created counts child sessions and tasks at any depth");
++t.eq(parent.tally().finished, 3, "tally: finished (mine, deep, b; the child session and a have not been completed themselves)");
++t.eq(parent.tally().sessions, 1, "tally: one child session");
++
++// 2. A session with ONE complete task is itself complete.
++const one = Session.replay([{ session: { id: "s2" } }, { tasks: { add: { type: "Task", id: "x", title: "X" } }, ts: at(1) }, { tasks: { x: done() }, ts: at(2) }]);
++t.eq(one.completion_score(), 1, "a session with one complete task is complete");
++
++// 3. A stopped task is left out; an unproven finish is counted, not hidden.
++const mix = Session.replay([{ session: { id: "s3" } },
++	{ tasks: { add: { type: "Task", id: "p", title: "P" } }, ts: at(1) }, { tasks: { add: { type: "Task", id: "q", title: "Q" } }, ts: at(2) },
++	{ tasks: { p: done() }, ts: at(3) }, { tasks: { q: { stop: { why: "dropped" } } }, ts: at(4) }]);
++t.eq(mix.completion_score(), 1, "a stopped task leaves the mean");
++t.eq(mix.tally().stopped, 1, "tally: stopped");
++const bare = Session.replay([{ session: { id: "s3b" } }, { tasks: { add: { type: "Task", id: "p", title: "P" } }, ts: at(1) }, { landed_at: at(2) }, { tasks: { p: { complete: {} } }, ts: at(3) }]);
++t.eq(bare.tally().unproven, bare.find("p")?.state === "complete" ? 1 : 0, "tally: a complete task with no outcome and no evidence is counted as unproven");
++
++// 4. An owner Prompt with `counted` lowers the score until it is resolved; an old Prompt (no flag) counts nowhere.
++const ps = Session.replay([{ session: { id: "s4" } },
++	{ tasks: { add: { type: "Task", id: "k", title: "K" } }, ts: at(1) }, { tasks: { k: done() }, ts: at(2) },
++	{ content: { add: { type: "Prompt", id: "old", text: "an old one" } }, ts: at(3) },
++	{ content: { add: { type: "Prompt", id: "new1", text: "do the thing", counted: true } }, ts: at(4) }]);
++t.eq(ps.completion_score(), 0.5, "one finished task + one unresolved counted prompt: 1/2");
++t.eq(ps.tally().prompts.unresolved, 1, "tally: one unresolved prompt");
++same(ps, "the second recomputation agrees (with a prompt)");
++ps.content.find("new1").set({ no_action: "a question, answered in chat" });
++t.eq(ps.completion_score(), 1, "marking the prompt no-action resolves it with nobody filing a task");
++t.eq(ps.tally().prompts.unresolved, 0, "tally: none unresolved");
++
++// 4b. The same resolution as a log line: {"<prompt id>":{"no_action":"why"}}.
++const viaLine = Session.replay([{ session: { id: "s4b" } }, { content: { add: { type: "Prompt", id: "q1", text: "what is x?", counted: true } }, ts: at(1) }, { q1: { no_action: "answered in chat" }, ts: at(2) }]);
++t.eq(viaLine.completion_score(), 1, "a {no_action} line on the prompt resolves it");
++
++// 5. Resolving a counted Prompt by filing a task under it: the score follows that task.
++const ps2 = Session.replay([{ session: { id: "s5" } }, { content: { add: { type: "Prompt", id: "n", text: "fix it", counted: true } }, ts: at(1) }]);
++t.eq(ps2.completion_score(), 0, "an unresolved counted prompt alone: 0");
++ps2.content.find("n").tasks.add({ type: "Task", id: "fix", title: "Fix it" });
++t.eq(ps2.completion_score(), 0, "a task filed under it, not done: still 0");
++ps2.content.find("n").find("fix").complete(done().complete);
++t.eq(ps2.completion_score(), 1, "the task done: the prompt, and so the session, is 1");
++
++t.done();

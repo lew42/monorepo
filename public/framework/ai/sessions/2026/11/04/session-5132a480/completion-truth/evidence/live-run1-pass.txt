@@ -1,0 +1,15 @@
+created /framework/ai/sessions/2026/11/04/session-d6e2e291/live-process/ (parent session d6e2e291-6942-475c-b0c1-b67937917446)
+0.1 min  process written, nothing started   parent score 0.0%
+3.7 min  step-1 started                     parent score 0.0%
+3.8 min  spawned step-1 (helper-task-step-1) parent score 0.0%
+4.1 min  step-1 complete                    parent score 33.3%
+4.1 min  step-2 started                     parent score 33.3%
+4.2 min  spawned step-2 (helper-task-step-2-2) parent score 33.3%
+4.3 min  step-2 complete                    parent score 66.7%
+4.3 min  step-3 started                     parent score 66.7%
+4.4 min  spawned step-3 (helper-task-step-3) parent score 66.7%
+4.5 min  step-3 complete                    parent score 100.0%
+4.6 min  process complete                   parent score 100.0%
+PASS: node started each step, each completion started the next, the last completed the process, the parent went to 100%
+left in place: C:\Code\lew42\monorepo\public\framework\ai\sessions\2026\11\04\session-d6e2e291
+exit 0

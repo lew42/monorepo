@@ -1,0 +1,8 @@
+created /framework/ai/sessions/2026/11/04/session-2dc89bc2/live-process/ (parent session 2dc89bc2-5cd5-4fd8-a09b-4027d46366c2)
+0.0 min  process written, nothing started   parent score 0.0%
+3.5 min  step-1 started                     parent score 0.0%
+3.5 min  spawned step-1 (helper-task-step-1-2) parent score 0.0%
+3.7 min  step-1 complete                    parent score 33.3%
+3.8 min  step-2 started                     parent score 33.3%
+3.8 min  restarting Servex (sustain --restart) parent score 33.3%
+3.8 min  spawned step-2 (helper-task-step-2-3) parent score 33.3%
