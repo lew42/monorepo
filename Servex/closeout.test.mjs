@@ -148,6 +148,18 @@ try {
 	assert.equal(k2.ok, true, JSON.stringify(k2)); assert.ok(!wt_listed(wt3) && !fs.existsSync(wt3), "removed from git and disk once the agent stopped");
 	ok(`a worktree with a working agent inside is kept (${k.why.slice(0, 40)}...), then removed from git and disk once it stops`);
 
+	// an unreadable process list: the close says so and why, and the sweep writes no "found gone" line for a process it simply could not see
+	const blind = new Lifecycle();
+	blind.processes_async = async function(){ this.process_error = "powershell.exe: ENOENT test"; return new Map(); };
+	await blind.record({ kind: "server", id: "blind-check", pid: process.pid, event: "start" });
+	const sw = await blind.sweep({ dry: true });
+	assert.equal(sw.gone.length, 0, "an unreadable list must not mark live processes gone");
+	const r3 = await blind.closeout(task, { why: "blind close" });
+	assert.equal(r3.ok, false);
+	assert.match(r3.left.find(x => x.kind === "process-list")?.why ?? "", /ENOENT test/, "the failure names its cause");
+	await blind.record({ kind: "server", id: "blind-check", event: "end", why: "test over" });
+	ok("an unreadable process list is reported with its cause, and marks nothing gone");
+
 
 	console.log(`\nALL ${passed} CHECKS PASSED`);
 } catch (e) {
