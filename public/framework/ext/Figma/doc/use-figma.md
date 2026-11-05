@@ -9,15 +9,16 @@ System work (tokens, components) now lives in the **"November 2026"** file (the 
 What the design system file holds:
 - **Colors** (1 mode): `prime`, `light`, `dark`, `error`, `ok`, `warn`. `prime`, `light` and `dark` are hidden from pickers.
 - **Scheme** (modes White, Light gray, Prime, Dark; roles `text`, `muted`, `surface`, `accent`, `on-accent`): the Sept-2026 `Text` collection, renamed.
-- **Resolution** (Default, Mobile, Mega): `pad-x`, `pad-y`, `gap`, `radius`, `btn-pad-x`, `btn-pad-y`, `h1-size`.
-- **Text styles** `h1`–`h4` and `body` (Montserrat); **components** Button and Card, inside the `Claude · working area` frame on Page 1.
+- **Resolution** (Default, Mobile, Mega): `pad-x`, `pad-y`, `gap`, `radius`, `btn-pad-x`, `btn-pad-y`, `h1-size`, `small-pad-x`, `small-pad-y`.
+- **Button** (modes Primary, Transparent; variables `fill` = Scheme/`accent` or 10% black, `label` = Scheme/`on-accent` or Scheme/`text`): the button's style, as a mode (see [modes over variants](#modes-over-variants-owner-2026-11-05)).
+- **Text styles** `h1`–`h4` and `body` (Montserrat); **components** Button, Card, Icon button and Page. Masters sit on the root canvas.
 
 ### How Claude works in a file (owner's rules, 2026-11-05)
 
 1. **One author frame.** Everything Claude builds goes inside one top-level frame named `Claude · working area`, headed by a `smart_toy` icon (in the file's icon font: Material Symbols Rounded in Sept-2026, Material Icons in the design system file), an h1 "Claude" and a one-line context note. Claude edits only inside it.
 2. **Duplicate before editing.** To change something the owner made, duplicate it into Claude's frame and edit the copy. Never edit the owner's nodes in place.
 3. **Read before every edit.** Re-read the current page and nodes before each edit; never assume the owner hasn't changed something since the last read.
-4. **Explain on the canvas, not in chat.** Every group gets an on-canvas label (h4 kicker + h3 title + one plain-English line: what it is, why it exists, where it goes) and clear layer names (a bad name: "backdrop is review-only"). Chat replies stay short; the canvas carries the explanation.
+4. **Explain on the canvas, not in chat.** Every group gets an on-canvas label (h4 kicker + h3 title + one plain-English line: what it is, why it exists, where it goes) and clear layer names (a bad name: "backdrop is review-only"). Chat replies stay short; the canvas carries the explanation. Claude answers a question by changing the design or adding a labelled note on the canvas, so the answer is self-evident; a quick answer is spoken. No long chat replies.
 5. **Normal auto-layout frames, never Sections** (see the skill).
 6. **Doc and repo edits from a cloud chat** go through a spawned local SDK agent, not the chat running shell commands itself.
 
@@ -29,7 +30,9 @@ What the design system file holds:
 - Modes per collection: Pro 10, Org 20 (raised from 4 on 2025-10-28).
 - **Agents can create files** (Figma MCP `create_new_file`).
 - The headless `use_figma` copy reports `figma.root.name` as "Document", so it can't read or rename the file. The owner renames files in Figma (the file key and links don't change).
-- **Trap: a Card whose fill is `surface` disappears on a ground of the same scheme** (white on white). A main component shown on the canvas needs a backdrop of a different shade, or the card must sit on a ground in another mode.
+- **Trap: a Card (or any ground) filled with `surface` disappears on a parent of the same mode** (white on white). Give it a hairline (10% black, inside) or put it on a backdrop of a different shade; a card that must sit on a same-mode ground needs the hairline.
+- **A new design file in a team gets the 8 Figma UI kits added by default.** Remove what you don't use.
+- **Consumer file** ("Library test", `85fN2Vo4ZvuTUukvCc2zfu`, in the Pro team's Drafts): a file that uses the library, to see what a consumer gets. Variables and text styles import fine (published under the old name "November 2026"). Components made after the owner's first publish (which had only the 3 collections and 5 text styles) are not in the library until it is published again; `importComponentByKeyAsync` returns "not found" until then. Republish after adding components.
 
 ## The file's tokens (Sept-2026, `QYN0G2URSBHYH5I06MOjxU`)
 
@@ -119,7 +122,7 @@ A slot does **not** detach anything. The instance stays linked to its main compo
 |---|---|---|
 | is the same in every use | leave it in the main component | site nav, footer, page padding |
 | differs only in words or on/off | a TEXT or BOOLEAN property | page title, subtitle, "show breadcrumb" |
-| is one of a small, known set | a VARIANT (style or state) or an INSTANCE_SWAP (pick one thing from a list) | icon, button style, size |
+| is one of a small, known set | a VARIANT (style or state) or an INSTANCE_SWAP (pick one thing from a list) | icon, size (a colour or style switch is a mode in the design system file, not a variant) |
 | is open-ended content | a SLOT, filled with instances of small components | a page body, a card body, a dialog body |
 
 A page is a `Page` template: its nav, title and footer live in the main component, and its body is a `Content` slot holding Card, List and Section instances. Don't make a variant per page. That means editing the main component for every new page, which is the awkward loop. A variant is for a handful of styles, never for content.
@@ -130,8 +133,8 @@ Decisions:
 - **No text properties on components.** With placeholder text, a plain override is fine and a property is just more to manage. Keep component properties for real toggles and swaps. (This supersedes the TEXT-property rows in the table above and the kit's Label/Sub/Meta properties for new work in the design system file.)
 - **Card is a thin shell:** a padded `surface` with one `Content` SLOT. Its default content (kicker, title, body, Button) is starter content only; the Kicker/Title/Body/Show toggles were removed.
 - **Master components live on the root canvas, not nested in frames.** A nested master loses its purple component label, which the owner wants visible.
-- **Button is a component set:** `Style=Primary` (accent fill) and `Style=Transparent` (10% black fill, `text` label; works on any ground).
-- **Page** (owner-built, file `hbolzQ3Xnc78rhxAPj8xK2`): a wrapper frame (no padding, gap bound to `gap`) holding a Toolbar row of `Button Style=Transparent` instances, then a Card instance.
+- **Button is one component again** (the `Style` variant set is gone): its look comes from the **Button** variable collection, modes Primary and Transparent ([modes over variants](#modes-over-variants-owner-2026-11-05)). Transparent is a 10% black fill with a `text` label and works on any ground.
+- **Page** (owner-built, file `hbolzQ3Xnc78rhxAPj8xK2`): a wrapper frame (no padding, gap bound to `gap`) holding a Toolbar row of Transparent-mode buttons, then a Card instance.
 
 How a slot behaves in copies (verified by the owner by testing):
 1. Anything in the master outside the slot (toolbar, fill, radius) always propagates to every copy.
@@ -139,9 +142,28 @@ How a slot behaves in copies (verified by the owner by testing):
 3. Overriding the slot node's own properties (for example a bigger corner radius on the slot in a copy) does **not** break that: contents and order still follow the master. This holds through nesting (a slot inside a Card instance inside the Page).
 4. So shared chrome (toolbars, headers, footers) goes in the master around the slot; the slot holds only what changes per page.
 
-Icons in the design system file (2026-11-05): they use the **Material Icons** font (filled), the same set the site loads, not Material Symbols (Sept-2026's icon font). New component **Icon button**: square, 10% black fill, padding `small-pad-x` (12, so 48×48), a 24 px glyph in `text`; change the icon by typing its name into the `Icon` layer. `small-pad-x` / `small-pad-y` (12/8/16 and 6/4/8 for Default/Mobile/Mega) were copied into Resolution from Sept-2026. The Page toolbar is now `arrow_back` on the left, `share` and `more_vert` on the right.
+Icons in the design system file (2026-11-05): they use the **Material Icons** font (filled), the same set the site loads, not Material Symbols (Sept-2026's icon font). New component **Icon button**: square, padding `small-pad-x` (12, so 48×48), a 24 px glyph in `text`; it binds the same `fill`/`label` variables as Button and sets Button mode Transparent on its main, which its copies inherit; change the icon by typing its name into the `Icon` layer. `small-pad-x` / `small-pad-y` (12/8/16 and 6/4/8 for Default/Mobile/Mega) were copied into Resolution from Sept-2026. The Page toolbar is now `arrow_back` on the left, `share` and `more_vert` on the right.
 
 Open: should Page wrap a Card instance (one extra layer, lets things sit outside the card) or be flat, the surface itself?
+
+#### Modes over variants (owner, 2026-11-05)
+
+A colour or style switch is a **variable mode**, not a variant: `Scheme` for grounds, `Button` (Primary, Transparent) for button style. Use a variant only when a named setup changes many things at once. Why: variants don't inherit from each other, and making one variant a child of another means wrapping a component in an instance of another, which gets tricky. Removing the Style variant set from Button is the worked example.
+
+#### Rebasing a component, and the zero-config root (owner, 2026-11-05)
+
+- **Rebasing:** duplicate a component, detach it, and make a new component from it under a new name. It no longer inherits from the base (it is not a live template).
+- **Under consideration, not decided:** keep a master's root layer zero-config (no fill, radius, clipping) so a duplicate-and-rebase inherits exactly what the master did. The cost is one extra layer that agents must remember to put things inside.
+
+#### Where masters go as the library grows (owner, 2026-11-05)
+
+Masters on the root canvas will sprawl. The likely fix is **one library page per component family**: the Assets panel groups library components by page, then top-level frame, so the library pages become the sections of the drag-and-drop toolbox ([builder.md](./builder.md)). Not built yet; the owner wants to see a consumer file first, and that drives the structure (see the consumer-file note above).
+
+#### Grid auto layout: equal-height cards that adapt (verified 2026-11-05)
+
+Set `frame.layoutMode = 'GRID'`, then `gridColumnCount` / `gridRowCount`, `gridColumnSizes = [{type:'FLEX', value:1}, …]` and `gridRowSizes = [{type:'HUG'}, …]`; bind `gridRowGap` / `gridColumnGap` to `gap`. The grid frame has a fixed width and HUG height; its children get `layoutSizingHorizontal` and `layoutSizingVertical` = `'FILL'`. Each row takes the tallest card's height and every card in it fills: making one card's text longer grew all three from 346 to 520. **Trap:** append the children *after* setting `layoutMode = 'GRID'`; children already in the frame kept one row each. Re-append them to re-flow. This replaces the "tallest hugs" and "fixed row" workarounds in [figma-layout.md](./figma-layout.md).
+
+Removing boolean component properties (Show kicker, Show button) made every previously hidden layer visible again in all copies; re-hide or delete those layers afterwards.
 
 A worked example: `Kit · Slots vs components` (`238:30989`) builds the same card three ways and a nested Site template > Section template navigation system with a clickable prototype: [report](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/slots.md).
 

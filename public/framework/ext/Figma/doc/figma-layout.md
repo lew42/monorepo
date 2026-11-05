@@ -7,7 +7,8 @@ The general rules (fluid first, no voids, no clipping, repetition, masonry) live
 - **Wrappers are transparent.** A frame that only groups or lays out (Tiles, Specimens, a row) has no fill; `createFrame()` defaults to white, so clear it. Grounds belong to cards, sections and pages.
 - **No clipping by default.** `clipsContent = false` on cards and specimens unless the clip is the point (an image crop, a phone screen). A specimen that clips its own content means its size is wrong, not its content.
 - **A HUG parent with only FILL children collapses.** At least one child must give the size.
-- **Equal heights in a row: two ways, and both have a cost.**
+- **Equal heights that adapt: use a GRID frame** (`layoutMode = 'GRID'`, FLEX columns, HUG rows, children FILL both ways; each row takes its tallest card and every card in it fills; append children after setting GRID). Recipe and trap: [use-figma.md](use-figma.md#grid-auto-layout-equal-height-cards-that-adapt-verified-2026-11-05). It replaces (a) and (b) below, kept for rows that must stay flex.
+- **Equal heights in a row, the older two ways, and both have a cost.**
   - (a) *Tallest hugs*: the tallest child is HUG and the rest are `layoutSizingVertical = "FILL"`. It adapts, but it breaks as soon as a different child becomes the tallest, so it is poor for reusable templates.
   - (b) *Fixed row*: the row has a fixed height bigger than any card (named in the layer, `Row (fixed 320: equal cards)`), and every card FILLs it. It is robust when content is swapped, but it doesn't grow, so check that nothing clips.
   - Either way, align card content to the TOP (`primaryAxisAlignItems = "MIN"`), never centre it (see space.md).
