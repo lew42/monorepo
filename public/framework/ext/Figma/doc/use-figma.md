@@ -14,7 +14,7 @@ What the design system file holds:
 
 ### How Claude works in a file (owner's rules, 2026-11-05)
 
-1. **One author frame.** Everything Claude builds goes inside one top-level frame named `Claude · working area`, headed by a Material Symbols Rounded `smart_toy` icon, an h1 "Claude" and a one-line context note. Claude edits only inside it.
+1. **One author frame.** Everything Claude builds goes inside one top-level frame named `Claude · working area`, headed by a `smart_toy` icon (in the file's icon font: Material Symbols Rounded in Sept-2026, Material Icons in the design system file), an h1 "Claude" and a one-line context note. Claude edits only inside it.
 2. **Duplicate before editing.** To change something the owner made, duplicate it into Claude's frame and edit the copy. Never edit the owner's nodes in place.
 3. **Read before every edit.** Re-read the current page and nodes before each edit; never assume the owner hasn't changed something since the last read.
 4. **Explain on the canvas, not in chat.** Every group gets an on-canvas label (h4 kicker + h3 title + one plain-English line: what it is, why it exists, where it goes) and clear layer names (a bad name: "backdrop is review-only"). Chat replies stay short; the canvas carries the explanation.
@@ -139,6 +139,8 @@ How a slot behaves in copies (verified by the owner by testing):
 3. Overriding the slot node's own properties (for example a bigger corner radius on the slot in a copy) does **not** break that: contents and order still follow the master. This holds through nesting (a slot inside a Card instance inside the Page).
 4. So shared chrome (toolbars, headers, footers) goes in the master around the slot; the slot holds only what changes per page.
 
+Icons in the design system file (2026-11-05): they use the **Material Icons** font (filled), the same set the site loads, not Material Symbols (Sept-2026's icon font). New component **Icon button**: square, 10% black fill, padding `small-pad-x` (12, so 48×48), a 24 px glyph in `text`; change the icon by typing its name into the `Icon` layer. `small-pad-x` / `small-pad-y` (12/8/16 and 6/4/8 for Default/Mobile/Mega) were copied into Resolution from Sept-2026. The Page toolbar is now `arrow_back` on the left, `share` and `more_vert` on the right.
+
 Open: should Page wrap a Card instance (one extra layer, lets things sit outside the card) or be flat, the surface itself?
 
 A worked example: `Kit · Slots vs components` (`238:30989`) builds the same card three ways and a nested Site template > Section template navigation system with a clickable prototype: [report](/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/slots.md).
@@ -194,6 +196,7 @@ Design files have no live connectors (`ConnectorNode` is FigJam-only), so arrows
 ## Traps
 
 - **`code` style can't load**: Figma has no Consolas, so `loadFontAsync` throws and the whole script aborts. Code text uses Cousine Bold by hand. The real fix is to change the style's font in Figma (the owner's file; ask first).
+- **`figma.combineAsVariants()` makes a real component set without the purple dashed border** Figma's UI adds, so it looks like a plain frame (2026-11-05). Add it in the script: `strokes` #9747FF, `dashPattern` [10, 5], `strokeWeight` 1, `cornerRadius` 5.
 - **Wrap rows don't grow their children**: in a `layoutWrap = "WRAP"` row, children stayed at their `minWidth`. Use a plain row with FILL children.
 - **3440×1440 is wide, not tall**: v1 stacked its cards and overflowed the bottom; v2 moved them side by side (steps in a 2×2 grid, stacks across the width, type ramp in the rail) and fits.
 - A glyph outside Montserrat (↳ ✕ ⌕) falls back to Noto Sans Symbols2; any later edit to that frame needs that font loaded too, so load every font with `getRangeAllFontNames` first.

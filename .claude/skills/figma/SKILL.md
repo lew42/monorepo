@@ -12,7 +12,7 @@ We design in Figma before we build when a view is new or disputed: the owner can
 ## The basics
 
 - **The file:** system work (tokens, components) goes in the design system file "November 2026" (being renamed "Lew42 Design System"), key `hbolzQ3Xnc78rhxAPj8xK2`; it is the library. The September 2026 file `QYN0G2URSBHYH5I06MOjxU` keeps its existing pages. Agents can create files (`create_new_file`), but reuse a page where one fits; name it for the work ("Sessions and tasks") and say its node id in your log.
-- **Your own frame** (the owner, 2026-11-05): everything you build goes inside one top-level frame named `Claude · working area`, headed by a `smart_toy` icon (Material Symbols Rounded), an h1 "Claude" and a one-line context note. Edit only inside it.
+- **Your own frame** (the owner, 2026-11-05): everything you build goes inside one top-level frame named `Claude · working area`, headed by a `smart_toy` icon (the file's icon font), an h1 "Claude" and a one-line context note. Edit only inside it.
 - **Duplicate before editing:** to change something the owner made, duplicate it into your frame and edit the copy; never edit the owner's nodes in place.
 - **Read before every edit:** re-read the page and nodes right before each edit; the owner may have changed them since your last read.
 - **Explain on the canvas, not in chat:** every group you make gets a label (h4 kicker, h3 title, one plain line: what it is, why it exists, where it goes) and clear layer names. Chat stays short.
