@@ -183,8 +183,7 @@ export async function collect(targetDir) {
 	}
 
 	const cardFiles = [
-		...walk(path.join(root, "public/framework/ai")),
-		...walk(path.join(root, "public/framework/ai2"))
+		...walk(path.join(root, "public/framework/ai"))
 	];
 
 	for (const cf of cardFiles) {

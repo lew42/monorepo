@@ -1,6 +1,6 @@
 import { browser } from "../../../../../../../../../Server/Browser.mjs";
 const base = process.argv[2];
-const urls = ["/framework/ai2/", "/framework/ai2/log/", "/framework/ai2/2026/10/20/session-e00f55c9/", "/framework/ai/", "/framework/dev/DevBar/"];
+const urls = ["/framework/ai2/", "/framework/ai2/needs/", "/framework/ai2/log/", "/framework/ai2/2026/10/20/session-e00f55c9/", "/framework/ai/", "/framework/dev/DevBar/"];
 const b = await browser();
 for (const u of urls) {
 	const p = await b.newPage();

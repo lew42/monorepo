@@ -1,6 +1,6 @@
 # ai/rail: the list on the left, and the data behind it
 
-Moved here from `ai2/` on 2026-10-09 (the old paths are one-line shims). `AIRail` is the one rail the AI page's Inbox and Log tabs and the old `/framework/ai2/` address all draw.
+Moved here from the old `ai2/` folder on 2026-10-09; that folder was removed on 2026-11-04 (its archive: [ai/archive/ai2/](../archive/ai2/readme.md)). `AIRail` is the one rail the AI page's Inbox and Log tabs all draw (the old `/framework/ai2/` address now redirects to `/framework/ai/`).
 
 - `rail.js`, `rail.css`: `AIRail`, the rail itself.
 - `inbox.js`: `CardList`, `Board`, `Day`: where the cards come from (board, day logs, asks).
