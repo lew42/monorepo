@@ -95,3 +95,28 @@
 {"content":{"clear":true},"header":null,"footer":null,"light":false,"by":"mastermind-live-page","ts":"2026-11-06T08:08:19.745Z"}
 {"file":"readme.md","gone":true}
 {"file":"readme.md"}
+{"content":{"add":{"type":"live-checklist","id":"tun","title":"Tunnel test","items":[{"id":"a","text":"Tick me"}]}},"by":"mastermind-live-page","ts":"2026-11-06T08:22:14.490Z"}
+{"content":{"remove":"tun"},"by":"mastermind-live-page","ts":"2026-11-06T08:22:16.119Z"}
+{"content":{"add":{"type":"live-checklist","id":"tun","title":"Tunnel test","items":[{"id":"a","text":"Tick me"}]}},"by":"mastermind-live-page","ts":"2026-11-06T08:22:34.024Z"}
+{"content":{"remove":"tun"},"by":"mastermind-live-page","ts":"2026-11-06T08:22:38.332Z"}
+{"content":{"add":{"type":"live-checklist","id":"tun","title":"Tunnel test","items":[{"id":"a","text":"Tick me"}]}},"by":"mastermind-live-page","ts":"2026-11-06T08:23:07.671Z"}
+{"content":{"#tun":{"items":{"#a":{"set":{"done":true}}}}},"by":"owner","ts":"2026-11-06T08:23:07.773Z"}
+{"content":{"remove":"tun"},"by":"mastermind-live-page","ts":"2026-11-06T08:23:11.791Z"}
+{"file":"LiveScreen.js"}
+{"content":{"clear":true},"by":"mastermind-live-page","ts":"2026-11-06T08:27:46.276Z"}
+{"file":"nav-test/page.jsonl"}
+{"content":{"add":{"type":"part-link","id":"nav","path":"./nav-test/","title":"The plan","text":"Tap to open the plan."}},"by":"mastermind-live-page","ts":"2026-11-06T08:27:46.319Z"}
+{"content":{"add":{"type":"part-text","id":"t1","text":"Plain text, no frame."}},"by":"mastermind-live-page","ts":"2026-11-06T08:27:46.319Z"}
+{"content":{"nav":{"text":"Preview, edited."}},"by":"mastermind-live-page","ts":"2026-11-06T08:27:49.198Z"}
+{"save":{"name":"s1","title":"Saved one"},"by":"mastermind-live-page","ts":"2026-11-06T08:27:49.606Z"}
+{"content":{"clear":true},"by":"mastermind-live-page","ts":"2026-11-06T08:28:49.873Z"}
+{"content":{"add":{"type":"part-link","id":"nav","path":"./nav-test/","title":"The plan","text":"Tap to open the plan."}},"by":"mastermind-live-page","ts":"2026-11-06T08:28:49.907Z"}
+{"content":{"add":{"type":"part-text","id":"t1","text":"Plain text, no frame."}},"by":"mastermind-live-page","ts":"2026-11-06T08:28:49.907Z"}
+{"content":{"nav":{"text":"Preview, edited."}},"by":"mastermind-live-page","ts":"2026-11-06T08:28:53.311Z"}
+{"save":{"name":"s1","title":"Saved one"},"by":"mastermind-live-page","ts":"2026-11-06T08:28:53.719Z"}
+{"restore":"s1","by":"mastermind-live-page","ts":"2026-11-06T08:28:54.787Z"}
+{"content":{"clear":true},"by":"mastermind-live-page","ts":"2026-11-06T08:29:16.298Z"}
+{"screens":{"remove":"s1"},"by":"mastermind-live-page","ts":"2026-11-06T08:29:16.298Z"}
+{"file":"nav-test/page.jsonl","gone":true}
+{"file":"_removed/"}
+{"file":"_removed/","gone":true}

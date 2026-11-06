@@ -24,6 +24,19 @@ export default class Subpages {
 		return new Subpages(path.join(pub, ...String(url || "/").split("/").filter(Boolean)), opts);
 	}
 
+	/* The class this parent's own page.jsonl names on line 1, as a site-absolute module url ("./LivePage.js" in public/live/ ->
+	   "/live/LivePage.js"), so a child folder can name the same module; null when line 1 names none. A new sub-page inherits it
+	   unless pages.add gives its own `class` (2026-11-06: voice's sub-pages of /live/ draw as LivePage, not a plain Page). */
+	page_class(){
+		try {
+			const first = JSON.parse(fs.readFileSync(path.join(this.dir, "page.jsonl"), "utf8").split("\n")[0]);
+			if (typeof first?.class !== "string") return null;
+			if (first.class.startsWith("/")) return first.class;
+			const site = "/" + path.relative(PUBLIC, this.dir).replaceAll("\\", "/") + "/";
+			return new URL(first.class, "http://site" + site).pathname;
+		} catch { return null; }
+	}
+
 	get kind(){
 		return fs.existsSync(path.join(this.dir, "page.js")) ? "page.js"
 			: fs.existsSync(path.join(this.dir, "page.jsonl")) ? "page.jsonl" : null;
@@ -34,7 +47,8 @@ export default class Subpages {
 		this.check_name(name);
 		const dir = path.join(this.dir, name), kind = this.need_kind();
 		if (fs.existsSync(dir)) throw new Error(`${name} already exists under ${this.dir}`);
-		const first = { title: title ?? name, ...(icon ? { icon } : {}), ...(description ? { description } : {}), ...more };
+		const inherited = more.class === undefined ? this.page_class() : undefined;   // a LivePage's sub-page is a LivePage
+		const first = { title: title ?? name, ...(icon ? { icon } : {}), ...(description ? { description } : {}), ...(inherited ? { class: inherited } : {}), ...more };
 		const plan = { action: "add", name, make: rel(dir + "/page.jsonl"), first, link: this.link_plan(kind, name) };
 		if (this.dry) return { ok: true, dry: true, ...plan };
 		fs.mkdirSync(dir, { recursive: true });
