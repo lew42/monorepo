@@ -135,8 +135,8 @@ everywhere, including the ones in this readme.
 
 ## Open
 
-- **More languages.** `bash` and `diff` are the two that would get used in
-  these readmes. One file each; deliberately not done until wanted.
+- **More languages.** `bash` landed 2026-11-06 (`code.sh`, for the `/live/`
+  code card). `diff` is the one left; one file, not done until wanted.
 - **Auto-detection.** `hljs.highlightAuto()` is one line away. Not wired:
   slower, wrong often enough to be annoying, and every fence on this site can
   say what it is.
