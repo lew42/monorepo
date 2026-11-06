@@ -1535,7 +1535,7 @@ export function page_tools(resolve_log = null){
 		tool("page_add",
 			"Alias of page_set `{\"content\":{\"add\":item}}`: add one card (type part-heading | part-text | part-card). Prefer page_set (core/Page/doc/ai-api.md).",
 			{ path: PAGE_PATH,
-				item: { type: "object", description: "The item's own fields — whatever the content list draws: `title`, `text`, `type` (a registered class name, e.g. \"Question\", with its own `text`/`answer`), or any plain data. `id` is optional; one is made for you." },
+				item: { type: "object", description: "The item's own fields — whatever the content list draws: `title`, `text`, `type` (the name a class was registered under with Item.register: \"part-card\" is PageCard, \"part-text\" PageText, \"part-heading\" PageHeading; \"Question\" is Question, with its own `text`/`answer`), or any plain data. `id` is optional; one is made for you." },
 				after: { type: "string", description: "The id to land after. Omit to append at the end; `null` to land first." } },
 			["item"],
 			async ({ path: url, item, after }, ctx = {}) => {

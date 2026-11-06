@@ -55,7 +55,7 @@ A bad line is refused before it is written: a `_` key, a `part-*` type nobody re
 ## Names, once
 
 - **page**: anything with a url. **subpage**: a page inside another, with its own folder and url.
-- **content**: the page's own list of cards. **card**: one item in it (`part-heading`, `part-text`, `part-card`, `part-link`, `part-view`, `part-file`; any registered type). `part-text` already takes a whole block of markdown (paragraphs, lists, code blocks), so there is no separate type for one.
+- **content**: the page's own list of cards. **card**: one item in it (`part-heading`, `part-text`, `part-card`, `part-link`, `part-view`, `part-file`; any registered type). A `type` is the name a class was registered under (`Item.register(PageCard, "part-card")`, in `parts/PageCard.js`), not always the class name: the six `part-*` names are PageHeading, PageText, PageCard, PageLink, PageView and PageFile, listed in `parts/kinds.js`. A page can register its own types too, as `/live/` does (`live-checklist`, `live-light`, `live-button`). `part-text` already takes a whole block of markdown (paragraphs, lists, code blocks), so there is no separate type for one.
 - **delta**: the JSON object you send. **line**: that delta, stamped and appended to `page.jsonl`.
 
 ## Old tool names still work
