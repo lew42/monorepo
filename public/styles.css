@@ -291,13 +291,27 @@
 	   reserves its scrollbar gutter, which is right for the region you are reading and
 	   dead space in an outer one.
 
-	   Written as `:not(:has())` twice rather than the obvious nested form because
-	   **`:has()` cannot be nested** — that selector is invalid and drops silently. And
-	   the un-nested `:has(> .page.topic.active-ancestor)` is wrong for a subtler
-	   reason: the ROOT page is a topic and is an active-ancestor on every route, so it
-	   matched `app.$pages` always. */
-	.pages:not(:has(> .page.active-page)):not(:has(> .default)),
-	.pages:has(> .page.topic.active-page) { overflow-y: hidden; }
+	   Written as `:not(:has())` rather than the obvious nested form because **`:has()`
+	   cannot be nested** — `:has(:has(…))` is invalid and drops silently, though
+	   `:has(.pages .active-page)` is fine (a plain descendant selector, not a nested
+	   pseudo-class). And the un-nested `:has(> .page.topic.active-ancestor)` is wrong
+	   for a subtler reason: the ROOT page is a topic and is an active-ancestor on every
+	   route, so it matched `app.$pages` always.
+
+	   ⚠ `> .page.active-page` (a DIRECT child) used to be the only way a region counted
+	   as "showing the leaf" — right for a topic's sidebar, where a deeper leaf opens its
+	   OWN nested `.pages` one level down (`.topic > .pages` below). It was wrong for a
+	   page under `navigation: "tabs"` (`core/Page/ext/tabs`) or `rail`/`expand`: those
+	   keep every child's content in the SAME region as their own, several `.page` levels
+	   down, marked only `.active-ancestor` — never a direct `.active-page` child — so
+	   this rule hid the one region that should have scrolled and a tab's content could
+	   not reach its own bottom (the owner, 2026-11-06, `/live/demos/tabs-page/alpha/`;
+	   measured headless: `.pages` scrollHeight 909 vs clientHeight 649).
+	   The fix: ask for the leaf ANYWHERE inside (not just a direct child), then hide
+	   again if a NESTED `.pages` claims it instead — that inner region is the one that
+	   actually shows it, same as the topic/sidebar case always worked. */
+	.pages:not(:has(.active-page)):not(:has(> .default)),
+	.pages:has(.pages .active-page) { overflow-y: hidden; }
 
 	/* Below this the topic stacks; the sidebar's own narrow behaviour (top bar +
 	   hamburger menu) lives in core/Sidebar/Sidebar.css now — this file stopped

@@ -39,6 +39,19 @@
 	.files-col-about { flex: 0 0 clamp(12em, var(--files-col-w, 22em), 60%); }
 	.files-col-source { flex: 1 1 20em; min-inline-size: 20em; }
 
+	/* Stacked on a phone: the tree above the data, each full width, no sideways scroll
+	   on the box itself — the row's own "swipe sideways" trade above reads as clipped
+	   content at 400px, not a deliberate choice (the owner, 2026-11-06). The source
+	   column keeps the room; tree/about get a bounded strip above it. */
+	@media (max-width: 36em) {
+		.files-row { flex-direction: column; overflow-inline: hidden; overflow-block: auto; }
+		.files-col-tree, .files-col-about {
+			flex: 0 0 auto; inline-size: 100%; min-inline-size: 0; max-block-size: 40vh;
+			border-inline-end: none; border-block-end: 1px solid var(--line);
+		}
+		.files-col-source { flex: 1 1 auto; min-block-size: 12em; }
+	}
+
 	.file-tree { padding: 0.6em 0; font-size: 0.85em; }
 
 	/* A FILE row is `ui/item`'s own row now (ext/filesystem's FsFile.render()) — `.item` already

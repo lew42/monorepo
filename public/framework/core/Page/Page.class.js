@@ -220,6 +220,7 @@ export class Page extends Item {
 	log_folder(){ return this._helper("Jsonl").log_folder(); }
 	log_redraw(){ return this._helper("Jsonl").log_redraw(); }
 	draw_placed(entry){ return this._helper("Jsonl").draw_placed(entry); }
+	files_button(){ return this._helper("Jsonl").files_button(); }
 	draw_md(url){ return this._helper("Jsonl").draw_md(url); }
 	draw_module(url, data){ return this._helper("Jsonl").draw_module(url, data); }
 	listing(){ return this._helper("Jsonl").listing(); }
@@ -562,6 +563,9 @@ export class Page extends Item {
 
 		this.view = div.c("page flow", () => {
 			if (this.title) h1.c("page-title", this.title);
+			// A jsonl page's own files+data (the tree/data explorer) sit behind this button by default, not inline on every tab —
+			// `files_inline: true` on the page.jsonl opts back into the old inline box (`Jsonl.js log_view()`, doc/jsonl.md).
+			if (this.jsonl_url && !this.files_inline) this.files_button();
 
 			// A page that said any of the six words gets a Frame (Frame.js). ⚠ `page-frame-page` marks THIS frame as the page's own. (doc/watch-out.md)
 			if (this.words_said()) return void new this.constructor.Frame({ page: this }).ac("page-frame-page");
@@ -569,6 +573,7 @@ export class Page extends Item {
 			return this.render_content();
 		})
 			.ac(this.name && "page--" + this.name)
+			.ac(this.jsonl_url && "page-jsonl")
 			.ac(this.width && !this.column_host() && "page-w-" + this.width)
 			.ac(...this.word_classes())
 			.ac(this.classes ?? "standard");

@@ -208,6 +208,38 @@
 	   fix holds no matter which stylesheet happens to load second. */
 	.page h1.page-title { font-size: clamp(1.75rem, 9vw, 3em); }
 
+	/* A jsonl page's h1 sits right above its own tab strip or frame (`ext/tabs`): the
+	   standard `--flow` gap (2-2.5em) stacked on the h1's own line-height read as "the
+	   tabs sit far down" on a phone (the owner, 2026-11-06, /live/demos/tabs-page/).
+	   Scoped to `.page-jsonl` (stamped by `Page.class.js` render() when `jsonl_url` is
+	   set) — a page.js page keeps the title size and rhythm it always had. */
+	.page.page-jsonl > h1.page-title { font-size: clamp(1.4rem, 6.5vw, 2em); }
+	.page.page-jsonl > h1.page-title + * { margin-block-start: calc(var(--flow) * 0.4); }
+
+	/* The top-right "Files" button a jsonl page gets by default (`Jsonl.js files_button()`):
+	   opens the SAME tree+data explorer `draw_folder()` always drew, in a floating panel
+	   instead of inline on every tab (the owner, 2026-11-06 — the explorer repeated itself
+	   on Overview, Alpha and Beta and Gamma had none at all). `position: relative` on the
+	   jsonl page itself is the one thing that makes "top right of THIS page" true rather
+	   than of some further-out ancestor. */
+	.page.page-jsonl { position: relative; }
+	.page-files-toggle { position: absolute; top: var(--pad-y, 1em); right: var(--gutter-x, 1em); z-index: 2; }
+	.page-files-toggle-btn {
+		display: inline-flex; align-items: center; gap: 0.35em;
+		padding: 0.3em 0.8em; font-size: 0.85em;
+		border: 1px solid var(--line); border-radius: var(--radius);
+		background: var(--surface); color: var(--subtle);
+	}
+	.page-files-toggle-btn:hover, .page-files-toggle-btn[aria-expanded="true"] { color: var(--ink); }
+	.page-files-toggle-btn .icon { font-size: 1.1em; }
+
+	/* The panel opens UNDER the button, right-aligned to it, over the page rather than in its flow. */
+	.page-files-toggle-panel {
+		position: absolute; top: 100%; right: 0; margin-block-start: 0.4em;
+		z-index: 3; max-width: min(90vw, 56em);
+		border-radius: var(--radius); box-shadow: 0 0.5em 1.5em rgba(0, 0, 0, 0.18);
+	}
+
 	/* "$N.NN of AI work · M tasks" — filled in async by Page.class.js's render() from
 	   core/Page/weight/ai-cost.js. Most pages have no figure yet, so this renders empty
 	   (no gap, no box) until it does. It sits at the END of the page, padded like the content. */

@@ -1,4 +1,4 @@
-import { View, div, p, code, table, thead, tbody, tr, th, td, is } from "../View/View.js";
+import { View, div, p, span, button, icon, code, table, thead, tbody, tr, th, td, is } from "../View/View.js";
 import List from "../List/List.js";
 import Item from "../Item/Item.js";
 import { page_settings } from "./settings/settings.js";
@@ -199,11 +199,13 @@ export default class PageJsonl {
 	}
 
 	// What a page.jsonl page draws when it has no `content()` of its own: its placed files, in order. The box is kept so a later line can redraw it.
+	// ⚠ The explorer (tree + data, `draw_folder()`) draws INLINE only when the page says `{"files_inline": true}` — by default it sits behind the
+	// top-right Files button (`files_button()`) instead, so a set of tabs doesn't repeat the same wide, sideways-scrolling box on every one. (doc/jsonl.md)
 	log_view(){
 		const page = this.page;
 		return div.c("flow", () => {
 			page.$log = div.c("page-log flow", () => { page.log_draw(); });
-			page.draw_folder();
+			if (page.files_inline) page.draw_folder();
 		});
 	}
 
@@ -215,6 +217,26 @@ export default class PageJsonl {
 		return div.c("page-log-files", $box => {
 			import("../../ext/files/files.js")
 				.then(({ default: files }) => $box.append(() => { files({ url }, [...names].join(" ")); }));
+		});
+	}
+
+	// The top-right "Files" button every jsonl page gets by default: opens the same tree + data explorer
+	// `draw_folder()` draws, in a panel instead of the page's own flow. `files_inline: true` skips this and
+	// keeps the old inline box (doc/jsonl.md "the files button").
+	files_button(){
+		const page = this.page;
+		let open = false, $panel;
+
+		return div.c("page-files-toggle", $box => {
+			const $btn = button.c("page-files-toggle-btn").attr("type", "button").attr("aria-expanded", "false")
+				.attr("aria-label", "Files — this page's own files and data")
+				.append(() => { icon("folder_open"); span("Files"); })
+				.click(() => {
+					open = !open;
+					$btn.attr("aria-expanded", String(open));
+					if (open) $panel = div.c("page-files-toggle-panel", () => { this.draw_folder(); }).append_to($box);
+					else { $panel?.el.remove(); $panel = null; }
+				});
 		});
 	}
 
