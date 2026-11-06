@@ -227,7 +227,7 @@
 	   flex row with the title and the button at its two ends — rather than floating
 	   below it at some absolute offset (round 2: "level with the page H1"). */
 	.page-title-row { justify-content: space-between; gap: var(--gap); }
-	.page-title-row > h1.page-title { margin-block-end: 0; }   /* the row's own `flow` gap, not the h1's — `.flow > * + *` only reaches the ROW, but the row wears `flex`, which ignores it anyway; kept explicit */
+	.page-title-row > h1.page-title { margin-block-end: 0; }   /* the row sets the spacing, not the h1 */
 	.page-files-toggle { position: relative; flex: 0 0 auto; }
 	.page-files-toggle-btn {
 		display: inline-flex; align-items: center; gap: 0.35em;
