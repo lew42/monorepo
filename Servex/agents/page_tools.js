@@ -429,7 +429,7 @@ function apply_pages(at, pages, url){
  * class code a browser would use. Only Task can be imported in node (Page touches the DOM,
  * Page touches the DOM), so Task and Session get the key refusals. */
 const ITEM_PATH = { type: "string", description: "The item's url, e.g. a task folder \"/framework/ai/sessions/…/<slug>/\" (task.jsonl there wins over page.jsonl) or a page. Omit = your own session page." };
-const ITEM_DESCRIPTION = "THE ITEM TOOL: `item({path, delta})`. `delta` is ONE log line, the exact object Item.set(delta) takes: a key naming a method calls it with the value as its arguments (`{\"start\":{}}`, `{\"wait\":{\"on\":\"owner\"}}`), a key naming a child walks into it (`{\"tasks\":{\"add\":{\"title\":\"x\"}}}`), any other key assigns. `\"a.b\": v` is shorthand for `{a:{b:v}}`. No `delta` = the current state. The first call per class also returns `instructions`; `{\"help\":{}}` returns them again.";
+const ITEM_DESCRIPTION = "THE ITEM TOOL: `item({path, delta})`. `delta` is ONE log line, the exact object Item.set(delta) takes: a key naming a method calls it with the value as its arguments (`{\"start\":{}}`, `{\"wait\":{\"on\":\"owner\"}}`), a key naming a child walks into it (`{\"tasks\":{\"add\":{\"title\":\"x\"}}}`), any other key assigns. `\"a.b\": v` is shorthand for `{a:{b:v}}`. A read-only method name (get, find, toJSON, walk, root, contains, member, locate) as a key is refused: use `read` instead. No `delta` = the current state. `item({path, read:\"a.b.c\"})` reads one dotted path with NO write (never with `delta`); see the `read` parameter. The first call per class also returns `instructions`; `{\"help\":{}}` returns them again.";
 
 // improvements.jsonl: a folder's proposed fixes and moves, one nested Task each (Servex/agents/roles/mastermind.md, "Improvements").
 const FILE_CLASS = { "task.jsonl": "Task", "session.jsonl": "Session", "page.jsonl": "Page", "improvements.jsonl": "Improvements" };
@@ -449,10 +449,37 @@ const page_class = () => page_loaded ??= (async () => {
 	const { PART_TYPES } = await import("../../public/framework/core/Page/parts/kinds.js");
 	return Object.assign(Page, { PART_TYPES });
 })().catch(e => { console.warn(`item tool: Page.class.js did not import in node, so page lines are written unchecked (${e.message})`); return null; });
-// The class for a kind: the Task family and Page by their loaders, else any class Item.types registers once those have loaded. null = none.
-async function class_for(kind){
+/* A page.jsonl's own class (line 1's "class": "./LivePage.js", class_of below): resolved against the FILE'S FOLDER and
+ * imported, so a page replays as what it says it is (LivePage's methods, LivePage's own `kinds`) instead of plain Page.
+ * Used only when it extends the real Page (else a mistyped or unrelated module would silently become "the page class").
+ * Cached per absolute module path — an edit to the class file needs a Servex restart, since node's import cache never
+ * drops it. A broken or non-Page module degrades to plain Page, with one console.warn, never a thrown refusal. */
+const page_subclasses = new Map();
+async function resolve_page_class(file, spec){
+	const Page = await page_class();
+	if (!Page) return null;
+	// A site-absolute spec ("/live/LivePage.js", a sub-page's own class) resolves against public/, the same mapping
+	// site-hooks.mjs gives a browser-style import; "./" or "../" (or a bare relative name) resolves against the file's folder.
+	const abs = spec.startsWith("/") ? path.resolve(PUBLIC, spec.replace(/^\/+/, "")) : path.resolve(path.dirname(file), spec);
+	if (page_subclasses.has(abs)) return page_subclasses.get(abs);
+	let Class = Page;
+	try {
+		const mod = await import(pathToFileURL(abs).href);
+		const cand = mod.default;
+		if (typeof cand === "function" && (cand === Page || cand.prototype instanceof Page)) Class = cand;
+		else console.warn(`item tool: ${spec} (${app_path(path.dirname(file))}) does not extend Page, so it is read as plain Page`);
+	} catch (e){
+		console.warn(`item tool: ${spec} (${app_path(path.dirname(file))}) did not import in node (${e.message}), so it is read as plain Page`);
+	}
+	page_subclasses.set(abs, Class);
+	return Class;
+}
+// The class for a kind: the Task family and Page by their loaders, a page's own module path (resolve_page_class, when `file`
+// is given), else any class Item.types registers once those have loaded. null = none.
+async function class_for(kind, file){
 	if (kind === "Page") return page_class();
 	if (LOADERS[kind]) return LOADERS[kind]().catch(() => null);
+	if (file && typeof kind === "string" && /\.m?js$/.test(kind)) return resolve_page_class(file, kind);
 	await Promise.all([page_class(), ...Object.values(LOADERS).map(load => load().catch(() => null))]);
 	const Class = Item.types.get(kind);
 	return typeof Class?.replay === "function" ? Class : null;
@@ -1069,6 +1096,63 @@ function walk(root, path){
 	return node;
 }
 
+// Same duck type Item.js itself uses to spot a List (List.js can't be imported here: a circular import with Item.js).
+const is_list = node => !!node && Array.isArray(node.items) && typeof node.find === "function";
+
+/* READ (requirements.md item 1): walk_path is `walk` above, but it never gives up silently — it answers WHERE it stopped,
+ * so a typo'd path tells the caller what actually exists there instead of just `undefined`. */
+function keys_at(node){
+	if (is_list(node)) return [...node].map(i => i.id);
+	if (node && typeof node.lists === "function") return [...Object.keys(node.data ?? {}), ...Object.keys(node.lists())];
+	return [];
+}
+function walk_path(root, read){
+	const parts = hops(read);
+	let node = root;
+	for (const key of parts){
+		const next = hop(node, key);
+		if (next === undefined) return { why: `no such path: ${key}`, here: keys_at(node) };
+		node = next;
+	}
+	return { node };
+}
+// A List reads as rows (never the whole member objects — a long list would blow the 4 KB cap on its own); title is cut, never the full text.
+function rows_of(list){
+	const items = [...list];
+	return { total: items.length, rows: items.map(i => ({ id: i.id, type: typeof i.wire === "function" ? i.wire() : (i.type ?? "item"), title: String(i.get_one?.("title") ?? i.get_one?.("label") ?? i.get_one?.("text") ?? i.title ?? i.label ?? i.text ?? "").slice(0, 80) })) };
+}
+// An Item reads as its own toJSON(), but every List it owns is rows_of(), never the raw member array toJSON() would give.
+function read_value(node){
+	if (is_list(node)) return rows_of(node);
+	if (!node || typeof node.toJSON !== "function") return node;
+	const json = node.toJSON();
+	for (const [name, list] of Object.entries(node.lists?.() ?? {})) json[name] = rows_of(list);
+	return json;
+}
+// ~4 KB: past it, a List's rows are cut (kept as rows, `total` stays the real count) rather than the answer growing without bound.
+const READ_CAP = 4096;
+function cap_read(value){
+	if (JSON.stringify(value).length <= READ_CAP) return value;
+	if (value && Array.isArray(value.rows)){
+		let rows = value.rows;
+		while (rows.length > 1 && JSON.stringify({ ...value, rows, truncated: true }).length > READ_CAP) rows = rows.slice(0, Math.ceil(rows.length / 2));
+		return { ...value, rows, truncated: true, hint: "read a deeper path (a specific id) for the rest" };
+	}
+	return { truncated: true, hint: "read a deeper path for less", preview: JSON.stringify(value).slice(0, READ_CAP) };
+}
+// A delta that only reads is refused before anything is written (requirements.md item 2): `get`/`find`/`toJSON`/`walk`/`root`/
+// `contains`/`member`/`locate` as a KEY, at any depth — the item tool's own write-only contract, not a method allowlist.
+const READ_ONLY_KEYS = new Set(["get", "find", "toJSON", "walk", "root", "contains", "member", "locate"]);
+function find_readonly_key(delta){
+	if (!is_plain(delta)) return null;
+	for (const [k, v] of Object.entries(delta)){
+		if (READ_ONLY_KEYS.has(k)) return k;
+		const deeper = find_readonly_key(v);
+		if (deeper) return deeper;
+	}
+	return null;
+}
+
 /* A task that completes with caveats tells its parent: one line on the parent's log (the session or task SessionRecord.parent_log finds),
  * naming the task and what was asked and not done. Returns the log written, or null. */
 export function tell_parent_caveats(task_dir, caveats, by = "node"){
@@ -1287,7 +1371,7 @@ function unmark_delta(delta){
 	return out;
 }
 
-async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias = false){
+async function run_item_now({ path: url, target, delta, read } = {}, ctx = {}, alias = false){
 	url ??= own_page(ctx);
 	delta = unmark_delta(delta);
 	let caller_log = ctx.caller_log ?? null;
@@ -1317,9 +1401,10 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 
 	// ONE LIVE ROOT PER FILE, for any class Item.types registers (a page, a task, a session, an improvements file): the class named on
 	// line 1, else the one its file name implies. A Task-family root (tasky) also gets the task steps below; every root gets the same write.
-	let kind = class_of(at.file), Class = await class_for(kind);
-	if (!Class){ kind = FILE_CLASS[path.basename(at.file)] ?? "Page"; Class = await class_for(kind); }
-	const tasky = !!Class && (Class === Task || Class.prototype instanceof Task), paged = !!Class && Class === await page_class();
+	let kind = class_of(at.file), Class = await class_for(kind, at.file);
+	if (!Class){ kind = FILE_CLASS[path.basename(at.file)] ?? "Page"; Class = await class_for(kind, at.file); }
+	const Page = await page_class();
+	const tasky = !!Class && (Class === Task || Class.prototype instanceof Task), paged = !!Class && (Class === Page || Class.prototype instanceof Page);
 	if (Class) link_refs(await LOADERS.Task());   // references on a parent resolve to live children
 	const root = () => live_root(Class, at.file);
 	// A write needs the live root; a file the class cannot replay (a page whose lines need a browser) refuses the write, as before.
@@ -1328,9 +1413,21 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	const state = () => tasky ? task_state(Class, root()) : !fs.existsSync(at.file) ? null : paged || !Class ? page_text(Class ? root : null, at.file, url) : root().toJSON();
 	const extra = async () => alias ? {} : { ...(first_time() ? { instructions: await instructions_for(kind, Class) } : {}), state: state() };
 
+	// READ: `item({path, read:"a.b.c"})` writes nothing. It replays the SAME live root a write uses and walks the dotted
+	// path one get() per step (walk_path reuses `hop`, the write path's own walker). Never together with `delta`.
+	if (read !== undefined){
+		if (delta !== undefined) return { ok: false, why: "`read` with a `delta` in the same call is refused. Nothing was written." };
+		if (typeof read !== "string") return { ok: false, why: "`read` must be a dotted path (a string). Nothing was written." };
+		const found = walk_path(live_or_refuse(), read);
+		if (found.why) return { ok: false, read, why: found.why, here: found.here };
+		return { ok: true, read, value: cap_read(read_value(found.node)) };
+	}
+
 	if (delta === undefined) return { ok: true, ...(await extra()), ...(alias ? { state: state() } : {}) };
 	if (!is_plain(delta)) return { ok: false, why: "`delta` must be one object (a log line)" };
 	const flat = expand_dots(delta);
+	const bad_key = find_readonly_key(flat);
+	if (bad_key) return { ok: false, why: `"${bad_key}" only reads; use read:"<path>". Nothing was written.` };
 	if (Object.keys(flat).length === 1 && flat.help){
 		told.set(`${ctx.caller}|${kind}`, true);
 		return { ok: true, instructions: await instructions_for(kind, Class) };
@@ -1573,7 +1670,8 @@ export function page_tools(resolve_log = null){
 			async (args, ctx = {}) => JSON.stringify(await run_item(args, { resolve_log, ...ctx }, true))),
 
 		tool("item", ITEM_DESCRIPTION,
-			{ path: ITEM_PATH, delta: { type: "object", description: "ONE JSONL line, exactly what Item.set(delta) takes and the log holds. Omit it to read the current state. {\"help\":{}} returns the instructions again." } },
+			{ path: ITEM_PATH, delta: { type: "object", description: "ONE JSONL line, exactly what Item.set(delta) takes and the log holds. Omit it to read the current state. {\"help\":{}} returns the instructions again." },
+				read: { type: "string", description: "A dotted path to read with NO write, e.g. \"content.today\" (never together with `delta`). Answers {ok:true, read, value}: an Item as its data with every List inside replaced by {total, rows:[{id,type,title}]}; a List as that same rows shape; anything else as the plain value. Capped near 4 KB (then `truncated:true`). A path that does not resolve answers {ok:false, why:\"no such path: <the first missing step>\", here:[the ids or keys that exist at the last good step]}." } },
 			[],
 			async (args, ctx = {}) => JSON.stringify(await run_item(args, { resolve_log, ...ctx }))),
 

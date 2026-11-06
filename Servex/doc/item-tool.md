@@ -52,6 +52,22 @@ Tests: `item_tool.test.mjs` (a query writes no line, a mixed delta is refused, t
 - Tests: `node public/framework/core/Page/Page.test.mjs` (replay, unknown type reported, the tool refuses), `node Servex/agents/item_tool.test.mjs`, `node Servex/agents/page_tools.test.mjs`.
 - **Subpage parent (kept from before):** a `page.js` parent is never edited; `Subpages.js` notes the child in the parent's `page.jsonl` and `Page.child` reads it (17c696fa6, 645ccbe33). The old test that expected a `children:` edit in `page.js` was stale and now asserts this.
 
+## Reading a path, with no write (2026-11-06)
+
+`item({path, read:"a.b.c"})` answers that one dotted path and writes NOTHING — never together with `delta` (refused). It replays the file's live root (the same `live_root(Class, file)` a write uses — a read never costs a second replay once the root is warm) and walks the path one `get()` per step, the exact walker a write's `target` already uses (`hop`/`walk` in `page_tools.js`).
+
+- **An Item** answers its `toJSON()`, but every List it owns is replaced with rows (below), never the raw members.
+- **A List** answers `{total, rows:[{id, type, title}]}` — `title` is `title ?? label ?? text`, cut to 80 characters. Drill into one row by reading its id (`"content.<id>"`).
+- **Anything else** (a plain field) answers as is.
+- **Capped near 4 KB**: a List's rows are cut (kept as rows; `total` stays the real count) and the answer adds `truncated: true` plus a hint to read a deeper path.
+- **A path that does not resolve** answers `{ok:false, why:"no such path: <the first missing step>", here:[the ids or keys that exist at the last good step]}` — never a bare `undefined`.
+
+**A delta that only reads is refused before anything is written**, at any depth: `get`, `find`, `toJSON`, `walk`, `root`, `contains`, `member`, `locate` as a key answers `{ok:false, why:'"<key>" only reads; use read:"<path>". Nothing was written.'}`. This is what caught the owner's actual report — `{"get":"content"}` appended to `/live/page.jsonl` as a plain line (a Page method name, so the page schema let it through) and answered nothing; now it is refused with a pointer to `read`.
+
+**A page.jsonl replays as the class its own line 1 names**, not always plain `Page`: `"class":"./LivePage.js"` (resolved against the file's own folder) or `"class":"/live/LivePage.js"` (site-absolute, resolved against `public/` the same way `site-hooks.mjs` maps a browser import) is imported once and used when it extends the real `Page`; a module that fails to import, or does not extend `Page`, degrades to plain `Page` with one `console.warn`, never a thrown refusal (`resolve_page_class`, `class_for`). Cached per absolute module path — **editing the class file needs a Servex restart**, since node's import cache never drops it. `paged` (the write-path flag that used to mean `Class === Page`) now means "Page or a subclass", so a subclass's own page lines are checked and replayed the same way Page's are.
+
+Test: `node Servex/agents/item-read.test.mjs` (a read of an item, a list, a missing path, the 4 KB cut, the refused `{"get":"content"}`, and both class-spec shapes against a fixture and the real `/live/LivePage.js`).
+
 ## Special cases still in the tool (2026-10-28, build I)
 
 Moved into classes so far: verdict strings (`Task.replay_line`) and improvements reinforce (`Improvements`). Still in `run_item_now`, each with where it should go:
