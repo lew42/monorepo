@@ -1,46 +1,46 @@
 # Follow-up: what fell through the cracks
 
-Counted by the one state ([one-state.md](one-state.md), `Server/AIIndex.mjs`): every task below is a row of `ai/index.json`. Computed 2026-11-05 06:04 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
+Counted by the one state ([one-state.md](one-state.md), `Server/AIIndex.mjs`): every task below is a row of `ai/index.json`. Computed 2026-11-06 06:02 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
 
-**0 landed with unmerged commits · 0 merged but never landed · 88 quiet over 2 h · 0 landed with no outcome · 503 open tasks untouched over 7 days · 0 open asks with no live owner · 809 healthy of 897.**
+**0 landed with unmerged commits · 0 merged but never landed · 98 quiet over 2 h · 0 landed with no outcome · 503 open tasks untouched over 7 days · 0 open asks with no live owner · 791 healthy of 889.**
 
-## quiet: 88
+## quiet: 98
 
 the state calls it in_flight or stale and its log is silent for over 2 h: resume it or close it.
 
-- [session-31416a71](/framework/ai/sessions/2026/11/01/session-31416a71/): no agent, last log 24 h ago, step 0/0, agent unknown
-- [session-39c72593](/framework/ai/sessions/2026/11/01/session-39c72593/): no agent, last log 24 h ago, step 0/0, agent unknown
-- [cloud-voice-app-20261101](/framework/ai/sessions/2026/11/01/cloud-voice-app-20261101/): no agent, last log 24 h ago, step 0/0, agent unknown
-- [session-174b74d6](/framework/ai/sessions/2026/11/01/session-174b74d6/): no agent, last log 24 h ago, step 0/0, agent unknown
-- [session-280e3460](/framework/ai/sessions/2026/11/01/session-280e3460/): no agent, last log 24 h ago, step 0/0, agent unknown
-- [session-2b478ef9](/framework/ai/sessions/2026/11/01/session-2b478ef9/): no agent, last log 24 h ago, step 0/0, agent unknown
-- [session-0f2b10fd](/framework/ai/sessions/2026/11/01/session-0f2b10fd/): no agent, last log 24 h ago, step 0/0, agent unknown
-- [session-13c9b2fa](/framework/ai/sessions/2026/11/01/session-13c9b2fa/): no agent, last log 24 h ago, step 0/0, agent unknown
-- [session-1a6f4d98](/framework/ai/sessions/2026/11/01/session-1a6f4d98/): no agent, last log 24 h ago, step 0/0, agent unknown
-- [session-86aa5baf](/framework/ai/sessions/2026/11/01/session-86aa5baf/): no agent, last log 24 h ago, step 0/0, agent unknown
-- [session-975c99ea](/framework/ai/sessions/2026/11/01/session-975c99ea/): no agent, last log 24 h ago, step 0/0, agent unknown
-- [session-bd9e0731](/framework/ai/sessions/2026/11/01/session-bd9e0731/): no agent, last log 24 h ago, step 0/0, agent unknown
-- …76 more in [follow-up-full.md](follow-up-full.md)
+- [v-lzxm297](/framework/ai/sessions/2026/11/02/v-lzxm297/): voice-as, last log 24 h ago, step 0/0, agent unknown
+- [v-j32xjjb](/framework/ai/sessions/2026/11/02/v-j32xjjb/): voice-as, last log 24 h ago, step 0/0, agent unknown
+- [v-urmyr2k](/framework/ai/sessions/2026/11/02/v-urmyr2k/): voice-as, last log 25 h ago, step 0/0, agent unknown
+- [session-12602be0](/framework/ai/sessions/2026/11/02/session-12602be0/): no agent, last log 25 h ago, step 0/0, agent unknown
+- [session-16ac44ef](/framework/ai/sessions/2026/11/02/session-16ac44ef/): no agent, last log 25 h ago, step 0/0, agent unknown
+- [session-50484875](/framework/ai/sessions/2026/11/02/session-50484875/): no agent, last log 25 h ago, step 0/0, agent unknown
+- [session-d280a118](/framework/ai/sessions/2026/11/02/session-d280a118/): no agent, last log 25 h ago, step 0/0, agent unknown
+- [session-02f11222](/framework/ai/sessions/2026/11/02/session-02f11222/): no agent, last log 25 h ago, step 0/0, agent unknown
+- [session-d19db4c3](/framework/ai/sessions/2026/11/02/session-d19db4c3/): no agent, last log 25 h ago, step 0/0, agent unknown
+- [v-t74agmf](/framework/ai/sessions/2026/11/02/v-t74agmf/): voice-as, last log 25 h ago, step 0/0, agent unknown
+- [session-31416a71](/framework/ai/sessions/2026/11/01/session-31416a71/): no agent, last log 2 d ago, step 0/0, agent unknown
+- [session-39c72593](/framework/ai/sessions/2026/11/01/session-39c72593/): no agent, last log 2 d ago, step 0/0, agent unknown
+- …86 more in [follow-up-full.md](follow-up-full.md)
 
 ## unworked: 503
 
 Open tasks (idle, queued or waiting, none on the owner) whose last log line is over 7 days old. Nothing runs from the queue by itself, so these only get done if someone looks: do it, group it into a real task, or stop it with a reason (through the item tool). Newest first.
 
-- [v-9dvbbrn](/framework/ai/sessions/2026/10/25/v-9dvbbrn/): idle, last log 9 d ago
-- [module-folder-tasks-are-not-found-unless](/framework/ai/sessions/2026/10/25/v-9dvbbrn/module-folder-tasks-are-not-found-unless/): idle, last log 9 d ago
-- [mobile-sheet-page-cannot-scroll-to-the-b](/framework/ai/sessions/2026/10/25/v-9dvbbrn/mobile-sheet-page-cannot-scroll-to-the-b/): idle, last log 9 d ago
-- [chat-tab-on-every-session-page-talk-to-a](/framework/ai/sessions/2026/10/25/v-9dvbbrn/chat-tab-on-every-session-page-talk-to-a/): idle, last log 9 d ago
-- [session-page-overview-clear-the-leftover](/framework/ai/sessions/2026/10/25/v-9dvbbrn/session-page-overview-clear-the-leftover/): idle, last log 9 d ago
-- [core-page-the-page-s-cards-are-misaligne](/framework/core/Page/tasks/core-page-the-page-s-cards-are-misaligne/): idle, last log 10 d ago
-- [mention-voice-session-ids-become-icon-li](/framework/ext/Mention/tasks/mention-voice-session-ids-become-icon-li/): idle, last log 10 d ago
-- [v-sq8y7db](/framework/ai/sessions/2026/10/25/v-sq8y7db/): idle, last log 10 d ago
-- [v-hzpy68f](/framework/ai/sessions/2026/10/25/v-hzpy68f/): idle, last log 10 d ago
-- [tasks](/framework/ai/sessions/tasks/): idle, last log 11 d ago
+- [v-9dvbbrn](/framework/ai/sessions/2026/10/25/v-9dvbbrn/): idle, last log 10 d ago
+- [module-folder-tasks-are-not-found-unless](/framework/ai/sessions/2026/10/25/v-9dvbbrn/module-folder-tasks-are-not-found-unless/): idle, last log 10 d ago
+- [mobile-sheet-page-cannot-scroll-to-the-b](/framework/ai/sessions/2026/10/25/v-9dvbbrn/mobile-sheet-page-cannot-scroll-to-the-b/): idle, last log 10 d ago
+- [chat-tab-on-every-session-page-talk-to-a](/framework/ai/sessions/2026/10/25/v-9dvbbrn/chat-tab-on-every-session-page-talk-to-a/): idle, last log 10 d ago
+- [session-page-overview-clear-the-leftover](/framework/ai/sessions/2026/10/25/v-9dvbbrn/session-page-overview-clear-the-leftover/): idle, last log 10 d ago
+- [core-page-the-page-s-cards-are-misaligne](/framework/core/Page/tasks/core-page-the-page-s-cards-are-misaligne/): idle, last log 11 d ago
+- [mention-voice-session-ids-become-icon-li](/framework/ext/Mention/tasks/mention-voice-session-ids-become-icon-li/): idle, last log 11 d ago
+- [v-sq8y7db](/framework/ai/sessions/2026/10/25/v-sq8y7db/): idle, last log 11 d ago
+- [v-hzpy68f](/framework/ai/sessions/2026/10/25/v-hzpy68f/): idle, last log 11 d ago
+- [tasks](/framework/ai/sessions/tasks/): idle, last log 12 d ago
 - …493 more in [follow-up-full.md](follow-up-full.md)
 
 ## Check
 
-809 healthy + 88 flagged = 897; the state lists 897 tasks in the same 10 days: agree. The state's own self-check is FAILING. Source: ai/index.json (under a minute old). 417 local branches are not merged into `compliance/dev` (many are salvage or abandoned worktrees).
+791 healthy + 98 flagged = 889; the state lists 889 tasks in the same 10 days: agree. The state's own self-check is ok. Source: ai/index.json (under a minute old). 399 local branches are not merged into `compliance/dev` (many are salvage or abandoned worktrees).
 
 ## How each row is counted
 
