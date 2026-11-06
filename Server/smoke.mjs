@@ -49,7 +49,9 @@ import { spawnSync } from "node:child_process";
  *     is a FAIL, UNLESS it matches a live entry in console-allow.jsonl (beside this file) —
  *     "some warnings are okay if it's a temporary problem that's going to be fixed by
  *     something else" (the owner). An allow-list entry that has passed its `until` date no
- *     longer covers anything, so a fix nobody finished starts failing merges again on its own. */
+ *     longer covers anything, so a fix nobody finished starts failing merges again on its own.
+ *   - a same-origin HTTP error whose `HTTP <status>: <url>` line matches a live entry is a warn,
+ *     not a FAIL: for a demo that 404s on purpose (ext/markdown's missing-file demo). */
 const CONSOLE_BUDGET = 5;
 const ALLOWLIST_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "console-allow.jsonl");
 
@@ -437,7 +439,9 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 		// Same-origin (this worktree's own server) is always an error, any other request kind —
 		// a plain `fetch()` 404 used to slip through here because only script/stylesheet/
 		// document were checked. Cross-origin (Servex on :8090, off in a worktree) stays a warn.
-		(u.startsWith(base) ? errors : warns).push(`HTTP ${r.status()}: ${u}`);
+		// A deliberate same-origin 404 (a demo of a missing file) is a warn only while a live console-allow.jsonl entry names it (2026-11-06).
+		const http = `HTTP ${r.status()}: ${u}`;
+		(u.startsWith(base) && !allowed(http) ? errors : warns).push(http);
 	});
 	let links = [];
 	try {
