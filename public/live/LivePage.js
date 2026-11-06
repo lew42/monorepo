@@ -132,7 +132,7 @@ export default class LivePage extends Page {
 	async child(name, levels){
 		if (!this.children.get(name)){   // not built yet (undefined), or named by a {"file": "x/page.jsonl"} line (null)
 			const kind = this.child_kinds?.get(name) ?? (await Page.listing(this.url).catch(() => null))?.pages.get(name);
-			if (kind === "jsonl"){
+			if (kind === "jsonl" && !LivePage.tab_skip.has(this.url + name + "/")){   // the old views keep their own classes
 				const page = await LivePage.jsonl(this.url + name + "/");   // LivePage as the host, so log_class above decides
 				if (page) return this.add(name, page).load_all_children(levels);
 			}
@@ -203,6 +203,7 @@ export default class LivePage extends Page {
 			if (this.settings_of) return void new P.Settings({ page: this, of: this.settings_of, at: this.at });
 			if (this.focus) new P.Focus({ page: this, item: this.focus });
 			new P.Main({ page: this, list: this.cards });
+			new P.Pages({ page: this });
 			new P.Foot({ page: this });
 		});
 		this.listen();
@@ -219,47 +220,68 @@ export default class LivePage extends Page {
 	}
 
 	// ════ TITLES AND TABS ═══
-	// The title a page gives itself, read from its own file (small): the last `title` in its page.jsonl, else its page.js's
-	// export, else its folder name. One per url per load, so its preview card, its tab and its h1 always agree.
-	static titles = new Map();
-	static title_of(url){
-		return this.titles.get(url) ?? this.titles.set(url, (async () => {
-			const name = url.split("/").filter(Boolean).at(-1);
+	// What a page says about itself, read from its own file (small): { title, cls, tab, js }. The title is the last `title` in
+	// its page.jsonl, else its page.js's export, else its folder name: one per url per load, so its link card, its tab and
+	// its h1 always agree. `cls` is the class its line 1 names, `tab` a `{"tab": false}` line (never a tab), `js` a page.js page.
+	static metas = new Map();
+	static meta_of(url){
+		return this.metas.get(url) ?? this.metas.set(url, (async () => {
+			const name = url.split("/").filter(Boolean).at(-1), meta = { title: name };
 			const listing = await Page.listing(url.replace(/[^/]+\/$/, "")).catch(() => null);
-			if (!listing){ this.titles.delete(url); return name; }   // a failed read is not kept: the next ask tries again
+			if (!listing){ this.metas.delete(url); return meta; }   // a failed read is not kept: the next ask tries again
 			const kind = listing.pages.get(name);   // "jsonl", "js", or not a page
-			if (!kind) return name;
 			const res = kind === "jsonl" ? await fetch(url + "page.jsonl").catch(() => null) : null;
 			if (res?.ok){
-				let title;
-				for (const line of (await res.text()).split("\n")) try { const o = JSON.parse(line); if (typeof o?.title === "string") title = o.title; } catch {}
-				return title ?? name;
+				(await res.text()).split("\n").forEach((line, i) => { try {
+					const o = JSON.parse(line);
+					if (typeof o?.title === "string") meta.title = o.title;
+					if (i === 0 && typeof o?.class === "string") meta.cls = o.class;
+					if (typeof o?.tab === "boolean") meta.tab = o.tab;
+				} catch {} });
+				return meta;
 			}
 			const js = kind === "js" ? await import(url + "page.js").catch(() => null) : null;
-			return js?.default?.title ?? name;
+			return { title: js?.default?.title ?? name, js: kind === "js" };
 		})()).get(url);
 	}
+	static title_of(url){ return this.meta_of(url).then(m => m.title); }
 
-	// The tab row for a page: { owner, tabs: [{url, title}] }. Its own pages (folders, then saved screens) when it has
-	// any, with itself first; else its parent's, with the parent first. A page that is neither (a card opened by itself)
-	// gets no row: the breadcrumb takes it back.
-	// The old version's views (/live/sessions/, /live/archive/, /live/v1/) are not tabs: the footer of /live/ links them.
+	// A page's own pages, split in two: { tabs, cards }, each [{url, title}].
+	// A TAB is a page that draws as this page's content: a plain LivePage folder with no pages of its own. Switching tabs
+	// keeps the same row and the same h1 (the parent's). A CARD is a page that is somewhere else: a folder with pages of
+	// its own (its own tabs), a page of another class (DesignPage, a page.js), one that says {"tab": false} (a small app,
+	// like lab), or a saved screen; it is a link card under the content (LivePage.Pages). More than tab_max tabs are a
+	// list, not a row: then every page is a card.
+	// The old version's views (/live/sessions/, /live/archive/, /live/v1/) are neither: the footer of /live/ links them.
 	static tab_skip = new Set(["/live/sessions/", "/live/archive/", "/live/v1/"]);
+	static tab_max = 5;
+	static async pages_of(url, loaded){
+		const listing = await Page.listing(url).catch(() => null);
+		const folders = [...listing?.pages.keys() ?? []].map(name => url + name + "/").filter(u => !this.tab_skip.has(u));
+		const plain = cls => !cls || /(^|\/)LivePage\.js$/.test(cls) || /\/core\/Page\/Page\.class\.js$/.test(cls);   // drawn as a LivePage
+		const rows = await Promise.all(folders.map(async u => {
+			const m = await this.meta_of(u), kids = (await Page.listing(u).catch(() => null))?.pages.size;
+			return { url: u, title: m.title, leaf: !kids && !m.js && plain(m.cls) && m.tab !== false };
+		}));
+		const screens = loaded && !loaded.screen && !loaded.focus && !loaded.settings_of ? loaded.screens.items.map(s => ({ url: url + s.id + "/", title: s.get("title") ?? s.id })) : [];
+		let tabs = rows.filter(r => r.leaf), cards = rows.filter(r => !r.leaf);
+		if (tabs.length > this.tab_max) [tabs, cards] = [[], rows];
+		return { tabs, cards: [...cards, ...screens] };
+	}
+
+	// The tab row for a page: { owner, title, tabs: [{url, title}] }. Its own tabs when it has any, itself first; else, when
+	// it is one of its parent's tabs, the parent's row (the same row, the parent's title). Else no row: a page with its
+	// own tabs elsewhere is reached by a link card, and the breadcrumb takes it back.
 	static async tabs_of(page){
-		const kids = async (url, loaded) => {
-			const listing = await Page.listing(url).catch(() => null);
-			const folders = [...listing?.pages.keys() ?? []].map(name => url + name + "/").filter(u => !this.tab_skip.has(u));
-			const screens = loaded && !loaded.screen && !loaded.focus && !loaded.settings_of ? loaded.screens.items.map(s => ({ url: url + s.id + "/", title: s.get("title") ?? s.id })) : [];
-			return [...await Promise.all(folders.map(async u => ({ url: u, title: await this.title_of(u) }))), ...screens];
-		};
-		const own = page.focus || page.settings_of ? [] : await kids(page.url, page);
-		if (own.length) return { owner: page.url, tabs: [{ url: page.url, title: page.title ?? "Live" }, ...own] };
+		const own = page.focus || page.settings_of ? { tabs: [] } : await this.pages_of(page.url, page);
+		if (own.tabs.length) return { owner: page.url, title: null, tabs: [{ url: page.url, title: page.title ?? "Live" }, ...own.tabs] };
 		const up = page.url.replace(/[^/]+\/$/, "");
-		if (page.is_top || !up.startsWith("/live/")) return { owner: null, tabs: [] };
+		if (page.is_top || page.focus || page.settings_of || !up.startsWith("/live/")) return { owner: null, tabs: [] };
 		const parent = page.parent instanceof LivePage ? page.parent : null;
-		const theirs = await kids(up, parent);
-		if (!theirs.some(t => t.url === page.url)) return { owner: null, tabs: [] };
-		return { owner: up, tabs: [{ url: up, title: parent?.title ?? await this.title_of(up) }, ...theirs] };
+		const theirs = await this.pages_of(up, parent);
+		if (!theirs.tabs.some(t => t.url === page.url)) return { owner: null, tabs: [] };
+		const title = parent?.title ?? await this.title_of(up);
+		return { owner: up, title, tabs: [{ url: up, title }, ...theirs.tabs] };
 	}
 
 	// A title, in markdown with mentions, kept in step with the item: new LivePage.Heading({ tag: "h4", item }).
@@ -301,7 +323,8 @@ export default class LivePage extends Page {
 			});
 			div.c("live-head-row", () => {
 				page.$dot = span.c("live-dot");
-				new P.Heading({ tag: "h1", item: page.focus ?? page, fallback: "Live", classes: "live-title" });
+				const $h1 = new P.Heading({ tag: "h1", item: page.focus ?? page, fallback: "Live", classes: "live-title" });
+				P.tabs_of(page).then(({ title }) => title && $h1.fix(title)).catch(() => {});   // a tab keeps its parent's h1: the tab says which one
 				page.$ms = span.c("live-ms");
 				if (page.is_top) select.c("live-version", () => {
 					P.versions.forEach(v => option(v.label).attr("value", v.url));
@@ -521,6 +544,25 @@ export default class LivePage extends Page {
 
 	// `footer` (a line of text) when set; on /live/ and its sub-pages, the removed cards; on /live/ itself, the old views.
 	// (Every child page and saved screen is a tab now, in the header.)
+	// The pages that are somewhere else (LivePage.pages_of): a link card each, under the content. Drawn by code from the
+	// folder and the saved screens, never written into page.jsonl.
+	static Pages = class LivePagesView extends View {
+		render(){
+			const { page } = this, P = page.constructor;
+			const draw = () => P.pages_of(page.url, page).then(({ cards }) => {
+				this.tc("is-empty", !cards.length).empty(() => cards.forEach(c => div.c("live-card live-page-card", () => {
+					div.c("live-card-body", () => h4.c("live-card-title", c.title));
+					a.c("live-card-go", "›").href(c.url).attr("aria-label", c.title);
+				})));
+			}).catch(() => {});
+			this.tc("is-empty", true);
+			if (page.screen || page.focus || page.settings_of) return;
+			const heard = () => queueMicrotask(() => this.el.isConnected ? draw() : ["add", "remove"].forEach(v => page.screens.off?.(v, heard)));
+			["add", "remove"].forEach(v => page.screens.on?.(v, heard));
+			draw();
+		}
+	};
+
 	static Foot = class LiveFootView extends View {
 		render(){
 			const { page } = this, P = page.constructor;

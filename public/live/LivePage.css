@@ -151,6 +151,9 @@
 	button.live-button.is-pressed { animation: live-press .4s ease-out; }
 	@keyframes live-press { from { transform: scale(.94); filter: brightness(1.2); } to { transform: none; filter: none; } }
 
+	/* LivePage.Pages: the pages that are somewhere else, a link card each, one gap apart like the content. */
+	.live-pages { display: flex; flex-direction: column; gap: var(--live-gap); }
+	.live-pages.is-empty { display: none; }
 	.live-foot { display: flex; flex-direction: column; gap: var(--live-step); margin-top: auto; font-size: .8em; }
 	.live-foot-links { display: flex; gap: 1rem; opacity: .7; }
 	.live-foot-links a { color: inherit; }
