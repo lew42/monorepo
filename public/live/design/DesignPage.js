@@ -29,7 +29,7 @@ export default class DesignPage extends LivePage {
 	}
 
 	// The strip under the head: which widgets THIS page imported (idea 1), then the tab bar itself — the one made
-	// widget that is navigation, not card content. Other widgets (methods) draw inside their own card (draw_card).
+	// widget that is navigation, not card content. Other widgets (methods) draw inside their own card (Card, below).
 	draw_ui(){
 		this.$ui.empty(() => {
 			span.c("page-ui-types", `ui: ${[...PageUI.types.keys()].join(", ")}`);
@@ -46,29 +46,43 @@ export default class DesignPage extends LivePage {
 	}
 
 	// Only the cards whose `tab` equals the tabs widget's `selected` show; no tabs widget yet (or a card with
-	// no `tab`) always shows. `draw_card` below stamps each card's `data-tab` from its own `tab` field.
+	// no `tab`) always shows. Card and Block below stamp each card's `data-tab` from its own `tab` field.
+	selected_tab(){ return this.ui.made().find(w => w instanceof Tabs)?.get("selected"); }
+
 	filter_cards(){
-		const selected = this.ui.made().find(w => w instanceof Tabs)?.get("selected");
+		const selected = this.selected_tab();
 		this.view?.el.querySelectorAll(".live-main > [data-tab]").forEach(el => {
 			el.classList.toggle("is-tab-hidden", !!selected && el.dataset.tab !== selected);
 		});
 	}
 
-	// A card naming `ui` (idea 2: a widget reached through page.ui, by name) draws that widget below its own
-	// title/subtitle instead of the card's `text`; everything else draws as LivePage always has.
-	draw_card(item){
-		const widget_name = item.get?.("ui");
-		const view = widget_name ? this.draw_ui_card(item, widget_name) : super.draw_card(item);
-		const tab = item.get?.("tab");
-		if (tab) view.attr("data-tab", tab);
-		return view;
+	// Stamps a card's `tab` and hides it at once when another tab is selected (a card added later redraws alone,
+	// so it can't wait for filter_cards). LivePage draws cards through its static Card and Block views (f56543fda).
+	static tag(view){
+		const tab = view.item.get?.("tab");
+		if (!tab) return;
+		const selected = view.page.selected_tab();
+		view.attr("data-tab", tab).tc("is-tab-hidden", !!selected && tab !== selected);
 	}
 
-	draw_ui_card(item, widget_name){
-		const widget = this.ui.get(widget_name);
-		return div.c("live-block page-ui-card", () => {
-			this.draw_words(item);
-			if (widget) new widget.constructor.View({ item: widget });
-		}).attr("id", item.id).attr("data-kind", item.constructor.name);
-	}
+	// A card naming `ui` (idea 2: a widget reached through page.ui, by name) draws that widget below its own
+	// title/subtitle instead of the card's `text`; everything else draws as LivePage always has.
+	static Card = class DesignCardView extends LivePage.Card {
+		render(){
+			const { page, item } = this, P = page.constructor, name = item.get?.("ui");
+			if (!name) super.render();
+			else {
+				const widget = page.ui.get(name);
+				this.ac("live-block page-ui-card").attr("id", item.id).attr("data-kind", item.constructor.name);
+				new P.Heading({ tag: "h4", item, classes: "live-card-title" });
+				new P.Md({ item, key: "text", classes: "live-card-text" });
+				if (widget) new widget.constructor.View({ item: widget });
+			}
+			P.tag(this);
+		}
+	};
+
+	static Block = class DesignBlockView extends LivePage.Block {
+		render(){ super.render(); this.page.constructor.tag(this); }
+	};
 }

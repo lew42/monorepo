@@ -139,3 +139,7 @@
 {"content":{"add":{"id":"link-design","path":"./design/","text":"page-design's page.ui prototype and the recursive pages plan, built live.","title":"Design lab","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T22:08:06.053Z"}
 {"content":{"add":{"id":"link-demos","path":"./demos/","text":"Tabs, nav, place and columns tried from voice, one tap-through each.","title":"Feature demos","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T22:08:06.533Z"}
 {"content":{"add":{"id":"link-next","path":"./next/","text":"The sub-page I made earlier as a test.","title":"What's next","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T22:08:07.009Z"}
+{"content":{"remove":"working"},"by":"voice-app","ts":"2026-11-06T22:23:51.757Z"}
+{"content":{"add":{"id":"agent-live","after":"cleanup-no","color":"green","label":"live-page · UI fixes","on":true,"type":"live-light"}},"by":"voice-app","ts":"2026-11-06T22:23:57.765Z"}
+{"content":{"add":{"id":"agent-design","after":"agent-live","color":"green","label":"page-design · tabs + layout","on":true,"type":"live-light"}},"by":"voice-app","ts":"2026-11-06T22:23:58.319Z"}
+{"content":{"add":{"id":"link-core-page","path":"/framework/core/Page/","text":"The core Page class and its docs.","title":"Core Page","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T22:40:07.488Z"}
