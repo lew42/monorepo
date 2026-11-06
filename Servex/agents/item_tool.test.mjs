@@ -414,6 +414,18 @@ try {
 			}
 			const r = await call("item", { path: PURL, delta: { content: { add: { type: "part-nope" } } } });
 			ok(r.ok === false && /part-view/.test(r.why) && /part-file/.test(r.why), "part-nope is refused and the refusal lists the types");
+
+			// record_lines (append.mjs's path, a browser tab's own post) must refuse the SAME bad line the item() tool
+			// refuses above, not just the item() tool's own write path (2026-11-06, item-validate): before the fix, a
+			// raw page.jsonl line only had the generic jsonl-schema shape checked (page.jsonl is "open" by design), so
+			// an unknown part type sailed through unrefused and landed in the file.
+			{
+				const { record_lines } = await import("./page_tools.js");
+				const pfile = path.join(PDIR, "page.jsonl"), before = fs.readFileSync(pfile, "utf8");
+				const out = record_lines(pfile, [{ content: { add: { type: "part-nope" } }, by: "t1", ts: "2026-11-06T00:00:00Z" }]);
+				ok(out.ok === false && out.written === 0 && /part-view/.test(out.refused[0]?.why ?? ""), "record_lines refuses the same unknown part type");
+				ok(fs.readFileSync(pfile, "utf8") === before, "record_lines wrote nothing on the refusal");
+			}
 		} finally { fs.rmSync(PDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 	}
 

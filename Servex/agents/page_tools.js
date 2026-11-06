@@ -449,6 +449,10 @@ const page_class = () => page_loaded ??= (async () => {
 	const { PART_TYPES } = await import("../../public/framework/core/Page/parts/kinds.js");
 	return Object.assign(Page, { PART_TYPES });
 })().catch(e => { console.warn(`item tool: Page.class.js did not import in node, so page lines are written unchecked (${e.message})`); return null; });
+// Loaded once, at import time (not only on first item() call), so record_lines below — called SYNCHRONOUSLY by
+// LogLine.append (Server/LogLine.mjs), for a browser tab's own page.jsonl post and append.mjs — can run the
+// same structural refusal (bad_page_delta) the item() tool's write path runs, without awaiting it per line.
+const PAGE_PRELOADED = await page_class();
 /* A page.jsonl's own class (line 1's "class": "./LivePage.js", class_of below): resolved against the FILE'S FOLDER and
  * imported, so a page replays as what it says it is (LivePage's methods, LivePage's own `kinds`) instead of plain Page.
  * Used only when it extends the real Page (else a mistyped or unrelated module would silently become "the page class").
@@ -1348,7 +1352,16 @@ export function record_lines(file, lines){
 	for (const [i, line] of lines.entries()){   // `i` names the caller's own line in a refusal
 		if (!fresh.has(line)){ out.skipped++; continue; }
 		if (!is_plain(line)){ out.refused.push({ i, why: "a line is one object" }); continue; }
-		if (path.basename(file) === "page.jsonl"){ let why = null; try { why = check(file, line); } catch {} if (why){ out.refused.push({ i, why }); continue; } }
+		// Two checks, same ones the item() tool's own write path runs (page_refusal/bad_page_delta): the generic
+		// jsonl-schema shape (page.jsonl is "open" — an unknown key is plain data, by design), THEN whether the line
+		// would hold up on a real Page (a private key, or a part type nobody registered). Before this fix, only the
+		// first ran here: a raw line (a browser tab's own post, or append.mjs) skipped bad_page_delta entirely, so
+		// a line the item() tool refuses (item_tool.test.mjs, "part-nope is refused") landed in the file unrefused.
+		if (path.basename(file) === "page.jsonl"){
+			let why = null; try { why = check(file, line); } catch {}
+			if (!why && PAGE_PRELOADED) try { why = bad_page_delta(PAGE_PRELOADED, line); } catch {}
+			if (why){ out.refused.push({ i, why }); continue; }
+		}
 		let warm = store?.host && store.sig === sig(file) && store.deps.every(([f, s]) => sig(f) === s) ? store.host : null;
 		// A page line the browser wrote and its schema passed is kept even when node's live Page cannot apply it (a part only the browser
 		// registers): the warm root is dropped (try_line does that) and the next read replays the file. A task line is still refused.
