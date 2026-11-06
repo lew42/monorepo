@@ -94,6 +94,10 @@
 	.live-check { display: flex; align-items: center; gap: .6rem; cursor: pointer; }
 	.live-check input { width: 1.2em; height: 1.2em; margin: 0; flex: none; accent-color: #22c55e; }
 	.live-check.is-done span { text-decoration: line-through; opacity: .55; }
+	.live-code-card { display: flex; flex-direction: column; gap: var(--live-step); min-width: 0; }
+	.live-code-wrap { min-width: 0; max-width: 100%; }
+	.live-code-wrap pre { max-width: 100%; overflow-x: auto; }   /* a long line scrolls inside the block, never the page */
+	.live-code-caption { opacity: .8; font-size: .9em; }
 	button.live-button { font: inherit; font-size: .85em; line-height: 1.2; align-self: flex-start; white-space: nowrap; padding: .5em 1em; border-radius: .5em; border: 0; cursor: pointer; background: var(--prime, #FF6157); color: #1a1a1a; font-weight: 600; }
 	button.live-button.is-pressed { animation: live-press .4s ease-out; }
 	@keyframes live-press { from { transform: scale(.94); filter: brightness(1.2); } to { transform: none; filter: none; } }

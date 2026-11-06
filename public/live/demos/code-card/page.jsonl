@@ -1,0 +1,5 @@
+{"title":"Code card","class":"/live/LivePage.js","header":"Three live-code cards: js, json, css."}
+{"content":{"add":{"id":"js1","type":"live-code","lang":"js","title":"A sum","code":"const sum = (a, b) => a + b;\nconsole.log(sum(2, 3));","caption":"Two numbers in, one out."}}}
+{"content":{"add":{"id":"json1","type":"live-code","lang":"json","title":"A card's own delta","code":"{\n  \"type\": \"live-code\",\n  \"lang\": \"js\",\n  \"code\": \"const x = 1;\"\n}","caption":"What the item tool sends to make one of these."}}}
+{"content":{"add":{"id":"css1","type":"live-code","lang":"css","title":"The card's own rule","code":".live-code-wrap pre {\n  max-width: 100%;\n  overflow-x: auto;\n}","caption":"A long line scrolls inside the block, never the page."}}}
+{"file":"shots/"}
