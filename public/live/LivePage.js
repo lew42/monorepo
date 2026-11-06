@@ -123,6 +123,23 @@ export default class LivePage extends Page {
 	// ════ EVERYTHING ON IT HAS A URL ═══
 	// /live/<screen>/ is a saved screen, /live/removed/ what was removed, /live/<id>/ any card on screen opened by itself
 	// (a Task, a checklist…; also inside a screen: /live/<screen>/<id>/). A sub-page folder wins over all of them.
+	// Every page under /live/ is a LivePage (its header, breadcrumb and settings): a sub-page whose page.jsonl names a plain
+	// Page, or no class, is built as a LivePage; a LivePage subclass (DesignPage) stays itself. A page.js page is its own.
+	static async log_class(module, url){
+		const Class = await super.log_class(module, url);
+		return Class === LivePage || Class.prototype instanceof LivePage ? Class : LivePage;
+	}
+	async child(name, levels){
+		if (!this.children.get(name)){   // not built yet (undefined), or named by a {"file": "x/page.jsonl"} line (null)
+			const kind = this.child_kinds?.get(name) ?? (await Page.listing(this.url).catch(() => null))?.pages.get(name);
+			if (kind === "jsonl"){
+				const page = await LivePage.jsonl(this.url + name + "/");   // LivePage as the host, so log_class above decides
+				if (page) return this.add(name, page).load_all_children(levels);
+			}
+		}
+		return super.child(name, levels);
+	}
+
 	route(name){
 		// Under settings/ every name is a folder or a file of the page's own folder (LivePage.Files).
 		if (this.settings_of) return new this.constructor({ title: name, url: this.url + name + "/", settings_of: this.settings_of, at: (this.at ?? "") + name + "/" });

@@ -81,6 +81,8 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
 
 ## The header: tabs and settings
 
+- **Every page under /live/ is a LivePage**, so it has this header: a sub-page whose `page.jsonl` names a plain Page (or no class) is built as a LivePage (`LivePage.child` and `LivePage.log_class`); a LivePage subclass such as DesignPage stays itself. A `page.js` page under /live/ is its own class, so make it extend LivePage.
+- **The header runs the full width** of the page with its own padding and a bottom border, which is also the tab row's baseline; its text lines up with the column below.
 - **Tabs are the one way to move between pages.** A page with sub-pages (folders, then saved screens) shows them as tabs, itself first. A page with none shows its siblings, itself selected; a card opened by itself shows none (the breadcrumb takes it back). The row scrolls sideways and fades at an edge with more. /live/sessions/, /live/archive/ and /live/v1/ are not tabs (`LivePage.tab_skip`); the footer of /live/ links them.
 - **One title everywhere:** a tab label, a link card's title and the page's own h1 all read the sub-page's own `title` (the last `title` in its `page.jsonl`, else its `page.js`; `LivePage.title_of`). To rename a sub-page, set its title on its own path: `item({path: "/live/demos/", delta: {"title": "Feature demos"}})`. A link card's `title` shows only until the page's own one arrives.
 - **The breadcrumb is the url** (`location.pathname`, word for word, every step a link): a phone hides the address bar, so this is where the owner reads it. It redraws on every url change, a tab switch included (`LivePage.on_url`), and the tab row lights the tab the url is in.

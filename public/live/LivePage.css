@@ -13,8 +13,8 @@
 	}
 	.live-page {
 		box-sizing: border-box; width: 100%; min-height: 100dvh;
-		--live-pad: .75rem;
-		padding: var(--live-pad) clamp(.5rem, 3vw, 1.5rem) 5rem;   /* 5rem: clear of the app bar fixed at the bottom of a phone */
+		--live-pad: .75rem; --live-pad-x: clamp(.5rem, 3vw, 1.5rem);
+		padding: var(--live-pad) var(--live-pad-x) 5rem;   /* 5rem: clear of the app bar fixed at the bottom of a phone */
 		display: flex; flex-direction: column; gap: var(--live-gap);
 		font-size: clamp(1rem, 1.2vw + .75rem, 1.5rem);
 		/* ONE RHYTHM, two steps: --live-gap between every two things on the page (header, cards, footer),
@@ -26,11 +26,15 @@
 	.live-page > :not(.live-alerts) { box-sizing: border-box; width: 100%; max-width: 60rem; margin-inline: auto; }   /* the floor is full width, the column is not */
 	/* THE HEADER: sticky, one size at every depth and width (rem, not the page's growing em), under 100 px: a tiny
 	   breadcrumb with the settings icon, a small title, one row of tabs. Its floor is opaque so cards pass under it. */
-	.live-head {
+	.live-page > .live-head {
 		position: sticky; top: 0; z-index: 5;
 		display: flex; flex-direction: column; gap: .15rem;
-		margin-top: calc(-1 * var(--live-pad)); padding: .5rem .25rem .25rem;   /* the floor runs a quarter rem past its text (smoke: text never touches its box); the margin cancels the page's top padding, so it sits flush with the top of the screen when stuck */
+		/* Full width with its own padding: the margins cancel the page's padding (flush with the top and both sides when
+		   stuck), the padding puts its text back in line with the column (60rem, centred) below it. */
+		max-width: none; width: auto; margin: calc(-1 * var(--live-pad)) calc(-1 * var(--live-pad-x)) 0;
+		padding: .5rem calc(var(--live-pad-x) + max(0px, (100% - 60rem) / 2)) .25rem;
 		background: var(--live-floor);
+		border-bottom: 1px solid light-dark(#0002, #fff2);
 		font-size: 1rem;
 	}
 	.live-head-top { display: flex; align-items: center; gap: .5rem; min-height: 1.4rem; }
@@ -49,6 +53,8 @@
 
 	/* The tab row (ext/tabs' strip): smaller than a page's tabs, and a fade on an edge that has more to scroll to. */
 	.live-tabs { position: relative; font-size: .85rem; }
+	.live-head:has(.live-tabs:not(.is-empty)) { padding-bottom: 0; }   /* the tabs' underline sits on the header's border, */
+	.live-tabs > .tab-bar { border-bottom: 0; }                          /* which is their baseline: one line, not two */
 	.live-tabs.is-empty { display: none; }
 	.live-tabs > .tab-bar > .tab { min-height: 2.1em; --tab-pad-x: .7em; }
 	.live-tabs::before, .live-tabs::after {
