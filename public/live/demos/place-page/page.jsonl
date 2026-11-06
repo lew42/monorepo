@@ -1,3 +1,4 @@
 {"title":"Place (plain Page)","class":"/framework/core/Page/Page.class.js"}
 {"content":{"add":{"id":"ppa9yebm","type":"part-text","text":"Before the place: this text is normal content."}},"by":"minion-page-features","ts":"2026-11-06T21:50:34.448Z"}
 {"place":"readme.md","by":"minion-page-features","ts":"2026-11-06T21:50:34.949Z"}
+{"title":"Place (LivePage ignores the place line — file content never shows)","by":"minion-tabs-r3","ts":"2026-11-06T23:52:30.727Z"}
