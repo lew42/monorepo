@@ -68,6 +68,20 @@ There is **no auto-upgrade today.** Every folder above is made on a deliberate c
 
 **What is left behind:** a `Ref` (`core/Item/Ref.js`) at the embedded slot, `{type:"Ref", path: "<old path>"}` — same mechanism section 3 above already describes; `RefView` still needs the "draw a Ref as its target" step noted there.
 
-**Naming (unchanged by this proposal):** slug = folder name = path segment (the card's existing `id`, already `a-z0-9-` only — `Subpages.js:7,108`); the `title` stays separate (`title ?? name`, `Subpages.js:51`); any link to the card uses the title as its label, never the slug.
+**Naming:** the folder name is a slug of the card's title (`My idea` becomes `my-idea/`, made unique among its siblings), not its random id (`nd3r7buc`). So the path segment, the folder name and the title match, and a link's label is the title. At the move, the card takes that slug as its `name`. Slug rules: `Subpages.js:7,108`; title fallback `title ?? name`: `Subpages.js:51`.
 
 This is a proposal: nothing above is built. [Load cost measurements for this task](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/storage/) back the "why this matters" half of the brief.
+
+## 7. What a parent loads today (measured 2026-11-06)
+
+A page fetches every known child's `page.jsonl`, **2 levels deep** (`Page.class.js:681`, `load_all_children()` at `:685-696`). It reads each whole file and replays every line (`Jsonl.js:28-52`, `Store.js:208-212`).
+
+| url | jsonl files | size |
+|---|---:|---:|
+| `/live/` | 2 | 3.7 KB |
+| `/framework/core/Page/` | 168 | 119 KB |
+| `/framework/ai/sessions/2026/11/06/` | 118 | 1.85 MB |
+| a made-up tree, 4 levels by 5 children | 31 of 156 (predicted 31) | 31 KB |
+
+- **A deep tree is bounded:** below level 2, nothing loads until you open it.
+- **A wide folder is not:** 1000 direct children means 1000 fetches on first open (about 16 MB at the sessions-day rate). The fix is the preview index, [index-jsonl.md](index-jsonl.md): load each child's title, icon and description from one file, and the full child only when it opens. Not built.
