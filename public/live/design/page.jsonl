@@ -38,3 +38,71 @@
 {"ui":{"tabs":{"set":{"selected":"Idea 1"}}},"by":"owner","ts":"2026-11-06T22:09:56.242Z"}
 {"ui":{"tabs":{"set":{"selected":"Today"}}},"by":"owner","ts":"2026-11-06T22:09:57.590Z"}
 {"ui":{"tabs":{"set":{"selected":"Both"}}},"by":"owner","ts":"2026-11-06T22:10:05.843Z"}
+{"file":"census-check.mjs"}
+{"ui":{"tabs":{"set":{"selected":"Today"}}},"by":"owner","ts":"2026-11-06T22:15:10.324Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 1"}}},"by":"owner","ts":"2026-11-06T22:15:10.857Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 2"}}},"by":"owner","ts":"2026-11-06T22:15:11.222Z"}
+{"ui":{"tabs":{"set":{"selected":"Both"}}},"by":"owner","ts":"2026-11-06T22:15:14.604Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 2"}}},"by":"owner","ts":"2026-11-06T22:15:15.238Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 1"}}},"by":"owner","ts":"2026-11-06T22:15:15.571Z"}
+{"ui":{"tabs":{"set":{"selected":"Today"}}},"by":"owner","ts":"2026-11-06T22:15:15.904Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 1"}}},"by":"owner","ts":"2026-11-06T22:15:16.194Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 2"}}},"by":"owner","ts":"2026-11-06T22:15:16.451Z"}
+{"ui":{"tabs":{"set":{"selected":"Both"}}},"by":"owner","ts":"2026-11-06T22:15:16.753Z"}
+{"ui":{"tabs":{"selected":"Idea 1"}},"by":"voice-app","ts":"2026-11-06T22:15:49.430Z"}
+{"file":"census-check.mjs","gone":true}
+{"ui":{"tabs":{"selected":"Today"}},"by":"voice-app","ts":"2026-11-06T22:15:54.941Z"}
+{"content":{"remove":"q701o4c8"},"by":"minion-page-ui","ts":"2026-11-06T22:15:58.065Z"}
+{"content":{"remove":"k7ldl3nc"},"by":"minion-page-ui","ts":"2026-11-06T22:15:58.764Z"}
+{"content":{"remove":"pmlmw76b"},"by":"minion-page-ui","ts":"2026-11-06T22:15:59.562Z"}
+{"content":{"remove":"w65fcpjh"},"by":"minion-page-ui","ts":"2026-11-06T22:16:00.326Z"}
+{"content":{"remove":"zh2wqpob"},"by":"minion-page-ui","ts":"2026-11-06T22:16:01.020Z"}
+{"content":{"remove":"lyej5zqe"},"by":"minion-page-ui","ts":"2026-11-06T22:16:01.714Z"}
+{"content":{"remove":"ljiwbar7"},"by":"minion-page-ui","ts":"2026-11-06T22:16:02.372Z"}
+{"content":{"remove":"ve9orq14"},"by":"minion-page-ui","ts":"2026-11-06T22:16:03.013Z"}
+{"content":{"remove":"e81axc2u"},"by":"minion-page-ui","ts":"2026-11-06T22:16:03.664Z"}
+{"content":{"remove":"go92g8a8"},"by":"minion-page-ui","ts":"2026-11-06T22:16:04.263Z"}
+{"content":{"remove":"m8vy5ulp"},"by":"minion-page-ui","ts":"2026-11-06T22:16:04.923Z"}
+{"content":{"remove":"br5esb1g"},"by":"minion-page-ui","ts":"2026-11-06T22:16:05.611Z"}
+{"content":{"remove":"wl4j632e"},"by":"minion-page-ui","ts":"2026-11-06T22:16:06.216Z"}
+{"content":{"remove":"vw2dxfrb"},"by":"minion-page-ui","ts":"2026-11-06T22:16:06.964Z"}
+{"content":{"remove":"ur24xeqk"},"by":"minion-page-ui","ts":"2026-11-06T22:16:07.509Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 1"}}},"by":"owner","ts":"2026-11-06T22:16:13.971Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 2"}}},"by":"owner","ts":"2026-11-06T22:16:14.771Z"}
+{"ui":{"tabs":{"set":{"selected":"Both"}}},"by":"owner","ts":"2026-11-06T22:16:15.237Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 2"}}},"by":"owner","ts":"2026-11-06T22:16:15.737Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 1"}}},"by":"owner","ts":"2026-11-06T22:16:16.046Z"}
+{"ui":{"tabs":{"set":{"selected":"Today"}}},"by":"owner","ts":"2026-11-06T22:16:16.438Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 1"}}},"by":"owner","ts":"2026-11-06T22:16:16.770Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 2"}}},"by":"owner","ts":"2026-11-06T22:16:17.043Z"}
+{"ui":{"tabs":{"set":{"selected":"Both"}}},"by":"owner","ts":"2026-11-06T22:16:17.344Z"}
+{"content":{"add":{"id":"lhus6x6f","type":"part-heading","tab":"Today","text":"Page has 150 methods in one bag"}},"by":"minion-page-ui","ts":"2026-11-06T22:16:22.849Z"}
+{"content":{"add":{"id":"iko4c17d","type":"part-card","tab":"Today","title":"Every method, flat","text":"computed live, never typed by hand","ui":"methods"}},"by":"minion-page-ui","ts":"2026-11-06T22:16:23.594Z"}
+{"content":{"add":{"id":"djglivf6","type":"part-card","tab":"Idea 1","title":"UI lives in modules","text":"a page imports only what it uses\n\n```\ncore/Page/ui/\n  Tabs.js\n  Columns.js\n  Previews.js\n  Nav.js\n```\n```js\nimport \"/framework/core/Page/ui/Tabs.js\";\n```"}},"by":"minion-page-ui","ts":"2026-11-06T22:16:27.051Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 2"}}},"by":"owner","ts":"2026-11-06T22:16:27.456Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 1"}}},"by":"owner","ts":"2026-11-06T22:16:27.973Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 2"}}},"by":"owner","ts":"2026-11-06T22:16:28.275Z"}
+{"ui":{"tabs":{"set":{"selected":"Both"}}},"by":"owner","ts":"2026-11-06T22:16:29.363Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 2"}}},"by":"owner","ts":"2026-11-06T22:16:29.987Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 1"}}},"by":"owner","ts":"2026-11-06T22:16:30.345Z"}
+{"ui":{"tabs":{"set":{"selected":"Today"}}},"by":"owner","ts":"2026-11-06T22:16:30.646Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 1"}}},"by":"owner","ts":"2026-11-06T22:16:31.363Z"}
+{"content":{"add":{"id":"dy2r7vmj","type":"part-card","tab":"Idea 2","title":"One door: page.ui","text":"made when first touched, state saved in the log\n\n```json\n{\"ui\": {\"tabs\": {\"selected\": \"Idea 2\"}}}\n```"}},"by":"minion-page-ui","ts":"2026-11-06T22:16:31.775Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 2"}}},"by":"owner","ts":"2026-11-06T22:16:31.789Z"}
+{"ui":{"tabs":{"set":{"selected":"Both"}}},"by":"owner","ts":"2026-11-06T22:16:32.239Z"}
+{"content":{"add":{"id":"qpifkoh8","type":"part-card","tab":"Idea 2","title":"The same methods, grouped","text":"page.columns, page.tabs, page.previews…","ui":"methods"}},"by":"minion-page-ui","ts":"2026-11-06T22:16:32.627Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 2"}}},"by":"owner","ts":"2026-11-06T22:16:32.720Z"}
+{"content":{"add":{"id":"ivibt542","type":"part-card","tab":"Both","title":"Recommended: both","text":"modules hold the code, page.ui reaches it"}},"by":"minion-page-ui","ts":"2026-11-06T22:16:34.276Z"}
+{"content":{"add":{"id":"es4frggq","type":"part-card","tab":"Both","title":"Try it","text":"tap a tab, or say \"switch to Idea 1\""}},"by":"minion-page-ui","ts":"2026-11-06T22:16:35.176Z"}
+{"content":{"add":{"id":"dw5qc8e6","type":"part-card","tab":"Both","title":"If yes, next","text":"about $15–25 — [the plan](/framework/core/Page/doc/namespaces.md)"}},"by":"minion-page-ui","ts":"2026-11-06T22:16:36.181Z"}
+{"content":{"add":{"id":"iw26eh0t","type":"part-heading","tab":"Pages","text":"Card foo is always at /live/foo/"}},"by":"minion-page-ui","ts":"2026-11-06T22:16:38.001Z"}
+{"content":{"add":{"id":"rdrt18j9","type":"part-card","tab":"Pages","title":"Embedded","text":"built\n\n```\n/live/page.jsonl\n  {\"content\":{\"add\":{\"id\":\"foo\", …}}}\n```"}},"by":"minion-page-ui","ts":"2026-11-06T22:16:39.215Z"}
+{"content":{"add":{"id":"hby9w1ot","type":"part-card","tab":"Pages","title":"Own folder","text":"move exists, button next\n\n```\n/live/foo/\n  page.jsonl\n```"}},"by":"minion-page-ui","ts":"2026-11-06T22:16:40.161Z"}
+{"content":{"add":{"id":"hhefioqd","type":"part-card","tab":"Pages","title":"Own file","text":"not routed\n\n```\n/live/foo.jsonl\n```"}},"by":"minion-page-ui","ts":"2026-11-06T22:16:41.111Z"}
+{"content":{"add":{"id":"d7bp4rxr","type":"part-card","tab":"Pages","title":"Ref stitches it back","text":"a pointer, loaded when drawn — [the long form](/framework/core/Page/doc/recursive-pages.md)"}},"by":"minion-page-ui","ts":"2026-11-06T22:16:42.009Z"}
+{"ui":{"tabs":{"names":["Today","Idea 1","Idea 2","Both","Pages"],"selected":"Today"}},"by":"minion-page-ui","ts":"2026-11-06T22:16:43.682Z"}
+{"ui":{"methods":{"mode":"grouped"}},"by":"minion-page-ui","ts":"2026-11-06T22:16:54.939Z"}
+{"ui":{"tabs":{"selected":"Pages"}},"by":"minion-page-ui","ts":"2026-11-06T22:17:02.105Z"}
+{"ui":{"tabs":{"selected":"Today"},"methods":{"mode":"today"}},"by":"minion-page-ui","ts":"2026-11-06T22:17:19.047Z"}
+{"ui":{"tabs":{"selected":"Idea 1"}},"by":"minion-page-ui","ts":"2026-11-06T22:17:23.915Z"}
+{"ui":{"tabs":{"selected":"Today"}},"by":"minion-page-ui","ts":"2026-11-06T22:17:30.899Z"}
