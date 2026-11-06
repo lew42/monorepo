@@ -1,0 +1,17 @@
+@layer base, theme, site, util;
+
+/* /live/design/ (DesignPage.js): the page.ui strip under the head, and the tab bar it holds. */
+@layer site {
+	.page-ui-strip { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; margin: .25rem 0 0; }
+	.page-ui-types { font-size: .75em; opacity: .55; }
+
+	.page-ui-tabs { display: flex; flex-wrap: wrap; gap: .4rem; }
+	.page-ui-tab {
+		font: inherit; font-size: .85em; color: inherit; cursor: pointer;
+		background: var(--live-card); border: 1px solid light-dark(#0002, #fff3); border-radius: .5em;
+		padding: .3em .7em; line-height: 1.2;
+	}
+	.page-ui-tab.is-selected { background: var(--prime, #2563eb); color: #fff; border-color: transparent; }
+
+	.live-main > [data-tab].is-tab-hidden { display: none; }
+}

@@ -1,0 +1,39 @@
+{"title":"Page design: page.ui","class":"./DesignPage.js"}
+{"file":"DesignPage.css"}
+{"file":"DesignPage.js"}
+{"file":"PageUI.js"}
+{"file":"PageUI.test.mjs"}
+{"file":"ui/"}
+{"content":{"add":{"id":"q701o4c8","type":"part-heading","tab":"Today","text":"Page has 150 methods in one bag"}},"by":"minion-page-ui","ts":"2026-11-06T22:04:01.645Z"}
+{"content":{"add":{"id":"k7ldl3nc","type":"part-card","tab":"Today","title":"The problem","text":"Page 97, Item 30, Events 5. About 50 of Page's only pass a call on to a helper. Voice sees 9 (the help hides the rest); anyone reading the code sees all 150."}},"by":"minion-page-ui","ts":"2026-11-06T22:04:10.939Z"}
+{"content":{"add":{"id":"pmlmw76b","type":"part-card","tab":"Today","title":"On /live/, tabs and columns don't draw","text":"LivePage draws its own screen and skips the frame that draws tabs, columns and nav. A widget that draws itself would work on any page."}},"by":"minion-page-ui","ts":"2026-11-06T22:04:11.977Z"}
+{"content":{"add":{"id":"w65fcpjh","type":"part-heading","tab":"Idea 1","text":"Idea 1: UI lives in modules, imported on need"}},"by":"minion-page-ui","ts":"2026-11-06T22:04:14.828Z"}
+{"content":{"add":{"id":"zh2wqpob","type":"part-card","tab":"Idea 1","title":"What changes","text":"Sidebar, header, nav, tabs, columns and previews each become one file. A page imports only the ones it uses. Page itself keeps data, url and children."}},"by":"minion-page-ui","ts":"2026-11-06T22:04:15.927Z"}
+{"content":{"add":{"id":"lyej5zqe","type":"part-card","tab":"Idea 1","title":"In code","text":"`import \"/framework/core/Page/ui/Tabs.js\";` in the page's class file. Nothing loads that no page asked for."}},"by":"minion-page-ui","ts":"2026-11-06T22:04:17.657Z"}
+{"content":{"add":{"id":"ljiwbar7","type":"part-card","tab":"Idea 1","title":"Good / cost","text":"Smallest Page. But code still needs a way to reach the widget, and where its state is saved is left open."}},"by":"minion-page-ui","ts":"2026-11-06T22:04:17.979Z"}
+{"content":{"add":{"id":"ve9orq14","type":"part-heading","tab":"Idea 2","text":"Idea 2: one door, page.ui"}},"by":"minion-page-ui","ts":"2026-11-06T22:04:20.226Z"}
+{"content":{"add":{"id":"e81axc2u","type":"part-card","tab":"Idea 2","title":"What changes","text":"`page.ui.tabs` is made the first time it is touched, already wired to the page. Page gains one name instead of fifty."}},"by":"minion-page-ui","ts":"2026-11-06T22:04:21.208Z"}
+{"content":{"add":{"id":"go92g8a8","type":"part-card","tab":"Idea 2","title":"From voice","text":"`{\"ui\": {\"tabs\": {\"selected\": \"Idea 2\"}}}`. That line is saved in the page's log, so a reload shows the same tab."}},"by":"minion-page-ui","ts":"2026-11-06T22:04:22.254Z"}
+{"content":{"add":{"id":"m8vy5ulp","type":"part-card","tab":"Idea 2","title":"Good / cost","text":"State is saved for free, and the help shows `ui` once. Alone, though, every widget would be loaded on every page."}},"by":"minion-page-ui","ts":"2026-11-06T22:04:23.167Z"}
+{"content":{"add":{"id":"br5esb1g","type":"part-heading","tab":"Both","text":"Recommended: both together"}},"by":"minion-page-ui","ts":"2026-11-06T22:04:26.450Z"}
+{"content":{"add":{"id":"wl4j632e","type":"part-card","tab":"Both","title":"How they fit","text":"Modules are where the code lives (idea 1). `page.ui` is how a page reaches them and saves their state (idea 2). A widget loads when the page's class imports it; `page.ui` only offers what loaded."}},"by":"minion-page-ui","ts":"2026-11-06T22:04:27.087Z"}
+{"content":{"add":{"id":"vw2dxfrb","type":"part-card","tab":"Both","title":"Try it","text":"The tab bar above is the prototype: `page.ui.tabs`. Say \"switch to Idea 1\" and voice sends one line; reload and it stays."}},"by":"minion-page-ui","ts":"2026-11-06T22:04:27.832Z"}
+{"content":{"add":{"id":"ur24xeqk","type":"part-card","tab":"Both","title":"If yes, next","text":"Move tabs, columns and previews off Page into `core/Page/ui/`, one widget at a time, old names kept as shortcuts. About $15–25."}},"by":"minion-page-ui","ts":"2026-11-06T22:04:28.866Z"}
+{"ui":{"tabs":{"names":["Today","Idea 1","Idea 2","Both"],"selected":"Both"}},"by":"minion-page-ui","ts":"2026-11-06T22:04:31.269Z"}
+{"ui":{"tabs":{"selected":"Idea 1"}},"by":"minion-page-ui","ts":"2026-11-06T22:04:53.984Z"}
+{"file":"tap-shot.mjs"}
+{"file":"tap-shot.mjs","gone":true}
+{"file":"tap-debug.mjs"}
+{"ui":{"tabs":{"set":{"selected":"Idea 2"}}},"by":"owner","ts":"2026-11-06T22:06:31.939Z"}
+{"file":"tap-debug2.mjs"}
+{"file":"tap-debug.mjs","gone":true}
+{"file":"tap-debug2.mjs","gone":true}
+{"ui":{"tabs":{"selected":"Both"}},"by":"minion-page-ui","ts":"2026-11-06T22:08:18.651Z"}
+{"ui":{"tabs":{"set":{"selected":"Today"}}},"by":"owner","ts":"2026-11-06T22:08:44.391Z"}
+{"ui":{"tabs":{"selected":"Idea 1"}},"by":"voice-app","ts":"2026-11-06T22:08:45.231Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 1"}}},"by":"owner","ts":"2026-11-06T22:08:45.263Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 2"}}},"by":"owner","ts":"2026-11-06T22:08:45.882Z"}
+{"ui":{"tabs":{"set":{"selected":"Both"}}},"by":"owner","ts":"2026-11-06T22:08:46.822Z"}
+{"ui":{"tabs":{"set":{"selected":"Today"}}},"by":"owner","ts":"2026-11-06T22:08:49.987Z"}
+{"ui":{"tabs":{"set":{"selected":"Idea 1"}}},"by":"owner","ts":"2026-11-06T22:09:56.242Z"}
+{"ui":{"tabs":{"set":{"selected":"Today"}}},"by":"owner","ts":"2026-11-06T22:09:57.590Z"}
