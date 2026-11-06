@@ -11,7 +11,9 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
 | To… | delta (path `/live/`, or a sub-page's path) |
 |---|---|
 | a line of text / a heading / a titled block | `{"content":{"add":{"type":"part-text","text":"**markdown**"}}}` · `"type":"part-heading"` · `"type":"part-card","title":"…","text":"…"` |
-| edit / remove / clear | `{"content":{"<id>":{"text":"…"}}}` · `{"content":{"remove":"<id>"}}` · `{"content":{"clear":true}}` |
+| edit / remove / clear | `{"content":{"<id>":{"text":"…"}}}` · `{"content":{"remove":"<id>"}}` · `{"content":{"clear":true}}` (both keep the cards: see below) |
+| reorder | `{"content":{"move":{"id":"<id>","after":"<other id>"}}}` · `{"content":{"order":["c","a","b"]}}` |
+| any other class | `{"content":{"add":{"type":"Task","id":"ship","title":"Ship it"}}}`, then its own methods: `{"content":{"ship":{"start":{}}}}`. It draws with its own View. A type no code imported yet loads first (`Item.modules` in core/Item/Item.js; add a line there for a new one) |
 | a line under the title / at the bottom | `{"header":"text"}` · `{"footer":"text"}` (`null` hides it) |
 | blink / a 4 s banner | `{"flash":{}}` · `{"flash":"red"}` · `{"alert":"Look at this"}` |
 | a status light | `{"content":{"add":{"type":"live-light","id":"build","label":"Build","on":true,"color":"green"}}}`, then `{"content":{"build":{"color":"red"}}}` |
@@ -29,12 +31,20 @@ A card already on screen can become a sub-page (a link card stays in its place):
 
 **Page features from voice** (tabs, columns, place, nav, previews — which ones actually draw, and why): [doc/page-features.md](doc/page-features.md).
 
+## Nothing is lost: removed cards
+
+A card removed, or taken by a clear, moves into the page's `removed` List ([LiveContent.js](LiveContent.js)); so does a saved screen that is removed or replaced. `removed` is part of the page's saved shape, so a snapshot keeps it too. It opens at `/live/removed/` (the footer's "Removed cards (N)"), and `{"restore":"<id>"}` puts one back at the end. Saving a screen does not fill it: those cards went into the screen.
+
+## Every card has an address
+
+`/live/<card id>/` opens one card by itself (a Task at full size), also inside a screen (`/live/<screen>/<id>/`). A sub-page folder of the same name wins. Tests: [LivePage.test.mjs](LivePage.test.mjs) (through the real item tool). Battle-test results: [/live/lab/](/live/lab/).
+
 ## Keeping a screen: save, then restore
 
 - `{"save":{"name":"plan-review","title":"Plan review"}}`: keeps every card on screen as a saved screen, then clears /live/. `{"save":"plan-review"}` and `{"save":{}}` (named `screen-N`) work too. Saving under a name that exists replaces it.
 - The saved screen opens at `/live/plan-review/` and is listed in the footer under "Saved screens".
-- `{"restore":"plan-review"}` puts its cards back on /live/. It replaces what is there, so save that first.
-- `{"screens":{"remove":"plan-review"}}` drops a saved screen from the list (its lines stay in the log).
+- `{"restore":"plan-review"}` puts its cards back on /live/; what was there moves to `removed`.
+- `{"screens":{"remove":"plan-review"}}` drops a saved screen from the list into `removed`.
 
 Saved screens live inside `/live/page.jsonl` (`LivePage.screens`, a List of [LiveScreen](LiveScreen.js)), so saving needs no folder and no Servex restart. A screen that should have a folder of its own is a sub-page (above).
 
