@@ -468,6 +468,10 @@ export default class LivePage extends Page {
 			}).catch(() => {});
 			h4.c("live-settings-files-title", "Files here");
 			new LivePage.Files({ page: this.page, folder: holder, at: this.at ?? "" });
+			h4.c("live-settings-files-title", "What it is made of");
+			div.c("live-settings-inspect").append(import("/framework/ext/Inspect/ItemInspector.js").then(({ default: ItemInspector }) => new ItemInspector({ item: of })));
+			h4.c("live-settings-files-title", "How it got here");
+			div.c("live-settings-inspect").append(import("/framework/ext/Inspect/DeltaHistory.js").then(({ default: DeltaHistory }) => new DeltaHistory({ url: holder })));
 		}
 	};
 
