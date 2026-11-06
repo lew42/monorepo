@@ -1,7 +1,7 @@
 import { div, span, a } from "/app.js";
 import { TaskTree } from "/framework/ai/AITask/nested.js";
 import LiveToday from "./LiveToday.js";
-import TaskState from "./TaskState.js";
+import TaskState from "../TaskState.js";
 
 /* The "Now" card: what is in flight, the last landings and what waits, computed from the session index and the task logs
  * (LiveToday.load), never typed by an agent. Spans today and yesterday (UTC) so the midnight roll drops nothing.

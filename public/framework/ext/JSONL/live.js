@@ -109,9 +109,12 @@ function resume(jsonl){
 	if (!others) subscribe(s);
 }
 
+/* `page` is the page the stream belongs to: by default the active one (`$page`). A page.jsonl page OWNS its own log, so its
+   reader starts the stream with `owner: null` and hands it to the page it builds (`adopt(jsonl, page)`, Page/Reader.js). It
+   used to fall to `$page`, which while the Router is still loading the next page is the page being LEFT: its "left" paused
+   the new page's stream, so the page showed its first load and never another line (fixed 2026-11-06). */
 const owned = new WeakSet();
-function adopt(jsonl){
-	const page = globalThis.$page;
+export function adopt(jsonl, page = globalThis.$page){
 	if (!page?.on || owned.has(jsonl)) return;
 	owned.add(jsonl);
 	page.on("left", () => pause(jsonl));
@@ -123,12 +126,12 @@ function adopt(jsonl){
  * instance's own `read()`, resolve once the server has answered. Off localhost
  * there is no socket and this IS `load()`; fetch stays the static-hosting path.
  */
-export function stream(jsonl, changed){
+export function stream(jsonl, changed, { owner } = {}){
 	if (Socket.singleton().disabled) return jsonl.load();
 
 	return new Promise(resolve => {
 		const s = { jsonl, changed, first: () => resolve(jsonl) };
-		adopt(jsonl);
+		if (owner !== null) adopt(jsonl, owner);
 		const k = key(jsonl.url);
 
 		s.timer = setTimeout(() => {

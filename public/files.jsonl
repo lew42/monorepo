@@ -131,3 +131,7 @@
 {"file":"failures.jsonl"}
 {"file":"public/","gone":true}
 {"file":"live2/page.jsonl"}
+{"file":"live/"}
+{"file":"live/page.jsonl"}
+{"file":"_removed/"}
+{"file":"live2/page.jsonl","gone":true}

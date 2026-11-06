@@ -7,15 +7,17 @@ export default class PageLogReader extends Item.Store {
 	set page(host){ this.host = host; }
 
 	// ⚠ core never statically imports ext; live.js is imported only on localhost.
-	// `this.live` (kept, not on the base Store) is what `close()` needs to drop the
-	// subscription — Item.Store itself never tails more than once and never closes.
+	// `this.tailer` (the live.js module, kept) is what `close()` needs to drop the subscription;
+	// Item.Store itself never tails more than once and never closes. Not `this.live`: that is the
+	// base Store's "first load done" flag, and a module there made Item.source say "remote" for
+	// every line of the first load (2026-11-06).
 	open(){
 		if (!this.constructor.dev) return this.load();
 		return import("../../ext/JSONL/live.js")
-			.then(live => (this.live = live).stream(this, () => this.changed()));
+			.then(live => (this.tailer = live).stream(this, () => this.changed(), { owner: null }));   // the page owns it once built: attach()
 	}
 
-	close(){ this.live?.drop(this); }
+	close(){ this.tailer?.drop(this); }
 
 	// Tracks which KEYS arrived in this batch — `changed()` below reads it to decide
 	// whether a live line is worth a nav redraw, same as before the fold-in.
@@ -30,6 +32,7 @@ export default class PageLogReader extends Item.Store {
 	attach(host){
 		this.host = host;
 		host.store = this;
+		this.tailer?.adopt?.(this, host);   // MY page's leaving pauses my stream, never the page that was active while I loaded (live.js adopt)
 		host.on("delta", (line, origin) => {
 			if (this.replaying || Item.Store.replay_depth > 0 || Item.Store.muted_at(origin)) return;   // muted: a button's act() records its verb once, not the set lines it made (seat g, B9)
 			this.append(this.line_for(line, origin, host));
@@ -37,6 +40,7 @@ export default class PageLogReader extends Item.Store {
 
 		const held = this.entries.splice(0).slice(1);
 		this.read(held);
+		this.live = true;   // from here on a line read is another writer's (Item.source "remote"), as Item.Store.attach
 		this._seen = null;   // the load's keys are not news; changed() redraws for live lines only
 
 		host.report_unknown();

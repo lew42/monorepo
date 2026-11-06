@@ -1,5 +1,5 @@
 import { Page, div, span, a } from "/app.js";
-import Live from "../Live.js";
+import Live from "../v1/Live.js";
 import LiveArchive from "../archive/LiveArchive.js";
 
 /* /live/sessions/: every session of ideas, newest first, and each one's cards in reading order (/live/sessions/<id>/).
@@ -8,6 +8,7 @@ export default class LiveSessions extends Live {
 	// The logs, newest source first. `follow` keeps /live's own log streaming; the archive is a finished file, read once.
 	static sources = [
 		{ key: "live", log: "../page.jsonl", Card: Live.Card, follow: true },
+		{ key: "v1", log: "../v1/page.jsonl", Card: Live.Card, label: "v1" },
 		{ key: "archive", log: "../archive/page.jsonl", Card: LiveArchive.Card, label: "archive" },
 	];
 
