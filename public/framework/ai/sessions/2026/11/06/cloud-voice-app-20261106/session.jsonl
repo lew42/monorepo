@@ -1,0 +1,7 @@
+{"session":{"id":"cloud-voice-app-20261106","kind":"cloud-voice-agent","caller":"voice-app","at":1793948605635}}
+{"tool_call":{"at":"2026-11-06T07:03:25.635Z","tool":"check_page","args_hash":"df97d1a9100c","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T07:04:18.045Z","tool":"spawn_agent","args_hash":"6e1a7acfbcda","caller":"voice-app"}}
+{"spawned":{"at":"2026-11-06T07:04:31.036Z","agent":"minion-site-survey","task_dir":null,"caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T07:09:54.249Z","tool":"spawn_agent","args_hash":"047e8845c8a4","caller":"voice-app"}}
+{"spawned":{"at":"2026-11-06T07:09:59.049Z","agent":"mastermind-session-map","task_dir":null,"caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T07:15:04.090Z","tool":"send_to_agent","args_hash":"3b8d1d40843e","caller":"voice-app"}}
