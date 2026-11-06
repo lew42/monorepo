@@ -1,20 +1,17 @@
 [
-  {"type": "part-heading", "tab": "Today", "text": "Page has 150 methods in one bag"},
-  {"type": "part-card", "tab": "Today", "title": "The problem", "text": "Page 97, Item 30, Events 5. About 50 of Page's only pass a call on to a helper. Voice sees 9 (the help hides the rest); anyone reading the code sees all 150."},
-  {"type": "part-card", "tab": "Today", "title": "On /live/, tabs and columns don't draw", "text": "LivePage draws its own screen and skips the frame that draws tabs, columns and nav. A widget that draws itself would work on any page."},
-
-  {"type": "part-heading", "tab": "Idea 1", "text": "Idea 1: UI lives in modules, imported on need"},
-  {"type": "part-card", "tab": "Idea 1", "title": "What changes", "text": "Sidebar, header, nav, tabs, columns and previews each become one file. A page imports only the ones it uses. Page itself keeps data, url and children."},
-  {"type": "part-card", "tab": "Idea 1", "title": "In code", "text": "`import \"/framework/core/Page/ui/Tabs.js\";` in the page's class file. Nothing loads that no page asked for."},
-  {"type": "part-card", "tab": "Idea 1", "title": "Good / cost", "text": "Smallest Page. But code still needs a way to reach the widget, and where its state is saved is left open."},
-
-  {"type": "part-heading", "tab": "Idea 2", "text": "Idea 2: one door, page.ui"},
-  {"type": "part-card", "tab": "Idea 2", "title": "What changes", "text": "`page.ui.tabs` is made the first time it is touched, already wired to the page. Page gains one name instead of fifty."},
-  {"type": "part-card", "tab": "Idea 2", "title": "From voice", "text": "`{\"ui\": {\"tabs\": {\"selected\": \"Idea 2\"}}}`. That line is saved in the page's log, so a reload shows the same tab."},
-  {"type": "part-card", "tab": "Idea 2", "title": "Good / cost", "text": "State is saved for free, and the help shows `ui` once. Alone, though, every widget would be loaded on every page."},
-
-  {"type": "part-heading", "tab": "Both", "text": "Recommended: both together"},
-  {"type": "part-card", "tab": "Both", "title": "How they fit", "text": "Modules are where the code lives (idea 1). `page.ui` is how a page reaches them and saves their state (idea 2). A widget loads when the page's class imports it; `page.ui` only offers what loaded."},
-  {"type": "part-card", "tab": "Both", "title": "Try it", "text": "The tab bar above is the prototype: `page.ui.tabs`. Say \"switch to Idea 1\" and voice sends one line; reload and it stays."},
-  {"type": "part-card", "tab": "Both", "title": "If yes, next", "text": "Move tabs, columns and previews off Page into `core/Page/ui/`, one widget at a time, old names kept as shortcuts. About $15–25."}
+  {"type":"part-heading","tab":"Today","text":"Page has 150 methods in one bag"},
+  {"type":"part-card","tab":"Today","title":"The problem","text":"Page has 97 methods, Item 30, Events 5 (about 150 in all). Around 50 of Page's methods only hand the call to a helper. Voice sees 9 of them; anyone reading the code sees all."},
+  {"type":"part-card","tab":"Today","title":"On /live/, tabs and columns don't draw","text":"LivePage draws its own screen and skips the frame that draws tabs, columns and nav. A widget that draws itself would work on any page."},
+  {"type":"part-heading","tab":"Idea 1","text":"Idea 1: UI lives in modules, imported on need"},
+  {"type":"part-card","tab":"Idea 1","title":"What changes","text":"Sidebar, header, nav, tabs, columns and previews each become one file. A page imports only the ones it uses. Page itself keeps data, url and children."},
+  {"type":"part-card","tab":"Idea 1","title":"In code","text":"`import \"/framework/core/Page/ui/Tabs.js\";` in the page's class file. Nothing loads that no page asked for."},
+  {"type":"part-card","tab":"Idea 1","title":"Good: smallest Page","text":"Cost: no way yet for code to reach the widget, or to save its state."},
+  {"type":"part-heading","tab":"Idea 2","text":"Idea 2: one door, page.ui"},
+  {"type":"part-card","tab":"Idea 2","title":"What changes","text":"`page.ui.tabs` is made the first time it is touched, already wired to the page. Page gains one name instead of fifty."},
+  {"type":"part-card","tab":"Idea 2","title":"From voice","text":"`{\"ui\": {\"tabs\": {\"selected\": \"Idea 2\"}}}`. That line is saved in the page's log, so a reload shows the same tab."},
+  {"type":"part-card","tab":"Idea 2","title":"Good: state saved for free","text":"The help shows `ui` once. Cost: alone, every widget loads on every page."},
+  {"type":"part-heading","tab":"Both","text":"Recommended: both together"},
+  {"type":"part-card","tab":"Both","title":"How they fit","text":"Modules are where the code lives (idea 1). `page.ui` is how a page reaches them and saves their state (idea 2). A widget loads when the page's class imports it; `page.ui` only offers what loaded."},
+  {"type":"part-card","tab":"Both","title":"Try it","text":"The tab bar above is the prototype: `page.ui.tabs`. Say \"switch to Idea 1\" and voice sends one line; reload and it stays."},
+  {"type":"part-card","tab":"Both","title":"If yes, next","text":"Move tabs, columns and previews off Page into `core/Page/ui/`, one widget at a time, old names kept as shortcuts. Estimated cost $15–25. Detail: [namespaces.md](/framework/core/Page/doc/namespaces.md)."}
 ]
