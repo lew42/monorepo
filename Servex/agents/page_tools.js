@@ -7,6 +7,7 @@ import Promote from "./Promote.js";
 import TaskHomes from "../../Server/TaskHomes.mjs";
 import Task from "../../public/framework/core/Task/Task.js";
 import Item from "../../public/framework/core/Item/Item.js";
+import List from "../../public/framework/core/List/List.js";
 import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
 import ChatWriter from "./ChatWriter.js";
 import LogLine from "../../Server/LogLine.mjs";
@@ -414,7 +415,7 @@ function render_html({ page, items }, subpages){
 const PAGES_VERBS = new Set(["add", "rename", "remove", "promote"]);
 function apply_pages(at, pages, url){
 	if (at.target.length) return { why: "`pages` works on the page itself, not inside a target" };
-	if (!is_plain(pages)) return { why: "`pages` must be {add|rename|remove: …}" };
+	if (!is_plain(pages)) return { why: "`pages` must be {add|rename|remove|promote: …}" };
 	// `pages` is a reserved top-level key (this function), never a card id — a mistaken {"pages":{"text":…}} used to fall
 	// through with none of its keys matching add/rename/remove/promote, so nothing ran, `done` stayed empty, and the
 	// caller (run_item_now) read "nothing to write" and silently dropped the whole delta: ok:true, line:null, no why
@@ -1305,6 +1306,38 @@ async function page_refusal(at, delta){
 	return why ? { ok: false, why: `${why}. Nothing was written.` } : null;
 }
 
+const LIST_VERB_SET = new Set(["add", "remove", "move", "order", "clear", "set"]);
+/* A key reached inside a List (`content`, `pages`, …) must be one of its own verbs OR an existing member's id — never an
+ * arbitrary field (review, mastermind-page-design, 2026-11-06): `{"content":{"text":"x"}}` names no verb and no card "text";
+ * `{"content":{"nope":{"text":"x"}}}` names no card "nope". Both used to write a line that did nothing on a real replay:
+ * Item/List's own apply() is deliberately forgiving (an unrecognised key is just stored as a plain FIELD ON THE LIST ITSELF,
+ * never a warn or a throw — the "replay never crashes" rule page_refusal's own comment relies on), so `try_line` never
+ * caught it either. Checked against the LIVE node (after `page_refusal`'s structural, class-only pass), so an existing card
+ * id answers true even though bad_page_delta alone cannot know it. Walks into an Item's own List fields the same way
+ * (`node.get(key)`); a plain data key on an Item (not a List) is left alone — Page already allows arbitrary fields there. */
+function bad_list_delta(node, delta, trail = ""){
+	if (!is_plain(delta)) return null;
+	if (node instanceof List){
+		for (const [key, value] of Object.entries(delta)){
+			if (LIST_VERB_SET.has(key)) continue;
+			const member = node.find?.(key);
+			if (member === undefined) return `"${trail}${key}" is not a list verb (${[...LIST_VERB_SET].join(", ")}) and not an existing card in this list`;
+			const why = bad_list_delta(member, value, `${trail}${key}.`);
+			if (why) return why;
+		}
+		return null;
+	}
+	for (const [key, value] of Object.entries(delta)){
+		if (!is_plain(value)) continue;
+		const target = typeof node?.get === "function" ? node.get(key) : undefined;
+		if (target instanceof Item || target instanceof List){
+			const why = bad_list_delta(target, value, `${trail}${key}.`);
+			if (why) return why;
+		}
+	}
+	return null;
+}
+
 // A new folder is one more line in its parent's files.jsonl, through ModuleLog (a failure here never fails the write).
 async function record_new_folder(parent, name){
 	try { (await import("../../Server/ModuleLog.mjs")).default.record(parent, `${name}/page.js`); } catch {}
@@ -1529,7 +1562,14 @@ async function run_item_now({ path: url, target, delta, read } = {}, ctx = {}, a
 		}
 	}
 	if (tasky){ const node = node_at(root(), at.target); const no = validate(node?.constructor ?? Class, node ?? root(), flat); if (no) return no; }
-	else if (paged){ const no = await page_refusal(at, flat); if (no) return no; }
+	else if (paged){
+		const no = await page_refusal(at, flat);
+		if (no) return no;
+		// `pages` has its own verbs (add/rename/remove/promote, checked by apply_pages below) — left out of this pass.
+		const { pages: _pages_ignored, folder: _folder_ignored, ...list_check } = flat;
+		const list_why = bad_list_delta(walk(root(), at.target) ?? root(), list_check);
+		if (list_why) return { ok: false, why: `${list_why}. Nothing was written.` };
+	}
 	// A complete without evidence is refused BEFORE a line is written: a written line would replay as a recorded fact.
 	if (tasky) for (const { args, trail } of complete_calls(flat)){
 		const node = node_at(root(), at.target, trail), Own = node?.constructor ?? Class;

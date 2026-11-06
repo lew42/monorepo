@@ -468,6 +468,34 @@ try {
 		} finally { fs.rmSync(BDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 	}
 
+	// Review fix 1 (mastermind-page-design, 2026-11-06): `{"content":{"text":"x"}}` names no list verb (add, remove, move,
+	// order, clear, set) and no existing card "text"; `{"content":{"nope":{"text":"x"}}}` names no card "nope". Both used
+	// to answer ok:true and append a line that does nothing on a real replay (Item/List's own apply() is forgiving by
+	// design: an unrecognised key is stored as a plain field on the LIST ITSELF, never a warn or a throw). Now refused
+	// by name, nothing written; an edit of a card that DOES exist still works.
+	{
+		const CDIR = DIR + "-content-bad", CURL = URL.replace(/\/$/, "-content-bad/");
+		fs.mkdirSync(CDIR, { recursive: true });
+		fs.writeFileSync(path.join(CDIR, "page.jsonl"), JSON.stringify({ title: "Content bad" }) + "\n");
+		try {
+			const pfile = path.join(CDIR, "page.jsonl");
+			let before = fs.readFileSync(pfile, "utf8");
+			let r = await call("item", { path: CURL, delta: { content: { text: "x" } } });
+			ok(r.ok === false && /"content\.text"/.test(r.why) && /not an existing card/.test(r.why), "content:{text} (no verb, no card) is refused by name");
+			ok(fs.readFileSync(pfile, "utf8") === before, "nothing was written");
+
+			before = fs.readFileSync(pfile, "utf8");
+			r = await call("item", { path: CURL, delta: { content: { nope: { text: "x" } } } });
+			ok(r.ok === false && /"content\.nope"/.test(r.why) && /not an existing card/.test(r.why), "content:{nope:{…}} (an unknown card id) is refused by name");
+			ok(fs.readFileSync(pfile, "utf8") === before, "nothing was written");
+
+			r = await call("item", { path: CURL, delta: { content: { add: { type: "part-text", id: "t1", text: "hi" } } } });
+			ok(r.ok, "a real content.add still works");
+			r = await call("item", { path: CURL, delta: { content: { t1: { text: "changed" } } } });
+			ok(r.ok, "editing an existing card by its real id still works");
+		} finally { fs.rmSync(CDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
+	}
+
 	// Prompt and Question through the real tool: a Question completes bare once answered, and the unread query lists it (core/Task/doc/prompt.md)
 	{
 		let r = await call("item", { path: URL, delta: { tasks: { add: { type: "Prompt", id: "pq1", raw: ["Why is the sky blue? Also fix it."], paragraphs: [{ id: "a", text: "Why is the sky blue? Also fix it." }] } } } });
