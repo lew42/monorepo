@@ -22,5 +22,5 @@ You may edit: `Servex/agents/page_tools.js`, its tests, the one doc, this folder
 
 ## Rules
 
-- `take_worktree` (retry once). Commit by exact path after each step. Never restart Servex or the dev server, never `git stash`, never drive the owner's tabs. Scratch in `$LOCALAPPDATA/Temp/`.
+- Your worktree: `C:/Code/lew42/worktrees/pd-item-validate` (branch `worktree/pd-item-validate`). Commit by exact path after each step. Never restart Servex or the dev server, never `git stash`, never drive the owner's tabs. Scratch in `$LOCALAPPDATA/Temp/`.
 - Report one screen: the cause (file:line), the fix, the test output, commits, and "needs a Servex restart to go live".
