@@ -411,9 +411,16 @@ function render_html({ page, items }, subpages){
 /* `{"pages":{"add":{name,title,icon,description}, "rename":{name,to}, "remove":"name"}}`:
  * folders sit beside the page's own page.jsonl, so a session page's subpage goes in the
  * session's own folder. Only on the page itself (no target): a subpage is a folder. */
+const PAGES_VERBS = new Set(["add", "rename", "remove", "promote"]);
 function apply_pages(at, pages, url){
 	if (at.target.length) return { why: "`pages` works on the page itself, not inside a target" };
 	if (!is_plain(pages)) return { why: "`pages` must be {add|rename|remove: …}" };
+	// `pages` is a reserved top-level key (this function), never a card id — a mistaken {"pages":{"text":…}} used to fall
+	// through with none of its keys matching add/rename/remove/promote, so nothing ran, `done` stayed empty, and the
+	// caller (run_item_now) read "nothing to write" and silently dropped the whole delta: ok:true, line:null, no why
+	// (mastermind-page-design, 2026-11-06). An unknown key here is refused by name instead.
+	const unknown = Object.keys(pages).filter(k => !PAGES_VERBS.has(k));
+	if (unknown.length) return { why: `"pages" takes add, rename, remove or promote — not ${unknown.map(k => `"${k}"`).join(", ")}. A card id never collides with "pages": name a real subpage verb, or use "content" for a card.` };
 	const subs = new Subpages(path.dirname(at.file)), base = String(url ?? "").replace(/\/?$/, "/"), done = [];
 	try {
 		for (const spec of [].concat(pages.add ?? [])){ subs.add(spec); done.push({ added: spec.name, url: base + spec.name + "/" }); }

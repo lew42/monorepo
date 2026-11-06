@@ -429,6 +429,45 @@ try {
 		} finally { fs.rmSync(PDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 	}
 
+	// Regression (mastermind-page-design, 2026-11-06): the new bad_page_delta check in record_lines runs against
+	// PAGE_PRELOADED, plain Page — never the page's OWN class (LivePage.js registers its own kinds, "live-light",
+	// "live-button", …). bad_page_delta only judges a `type` whose value STARTS WITH "part-" (its registry check
+	// is `value.startsWith("part-") && !Page.types.has(value)`): a LivePage kind never has that prefix, so it never
+	// reaches the check at all and is written exactly as before, on plain Page or LivePage alike.
+	{
+		const LDIR = DIR + "-live-page", LURL = URL.replace(/\/$/, "-live-page/");
+		fs.mkdirSync(LDIR, { recursive: true });
+		fs.writeFileSync(path.join(LDIR, "page.jsonl"), JSON.stringify({ class: "/live/LivePage.js", title: "Live fixture" }) + "\n");
+		try {
+			const { record_lines } = await import("./page_tools.js");
+			const pfile = path.join(LDIR, "page.jsonl");
+			for (const part of [{ type: "live-light", id: "t1" }, { type: "live-button", id: "t2", label: "x" }]){
+				const before = fs.readFileSync(pfile, "utf8");
+				const out = record_lines(pfile, [{ content: { add: part }, by: "t1", ts: "2026-11-06T00:00:00Z" }]);
+				ok(out.ok === true && out.written === 1 && !out.refused.length, `record_lines still accepts the LivePage-only type "${part.type}"`);
+				ok(fs.readFileSync(pfile, "utf8").length > before.length, `the ${part.type} line landed in the file`);
+			}
+		} finally { fs.rmSync(LDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
+	}
+
+	// A mistaken {"pages":{…}} (a card id colliding with the reserved "pages" verb) used to be swallowed silently:
+	// none of its keys matched add/rename/remove/promote, so apply_pages did nothing, `done` stayed empty, and
+	// run_item_now read that as "nothing left to write" and skipped the append — ok:true, line:null, no why
+	// (mastermind-page-design, 2026-11-06). Now refused by name, nothing written.
+	{
+		const BDIR = DIR + "-pages-bad", BURL = URL.replace(/\/$/, "-pages-bad/");
+		fs.mkdirSync(BDIR, { recursive: true });
+		fs.writeFileSync(path.join(BDIR, "page.jsonl"), JSON.stringify({ title: "Pages bad" }) + "\n");
+		try {
+			const before = fs.readFileSync(path.join(BDIR, "page.jsonl"), "utf8");
+			const r = await call("item", { path: BURL, delta: { pages: { text: "x" } } });
+			ok(r.ok === false && /"text"/.test(r.why) && /add, rename, remove or promote/.test(r.why), "an unknown pages key is refused by name");
+			ok(fs.readFileSync(path.join(BDIR, "page.jsonl"), "utf8") === before, "nothing was written");
+			const r2 = await call("item", { path: BURL, delta: { pages: { add: { name: "sub", title: "Sub" } } } });
+			ok(r2.ok && r2.pages?.[0]?.added === "sub", "a real pages verb still works");
+		} finally { fs.rmSync(BDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
+	}
+
 	// Prompt and Question through the real tool: a Question completes bare once answered, and the unread query lists it (core/Task/doc/prompt.md)
 	{
 		let r = await call("item", { path: URL, delta: { tasks: { add: { type: "Prompt", id: "pq1", raw: ["Why is the sky blue? Also fix it."], paragraphs: [{ id: "a", text: "Why is the sky blue? Also fix it." }] } } } });
