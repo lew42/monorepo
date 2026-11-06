@@ -27,28 +27,28 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-05 00:04 UTC, last 24 h)
+## NOW (computed 2026-11-06 00:02 UTC, last 24 h)
 
-**Pace:** Week: 27% used · 100% gone · 27% of pace (room to spend, 0 hours 0 minutes left)
+**Pace:** Week: 5% used · 13% gone · 40% of pace (room to spend, 6 days 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
 **Landed (0):**
 - none
 
-**Open, touched in the window (0):**
-- none
+**Open, touched in the window (1):**
+- [Update the Figma module docs with the owner's new rules and facts from today's session (2026-11-05). Files: .c](/framework/ai/sessions/2026/11/05/spawned/mastermind-figma-docs/) (mastermind-figma-docs)
 
 **Latest commits on this branch:**
 ```
-bd6becbc6 servex: log sweep (4 files)
-158cc5c83 servex: log sweep (10 files)
-fb981164d servex: log sweep (4 files)
-3f660e073 servex: log sweep (10 files)
-af6fc7e19 servex: log sweep (4 files)
-137efe403 servex: log sweep (10 files)
-4b427cdb0 servex: log sweep (4 files)
-722d5e3d7 servex: log sweep (10 files)
+4581fdcd7 servex: log sweep (7 files)
+fa9c90a6c servex: log sweep (17 files)
+6e5b94171 figma docs: modes over variants, Button collection, rebasing, grid equal-height cards, consumer-file facts
+7e3ae785e figma docs: combineAsVariants border trap, Material Icons and Icon button in the design system file
+64cd170bd figma docs: no text properties, thin Card shell, slot propagation rules, createFrame fill correction
+ee0af45cf servex: log sweep (7 files)
+d25b57239 servex: log sweep (17 files)
+cc09385c4 figma docs: design system file, Claude's working-area frame rules, library facts
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
