@@ -9,3 +9,16 @@
 {"action":{"at":"2026-11-06T02:06:09-06:00","did":"edit","files":["public/live/LiveChecklist.js"]},"by":"ledger","ts":"2026-11-06T08:06:09.797Z"}
 {"action":{"at":"2026-11-06T02:06:14-06:00","did":"edit","files":["public/live/LiveButton.js"]},"by":"ledger","ts":"2026-11-06T08:06:14.258Z"}
 {"action":{"at":"2026-11-06T02:08:46-06:00","did":"edit","files":["public/live/readme.md"]},"by":"ledger","ts":"2026-11-06T08:08:46.511Z"}
+{"commit":"ab6c5efabf9d","by":"append.mjs","ts":"2026-11-06T08:08:55.809Z"}
+{"commit":"fed98104e5c6","by":"append.mjs","ts":"2026-11-06T08:09:06.861Z"}
+{"action":{"at":"2026-11-06T02:10:01-06:00","did":"edit","files":["public/framework/core/Page/doc/ai-api.md"]},"by":"ledger","ts":"2026-11-06T08:10:01.782Z"}
+{"commit":"14b383c06b10","by":"append.mjs","ts":"2026-11-06T08:10:10.002Z"}
+{"log":{"msg":"Landed: /live/ is LivePage (5610b3015, ab6c5efab, fed98104e, 14b383c06). Core fix: a page.jsonl page's stream was adopted by the page being left, so it stopped after the first load (ext/JSONL/live.js, core/Page/Reader.js). Measured 7-17 ms (median 8) from the item writer to the DOM, headless on the PC (probe.json). Content types live-light, live-checklist, live-button. Open: phone streaming and the item tool's line-1 class, both logged on core/Page/improvements.jsonl; a full stale-doc audit of Item/List/Page is not started."},"by":"mastermind-live-page","ts":"2026-11-06T08:10:23.368Z"}
+{"sessions":[{"id":"mastermind-live-page","task":"/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/"}],"by":"mastermind-live-page","ts":"2026-11-06T08:10:23.371Z"}
+{"assign":{"closed_by":"unknown caller","closed_at":"2026-11-06T02:10:43-06:00","closed_why":null}}
+{"log":{"at":"2026-11-06T02:10:48-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-06T08:10:48.096Z"}
+{"log":{"at":"2026-11-06T02:11:16-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-11-06T02:13:27-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-06T08:13:27.135Z"}
+{"commit":"7c54bca7f49a","by":"append.mjs","ts":"2026-11-06T08:14:27.455Z"}
+{"commit":"fa0441ccb0ac","by":"append.mjs","ts":"2026-11-06T08:14:44.850Z"}
+{"log":{"at":"2026-11-06T02:14:54-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-06T08:14:54.783Z"}

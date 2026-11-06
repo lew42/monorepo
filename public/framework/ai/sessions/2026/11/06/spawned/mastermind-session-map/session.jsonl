@@ -9,3 +9,15 @@
 {"log":{"at":"2026-11-06T01:34:20-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-06T07:34:20.294Z"}
 {"log":{"at":"2026-11-06T01:42:10-06:00","msg":"task-loop status ask 1: asked mastermind-session-map","ask":1}}
 {"log":{"at":"2026-11-06T01:42:28-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-06T07:42:28.475Z"}
+{"action":{"at":"2026-11-06T01:51:22-06:00","did":"edit","files":["public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-map/report-9-13.md"]},"by":"ledger","ts":"2026-11-06T07:51:22.556Z"}
+{"log":{"at":"2026-11-06T01:51:48-06:00","msg":"Follow-ups 9-13 answered, read-only: git and memory summary sent first; full report in report-9-13.md (not committed). Servex shell fails because plain bash resolves to the WSL launcher (Servex/files.js:52). Zombies listed, none killed. The cleanup plan waits for the owner's go.","links":["/framework/ai/sessions/2026/11/06/spawned/mastermind-session-map/report-9-13.md"]}}
+{"log":{"at":"2026-11-06T01:52:48-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-06T07:52:48.017Z"}
+{"log":{"at":"2026-11-06T01:52:48-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-06T07:52:48.728Z"}
+{"log":{"at":"2026-11-06T01:56:32-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-06T07:56:32.748Z"}
+{"log":{"at":"2026-11-06T01:58:16-06:00","heartbeat":"check","msg":"status check sent to mastermind-session-map"}}
+{"log":{"at":"2026-11-06T01:58:18-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-06T07:58:18.609Z"}
+{"log":{"at":"2026-11-06T01:59:03-06:00","heartbeat":"answered","msg":"I've finished the report on questions 9–13 (`public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-map/report-9-13.md`) and sent its summary to the voice app. Now I'm waiting for your go "}}
+{"log":{"at":"2026-11-06T02:02:44-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-06T08:02:44.130Z"}
+{"log":{"at":"2026-11-06T02:12:10-06:00","msg":"task-loop status ask 1: asked mastermind-session-map","ask":1}}
+{"log":{"at":"2026-11-06T02:12:13-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-06T08:12:13.681Z"}
+{"log":{"at":"2026-11-06T02:16:33-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-06T08:16:33.005Z"}
