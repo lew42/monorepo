@@ -21,3 +21,7 @@
 {"log":{"at":"2026-11-06T02:12:10-06:00","msg":"task-loop status ask 1: asked mastermind-session-map","ask":1}}
 {"log":{"at":"2026-11-06T02:12:13-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-06T08:12:13.681Z"}
 {"log":{"at":"2026-11-06T02:16:33-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-06T08:16:33.005Z"}
+{"log":{"at":"2026-11-06T02:19:16-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-06T08:19:16.074Z"}
+{"action":{"at":"2026-11-06T02:20:21-06:00","did":"edit","files":["Servex/files.js"]},"by":"ledger","ts":"2026-11-06T08:20:21.055Z"}
+{"log":"Cleanup on go (voice-app): killed qf-6 supervisor/health/Chrome/dev server and qf-2 dev server (grep 32532 already gone); worktrees kept. Committed f8d5f1299 Servex shell -> Git Bash (live after the next Servex restart, not done now). Improvements filed: Server b9e8wfpw, core/Session o0t7ey3t + gl4w60zm, core/Task rws606qw, servex h275umcq. Trap: item path \"/Server/...\" resolves to public/Server/; moved the line to Server/improvements.jsonl. Report: report-9-13.md.","by":"mastermind-session-map-2","ts":"2026-11-06T08:21:24.644Z"}
+{"sessions":[{"id":"mastermind-session-map-2","task":"/framework/ai/sessions/2026/11/06/spawned/mastermind-session-map/"}],"by":"mastermind-session-map-2","ts":"2026-11-06T08:21:24.647Z"}
