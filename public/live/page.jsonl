@@ -143,3 +143,6 @@
 {"content":{"add":{"id":"agent-live","after":"cleanup-no","color":"green","label":"live-page · UI fixes","on":true,"type":"live-light"}},"by":"voice-app","ts":"2026-11-06T22:23:57.765Z"}
 {"content":{"add":{"id":"agent-design","after":"agent-live","color":"green","label":"page-design · tabs + layout","on":true,"type":"live-light"}},"by":"voice-app","ts":"2026-11-06T22:23:58.319Z"}
 {"content":{"add":{"id":"link-core-page","path":"/framework/core/Page/","text":"The core Page class and its docs.","title":"Core Page","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T22:40:07.488Z"}
+{"content":{"link-core-page":{"text":"@Page: the core class and its docs."}},"by":"voice-app","ts":"2026-11-06T22:43:30.946Z"}
+{"content":{"link-core-page":{"text":null,"title":"@Page"}},"by":"voice-app","ts":"2026-11-06T22:45:08.050Z"}
+{"save":{"name":"nov6-scratch","title":"Nov 6 scratch"},"by":"voice-app","ts":"2026-11-06T22:54:55.850Z"}
