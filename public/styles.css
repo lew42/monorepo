@@ -309,9 +309,13 @@
 	   measured headless: `.pages` scrollHeight 909 vs clientHeight 649).
 	   The fix: ask for the leaf ANYWHERE inside (not just a direct child), then hide
 	   again if a NESTED `.pages` claims it instead — that inner region is the one that
-	   actually shows it, same as the topic/sidebar case always worked. */
+	   actually shows it, same as the topic/sidebar case always worked. The third line
+	   keeps the old topic-leaf case: a topic that IS the leaf (`/framework/`) scrolls in
+	   its own inner region, so the outer one stays hidden (no dead scrollbar gutter).
+	   Probe that caught it: 2026-11-06, `/framework/` outer `.pages` went hidden to scroll. */
 	.pages:not(:has(.active-page)):not(:has(> .default)),
-	.pages:has(.pages .active-page) { overflow-y: hidden; }
+	.pages:has(.pages .active-page),
+	.pages:has(> .page.topic.active-page) { overflow-y: hidden; }
 
 	/* Below this the topic stacks; the sidebar's own narrow behaviour (top bar +
 	   hamburger menu) lives in core/Sidebar/Sidebar.css now — this file stopped
