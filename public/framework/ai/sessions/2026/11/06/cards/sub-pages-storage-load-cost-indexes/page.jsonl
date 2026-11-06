@@ -1,0 +1,3 @@
+{"class":"/framework/ai/cards/card.js","title":"Sub-pages: storage, load cost, indexes","type":"request","id":"2026/11/06/sub-pages-storage-load-cost-indexes","created":"2026-11-06T16:31:22-06:00","by":"mastermind-page-design","tags":["page-design"]}
+{"chat":{"level":"summary","text":"Three questions about sub-pages: when a card should move from its parent's file into its own folder; how much a parent loads today (every child, all their lines?); and what earlier indexing work exists (files.jsonl, day indexes, the session digest). Findings go as cards on /live/design/ in a \"Storage\" tab. Nothing gets built yet.","at":"2026-11-06T16:31:22-06:00","from":{"kind":"system","id":"mastermind-page-design"}}}
+{"ts":"2026-11-06T16:31:28-06:00","group":"page-design"}
