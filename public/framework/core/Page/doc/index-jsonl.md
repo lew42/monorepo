@@ -8,6 +8,7 @@
 - `Dated` (`core/Item/Dated.js`) keeps a day index of pointer rows for collections filed by date.
 - Mentions (`ext/Mention/`): `@` and `#` style references that render as links, each namespace backed by some index.
 - Older questions on directory deltas and querying: [indexing-2026-10-08.md](indexing-2026-10-08.md).
+- What a parent loads without an index, measured 2026-11-06 (every child, 2 levels deep, every line; a wide folder is unbounded), and the proposal for when a card moves into its own folder: [recursive-pages.md](recursive-pages.md), sections 6 and 7.
 
 ## The proposal
 

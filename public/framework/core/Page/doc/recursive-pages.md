@@ -60,7 +60,7 @@ Yes; that is what Ref is for. A Ref is a small item that stores where something 
 
 There is **no auto-upgrade today.** Every folder above is made on a deliberate call (a tool, or an agent's hand). A card stays embedded no matter how big it gets or how many nested items it holds — Item nesting (`{"k2":{"answers":{"add":…}}}`) already lets one `page.jsonl` hold a tree, so size and "gaining sub-items" alone don't force a folder; only needing **sidecar files** does (an image, a `page.js`, or a nested item that itself needs a folder two levels down — the `CHILD` regex, `Listing.js:6`, can only name a real `page.jsonl`, so a grandchild-with-its-own-children has nowhere to live inside one file).
 
-**Recommended trigger: promote the instant a card is asked for a sidecar it cannot hold embedded** — a file attached to it, or a `pages.add` aimed at one of its own (embedded) children. Concretely: `apply_pages()` (`Servex/agents/page_tools.js:414`) checks whether `at.target` resolves to an embedded card; if so, it runs `move_to` on that card FIRST (making `<name>/page.jsonl` where `<name>` is the card's own id), leaves a Ref in its place, then adds the new sub-page inside the freshly made folder.
+**Recommended trigger: promote the instant a card is asked for a sidecar it cannot hold embedded** — a file attached to it, or a `pages.add` aimed at one of its own (embedded) children. Concretely: `apply_pages()` (`Servex/agents/page_tools.js:414`) checks whether `at.target` resolves to an embedded card; if so, it runs `move_to` on that card FIRST (making `<name>/page.jsonl` where `<name>` is the card's own id), leaves a Ref in its place, then adds the new sub-page inside the freshly made folder. ⚠ Today `apply_pages()` refuses any target (`page_tools.js:413`: "`pages` works on the page itself, not inside a target"), so this check needs that restriction relaxed first; the other place for it is a "break out" command that calls `move_to` itself.
 
 **Alternative (named, not recommended): size.** A byte or line-count threshold (e.g. 20 KB or 50 items) on the parent's `page.jsonl`, checked by a periodic sweep. Rejected for now: it fires on a schedule instead of the action that actually needs a folder, so it either promotes too early (a verbose card with no files) or too late (a sweep interval), where the sidecar trigger fires exactly once, at the cause.
 
@@ -81,7 +81,9 @@ A page fetches every known child's `page.jsonl`, **2 levels deep** (`Page.class.
 | `/live/` | 2 | 3.7 KB |
 | `/framework/core/Page/` | 168 | 119 KB |
 | `/framework/ai/sessions/2026/11/06/` | 118 | 1.85 MB |
-| a made-up tree, 4 levels by 5 children | 31 of 156 (predicted 31) | 31 KB |
+| a made-up tree, 4 levels by 5 children | 31 distinct of 156 (predicted 31); 37 requests, 6 of them repeat fetches of the root | 31 KB |
+
+Every url above loaded to folder level 2 and no deeper. Time to first render was not measured per url; the made-up tree's last request ended at about 1.2 s. The raw numbers are the `log` line of 16:45 in [the task's session.jsonl](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/storage/); the probe script was not kept.
 
 - **A deep tree is bounded:** below level 2, nothing loads until you open it.
-- **A wide folder is not:** 1000 direct children means 1000 fetches on first open (about 16 MB at the sessions-day rate). The fix is the preview index, [index-jsonl.md](index-jsonl.md): load each child's title, icon and description from one file, and the full child only when it opens. Not built.
+- **A wide folder is not:** 1000 direct children means 1000 fetches on first open (about 16 MB, an estimate: linear from the one sessions-day folder, not measured with a real 1000-file tree). The fix is the preview index, [index-jsonl.md](index-jsonl.md): load each child's title, icon and description from one file, and the full child only when it opens. Not built.
