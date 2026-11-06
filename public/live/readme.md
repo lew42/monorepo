@@ -2,7 +2,7 @@
 
 Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the phone (with the site key). It is `class LivePage extends Page` ([LivePage.js](LivePage.js)), built from [page.jsonl](page.jsonl): line 1 names the class (`"class":"./LivePage.js"`), and every later line is one `set()`. Voice Claude writes with the Servex `item` tool, `item({path: "/live/", delta})`. The tool appends one line, the dev server streams it, and every open tab applies it with no reload. Measured: 7–17 ms on the PC (`probe.mjs` in the [task folder](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/)), 82 ms over the tunnel.
 
-**What you see:** a header (a light that is on while voice is driving, the title, the last line's delay, a version dropdown on /live/ itself, a breadcrumb "Live › lab › foo" below it), the content, and a footer (every child page, saved screens, removed cards). A **card** (`part-card`, or a `part-link` to a sub-page) is framed and opens a page when tapped; text, headings, checklists, lights and buttons draw with **no frame**. Buttons side by side sit in one row, and a card's own buttons sit inside it. Every title and text is markdown with mentions (`@Page`, `#Task`, `/live/lab/` become icon links), scrubbed so no script runs; a card whose title is only a mention (`"title":"@Page"`) is that thing's card and opens it. Spacing is one rhythm in [LivePage.css](LivePage.css) (`--live-gap` between things, `--live-step` inside one): no card sets its own. Light and dark follow the phone. The old page is kept at [/live/v1/](/live/v1/) ([v1/readme.md](v1/readme.md)).
+**What you see:** a sticky header under 100 px at every depth (a tiny breadcrumb that is the url itself, "live / lab", with a settings icon, a small title with the voice light and a version dropdown on /live/, and one row of tabs), the content, and a footer (removed cards; on /live/ the old views). A **card** (`part-card`, or a `part-link` to a sub-page) is framed and opens a page when tapped; text, headings, checklists, lights and buttons draw with **no frame**. Buttons side by side sit in one row, and a card's own buttons sit inside it. Every title and text is markdown with mentions (`@Page`, `#Task`, `/live/lab/` become icon links), scrubbed so no script runs; a card whose title is only a mention (`"title":"@Page"`) is that thing's card and opens it. Spacing is one rhythm in [LivePage.css](LivePage.css) (`--live-gap` between things, `--live-step` inside one): no card sets its own. Light and dark follow the phone. The old page is kept at [/live/v1/](/live/v1/) ([v1/readme.md](v1/readme.md)).
 
 ## Start here (an agent with only this file)
 
@@ -55,11 +55,19 @@ A button press (or any tap the page saves: a tick, a press) is one line in `page
 ## Keeping a screen: save, then restore
 
 - `{"save":{"name":"plan-review","title":"Plan review"}}`: keeps every card on screen as a saved screen, then clears /live/. `{"save":"plan-review"}` and `{"save":{}}` (named `screen-N`) work too. Saving under a name that exists replaces it.
-- The saved screen opens at `/live/plan-review/` and is listed in the footer under "Saved screens".
+- The saved screen opens at `/live/plan-review/` and is a tab in the header of /live/.
 - `{"restore":"plan-review"}` puts its cards back on /live/; what was there moves to `removed`.
 - `{"screens":{"remove":"plan-review"}}` drops a saved screen from the list into `removed`.
 
 Saved screens live inside `/live/page.jsonl` (`LivePage.screens`, a List of [LiveScreen](LiveScreen.js)), so saving needs no folder and no Servex restart. A screen that should have a folder of its own is a sub-page (above).
+
+## Several agents may drive this page
+
+The owner's voice agent in the browser, the voice app and any mastermind can all write to /live/ at the same time, so the screen is never only what you last wrote.
+
+- **Read before you edit:** `item({path: "/live/", read: "content"})` right before a change to a card, and act on the ids it lists.
+- **Use fresh ids:** give a new card an id nobody has used (`"<topic>-<n>"`), or leave `id` out and let the tool stamp one; reusing an id writes into someone else's card.
+- **A refused or surprising answer means someone else moved:** read again, never retry blind. Clear or save only for a new topic of your own.
 
 ## Reading the screen (read mode)
 
@@ -71,18 +79,17 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
 - [/live/sessions/](sessions/), [/live/archive/](archive/) and [/live/v1/](v1/) are the old version's views; they read v1's log and show nothing new.
 - `{"light": …}` and `{"toggle": {}}` are gone (a `live-light` card replaces them).
 
-## Changing today (2026-11-06, round 6)
+## The header: tabs and settings
 
-Built in this order; each line here moves up into the sections above as it lands.
-
-- **The header sticks and stays under 100 px**, on every LivePage at any depth: a tiny breadcrumb of the real path, a small title, and one row of underlined tabs (the ext/tabs strip, as on [/live/demos/tabs-page/](/live/demos/tabs-page/)), which scrolls sideways and fades at the edge when it overflows. A settings icon at the top right opens `<page>/settings/`.
-- **Tabs are the one way to move between pages.** A page with sub-pages shows them as tabs (its own content is the first tab). A page with none shows its siblings, itself selected. The footer's "Pages here" goes away. A tab's content has no title of its own and no extra padding.
-- **Settings page** (`/live/…/settings/`): where this page's data comes from (its own `page.jsonl`, a card inside the parent's `page.jsonl`, or a `page.js`), its files, whether it is loaded, and a file list stacked vertically.
-- **One title everywhere:** the preview card, the page's title and the tab label all read the sub-page's own `title` (its `page.jsonl` line 1). A link card's own `title` no longer overrides it.
+- **Tabs are the one way to move between pages.** A page with sub-pages (folders, then saved screens) shows them as tabs, itself first. A page with none shows its siblings, itself selected; a card opened by itself shows none (the breadcrumb takes it back). The row scrolls sideways and fades at an edge with more. /live/sessions/, /live/archive/ and /live/v1/ are not tabs (`LivePage.tab_skip`); the footer of /live/ links them.
+- **One title everywhere:** a tab label, a link card's title and the page's own h1 all read the sub-page's own `title` (the last `title` in its `page.jsonl`, else its `page.js`; `LivePage.title_of`). To rename a sub-page, set its title on its own path: `item({path: "/live/demos/", delta: {"title": "Feature demos"}})`. A link card's `title` shows only until the page's own one arrives.
+- **The breadcrumb is the url** (`location.pathname`, word for word, every step a link): a phone hides the address bar, so this is where the owner reads it. It redraws on every url change, a tab switch included (`LivePage.on_url`), and the tab row lights the tab the url is in.
+- **Settings** (the gear, `<page>/settings/`): where the page's data comes from (its own `page.jsonl`, a card or saved screen inside the parent's `page.jsonl`, or a `page.js`), its class and line count, and the folder's files, one list top to bottom: folders, then files (`LivePage.Files`). A folder opens its own list (`/live/settings/doc/`); a file opens its text on its own page, highlighted by ext/highlight and wrapped to the screen (`/live/settings/LivePage.css/`). A folder or a saved screen named `settings` wins over it.
+- **`header`** (`{"header": "text"}`) draws just below the sticky header, so the header keeps one size.
 
 ## Files
 
-- [LivePage.js](LivePage.js): the page, its methods, and how it draws: View classes in the house style (core/View), as static parts a subclass can swap: `Head`, `Crumbs`, `Focus`, `Main`, `Card`, `Block`, `Children` (a card's buttons), `Heading` and `Md` (markdown with mentions, `{ safe: true }`), `Foot`. Each takes `{page, item}` (or `{page, list}`); its CSS class comes from its name (`LiveCardView` draws `.live-card`). [DesignPage](design/DesignPage.js) extends `Card` and `Block`, so keep those names and args. [LivePage.css](LivePage.css): the floor, blocks and cards, light and dark.
+- [LivePage.js](LivePage.js): the page, its methods, and how it draws: View classes in the house style (core/View), as static parts a subclass can swap: `Head`, `Crumbs`, `Tabs`, `Settings`, `Files`, `Focus`, `Main`, `Card`, `Block`, `Children` (a card's buttons), `Heading` and `Md` (markdown with mentions, `{ safe: true }`), `Foot`. Each takes `{page, item}` (or `{page, list}`); its CSS class comes from its name (`LiveCardView` draws `.live-card`). [DesignPage](design/DesignPage.js) extends `Card` and `Block`, so keep those names and args. [LivePage.css](LivePage.css): the floor, blocks and cards, light and dark.
 - [LiveLight.js](LiveLight.js), [LiveChecklist.js](LiveChecklist.js), [LiveButton.js](LiveButton.js), [LiveScreen.js](LiveScreen.js): one type each, `class … extends Item`, registered as `live-light`, `live-checklist`, `live-button`, `live-screen`.
 - [page.jsonl](page.jsonl): the log. Write it only through the item tool (or the page tools), never by hand.
 - [sessions/](sessions/) and [archive/](archive/): the old views of past screens, which read v1's log. [doc/](doc/): v1's notes.
