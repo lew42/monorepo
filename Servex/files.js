@@ -46,13 +46,19 @@ export default class FileTools {
 		}
 	}
 
+	// Git Bash, never the first "bash" on the PATH: on Windows that is the WSL launcher (WindowsApps\bash.exe), which boots the VM and hangs.
+	static bash(){
+		const git = "C:\\Program Files\\Git\\bin\\bash.exe";
+		return process.platform === "win32" && fs.existsSync(git) ? git : "bash";
+	}
+
 	static run(shell, command, cwd, timeout_ms){
 		return new Promise(resolve => {
 			const exe = shell === "powershell" ? ["powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", command]]
-				: ["bash", ["-c", command]];
+				: [FileTools.bash(), ["-c", command]];
 			const child = spawn(exe[0], exe[1], { cwd, windowsHide: true });
 			let stdout = "", stderr = "", timed_out = false;
-			const timer = setTimeout(() => { timed_out = true; spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"]); }, timeout_ms);
+			const timer = setTimeout(() => { timed_out = true; spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { windowsHide: true }); }, timeout_ms);
 			child.stdout.on("data", d => { if (stdout.length < MAX) stdout += d; });
 			child.stderr.on("data", d => { if (stderr.length < MAX) stderr += d; });
 			child.on("error", e => { clearTimeout(timer); resolve({ ok: false, why: e.message }); });
