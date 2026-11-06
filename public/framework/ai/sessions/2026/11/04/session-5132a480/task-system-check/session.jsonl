@@ -297,3 +297,4 @@
 {"log":{"at":"2026-11-05T16:47:16-06:00","heartbeat":"orphaned","msg":"minion-task-system-check its agent is not running: its working directory C:/Code/lew42/worktrees/qf-5 no longer exists; not revived."}}
 {"log":{"at":"2026-11-05T17:22:09-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-05T18:22:10-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-05T19:22:10-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
