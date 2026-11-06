@@ -40,6 +40,18 @@ A card already on screen can become a sub-page (a link card stays in its place):
 
 **Page features from voice** (tabs, columns, place, nav, previews — which ones actually draw, and why): [doc/page-features.md](doc/page-features.md).
 
+## Nothing is lost: removed cards
+
+A card removed, or taken by a clear, moves into the page's `removed` List ([LiveContent.js](LiveContent.js)); so does a saved screen that is removed or replaced. `removed` is part of the page's saved shape, so a snapshot keeps it too. It opens at `/live/removed/` (the footer's "Removed cards (N)"), and `{"restore":"<id>"}` puts one back at the end. Saving a screen does not fill it: those cards went into the screen.
+
+## Every card is a page
+
+Tap a card and it opens at `/live/<card id>/`. Voice writes there with the same deltas as on /live/: `item({path: "/live/foo/", delta: {"content": {"add": …}}})` puts a card **inside** foo, at any depth (`/live/foo/bar/`), also inside a saved screen (`/live/<screen>/<id>/`). It all stays in the one `page.jsonl`: every card on a LivePage gets its own `content` list ([LiveContent.js](LiveContent.js)), and the item tool turns a url with no folder into the hops to that card (`card_at` in [Servex/agents/page_tools.js](/Servex/agents/page_tools.js)). A sub-page folder of the same name wins. A card's id must not be a page word (`pages`, `content`, `screens`, `removed`): the list refuses it. Storage plan (embedded now, break out to a folder later): [core/Page/doc/recursive-pages.md](/framework/core/Page/doc/recursive-pages.md). Tests: [LivePage.test.mjs](LivePage.test.mjs) (through the real item tool). Battle-test results: [/live/lab/](/live/lab/).
+
+## A tap reaches the agents
+
+A button press (or any tap the page saves: a tick, a press) is one line in `page.jsonl` stamped `"by":"owner"`, e.g. `{"content":{"#cleanup-yes":{"press()":{}}},"by":"owner"}`. Servex already watches files for agents (`follow`, [Servex/Follow.js](/Servex/Follow.js)): voice-app follows `public/live/page.jsonl` (skipping the agents' own lines), so the press arrives in its `updates` within about a second. No new code: the browser writes through the dev server (or `/servex/api/item` behind the site key on the phone), and Servex sees the file change. Owner-only: the static site cannot write at all, and the phone needs the site key. ⚠ The dev server listens on every address, so a device on the home network could post a line too. Another agent that wants presses calls `follow({path: "public/live/page.jsonl", skip_by: [<its id>]})`. A sub-page with its own folder is its own file and needs its own follow.
+
 ## Keeping a screen: save, then restore
 
 - `{"save":{"name":"plan-review","title":"Plan review"}}`: keeps every card on screen as a saved screen, then clears /live/. `{"save":"plan-review"}` and `{"save":{}}` (named `screen-N`) work too. Saving under a name that exists replaces it.
