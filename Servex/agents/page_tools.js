@@ -1406,6 +1406,33 @@ function unmark_delta(delta){
 	return out;
 }
 
+/* A CARD IS A PAGE (2026-11-06, public/live/readme.md "Every card is a page"): a url with no record of its own, under a page that
+ * has one, names a card on that page. /live/foo/ is the card "foo" in /live/page.jsonl; /live/s1/foo/ is foo inside the saved
+ * screen s1. Each leftover segment is a list name on the node (`removed`) or a member of one of its lists, and becomes the hops to
+ * it, so the line is written nested in the parent's file. If any segment names nothing there, nothing changes (the old answer: a
+ * new page.jsonl at that url). Returns { file, hops } or null. */
+async function card_at(file){
+	if (path.basename(file) !== "page.jsonl" || fs.existsSync(file)) return null;
+	let dir = path.dirname(file);
+	if (["task.jsonl", "session.jsonl"].some(f => fs.existsSync(path.join(dir, f)))) return null;
+	const segs = [];
+	while (dir.startsWith(PUBLIC + path.sep) && !fs.existsSync(path.join(dir, "page.jsonl"))){ segs.unshift(path.basename(dir)); dir = path.dirname(dir); }
+	const up = path.join(dir, "page.jsonl");
+	if (!segs.length || !fs.existsSync(up)) return null;
+	let node;
+	try { node = live_root(await class_for(class_of(up) ?? "Page", up) ?? await page_class(), up); } catch { return null; }
+	const hops = [];
+	for (const seg of segs){
+		if (Array.isArray(node?.items) && node.find(seg)){ hops.push(seg); node = node.find(seg); continue; }   // node is a List: seg is its member
+		const lists = typeof node?.lists === "function" ? node.lists() : {};
+		if (lists[seg]){ hops.push(seg); node = lists[seg]; continue; }
+		const hit = Object.entries(lists).find(([, l]) => l.find(seg));
+		if (!hit) return null;
+		hops.push(hit[0], seg); node = hit[1].find(seg);
+	}
+	return { file: up, hops };
+}
+
 async function run_item_now({ path: url, target, delta, read } = {}, ctx = {}, alias = false){
 	url ??= own_page(ctx);
 	delta = unmark_delta(delta);
@@ -1414,6 +1441,8 @@ async function run_item_now({ path: url, target, delta, read } = {}, ctx = {}, a
 	if (target !== undefined) target = hops(target);   // a dotted target is its hops: the line is still written nested
 	let at = await resolve(url, target, true);
 	if (!at || at.why) return { ok: false, why: at?.why ?? `"${url}" is not a page under public/` };
+	const card = await card_at(at.file);
+	if (card) at = { file: card.file, target: [...card.hops, ...at.target] };
 	// A session route's file is its page.jsonl (cards, tabs). A READ or a query there asks about the session itself, so it reads the record
 	// beside it, session.jsonl: cost, span, children, counts (core/Session/readme.md, "What item() answers"). Writes still go to the page.
 	const routed = SESSION_ROUTE.exec(String(url ?? "")), dated = DATED_SESSION.exec(String(url ?? ""));

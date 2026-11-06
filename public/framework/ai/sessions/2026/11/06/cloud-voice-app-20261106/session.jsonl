@@ -63,3 +63,55 @@
 {"log":{"at":"2026-11-06T12:42:13-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-06T13:42:13-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-06T14:42:13-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"tool_call":{"at":"2026-11-06T21:30:14.715Z","tool":"system_health","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:30:15.277Z","tool":"list_agents","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:30:15.931Z","tool":"updates","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:30:32.862Z","tool":"restart_servex","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:30:36.804Z","tool":"system_health","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:30:39.079Z","tool":"read_file","args_hash":"d9b7cf6dfae4","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:30:41.192Z","tool":"shell","args_hash":"0b3e90e6d7e4","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:31:10.724Z","tool":"updates","args_hash":"f245bd51a7b6","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:31:15.553Z","tool":"item","args_hash":"f7606c1227ad","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:31:23.039Z","tool":"item","args_hash":"ac6afafb45bc","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:31:23.547Z","tool":"item","args_hash":"9f11d9de9da0","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:31:27.738Z","tool":"item","args_hash":"39257cd9c720","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:31:28.254Z","tool":"item","args_hash":"54586d9ff311","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:31:30.087Z","tool":"item","args_hash":"f7606c1227ad","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:34:49.326Z","tool":"send_to_agent","args_hash":"0cbb98cfff42","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:34:50.702Z","tool":"spawn_agent","args_hash":"b7b6f513dec8","caller":"voice-app"}}
+{"spawned":{"at":"2026-11-06T21:35:03.115Z","agent":"mastermind-method-audit","task_dir":null,"caller":"voice-app"}}
+{"log":{"at":"2026-11-06T15:40:53-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"tool_call":{"at":"2026-11-06T21:41:50.384Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:41:50.896Z","tool":"updates","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:42:00.240Z","tool":"list_agents","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:42:02.332Z","tool":"restart_servex","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:42:04.395Z","tool":"updates","args_hash":"f245bd51a7b6","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:42:07.430Z","tool":"item","args_hash":"b9745b17bffd","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:42:10.701Z","tool":"shell","args_hash":"d958b3fc7897","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:42:36.088Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:42:40.789Z","tool":"item","args_hash":"b9745b17bffd","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:43:02.156Z","tool":"spawn_agent","args_hash":"017b3241a8c1","caller":"voice-app"}}
+{"spawned":{"at":"2026-11-06T21:43:12.841Z","agent":"mastermind-page-design","task_dir":null,"caller":"voice-app"}}
+{"log":{"at":"2026-11-06T15:52:20-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"tool_call":{"at":"2026-11-06T21:52:32.421Z","tool":"send_to_agent","args_hash":"49e9557f7ab1","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:52:33.090Z","tool":"send_to_agent","args_hash":"3e4ad0e117cc","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:52:35.832Z","tool":"updates","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:52:43.250Z","tool":"item","args_hash":"7f10a32905a3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:52:54.111Z","tool":"item","args_hash":"eaac354f5a08","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:52:54.737Z","tool":"item","args_hash":"244aa4a6ecce","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:55:37.049Z","tool":"item","args_hash":"0730e38cefd7","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:55:37.648Z","tool":"item","args_hash":"c62c6e5ebb7f","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:58:41.549Z","tool":"send_to_agent","args_hash":"c81ddd710faf","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T21:58:43.228Z","tool":"updates","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T22:07:06.838Z","tool":"send_to_agent","args_hash":"27612c190f86","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T22:07:07.484Z","tool":"send_to_agent","args_hash":"f90818ed1611","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T22:08:06.052Z","tool":"item","args_hash":"b5b74ab2ebb4","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T22:08:06.531Z","tool":"item","args_hash":"94d6238bfd2b","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T22:08:07.007Z","tool":"item","args_hash":"ce5a46a93c35","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T22:08:08.919Z","tool":"send_to_agent","args_hash":"c7851055f19d","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T22:08:09.460Z","tool":"send_to_agent","args_hash":"78e8967e7390","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T22:08:45.229Z","tool":"item","args_hash":"72a79c26520c","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T22:09:43.415Z","tool":"send_to_agent","args_hash":"26c4d6fbc2b0","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T22:10:56.560Z","tool":"list_dir","args_hash":"7f318e1612bc","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T22:10:57.015Z","tool":"item","args_hash":"c85e644d4c32","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T22:10:58.525Z","tool":"read_file","args_hash":"ab5cb68a7f46","caller":"voice-app"}}

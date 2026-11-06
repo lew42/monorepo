@@ -60,6 +60,17 @@ try {
 	// 6. A fresh replay of the whole log gives the same state (removed is part of the page's saved shape).
 	const before = JSON.stringify(await read("removed"));
 	ok(JSON.stringify(await read("removed")) === before && (await read("screens.s1.content.ship")).type === "Task", "replay is stable");
+	// 7. Every card is a page: /live/<id>/ takes the same deltas as /live/, nested in the one page.jsonl, at any depth.
+	const at = (u, delta) => run_item({ path: URL + u, delta }, { caller: "LivePage.test" });
+	ok((await at("c1/", { content: { add: { type: "part-card", id: "inner", title: "Inner" } } })).ok, "write to /<page>/c1/ (a card, no folder)");
+	ok((await ids("content.c1.content")).join() === "inner" && !fs.existsSync(path.join(DIR, "c1")), "the card holds it, and no folder was made");
+	ok((await at("c1/inner/", { content: { add: { type: "part-text", id: "deep", text: "two down" } } })).ok && (await ids("content.c1.content.inner.content")).join() === "deep", "at any depth");
+	await at("c1/inner/", { content: { remove: "deep" } });
+	ok((await ids("removed")).includes("deep"), "a card removed deep down is kept in the page's removed");
+	await at("s1/c1/", { title: "Renamed in the screen" });
+	ok((await read("screens.s1.content.c1")).data.title === "Renamed in the screen", "a card inside a saved screen: /<page>/s1/c1/");
+	await at("nope/", { title: "x" });
+	ok(fs.existsSync(path.join(DIR, "nope", "page.jsonl")), "a segment naming no card keeps the old answer (a new page there)");
 	console.log(`LivePage.test: ${n} passed`);
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });

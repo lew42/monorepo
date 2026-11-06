@@ -2,7 +2,7 @@
 
 Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the phone (with the site key). It is `class LivePage extends Page` ([LivePage.js](LivePage.js)), built from [page.jsonl](page.jsonl): line 1 names the class (`"class":"./LivePage.js"`), and every later line is one `set()`. Voice Claude writes with the Servex `item` tool, `item({path: "/live/", delta})`. The tool appends one line, the dev server streams it, and every open tab applies it with no reload. Measured: 7–17 ms on the PC (`probe.mjs` in the [task folder](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/)), 82 ms over the tunnel.
 
-**What you see:** a header (a light that is on while voice is driving, the title, the last line's delay, a version dropdown), the content, and a footer with the saved screens. What can be tapped is a **card** (a link to a sub-page); everything else draws with **no frame**. Light and dark follow the phone. The old page is kept at [/live/v1/](/live/v1/) ([v1/readme.md](v1/readme.md)).
+**What you see:** a header (a light that is on while voice is driving, the title, the last line's delay, a version dropdown on /live/ itself, a breadcrumb "Live › lab › foo" below it), the content, and a footer (every child page, saved screens, removed cards). A **card** (`part-card`, or a `part-link` to a sub-page) is framed and opens a page when tapped; text, headings, checklists, lights and buttons draw with **no frame**. Buttons side by side sit in one row. Spacing is one rhythm in [LivePage.css](LivePage.css) (`--live-gap` between things, `--live-step` inside one): no card sets its own. Light and dark follow the phone. The old page is kept at [/live/v1/](/live/v1/) ([v1/readme.md](v1/readme.md)).
 
 ## Showing things
 
@@ -24,7 +24,7 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
 
 1. **Make the sub-page:** `{"pages":{"add":{"name":"plan","title":"The plan","class":"/live/LivePage.js"}}}`. It gets its own folder and `plan/page.jsonl`, and it is a LivePage too. After the next Servex restart, `class` can be left out: a sub-page inherits it from `/live/` (`Servex/agents/Subpages.js`).
 2. **Put its preview on /live/:** `{"content":{"add":{"type":"part-link","id":"plan","path":"./plan/","title":"The plan","text":"Three steps, one open question."}}}`. This is the card you tap.
-3. **Write its detail:** the same deltas, with path `/live/plan/`. The page opens with a "‹ Live" link back.
+3. **Write its detail:** the same deltas, with path `/live/plan/`. The page opens with a breadcrumb back (Live › plan).
 4. **Edit either one:** the preview with `{"content":{"plan":{"title":"…","text":"…"}}}` on `/live/`; the detail with deltas on `/live/plan/`.
 
 A card already on screen can become a sub-page (a link card stays in its place): `{"pages":{"promote":{"id":"<card id>","name":"plan"}}}` ([core/Page/doc/ai-api.md](/framework/core/Page/doc/ai-api.md)).
@@ -35,9 +35,13 @@ A card already on screen can become a sub-page (a link card stays in its place):
 
 A card removed, or taken by a clear, moves into the page's `removed` List ([LiveContent.js](LiveContent.js)); so does a saved screen that is removed or replaced. `removed` is part of the page's saved shape, so a snapshot keeps it too. It opens at `/live/removed/` (the footer's "Removed cards (N)"), and `{"restore":"<id>"}` puts one back at the end. Saving a screen does not fill it: those cards went into the screen.
 
-## Every card has an address
+## Every card is a page
 
-`/live/<card id>/` opens one card by itself (a Task at full size), also inside a screen (`/live/<screen>/<id>/`). A sub-page folder of the same name wins. Tests: [LivePage.test.mjs](LivePage.test.mjs) (through the real item tool). Battle-test results: [/live/lab/](/live/lab/).
+Tap a card and it opens at `/live/<card id>/`. Voice writes there with the same deltas as on /live/: `item({path: "/live/foo/", delta: {"content": {"add": …}}})` puts a card **inside** foo, at any depth (`/live/foo/bar/`), also inside a saved screen (`/live/<screen>/<id>/`). It all stays in the one `page.jsonl`: every card on a LivePage gets its own `content` list ([LiveContent.js](LiveContent.js)), and the item tool turns a url with no folder into the hops to that card (`card_at` in [Servex/agents/page_tools.js](/Servex/agents/page_tools.js)). A sub-page folder of the same name wins. A card's id must not be a page word (`pages`, `content`, `screens`, `removed`): the list refuses it. Storage plan (embedded now, break out to a folder later): [core/Page/doc/recursive-pages.md](/framework/core/Page/doc/recursive-pages.md). Tests: [LivePage.test.mjs](LivePage.test.mjs) (through the real item tool). Battle-test results: [/live/lab/](/live/lab/).
+
+## A tap reaches the agents
+
+A button press (or any tap the page saves: a tick, a press) is one line in `page.jsonl` stamped `"by":"owner"`, e.g. `{"content":{"#cleanup-yes":{"press()":{}}},"by":"owner"}`. Servex already watches files for agents (`follow`, [Servex/Follow.js](/Servex/Follow.js)): voice-app follows `public/live/page.jsonl` (skipping the agents' own lines), so the press arrives in its `updates` within about a second. No new code: the browser writes through the dev server (or `/servex/api/item` behind the site key on the phone), and Servex sees the file change. Owner-only: the static site cannot write at all, and the phone needs the site key. ⚠ The dev server listens on every address, so a device on the home network could post a line too. Another agent that wants presses calls `follow({path: "public/live/page.jsonl", skip_by: [<its id>]})`. A sub-page with its own folder is its own file and needs its own follow.
 
 ## Keeping a screen: save, then restore
 
