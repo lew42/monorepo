@@ -92,6 +92,14 @@ try {
 		for (const m of ["draw_card", "paint_voice", "render", "column_host", "preview_card", "log_view", "toJSON", "emit", "walk"]) ok(!shown.includes(m), `plumbing "${m}" is not in the help`);
 		ok(shown.length <= 12, `the help lists a handful of methods, not the whole prototype chain (${shown.length} listed)`);
 		ok(r.instructions.methods.every(x => x.doc), "every listed method has a one-line doc");
+		// A page's help also teaches its `content` list: the five List verbs, and every card type it draws by its `static example`.
+		const c = r.instructions.content;
+		for (const v of ["add", "remove", "move", "order", "clear"]) ok(c?.verbs?.[v], `the content list verb "${v}" is in the help`);
+		for (const t of ["part-card", "part-text", "part-heading", "part-link", "live-light", "live-checklist", "live-button"]) ok(c?.types?.[t], `card type "${t}" is in the help with an example`);
+		ok(c.types["live-checklist"].calls?.check && c.types["live-button"].calls?.press, "a card's own verbs (check, press) show beside its example");
+		ok(!r.instructions.rules && !r.instructions.fields.includes("cards"), "a page gets no task rules and no getter-only fields");
+		const size = JSON.stringify(r.instructions).length;
+		ok(size < 2600, `the whole help stays small for voice (${size} bytes)`);
 	}
 
 	console.log(`item-read: ${n} checks passed`);

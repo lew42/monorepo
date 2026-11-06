@@ -1,0 +1,249 @@
+diff --git a/public/framework/core/Page/Jsonl.js b/public/framework/core/Page/Jsonl.js
+index 7ea5650aea..ae411ead24 100644
+--- a/public/framework/core/Page/Jsonl.js
++++ b/public/framework/core/Page/Jsonl.js
+@@ -1,4 +1,4 @@
+-import { View, div, p, code, table, thead, tbody, tr, th, td, is } from "../View/View.js";
++import { View, div, p, span, button, icon, code, table, thead, tbody, tr, th, td, is } from "../View/View.js";
+ import List from "../List/List.js";
+ import Item from "../Item/Item.js";
+ import { page_settings } from "./settings/settings.js";
+@@ -199,11 +199,13 @@ export default class PageJsonl {
+ 	}
+ 
+ 	// What a page.jsonl page draws when it has no `content()` of its own: its placed files, in order. The box is kept so a later line can redraw it.
++	// ⚠ The explorer (tree + data, `draw_folder()`) draws INLINE only when the page says `{"files_inline": true}` — by default it sits behind the
++	// top-right Files button (`files_button()`) instead, so a set of tabs doesn't repeat the same wide, sideways-scrolling box on every one. (doc/jsonl.md)
+ 	log_view(){
+ 		const page = this.page;
+ 		return div.c("flow", () => {
+ 			page.$log = div.c("page-log flow", () => { page.log_draw(); });
+-			page.draw_folder();
++			if (page.files_inline) page.draw_folder();
+ 		});
+ 	}
+ 
+@@ -218,6 +220,39 @@ export default class PageJsonl {
+ 		});
+ 	}
+ 
++	// The ONE top-right "Files" button a jsonl page (or a tabs frame) gets by default: opens
++	// whichever folder is actually on screen — the active tab's own, when it has one, else
++	// mine (`active_jsonl_page()`) — in a panel instead of the page's own flow. `files_inline:
++	// true` skips this and keeps the old inline box (doc/jsonl.md "the files button").
++	files_button(){
++		const page = this.page;
++		let open = false, $panel;
++
++		return div.c("page-files-toggle", $box => {
++			const $btn = button.c("page-files-toggle-btn").attr("type", "button").attr("aria-expanded", "false")
++				.attr("aria-label", "Files — this page's own files and data")
++				.append(() => { icon("folder_open"); span("Files"); })
++				.click(() => {
++					open = !open;
++					$btn.attr("aria-expanded", String(open));
++					if (open) $panel = div.c("page-files-toggle-panel", () => { this.active_jsonl_page()._helper("Jsonl").draw_folder(); }).append_to($box);
++					else { $panel?.el.remove(); $panel = null; }
++				});
++		});
++	}
++
++	// Which page's own folder the shared button should open: whichever child is marked the
++	// current leaf (Router's `.active-page`/`.active-ancestor`) IF it has its own `page.jsonl`
++	// — Gamma..Eta don't, so they fall back to the button's own page (`doc/jsonl.md` finding
++	// 2). A page with no tabs at all has no marked child, so this always answers itself.
++	active_jsonl_page(){
++		const page = this.page;
++		for (const child of page.children.values()){
++			if (child?.jsonl_url && child.view?.el?.matches?.(".active-page, .active-ancestor")) return child;
++		}
++		return page;
++	}
++
+ 	log_draw(){ (this.page.placed ?? []).forEach(entry => this.page.draw_placed(entry)); }
+ 
+ 	// Where the log's files really are. A page's `url` is its ADDRESS; a card shown at another address (AI 2) keeps its files in its own folder.
+diff --git a/public/framework/core/Page/Page.class.js b/public/framework/core/Page/Page.class.js
+index c7512f95a1..4e172d8ad9 100644
+--- a/public/framework/core/Page/Page.class.js
++++ b/public/framework/core/Page/Page.class.js
+@@ -220,6 +220,14 @@ export class Page extends Item {
+ 	log_folder(){ return this._helper("Jsonl").log_folder(); }
+ 	log_redraw(){ return this._helper("Jsonl").log_redraw(); }
+ 	draw_placed(entry){ return this._helper("Jsonl").draw_placed(entry); }
++	files_button(){ return this._helper("Jsonl").files_button(); }
++
++	// Drawn as one of a `navigation: "tabs"` parent's tabs: the tab label already names it,
++	// so its own h1 and its own Files button both stand down (`render()` above).
++	in_tabs_frame(){ return this.parent?.navigation === "tabs"; }
++
++	// The one page in a tabs frame (or a plain jsonl page) that draws the shared Files button.
++	has_files_button(){ return !!(this.jsonl_url && !this.files_inline && !this.in_tabs_frame()); }
+ 	draw_md(url){ return this._helper("Jsonl").draw_md(url); }
+ 	draw_module(url, data){ return this._helper("Jsonl").draw_module(url, data); }
+ 	listing(){ return this._helper("Jsonl").listing(); }
+@@ -561,7 +569,18 @@ export class Page extends Item {
+ 		if (host) return this.render_column(host);
+ 
+ 		this.view = div.c("page flow", () => {
+-			if (this.title) h1.c("page-title", this.title);
++			// A page shown AS A TAB (its parent said `navigation: "tabs"`) never repeats its own
++			// title or its own Files button — the tab label already names it, and the shared
++			// button (below) covers whichever tab is on screen (the owner, 2026-11-06,
++			// /live/demos/tabs-page/). Where the button shows, it sits beside the h1, on the
++			// same row, instead of floating below it — `has_files_button()` and
++			// `in_tabs_frame()` are set up so at most one page on screen ever draws either.
++			const show_title = this.title && !this.in_tabs_frame(), show_button = this.has_files_button();
++			if (show_button) div.c("page-title-row flex v-center", () => {
++				if (show_title) h1.c("page-title", this.title);
++				this.files_button();
++			});
++			else if (show_title) h1.c("page-title", this.title);
+ 
+ 			// A page that said any of the six words gets a Frame (Frame.js). ⚠ `page-frame-page` marks THIS frame as the page's own. (doc/watch-out.md)
+ 			if (this.words_said()) return void new this.constructor.Frame({ page: this }).ac("page-frame-page");
+@@ -569,6 +588,7 @@ export class Page extends Item {
+ 			return this.render_content();
+ 		})
+ 			.ac(this.name && "page--" + this.name)
++			.ac(this.jsonl_url && "page-jsonl")
+ 			.ac(this.width && !this.column_host() && "page-w-" + this.width)
+ 			.ac(...this.word_classes())
+ 			.ac(this.classes ?? "standard");
+@@ -587,7 +607,7 @@ export class Page extends Item {
+ 
+ 		if (this.title && this.url && !this.no_inbox) this.view.append(() => { span.c("page-inbox-chip").append(PageInbox.chip(this)); });
+ 
+-		if (this.title && this.url && !this.no_files) this.view.append(() => { span.c("page-files-chip").append(PageFilesTab.chip(this)); });
++		if (this.title && this.url && !this.no_files && !this.has_files_button()) this.view.append(() => { span.c("page-files-chip").append(PageFilesTab.chip(this)); });
+ 
+ 		Page.views.set(this.view.el, this);
+ 		this.emit("render", this.view);
+diff --git a/public/framework/core/Page/Page.css b/public/framework/core/Page/Page.css
+index 8d18504c83..55278e699d 100644
+--- a/public/framework/core/Page/Page.css
++++ b/public/framework/core/Page/Page.css
+@@ -208,6 +208,43 @@
+ 	   fix holds no matter which stylesheet happens to load second. */
+ 	.page h1.page-title { font-size: clamp(1.75rem, 9vw, 3em); }
+ 
++	/* A jsonl page's h1 sits right above its own tab strip or frame (`ext/tabs`): the
++	   standard `--flow` gap (2-2.5em) stacked on the h1's own line-height read as "the
++	   tabs sit far down" on a phone (the owner, 2026-11-06, /live/demos/tabs-page/).
++	   Scoped to `.page-jsonl` (stamped by `Page.class.js` render() when `jsonl_url` is
++	   set) — a page.js page keeps the title size and rhythm it always had. Descendant,
++	   not `>` — `h1.page-title` sits a level deeper, inside `.page-title-row`, on any
++	   page that also draws the Files button (below). */
++	.page.page-jsonl h1.page-title { font-size: clamp(1.4rem, 6.5vw, 2em); }
++	.page.page-jsonl > .page-title-row + *,
++	.page.page-jsonl > h1.page-title + * { margin-block-start: calc(var(--flow) * 0.4); }
++
++	/* The ONE top-right "Files" button a jsonl page (or a tabs frame) gets by default
++	   (`Jsonl.js files_button()`): opens the SAME tree+data explorer `draw_folder()`
++	   always drew, in a floating panel instead of inline on every tab (the owner,
++	   2026-11-06 — the explorer repeated itself on Overview, Alpha and Beta, and Gamma
++	   had none at all). It sits ON THE SAME ROW as the h1 — `.page-title-row`, a plain
++	   flex row with the title and the button at its two ends — rather than floating
++	   below it at some absolute offset (round 2: "level with the page H1"). */
++	.page-title-row { justify-content: space-between; gap: var(--gap); }
++	.page-title-row > h1.page-title { margin-block-end: 0; }   /* the row's own `flow` gap, not the h1's — `.flow > * + *` only reaches the ROW, but the row wears `flex`, which ignores it anyway; kept explicit */
++	.page-files-toggle { position: relative; flex: 0 0 auto; }
++	.page-files-toggle-btn {
++		display: inline-flex; align-items: center; gap: 0.35em;
++		padding: 0.3em 0.8em; font-size: 0.85em;
++		border: 1px solid var(--line); border-radius: var(--radius);
++		background: var(--surface); color: var(--subtle);
++	}
++	.page-files-toggle-btn:hover, .page-files-toggle-btn[aria-expanded="true"] { color: var(--ink); }
++	.page-files-toggle-btn .icon { font-size: 1.1em; }
++
++	/* The panel opens UNDER the button, right-aligned to it, over the page rather than in its flow. */
++	.page-files-toggle-panel {
++		position: absolute; top: 100%; right: 0; margin-block-start: 0.4em;
++		z-index: 3; max-width: min(90vw, 56em);
++		border-radius: var(--radius); box-shadow: 0 0.5em 1.5em rgba(0, 0, 0, 0.18);
++	}
++
+ 	/* "$N.NN of AI work · M tasks" — filled in async by Page.class.js's render() from
+ 	   core/Page/weight/ai-cost.js. Most pages have no figure yet, so this renders empty
+ 	   (no gap, no box) until it does. It sits at the END of the page, padded like the content. */
+@@ -219,6 +256,14 @@
+ 	/* "N open tasks touch this page" — PageWork.js, from ai/page-work.json. Same place and size as the cost line; empty = no box. */
+ 	.page .page-open { display: block; font-size: small; padding: var(--gap-35, .35em) var(--gutter-x, 1rem); }
+ 	.page .page-open:empty { display: none; }
++
++	/* `.page-inbox-chip` (Page.class.js render()) is filled async, same as `.page-ai-cost`
++	   and `.page-open` above — it had no `:empty` rule of its own, so an empty one stayed
++	   in `.flow` at zero height and still counted as "a child" for the `--flow` gap on
++	   BOTH sides of it: the end of a tabs frame with nothing to show (Overview) read as a
++	   ~120px dead gap before "Files · N", two stacked gaps instead of one (the owner,
++	   2026-11-06, round 2). */
++	.page .page-inbox-chip:empty { display: none; }
+ 	.page-open-line { display: inline-block; max-width: 100%; padding: .15em .7em; background: var(--tint); border-radius: var(--radius); }   /* its own chip, not the page's gray stretched across the page */
+ 	.page-open-line summary { cursor: pointer; color: var(--muted, inherit); }
+ 	.page-open-rows { display: flex; flex-direction: column; gap: 0.25em; padding: 0.5em 0 0.25em; }
+diff --git a/public/framework/ext/files/files.css b/public/framework/ext/files/files.css
+index 1a98f01af5..821dd6a311 100644
+--- a/public/framework/ext/files/files.css
++++ b/public/framework/ext/files/files.css
+@@ -39,6 +39,19 @@
+ 	.files-col-about { flex: 0 0 clamp(12em, var(--files-col-w, 22em), 60%); }
+ 	.files-col-source { flex: 1 1 20em; min-inline-size: 20em; }
+ 
++	/* Stacked on a phone: the tree above the data, each full width, no sideways scroll
++	   on the box itself — the row's own "swipe sideways" trade above reads as clipped
++	   content at 400px, not a deliberate choice (the owner, 2026-11-06). The source
++	   column keeps the room; tree/about get a bounded strip above it. */
++	@media (max-width: 36em) {
++		.files-row { flex-direction: column; overflow-inline: hidden; overflow-block: auto; }
++		.files-col-tree, .files-col-about {
++			flex: 0 0 auto; inline-size: 100%; min-inline-size: 0; max-block-size: 40vh;
++			border-inline-end: none; border-block-end: 1px solid var(--line);
++		}
++		.files-col-source { flex: 1 1 auto; min-block-size: 12em; }
++	}
++
+ 	.file-tree { padding: 0.6em 0; font-size: 0.85em; }
+ 
+ 	/* A FILE row is `ui/item`'s own row now (ext/filesystem's FsFile.render()) — `.item` already
+diff --git a/public/styles.css b/public/styles.css
+index 7b0348fa28..ef2f1abb87 100644
+--- a/public/styles.css
++++ b/public/styles.css
+@@ -291,12 +291,30 @@
+ 	   reserves its scrollbar gutter, which is right for the region you are reading and
+ 	   dead space in an outer one.
+ 
+-	   Written as `:not(:has())` twice rather than the obvious nested form because
+-	   **`:has()` cannot be nested** — that selector is invalid and drops silently. And
+-	   the un-nested `:has(> .page.topic.active-ancestor)` is wrong for a subtler
+-	   reason: the ROOT page is a topic and is an active-ancestor on every route, so it
+-	   matched `app.$pages` always. */
+-	.pages:not(:has(> .page.active-page)):not(:has(> .default)),
++	   Written as `:not(:has())` rather than the obvious nested form because **`:has()`
++	   cannot be nested** — `:has(:has(…))` is invalid and drops silently, though
++	   `:has(.pages .active-page)` is fine (a plain descendant selector, not a nested
++	   pseudo-class). And the un-nested `:has(> .page.topic.active-ancestor)` is wrong
++	   for a subtler reason: the ROOT page is a topic and is an active-ancestor on every
++	   route, so it matched `app.$pages` always.
++
++	   ⚠ `> .page.active-page` (a DIRECT child) used to be the only way a region counted
++	   as "showing the leaf" — right for a topic's sidebar, where a deeper leaf opens its
++	   OWN nested `.pages` one level down (`.topic > .pages` below). It was wrong for a
++	   page under `navigation: "tabs"` (`core/Page/ext/tabs`) or `rail`/`expand`: those
++	   keep every child's content in the SAME region as their own, several `.page` levels
++	   down, marked only `.active-ancestor` — never a direct `.active-page` child — so
++	   this rule hid the one region that should have scrolled and a tab's content could
++	   not reach its own bottom (the owner, 2026-11-06, `/live/demos/tabs-page/alpha/`;
++	   measured headless: `.pages` scrollHeight 909 vs clientHeight 649).
++	   The fix: ask for the leaf ANYWHERE inside (not just a direct child), then hide
++	   again if a NESTED `.pages` claims it instead — that inner region is the one that
++	   actually shows it, same as the topic/sidebar case always worked. The third line
++	   keeps the old topic-leaf case: a topic that IS the leaf (`/framework/`) scrolls in
++	   its own inner region, so the outer one stays hidden (no dead scrollbar gutter).
++	   Probe that caught it: 2026-11-06, `/framework/` outer `.pages` went hidden to scroll. */
++	.pages:not(:has(.active-page)):not(:has(> .default)),
++	.pages:has(.pages .active-page),
+ 	.pages:has(> .page.topic.active-page) { overflow-y: hidden; }
+ 
+ 	/* Below this the topic stacks; the sidebar's own narrow behaviour (top bar +

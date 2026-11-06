@@ -120,3 +120,26 @@
 {"file":"nav-test/page.jsonl","gone":true}
 {"file":"_removed/"}
 {"file":"_removed/","gone":true}
+{"content":{"add":{"id":"status","text":"Servex restarted at 3:30 PM. Read mode, the LivePage class and the shell fix are now live.","title":"Back up ✅","type":"part-card"}},"by":"voice-app","ts":"2026-11-06T21:31:23.040Z"}
+{"file":"next/page.jsonl"}
+{"content":{"add":{"id":"next","path":"./next/","text":"Tap me. This opens a sub-page voice can edit.","title":"What's next","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T21:31:27.740Z"}
+{"file":"demos/page.jsonl"}
+{"save":{"name":"restart-check","title":"Restart check"},"by":"voice-app","ts":"2026-11-06T21:52:43.251Z"}
+{"content":{"add":{"id":"decide","text":"Group Page's ~150 methods into page.columns, page.tabs, page.previews, page.log and page.links, and drop ~50 forwarders. About $15–25. Yes or no?","title":"Your call: Page cleanup","type":"part-card"}},"by":"voice-app","ts":"2026-11-06T21:52:54.112Z"}
+{"content":{"add":{"id":"working","text":"live-page: battle-testing /live/ as a little app. page-design: tabs, columns and nav demos under /live/demos/.","title":"Working now","type":"part-card"}},"by":"voice-app","ts":"2026-11-06T21:52:54.739Z"}
+{"content":{"add":{"id":"cleanup-yes","after":"decide","args":"Yes to Page cleanup","label":"Yes, do the cleanup","method":"alert","type":"live-button"}},"by":"voice-app","ts":"2026-11-06T21:55:37.050Z"}
+{"content":{"add":{"id":"cleanup-no","after":"cleanup-yes","args":"No to Page cleanup","label":"No, leave it","method":"alert","type":"live-button"}},"by":"voice-app","ts":"2026-11-06T21:55:37.651Z"}
+{"file":"LiveContent.js"}
+{"file":"LivePage.test.mjs"}
+{"file":"lab/page.jsonl"}
+{"file":"design/"}
+{"file":"design-tmp/"}
+{"file":"design/","gone":true}
+{"file":"design/page.jsonl"}
+{"content":{"add":{"id":"link-design","path":"./design/","text":"page-design's page.ui prototype and the recursive pages plan, built live.","title":"Design lab","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T22:08:06.053Z"}
+{"content":{"add":{"id":"link-demos","path":"./demos/","text":"Tabs, nav, place and columns tried from voice, one tap-through each.","title":"Feature demos","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T22:08:06.533Z"}
+{"content":{"add":{"id":"link-next","path":"./next/","text":"The sub-page I made earlier as a test.","title":"What's next","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T22:08:07.009Z"}
+{"content":{"remove":"working"},"by":"voice-app","ts":"2026-11-06T22:23:51.757Z"}
+{"content":{"add":{"id":"agent-live","after":"cleanup-no","color":"green","label":"live-page · UI fixes","on":true,"type":"live-light"}},"by":"voice-app","ts":"2026-11-06T22:23:57.765Z"}
+{"content":{"add":{"id":"agent-design","after":"agent-live","color":"green","label":"page-design · tabs + layout","on":true,"type":"live-light"}},"by":"voice-app","ts":"2026-11-06T22:23:58.319Z"}
+{"content":{"add":{"id":"link-core-page","path":"/framework/core/Page/","text":"The core Page class and its docs.","title":"Core Page","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T22:40:07.488Z"}

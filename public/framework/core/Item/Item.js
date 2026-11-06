@@ -622,9 +622,9 @@ export class Item extends Events(Object) {
 	// The methods a delta may call, each with its one-line doc: {name: "doc"}. The item tool lists ONLY these for a class that declares
 	// `callable` (and stops its walk up the chain there); a class that does not is listed by its own methods. A subclass spreads its parent's: `{...Page.callable, flash: "…"}`.
 	static callable = {
-		set: "{\"set\": {key: value}} sets fields, same as writing the keys bare.",
-		unset: "{\"unset\": [\"key\", …]} removes fields so they read back undefined, and replay the same.",
-		remove: "{\"remove\": {}} takes this item out of the list that holds it.",
+		set: "{\"set\": {key: value}} sets fields, same as bare keys.",
+		unset: "{\"unset\": [\"key\", …]} removes fields.",
+		remove: "{\"remove\": {}} takes this item out of its list.",
 	};
 
 	// What a caller may put in a delta for this class: {class, fields, methods:[{name, doc}], queries}; doc is "" here (the item tool fills it from source).
@@ -840,6 +840,25 @@ const warn = (message, key = message) => {
 };
 
 Item.types = new Map();
+// Where a type lives when nobody has imported it yet: a log may name any registered class (a Task in a page's content), and
+// `await Item.load_types(lines)` imports each type it names that is not registered, before the lines replay (Page's
+// Jsonl.load calls it). A module here registers the class and, in a browser, its View. Add a line for a new type.
+Item.modules = new Map([
+	["Task", "/framework/core/Task/TaskView.js"],
+	["Ref", "/framework/core/Item/RefView.js"],
+	["Session", "/framework/core/Session/Session.js"],
+]);
+Item.load_types = async lines => {
+	const wanted = new Set(), walk = v => {
+		if (Array.isArray(v)) return v.forEach(walk);
+		if (!v || typeof v !== "object") return;
+		if (typeof v.type === "string" && !Item.types.has(v.type) && Item.modules.has(v.type)) wanted.add(v.type);
+		for (const k in v) walk(v[k]);
+	};
+	walk(lines);
+	await Promise.all([...wanted].map(type => import(Item.modules.get(type)).catch(e => warn(`load_types: ${type} did not import (${e.message})`, "load:" + type))));
+	return [...wanted];
+};
 Item._clock = null;
 Item.bare_calls = true;   // D13: a bare key that names a method still calls it (old lines). false = a bare key is always data.
 Item.old_hops = new Map();   // old id-only hops replayed, "<list>.<id>" -> count (set_one); the item tool can report them

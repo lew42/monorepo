@@ -501,11 +501,16 @@ export default class TaskLoop {
 
     /* The only other way a task leaves the loop — the owner's `close_task` tool
      * (Servex.js) calls straight into this. */
-    async close_task({ dir, why, by } = {}){
+    async close_task({ dir, why, by, outcome, evidence } = {}){
         if (!dir) return { ok: false, why: "dir is required" };
         const cdir = path.isAbsolute(dir) ? dir : path.join(this.root, dir), file = SessionRecord.log_file(cdir) ?? path.join(cdir, "task.jsonl");
         if (!fs.existsSync(file)) return { ok: false, why: `no task.jsonl at "${dir}"` };
         const at = stamp();
+        // outcome given = the task landed: write the `complete` line first, once, so one call lands and cleans up (a bare close stays "stopped")
+        if (outcome) {
+            const has_complete = fs.readFileSync(file, "utf8").split("\n").some(l => { try { return JSON.parse(l)?.complete !== undefined; } catch { return false; } });
+            if (!has_complete) await this.write_line(file, { complete: { outcome, evidence: [].concat(evidence ?? []), at } });
+        }
         if (!fs.readFileSync(file, "utf8").includes("\"closed_by\"")) await this.write_line(file, { assign: { closed_by: by || "unknown caller", closed_at: at, closed_why: why ?? null } });   // the real caller, once (2026-11-05: it wrote "owner" for every caller, on every call)
         // the guarantee: closing a task stops what it started (Lifecycle.closeout) and says what it could not
         let out = { ok: true, closed: [], left: [] };

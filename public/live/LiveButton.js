@@ -5,6 +5,8 @@ import View, { button } from "/framework/core/View/View.js";
  * {"content":{"<id>":{"press":{}}}}, runs the page's method `method` with `args` (any method LivePage itself defines:
  * flash, alert, toggle, or one you add). A tap saves {"press()":{}} on the button, so every open tab sees the same press. */
 export default class LiveButton extends Item {
+	static example = { id: "b1", label: "Flash red", method: "flash", args: "red" };   // what the item tool's help shows; `method` is one of the page's callable verbs
+	static callable = { ...Item.callable, press: "{\"press\": {}} runs its method, like a tap." };
 
 	// Run the named method on the page that holds me, and count the press (the count is what makes a tap save one line).
 	press(){

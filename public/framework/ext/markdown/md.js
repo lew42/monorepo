@@ -23,10 +23,16 @@ const block_tags = new Set(["DIV", "SECTION", "ARTICLE", "MAIN", "ASIDE", "HEADE
  * as literal markup on every Apple device. Everything parsed here is the repo's own
  * content and the trust boundary is commit access. **If markdown ever arrives from a
  * user, this has to be revisited.** ext/markdown/readme.md.
+ *
+ * Text written live by someone other than the repo (an agent, a tap on the phone: /live/)
+ * passes `{ safe: true }`: md(text, { safe: true }) or view.md(text, { safe: true }). The
+ * markup is parsed in an inert <template> and scrubbed there (md.scrub) before it reaches
+ * the page: no script, frame, object, style or form, no on* attribute, no javascript: link.
+ * Markdown, mentions and plain HTML (<b>, <br>) still work.
  */
-View.prototype.md = function(content){
+View.prototype.md = function(content, { safe } = {}){
 	const parse = block_tags.has(this.el.tagName) ? marked.parse : marked.parseInline;
-	this.html_unsafe(parse(content));
+	this.html_unsafe(safe ? md.scrub(parse(content)) : parse(content));
 	mentions(this.el);   // `#Page`, `@owner` — after every markdown render, ext/Mention/doc/syntax.md
 	return this;
 };
@@ -54,8 +60,8 @@ marked.use({ renderer: {
 
 // A single root block is adopted directly, so md("Hi.") behaves like p() and
 // chains; multiple blocks are wrapped in a div. Either shape carries `md`.
-export default function md(content){
-	const html = marked.parse(content).trim();
+export default function md(content, { safe } = {}){
+	const html = (safe ? md.scrub(marked.parse(content)) : marked.parse(content)).trim();
 	const template = document.createElement("template");
 	template.innerHTML = html;
 
@@ -72,6 +78,19 @@ export default function md(content){
 	mentions(view.el);
 	return view;
 }
+
+// md.scrub(html) — the same html with everything that could run code taken out, parsed in an inert <template> (never on
+// the page). For text that does not come from the repo: md(text, { safe: true }).
+md.scrub = function(html){
+	const t = document.createElement("template");
+	t.innerHTML = html;
+	t.content.querySelectorAll("script, iframe, frame, object, embed, style, link, meta, base, form, noscript").forEach(el => el.remove());
+	for (const el of t.content.querySelectorAll("*")) for (const { name, value } of [...el.attributes]){
+		const url = /(href|src|action)$/i.test(name) && /^(javascript|vbscript|data:text\/html)/i.test(value.replace(/[\s\0]/g, ""));
+		if (/^on/i.test(name) || /^(srcdoc|formaction)$/i.test(name) || url) el.removeAttribute(name);
+	}
+	return t.innerHTML;
+};
 
 // md.c("note", "Some **md**") — classes first, like div.c() / p.c()
 md.c = function(classes, content){

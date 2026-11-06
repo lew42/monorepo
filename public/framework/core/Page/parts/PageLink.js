@@ -2,7 +2,9 @@ import Item from "../../Item/Item.js";
 import View, { div, a, h4 } from "../../View/View.js";
 
 /* {"type":"part-link","path":"./notes/"} — a card for a child page: its title and summary, a link to its url. doc/part-link.md */
-export default class PageLink extends Item {}
+export default class PageLink extends Item {
+	static example = { path: "./sub/", title: "A tappable card", text: "Opens that sub-page" };   // what the item tool's help shows for this type
+}
 PageLink.View = class PageLinkView extends View {
 	render(){
 		const item = this.item, path = item.get("path"), title = item.get("title"), text = item.get("text");

@@ -1126,12 +1126,16 @@ export default class Servex extends Events {
 
         /* The task loop's own two tools (Servex/doc/task-loop.md). */
         this.mcp.tool("close_task", {
-            description: "The only way a task leaves the task loop besides landing. Appends {closed_by: <your id>,"
+            description: "The only way a task leaves the task loop besides landing. Pass `outcome` (and `evidence`) when the task LANDED:"
+                + " it first writes {complete:{outcome, evidence}} (once), so the task reads complete; without `outcome` the task is recorded as stopped, not complete."
+                + " Appends {closed_by: <your id>,"
                 + " closed_at, closed_why} to its task.jsonl; the loop then never chases or escalates it again. It also runs the close-out: stops every server,"
                 + " health watcher, browser and idle agent the task started, returns or removes its worktrees, and answers {ok, closed:[…], left:[…]}; ok is false if anything is left.",
             inputSchema: { type: "object", required: ["dir"], properties: {
                 dir: { type: "string", description: "The task's directory, e.g. `public/framework/ai/2026-09-28/my-task` — repo-relative or absolute." },
-                why: { type: "string", description: "One line: why it is being closed without landing." },
+                why: { type: "string", description: "One line: why it is being closed (without landing, when no `outcome`)." },
+                outcome: { type: "string", description: "Optional. One line: what the task delivered. Given = the task landed; a `complete` line is written before the close." },
+                evidence: { type: "array", items: { type: "string" }, description: "Optional, with `outcome`: proof (test, commit, link) per item." },
                 by: { type: "string", description: "Your agent id (a pool slot you hold is returned under it)." }
             } }
         }, async args => JSON.stringify(await this.task_loop.close_task(args)));

@@ -14,45 +14,74 @@
 	.live-page {
 		box-sizing: border-box; width: 100%; min-height: 100dvh;
 		padding: .75rem clamp(.5rem, 3vw, 1.5rem) 5rem;   /* 5rem: clear of the app bar fixed at the bottom of a phone */
-		display: flex; flex-direction: column; gap: 1rem;
+		display: flex; flex-direction: column; gap: var(--live-gap);
 		font-size: clamp(1rem, 1.2vw + .75rem, 1.5rem);
+		/* ONE RHYTHM, two steps: --live-gap between every two things on the page (header, cards, footer),
+		   --live-step between the parts of one thing (title, text, paragraphs, buttons). No card sets its own. */
+		--live-gap: 1.5rem;
+		--live-step: .5em;
 	}
 
 	.live-page > :not(.live-alerts) { box-sizing: border-box; width: 100%; max-width: 60rem; margin-inline: auto; }   /* the floor is full width, the column is not */
-	.live-head { display: flex; flex-direction: column; gap: .25rem; }
+	.live-head { display: flex; flex-direction: column; gap: var(--live-step); }
+	.live-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: .15em .4em; font-size: .8em; }
+	.live-crumb { color: inherit; opacity: .7; text-decoration: none; }
+	.live-crumb[aria-current] { opacity: 1; font-weight: 600; }
+	.live-crumb-sep { opacity: .4; }
 	.live-head-row { display: flex; align-items: center; gap: .6rem; }
 	.live-title { margin: 0; font-size: 1.4em; line-height: 1.2; flex: 1; min-width: 0; }
 	.live-ms { font-size: .7em; opacity: .55; font-variant-numeric: tabular-nums; white-space: nowrap; }
 	.live-version { flex: none; width: auto; font: inherit; font-size: .75em; color: inherit; background: var(--live-card); border: 1px solid light-dark(#0002, #fff3); border-radius: .4em; padding: .15em .3em; }
 	.live-sub, .live-foot-text { opacity: .8; }
-	.live-sub > *, .live-foot-text > * { margin: 0; }
+	.live-focus { display: flex; flex-direction: column; gap: var(--live-step); }
+	.live-focus .live-sub { opacity: 1; }   /* a card opened as a page: its text is the page, not a note under the title */
 
 	/* The light: a dot, gray when off, green and glowing when on. */
 	.live-dot { width: .8em; height: .8em; border-radius: 50%; flex: none; background: light-dark(#c9ccd2, #3a3940); transition: background .15s, box-shadow .15s; }
 	.live-dot.is-on { background: var(--live-light, #22c55e); box-shadow: 0 0 .6em var(--live-light, #22c55e); }
 
-	.live-main { display: flex; flex-direction: column; gap: 1rem; }
+	/* One gap between every two cards, whatever they are. A row, wrapping: every card takes a whole line except the
+	   buttons, so buttons side by side sit in one row (auto widths) and wrap only when the line is full. */
+	.live-main { display: flex; flex-flow: row wrap; align-items: flex-start; gap: var(--live-gap) .6rem; }
+	.live-main > * { flex: 1 1 100%; }
+	.live-main > [data-kind="LiveButton"] { flex: none; }
 	.live-main.is-empty::before { content: "Nothing on screen yet."; opacity: .5; text-align: center; padding: 2rem 0; }
 	/* What cannot be tapped draws with no frame (a block); what can is a card (a link to a sub-page), with a chevron. */
-	.live-block { display: flex; flex-direction: column; gap: .5rem; min-width: 0; overflow-wrap: anywhere; padding-inline: .25rem; }
+	.live-block { display: flex; flex-direction: column; gap: var(--live-step); min-width: 0; overflow-wrap: anywhere; }   /* no frame, so no inset: it runs the full width */
 	.live-card {
 		background: var(--live-card); color: var(--live-ink); border-radius: .6rem; padding: 1rem;
 		box-shadow: 0 1px 2px light-dark(#0002, #0006);
 		display: flex; align-items: center; gap: .75rem; min-width: 0; overflow-wrap: anywhere;
-		text-decoration: none; cursor: pointer; transition: transform .1s, box-shadow .1s;
+		position: relative; cursor: pointer; transition: transform .1s, box-shadow .1s;
 	}
 	.live-card:hover { box-shadow: 0 2px 8px light-dark(#0003, #0008); }
-	.live-card:active { transform: scale(.98); }
-	.live-link-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .35rem; }
-	.live-link .live-card-text { font-weight: 400; opacity: .8; }
-	.live-link-go { flex: none; font-size: 1.6em; line-height: 1; opacity: .4; }
-	.live-back { align-self: flex-start; color: inherit; opacity: .7; text-decoration: none; font-size: .85em; }
-	.live-foot-screens { display: flex; flex-wrap: wrap; gap: .4rem 1rem; }
-	.live-foot-screens a { color: inherit; }
-	.live-foot-screens.is-empty { display: none; }
-	.live-card-title { margin: 0; font-size: 1.15em; text-transform: none; letter-spacing: normal; }
-	.live-card-text > :first-child { margin-top: 0; }
-	.live-card-text > :last-child { margin-bottom: 0; }
+	.live-card:has(.live-card-go:active) { transform: scale(.98); }
+	.live-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--live-step); }
+	/* The whole card is one link: the chevron's ::after covers the card. A mention or a button inside sits above it, so
+	   it is tapped on its own (a link inside a link is not allowed in HTML, so the card is a div). */
+	.live-card-go { flex: none; font-size: 1.6em; line-height: 1; opacity: .4; color: inherit; text-decoration: none; }
+	.live-card-go::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+	.live-card :is(a:not(.live-card-go), button, input, select, label) { position: relative; z-index: 1; }
+	/* A card's buttons: one row inside it, auto widths. */
+	.live-children { display: flex; flex-direction: column; gap: var(--live-step); }
+	.live-buttons { display: flex; flex-wrap: wrap; gap: .6rem; padding-top: .25em; }
+	:is(.live-children, .live-buttons).is-empty { display: none; }
+	/* A card whose title is one mention ("@Page") is that thing's card: its icon and name, a little larger. */
+	.live-entity .live-card-title .mention { font-size: 1.1em; font-weight: 600; }
+	.live-entity .live-card-title .mention .item-icon { font-size: 1.3em; }
+	.live-inside { font-size: .75em; opacity: .55; }
+	.live-inside.is-empty { display: none; }
+	.live-card .live-card-text { font-weight: 400; opacity: .8; }
+	.live-foot-screens, .live-foot-pages { display: flex; flex-wrap: wrap; gap: .4rem 1rem; }
+	:is(.live-foot-screens, .live-foot-pages) a { color: inherit; }
+	:is(.live-foot-screens, .live-foot-pages, .live-foot-removed).is-empty { display: none; }
+	.live-foot-removed { color: inherit; opacity: .7; }
+	.live-card-title { margin: 0; font-size: 1.15em; line-height: 1.25; text-transform: none; letter-spacing: normal; }
+	.live-card-text, .live-sub, .live-foot-text { line-height: 1.45; }
+	:is(.live-card-text, .live-sub, .live-foot-text) .md > * { --flow: var(--live-step); }   /* the markdown inside is .flow, which spaces by --flow (set on every element): one step here too */
+	:is(.live-card-text, .live-sub, .live-foot-text) > * { margin: 0; }
+	:is(.live-card-text, .live-sub, .live-foot-text) > * + * { margin-top: var(--live-step); }   /* paragraphs, lists, code: one step apart */
+	:is(.live-card-text, .live-sub) :is(ul, ol) { padding-left: 1.2em; }
 	.live-card-text pre { overflow-x: auto; }
 	.live-block[data-kind="PageHeading"] .live-card-text { font-weight: 700; font-size: 1.3em; }
 	.is-empty:is(.live-card-title, .live-sub, .live-foot-text) { display: none; }
@@ -65,11 +94,11 @@
 	.live-check { display: flex; align-items: center; gap: .6rem; cursor: pointer; }
 	.live-check input { width: 1.2em; height: 1.2em; margin: 0; flex: none; accent-color: #22c55e; }
 	.live-check.is-done span { text-decoration: line-through; opacity: .55; }
-	.live-button { font: inherit; align-self: flex-start; padding: .55em 1.1em; border-radius: .5em; border: 0; cursor: pointer; background: var(--prime, #FF6157); color: #1a1a1a; font-weight: 600; }
-	.live-button.is-pressed { animation: live-press .4s ease-out; }
+	button.live-button { font: inherit; font-size: .85em; line-height: 1.2; align-self: flex-start; white-space: nowrap; padding: .5em 1em; border-radius: .5em; border: 0; cursor: pointer; background: var(--prime, #FF6157); color: #1a1a1a; font-weight: 600; }
+	button.live-button.is-pressed { animation: live-press .4s ease-out; }
 	@keyframes live-press { from { transform: scale(.94); filter: brightness(1.2); } to { transform: none; filter: none; } }
 
-	.live-foot { display: flex; flex-direction: column; gap: .5rem; margin-top: auto; font-size: .8em; }
+	.live-foot { display: flex; flex-direction: column; gap: var(--live-step); margin-top: auto; font-size: .8em; }
 	.live-foot-links { display: flex; gap: 1rem; opacity: .7; }
 	.live-foot-links a { color: inherit; }
 

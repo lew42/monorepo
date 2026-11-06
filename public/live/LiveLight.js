@@ -5,6 +5,8 @@ import View, { div, span } from "/framework/core/View/View.js";
  * Change it with {"content":{"<id>":{"on":false}}} or {"color":"red"}. The header's own light (LivePage `light`) is drawn by
  * the same LiveLight.paint(), so the two always look alike. */
 export default class LiveLight extends Item {
+	static example = { id: "build", label: "Build", on: true, color: "green" };   // what the item tool's help shows; change it with {"<id>":{"color":"red"}}
+
 
 	// Paint one dot from a light value: true / false, or {on, color}. Off is gray; on glows in its colour (green by default).
 	static paint($dot, value){

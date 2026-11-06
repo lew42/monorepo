@@ -1,5 +1,6 @@
-import { View, div, p, code, table, thead, tbody, tr, th, td, is } from "../View/View.js";
+import { View, div, p, span, button, icon, code, table, thead, tbody, tr, th, td, is } from "../View/View.js";
 import List from "../List/List.js";
+import Item from "../Item/Item.js";
 import { page_settings } from "./settings/settings.js";
 import PageListing from "./Listing.js";
 import PageLogReader from "./Reader.js";
@@ -39,6 +40,7 @@ export default class PageJsonl {
 			if (!first || typeof first.file === "string") { reader.close(); return null; }
 
 			const Class = first.class ? await host.log_class(first.class, url) : host;
+			await Item.load_types(reader.entries);   // a type the log names that nobody imported yet (a Task in content) loads first
 			const { class: _, ...line } = first;
 			const page = new Class(line, { url, jsonl_url: reader.url });
 
@@ -52,7 +54,7 @@ export default class PageJsonl {
 	static async log_class(host, module, url){
 		if (module === "/framework/ai2/card.js") module = "/framework/ai/cards/card.js";   // 531 card page.jsonl files still name the retired ai2 folder
 		const Class = (await import(new URL(module, location.origin + url).href)).default;
-		if (Class?.prototype instanceof this.Page) return Class;
+		if (Class === this.Page || Class?.prototype instanceof this.Page) return Class;   // naming Page itself is fine too
 
 		console.error(`page.jsonl at ${url} — "class": "${module}" is not a Page subclass; building a ${host.name}.`);
 		return host;
@@ -197,11 +199,13 @@ export default class PageJsonl {
 	}
 
 	// What a page.jsonl page draws when it has no `content()` of its own: its placed files, in order. The box is kept so a later line can redraw it.
+	// ⚠ The explorer (tree + data, `draw_folder()`) draws INLINE only when the page says `{"files_inline": true}` — by default it sits behind the
+	// top-right Files button (`files_button()`) instead, so a set of tabs doesn't repeat the same wide, sideways-scrolling box on every one. (doc/jsonl.md)
 	log_view(){
 		const page = this.page;
 		return div.c("flow", () => {
 			page.$log = div.c("page-log flow", () => { page.log_draw(); });
-			page.draw_folder();
+			if (page.files_inline) page.draw_folder();
 		});
 	}
 
@@ -214,6 +218,39 @@ export default class PageJsonl {
 			import("../../ext/files/files.js")
 				.then(({ default: files }) => $box.append(() => { files({ url }, [...names].join(" ")); }));
 		});
+	}
+
+	// The ONE top-right "Files" button a jsonl page (or a tabs frame) gets by default: opens
+	// whichever folder is actually on screen — the active tab's own, when it has one, else
+	// mine (`active_jsonl_page()`) — in a panel instead of the page's own flow. `files_inline:
+	// true` skips this and keeps the old inline box (doc/jsonl.md "the files button").
+	files_button(){
+		const page = this.page;
+		let open = false, $panel;
+
+		return div.c("page-files-toggle", $box => {
+			const $btn = button.c("page-files-toggle-btn").attr("type", "button").attr("aria-expanded", "false")
+				.attr("aria-label", "Files — this page's own files and data")
+				.append(() => { icon("folder_open"); span("Files"); })
+				.click(() => {
+					open = !open;
+					$btn.attr("aria-expanded", String(open));
+					if (open) $panel = div.c("page-files-toggle-panel", () => { this.active_jsonl_page()._helper("Jsonl").draw_folder(); }).append_to($box);
+					else { $panel?.el.remove(); $panel = null; }
+				});
+		});
+	}
+
+	// Which page's own folder the shared button should open: whichever child is marked the
+	// current leaf (Router's `.active-page`/`.active-ancestor`) IF it has its own `page.jsonl`
+	// — Gamma..Eta don't, so they fall back to the button's own page (`doc/jsonl.md` finding
+	// 2). A page with no tabs at all has no marked child, so this always answers itself.
+	active_jsonl_page(){
+		const page = this.page;
+		for (const child of page.children.values()){
+			if (child?.jsonl_url && child.view?.el?.matches?.(".active-page, .active-ancestor")) return child;
+		}
+		return page;
 	}
 
 	log_draw(){ (this.page.placed ?? []).forEach(entry => this.page.draw_placed(entry)); }

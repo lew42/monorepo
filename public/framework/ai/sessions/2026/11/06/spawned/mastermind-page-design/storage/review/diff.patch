@@ -1,0 +1,48 @@
+diff --git a/public/framework/core/Page/doc/recursive-pages.md b/public/framework/core/Page/doc/recursive-pages.md
+index 9a3ff0231..7110b354a 100644
+--- a/public/framework/core/Page/doc/recursive-pages.md
++++ b/public/framework/core/Page/doc/recursive-pages.md
+@@ -45,3 +45,43 @@ Yes; that is what Ref is for. A Ref is a small item that stores where something
+ - ✅ **Breadcrumb** (Live › lab › foo) in LivePage's header, so you can see where you are at any depth (f56543fda).
+ - ⬜ **Break a card out:** one command, "break out `foo`". It runs `move_to({url: "/live/foo/"})`, so `foo`'s lines go to `/live/foo/page.jsonl` and a Ref takes its place in `/live/`'s content. LivePage then draws the Ref as the card. Estimated $10–15. ⚠ A card id that is a page word (`pages`, `content`) is refused by the list only after its line is written, so break-out must check the id first.
+ - ⬜ **Own file:** only if folder count becomes a real problem. Same address; the file is just a different store.
++
++## 6. When a card becomes a folder (proposal, 2026-11-06)
++
++**What makes a folder today — every code path, one line each:**
++
++| Path | What it does | `file:line` |
++|---|---|---|
++| `create_page` tool / `page_set({pages:{add}})` | `Subpages.add()`: `mkdir`, writes `<name>/page.jsonl` line 1, appends a `file` line to the parent | `Servex/agents/Subpages.js:46-58` |
++| `Item.move_to({url, path})` | leaves a `{moved_to}` forward on the item; the real file move is the node-side handoff below | `core/Item/Item.js:513-523` |
++| `move_item()` (the handoff `move_to` calls into) | carries an item's lines into a new file/folder on disk | `Servex/agents/page_tools.js:771` |
++| An agent writing files by hand | `/live/design/` was made this way — no tool, no link line, just files on disk | past-work.md (this task) |
++| **Not a folder path:** `LivePage.save()` | keeps a saved screen's cards as data embedded in `/live/page.jsonl` (a `LiveScreen` item in the `screens` List) — never `mkdir`s. Corrects the brief's assumption. | `public/live/LivePage.js:84-92` |
++
++There is **no auto-upgrade today.** Every folder above is made on a deliberate call (a tool, or an agent's hand). A card stays embedded no matter how big it gets or how many nested items it holds — Item nesting (`{"k2":{"answers":{"add":…}}}`) already lets one `page.jsonl` hold a tree, so size and "gaining sub-items" alone don't force a folder; only needing **sidecar files** does (an image, a `page.js`, or a nested item that itself needs a folder two levels down — the `CHILD` regex, `Listing.js:6`, can only name a real `page.jsonl`, so a grandchild-with-its-own-children has nowhere to live inside one file).
++
++**Recommended trigger: promote the instant a card is asked for a sidecar it cannot hold embedded** — a file attached to it, or a `pages.add` aimed at one of its own (embedded) children. Concretely: `apply_pages()` (`Servex/agents/page_tools.js:414`) checks whether `at.target` resolves to an embedded card; if so, it runs `move_to` on that card FIRST (making `<name>/page.jsonl` where `<name>` is the card's own id), leaves a Ref in its place, then adds the new sub-page inside the freshly made folder.
++
++**Alternative (named, not recommended): size.** A byte or line-count threshold (e.g. 20 KB or 50 items) on the parent's `page.jsonl`, checked by a periodic sweep. Rejected for now: it fires on a schedule instead of the action that actually needs a folder, so it either promotes too early (a verbose card with no files) or too late (a sweep interval), where the sidecar trigger fires exactly once, at the cause.
++
++**Who performs the move:** the same function already proposed for "Break a card out" above — `Item.move_to({url: "/live/foo/"})` (`core/Item/Item.js:513`), which calls the node-side `move_item` (`Servex/agents/page_tools.js:771`).
++
++**What is left behind:** a `Ref` (`core/Item/Ref.js`) at the embedded slot, `{type:"Ref", path: "<old path>"}` — same mechanism section 3 above already describes; `RefView` still needs the "draw a Ref as its target" step noted there.
++
++**Naming:** the folder name is a slug of the card's title (`My idea` becomes `my-idea/`, made unique among its siblings), not its random id (`nd3r7buc`). So the path segment, the folder name and the title match, and a link's label is the title. At the move, the card takes that slug as its `name`. Slug rules: `Subpages.js:7,108`; title fallback `title ?? name`: `Subpages.js:51`.
++
++This is a proposal: nothing above is built. [Load cost measurements for this task](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/storage/) back the "why this matters" half of the brief.
++
++## 7. What a parent loads today (measured 2026-11-06)
++
++A page fetches every known child's `page.jsonl`, **2 levels deep** (`Page.class.js:681`, `load_all_children()` at `:685-696`). It reads each whole file and replays every line (`Jsonl.js:28-52`, `Store.js:208-212`).
++
++| url | jsonl files | size |
++|---|---:|---:|
++| `/live/` | 2 | 3.7 KB |
++| `/framework/core/Page/` | 168 | 119 KB |
++| `/framework/ai/sessions/2026/11/06/` | 118 | 1.85 MB |
++| a made-up tree, 4 levels by 5 children | 31 of 156 (predicted 31) | 31 KB |
++
++- **A deep tree is bounded:** below level 2, nothing loads until you open it.
++- **A wide folder is not:** 1000 direct children means 1000 fetches on first open (about 16 MB at the sessions-day rate). The fix is the preview index, [index-jsonl.md](index-jsonl.md): load each child's title, icon and description from one file, and the full child only when it opens. Not built.

@@ -94,6 +94,24 @@ already loaded — nothing is fetched to check) that child's own settings, throu
 methods (`Page.class.js`), `tab_visible(name)` and `tab_order(name)`, so the two can never disagree. Live demo,
 all of it: [`core/Page/settings/`](/framework/core/Page/settings/).
 
+## The Files button, and pages shown as tabs (2026-11-06)
+
+**A jsonl page shows its files behind a button.** A page loaded from a `page.jsonl` draws a small "Files" button on the same row as its title, at the right. It opens the tree and data explorer (`draw_folder()`, `ext/files/`) in a panel. The explorer is no longer drawn inside the page.
+
+- **`{"files_inline": true}`** on a page brings back the old inline explorer, and drops the button.
+- **One button per screen.** Under `navigation: "tabs"`, only the parent draws it. It opens the folder of the tab on screen if that tab has its own `page.jsonl` (Alpha), and otherwise the parent's (a tab made by a `tab` line, like Gamma). Code: `Jsonl.js files_button()`, `active_jsonl_page()`; `Page.class.js has_files_button()`.
+- **A page shown as a tab draws no title of its own.** The tab label already names it (`Page.class.js in_tabs_frame()`).
+- **The "Files · N" link** is not drawn where the button is.
+
+**What decides a tab's content today** (the question of how voice should control it):
+
+| the tab came from | it shows |
+|---|---|
+| a child folder, `alpha/page.jsonl` | that page: its content and its files |
+| a `{"tab":{"name":"gamma"}}` line, no folder | its `content`, if the line has one; else an empty page with a title |
+
+**This already works** (tested 2026-11-06): a `tab` line can carry `content`, `{"tab":{"name":"gamma","content":"some words"}}`, and the tab shows it with no folder. The new-page branch of `Jsonl.js tab()` hands `content` to `page.add()`, and `PageContent.fill()` draws a string as a plain paragraph (`PageParagraph`, no markdown) or, when it starts with `/`, as that address's page (`PageAddress`). A later `tab` line with `content` replaces the text. For a whole page, make a real `gamma/page.jsonl` instead.
+
 ## Who writes the file lines
 
 Nobody has to remember them. The dev server's `Server/plugins/PageFiles.js` watches `public/`
