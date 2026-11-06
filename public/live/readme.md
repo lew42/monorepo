@@ -6,6 +6,8 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
 
 ## Showing things
 
+`item({path: "/live/", delta: {"help": {}}})` prints all of this in about 2 KB: the page's verbs, the `content` list verbs and every card type with an example (`static example` on each card class, `card_types` on LivePage).
+
 | To… | delta (path `/live/`, or a sub-page's path) |
 |---|---|
 | a line of text / a heading / a titled block | `{"content":{"add":{"type":"part-text","text":"**markdown**"}}}` · `"type":"part-heading"` · `"type":"part-card","title":"…","text":"…"` |

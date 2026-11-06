@@ -49,6 +49,8 @@ export default class LivePage extends Page {
 		save: "{\"save\": {name, title?}} or {\"save\": \"name\"}: keep the cards on screen as /live/<name>/, then clear.",
 		restore: "{\"restore\": \"name\"}: put a saved screen's cards back (the current ones are cleared first).",
 	};
+	static data_keys = ["header", "footer"];   // {"header": "a line under the title"}, {"footer": "…"}; null hides it
+	static card_types = [...Page.card_types, "live-light", "live-checklist", "live-button"];   // the help prints each one's `static example`
 
 	// {"flash": {}} or {"flash": "red"} — the screen blinks once.
 	flash(color){

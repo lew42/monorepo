@@ -7,6 +7,8 @@ import View, { div, h4, label, input, span } from "/framework/core/View/View.js"
  * {"content":{"<id>":{"items":{"milk":{"done":true}}}}}, add one with {"content":{"<id>":{"items":{"add":{"id":"tea","text":"Tea"}}}}}.
  * A tap on a row sets `done` the same way, so the line it saves is the line voice would send. */
 export default class LiveChecklist extends Item {
+	static example = { id: "today", title: "Today", items: [{ id: "milk", text: "Buy milk", done: false }] };   // what the item tool's help shows
+	static callable = { ...Item.callable, check: "{\"check\": \"<entry id>\"} flips one entry; add: {\"items\": {\"add\": {id, text}}}." };
 	constructor(...args){
 		super(...args);
 		this.items ??= new List({ owner: this, name: "items" });

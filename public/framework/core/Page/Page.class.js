@@ -41,9 +41,12 @@ export class Page extends Item {
 	// What a delta can call on any page, beside Item's. Cards, tabs and sub-pages are not methods: they are the lists `content`, `pages` and the keys of a delta.
 	static callable = {
 		...Item.callable,
-		tab: "{\"tab\": {name, disabled?, nav?, order?, title?, icon?}} sets one tab's state; repeat lines for a name merge.",
+		tab: "{\"tab\": {name, disabled?, nav?, order?, title?, icon?}} sets one tab's state; lines for one name merge.",
 		place: "{\"place\": \"name\" | [\"name\", …] | {module, …data}} puts named parts into the content, in order, once each.",
 	};
+
+	// The card types this page draws in `content`, by registered name; the item tool prints each one's `static example` (parts/kinds.js has them all).
+	static card_types = ["part-heading", "part-text", "part-card", "part-link"];
 
 	// ⚠ Nothing is FETCHED here: a module page constructs itself at import. The caller budgets (doc/declaring.md).
 	constructor(...args){

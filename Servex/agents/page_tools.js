@@ -572,7 +572,22 @@ function describe_class(Class){
 const GRAMMAR = "delta = one log line. A key naming a method calls it with the value as arguments; a key naming a child item walks into it; any other key assigns. Keys starting with _ are refused.";
 
 async function instructions_for(kind, Class){
-	return Class ? { ...describe_class(Class), task_keys: KEYS[kind], grammar: GRAMMAR, rules: RULES } : { class: kind, grammar: GRAMMAR };
+	if (!Class) return { class: kind, grammar: GRAMMAR };
+	const d = describe_class(Class);
+	if (!Class.card_types) return { ...d, task_keys: KEYS[kind], grammar: GRAMMAR, rules: RULES };
+	// A page: its own fields (not every getter), the verbs of its `content` list and the card types it draws, each by its `static example`.
+	await import("../../public/framework/core/Page/parts/kinds.js");
+	const { List } = await import("../../public/framework/core/List/List.js");
+	const types = {};
+	for (const name of Class.card_types){
+		const T = Item.types.get(name);
+		if (!T?.example) continue;
+		const calls = surface_of(T).filter(m => !(m.name in Item.callable));
+		types[name] = calls.length ? { ...T.example, calls: Object.fromEntries(calls.map(m => [m.name, m.doc])) } : T.example;
+	}
+	return { class: d.class, fields: [...(Class.fields ?? []), ...(Class.data_keys ?? [])], methods: d.methods,
+		content: { verbs: Object.fromEntries(Object.entries(List.callable)), edit: "{\"content\": {\"<id>\": {\"text\": \"…\"}}} sets one card's fields.", types },
+		pages: "{\"pages\": {\"add\": {name, title}}} makes a sub-page; write it at path <url><name>/.", grammar: GRAMMAR };
 }
 
 // The owner's grouping rules (Servex/doc/item-tool.md), returned beside describe() on the first call.

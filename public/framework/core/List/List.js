@@ -53,6 +53,15 @@ function shadows_name(node, id){
 
 export class List extends Item {
 
+	// What a delta can call on a list, e.g. a page's `content`: {"content": {"add": {...}}}. The item tool prints these in a page's help.
+	static callable = {
+		add: "{\"add\": {type, id?, …fields}} appends; an array adds several; `after: \"<id>\"` places it (null = first).",
+		remove: "{\"remove\": \"<id>\"} takes one out.",
+		move: "{\"move\": {id, after}} (after: null = first).",
+		order: "{\"order\": [\"id\", …]}.",
+		clear: "{\"clear\": true} empties it.",
+	};
+
 	constructor(...args){
 		super(...args);
 		this.items ??= [];
