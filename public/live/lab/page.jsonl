@@ -1,0 +1,4 @@
+{"title":"Lab: /live/ as a tiny app","icon":"🧪","class":"/live/LivePage.js"}
+{"content":{"add":{"type":"part-text","id":"probe","text":"probe one"}},"by":"mastermind-live-page","ts":"2026-11-06T21:59:57.681Z"}
+{"content":{"probe":{"text":"probe edited"}},"by":"mastermind-live-page","ts":"2026-11-06T21:59:58.198Z"}
+{"content":{"remove":"probe"},"by":"mastermind-live-page","ts":"2026-11-06T21:59:58.720Z"}

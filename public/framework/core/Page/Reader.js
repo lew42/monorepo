@@ -21,9 +21,16 @@ export default class PageLogReader extends Item.Store {
 
 	// Tracks which KEYS arrived in this batch — `changed()` below reads it to decide
 	// whether a live line is worth a nav redraw, same as before the fold-in.
+	// A live line that names a type nobody imported yet (voice adds a Task to an open page) waits for that module, and every
+	// later batch queues behind it so the order holds (Item.load_types; the first load already waited in Jsonl.load).
 	read(entries){
 		for (const entry of entries) for (const key of Object.keys(entry)) (this._seen ??= new Set()).add(key);
-		return super.read(entries);
+		const unknown = this.live && JSON.stringify(entries).includes('"type"') && [...Item.modules.keys()].some(t => !Item.types.has(t));
+		if (!this._loading && !unknown) return super.read(entries);
+		const done = (this._loading ?? Promise.resolve()).then(() => Item.load_types(entries)).then(() => super.read(entries)).catch(e => console.error("page.jsonl: a live line failed to replay", e));
+		this._loading = done.finally(() => { if (this._loading === settled) this._loading = null; });
+		const settled = this._loading;
+		return this;
 	}
 
 	// Line 1 already built the page (`Page.jsonl()` above) — HOLD UNTIL LINE 1,

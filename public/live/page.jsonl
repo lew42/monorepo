@@ -120,3 +120,16 @@
 {"file":"nav-test/page.jsonl","gone":true}
 {"file":"_removed/"}
 {"file":"_removed/","gone":true}
+{"content":{"add":{"id":"status","text":"Servex restarted at 3:30 PM. Read mode, the LivePage class and the shell fix are now live.","title":"Back up ✅","type":"part-card"}},"by":"voice-app","ts":"2026-11-06T21:31:23.040Z"}
+{"file":"next/page.jsonl"}
+{"content":{"add":{"id":"next","path":"./next/","text":"Tap me. This opens a sub-page voice can edit.","title":"What's next","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T21:31:27.740Z"}
+{"file":"demos/page.jsonl"}
+{"save":{"name":"restart-check","title":"Restart check"},"by":"voice-app","ts":"2026-11-06T21:52:43.251Z"}
+{"content":{"add":{"id":"decide","text":"Group Page's ~150 methods into page.columns, page.tabs, page.previews, page.log and page.links, and drop ~50 forwarders. About $15–25. Yes or no?","title":"Your call: Page cleanup","type":"part-card"}},"by":"voice-app","ts":"2026-11-06T21:52:54.112Z"}
+{"content":{"add":{"id":"working","text":"live-page: battle-testing /live/ as a little app. page-design: tabs, columns and nav demos under /live/demos/.","title":"Working now","type":"part-card"}},"by":"voice-app","ts":"2026-11-06T21:52:54.739Z"}
+{"content":{"add":{"id":"cleanup-yes","after":"decide","args":"Yes to Page cleanup","label":"Yes, do the cleanup","method":"alert","type":"live-button"}},"by":"voice-app","ts":"2026-11-06T21:55:37.050Z"}
+{"content":{"add":{"id":"cleanup-no","after":"cleanup-yes","args":"No to Page cleanup","label":"No, leave it","method":"alert","type":"live-button"}},"by":"voice-app","ts":"2026-11-06T21:55:37.651Z"}
+{"file":"LiveContent.js"}
+{"file":"LivePage.test.mjs"}
+{"file":"lab/page.jsonl"}
+{"file":"design/"}

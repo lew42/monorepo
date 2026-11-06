@@ -1,5 +1,6 @@
 import { View, div, p, code, table, thead, tbody, tr, th, td, is } from "../View/View.js";
 import List from "../List/List.js";
+import Item from "../Item/Item.js";
 import { page_settings } from "./settings/settings.js";
 import PageListing from "./Listing.js";
 import PageLogReader from "./Reader.js";
@@ -39,6 +40,7 @@ export default class PageJsonl {
 			if (!first || typeof first.file === "string") { reader.close(); return null; }
 
 			const Class = first.class ? await host.log_class(first.class, url) : host;
+			await Item.load_types(reader.entries);   // a type the log names that nobody imported yet (a Task in content) loads first
 			const { class: _, ...line } = first;
 			const page = new Class(line, { url, jsonl_url: reader.url });
 
@@ -52,7 +54,7 @@ export default class PageJsonl {
 	static async log_class(host, module, url){
 		if (module === "/framework/ai2/card.js") module = "/framework/ai/cards/card.js";   // 531 card page.jsonl files still name the retired ai2 folder
 		const Class = (await import(new URL(module, location.origin + url).href)).default;
-		if (Class?.prototype instanceof this.Page) return Class;
+		if (Class === this.Page || Class?.prototype instanceof this.Page) return Class;   // naming Page itself is fine too
 
 		console.error(`page.jsonl at ${url} — "class": "${module}" is not a Page subclass; building a ${host.name}.`);
 		return host;

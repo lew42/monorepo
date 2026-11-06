@@ -9,6 +9,8 @@ import LiveChecklist from "./LiveChecklist.js";
 import LiveLight from "./LiveLight.js";
 import LiveButton from "./LiveButton.js";
 import LiveScreen from "./LiveScreen.js";
+import LiveContent, { LiveScreens } from "./LiveContent.js";
+import { PART_TYPES } from "/framework/core/Page/parts/kinds.js";
 
 View.stylesheet(import.meta, "LivePage.css");
 
@@ -34,9 +36,13 @@ export default class LivePage extends Page {
 	// How long the header light stays on after voice (any writer but the owner) wrote a line.
 	static voice_ms = 30000;
 
+	// content is a LiveContent: a removed card (or a clear) moves into `removed`, never gone (LiveContent.js).
+	static Content = LiveContent;
+
 	constructor(...args){
 		super(...args);
-		this.screens ??= new List({ owner: this, name: "screens" });   // saved screens (LiveScreen), opened at /live/<name>/
+		this.screens ??= new LiveScreens({ owner: this, name: "screens" });   // saved screens (LiveScreen), opened at /live/<name>/
+		this.removed ??= new List({ owner: this, name: "removed" });   // what left content or screens, opened at /live/removed/
 	}
 
 	// ════ METHODS A DELTA CAN CALL ═══
@@ -47,7 +53,7 @@ export default class LivePage extends Page {
 		flash: "{\"flash\": {}} or {\"flash\": \"red\"}: the screen blinks once.",
 		alert: "{\"alert\": \"Text\"}: a banner at the top for a few seconds.",
 		save: "{\"save\": {name, title?}} or {\"save\": \"name\"}: keep the cards on screen as /live/<name>/, then clear.",
-		restore: "{\"restore\": \"name\"}: put a saved screen's cards back (the current ones are cleared first).",
+		restore: "{\"restore\": \"name\"}: put a saved screen's cards back (the current ones move to removed); {\"restore\": \"<id>\"} brings back one removed card or screen.",
 	};
 	static data_keys = ["header", "footer"];   // {"header": "a line under the title"}, {"footer": "…"}; null hides it
 	static card_types = [...Page.card_types, "live-light", "live-checklist", "live-button"];   // the help prints each one's `static example`
@@ -80,13 +86,19 @@ export default class LivePage extends Page {
 		const cards = JSON.parse(JSON.stringify(this.content.toJSON()));
 		if (this.screens.find(name)) this.screens.remove(name);
 		this.screens.add({ type: "live-screen", id: name, data: { title: s.title ?? name }, content: cards });
-		this.content.set({ clear: true });
+		this.saving = true;   // the cards went into the screen, so the clear does not also keep them in `removed`
+		try { this.content.set({ clear: true }); } finally { this.saving = false; }
 	}
 
-	// {"restore": "plan"} — put a saved screen's cards back on /live/ (what is on screen now is cleared first; save it before).
+	// {"restore": "plan"} — put a saved screen's cards back on /live/ (what is on screen now moves to `removed`).
+	// {"restore": "<id>"} for a card or screen in `removed` puts that one back where it was (content or screens).
 	restore(name){
 		const screen = this.screens.find(String(name));
-		if (!screen) return;
+		if (!screen){
+			const gone = this.removed.find(String(name));
+			if (gone) (gone instanceof LiveScreen ? this.screens : this.content).move(gone, { from: this.removed, after: (gone instanceof LiveScreen ? this.screens : this.content).items.at(-1)?.id ?? null });
+			return;
+		}
 		const cards = JSON.parse(JSON.stringify(screen.content.toJSON()));
 		this.content.set({ clear: true });
 		cards.forEach(card => this.content.add(card));
@@ -103,18 +115,25 @@ export default class LivePage extends Page {
 	// True while a line is being replayed (opening the page), false for a line another writer just saved.
 	replaying(){ return Item.source === "replay"; }
 
-	// ════ A SAVED SCREEN OPENS AT /live/<name>/ ═══
+	// ════ EVERYTHING ON IT HAS A URL ═══
+	// /live/<screen>/ is a saved screen, /live/removed/ what was removed, /live/<id>/ any card on screen opened by itself
+	// (a Task, a checklist…; also inside a screen: /live/<screen>/<id>/). A sub-page folder wins over all of them.
 	route(name){
-		const screen = this.screens.find(name);
-		if (!screen) return super.route?.(name);
-		return new this.constructor({ title: screen.get("title") ?? name, url: this.url + name + "/", screen });
+		const page = super.route?.(name);
+		if (page) return page;
+		const url = this.url + name + "/";
+		const screen = !this.screen && !this.focus && this.screens.find(name);
+		if (screen) return new this.constructor({ title: screen.get("title") ?? name, url, screen });
+		if (name === "removed" && !this.screen && !this.focus) return new this.constructor({ title: "Removed", url, screen: { content: this.removed } });
+		const item = !this.focus && this.cards.find(name);
+		if (item && !(item instanceof PageLink)) return new this.constructor({ title: item.get("title") ?? name, url, focus: item, focus_list: this.cards });
 	}
 
-	// The cards this view draws: a saved screen's, or the page's own.
+	// The cards this view draws: a saved screen's, the removed ones, or the page's own (a card opened by itself draws only it).
 	get cards(){ return this.screen?.content ?? this.content; }
 
-	// /live/ itself, or a page under it (a sub-page or a saved screen)?
-	get is_top(){ return !(this.parent instanceof LivePage) && !this.screen; }
+	// /live/ itself, or a page under it (a sub-page, a saved screen, a card opened by itself)?
+	get is_top(){ return !(this.parent instanceof LivePage) && !this.screen && !this.focus; }
 
 	// ════ THE HEADER LIGHT: VOICE IS DRIVING ═══
 	// On while a writer other than the owner wrote a line in the last 30 s; the delay of the last line beside it.
@@ -177,9 +196,9 @@ export default class LivePage extends Page {
 	// The cards, kept in step by DefaultView.place (only the changed ones redraw).
 	draw_cards(){
 		const $main = div.c("live-main");
-		const drawn = new Map(), list = this.cards;
+		const drawn = new Map(), list = this.focus_list ?? this.cards;
 		const draw = () => {
-			const members = list.items.filter(i => !i.transient);   // a transient item is the page's own code, never a card
+			const members = this.focus ? list.items.filter(i => i === this.focus) : list.items.filter(i => !i.transient);   // a transient item is the page's own code, never a card
 			DefaultView.place($main.el, members, drawn, item => this.draw_card(item));
 			$main.tc("is-empty", !members.length);
 		};
@@ -195,8 +214,10 @@ export default class LivePage extends Page {
 			div.c("live-link-body", () => this.draw_words(item));
 			span.c("live-link-go", "›");
 		}).attr("href", this.link_url(item.get("path"))).attr("id", item.id).attr("data-kind", kind);
-		if (this.constructor.kinds.has(item.constructor))
-			return div.c("live-block", () => { new item.constructor.View({ item }); }).attr("id", item.id).attr("data-kind", kind);
+		// A class with its own View (live-checklist, a Task…) draws with it; the part-* text cards draw as words, frameless.
+		const Own = item.constructor.View;
+		if (this.constructor.kinds.has(item.constructor) || (Own && Own !== Item.View && !PART_TYPES.includes(item.wire?.())))
+			return div.c("live-block", () => { new Own({ item, subject: item }); }).attr("id", item.id).attr("data-kind", kind);
 		return div.c("live-block", () => this.draw_words(item)).attr("id", item.id).attr("data-kind", kind);
 	}
 
@@ -224,6 +245,10 @@ export default class LivePage extends Page {
 			});
 			["add", "remove"].forEach(verb => this.screens.on(verb, draw));
 			draw();
+			const $removed = a.c("live-foot-removed").href(this.url + "removed/");
+			const count = () => $removed.tc("is-empty", !this.removed.length).text(`Removed cards (${this.removed.length})`).attr("title", "Every card taken off this screen (removed or cleared) is kept here; {\"restore\": \"<id>\"} brings one back");
+			[this.content, this.screens].forEach(list => ["remove", "clear", "move"].forEach(verb => list.on(verb, () => queueMicrotask(count))));   // after the card reached removed
+			count();
 			div.c("live-foot-links", () => {
 				a("Sessions").href("/live/sessions/");
 				a("Archive").href("/live/archive/");

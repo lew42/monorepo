@@ -31,7 +31,7 @@
 	.live-dot { width: .8em; height: .8em; border-radius: 50%; flex: none; background: light-dark(#c9ccd2, #3a3940); transition: background .15s, box-shadow .15s; }
 	.live-dot.is-on { background: var(--live-light, #22c55e); box-shadow: 0 0 .6em var(--live-light, #22c55e); }
 
-	.live-main { display: flex; flex-direction: column; gap: 1rem; }
+	.live-main { display: flex; flex-direction: column; gap: 1.75rem; }   /* one gap between every two cards, whatever they are: no card needs its own spacing */
 	.live-main.is-empty::before { content: "Nothing on screen yet."; opacity: .5; text-align: center; padding: 2rem 0; }
 	/* What cannot be tapped draws with no frame (a block); what can is a card (a link to a sub-page), with a chevron. */
 	.live-block { display: flex; flex-direction: column; gap: .5rem; min-width: 0; overflow-wrap: anywhere; padding-inline: .25rem; }
@@ -49,7 +49,8 @@
 	.live-back { align-self: flex-start; color: inherit; opacity: .7; text-decoration: none; font-size: .85em; }
 	.live-foot-screens { display: flex; flex-wrap: wrap; gap: .4rem 1rem; }
 	.live-foot-screens a { color: inherit; }
-	.live-foot-screens.is-empty { display: none; }
+	.live-foot-screens.is-empty, .live-foot-removed.is-empty { display: none; }
+	.live-foot-removed { color: inherit; opacity: .7; }
 	.live-card-title { margin: 0; font-size: 1.15em; text-transform: none; letter-spacing: normal; }
 	.live-card-text > :first-child { margin-top: 0; }
 	.live-card-text > :last-child { margin-bottom: 0; }
@@ -65,8 +66,8 @@
 	.live-check { display: flex; align-items: center; gap: .6rem; cursor: pointer; }
 	.live-check input { width: 1.2em; height: 1.2em; margin: 0; flex: none; accent-color: #22c55e; }
 	.live-check.is-done span { text-decoration: line-through; opacity: .55; }
-	.live-button { font: inherit; align-self: flex-start; padding: .55em 1.1em; border-radius: .5em; border: 0; cursor: pointer; background: var(--prime, #FF6157); color: #1a1a1a; font-weight: 600; }
-	.live-button.is-pressed { animation: live-press .4s ease-out; }
+	button.live-button { font: inherit; font-size: .85em; line-height: 1.2; align-self: flex-start; padding: .5em 1em; border-radius: .5em; border: 0; cursor: pointer; background: var(--prime, #FF6157); color: #1a1a1a; font-weight: 600; }
+	button.live-button.is-pressed { animation: live-press .4s ease-out; }
 	@keyframes live-press { from { transform: scale(.94); filter: brightness(1.2); } to { transform: none; filter: none; } }
 
 	.live-foot { display: flex; flex-direction: column; gap: .5rem; margin-top: auto; font-size: .8em; }
