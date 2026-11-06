@@ -29,7 +29,7 @@
 	.live-head {
 		position: sticky; top: 0; z-index: 5;
 		display: flex; flex-direction: column; gap: .15rem;
-		margin-top: calc(-1 * var(--live-pad)); padding-top: .5rem;   /* cancels the page's top padding, so it sits flush with the top of the screen when stuck */
+		margin-top: calc(-1 * var(--live-pad)); padding: .5rem .25rem .25rem;   /* the floor runs a quarter rem past its text (smoke: text never touches its box); the margin cancels the page's top padding, so it sits flush with the top of the screen when stuck */
 		background: var(--live-floor);
 		font-size: 1rem;
 	}
