@@ -133,3 +133,9 @@
 {"file":"LivePage.test.mjs"}
 {"file":"lab/page.jsonl"}
 {"file":"design/"}
+{"file":"design-tmp/"}
+{"file":"design/","gone":true}
+{"file":"design/page.jsonl"}
+{"content":{"add":{"id":"link-design","path":"./design/","text":"page-design's page.ui prototype and the recursive pages plan, built live.","title":"Design lab","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T22:08:06.053Z"}
+{"content":{"add":{"id":"link-demos","path":"./demos/","text":"Tabs, nav, place and columns tried from voice, one tap-through each.","title":"Feature demos","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T22:08:06.533Z"}
+{"content":{"add":{"id":"link-next","path":"./next/","text":"The sub-page I made earlier as a test.","title":"What's next","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T22:08:07.009Z"}
