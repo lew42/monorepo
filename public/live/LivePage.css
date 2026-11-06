@@ -13,7 +13,8 @@
 	}
 	.live-page {
 		box-sizing: border-box; width: 100%; min-height: 100dvh;
-		padding: .75rem clamp(.5rem, 3vw, 1.5rem) 5rem;   /* 5rem: clear of the app bar fixed at the bottom of a phone */
+		--live-pad: .75rem;
+		padding: var(--live-pad) clamp(.5rem, 3vw, 1.5rem) 5rem;   /* 5rem: clear of the app bar fixed at the bottom of a phone */
 		display: flex; flex-direction: column; gap: var(--live-gap);
 		font-size: clamp(1rem, 1.2vw + .75rem, 1.5rem);
 		/* ONE RHYTHM, two steps: --live-gap between every two things on the page (header, cards, footer),
@@ -28,7 +29,7 @@
 	.live-head {
 		position: sticky; top: 0; z-index: 5;
 		display: flex; flex-direction: column; gap: .15rem;
-		margin-top: -.75rem; padding-top: .5rem;   /* sits flush with the top of the screen when stuck */
+		margin-top: calc(-1 * var(--live-pad)); padding-top: .5rem;   /* cancels the page's top padding, so it sits flush with the top of the screen when stuck */
 		background: var(--live-floor);
 		font-size: 1rem;
 	}
