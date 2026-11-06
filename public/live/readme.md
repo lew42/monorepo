@@ -4,6 +4,13 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
 
 **What you see:** a header (a light that is on while voice is driving, the title, the last line's delay, a version dropdown on /live/ itself, a breadcrumb "Live › lab › foo" below it), the content, and a footer (every child page, saved screens, removed cards). A **card** (`part-card`, or a `part-link` to a sub-page) is framed and opens a page when tapped; text, headings, checklists, lights and buttons draw with **no frame**. Buttons side by side sit in one row, and a card's own buttons sit inside it. Every title and text is markdown with mentions (`@Page`, `#Task`, `/live/lab/` become icon links), scrubbed so no script runs; a card whose title is only a mention (`"title":"@Page"`) is that thing's card and opens it. Spacing is one rhythm in [LivePage.css](LivePage.css) (`--live-gap` between things, `--live-step` inside one): no card sets its own. Light and dark follow the phone. The old page is kept at [/live/v1/](/live/v1/) ([v1/readme.md](v1/readme.md)).
 
+## Start here (an agent with only this file)
+
+1. **Look:** `page_read({path: "/live/"})` gives the title, every card with its id, and the sub-pages. `item({path: "/live/", read: "content"})` (or `"screens"`, `"removed"`) lists one list as `{total, rows: [{id, type, title}]}` and writes nothing. `item({path: "/live/", delta: {"help": {}}})` lists every verb and card type.
+2. **New topic:** save what is there (`{"save": {"name": "…", "title": "…"}}`) or clear it (`{"content": {"clear": true}}`; nothing is lost, see *removed cards*).
+3. **Show:** one `item({path: "/live/", delta})` call per change, with a delta from the table below. Every open tab, the phone included, redraws within a second.
+4. **Hear taps:** `follow({path: "public/live/page.jsonl", agent: "<your id>"})` once, then `updates` each turn (*A tap reaches the agents*).
+
 ## Showing things
 
 `item({path: "/live/", delta: {"help": {}}})` prints all of this in about 2 KB: the page's verbs, the `content` list verbs and every card type with an example (`static example` on each card class, `card_types` on LivePage).
@@ -54,6 +61,25 @@ A button press (or any tap the page saves: a tick, a press) is one line in `page
 
 Saved screens live inside `/live/page.jsonl` (`LivePage.screens`, a List of [LiveScreen](LiveScreen.js)), so saving needs no folder and no Servex restart. A screen that should have a folder of its own is a sub-page (above).
 
+## Reading the screen (read mode)
+
+Reading never writes a line. `page_read(path)` is the whole page as text. `item({path, read: "<dotted path>"})` reads one value: `read: "title"`, `read: "content"` (the cards), `read: "screens"` (saved screens: `nov6-scratch`, …), `read: "removed"`. `item({path})` with no delta answers the class's fields and verbs. A sub-page (a folder) is read at its own path, `/live/lab/`.
+
+## What is stale (2026-11-06)
+
+- **Writing into a card by url waits on a Servex restart.** `item({path: "/live/<card id>/", …})` is built (`card_at`), but the running Servex is older: today that path reads as an empty Page. Until the restart, write into a card through its parent: `{"content": {"<card>": {"content": {"add": …}}}}` on `/live/`. A sub-page that leaves out `"class"` also needs the restart. Only the owner picks the restart time; never call `restart_servex` during a call.
+- [/live/sessions/](sessions/), [/live/archive/](archive/) and [/live/v1/](v1/) are the old version's views; they read v1's log and show nothing new.
+- `{"light": …}` and `{"toggle": {}}` are gone (a `live-light` card replaces them).
+
+## Changing today (2026-11-06, round 6)
+
+Built in this order; each line here moves up into the sections above as it lands.
+
+- **The header sticks and stays under 100 px**, on every LivePage at any depth: a tiny breadcrumb of the real path, a small title, and one row of underlined tabs (the ext/tabs strip, as on [/live/demos/tabs-page/](/live/demos/tabs-page/)), which scrolls sideways and fades at the edge when it overflows. A settings icon at the top right opens `<page>/settings/`.
+- **Tabs are the one way to move between pages.** A page with sub-pages shows them as tabs (its own content is the first tab). A page with none shows its siblings, itself selected. The footer's "Pages here" goes away. A tab's content has no title of its own and no extra padding.
+- **Settings page** (`/live/…/settings/`): where this page's data comes from (its own `page.jsonl`, a card inside the parent's `page.jsonl`, or a `page.js`), its files, whether it is loaded, and a file list stacked vertically.
+- **One title everywhere:** the preview card, the page's title and the tab label all read the sub-page's own `title` (its `page.jsonl` line 1). A link card's own `title` no longer overrides it.
+
 ## Files
 
 - [LivePage.js](LivePage.js): the page, its methods, and how it draws: View classes in the house style (core/View), as static parts a subclass can swap: `Head`, `Crumbs`, `Focus`, `Main`, `Card`, `Block`, `Children` (a card's buttons), `Heading` and `Md` (markdown with mentions, `{ safe: true }`), `Foot`. Each takes `{page, item}` (or `{page, list}`); its CSS class comes from its name (`LiveCardView` draws `.live-card`). [DesignPage](design/DesignPage.js) extends `Card` and `Block`, so keep those names and args. [LivePage.css](LivePage.css): the floor, blocks and cards, light and dark.
@@ -65,7 +91,7 @@ Saved screens live inside `/live/page.jsonl` (`LivePage.screens`, a List of [Liv
 
 ## Watch out
 
-- A data key that names a method calls the method: a drawing method called `header()` once swallowed `{"header":"…"}`, so drawing methods are named `draw_*`.
+- A data key that names a method calls the method: a method called `header()` on LivePage would swallow `{"header":"…"}`. Drawing lives in View classes (`LivePage.Head`, …, each with a `render()`), so the page itself has no method named after a field.
 - The header light means only "an agent wrote here in the last 30 s". The old `{"light":…}` and `{"toggle":{}}` are gone; a light you control is a `live-light` card.
 - Agent writes are stamped with the agent's id: the item tool does it. A script posting to `/api/item` sends raw `lines` with its own `by` (`probe.mjs`); a bare delta there is stamped `owner`.
 - On the phone (the tunnel) the page streams and taps save, through `/servex/api/item` behind the site key. A bare LAN address (no key) streams but does not save.

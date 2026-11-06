@@ -44,8 +44,8 @@ Each tick, before the chase, `Dropped.tick()` ([Servex/Dropped.js](/Servex/Dropp
 ## Close
 
 A task can leave the loop two ways: it completes or stops, or the owner
-closes it without landing. `close_task({dir, why, by})` is that second door — it first runs `Lifecycle.closeout` (stops what the task started, removes its merged worktrees) and then appends
-`{"assign": {"closed_by": "owner", "closed_at", "closed_why"}}` to the task's own log, the only
+closes it without landing. `close_task({dir, why, by, outcome?, evidence?})` is that second door. With `outcome` (the task landed) it first writes one `{"complete": {outcome, evidence, at}}` line (skipped if the log already has one), so one call lands and cleans up; without `outcome` the task reads "stopped", not complete ([test](TaskLoop-close.test.mjs)). It then runs `Lifecycle.closeout` (stops what the task started, removes its merged worktrees) and appends
+`{"assign": {"closed_by": <caller>, "closed_at", "closed_why"}}` to the task's own log, the only
 other line that stops the chase for good. `task_loop_status()` answers `{open, quiet, chased,
 escalated, last_tick}` — the last two are how many this Servex process has done since it started;
 the file itself, not memory, is what survives a restart.
