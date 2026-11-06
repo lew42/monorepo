@@ -130,3 +130,4 @@
 {"file":"data/"}
 {"file":"failures.jsonl"}
 {"file":"public/","gone":true}
+{"file":"live2/page.jsonl"}

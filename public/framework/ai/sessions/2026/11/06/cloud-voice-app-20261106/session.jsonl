@@ -5,3 +5,18 @@
 {"tool_call":{"at":"2026-11-06T07:09:54.249Z","tool":"spawn_agent","args_hash":"047e8845c8a4","caller":"voice-app"}}
 {"spawned":{"at":"2026-11-06T07:09:59.049Z","agent":"mastermind-session-map","task_dir":null,"caller":"voice-app"}}
 {"tool_call":{"at":"2026-11-06T07:15:04.090Z","tool":"send_to_agent","args_hash":"3b8d1d40843e","caller":"voice-app"}}
+{"log":{"at":"2026-11-06T01:22:10-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"tool_call":{"at":"2026-11-06T07:23:17.847Z","tool":"send_to_agent","args_hash":"72f10a2ea60c","caller":"voice-app"}}
+{"log":{"at":"2026-11-06T01:32:10-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"tool_call":{"at":"2026-11-06T07:34:16.790Z","tool":"send_to_agent","args_hash":"5247c7c42b7b","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T07:36:57.751Z","tool":"list_dir","args_hash":"f11dce916bfa","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T07:38:30.251Z","tool":"create_page","args_hash":"163ededc69b6","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T07:39:47.484Z","tool":"shell","args_hash":"e252439d1ce1","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T07:40:18.745Z","tool":"shell","args_hash":"1f4824ba1a2a","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T07:41:20.820Z","tool":"spawn_agent","args_hash":"dfc5bbc1b565","caller":"voice-app"}}
+{"spawned":{"at":"2026-11-06T07:41:20.848Z","agent":"minion-git-status","task_dir":null,"caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T07:42:20.374Z","tool":"interrupt_agent","args_hash":"11a2a090657c","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T07:42:22.502Z","tool":"stop_agent","args_hash":"11a2a090657c","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T07:42:23.353Z","tool":"stop_agent","args_hash":"a9ca376cc0b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-06T07:42:26.056Z","tool":"spawn_agent","args_hash":"52638c91a6a2","caller":"voice-app"}}
+{"spawned":{"at":"2026-11-06T07:42:26.257Z","agent":"mastermind-session-map-2","task_dir":null,"caller":"voice-app"}}
