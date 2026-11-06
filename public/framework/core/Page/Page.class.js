@@ -221,6 +221,13 @@ export class Page extends Item {
 	log_redraw(){ return this._helper("Jsonl").log_redraw(); }
 	draw_placed(entry){ return this._helper("Jsonl").draw_placed(entry); }
 	files_button(){ return this._helper("Jsonl").files_button(); }
+
+	// Drawn as one of a `navigation: "tabs"` parent's tabs: the tab label already names it,
+	// so its own h1 and its own Files button both stand down (`render()` above).
+	in_tabs_frame(){ return this.parent?.navigation === "tabs"; }
+
+	// The one page in a tabs frame (or a plain jsonl page) that draws the shared Files button.
+	has_files_button(){ return !!(this.jsonl_url && !this.files_inline && !this.in_tabs_frame()); }
 	draw_md(url){ return this._helper("Jsonl").draw_md(url); }
 	draw_module(url, data){ return this._helper("Jsonl").draw_module(url, data); }
 	listing(){ return this._helper("Jsonl").listing(); }
@@ -562,10 +569,18 @@ export class Page extends Item {
 		if (host) return this.render_column(host);
 
 		this.view = div.c("page flow", () => {
-			if (this.title) h1.c("page-title", this.title);
-			// A jsonl page's own files+data (the tree/data explorer) sit behind this button by default, not inline on every tab —
-			// `files_inline: true` on the page.jsonl opts back into the old inline box (`Jsonl.js log_view()`, doc/jsonl.md).
-			if (this.jsonl_url && !this.files_inline) this.files_button();
+			// A page shown AS A TAB (its parent said `navigation: "tabs"`) never repeats its own
+			// title or its own Files button — the tab label already names it, and the shared
+			// button (below) covers whichever tab is on screen (the owner, 2026-11-06,
+			// /live/demos/tabs-page/). Where the button shows, it sits beside the h1, on the
+			// same row, instead of floating below it — `has_files_button()` and
+			// `in_tabs_frame()` are set up so at most one page on screen ever draws either.
+			const show_title = this.title && !this.in_tabs_frame(), show_button = this.has_files_button();
+			if (show_button) div.c("page-title-row flex v-center", () => {
+				if (show_title) h1.c("page-title", this.title);
+				this.files_button();
+			});
+			else if (show_title) h1.c("page-title", this.title);
 
 			// A page that said any of the six words gets a Frame (Frame.js). ⚠ `page-frame-page` marks THIS frame as the page's own. (doc/watch-out.md)
 			if (this.words_said()) return void new this.constructor.Frame({ page: this }).ac("page-frame-page");
@@ -592,7 +607,7 @@ export class Page extends Item {
 
 		if (this.title && this.url && !this.no_inbox) this.view.append(() => { span.c("page-inbox-chip").append(PageInbox.chip(this)); });
 
-		if (this.title && this.url && !this.no_files) this.view.append(() => { span.c("page-files-chip").append(PageFilesTab.chip(this)); });
+		if (this.title && this.url && !this.no_files && !this.has_files_button()) this.view.append(() => { span.c("page-files-chip").append(PageFilesTab.chip(this)); });
 
 		Page.views.set(this.view.el, this);
 		this.emit("render", this.view);

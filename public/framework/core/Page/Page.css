@@ -212,18 +212,23 @@
 	   standard `--flow` gap (2-2.5em) stacked on the h1's own line-height read as "the
 	   tabs sit far down" on a phone (the owner, 2026-11-06, /live/demos/tabs-page/).
 	   Scoped to `.page-jsonl` (stamped by `Page.class.js` render() when `jsonl_url` is
-	   set) — a page.js page keeps the title size and rhythm it always had. */
-	.page.page-jsonl > h1.page-title { font-size: clamp(1.4rem, 6.5vw, 2em); }
+	   set) — a page.js page keeps the title size and rhythm it always had. Descendant,
+	   not `>` — `h1.page-title` sits a level deeper, inside `.page-title-row`, on any
+	   page that also draws the Files button (below). */
+	.page.page-jsonl h1.page-title { font-size: clamp(1.4rem, 6.5vw, 2em); }
+	.page.page-jsonl > .page-title-row + *,
 	.page.page-jsonl > h1.page-title + * { margin-block-start: calc(var(--flow) * 0.4); }
 
-	/* The top-right "Files" button a jsonl page gets by default (`Jsonl.js files_button()`):
-	   opens the SAME tree+data explorer `draw_folder()` always drew, in a floating panel
-	   instead of inline on every tab (the owner, 2026-11-06 — the explorer repeated itself
-	   on Overview, Alpha and Beta and Gamma had none at all). `position: relative` on the
-	   jsonl page itself is the one thing that makes "top right of THIS page" true rather
-	   than of some further-out ancestor. */
-	.page.page-jsonl { position: relative; }
-	.page-files-toggle { position: absolute; top: var(--pad-y, 1em); right: var(--gutter-x, 1em); z-index: 2; }
+	/* The ONE top-right "Files" button a jsonl page (or a tabs frame) gets by default
+	   (`Jsonl.js files_button()`): opens the SAME tree+data explorer `draw_folder()`
+	   always drew, in a floating panel instead of inline on every tab (the owner,
+	   2026-11-06 — the explorer repeated itself on Overview, Alpha and Beta, and Gamma
+	   had none at all). It sits ON THE SAME ROW as the h1 — `.page-title-row`, a plain
+	   flex row with the title and the button at its two ends — rather than floating
+	   below it at some absolute offset (round 2: "level with the page H1"). */
+	.page-title-row { justify-content: space-between; gap: var(--gap); }
+	.page-title-row > h1.page-title { margin-block-end: 0; }   /* the row's own `flow` gap, not the h1's — `.flow > * + *` only reaches the ROW, but the row wears `flex`, which ignores it anyway; kept explicit */
+	.page-files-toggle { position: relative; flex: 0 0 auto; }
 	.page-files-toggle-btn {
 		display: inline-flex; align-items: center; gap: 0.35em;
 		padding: 0.3em 0.8em; font-size: 0.85em;
@@ -251,6 +256,14 @@
 	/* "N open tasks touch this page" — PageWork.js, from ai/page-work.json. Same place and size as the cost line; empty = no box. */
 	.page .page-open { display: block; font-size: small; padding: var(--gap-35, .35em) var(--gutter-x, 1rem); }
 	.page .page-open:empty { display: none; }
+
+	/* `.page-inbox-chip` (Page.class.js render()) is filled async, same as `.page-ai-cost`
+	   and `.page-open` above — it had no `:empty` rule of its own, so an empty one stayed
+	   in `.flow` at zero height and still counted as "a child" for the `--flow` gap on
+	   BOTH sides of it: the end of a tabs frame with nothing to show (Overview) read as a
+	   ~120px dead gap before "Files · N", two stacked gaps instead of one (the owner,
+	   2026-11-06, round 2). */
+	.page .page-inbox-chip:empty { display: none; }
 	.page-open-line { display: inline-block; max-width: 100%; padding: .15em .7em; background: var(--tint); border-radius: var(--radius); }   /* its own chip, not the page's gray stretched across the page */
 	.page-open-line summary { cursor: pointer; color: var(--muted, inherit); }
 	.page-open-rows { display: flex; flex-direction: column; gap: 0.25em; padding: 0.5em 0 0.25em; }

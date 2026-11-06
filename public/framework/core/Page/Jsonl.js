@@ -220,9 +220,10 @@ export default class PageJsonl {
 		});
 	}
 
-	// The top-right "Files" button every jsonl page gets by default: opens the same tree + data explorer
-	// `draw_folder()` draws, in a panel instead of the page's own flow. `files_inline: true` skips this and
-	// keeps the old inline box (doc/jsonl.md "the files button").
+	// The ONE top-right "Files" button a jsonl page (or a tabs frame) gets by default: opens
+	// whichever folder is actually on screen — the active tab's own, when it has one, else
+	// mine (`active_jsonl_page()`) — in a panel instead of the page's own flow. `files_inline:
+	// true` skips this and keeps the old inline box (doc/jsonl.md "the files button").
 	files_button(){
 		const page = this.page;
 		let open = false, $panel;
@@ -234,10 +235,22 @@ export default class PageJsonl {
 				.click(() => {
 					open = !open;
 					$btn.attr("aria-expanded", String(open));
-					if (open) $panel = div.c("page-files-toggle-panel", () => { this.draw_folder(); }).append_to($box);
+					if (open) $panel = div.c("page-files-toggle-panel", () => { this.active_jsonl_page()._helper("Jsonl").draw_folder(); }).append_to($box);
 					else { $panel?.el.remove(); $panel = null; }
 				});
 		});
+	}
+
+	// Which page's own folder the shared button should open: whichever child is marked the
+	// current leaf (Router's `.active-page`/`.active-ancestor`) IF it has its own `page.jsonl`
+	// — Gamma..Eta don't, so they fall back to the button's own page (`doc/jsonl.md` finding
+	// 2). A page with no tabs at all has no marked child, so this always answers itself.
+	active_jsonl_page(){
+		const page = this.page;
+		for (const child of page.children.values()){
+			if (child?.jsonl_url && child.view?.el?.matches?.(".active-page, .active-ancestor")) return child;
+		}
+		return page;
 	}
 
 	log_draw(){ (this.page.placed ?? []).forEach(entry => this.page.draw_placed(entry)); }
