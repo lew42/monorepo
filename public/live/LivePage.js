@@ -1,4 +1,5 @@
-import { Page, View, div, span, a, h1, h4, select, option, md } from "/app.js";
+import Page from "/framework/core/Page/Page.class.js";
+import View, { div, span, a, h1, h4, select, option } from "/framework/core/View/View.js";
 import Item from "/framework/core/Item/Item.js";
 import DefaultView from "/framework/ux/Content/Object/DefaultView.js";
 import LiveChecklist from "./LiveChecklist.js";
@@ -6,6 +7,9 @@ import LiveLight from "./LiveLight.js";
 import LiveButton from "./LiveButton.js";
 
 View.stylesheet(import.meta, "LivePage.css");
+
+// Markdown draws only in a browser; in node (the item tool builds this class to replay page.jsonl) nothing is drawn.
+const { default: md } = typeof document === "undefined" ? { default: () => {} } : await import("/framework/ext/markdown/md.js");
 
 /* /live/ — the screen voice Claude drives with the item tool: item({path: "/live/", delta}).
  * The page IS page.jsonl: line 1 names this class, every later line is one set(). A data key is state

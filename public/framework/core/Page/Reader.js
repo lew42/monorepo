@@ -12,7 +12,7 @@ export default class PageLogReader extends Item.Store {
 	// base Store's "first load done" flag, and a module there made Item.source say "remote" for
 	// every line of the first load (2026-11-06).
 	open(){
-		if (!this.constructor.dev) return this.load();
+		if (!this.constructor.streams) return this.load();
 		return import("../../ext/JSONL/live.js")
 			.then(live => (this.tailer = live).stream(this, () => this.changed(), { owner: null }));   // the page owns it once built: attach()
 	}
@@ -65,5 +65,9 @@ export default class PageLogReader extends Item.Store {
 		return this;
 	}
 }
-// ⚠ Localhost only, the gate dev/Socket keeps. (doc/watch-out.md)
+// ⚠ `dev`: this PC only, the gate for the file tools (rename, move, set aside), which the socket refuses anywhere else. (doc/watch-out.md)
 PageLogReader.dev = typeof location !== "undefined" && (["localhost", "127.0.0.1"].includes(location.hostname) || location.hostname.endsWith(".localhost"));   // node has no location
+// `streams`: where a page.jsonl is tailed over the dev socket, which reads anywhere the socket opens: this PC, its LAN, and the owner's
+// tunnel (monorepo.lew42.com, Server/SiteGateway.mjs, the key-gated site tier). The same list as dev/servex_url.js DEV_SITE (core cannot
+// import dev/; keep the two equal). It was `dev` until 2026-11-06, so the phone on the tunnel loaded a page once and never saw another line.
+PageLogReader.streams = typeof location !== "undefined" && /^(localhost|127\.\S*|192\.168\.\S*|10\.\S*|.*\.localhost|monorepo\.lew42\.com)$/.test(location.hostname);

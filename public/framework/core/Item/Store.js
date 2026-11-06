@@ -486,9 +486,11 @@ export class Store {
 
 	get via_tool(){ return RecordWriter.is_record(this.url); }
 
+	// This PC, or the owner's tunnel: monorepo.lew42.com passes only with the site key (Server/SiteGateway.mjs), and its writes go to
+	// Servex's /api/item through the gateway, else the site-tier socket's `append`. A bare LAN address has no key, so it stays read only.
 	get writable(){
 		const host = globalThis.location?.hostname;
-		return host === "localhost" || host === "127.0.0.1" || !!host?.endsWith(".localhost");
+		return host === "localhost" || host === "127.0.0.1" || !!host?.endsWith(".localhost") || host === Store.tunnel_host;
 	}
 
 	// A hook a subclass extends — empty here. `PageLog.Reader`'s own `changed()` redraws the folder listing and
@@ -629,5 +631,6 @@ function wrap(path, payload){
 
 // The dotted path from `host` down to `node` ("tasks.c3"), the one a Ref stores and `host.get(path)` reads back; "" for the host itself.
 Store.address = (node, host) => address(node, host) ?? "";
+Store.tunnel_host = "monorepo.lew42.com";   // the owner's key-gated tunnel (Server/SiteGateway.mjs PUBLIC): writable like this PC
 
 export default Store;

@@ -10,7 +10,7 @@ const out = new URL("./", import.meta.url), shots = new URL("./shots/", out);
 mkdirSync(shots, { recursive: true });
 
 const item = async delta => {
-	const r = await fetch(API, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ path: "/live/", delta }) });
+	const r = await fetch(API, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ path: "/live/", lines: [{ ...delta, by: "mastermind-live-page", ts: new Date().toISOString() }] }) });   // raw lines keep their by: /api/item stamps a bare delta "owner"
 	return r.json();
 };
 
