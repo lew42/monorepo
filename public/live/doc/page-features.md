@@ -8,7 +8,7 @@ sub-page (what a voice sub-page actually is) and once on a **plain Page** (`clas
 | Feature | Verdict | Delta voice sends | Demo |
 |---|---|---|---|
 | **tabs** | works (plain Page only) | `{"navigation":"tabs"}` on a page with children | [tabs-page](/live/demos/tabs-page/) · broken on LivePage: [tabs](/live/demos/tabs/) |
-| **columns** | broken | `{"navigation":"columns"}` | [columns-page](/live/demos/columns-page/) · [columns](/live/demos/columns/) |
+| **columns** | works (plain Page only, since eab8988ee) | `{"navigation":"columns"}` | [columns-page](/live/demos/columns-page/) · [columns](/live/demos/columns/) |
 | **place** | works (plain Page, no own content) | `{"place":"note.md"}` | [place-fresh](/live/demos/place-fresh/) · not drawn on a page with its own content: [place-page](/live/demos/place-page/) · broken on LivePage: [place](/live/demos/place/) |
 | **nav** (left rail) | works (plain Page only) | `{"navigation":"rail"}` on a page with children | [nav-page](/live/demos/nav-page/) · broken on LivePage: [nav](/live/demos/nav/) |
 | **previews** | broken | none — there is no delta for it | [previews](/live/demos/previews/) |
@@ -19,8 +19,8 @@ sub-page (what a voice sub-page actually is) and once on a **plain Page** (`clas
   - **Broken on LivePage** because `LivePage.js` `render()` builds its own head, cards and foot (`LivePage.Head`, `Main`, `Foot`) and never constructs a `PageFrame` — so `Frame.js` never runs, no matter what `navigation` says. [tabs](/live/demos/tabs/) shows "Nothing on screen yet".
   - Smallest fix: not worth it — LivePage is one screen, not a page with a navigable child list; tabs belongs on plain Page.
 
-- **columns** — `Frame.js` `render()` (lines 8-30) has a branch for every other navigation word (`rail`, `rail-right`, `tabs`, the two `arrangement` bars) but **none for `"columns"`**. `page.columns()` (`Page.class.js:659`) is a separate opt-in method a page's own `content()` must call in code (see `Columns.js:55`); the navigation word alone sets a property nothing reads at render time.
-  - Smallest fix: add `if (page.navigation === "columns") this.page.columns();` (or equivalent) to `Frame.js`'s `render()`, so the word does what `rail` already does.
+- **columns** — `navigation: "columns"` now calls `page.columns()` the first time a render asks (`Page.class.js:665`, commit eab8988ee). Re-tested 2026-11-06 at 1200px: [columns-page](/live/demos/columns-page/) shows a first column listing Alpha and Beta, then empty columns to its right. When this doc was first written, the word did nothing.
+  - **Broken on LivePage** for the same reason as tabs: no `PageFrame`.
 
 - **place** — `Jsonl.js`'s fallback `content()` (lines 199-206) calls `draw_folder()` → `log_draw()` → `draw_placed(entry)` for every `page.placed` entry, but only when the page has **no content of its own** (its default content, used by a bare `page.jsonl` page). Proven: [place-fresh](/live/demos/place-fresh/) shows `note.md`'s rendered markdown, plus a red "Not written yet" line for a file that does not exist — both the success and the failure path are real.
   - **Broken on LivePage** because `LivePage.Main` draws only `this.cards` (the `content` List) — it never calls `draw_folder()`/`log_draw()`, so `page.placed` entries are silently never drawn. [place](/live/demos/place/) shows the content text but not `note.md`.
