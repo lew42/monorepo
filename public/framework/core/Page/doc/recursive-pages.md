@@ -16,7 +16,7 @@ These are the same three shapes decision D9 already names ([files.md](files.md),
 
 | Shape | On disk | When to use it | Status |
 |---|---|---|---|
-| **embedded** (default) | lines inside the parent's `page.jsonl` | almost every card: text, nested cards | **Built for `/live/` (2026-11-06):** `LivePage.route(name)` finds the card by id (`public/live/LivePage.js:121`). The item tool writes to `/live/foo/` through the nearest ancestor `page.jsonl`. |
+| **embedded** (default) | lines inside the parent's `page.jsonl` | almost every card: text, nested cards | **Built for `/live/` (2026-11-06):** `LivePage.route(name)` finds the card by id (`public/live/LivePage.js:121`). The item tool writes to `/live/foo/` through the nearest ancestor `page.jsonl` (`card_at` in `Servex/agents/page_tools.js`; voice gets it after the next Servex restart). |
 | **own folder** | `/live/foo/page.jsonl` | a card that needs sidecar files (images, a `page.js`, its own children's folders) | The folder side works today: it is an ordinary child page. The move to it exists: `Item.move_to({url, path})` (`core/Item/Item.js:513`) carries the lines across and leaves a forward. |
 | **own file** | `/live/foo.jsonl` | a big card with no files of its own | Defined in D9; not routed. |
 
@@ -42,5 +42,6 @@ Yes; that is what Ref is for. A Ref is a small item that stores where something 
 ## 5. What gets built next
 
 - ✅ **Embedded and openable:** built by mastermind-live-page (2026-11-06).
-- ⬜ **Break a card out:** one command, "break out `foo`". It runs `move_to({url: "/live/foo/"})`, so `foo`'s lines go to `/live/foo/page.jsonl` and a Ref takes its place in `/live/`'s content. LivePage then draws the Ref as the card. Estimated $10–15.
+- ✅ **Breadcrumb** (Live › lab › foo) in LivePage's header, so you can see where you are at any depth (f56543fda).
+- ⬜ **Break a card out:** one command, "break out `foo`". It runs `move_to({url: "/live/foo/"})`, so `foo`'s lines go to `/live/foo/page.jsonl` and a Ref takes its place in `/live/`'s content. LivePage then draws the Ref as the card. Estimated $10–15. ⚠ A card id that is a page word (`pages`, `content`) is refused by the list only after its line is written, so break-out must check the id first.
 - ⬜ **Own file:** only if folder count becomes a real problem. Same address; the file is just a different store.
