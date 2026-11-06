@@ -7,7 +7,7 @@ If you are reading this through `read_file`, you are probably a **cloud voice ag
 - The owner talks to you by voice in the **Claude app**. You run in Anthropic's cloud, not on the owner's computer.
 - You reach the computer **only through the Servex MCP** (`/mcp/remote`). You have no local Claude Code session, no `CLAUDE.md` injected for you, and no SDK cost accounting. That is why nothing records your conversation unless you do it through this server.
 - The Servex MCP also serves local agents. A cloud voice agent is one kind of caller (`voice-app`), not the only kind.
-- You are **mostly a relay**: you pass the owner's asks to the right agent (`ask_mastermind`, `spawn_agent`, `send_to_agent`) and report back briefly. You are not a mastermind doing the work yourself.
+- You are **mostly a relay**: you pass the owner's asks to the right agent (`send_to_agent` to one already on the project, `spawn_agent` for a new one) and report back briefly. You are not a mastermind doing the work yourself.
 
 ## Start of every conversation
 
@@ -63,7 +63,13 @@ What the check showed (session `cloud-voice-session-system-test`):
 - ⚠ **Open:** a nested subtask gets a uuid id, while a top-level task gets a slug of its title. Reported to mastermind-item.
 - ⚠ **Open:** a phase that runs `owner` goes to the creator. For you, that is `voice-app`, which is not a Servex agent, so the phase waits on you. Read `updates` to see it.
 
-## Asking without waiting (the bridge, 2026-11-01)
+## Handing work to agents (2026-11-06)
+
+- `list_agents` shows who is running and on what. `send_to_agent({id, text, from: "voice-app"})` gives the agent already on that project the next ask, so it keeps its context; `spawn_agent({role: "mastermind", name, prompt})` starts one for a new project (`path: "<folder>"` makes it that folder's mastermind).
+- Agents answer by message, and every answer reaches you through `updates`. Say in one sentence what you handed to whom, keep talking, and read `updates` every turn.
+- **`ask_mastermind` is deprecated** (the owner, 2026-11-06): it starts a separate `voice-<id>` Opus session per voice session, with its own reply-file and ticket protocol, beside the agents already working. Its removal is queued; the old flow follows for reference.
+
+## Asking without waiting (the old ask_mastermind bridge, 2026-11-01)
 
 - `ask_mastermind` waits a few seconds. Without an answer it returns a ticket, the mastermind's status and its first sentence: say that sentence, then keep talking.
 - The answer comes to you by itself on your next tool result (your `cloud_voice_log` call every turn carries it), or call `voice_hear({ticket})` to hear the status and the answer the moment they change.

@@ -233,11 +233,11 @@ export default class LivePage extends Page {
 		return new URL(String(path ?? ""), location.origin + base).pathname;
 	}
 
-	// `footer` (a line of text) when set; on /live/ itself, the saved screens and the old views.
+	// `footer` (a line of text) when set; on /live/ and its sub-pages, the saved screens and the removed cards; on /live/ itself, the old views.
 	draw_foot(){
 		div.c("live-foot", () => {
 			div.c("live-foot-text").bind(this, "footer", function(text){ this.tc("is-empty", !text).empty(() => { if (text) md(String(text)); }); });
-			if (!this.is_top) return;
+			if (this.screen || this.focus) return;   // a saved screen or one opened card has no screens of its own
 			const $screens = div.c("live-foot-screens");
 			const draw = () => $screens.tc("is-empty", !this.screens.length).empty(() => {
 				span("Saved screens:");
@@ -249,7 +249,7 @@ export default class LivePage extends Page {
 			const count = () => $removed.tc("is-empty", !this.removed.length).text(`Removed cards (${this.removed.length})`).attr("title", "Every card taken off this screen (removed or cleared) is kept here; {\"restore\": \"<id>\"} brings one back");
 			[this.content, this.screens].forEach(list => ["remove", "clear", "move"].forEach(verb => list.on(verb, () => queueMicrotask(count))));   // after the card reached removed
 			count();
-			div.c("live-foot-links", () => {
+			if (this.is_top) div.c("live-foot-links", () => {
 				a("Sessions").href("/live/sessions/");
 				a("Archive").href("/live/archive/");
 				a("v1").href("/live/v1/");

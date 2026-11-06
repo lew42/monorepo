@@ -60,7 +60,7 @@ const chats = agent => fs.readFileSync(path.join(root, spawned.find(a => a.id ==
 const s1 = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
 const s2 = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
 assert.ok(s1 && s2 && s1 !== s2, "initialize returns a distinct session id");
-{ const { default: R } = await import("./RemoteMCP.js"); assert.ok(R.INSTRUCTIONS.includes("ask_mastermind") && R.INSTRUCTIONS.includes("immediately"), "voice-agent directives are in INSTRUCTIONS"); }
+{ const { default: R } = await import("./RemoteMCP.js"); assert.ok(R.INSTRUCTIONS.includes("send_to_agent") && R.INSTRUCTIONS.includes("spawn_agent") && R.INSTRUCTIONS.includes("updates") && /ask_mastermind is deprecated/.test(R.INSTRUCTIONS), "voice-agent directives are in INSTRUCTIONS: hand off with spawn_agent/send_to_agent, read updates, ask_mastermind deprecated"); }
 
 const [a1, a2] = await Promise.all([ask("one", s1), ask("two", s1)]);   // simultaneous first asks: one agent
 assert.equal(spawned.length, 1, "two simultaneous asks in one session spawn one agent");
