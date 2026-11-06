@@ -3,3 +3,4 @@
 {"content":{"add":{"id":"json1","type":"live-code","lang":"json","title":"A card's own delta","code":"{\n  \"type\": \"live-code\",\n  \"lang\": \"js\",\n  \"code\": \"const x = 1;\"\n}","caption":"What the item tool sends to make one of these."}}}
 {"content":{"add":{"id":"css1","type":"live-code","lang":"css","title":"The card's own rule","code":".live-code-wrap pre {\n  max-width: 100%;\n  overflow-x: auto;\n}","caption":"A long line scrolls inside the block, never the page."}}}
 {"file":"shots/"}
+{"ts":"2026-11-06T17:50:29-06:00","js1":{"code":"const sum = (a, b) => a + b;\nconsole.log(sum(2, 3));\nconst totals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => sum(n, n * 2)).filter((n) => n % 3 === 0).reduce(sum, 0); // a long line scrolls inside the block","caption":"Two numbers in, one out. The last line is long: it scrolls inside the block."}}
