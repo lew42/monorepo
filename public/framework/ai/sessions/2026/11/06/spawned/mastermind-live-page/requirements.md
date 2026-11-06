@@ -13,3 +13,5 @@ The asks, relayed by voice-app from the owner (the words are in the voice-app se
 9. Settings > Files: folders and files top to bottom; a folder shows its contents, a file opens highlighted on its own page, phone-friendly.
 10. The readme has a "Several agents may drive this page" section.
 11. Shots at phone width; a report under 80 words.
+12. Every page under /live/ renders as a LivePage (header, breadcrumb, gear), a plain Page class included; the header runs full width with its own padding and a bottom border, compact.
+13. Tabs stay one set across a page's tabs, and the h1 stays the parent's title. Only sub-pages that draw as this page's content are tabs; a page with its own tabs elsewhere is a link card in the content. Few tabs: demos, design, lab and saved screens are link cards. /live/demos/ is titled "Demos".
