@@ -79,3 +79,4 @@
 {"commit":"94db61f0fd09","by":"append.mjs","ts":"2026-11-06T22:59:34.929Z"}
 {"commit":"22ba402677f5","by":"append.mjs","ts":"2026-11-06T23:00:00.740Z"}
 {"log":{"at":"2026-11-06T17:02:12-06:00","msg":"tabs-page landed: merged 352454970 (jsonl H1, one Files button opening the active tab folder, tab children draw no title, Files·N hidden where the button is, inbox-chip :empty gap fix, styles.css region-scroll rule fixed with the topic-leaf line kept, doc/jsonl.md section). Reviewer verdict fix, 9 findings answered; proof.md; live probe matches. Both task records closed, left empty; qf-3 returned. Worktree leftovers in tabs-page/_aside. voice-app has two lines. Open: voice tab content (a tab line content key) is proposed only."}}
+{"commit":"d19e1bdb0873","by":"append.mjs","ts":"2026-11-06T23:02:12.478Z"}
