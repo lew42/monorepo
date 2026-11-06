@@ -1,5 +1,5 @@
 import Page from "/framework/core/Page/Page.class.js";
-import View, { div, span, a, h1, h4, select, option, icon } from "/framework/core/View/View.js";
+import View, { div, span, a, h1, h4, select, option, icon, code } from "/framework/core/View/View.js";
 import Item from "/framework/core/Item/Item.js";
 import List from "/framework/core/List/List.js";
 import DefaultView from "/framework/ux/Content/Object/DefaultView.js";
@@ -124,12 +124,14 @@ export default class LivePage extends Page {
 	// /live/<screen>/ is a saved screen, /live/removed/ what was removed, /live/<id>/ any card on screen opened by itself
 	// (a Task, a checklist…; also inside a screen: /live/<screen>/<id>/). A sub-page folder wins over all of them.
 	route(name){
+		// Under settings/ every name is a folder or a file of the page's own folder (LivePage.Files).
+		if (this.settings_of) return new this.constructor({ title: name, url: this.url + name + "/", settings_of: this.settings_of, at: (this.at ?? "") + name + "/" });
 		const page = super.route?.(name);
 		if (page) return page;
 		const url = this.url + name + "/";
-		if (name === "settings" && !this.settings_of) return new this.constructor({ title: "Settings", url, settings_of: this });
 		const screen = !this.screen && !this.focus && this.screens.find(name);
 		if (screen) return new this.constructor({ title: screen.get("title") ?? name, url, screen });
+		if (name === "settings" && !this.settings_of) return new this.constructor({ title: "Settings", url, settings_of: this });   // a folder or a screen named settings wins
 		if (name === "removed" && !this.screen && !this.focus) return new this.constructor({ title: "Removed", url, screen: { content: this.removed } });
 		const item = (this.focus ? this.focus.content : this.cards)?.find?.(name);   // a card on this page, or one inside the card opened here
 		if (item && !(item instanceof PageLink)) return new this.constructor({ title: item.get("title") ?? name, url, focus: item });
@@ -181,7 +183,7 @@ export default class LivePage extends Page {
 			this.$alerts = div.c("live-alerts");
 			new P.Head({ page: this });
 			new P.Md({ item: this, key: "header", classes: "live-sub" });   // below the sticky header, so the header stays one size
-			if (this.settings_of) return void new P.Settings({ page: this, of: this.settings_of });
+			if (this.settings_of) return void new P.Settings({ page: this, of: this.settings_of, at: this.at });
 			if (this.focus) new P.Focus({ page: this, item: this.focus });
 			new P.Main({ page: this, list: this.cards });
 			new P.Foot({ page: this });
@@ -206,7 +208,9 @@ export default class LivePage extends Page {
 	static title_of(url){
 		return this.titles.get(url) ?? this.titles.set(url, (async () => {
 			const name = url.split("/").filter(Boolean).at(-1);
-			const kind = (await Page.listing(url.replace(/[^/]+\/$/, "")).catch(() => null))?.pages.get(name);   // "jsonl", "js", or not a page
+			const listing = await Page.listing(url.replace(/[^/]+\/$/, "")).catch(() => null);
+			if (!listing){ this.titles.delete(url); return name; }   // a failed read is not kept: the next ask tries again
+			const kind = listing.pages.get(name);   // "jsonl", "js", or not a page
 			if (!kind) return name;
 			const res = kind === "jsonl" ? await fetch(url + "page.jsonl").catch(() => null) : null;
 			if (res?.ok){
@@ -302,37 +306,64 @@ export default class LivePage extends Page {
 				this.tc("more-left", el.scrollLeft > 2).tc("more-right", el.scrollLeft < more - 2);
 			};
 			$bar.on("scroll", $fade);
-			new ResizeObserver($fade).observe($bar.el);
+			const seen = new ResizeObserver($fade); seen.observe($bar.el);
 			this.tc("is-empty", true);
 			const draw = () => P.tabs_of(page).then(({ owner, tabs }) => {
 				this.tc("is-empty", tabs.length < 2);
 				if (tabs.length < 2) return;
-				$bar.empty(() => tabs.forEach(tab => {
-					const $a = a.c("tab", tab.title).href(tab.url).ac(tab.url === owner && "tab-default");
-					if (tab.url === page.url) $a.attr("aria-current", "page");
-				}));
-				const cur = $bar.el.querySelector("[aria-current]");
-				if (cur && cur.offsetLeft + cur.offsetWidth > $bar.el.clientWidth) $bar.el.scrollLeft = cur.offsetLeft - 24;   // the selected tab in view (never scrollIntoView: it would move the page too)
-				$fade();
+				$bar.empty(() => tabs.forEach(tab => a.c("tab", tab.title).href(tab.url).ac(tab.url === owner && "tab-default")));
+				mark();
 			}).catch(() => {});
+			// The selected tab is the one the url is in (the longest match), so a plain page opened under this header lights its tab too.
+			const mark = () => {
+				const here = globalThis.location?.pathname ?? page.url, links = [...$bar.el.querySelectorAll("a.tab")];
+				const best = links.filter(l => here.startsWith(l.pathname)).sort((x, y) => y.pathname.length - x.pathname.length)[0];
+				links.forEach(l => l === best ? l.setAttribute("aria-current", "page") : l.removeAttribute("aria-current"));
+				if (best && (best.offsetLeft + best.offsetWidth > $bar.el.scrollLeft + $bar.el.clientWidth || best.offsetLeft < $bar.el.scrollLeft)) $bar.el.scrollLeft = best.offsetLeft - 24;   // in view (never scrollIntoView: it would move the page too)
+				$fade();
+			};
+			LivePage.on_url(this, mark);
 			const top = page.is_top ? page : page.parent instanceof LivePage ? page.parent : null;
-			if (top?.screens?.on) ["add", "remove"].forEach(verb => top.screens.on(verb, () => queueMicrotask(draw)));
+			// The row lives as long as its page is shown: the first change heard after it left lets go of everything.
+			const heard = () => queueMicrotask(() => {
+				if (this.el.isConnected) return draw();
+				seen.disconnect();
+				["add", "remove"].forEach(verb => top.screens.off?.(verb, heard));
+			});
+			if (top?.screens?.on) ["add", "remove"].forEach(verb => top.screens.on(verb, heard));
 			draw();
 		}
 	};
 
-	// Where this page sits, every step a link: Live › design › foo (the folder names of the url, from /live/ down).
+	// Where this page sits, every step a link: live / design / foo. It is the address bar a phone hides, so it is the url
+	// itself (location.pathname, decoded), word for word; every tab is a page, so a tab switch redraws it with the new url.
 	static Crumbs = class LiveCrumbsView extends View {
 		render(){
-			const parts = String(this.page.url ?? "/live/").split("/").filter(Boolean);
 			this.attr("aria-label", "Where you are");
-			parts.forEach((name, i) => {
-				if (i) span.c("live-crumb-sep", "›");
-				const $a = a.c("live-crumb", i ? name : "Live").href("/" + parts.slice(0, i + 1).join("/") + "/");
-				if (i === parts.length - 1) $a.attr("aria-current", "page");
-			});
+			const draw = () => {
+				const path = globalThis.location?.pathname ?? this.page.url ?? "/live/";
+				if (this.attr("data-path") === path) return;
+				const parts = path.split("/").filter(Boolean);
+				this.attr("data-path", path).empty(() => parts.forEach((name, i) => {
+					if (i) span.c("live-crumb-sep", "/");
+					let label = name; try { label = decodeURIComponent(name); } catch {}
+					const $a = a.c("live-crumb", label).href("/" + parts.slice(0, i + 1).join("/") + "/");
+					if (i === parts.length - 1) $a.attr("aria-current", "page");
+				}));
+			};
+			draw();
+			LivePage.on_url(this, draw);
 		}
 	};
+
+	// Run fn after every change of the url (a link, back, forward) while the view is on the page; the first change after it
+	// left lets go. The Navigation API hears pushState; popstate covers a browser without it (back and forward only).
+	static on_url(view, fn){
+		const heard = () => view.el.isConnected ? fn() : off();
+		const off = () => { globalThis.navigation?.removeEventListener("currententrychange", heard); globalThis.removeEventListener?.("popstate", heard); };
+		globalThis.navigation?.addEventListener("currententrychange", heard);
+		globalThis.addEventListener?.("popstate", heard);
+	}
 
 	// The card this page is (a card opened by itself): its text (the title is the page's), or a class's own View.
 	static Focus = class LiveFocusView extends View {
@@ -421,6 +452,7 @@ export default class LivePage extends Page {
 		render(){
 			const { of } = this;
 			const holder = of.focus || of.screen ? (of.parent?.url ?? of.url.replace(/[^/]+\/$/, "")) : of.url;
+			if (this.at) return void new LivePage.Files({ page: this.page, folder: holder, at: this.at });   // one folder or file inside it
 			const row = (label, fill) => div.c("live-settings-row", () => { span.c("live-settings-label", label); div.c("live-settings-value", fill); });
 			const $from = row("Data from", () => span("…"));
 			row("Class", () => span(`${of.constructor.name}${of.view ? ", drawn" : ""}`));
@@ -435,8 +467,38 @@ export default class LivePage extends Page {
 					: document.createTextNode("no file: this page is made by code"));
 			}).catch(() => {});
 			h4.c("live-settings-files-title", "Files here");
-			const folder = of.focus || of.screen ? (of.parent instanceof Page ? of.parent : { url: holder }) : of;
-			div.c("live-settings-files").append(() => new Page.FilesTab({ page: folder }).view());
+			new LivePage.Files({ page: this.page, folder: holder, at: this.at ?? "" });
+		}
+	};
+
+	// The folder's files, one list top to bottom: folders first, then files. Every row is a page under settings/: a folder
+	// shows its own list (<page>/settings/doc/), a file its text, highlighted and wrapped to the screen (<page>/settings/a.js/).
+	// `folder` is the page's folder url, `at` the path inside it ("" or "doc/" or "doc/a.md/").
+	static Files = class LiveFilesView extends View {
+		render(){
+			const { page, folder, at } = this, path = folder + at;
+			const name = at.split("/").filter(Boolean).at(-1), up = folder + at.replace(/[^/]+\/$/, "");
+			this.$box = div.c("live-files-body", () => span.c("live-files-said", "Loading…"));
+			(async () => {
+				const listing = name ? await Page.listing(up).catch(() => null) : null;
+				if (name && listing?.files.includes(name)) return this.file(path.slice(0, -1));
+				const here = await Page.listing(path).catch(() => null);
+				this.$box.empty(() => {
+					if (!here) return void span.c("live-files-said", `No file list for ${path} (a folder with no page and no files.jsonl).`);
+					const dirs = [...new Set([...here.pages.keys(), ...here.dirs.map(d => d.replace(/\/.*$/, ""))])].sort();
+					const files = [...here.files].sort();
+					if (!dirs.length && !files.length) span.c("live-files-said", "Nothing in this folder yet.");
+					dirs.forEach(d => a.c("live-files-row is-dir", () => { icon("folder"); span(d + "/"); }).href(page.url + d + "/"));
+					files.forEach(f => a.c("live-files-row", () => { icon("description"); span(f); }).href(page.url + f + "/"));
+				});
+			})().catch(e => this.$box.empty(() => span.c("live-files-said", "Could not read " + path + ": " + e.message)));
+		}
+		// One file's text on its own page: the site's highlighter (ext/highlight, code.file), plus the raw file a tap away.
+		async file(url){
+			await import("/framework/ext/highlight/highlight.js");   // adds code.file to View's `code`
+			const block = await code.file(import.meta, url, { lines: true });
+			this.$box.empty(() => a.c("live-files-raw", "Open the raw file").href(url + "?raw").attr("target", "_blank"));
+			this.$box.el.append(block.el);
 		}
 	};
 

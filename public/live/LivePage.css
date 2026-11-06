@@ -64,7 +64,17 @@
 	.live-settings-value { min-width: 0; overflow-wrap: anywhere; }
 	.live-settings-value a { color: inherit; }
 	.live-settings-files-title { margin: var(--live-step) 0 0; }
-	.live-settings-files { background: var(--live-card); border-radius: .6rem; padding: .5rem .75rem; }
+	/* LivePage.Files: one list, top to bottom (folders, then files); a file is its text, wrapped to the phone. */
+	.live-files { display: flex; flex-direction: column; gap: var(--live-step); }
+	.live-files-body { display: flex; flex-direction: column; background: var(--live-card); border-radius: .6rem; padding: .25rem 0; min-width: 0; }
+	.live-files-row { display: flex; align-items: center; gap: .6em; padding: .55em .75rem; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+	.live-files-row + .live-files-row { border-top: 1px solid light-dark(#0001, #fff1); }
+	.live-files-row.is-dir { font-weight: 600; }
+	.live-files-row .ui-icon, .live-files-row .icon { flex: none; opacity: .6; }
+	.live-files-said { padding: .55em .75rem; opacity: .7; }
+	.live-files-raw { padding: .4em .75rem; color: inherit; font-size: .85em; }
+	.live-files-body pre { margin: 0; font-size: .78em; overflow-x: hidden; }
+	.live-files-body pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
 	.live-focus { display: flex; flex-direction: column; gap: var(--live-step); }
 	.live-focus .live-sub { opacity: 1; }   /* a card opened as a page: its text is the page, not a note under the title */
 
