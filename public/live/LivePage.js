@@ -41,6 +41,14 @@ export default class LivePage extends Page {
 
 	// ════ METHODS A DELTA CAN CALL ═══
 	// An effect runs only for a line that arrives while the page is open; a reload replays the log without re-running it.
+	// The item tool's help lists exactly these (plus Page's); a new one here is added to this list or it stays hidden.
+	static callable = {
+		...Page.callable,
+		flash: "{\"flash\": {}} or {\"flash\": \"red\"}: the screen blinks once.",
+		alert: "{\"alert\": \"Text\"}: a banner at the top for a few seconds.",
+		save: "{\"save\": {name, title?}} or {\"save\": \"name\"}: keep the cards on screen as /live/<name>/, then clear.",
+		restore: "{\"restore\": \"name\"}: put a saved screen's cards back (the current ones are cleared first).",
+	};
 
 	// {"flash": {}} or {"flash": "red"} — the screen blinks once.
 	flash(color){

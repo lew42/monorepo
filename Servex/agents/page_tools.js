@@ -535,12 +535,32 @@ function class_of(file){
 	return (is_plain(first) && typeof first.class === "string" ? first.class : null) ?? (is_plain(first?.session) ? "Session" : null) ?? (SessionRecord.log_file(path.dirname(file)) === file ? "Task" : null) ?? FILE_CLASS[path.basename(file)] ?? "Page";
 }
 
-// describe() with each method's doc filled: the first `//` line of the comment block above it, from the class's source.
+// The methods a delta may call on `Class`, as [{name, doc}]. Walk up the chain: a class with its own `static callable` ({name: "doc"}) is
+// listed by that declaration and the walk stops there (what sits above it is plumbing); a class without one is listed by its own methods.
+// Page (~150 methods with Item and Events) shrinks to its declared few; a class that declares nothing still shows what it defines itself.
+export function surface_of(Class){
+	const out = new Map();
+	for (let C = Class; typeof C === "function" && C !== Function.prototype; C = Object.getPrototypeOf(C)){
+		if (Object.hasOwn(C, "callable") && C.callable){
+			for (const [name, doc] of Object.entries(C.callable)) if (!out.has(name)) out.set(name, { name, doc: String(doc) });
+			break;
+		}
+		for (const name of Object.getOwnPropertyNames(C.prototype ?? {})){
+			if (name === "constructor" || name.startsWith("_") || out.has(name)) continue;
+			if (typeof Object.getOwnPropertyDescriptor(C.prototype, name).value === "function") out.set(name, { name, doc: "" });
+		}
+	}
+	return [...out.values()];
+}
+
+// describe() with only the callable surface (surface_of), each method's doc filled: its declared doc, else the first `//` line of the comment block above it, from the class's source.
 function describe_class(Class){
 	const d = Class.describe();
+	d.methods = surface_of(Class);
 	const text = (CLASS_SOURCES[d.class] ?? []).map(f => { try { return fs.readFileSync(path.join(PUBLIC, "framework", f), "utf8"); } catch { return ""; } }).join("\n");
 	const lines = text.split("\n");
 	for (const m of d.methods){
+		if (m.doc) continue;
 		const at = lines.findIndex(l => new RegExp(`^\\s*(static\\s+)?(async\\s+)?${m.name}\\s*\\(`).test(l));
 		let top = at;
 		while (top > 0 && /^\s*\/\//.test(lines[top - 1])) top--;

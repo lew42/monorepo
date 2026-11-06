@@ -85,7 +85,13 @@ try {
 		fs.writeFileSync(LFILE, live_lines.map(l => JSON.stringify(l)).join("\n") + "\n");
 		r = await run_item({ path: URL + "live-copy/" }, { caller: "t3" });
 		ok(r.ok && r.instructions?.class === "LivePage", "a site-absolute class spec (/live/LivePage.js) also resolves off the real module, not plain Page");
-		for (const m of live_only) ok(r.instructions.methods.some(x => x.name === m), `LivePage's own "${m}" shows in instructions, not just Page's`);
+		// The help lists the DECLARED surface (static callable), with a doc each: LivePage's four, Page's two, Item's three; none of the ~140 render/log/column methods.
+		const shown = r.instructions.methods.map(x => x.name);
+		for (const m of ["flash", "alert", "save", "restore"]) ok(shown.includes(m), `LivePage's declared "${m}" shows in instructions, not just Page's`);
+		for (const m of ["tab", "place", "set", "unset", "remove"]) ok(shown.includes(m), `the inherited declared "${m}" shows`);
+		for (const m of ["draw_card", "paint_voice", "render", "column_host", "preview_card", "log_view", "toJSON", "emit", "walk"]) ok(!shown.includes(m), `plumbing "${m}" is not in the help`);
+		ok(shown.length <= 12, `the help lists a handful of methods, not the whole prototype chain (${shown.length} listed)`);
+		ok(r.instructions.methods.every(x => x.doc), "every listed method has a one-line doc");
 	}
 
 	console.log(`item-read: ${n} checks passed`);

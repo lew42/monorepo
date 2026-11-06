@@ -38,6 +38,13 @@ export class Page extends Item {
 	static _ext = [];
 	static use(Ext){ Page._ext.push(Ext); return Page; }
 
+	// What a delta can call on any page, beside Item's. Cards, tabs and sub-pages are not methods: they are the lists `content`, `pages` and the keys of a delta.
+	static callable = {
+		...Item.callable,
+		tab: "{\"tab\": {name, disabled?, nav?, order?, title?, icon?}} sets one tab's state; repeat lines for a name merge.",
+		place: "{\"place\": \"name\" | [\"name\", …] | {module, …data}} puts named parts into the content, in order, once each.",
+	};
+
 	// ⚠ Nothing is FETCHED here: a module page constructs itself at import. The caller budgets (doc/declaring.md).
 	constructor(...args){
 		super(...args);

@@ -619,7 +619,16 @@ export class Item extends Events(Object) {
 	// The methods and getters of this class that only READ. The item tool answers a delta whose keys are all queries (`{"cost":{}}`) and writes no line. A subclass lists its own.
 	static queries = [];
 
+	// The methods a delta may call, each with its one-line doc: {name: "doc"}. The item tool lists ONLY these for a class that declares
+	// `callable` (and stops its walk up the chain there); a class that does not is listed by its own methods. A subclass spreads its parent's: `{...Page.callable, flash: "…"}`.
+	static callable = {
+		set: "{\"set\": {key: value}} sets fields, same as writing the keys bare.",
+		unset: "{\"unset\": [\"key\", …]} removes fields so they read back undefined, and replay the same.",
+		remove: "{\"remove\": {}} takes this item out of the list that holds it.",
+	};
+
 	// What a caller may put in a delta for this class: {class, fields, methods:[{name, doc}], queries}; doc is "" here (the item tool fills it from source).
+	// This lists EVERY method in the chain (Page + Item + Events: ~150); the item tool's help uses `callable` instead (page_tools.js, surface_of).
 	static describe(){
 		const methods = new Map(), fields = new Set(this.fields ?? []);
 		for (let proto = this.prototype; proto && proto !== Object.prototype; proto = Object.getPrototypeOf(proto))

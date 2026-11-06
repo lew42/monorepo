@@ -1,0 +1,1895 @@
+{
+ "methods": {
+  "LivePage": [
+   "flash",
+   "alert",
+   "save",
+   "restore",
+   "can_press",
+   "replaying",
+   "route",
+   "listen",
+   "voice_at",
+   "paint_voice",
+   "render",
+   "draw_head",
+   "draw_cards",
+   "draw_card",
+   "draw_words",
+   "link_url",
+   "draw_foot"
+  ],
+  "Page": [
+   "assign",
+   "replay_line",
+   "log_label",
+   "bubbles",
+   "set",
+   "hoist_content",
+   "has_content",
+   "take_content",
+   "get",
+   "lists",
+   "ext",
+   "file",
+   "gone",
+   "child_file",
+   "link_child",
+   "unlink_child",
+   "tab",
+   "take_words",
+   "overlay",
+   "reshape",
+   "rerender",
+   "tab_state",
+   "tab_visible",
+   "nav_ready",
+   "tab_order",
+   "place",
+   "log_view",
+   "draw_folder",
+   "log_draw",
+   "log_folder",
+   "log_redraw",
+   "draw_placed",
+   "draw_md",
+   "draw_module",
+   "listing",
+   "report_unknown",
+   "log_forget",
+   "naming",
+   "words",
+   "word_classes",
+   "words_said",
+   "declare",
+   "add",
+   "move",
+   "chain",
+   "nearest",
+   "topic",
+   "document",
+   "source_children",
+   "child",
+   "child_readme",
+   "tasks_folder",
+   "ai_page",
+   "child_md",
+   "md_folder",
+   "fs_folder",
+   "md_dir",
+   "open_link",
+   "swap_link",
+   "swap_url",
+   "md_files",
+   "container",
+   "mounts_in",
+   "activate",
+   "warn_if_hidden",
+   "deactivate",
+   "in_doc",
+   "render_content",
+   "render_content_list",
+   "content_at",
+   "drew_content",
+   "link",
+   "crumbs",
+   "related_aside",
+   "columns",
+   "column_host",
+   "render_column",
+   "column",
+   "default_column",
+   "column_grab",
+   "resize_column",
+   "even_columns",
+   "settle_columns",
+   "column_slide",
+   "reveal_column",
+   "scroll_column",
+   "nav",
+   "nav_for",
+   "previews",
+   "walls",
+   "wall_rungs",
+   "preview",
+   "preview_card",
+   "preview_thumb",
+   "preview_link",
+   "load_all_children",
+   "prefs"
+  ],
+  "Item": [
+   "build_assign",
+   "get_one",
+   "put",
+   "unset",
+   "act",
+   "batch",
+   "as_call",
+   "apply",
+   "set_one",
+   "hook_for",
+   "run_hook",
+   "take",
+   "call_marked",
+   "call_line",
+   "unknown_key",
+   "hop_marked",
+   "emit_safely",
+   "adopt_slot",
+   "member",
+   "locate",
+   "remove",
+   "move_to",
+   "root",
+   "walk",
+   "find",
+   "contains",
+   "delete",
+   "toJSON",
+   "wire",
+   "snapshot_unsafe"
+  ],
+  "(Events mixin)": [
+   "on",
+   "off",
+   "emit",
+   "once",
+   "clear"
+  ]
+ },
+ "usage": {
+  "flash": {
+   "cls": "LivePage",
+   "calls": 5,
+   "keys": 5,
+   "files": [
+    "public/framework/core/Test/TestView.js",
+    "public/framework/ux/Content/Object/DefaultView.js"
+   ],
+   "n_files": 2
+  },
+  "alert": {
+   "cls": "LivePage",
+   "calls": 2,
+   "keys": 3,
+   "files": [
+    "public/framework/ext/drawer/tabs/sessions.js",
+    "public/framework/ui/alert/page.js"
+   ],
+   "n_files": 2
+  },
+  "save": {
+   "cls": "LivePage",
+   "calls": 140,
+   "keys": 27,
+   "files": [
+    "public/framework/ai/AISession/AISessionIndex.mjs",
+    "public/framework/audio/Recorder/Recorder.js",
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/Item/Outbox.js",
+    "public/framework/core/Item/page.js",
+    "public/framework/core/Item/replay/LabTape.js"
+   ],
+   "n_files": 51
+  },
+  "restore": {
+   "cls": "LivePage",
+   "calls": 23,
+   "keys": 4,
+   "files": [
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/Item/Outbox.js",
+    "public/framework/core/Item/Outbox.test.mjs",
+    "public/framework/core/Item/snapshot.test.mjs",
+    "public/framework/core/Item/Store.js",
+    "public/framework/core/Task/Task.js"
+   ],
+   "n_files": 17
+  },
+  "can_press": {
+   "cls": "LivePage",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/live/LiveButton.js"
+   ],
+   "n_files": 1
+  },
+  "replaying": {
+   "cls": "LivePage",
+   "calls": 2,
+   "keys": 1,
+   "files": [
+    "public/live/LivePage.js"
+   ],
+   "n_files": 1
+  },
+  "route": {
+   "cls": "LivePage",
+   "calls": 177,
+   "keys": 18,
+   "files": [
+    "public/blog/ai/playwright/demo/06-network.mjs",
+    "public/framework/ai/AISession/StoreFolder.js",
+    "public/framework/ai/cards/card.js",
+    "public/framework/ai/page.js",
+    "public/framework/audio/Recite/playback-stutter.test.mjs",
+    "public/framework/audio/Recite/ReciteBubble.test.mjs"
+   ],
+   "n_files": 74
+  },
+  "listen": {
+   "cls": "LivePage",
+   "calls": 82,
+   "keys": 1,
+   "files": [
+    "public/arya/lib/Router.js",
+    "public/framework/ai/rail/rail.js",
+    "public/framework/ai/v/3/Prompts.js",
+    "public/framework/code/performance/bench/bench.mjs",
+    "public/framework/core/Item/Ref.test.mjs",
+    "public/framework/core/Item/snapshot.test.mjs"
+   ],
+   "n_files": 59
+  },
+  "voice_at": {
+   "cls": "LivePage",
+   "calls": 2,
+   "keys": 0,
+   "files": [
+    "public/live/LivePage.js"
+   ],
+   "n_files": 1
+  },
+  "paint_voice": {
+   "cls": "LivePage",
+   "calls": 3,
+   "keys": 0,
+   "files": [
+    "public/live/LivePage.js"
+   ],
+   "n_files": 1
+  },
+  "render": {
+   "cls": "LivePage",
+   "calls": 228,
+   "keys": 5,
+   "files": [
+    "public/alex/examples/subpage/nested/page.js",
+    "public/alex/framework/core/Page/Page.js",
+    "public/alex/framework/view/page.js",
+    "public/arya/framework/app/page.js",
+    "public/arya/framework/page/page.js",
+    "public/arya/framework/view/page.js"
+   ],
+   "n_files": 159
+  },
+  "draw_head": {
+   "cls": "LivePage",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/live/LivePage.js"
+   ],
+   "n_files": 1
+  },
+  "draw_cards": {
+   "cls": "LivePage",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/live/LivePage.js"
+   ],
+   "n_files": 1
+  },
+  "draw_card": {
+   "cls": "LivePage",
+   "calls": 3,
+   "keys": 0,
+   "files": [
+    "public/framework/ext/DataGrid/DataGridRail.js",
+    "public/live/LivePage.js"
+   ],
+   "n_files": 2
+  },
+  "draw_words": {
+   "cls": "LivePage",
+   "calls": 2,
+   "keys": 0,
+   "files": [
+    "public/live/LivePage.js"
+   ],
+   "n_files": 1
+  },
+  "link_url": {
+   "cls": "LivePage",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/live/LivePage.js"
+   ],
+   "n_files": 1
+  },
+  "draw_foot": {
+   "cls": "LivePage",
+   "calls": 2,
+   "keys": 0,
+   "files": [
+    "public/framework/audio/Whisper/WhisperDemo.js",
+    "public/live/LivePage.js"
+   ],
+   "n_files": 2
+  },
+  "assign": {
+   "cls": "Page",
+   "calls": 634,
+   "keys": 51,
+   "files": [
+    "public/alex/framework/core/Router/Router.js",
+    "public/arya/framework/page/page.js",
+    "public/arya/lib/Page.js",
+    "public/blog/Post.js",
+    "public/blog/Section.js",
+    "public/fly/GLTFLoader.js"
+   ],
+   "n_files": 318
+  },
+  "replay_line": {
+   "cls": "Page",
+   "calls": 44,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/Item/Item.test.mjs",
+    "public/framework/core/Item/line-readers.test.mjs",
+    "public/framework/core/Item/snapshot.test.mjs",
+    "public/framework/core/Item/Store.js",
+    "public/framework/core/Session/Chat/Chat.test.mjs"
+   ],
+   "n_files": 22
+  },
+  "log_label": {
+   "cls": "Page",
+   "calls": 23,
+   "keys": 0,
+   "files": [
+    "public/framework/audit/overview/organization/page.js",
+    "public/framework/core/new/1/Page.class.js",
+    "public/framework/core/new/1/Router.js",
+    "public/framework/core/new/1/site/deep/orphan/page.js",
+    "public/framework/core/new/1/site/perf/hidden/page.js",
+    "public/framework/core/Page/Jsonl.js"
+   ],
+   "n_files": 10
+  },
+  "bubbles": {
+   "cls": "Page",
+   "calls": 5,
+   "keys": 1,
+   "files": [
+    "public/framework/core/Events/Events.js",
+    "public/framework/core/Session/Chat/V1Bubbles.js",
+    "public/framework/core/Session/tasks/data-shapes/seats/delta-flow/demo-delta-flow.mjs",
+    "public/framework/research/2026/10/29/persistence-sync/persistence-sync/app/data.js"
+   ],
+   "n_files": 4
+  },
+  "set": {
+   "cls": "Page",
+   "calls": 1966,
+   "keys": 81,
+   "files": [
+    "public/alex/framework/core/Router/Router.js",
+    "public/arya/lib/Router.js",
+    "public/fly/BufferGeometryUtils.js",
+    "public/fly/GLTFLoader.js",
+    "public/fly/index.js",
+    "public/fly/three.core.js"
+   ],
+   "n_files": 534
+  },
+  "hoist_content": {
+   "cls": "Page",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 1
+  },
+  "has_content": {
+   "cls": "Page",
+   "calls": 7,
+   "keys": 0,
+   "files": [
+    "public/blog/Post.js",
+    "public/framework/core/Page/Frame.js",
+    "public/framework/core/Page/Jsonl.js",
+    "public/framework/ext/catalog/catalog.js",
+    "public/imagine/feeds/video/page.js",
+    "public/imagine/importance/ranked/ranked.js"
+   ],
+   "n_files": 7
+  },
+  "take_content": {
+   "cls": "Page",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/ext/catalog/catalog.js"
+   ],
+   "n_files": 1
+  },
+  "get": {
+   "cls": "Page",
+   "calls": 2527,
+   "keys": 6,
+   "files": [
+    "public/alex/framework/core/Router/Router.js",
+    "public/fly/BufferGeometryUtils.js",
+    "public/fly/GLTFLoader.js",
+    "public/fly/three.core.js",
+    "public/fly/three.js",
+    "public/framework/ai/AIDay/AIDay.js"
+   ],
+   "n_files": 635
+  },
+  "lists": {
+   "cls": "Page",
+   "calls": 18,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/Item/Item.methods.js",
+    "public/framework/core/Item/persistence.test.mjs",
+    "public/framework/core/List/List.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/core/Session/Chat/Message.js"
+   ],
+   "n_files": 13
+  },
+  "ext": {
+   "cls": "Page",
+   "calls": 1,
+   "keys": 21,
+   "files": [
+    "public/framework/ext/highlight/highlight.js"
+   ],
+   "n_files": 1
+  },
+  "file": {
+   "cls": "Page",
+   "calls": 358,
+   "keys": 158,
+   "files": [
+    "public/blog/doc/page.js",
+    "public/blog/Post.js",
+    "public/framework/ai/AIOverview.js",
+    "public/framework/ai/AISession/AISessionsPage.js",
+    "public/framework/ai/audits/paging/page.js",
+    "public/framework/ai/council/page.js"
+   ],
+   "n_files": 169
+  },
+  "gone": {
+   "cls": "Page",
+   "calls": 2,
+   "keys": 64,
+   "files": [
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/ux/Content/Object/InstanceTree.js"
+   ],
+   "n_files": 2
+  },
+  "child_file": {
+   "cls": "Page",
+   "calls": 3,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Jsonl.js",
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 2
+  },
+  "link_child": {
+   "cls": "Page",
+   "calls": 3,
+   "keys": 0,
+   "files": [
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/core/Page/Jsonl.js",
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 3
+  },
+  "unlink_child": {
+   "cls": "Page",
+   "calls": 4,
+   "keys": 0,
+   "files": [
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/core/Page/Jsonl.js",
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 3
+  },
+  "tab": {
+   "cls": "Page",
+   "calls": 15,
+   "keys": 62,
+   "files": [
+    "public/framework/audio/page.js",
+    "public/framework/core/Item/Outbox.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/dev/Socket/Socket.js",
+    "public/framework/ext/Doc/Doc.js",
+    "public/framework/ext/tabs/tabs.js"
+   ],
+   "n_files": 12
+  },
+  "take_words": {
+   "cls": "Page",
+   "calls": 2,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 1
+  },
+  "overlay": {
+   "cls": "Page",
+   "calls": 4,
+   "keys": 4,
+   "files": [
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/core/Section/Section.js"
+   ],
+   "n_files": 3
+  },
+  "reshape": {
+   "cls": "Page",
+   "calls": 3,
+   "keys": 0,
+   "files": [
+    "public/framework/ai/AISession/AISessionsPage.js",
+    "public/framework/core/Page/Jsonl.js"
+   ],
+   "n_files": 2
+  },
+  "rerender": {
+   "cls": "Page",
+   "calls": 2,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Jsonl.js",
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 2
+  },
+  "tab_state": {
+   "cls": "Page",
+   "calls": 7,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/ext/Inbox/timeline/TimelinePage.js",
+    "public/framework/core/Page/Jsonl.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/ext/tabs/tabs.js"
+   ],
+   "n_files": 4
+  },
+  "tab_visible": {
+   "cls": "Page",
+   "calls": 3,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/ext/Doc/Doc.js",
+    "public/framework/ext/tabs/tabs.js"
+   ],
+   "n_files": 3
+  },
+  "nav_ready": {
+   "cls": "Page",
+   "calls": 4,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Jsonl.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/core/Sidebar/Sidebar.js",
+    "Server/sidebar-index-check.mjs"
+   ],
+   "n_files": 4
+  },
+  "tab_order": {
+   "cls": "Page",
+   "calls": 5,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/ext/Doc/Doc.js",
+    "public/framework/ext/tabs/tabs.js"
+   ],
+   "n_files": 3
+  },
+  "place": {
+   "cls": "Page",
+   "calls": 30,
+   "keys": 18,
+   "files": [
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/ai/AITask/rank.js",
+    "public/framework/core/Page/generator/page.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/core/Search/Omnibox.js",
+    "public/framework/ext/Chat/list/ChatList.js"
+   ],
+   "n_files": 21
+  },
+  "log_view": {
+   "cls": "Page",
+   "calls": 2,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/card/mini-pages/MiniPages.js",
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 2
+  },
+  "draw_folder": {
+   "cls": "Page",
+   "calls": 4,
+   "keys": 0,
+   "files": [
+    "public/framework/ai/cards/card.js",
+    "public/framework/core/Page/Jsonl.js",
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 3
+  },
+  "log_draw": {
+   "cls": "Page",
+   "calls": 4,
+   "keys": 0,
+   "files": [
+    "public/framework/ai/cards/card.js",
+    "public/framework/core/Page/Jsonl.js",
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 3
+  },
+  "log_folder": {
+   "cls": "Page",
+   "calls": 8,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Jsonl.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/core/Page/parts/PageFile.js",
+    "public/framework/core/Page/parts/PageLink.js",
+    "public/framework/core/Page/parts/PageView.js"
+   ],
+   "n_files": 5
+  },
+  "log_redraw": {
+   "cls": "Page",
+   "calls": 2,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/core/Page/Reader.js"
+   ],
+   "n_files": 2
+  },
+  "draw_placed": {
+   "cls": "Page",
+   "calls": 3,
+   "keys": 0,
+   "files": [
+    "public/framework/ai/cards/card.js",
+    "public/framework/core/Page/Jsonl.js",
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 3
+  },
+  "draw_md": {
+   "cls": "Page",
+   "calls": 4,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Jsonl.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/core/Page/parts/PageFile.js"
+   ],
+   "n_files": 3
+  },
+  "draw_module": {
+   "cls": "Page",
+   "calls": 4,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Jsonl.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/core/Page/parts/PageView.js"
+   ],
+   "n_files": 3
+  },
+  "listing": {
+   "cls": "Page",
+   "calls": 32,
+   "keys": 1,
+   "files": [
+    "public/framework/ai/AIOverview.js",
+    "public/framework/ai/cards/Tasks.js",
+    "public/framework/ai/rail/groups.js",
+    "public/framework/core/Page/ext/Inbox/Inbox.js",
+    "public/framework/core/Page/FilesTab.js",
+    "public/framework/core/Page/jsonl/full/content.js"
+   ],
+   "n_files": 18
+  },
+  "report_unknown": {
+   "cls": "Page",
+   "calls": 3,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/core/Page/Reader.js"
+   ],
+   "n_files": 2
+  },
+  "log_forget": {
+   "cls": "Page",
+   "calls": 3,
+   "keys": 0,
+   "files": [
+    "public/framework/ai/cards/card.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/core/Page/Reader.js"
+   ],
+   "n_files": 3
+  },
+  "naming": {
+   "cls": "Page",
+   "calls": 11,
+   "keys": 4,
+   "files": [
+    "public/framework/core/new/1/agents/urls/page.js",
+    "public/framework/core/new/1/Page.class.js",
+    "public/framework/core/new/1/site/patterns/settings/notifications/page.js",
+    "public/framework/core/new/1/site/urls/schema/page.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/imagine/importance/views.js"
+   ],
+   "n_files": 6
+  },
+  "words": {
+   "cls": "Page",
+   "calls": 54,
+   "keys": 52,
+   "files": [
+    "public/framework/ai/AISession/AISessionCoverage.js",
+    "public/framework/ai/cards/Activity.js",
+    "public/framework/ai/usage/UsagePace.js",
+    "public/framework/audio/Recite/Recite.test.mjs",
+    "public/framework/audio/Recite/ReciteHighlight.js",
+    "public/framework/audio/Whisper/WhisperLogRows.js"
+   ],
+   "n_files": 26
+  },
+  "word_classes": {
+   "cls": "Page",
+   "calls": 3,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Columns.js",
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 2
+  },
+  "words_said": {
+   "cls": "Page",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 1
+  },
+  "declare": {
+   "cls": "Page",
+   "calls": 18,
+   "keys": 0,
+   "files": [
+    "public/blog/Post.js",
+    "public/framework/core/Item/page.js",
+    "public/framework/core/new/1/agents/patterns/page.js",
+    "public/framework/core/new/1/Page.class.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/core/Task/page.js"
+   ],
+   "n_files": 11
+  },
+  "add": {
+   "cls": "Page",
+   "calls": 1253,
+   "keys": 218,
+   "files": [
+    "public/fly/BufferGeometryUtils.js",
+    "public/fly/GLTFLoader.js",
+    "public/fly/index.js",
+    "public/fly/joystick.js",
+    "public/fly/three.core.js",
+    "public/fly/three.js"
+   ],
+   "n_files": 460
+  },
+  "move": {
+   "cls": "Page",
+   "calls": 96,
+   "keys": 82,
+   "files": [
+    "public/framework/core/Item/Dated.test.mjs",
+    "public/framework/core/Item/Item.basic.test.mjs",
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/Item/Item.test.mjs",
+    "public/framework/core/Item/page.js",
+    "public/framework/core/Item/persistence.test.mjs"
+   ],
+   "n_files": 45
+  },
+  "chain": {
+   "cls": "Page",
+   "calls": 104,
+   "keys": 11,
+   "files": [
+    "public/framework/ai/cards/real.js",
+    "public/framework/code/patterns/page.js",
+    "public/framework/core/new/1/agents/a11y/page.js",
+    "public/framework/core/new/1/agents/chrome/page.js",
+    "public/framework/core/new/1/agents/forms/page.js",
+    "public/framework/core/new/1/agents/tim/page.js"
+   ],
+   "n_files": 57
+  },
+  "nearest": {
+   "cls": "Page",
+   "calls": 5,
+   "keys": 19,
+   "files": [
+    "public/framework/core/Page/Page.class.js",
+    "Servex/agents/Sessions.js"
+   ],
+   "n_files": 2
+  },
+  "topic": {
+   "cls": "Page",
+   "calls": 58,
+   "keys": 43,
+   "files": [
+    "public/framework/core/Page/overview/columns/refs/page.js",
+    "public/framework/core/Page/overview/columns/uses/inbox/page.js",
+    "public/framework/core/Page/overview/columns/uses/split/page.js",
+    "public/framework/ext/Research/Topic.js",
+    "public/framework/research/page.js",
+    "public/imagine/game/page.js"
+   ],
+   "n_files": 10
+  },
+  "document": {
+   "cls": "Page",
+   "calls": 6,
+   "keys": 21,
+   "files": [
+    "public/framework/core/Page/overview/columns/refs/page.js",
+    "public/framework/ext/Panel/Panel.js",
+    "public/framework/ext/Panel/size.js",
+    "public/framework/ext/Panel/Workspace/Workspace.js"
+   ],
+   "n_files": 4
+  },
+  "source_children": {
+   "cls": "Page",
+   "calls": 4,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/ext/Doc/Doc.js",
+    "public/imagine/paging/make/page.js"
+   ],
+   "n_files": 3
+  },
+  "child": {
+   "cls": "Page",
+   "calls": 95,
+   "keys": 51,
+   "files": [
+    "public/blog/page.js",
+    "public/framework/ai/AIOverview.js",
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/ai/AISession/AISessionsPage.js",
+    "public/framework/ai/AISession/StoreFolder.js",
+    "public/framework/ai/AITask/card.js"
+   ],
+   "n_files": 59
+  },
+  "child_readme": {
+   "cls": "Page",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 1
+  },
+  "tasks_folder": {
+   "cls": "Page",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 1
+  },
+  "ai_page": {
+   "cls": "Page",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 1
+  },
+  "child_md": {
+   "cls": "Page",
+   "calls": 2,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 1
+  },
+  "md_folder": {
+   "cls": "Page",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 1
+  },
+  "fs_folder": {
+   "cls": "Page",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 1
+  },
+  "md_dir": {
+   "cls": "Page",
+   "calls": 11,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Links.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/ext/Doc/Doc.js"
+   ],
+   "n_files": 3
+  },
+  "open_link": {
+   "cls": "Page",
+   "calls": 4,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Links.js",
+    "public/framework/core/Page/Markdown.js",
+    "public/framework/core/Page/navigation/page.js",
+    "public/framework/core/Router/Router.js"
+   ],
+   "n_files": 4
+  },
+  "swap_link": {
+   "cls": "Page",
+   "calls": 4,
+   "keys": 0,
+   "files": [
+    "public/framework/ai/cards/card.js",
+    "public/framework/core/Page/Links.js",
+    "public/framework/ext/markdown/open/page.js"
+   ],
+   "n_files": 3
+  },
+  "swap_url": {
+   "cls": "Page",
+   "calls": 2,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Links.js",
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 2
+  },
+  "md_files": {
+   "cls": "Page",
+   "calls": 5,
+   "keys": 0,
+   "files": [
+    "public/framework/ai/cards/card.js",
+    "public/framework/ext/markdown/open/columns/page.js",
+    "public/framework/ext/markdown/open/page.js"
+   ],
+   "n_files": 3
+  },
+  "container": {
+   "cls": "Page",
+   "calls": 9,
+   "keys": 5,
+   "files": [
+    "public/framework/core/new/1/agents/async/page.js",
+    "public/framework/core/new/1/Page.class.js",
+    "public/framework/core/Page/overview/mounts/page.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/ext/files/fs.js",
+    "public/framework/ext/tabs/page.js"
+   ],
+   "n_files": 7
+  },
+  "mounts_in": {
+   "cls": "Page",
+   "calls": 19,
+   "keys": 0,
+   "files": [
+    "public/framework/core/new/1/Page.class.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/core/Sidebar/variants/a/page.js",
+    "public/framework/core/Sidebar/variants/b/page.js",
+    "public/framework/core/Sidebar/variants/c/page.js",
+    "public/framework/core/Sidebar/variants/d/page.js"
+   ],
+   "n_files": 14
+  },
+  "activate": {
+   "cls": "Page",
+   "calls": 106,
+   "keys": 1,
+   "files": [
+    "public/alex/framework/core/Router/Router.js",
+    "public/framework/ai/cards/real.js",
+    "public/framework/core/new/1/agents/a11y/page.js",
+    "public/framework/core/new/1/agents/async/page.js",
+    "public/framework/core/new/1/agents/chrome/page.js",
+    "public/framework/core/new/1/agents/content/page.js"
+   ],
+   "n_files": 58
+  },
+  "warn_if_hidden": {
+   "cls": "Page",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 1
+  },
+  "deactivate": {
+   "cls": "Page",
+   "calls": 12,
+   "keys": 0,
+   "files": [
+    "public/alex/framework/core/Router/Router.js",
+    "public/blog/Post.js",
+    "public/framework/ai/cards/real.js",
+    "public/framework/core/new/1/agents/motion/page.js",
+    "public/framework/core/new/1/Router.js",
+    "public/framework/core/new/1/site/deep/state/page.js"
+   ],
+   "n_files": 12
+  },
+  "in_doc": {
+   "cls": "Page",
+   "calls": 0,
+   "keys": 0,
+   "files": [],
+   "n_files": 0
+  },
+  "render_content": {
+   "cls": "Page",
+   "calls": 7,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Columns.js",
+    "public/framework/core/Page/Frame.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/imagine/gallery/foreign.js",
+    "public/imagine/importance/ranked/ranked.js",
+    "public/imagine/page.js"
+   ],
+   "n_files": 6
+  },
+  "render_content_list": {
+   "cls": "Page",
+   "calls": 4,
+   "keys": 0,
+   "files": [
+    "public/framework/ai/cards/card.js",
+    "public/framework/core/Item/live/page.js",
+    "public/framework/core/Page/parts/Parts.js"
+   ],
+   "n_files": 3
+  },
+  "content_at": {
+   "cls": "Page",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/PageAddress.js"
+   ],
+   "n_files": 1
+  },
+  "drew_content": {
+   "cls": "Page",
+   "calls": 3,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/core/track/track.js"
+   ],
+   "n_files": 2
+  },
+  "link": {
+   "cls": "Page",
+   "calls": 118,
+   "keys": 33,
+   "files": [
+    "public/alex/examples/subpage/page.js",
+    "public/alex/page.js",
+    "public/arya/framework/page/page.js",
+    "public/blog/page.js",
+    "public/castin/page.js",
+    "public/castin/root/page.js"
+   ],
+   "n_files": 62
+  },
+  "crumbs": {
+   "cls": "Page",
+   "calls": 84,
+   "keys": 13,
+   "files": [
+    "public/blog/Post.js",
+    "public/framework/core/Page/Columns.js",
+    "public/framework/core/Page/overview/crumbs/page.js",
+    "public/framework/ext/demo/app.js",
+    "public/framework/ext/demo/shell.js",
+    "public/framework/ui/crumbs/page.js"
+   ],
+   "n_files": 79
+  },
+  "related_aside": {
+   "cls": "Page",
+   "calls": 4,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Columns.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/core/Page/Related.js"
+   ],
+   "n_files": 3
+  },
+  "columns": {
+   "cls": "Page",
+   "calls": 61,
+   "keys": 37,
+   "files": [
+    "public/framework/ai/audits/paging/page.js",
+    "public/framework/core/Page/audit/data.js",
+    "public/framework/core/Page/Columns.js",
+    "public/framework/core/Page/doc/comment-move.mjs",
+    "public/framework/core/Page/ext/Inbox/timeline/TimelinePage.js",
+    "public/framework/core/Page/generator/export.js"
+   ],
+   "n_files": 50
+  },
+  "column_host": {
+   "cls": "Page",
+   "calls": 12,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Columns.js",
+    "public/framework/core/Page/Links.js",
+    "public/framework/core/Page/Markdown.js",
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/ext/demo/app.js",
+    "public/imagine/importance/ranked/page.js"
+   ],
+   "n_files": 9
+  },
+  "render_column": {
+   "cls": "Page",
+   "calls": 2,
+   "keys": 0,
+   "files": [
+    "public/blog/Post.js",
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 2
+  },
+  "column": {
+   "cls": "Page",
+   "calls": 7,
+   "keys": 15,
+   "files": [
+    "public/framework/core/Item/replay/LabExampleView.js",
+    "public/framework/core/Page/Columns.js",
+    "public/framework/ext/editor/page.js",
+    "public/imagine/paging/content.js",
+    "public/imagine/paging/templates/families.js",
+    "public/layouts/labs/decks/page.js"
+   ],
+   "n_files": 6
+  },
+  "default_column": {
+   "cls": "Page",
+   "calls": 3,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Columns.js",
+    "public/imagine/youtube/page.js"
+   ],
+   "n_files": 2
+  },
+  "column_grab": {
+   "cls": "Page",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Columns.js"
+   ],
+   "n_files": 1
+  },
+  "resize_column": {
+   "cls": "Page",
+   "calls": 0,
+   "keys": 0,
+   "files": [],
+   "n_files": 0
+  },
+  "even_columns": {
+   "cls": "Page",
+   "calls": 3,
+   "keys": 0,
+   "files": [
+    "public/web/nav/doc/study/lab.js"
+   ],
+   "n_files": 1
+  },
+  "settle_columns": {
+   "cls": "Page",
+   "calls": 0,
+   "keys": 0,
+   "files": [],
+   "n_files": 0
+  },
+  "column_slide": {
+   "cls": "Page",
+   "calls": 0,
+   "keys": 0,
+   "files": [],
+   "n_files": 0
+  },
+  "reveal_column": {
+   "cls": "Page",
+   "calls": 3,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js",
+    "public/framework/ext/demo/app.js"
+   ],
+   "n_files": 2
+  },
+  "scroll_column": {
+   "cls": "Page",
+   "calls": 0,
+   "keys": 0,
+   "files": [],
+   "n_files": 0
+  },
+  "nav": {
+   "cls": "Page",
+   "calls": 44,
+   "keys": 24,
+   "files": [
+    "public/app.js",
+    "public/blog/posts.js",
+    "public/framework/ai/cards/card.js",
+    "public/framework/core/Page/card/mini-pages/MiniPages.js",
+    "public/framework/core/Page/layout/floating/floating.js",
+    "public/framework/core/Page/layout/floating/page.js"
+   ],
+   "n_files": 29
+  },
+  "nav_for": {
+   "cls": "Page",
+   "calls": 43,
+   "keys": 0,
+   "files": [
+    "public/blog/Post.js",
+    "public/framework/ai/AITask/dashboard.js",
+    "public/framework/core/Layout/Layout.js",
+    "public/framework/core/Page/Columns.js",
+    "public/framework/core/Page/Frame.js",
+    "public/framework/core/Page/generator/tree.js"
+   ],
+   "n_files": 35
+  },
+  "previews": {
+   "cls": "Page",
+   "calls": 171,
+   "keys": 1,
+   "files": [
+    "public/framework/ai/tests/h1-page/fixture/page.fixture.js",
+    "public/framework/ai/tests/keys-to-success/page.js",
+    "public/framework/ai/tests/page.js",
+    "public/framework/ai/tests/rung2-two-children/fixture/page.fixture.js",
+    "public/framework/ai/tests/rung2-two-children-primer/fixture/page.fixture.js",
+    "public/framework/core/Layout/doc/page.js"
+   ],
+   "n_files": 152
+  },
+  "walls": {
+   "cls": "Page",
+   "calls": 2,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Page.class.js",
+    "public/web/nav/wall/page.js"
+   ],
+   "n_files": 2
+  },
+  "wall_rungs": {
+   "cls": "Page",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/page.js"
+   ],
+   "n_files": 1
+  },
+  "preview": {
+   "cls": "Page",
+   "calls": 29,
+   "keys": 18,
+   "files": [
+    "public/alex/examples/subpage/nested/page.js",
+    "public/alex/examples/subpage/page.js",
+    "public/framework/ai/AISession/AISession.js",
+    "public/framework/ai/AISession/AISessionFollow.js",
+    "public/framework/ai/AISession/AISessionIndex.mjs",
+    "public/framework/ai/AITask/card.js"
+   ],
+   "n_files": 26
+  },
+  "preview_card": {
+   "cls": "Page",
+   "calls": 141,
+   "keys": 0,
+   "files": [
+    "public/framework/ai/AITask/AITask.js",
+    "public/framework/core/Layout/Layout.js",
+    "public/framework/core/Page/audit/design/page.js",
+    "public/framework/core/Page/audit/page.js",
+    "public/framework/core/Page/card/mini-pages/MiniPages.js",
+    "public/framework/core/Page/overview/dashboard/page.js"
+   ],
+   "n_files": 135
+  },
+  "preview_thumb": {
+   "cls": "Page",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Previews.js"
+   ],
+   "n_files": 1
+  },
+  "preview_link": {
+   "cls": "Page",
+   "calls": 8,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Page/Previews.js",
+    "public/framework/page.js",
+    "public/imagine/decks/deck.js",
+    "public/imagine/screens/screen.js",
+    "public/imagine/stream/deck/page.js",
+    "public/layouts/labs/decks/deck.js"
+   ],
+   "n_files": 7
+  },
+  "load_all_children": {
+   "cls": "Page",
+   "calls": 39,
+   "keys": 0,
+   "files": [
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/ai/AISession/StoreFolder.js",
+    "public/framework/ai/cards/card.js",
+    "public/framework/ai/tests/keys-to-success/page.js",
+    "public/framework/ai/tests/page.js",
+    "public/framework/ai/v/NewVersion.js"
+   ],
+   "n_files": 21
+  },
+  "prefs": {
+   "cls": "Page",
+   "calls": 49,
+   "keys": 1,
+   "files": [
+    "public/framework/core/Page/generator/export.js",
+    "public/framework/core/Page/generator/page.js",
+    "public/framework/core/Page/generator/specs.js",
+    "public/framework/core/Section/page.js",
+    "public/framework/styles/system/studies/themes/page.js",
+    "public/imagine/cms/edit/page.js"
+   ],
+   "n_files": 17
+  },
+  "build_assign": {
+   "cls": "Item",
+   "calls": 2,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 2
+  },
+  "get_one": {
+   "cls": "Item",
+   "calls": 261,
+   "keys": 0,
+   "files": [
+    "public/framework/ai/AISession/SessionFeed.js",
+    "public/framework/ai/AISession/SessionOutline.js",
+    "public/framework/ai/AISession/SessionOutline.test.mjs",
+    "public/framework/ai/asks/ProposalTriage.js",
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/Item/Item.test.mjs"
+   ],
+   "n_files": 55
+  },
+  "put": {
+   "cls": "Item",
+   "calls": 76,
+   "keys": 0,
+   "files": [
+    "public/framework/ai/AISession/AISessionBuckets.js",
+    "public/framework/core/Item/hooks.test.mjs",
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/Item/Ref.js",
+    "public/framework/core/Item/snapshot.test.mjs",
+    "public/framework/core/Page/Children.js"
+   ],
+   "n_files": 24
+  },
+  "unset": {
+   "cls": "Item",
+   "calls": 15,
+   "keys": 15,
+   "files": [
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/Item/unset.test.mjs",
+    "public/framework/core/Page/Template/Template.js",
+    "public/framework/core/Page/Template/Template.test.mjs",
+    "public/framework/core/Page/Template/TemplateDemo.js",
+    "public/framework/core/Property/Property.test.mjs"
+   ],
+   "n_files": 8
+  },
+  "act": {
+   "cls": "Item",
+   "calls": 56,
+   "keys": 2,
+   "files": [
+    "public/framework/ai/cards/card.js",
+    "public/framework/core/Item/act.test.mjs",
+    "public/framework/core/Item/call.test.mjs",
+    "public/framework/core/Item/item-core.test.mjs",
+    "public/framework/core/Item/line-format.test.mjs",
+    "public/framework/core/Item/line-readers.test.mjs"
+   ],
+   "n_files": 20
+  },
+  "batch": {
+   "cls": "Item",
+   "calls": 7,
+   "keys": 1,
+   "files": [
+    "public/framework/core/Item/batch.test.mjs",
+    "public/framework/core/Item/Store.js",
+    "public/framework/core/new/1/site/patterns/docs/guide/concepts/batches/page.js",
+    "public/framework/research/2026/10/29/persistence-sync/persistence-sync/app/data.js"
+   ],
+   "n_files": 4
+  },
+  "as_call": {
+   "cls": "Item",
+   "calls": 10,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Item/call.test.mjs",
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/Item/reset.test.mjs",
+    "public/framework/core/Item/snapshot.test.mjs"
+   ],
+   "n_files": 4
+  },
+  "apply": {
+   "cls": "Item",
+   "calls": 154,
+   "keys": 3,
+   "files": [
+    "public/app.js",
+    "public/fly/three.core.js",
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/ai/AISession/AISessionsPage.js",
+    "public/framework/ai/rail/DashState.js",
+    "public/framework/ai/rail/groups.js"
+   ],
+   "n_files": 80
+  },
+  "set_one": {
+   "cls": "Item",
+   "calls": 6,
+   "keys": 1,
+   "files": [
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/List/List.js",
+    "public/framework/core/Session/Chat/Prompt.js",
+    "public/framework/core/Session/Chat/PromptItem.js",
+    "public/framework/core/Task/Prompt.js"
+   ],
+   "n_files": 5
+  },
+  "hook_for": {
+   "cls": "Item",
+   "calls": 4,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Item/Item.js"
+   ],
+   "n_files": 1
+  },
+  "run_hook": {
+   "cls": "Item",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Item/Item.js"
+   ],
+   "n_files": 1
+  },
+  "take": {
+   "cls": "Item",
+   "calls": 23,
+   "keys": 1,
+   "files": [
+    "public/framework/audio/Recite/Recite.js",
+    "public/framework/core/Item/call.test.mjs",
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/List/List.js",
+    "public/framework/core/new/1/site/compose/state/page.js",
+    "public/framework/core/Session/Session.js"
+   ],
+   "n_files": 14
+  },
+  "call_marked": {
+   "cls": "Item",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Item/Item.js"
+   ],
+   "n_files": 1
+  },
+  "call_line": {
+   "cls": "Item",
+   "calls": 2,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Item/Item.js"
+   ],
+   "n_files": 1
+  },
+  "unknown_key": {
+   "cls": "Item",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Item/Item.js"
+   ],
+   "n_files": 1
+  },
+  "hop_marked": {
+   "cls": "Item",
+   "calls": 1,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Item/Item.js"
+   ],
+   "n_files": 1
+  },
+  "emit_safely": {
+   "cls": "Item",
+   "calls": 10,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/Plugin/Plugin.js",
+    "public/framework/core/Plugin/PluginEntry.js",
+    "public/framework/ux/Dictate/VoiceChat/plugins/Interrupt.js",
+    "public/framework/ux/Dictate/VoiceChat/VoiceChat.js"
+   ],
+   "n_files": 5
+  },
+  "adopt_slot": {
+   "cls": "Item",
+   "calls": 2,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Item/Item.js"
+   ],
+   "n_files": 1
+  },
+  "member": {
+   "cls": "Item",
+   "calls": 2,
+   "keys": 3,
+   "files": [
+    "public/framework/core/Item/Item.js",
+    "public/framework/ext/Collab/Collab.js"
+   ],
+   "n_files": 2
+  },
+  "locate": {
+   "cls": "Item",
+   "calls": 36,
+   "keys": 1,
+   "files": [
+    "public/framework/ai/AISession/AISession.js",
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/ai/AISession/PromptLog.js",
+    "public/framework/ai/AISession/StoreFolder.js",
+    "public/framework/ai/AITask/rank.js",
+    "public/framework/core/Item/Item.js"
+   ],
+   "n_files": 24
+  },
+  "remove": {
+   "cls": "Item",
+   "calls": 296,
+   "keys": 51,
+   "files": [
+    "public/alex/framework/core/Page/Page.js",
+    "public/alex/framework/view/page.js",
+    "public/arya/framework/view/page.js",
+    "public/blog/Post.js",
+    "public/edric/framework/view/page.js",
+    "public/fly/joystick.js"
+   ],
+   "n_files": 154
+  },
+  "move_to": {
+   "cls": "Item",
+   "calls": 20,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Item/Ref.test.mjs",
+    "public/framework/core/List/List.js",
+    "public/framework/core/List/List.test.mjs",
+    "public/framework/research/2026/10/29/persistence-sync/persistence-sync/app/data.js",
+    "public/framework/ux/Tree/page.js",
+    "public/imagine/paging/make/tree.js"
+   ],
+   "n_files": 7
+  },
+  "root": {
+   "cls": "Item",
+   "calls": 59,
+   "keys": 62,
+   "files": [
+    "public/framework/ai/AITask/nested.js",
+    "public/framework/audit/overview/priorities/page.js",
+    "public/framework/core/Item/Item.methods.js",
+    "public/framework/core/Item/page.js",
+    "public/framework/core/Item/Ref.js",
+    "public/framework/core/List/List.js"
+   ],
+   "n_files": 36
+  },
+  "walk": {
+   "cls": "Item",
+   "calls": 79,
+   "keys": 2,
+   "files": [
+    "public/framework/ai/AIDay/AIDay.js",
+    "public/framework/ai/AITask/nested.js",
+    "public/framework/code/patterns/function-bag-census.mjs",
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/Item/Item.methods.js",
+    "public/framework/core/Item/Ref.js"
+   ],
+   "n_files": 42
+  },
+  "find": {
+   "cls": "Item",
+   "calls": 1290,
+   "keys": 7,
+   "files": [
+    "public/alex/framework/core/Page/Page.js",
+    "public/arya/lib/nav.js",
+    "public/blog/Post.js",
+    "public/blog/posts.js",
+    "public/fly/three.core.js",
+    "public/framework/ai/AIDashboard/DashBig.js"
+   ],
+   "n_files": 497
+  },
+  "contains": {
+   "cls": "Item",
+   "calls": 141,
+   "keys": 8,
+   "files": [
+    "public/blog/Post.js",
+    "public/framework/ai/AITask/asks.js",
+    "public/framework/ai/AITask/conversation.js",
+    "public/framework/ai/AITask/feed.js",
+    "public/framework/ai/AITask/replay.js",
+    "public/framework/ai/rail/live.js"
+   ],
+   "n_files": 80
+  },
+  "delete": {
+   "cls": "Item",
+   "calls": 356,
+   "keys": 19,
+   "files": [
+    "public/fly/three.core.js",
+    "public/fly/three.js",
+    "public/framework/ai/AISession/AISession.js",
+    "public/framework/ai/AISession/AISessionBuckets.js",
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/ai/AISession/AISessionIndex.mjs"
+   ],
+   "n_files": 187
+  },
+  "toJSON": {
+   "cls": "Item",
+   "calls": 115,
+   "keys": 1,
+   "files": [
+    "public/fly/three.core.js",
+    "public/framework/ai/AISession/AISessionDigest.mjs",
+    "public/framework/core/Item/Item.methods.js",
+    "public/framework/core/Item/page.js",
+    "public/framework/core/Item/persistence.test.mjs",
+    "public/framework/core/Item/Snapshot.js"
+   ],
+   "n_files": 19
+  },
+  "wire": {
+   "cls": "Item",
+   "calls": 11,
+   "keys": 16,
+   "files": [
+    "public/framework/ai/cards/real.js",
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/Session/Chat/PromptItem.js",
+    "public/framework/ext/Chat/v3/ChatV3.js",
+    "public/framework/ext/editor/page.js",
+    "public/framework/ux/Content/Decision/Decision.js"
+   ],
+   "n_files": 8
+  },
+  "snapshot_unsafe": {
+   "cls": "Item",
+   "calls": 0,
+   "keys": 0,
+   "files": [],
+   "n_files": 0
+  },
+  "on": {
+   "cls": "(Events mixin)",
+   "calls": 1108,
+   "keys": 229,
+   "files": [
+    "public/alex/framework/core/Page/Page.js",
+    "public/alex/framework/view/page.js",
+    "public/alex/styles/html/page.js",
+    "public/arya/framework/view/page.js",
+    "public/arya/notes/page.js",
+    "public/arya/styles/forms/page.js"
+   ],
+   "n_files": 472
+  },
+  "off": {
+   "cls": "(Events mixin)",
+   "calls": 41,
+   "keys": 92,
+   "files": [
+    "public/framework/ai/AISession/AISessionDetail.js",
+    "public/framework/audio/Recite/ReciteBar.js",
+    "public/framework/core/Events/Events.js",
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/Item/RefView.js",
+    "public/framework/core/Item/replay/CounterExample.js"
+   ],
+   "n_files": 27
+  },
+  "emit": {
+   "cls": "(Events mixin)",
+   "calls": 135,
+   "keys": 0,
+   "files": [
+    "public/framework/core/Events/Events.js",
+    "public/framework/core/Item/Item.js",
+    "public/framework/core/Item/Outbox.js",
+    "public/framework/core/Item/Ref.js",
+    "public/framework/core/List/List.js",
+    "public/framework/core/Page/Page.class.js"
+   ],
+   "n_files": 42
+  },
+  "once": {
+   "cls": "(Events mixin)",
+   "calls": 26,
+   "keys": 1,
+   "files": [
+    "public/framework/core/Plugin/Plugin.test.mjs",
+    "public/framework/ext/Ask/reply.js",
+    "Servex/Crumbs.js",
+    "Servex/gate.mjs",
+    "Servex/Lifecycle.js",
+    "Servex/Pool.js"
+   ],
+   "n_files": 16
+  },
+  "clear": {
+   "cls": "(Events mixin)",
+   "calls": 125,
+   "keys": 36,
+   "files": [
+    "public/fly/GLTFLoader.js",
+    "public/fly/three.core.js",
+    "public/fly/three.js",
+    "public/framework/ai/AISession/AISessionsPage.js",
+    "public/framework/ai/AITask/dashboard.js",
+    "public/framework/ai/cards/card.js"
+   ],
+   "n_files": 70
+  }
+ }
+}
