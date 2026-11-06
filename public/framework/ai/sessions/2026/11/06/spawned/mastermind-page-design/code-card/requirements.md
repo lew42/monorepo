@@ -21,7 +21,7 @@ You may edit: `public/live/LiveCode.js`, `LiveCode.test.mjs`, `public/live/LiveP
 
 ## Rules
 
-- `take_worktree` (retry once if it times out). Commit by exact path after each working step (`public/live/` is gitignored: `git add -f`). Never kill or restart the dev server or Servex, never drive the owner's tabs, never `git stash`.
+- Your worktree: `C:/Code/lew42/worktrees/pd-code-card` (branch `worktree/pd-code-card`, url `http://127.0.0.1:53343`). Commit by exact path after each working step (`public/live/` is gitignored: `git add -f`). Never kill or restart the dev server or Servex, never drive the owner's tabs, never `git stash`.
 - Playwright: `import("file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs")`; scratch in `$LOCALAPPDATA/Temp/`.
 - `node --check` every file; run the test and `node Server/smoke.mjs` before you report. No console errors on `/live/` and the demo page.
 - Proof table in `proof.md` here; report one screen: what changed, shots' paths, commits.
