@@ -33,7 +33,8 @@
 	.live-ms { font-size: .7em; opacity: .55; font-variant-numeric: tabular-nums; white-space: nowrap; }
 	.live-version { flex: none; width: auto; font: inherit; font-size: .75em; color: inherit; background: var(--live-card); border: 1px solid light-dark(#0002, #fff3); border-radius: .4em; padding: .15em .3em; }
 	.live-sub, .live-foot-text { opacity: .8; }
-	.live-sub.live-focus { opacity: 1; }   /* a card opened as a page: its text is the page, not a note under the title */
+	.live-focus { display: flex; flex-direction: column; gap: var(--live-step); }
+	.live-focus .live-sub { opacity: 1; }   /* a card opened as a page: its text is the page, not a note under the title */
 
 	/* The light: a dot, gray when off, green and glowing when on. */
 	.live-dot { width: .8em; height: .8em; border-radius: 50%; flex: none; background: light-dark(#c9ccd2, #3a3940); transition: background .15s, box-shadow .15s; }
@@ -51,15 +52,26 @@
 		background: var(--live-card); color: var(--live-ink); border-radius: .6rem; padding: 1rem;
 		box-shadow: 0 1px 2px light-dark(#0002, #0006);
 		display: flex; align-items: center; gap: .75rem; min-width: 0; overflow-wrap: anywhere;
-		text-decoration: none; cursor: pointer; transition: transform .1s, box-shadow .1s;
+		position: relative; cursor: pointer; transition: transform .1s, box-shadow .1s;
 	}
 	.live-card:hover { box-shadow: 0 2px 8px light-dark(#0003, #0008); }
-	.live-card:active { transform: scale(.98); }
-	.live-link-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--live-step); }
+	.live-card:has(.live-card-go:active) { transform: scale(.98); }
+	.live-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--live-step); }
+	/* The whole card is one link: the chevron's ::after covers the card. A mention or a button inside sits above it, so
+	   it is tapped on its own (a link inside a link is not allowed in HTML, so the card is a div). */
+	.live-card-go { flex: none; font-size: 1.6em; line-height: 1; opacity: .4; color: inherit; text-decoration: none; }
+	.live-card-go::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+	.live-card :is(a:not(.live-card-go), button, input, select, label) { position: relative; z-index: 1; }
+	/* A card's buttons: one row inside it, auto widths. */
+	.live-children { display: flex; flex-direction: column; gap: var(--live-step); }
+	.live-buttons { display: flex; flex-wrap: wrap; gap: .6rem; padding-top: .25em; }
+	:is(.live-children, .live-buttons).is-empty { display: none; }
+	/* A card whose title is one mention ("@Page") is that thing's card: its icon and name, a little larger. */
+	.live-entity .live-card-title .mention { font-size: 1.1em; font-weight: 600; }
+	.live-entity .live-card-title .mention .item-icon { font-size: 1.3em; }
 	.live-inside { font-size: .75em; opacity: .55; }
 	.live-inside.is-empty { display: none; }
-	.live-link .live-card-text { font-weight: 400; opacity: .8; }
-	.live-link-go { flex: none; font-size: 1.6em; line-height: 1; opacity: .4; }
+	.live-card .live-card-text { font-weight: 400; opacity: .8; }
 	.live-foot-screens, .live-foot-pages { display: flex; flex-wrap: wrap; gap: .4rem 1rem; }
 	:is(.live-foot-screens, .live-foot-pages) a { color: inherit; }
 	:is(.live-foot-screens, .live-foot-pages, .live-foot-removed).is-empty { display: none; }

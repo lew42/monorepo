@@ -21,7 +21,7 @@ const { default: md } = typeof document === "undefined" ? { default: () => {} } 
  * The page IS page.jsonl: line 1 names this class, every later line is one set(). A data key is state (header, footer),
  * a key naming a method calls it (flash, alert, save, restore). The cards are the page's own `content` List.
  * What can be tapped is a card (a `part-link` to a sub-page: a LivePage of its own, made with pages.add); everything
- * else draws with no frame. A sub-page or a saved screen shows a back link instead of the version dropdown. */
+ * else draws with no frame. A sub-page or a saved screen shows a breadcrumb instead of the version dropdown. */
 export default class LivePage extends Page {
 
 	// The content types with a View of their own (each registered under its type: live-checklist, live-light, live-button).
@@ -109,7 +109,7 @@ export default class LivePage extends Page {
 	can_press(method){
 		for (let C = this.constructor; C && C !== Page; C = Object.getPrototypeOf(C))
 			if (typeof method === "string" && Object.hasOwn(C.prototype, method) && typeof C.prototype[method] === "function")
-				return !/^(constructor|render|route|listen|replaying|on_screen|can_press|voice_at|paint_voice|link_url|draw_.*)$/.test(method);   // the machinery is not a button
+				return !/^(constructor|render|route|listen|replaying|on_screen|can_press|voice_at|paint_voice|link_url)$/.test(method);   // the machinery is not a button
 		return false;
 	}
 
@@ -168,101 +168,25 @@ export default class LivePage extends Page {
 	}
 
 	// ════ DRAWING ═══
+	// In the house View style (core/View/readme.md): each part is a class with a render(), and its CSS class comes from its
+	// name (LiveHeadView draws div.live-head). They are static parts, so a subclass of LivePage can swap one
+	// (this.constructor.Card). Every title and text goes through markdown and mentions, scrubbed (md(text, { safe: true })):
+	// "@Page" is an icon link, and no script runs.
 	render(){
 		LivePage.shown = this;
 		if (this.view) return this.view;
+		const P = this.constructor;
 		this.view = div.c("page live-page", () => {
 			this.$alerts = div.c("live-alerts");
-			this.draw_head();
-			this.draw_cards();
-			this.draw_foot();
+			new P.Head({ page: this });
+			if (this.focus) new P.Focus({ page: this, item: this.focus });
+			new P.Main({ page: this, list: this.cards });
+			new P.Foot({ page: this });
 		});
 		this.listen();
 		this.paint_voice();
 		Page.views.set(this.view.el, this);
 		return this.view;
-	}
-
-	// The voice light, the title, the last line's delay, and the version dropdown (on /live/) or a back link (below it).
-	draw_head(){
-		div.c("live-head", () => {
-			if (!this.is_top) this.draw_crumbs();
-			div.c("live-head-row", () => {
-				this.$dot = span.c("live-dot");
-				h1.c("live-title").bind(this.focus ?? this, "title", function(t){ this.text(t ?? "Live"); });
-				this.$ms = span.c("live-ms");
-				if (this.is_top) select.c("live-version", () => {
-					this.constructor.versions.forEach(v => option(v.label).attr("value", v.url));
-				}).attr("aria-label", "Version").on("change", e => { location.href = e.target.value; });
-			});
-			div.c("live-sub").bind(this, "header", function(text){ this.tc("is-empty", !text).empty(() => { if (text) md(String(text)); }); });
-		});
-	}
-
-	// Where this page sits, every step a link: Live › design › foo (the folder names of the url, from /live/ down).
-	draw_crumbs(){
-		const parts = String(this.url ?? "/live/").split("/").filter(Boolean);
-		div.c("live-crumbs", () => parts.forEach((name, i) => {
-			if (i) span.c("live-crumb-sep", "›");
-			const $a = a.c("live-crumb", i ? name : "Live").href("/" + parts.slice(0, i + 1).join("/") + "/");
-			if (i === parts.length - 1) $a.attr("aria-current", "page");
-		})).attr("aria-label", "Where you are");
-	}
-
-	// The cards, kept in step by DefaultView.place (only the changed ones redraw). A card opened as a page shows itself
-	// first (its text, or its own View), then its own cards.
-	draw_cards(){
-		if (this.focus) this.draw_focus();
-		const $main = div.c("live-main");
-		const drawn = new Map(), list = this.cards;
-		const draw = () => {
-			const members = list.items.filter(i => !i.transient);   // a transient item is the page's own code, never a card
-			DefaultView.place($main.el, members, drawn, item => this.draw_card(item));
-			$main.tc("is-empty", !members.length);
-		};
-		["add", "remove", "move", "order", "clear"].forEach(verb => list.on(verb, draw));
-		draw();
-	}
-
-	// The card this page is: its text (the title is the page's), or a class's own View (a Task, a checklist…).
-	draw_focus(){
-		const item = this.focus, Own = item.constructor.View;
-		if (Own && Own !== Item.View && !PART_TYPES.includes(item.wire?.())) return div.c("live-block live-focus", () => { new Own({ item, subject: item }); }).attr("data-kind", item.constructor.name);
-		div.c("live-sub live-focus").bind(item, "text", function(t){ this.tc("is-empty", !t).empty(() => { if (t) md(String(t)); }); });
-	}
-
-	// A card (part-card) and a link to a sub-page are framed and open a page: a card opens /live/<id>/ (every card is a
-	// page, LiveContent.js), a link its folder. Text, headings and the classes with their own View draw with no frame. Title and text are bound, so an edit
-	// ({"content": {"<id>": {"text": "…"}}}) redraws only that one. (Made while another view may capture; place() moves it.)
-	draw_card(item){
-		const kind = item.constructor.name;
-		if (item instanceof PageLink) return a.c("live-card live-link", () => {
-			div.c("live-link-body", () => this.draw_words(item));
-			span.c("live-link-go", "›");
-		}).attr("href", this.link_url(item.get("path"))).attr("id", item.id).attr("data-kind", kind);
-		if (item.wire?.() === "part-card") return a.c("live-card live-link", () => {
-			div.c("live-link-body", () => { this.draw_words(item); this.draw_inside(item); });
-			span.c("live-link-go", "›");
-		}).attr("href", this.url + item.id + "/").attr("id", item.id).attr("data-kind", kind);
-		// A class with its own View (live-checklist, a Task…) draws with it; the part-* text cards draw as words, frameless.
-		const Own = item.constructor.View;
-		if (this.constructor.kinds.has(item.constructor) || (Own && Own !== Item.View && !PART_TYPES.includes(item.wire?.())))
-			return div.c("live-block", () => { new Own({ item, subject: item }); }).attr("id", item.id).attr("data-kind", kind);
-		return div.c("live-block", () => this.draw_words(item)).attr("id", item.id).attr("data-kind", kind);
-	}
-
-	// "3 inside" under a card that holds cards of its own.
-	draw_inside(item){
-		const list = item.content, $n = span.c("live-inside");
-		if (!list?.on) return;
-		const count = () => $n.tc("is-empty", !list.length).text(`${list.length} inside`);
-		["add", "remove", "clear"].forEach(verb => list.on(verb, count));
-		count();
-	}
-
-	draw_words(item){
-		h4.c("live-card-title").bind(item, "title", function(t){ this.tc("is-empty", !t).text(t ?? ""); });
-		div.c("live-card-text").bind(item, "text", function(t){ this.empty(() => { if (t) md(String(t)); }); });
 	}
 
 	// A link's path ("./plan/" or "plan/") against the url of the page its card was written on: this page, or for a saved
@@ -272,33 +196,169 @@ export default class LivePage extends Page {
 		return new URL(String(path ?? ""), location.origin + base).pathname;
 	}
 
-	// `footer` (a line of text) when set; on /live/ and its sub-pages, the saved screens and the removed cards; on /live/ itself, the old views.
-	draw_foot(){
-		div.c("live-foot", () => {
-			div.c("live-foot-text").bind(this, "footer", function(text){ this.tc("is-empty", !text).empty(() => { if (text) md(String(text)); }); });
-			if (this.screen || this.focus) return;   // a saved screen or one opened card has no screens of its own
+	// A title, in markdown with mentions, kept in step with the item: new LivePage.Heading({ tag: "h4", item }).
+	// `only` is the url when the whole title is one mention ("@Page"), so a card can become that thing's card.
+	static Heading = class LiveHeadingView extends View {
+		render(){
+			this.bind(this.item, this.key ?? "title", function(t){
+				t ??= this.fallback;
+				this.tc("is-empty", !t).empty();
+				if (t) this.md(String(t), { safe: true });
+				const one = this.el.children.length === 1 && this.el.firstElementChild.matches("a.mention") ? this.el.firstElementChild : null;
+				this.only = one && one.textContent.trim() === this.el.textContent.trim() ? one.getAttribute("href") : null;
+				this.on_text?.();
+			});
+		}
+	};
+
+	// A text in markdown with mentions, kept in step with one key of an item: new LivePage.Md({ item, key: "text" }).
+	static Md = class LiveMdView extends View {
+		render(){
+			this.bind(this.item, this.key, function(t){
+				const has = t != null && t !== "";
+				this.tc("is-empty", !has).empty(() => { if (has) md(String(t), { safe: true }); });
+			});
+		}
+	};
+
+	// The voice light, the title, the last line's delay, the version dropdown (on /live/) or the breadcrumb (below it).
+	static Head = class LiveHeadView extends View {
+		render(){
+			const { page } = this, P = page.constructor;
+			if (!page.is_top) new P.Crumbs({ page });
+			div.c("live-head-row", () => {
+				page.$dot = span.c("live-dot");
+				new P.Heading({ tag: "h1", item: page.focus ?? page, fallback: "Live", classes: "live-title" });
+				page.$ms = span.c("live-ms");
+				if (page.is_top) select.c("live-version", () => {
+					P.versions.forEach(v => option(v.label).attr("value", v.url));
+				}).attr("aria-label", "Version").on("change", e => { location.href = e.target.value; });
+			});
+			new P.Md({ item: page, key: "header", classes: "live-sub" });
+		}
+	};
+
+	// Where this page sits, every step a link: Live › design › foo (the folder names of the url, from /live/ down).
+	static Crumbs = class LiveCrumbsView extends View {
+		render(){
+			const parts = String(this.page.url ?? "/live/").split("/").filter(Boolean);
+			this.attr("aria-label", "Where you are");
+			parts.forEach((name, i) => {
+				if (i) span.c("live-crumb-sep", "›");
+				const $a = a.c("live-crumb", i ? name : "Live").href("/" + parts.slice(0, i + 1).join("/") + "/");
+				if (i === parts.length - 1) $a.attr("aria-current", "page");
+			});
+		}
+	};
+
+	// The card this page is (a card opened by itself): its text (the title is the page's), or a class's own View.
+	static Focus = class LiveFocusView extends View {
+		render(){
+			const { item } = this, Own = item.constructor.View;
+			this.attr("data-kind", item.constructor.name);
+			if (Own && Own !== Item.View && !PART_TYPES.includes(item.wire?.())) return void new Own({ item, subject: item });
+			new this.page.constructor.Md({ item, key: "text", classes: "live-sub" });
+		}
+	};
+
+	// The cards, kept in step by DefaultView.place (only the changed ones redraw): a Card for what opens a page, a Block
+	// for everything else.
+	static Main = class LiveMainView extends View {
+		render(){
+			const { page, list } = this, P = page.constructor, drawn = new Map();
+			const card = item => item instanceof PageLink || item.wire?.() === "part-card";
+			const draw = () => {
+				const members = list.items.filter(i => !i.transient);   // a transient item is the page's own code, never a card
+				DefaultView.place(this.el, members, drawn, item => new (card(item) ? P.Card : P.Block)({ page, item }));
+				this.tc("is-empty", !members.length);
+			};
+			["add", "remove", "move", "order", "clear"].forEach(verb => list.on(verb, draw));
+			draw();
+		}
+	};
+
+	// What cannot be tapped draws with no frame: a class with its own View (a checklist, a Task, a button) draws with it;
+	// a text or a heading draws its title and text.
+	static Block = class LiveBlockView extends View {
+		render(){
+			const { page, item } = this, P = page.constructor, Own = item.constructor.View;
+			this.attr("id", item.id).attr("data-kind", item.constructor.name);
+			if (P.kinds.has(item.constructor) || (Own && Own !== Item.View && !PART_TYPES.includes(item.wire?.())))
+				return void new Own({ item, subject: item });
+			new P.Heading({ tag: "h4", item, classes: "live-card-title" });
+			new P.Md({ item, key: "text", classes: "live-card-text" });
+		}
+	};
+
+	// A card (part-card) or a link to a sub-page: framed, and the whole card is a link (the chevron, stretched over it).
+	// A card opens /live/<id>/ (every card is a page, LiveContent.js), a link its folder, and a card whose title is one
+	// mention ("@Page") opens that thing. Its buttons sit inside it, in one row (Children); a mention or a button
+	// inside stays tappable on its own.
+	static Card = class LiveCardView extends View {
+		render(){
+			const { page, item } = this, P = page.constructor;
+			const own = item instanceof PageLink ? page.link_url(item.get("path")) : page.url + item.id + "/";
+			let $title;
+			const go = () => {
+				this.tc("live-entity", !!$title?.only);
+				this.$go?.attr("href", $title?.only ?? own).attr("aria-label", String(item.get("title") ?? item.id));
+			};
+			this.attr("id", item.id).attr("data-kind", item.constructor.name);
+			div.c("live-card-body", () => {
+				$title = new P.Heading({ tag: "h4", item, classes: "live-card-title", on_text: go });
+				new P.Md({ item, key: "text", classes: "live-card-text" });
+				if (!(item instanceof PageLink)) new P.Children({ list: item.content });
+			});
+			this.$go = a.c("live-card-go", "›");
+			go();
+		}
+	};
+
+	// What a card holds, shown on the card: its buttons in one row, and "3 inside" for the rest (they show on its page).
+	static Children = class LiveChildrenView extends View {
+		render(){
+			const { list } = this;
+			if (!list?.on) return;
+			const $row = div.c("live-buttons"), $n = span.c("live-inside");
+			const draw = () => {
+				const kids = list.items.filter(x => !x.transient), buttons = kids.filter(x => x instanceof LiveButton), rest = kids.length - buttons.length;
+				$row.tc("is-empty", !buttons.length).empty(() => buttons.forEach(b => new LiveButton.View({ item: b, subject: b })));
+				$n.tc("is-empty", !rest).text(`${rest} inside`);
+				this.tc("is-empty", !kids.length);
+			};
+			["add", "remove", "move", "order", "clear"].forEach(verb => list.on(verb, draw));
+			draw();
+		}
+	};
+
+	// `footer` (a line of text) when set; on /live/ and its sub-pages, every child page, the saved screens and the removed
+	// cards; on /live/ itself, the old views.
+	static Foot = class LiveFootView extends View {
+		render(){
+			const { page } = this, P = page.constructor;
+			new P.Md({ item: page, key: "footer", classes: "live-foot-text" });
+			if (page.screen || page.focus) return;   // a saved screen or one opened card has no screens of its own
 			const $pages = div.c("live-foot-pages is-empty");
-			Page.listing(this.url).then(listing => {   // every child folder, so no page under /live/ is ever unlinked
+			Page.listing(page.url).then(listing => {   // every child folder, so no page under /live/ is ever unlinked
 				const names = [...listing?.pages.keys() ?? []].sort();
-				$pages.tc("is-empty", !names.length).empty(() => { span("Pages here:"); names.forEach(n => { a(n).href(this.url + n + "/"); }); });
+				$pages.tc("is-empty", !names.length).empty(() => { span("Pages here:"); names.forEach(n => { a(n).href(page.url + n + "/"); }); });
 			}).catch(() => {});
 			const $screens = div.c("live-foot-screens");
-			const draw = () => $screens.tc("is-empty", !this.screens.length).empty(() => {
+			const draw = () => $screens.tc("is-empty", !page.screens.length).empty(() => {
 				span("Saved screens:");
-				this.screens.forEach(s => { a(s.get("title") ?? s.id).href(this.url + s.id + "/"); });
+				page.screens.forEach(s => { a(s.get("title") ?? s.id).href(page.url + s.id + "/"); });
 			});
-			["add", "remove"].forEach(verb => this.screens.on(verb, draw));
+			["add", "remove"].forEach(verb => page.screens.on(verb, draw));
 			draw();
-			const $removed = a.c("live-foot-removed").href(this.url + "removed/");
-			const count = () => $removed.tc("is-empty", !this.removed.length).text(`Removed cards (${this.removed.length})`).attr("title", "Every card taken off this screen (removed or cleared) is kept here; {\"restore\": \"<id>\"} brings one back");
-			[this.content, this.screens].forEach(list => ["remove", "clear", "move"].forEach(verb => list.on(verb, () => queueMicrotask(count))));   // after the card reached removed
+			const $removed = a.c("live-foot-removed").href(page.url + "removed/");
+			const count = () => $removed.tc("is-empty", !page.removed.length).text(`Removed cards (${page.removed.length})`).attr("title", "Every card taken off this screen (removed or cleared) is kept here; {\"restore\": \"<id>\"} brings one back");
+			[page.content, page.screens].forEach(list => ["remove", "clear", "move"].forEach(verb => list.on(verb, () => queueMicrotask(count))));   // after the card reached removed
 			count();
-			if (this.is_top) div.c("live-foot-links", () => {
+			if (page.is_top) div.c("live-foot-links", () => {
 				a("Sessions").href("/live/sessions/");
 				a("Archive").href("/live/archive/");
 				a("v1").href("/live/v1/");
 			});
-		});
-	}
+		}
+	};
 }
-Item.register(LivePage, "LivePage");

@@ -2,7 +2,7 @@
 
 Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the phone (with the site key). It is `class LivePage extends Page` ([LivePage.js](LivePage.js)), built from [page.jsonl](page.jsonl): line 1 names the class (`"class":"./LivePage.js"`), and every later line is one `set()`. Voice Claude writes with the Servex `item` tool, `item({path: "/live/", delta})`. The tool appends one line, the dev server streams it, and every open tab applies it with no reload. Measured: 7–17 ms on the PC (`probe.mjs` in the [task folder](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/)), 82 ms over the tunnel.
 
-**What you see:** a header (a light that is on while voice is driving, the title, the last line's delay, a version dropdown on /live/ itself, a breadcrumb "Live › lab › foo" below it), the content, and a footer (every child page, saved screens, removed cards). A **card** (`part-card`, or a `part-link` to a sub-page) is framed and opens a page when tapped; text, headings, checklists, lights and buttons draw with **no frame**. Buttons side by side sit in one row. Spacing is one rhythm in [LivePage.css](LivePage.css) (`--live-gap` between things, `--live-step` inside one): no card sets its own. Light and dark follow the phone. The old page is kept at [/live/v1/](/live/v1/) ([v1/readme.md](v1/readme.md)).
+**What you see:** a header (a light that is on while voice is driving, the title, the last line's delay, a version dropdown on /live/ itself, a breadcrumb "Live › lab › foo" below it), the content, and a footer (every child page, saved screens, removed cards). A **card** (`part-card`, or a `part-link` to a sub-page) is framed and opens a page when tapped; text, headings, checklists, lights and buttons draw with **no frame**. Buttons side by side sit in one row, and a card's own buttons sit inside it. Every title and text is markdown with mentions (`@Page`, `#Task`, `/live/lab/` become icon links), scrubbed so no script runs; a card whose title is only a mention (`"title":"@Page"`) is that thing's card and opens it. Spacing is one rhythm in [LivePage.css](LivePage.css) (`--live-gap` between things, `--live-step` inside one): no card sets its own. Light and dark follow the phone. The old page is kept at [/live/v1/](/live/v1/) ([v1/readme.md](v1/readme.md)).
 
 ## Showing things
 
@@ -19,6 +19,8 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
 | a status light | `{"content":{"add":{"type":"live-light","id":"build","label":"Build","on":true,"color":"green"}}}`, then `{"content":{"build":{"color":"red"}}}` |
 | a checklist | `{"content":{"add":{"type":"live-checklist","id":"today","title":"Today","items":[{"id":"milk","text":"Buy milk"}]}}}`; tick `{"content":{"today":{"items":{"milk":{"done":true}}}}}`; flip `{"content":{"today":{"check":"milk"}}}`; add `{"content":{"today":{"items":{"add":{"id":"tea","text":"Tea"}}}}}` |
 | a button | `{"content":{"add":{"type":"live-button","id":"b1","label":"Flash red","method":"flash","args":"red"}}}`; press `{"content":{"b1":{"press":{}}}}` |
+| buttons inside a card | add them to the card's own list: `{"content":{"<card>":{"content":{"add":{"type":"live-button","id":"yes","label":"Yes","method":"alert","args":"Yes"}}}}}` (or write to `/live/<card>/` with the plain `content.add`). They draw in one row on the card; tapping one presses it, tapping elsewhere opens the card |
+| a card for a thing on the site | `{"content":{"add":{"type":"part-card","id":"pg","title":"@Page"}}}`: its icon and name, and a tap opens it (ext/Mention) |
 
 ## Going into a thing: sub-pages
 
@@ -54,7 +56,7 @@ Saved screens live inside `/live/page.jsonl` (`LivePage.screens`, a List of [Liv
 
 ## Files
 
-- [LivePage.js](LivePage.js): the page, its methods, and how it draws. [LivePage.css](LivePage.css): the floor, blocks and cards, light and dark.
+- [LivePage.js](LivePage.js): the page, its methods, and how it draws: View classes in the house style (core/View), as static parts a subclass can swap: `Head`, `Crumbs`, `Focus`, `Main`, `Card`, `Block`, `Children` (a card's buttons), `Heading` and `Md` (markdown with mentions, `{ safe: true }`), `Foot`. Each takes `{page, item}` (or `{page, list}`); its CSS class comes from its name (`LiveCardView` draws `.live-card`). [DesignPage](design/DesignPage.js) extends `Card` and `Block`, so keep those names and args. [LivePage.css](LivePage.css): the floor, blocks and cards, light and dark.
 - [LiveLight.js](LiveLight.js), [LiveChecklist.js](LiveChecklist.js), [LiveButton.js](LiveButton.js), [LiveScreen.js](LiveScreen.js): one type each, `class … extends Item`, registered as `live-light`, `live-checklist`, `live-button`, `live-screen`.
 - [page.jsonl](page.jsonl): the log. Write it only through the item tool (or the page tools), never by hand.
 - [sessions/](sessions/) and [archive/](archive/): the old views of past screens, which read v1's log. [doc/](doc/): v1's notes.

@@ -18,6 +18,7 @@ md.file(import.meta, "readme.md");      // a promise of a div.md — View.append
 - A relative link in a fetched `.md` is rewritten against **the file**; but a link between two of this module's own `doc/*.md` must be absolute — a `doc/`-shaped url is not a route. [`doc/relative-links.md`](./doc/relative-links.md)
 - Every link to a `.md` is rewritten to its rendered page (`doc/flow.md` → `<module>/md/doc/flow/`); `x.md?raw` keeps the file. Where it opens is the page's choice: [/framework/ext/markdown/open/](/framework/ext/markdown/open/). [`/framework/core/Page/doc/markdown.md`](/framework/core/Page/doc/markdown.md)
 - Renders via `html_unsafe()` on purpose — Safari has no `setHTML()`, and the content is repo-authored. [`doc/sanitization.md`](./doc/sanitization.md)
+- Text NOT from the repo (an agent or a phone writing live, as on `/live/`) passes `{ safe: true }`: `md(text, { safe: true })` / `view.md(text, { safe: true })` parse in an inert `<template>` and drop scripts, frames, forms, `on*` attributes and `javascript:` links first (`md.scrub`).
 - `md.c()` has no caller and `marked` is re-exported to nobody — recorded, not acted on. [`doc/proposed.md`](./doc/proposed.md)
 
 ## More
