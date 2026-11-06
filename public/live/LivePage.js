@@ -1,6 +1,9 @@
 import { Page, View, div, span, a, h1, h4, select, option, md } from "/app.js";
 import Item from "/framework/core/Item/Item.js";
 import DefaultView from "/framework/ux/Content/Object/DefaultView.js";
+import LiveChecklist from "./LiveChecklist.js";
+import LiveLight from "./LiveLight.js";
+import LiveButton from "./LiveButton.js";
 
 View.stylesheet(import.meta, "LivePage.css");
 
@@ -11,6 +14,10 @@ View.stylesheet(import.meta, "LivePage.css");
  * To add a test method: write it below, reload /live/, send {"<name>": <argument>}. readme.md lists the deltas. */
 export default class LivePage extends Page {
 
+	// The content types with a View of their own (each registered under its type: live-checklist, live-light, live-button).
+	// Any other item (part-card, part-text, part-heading) is drawn as a title and markdown text.
+	static kinds = new Set([LiveChecklist, LiveLight, LiveButton]);
+
 	// The version dropdown: the newest first, and the default.
 	static versions = [
 		{ label: "v2", url: "/live/" },
@@ -20,8 +27,11 @@ export default class LivePage extends Page {
 	// ════ METHODS A DELTA CAN CALL ═══
 	// An effect runs only for a line that arrives while the page is open; a reload replays the log without re-running it.
 
-	// {"toggle": {}} — turn the light the other way (saved, like {"light": true}).
-	toggle(){ this.set({ light: !this.get("light") }); }
+	// {"toggle": {}} — turn the light the other way (saved, like {"light": true}); a coloured light keeps its colour.
+	toggle(){
+		const v = this.get("light");
+		this.set({ light: v && typeof v === "object" ? { ...v, on: !v.on } : !v });
+	}
 
 	// {"flash": {}} or {"flash": "red"} — the screen blinks once.
 	flash(color){
@@ -41,6 +51,13 @@ export default class LivePage extends Page {
 		this.$alerts.el.append($note.el);
 		setTimeout(() => $note.ac("is-gone"), 4000);
 		setTimeout(() => $note.el.remove(), 4600);
+	}
+
+	// May a button card run `method`? Only a method this page class (or a subclass) defines itself, never one of Page's.
+	can_press(method){
+		for (let C = this.constructor; C && C !== Page; C = Object.getPrototypeOf(C))
+			if (typeof method === "string" && Object.hasOwn(C.prototype, method) && typeof C.prototype[method] === "function") return !/^(constructor|render|listen|replaying|can_press|draw_.*)$/.test(method);   // the drawing machinery is not a button
+		return false;
 	}
 
 	// True while a line is being replayed (opening the page), false for a line another writer just saved.
@@ -74,7 +91,7 @@ export default class LivePage extends Page {
 	draw_head(){
 		div.c("live-head", () => {
 			div.c("live-head-row", () => {
-				span.c("live-light").bind(this, "light", function(on){ this.tc("is-on", !!on).attr("title", on ? "Light on" : "Light off"); });
+				span.c("live-dot").bind(this, "light", function(v){ LiveLight.paint(this, v); });   // true / false, or {on, color}
 				h1.c("live-title").bind(this, "title", function(t){ this.text(t ?? "Live"); });
 				this.$ms = span.c("live-ms");
 				select.c("live-version", () => {
@@ -101,6 +118,8 @@ export default class LivePage extends Page {
 	// One card: its title and text are bound, so {"content": {"<id>": {"text": "…"}}} redraws only that card.
 	// (Made while some other view may be capturing; place() moves it into the cards box either way.)
 	draw_card(item){
+		if (this.constructor.kinds.has(item.constructor))
+			return div.c("live-card", () => { new item.constructor.View({ item }); }).attr("id", item.id).attr("data-kind", item.constructor.name);
 		return div.c("live-card", () => {
 			h4.c("live-card-title").bind(item, "title", function(t){ this.tc("is-empty", !t).text(t ?? ""); });
 			div.c("live-card-text").bind(item, "text", function(t){ this.empty(() => { if (t) md(String(t)); }); });

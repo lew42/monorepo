@@ -28,8 +28,8 @@
 	.live-sub > *, .live-foot-text > * { margin: 0; }
 
 	/* The light: a dot, gray when off, green and glowing when on. */
-	.live-light { width: .8em; height: .8em; border-radius: 50%; flex: none; background: light-dark(#c9ccd2, #3a3940); transition: background .15s, box-shadow .15s; }
-	.live-light.is-on { background: #22c55e; box-shadow: 0 0 .6em #22c55e; }
+	.live-dot { width: .8em; height: .8em; border-radius: 50%; flex: none; background: light-dark(#c9ccd2, #3a3940); transition: background .15s, box-shadow .15s; }
+	.live-dot.is-on { background: var(--live-light, #22c55e); box-shadow: 0 0 .6em var(--live-light, #22c55e); }
 
 	.live-main { display: flex; flex-direction: column; gap: 1rem; }
 	.live-main.is-empty::before { content: "Nothing on screen yet."; opacity: .5; text-align: center; padding: 2rem 0; }
@@ -44,6 +44,18 @@
 	.live-card-text pre { overflow-x: auto; }
 	.live-card[data-kind="PageHeading"] .live-card-text { font-weight: 700; font-size: 1.3em; }
 	.is-empty:is(.live-card-title, .live-sub, .live-foot-text) { display: none; }
+
+	/* The content types (LiveLight.js, LiveChecklist.js, LiveButton.js): each draws inside a white card. */
+	.live-light-card { display: flex; align-items: center; gap: .6rem; }
+	.live-light-card .live-dot { width: 1.2em; height: 1.2em; }
+	.live-checklist { display: flex; flex-direction: column; gap: .5rem; }
+	.live-checklist-rows { display: flex; flex-direction: column; gap: .35rem; }
+	.live-check { display: flex; align-items: center; gap: .6rem; cursor: pointer; }
+	.live-check input { width: 1.2em; height: 1.2em; margin: 0; flex: none; accent-color: #22c55e; }
+	.live-check.is-done span { text-decoration: line-through; opacity: .55; }
+	.live-button { font: inherit; align-self: flex-start; padding: .55em 1.1em; border-radius: .5em; border: 0; cursor: pointer; background: var(--prime, #FF6157); color: #1a1a1a; font-weight: 600; }
+	.live-button.is-pressed { animation: live-press .4s ease-out; }
+	@keyframes live-press { from { transform: scale(.94); filter: brightness(1.2); } to { transform: none; filter: none; } }
 
 	.live-foot { display: flex; flex-direction: column; gap: .5rem; margin-top: auto; font-size: .8em; }
 	.live-foot-links { display: flex; gap: 1rem; opacity: .7; }
