@@ -108,9 +108,9 @@ all of it: [`core/Page/settings/`](/framework/core/Page/settings/).
 | the tab came from | it shows |
 |---|---|
 | a child folder, `alpha/page.jsonl` | that page: its content and its files |
-| a `{"tab":{"name":"gamma"}}` line, no folder | nothing yet: an empty page with a title |
+| a `{"tab":{"name":"gamma"}}` line, no folder | its `content`, if the line has one; else an empty page with a title |
 
-**Proposal, not built:** let a `tab` line carry `content`, `{"tab":{"name":"gamma","content":"some words"}}`, so voice can fill a tab without a folder. `Jsonl.js tab()` already reads `content`, but uses it only when the tab's page already exists; the branch that makes a new page drops it. The alternative is for voice to make a real `gamma/page.jsonl`: you get the files for free, but it is heavy for a line of text.
+**This already works** (tested 2026-11-06): a `tab` line can carry `content`, `{"tab":{"name":"gamma","content":"some words"}}`, and the tab shows it with no folder. The new-page branch of `Jsonl.js tab()` hands `content` to `page.add()`, and `PageContent.fill()` draws a string as a plain paragraph (`PageParagraph`, no markdown) or, when it starts with `/`, as that address's page (`PageAddress`). A later `tab` line with `content` replaces the text. For a whole page, make a real `gamma/page.jsonl` instead.
 
 ## Who writes the file lines
 
