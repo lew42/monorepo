@@ -1,0 +1,18 @@
+{"title":"Page features","class":"/live/LivePage.js"}
+{"file":"tabs/page.jsonl"}
+{"file":"columns/page.jsonl"}
+{"file":"place/page.jsonl"}
+{"file":"nav/page.jsonl"}
+{"file":"previews/page.jsonl"}
+{"file":"tabs-page/page.jsonl"}
+{"file":"columns-page/page.jsonl"}
+{"file":"nav-page/page.jsonl"}
+{"file":"place-page/page.jsonl"}
+{"file":"place-fresh/page.jsonl"}
+{"content":{"add":{"id":"oc19qqr5","type":"part-link","path":"./tabs-page/","title":"Tabs — works (plain Page)"}},"by":"minion-page-features","ts":"2026-11-06T21:52:47.931Z"}
+{"content":{"add":{"id":"prjrjsft","type":"part-link","path":"./columns-page/","title":"Columns — broken (navigation word alone does nothing)"}},"by":"minion-page-features","ts":"2026-11-06T21:52:48.919Z"}
+{"content":{"add":{"id":"wnadronw","type":"part-link","path":"./place-fresh/","title":"Place — works (plain Page, no own content)"}},"by":"minion-page-features","ts":"2026-11-06T21:52:49.871Z"}
+{"content":{"add":{"id":"p5939gf0","type":"part-link","path":"./nav-page/","title":"Nav (rail) — works (plain Page)"}},"by":"minion-page-features","ts":"2026-11-06T21:52:50.822Z"}
+{"content":{"add":{"id":"uk9bm36m","type":"part-link","path":"./previews/","title":"Previews — broken (no delta reaches it; crashes replay)"}},"by":"minion-page-features","ts":"2026-11-06T21:52:51.824Z"}
+{"content":{"add":{"id":"j1jdxp9s","type":"part-text","text":"Same five, tried again on a **LivePage** sub-page (the default class under `/live/`): [tabs](./tabs/) · [columns](./columns/) · [place](./place/) · [nav](./nav/) — all four show \"Nothing on screen yet\", because LivePage's own `render()` never builds the parts (`Frame.js`, `draw_folder()`) that make them work. Detail: [doc/page-features.md](/live/doc/page-features.md)."}},"by":"minion-page-features","ts":"2026-11-06T21:52:53.986Z"}
+{"prjrjsft":{"title":"Columns — works (plain Page)"},"by":"mastermind-page-design","ts":"2026-11-06T23:10:29.441Z"}

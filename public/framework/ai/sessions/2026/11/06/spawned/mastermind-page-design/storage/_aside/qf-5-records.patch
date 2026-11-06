@@ -1,0 +1,2950 @@
+diff --git a/public/files.jsonl b/public/files.jsonl
+index f5b470d442..92ed3313ed 100644
+--- a/public/files.jsonl
++++ b/public/files.jsonl
+@@ -141,3 +141,5 @@
+ {"file":"public/","gone":true}
+ {"file":"public/"}
+ {"file":"public/","gone":true}
++{"file":"data/","gone":true}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/10/files.jsonl b/public/framework/ai/2026/10/files.jsonl
+index ca0ffb689f..7cc5bb12a3 100644
+--- a/public/framework/ai/2026/10/files.jsonl
++++ b/public/framework/ai/2026/10/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"22/"}
+ {"file":"22/","gone":true}
+ {"file":"22/"}
++{"file":"22/","gone":true}
+diff --git a/public/framework/ai/AISession/files.jsonl b/public/framework/ai/AISession/files.jsonl
+index 2c35137d85..2d659d1786 100644
+--- a/public/framework/ai/AISession/files.jsonl
++++ b/public/framework/ai/AISession/files.jsonl
+@@ -76,3 +76,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/AITask/files.jsonl b/public/framework/ai/AITask/files.jsonl
+index a48e544e91..0b705b8924 100644
+--- a/public/framework/ai/AITask/files.jsonl
++++ b/public/framework/ai/AITask/files.jsonl
+@@ -60,3 +60,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/audits/paging/files.jsonl b/public/framework/ai/audits/paging/files.jsonl
+index b93dea49f2..054660a937 100644
+--- a/public/framework/ai/audits/paging/files.jsonl
++++ b/public/framework/ai/audits/paging/files.jsonl
+@@ -199,3 +199,12 @@
+ {"file":"shot-library-1920.png"}
+ {"file":"shot-variants-1920.png"}
+ {"file":"shot-variants-type-1920.png"}
++{"file":"cols-after.png","gone":true}
++{"file":"cols-before.png","gone":true}
++{"file":"cols-dragged.png","gone":true}
++{"file":"shot-1920.png","gone":true}
++{"file":"shot-content-1920.png","gone":true}
++{"file":"shot-css-1920.png","gone":true}
++{"file":"shot-library-1920.png","gone":true}
++{"file":"shot-variants-1920.png","gone":true}
++{"file":"shot-variants-type-1920.png","gone":true}
+diff --git a/public/framework/ai/classes/Session/files.jsonl b/public/framework/ai/classes/Session/files.jsonl
+index 487322ff1e..56f0f1e391 100644
+--- a/public/framework/ai/classes/Session/files.jsonl
++++ b/public/framework/ai/classes/Session/files.jsonl
+@@ -10,3 +10,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/dashboard/files.jsonl b/public/framework/ai/dashboard/files.jsonl
+index 09e07678a4..a0c0283981 100644
+--- a/public/framework/ai/dashboard/files.jsonl
++++ b/public/framework/ai/dashboard/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"weight.jsonl"}
+ {"file":"tasks/"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/errors/files.jsonl b/public/framework/ai/errors/files.jsonl
+index f6fa1c12f5..f671f905da 100644
+--- a/public/framework/ai/errors/files.jsonl
++++ b/public/framework/ai/errors/files.jsonl
+@@ -106,3 +106,11 @@
+ {"file":"2026-11-01.jsonl"}
+ {"file":"2026-11-02.jsonl"}
+ {"file":"2026-11-03.jsonl"}
++{"file":"2026-10-09.jsonl","gone":true}
++{"file":"2026-10-21.jsonl","gone":true}
++{"file":"2026-10-25.jsonl","gone":true}
++{"file":"2026-10-26.jsonl","gone":true}
++{"file":"2026-10-28.jsonl","gone":true}
++{"file":"2026-11-01.jsonl","gone":true}
++{"file":"2026-11-02.jsonl","gone":true}
++{"file":"2026-11-03.jsonl","gone":true}
+diff --git a/public/framework/ai/files.jsonl b/public/framework/ai/files.jsonl
+index 5aeb9e4bde..cc19d34c0f 100644
+--- a/public/framework/ai/files.jsonl
++++ b/public/framework/ai/files.jsonl
+@@ -1496,3 +1496,19 @@
+ {"file":"v-s9g6vd1.summary.json"}
+ {"file":"index.json.tmp"}
+ {"file":"index.json.tmp","gone":true}
++{"file":"recordings/","gone":true}
++{"file":"usage.json","gone":true}
++{"file":"openrouter-usage.json","gone":true}
++{"file":"servex-queue.json","gone":true}
++{"file":"tasks.json","gone":true}
++{"file":"v-h999x0j.summary.json","gone":true}
++{"file":"v-s9g6vd1.summary.json","gone":true}
++{"file":"v-omwdzl5.summary.json","gone":true}
++{"file":"page-work.json","gone":true}
++{"file":"screenshots/","gone":true}
++{"file":"v-rs7u4o7.summary.json","gone":true}
++{"file":"state.json","gone":true}
++{"file":"index.jsonl.lock","gone":true}
++{"file":"index.json","gone":true}
++{"file":"index.jsonl","gone":true}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/local/files.jsonl b/public/framework/ai/local/files.jsonl
+index b087ecdc3e..851a0e2099 100644
+--- a/public/framework/ai/local/files.jsonl
++++ b/public/framework/ai/local/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"vram.jsonl"}
+ {"file":"tasks/"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/queue/files.jsonl b/public/framework/ai/queue/files.jsonl
+index 79d4e209a4..b0a5155ab9 100644
+--- a/public/framework/ai/queue/files.jsonl
++++ b/public/framework/ai/queue/files.jsonl
+@@ -63,3 +63,7 @@
+ {"file":"failures.jsonl"}
+ {"file":"processes.json"}
+ {"file":"tasks/"}
++{"file":"done-check.json","gone":true}
++{"file":"dropped.json","gone":true}
++{"file":"failures.jsonl","gone":true}
++{"file":"processes.json","gone":true}
+diff --git a/public/framework/ai/sessions/doc/live/shots/files.jsonl b/public/framework/ai/sessions/doc/live/shots/files.jsonl
+index 7b3d060d00..88679c398a 100644
+--- a/public/framework/ai/sessions/doc/live/shots/files.jsonl
++++ b/public/framework/ai/sessions/doc/live/shots/files.jsonl
+@@ -229,3 +229,14 @@
+ {"file":"one-grid-1920.png"}
+ {"file":"one-grid-3440.png"}
+ {"file":"one-grid-400.png"}
++{"file":"one-grid-1920.png","gone":true}
++{"file":"one-grid-3440.png","gone":true}
++{"file":"one-grid-400.png","gone":true}
++{"file":"after-grid-1200.png","gone":true}
++{"file":"after-grid-1920.png","gone":true}
++{"file":"after-grid-3440.png","gone":true}
++{"file":"after-grid-400.png","gone":true}
++{"file":"before-grid-1200.png","gone":true}
++{"file":"before-grid-1920.png","gone":true}
++{"file":"before-grid-3440.png","gone":true}
++{"file":"before-grid-400.png","gone":true}
+diff --git a/public/framework/ai/sessions/files.jsonl b/public/framework/ai/sessions/files.jsonl
+index d5a682a551..0ef9666d5b 100644
+--- a/public/framework/ai/sessions/files.jsonl
++++ b/public/framework/ai/sessions/files.jsonl
+@@ -30764,3 +30764,17 @@
+ {"file":"spend-tree.json"}
+ {"file":"transcripts/"}
+ {"file":"week.json"}
++{"file":"transcripts/","gone":true}
++{"file":"sessions.json","gone":true}
++{"file":"spend-tree.json","gone":true}
++{"file":"week.json","gone":true}
++{"file":"session-index.json","gone":true}
++{"file":"session-tree.json","gone":true}
++{"file":"openrouter-reconcile.json","gone":true}
++{"file":"openrouter-costs.json","gone":true}
++{"file":"screenshots/","gone":true}
++{"file":"index.jsonl","gone":true}
++{"file":"failures.jsonl","gone":true}
++{"file":"session-folders.json","gone":true}
++{"file":"2020/","gone":true}
++{"file":"session-twins.json","gone":true}
+diff --git a/public/framework/ai/sessions/tasks/code-the-approved-mobile-picks-as-routed/files.jsonl b/public/framework/ai/sessions/tasks/code-the-approved-mobile-picks-as-routed/files.jsonl
+index f216a2f1f0..18787cef62 100644
+--- a/public/framework/ai/sessions/tasks/code-the-approved-mobile-picks-as-routed/files.jsonl
++++ b/public/framework/ai/sessions/tasks/code-the-approved-mobile-picks-as-routed/files.jsonl
+@@ -17,3 +17,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ai/talk/files.jsonl b/public/framework/ai/talk/files.jsonl
+index ad92d58851..befce34dd1 100644
+--- a/public/framework/ai/talk/files.jsonl
++++ b/public/framework/ai/talk/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"doc/page.jsonl"}
+ {"file":"doc/"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/tasks/files.jsonl b/public/framework/ai/tasks/files.jsonl
+index b930eaecc6..c097d05e7e 100644
+--- a/public/framework/ai/tasks/files.jsonl
++++ b/public/framework/ai/tasks/files.jsonl
+@@ -424,3 +424,5 @@
+ {"file":"steps-and-nudges-make-the-process-struct/page.js"}
+ {"file":"we-also-need-a-framework-ai-readme-the-i/page.js"}
+ {"file":"youtube-channel-planning-the-owner-s-own/page.js"}
++{"file":"state.jsonl","gone":true}
++{"file":"state.jsonl.lock","gone":true}
+diff --git a/public/framework/ai/tracking/files.jsonl b/public/framework/ai/tracking/files.jsonl
+index b600612276..5948ccdede 100644
+--- a/public/framework/ai/tracking/files.jsonl
++++ b/public/framework/ai/tracking/files.jsonl
+@@ -21,3 +21,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/whisper/files.jsonl b/public/framework/ai/whisper/files.jsonl
+index a5d7ed2466..6d46238313 100644
+--- a/public/framework/ai/whisper/files.jsonl
++++ b/public/framework/ai/whisper/files.jsonl
+@@ -61,3 +61,6 @@
+ {"file":"bucket.jsonl"}
+ {"file":"2026-10-09.jsonl"}
+ {"file":"2026-10-12.jsonl"}
++{"file":"2026-10-09.jsonl","gone":true}
++{"file":"2026-10-12.jsonl","gone":true}
++{"file":"bucket.jsonl","gone":true}
+diff --git a/public/framework/audio/Recite/files.jsonl b/public/framework/audio/Recite/files.jsonl
+index e948f53eff..d6dc6e2ebe 100644
+--- a/public/framework/audio/Recite/files.jsonl
++++ b/public/framework/audio/Recite/files.jsonl
+@@ -34,3 +34,4 @@
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
+ {"file":"Recite.order.test.mjs"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/audio/Voice/files.jsonl b/public/framework/audio/Voice/files.jsonl
+index b24742f1ea..9cd7db8b55 100644
+--- a/public/framework/audio/Voice/files.jsonl
++++ b/public/framework/audio/Voice/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"tasks/"}
+ {"file":"personas.js"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/catalog/files.jsonl b/public/framework/catalog/files.jsonl
+index afd97d3ea1..c31aac249c 100644
+--- a/public/framework/catalog/files.jsonl
++++ b/public/framework/catalog/files.jsonl
+@@ -28,3 +28,4 @@
+ {"file":"thumbs/"}
+ {"file":"thumbs/","gone":true}
+ {"file":"thumbs/"}
++{"file":"thumbs/","gone":true}
+diff --git a/public/framework/core/Item/files.jsonl b/public/framework/core/Item/files.jsonl
+index 0d78edf51b..b945a70014 100644
+--- a/public/framework/core/Item/files.jsonl
++++ b/public/framework/core/Item/files.jsonl
+@@ -60,3 +60,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Item/tasks/ui-actions-as-deltas/files.jsonl b/public/framework/core/Item/tasks/ui-actions-as-deltas/files.jsonl
+index f7993f8e8e..5980837907 100644
+--- a/public/framework/core/Item/tasks/ui-actions-as-deltas/files.jsonl
++++ b/public/framework/core/Item/tasks/ui-actions-as-deltas/files.jsonl
+@@ -21,3 +21,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/Item/tasks/ui-actions-as-deltas/layout-check/monorepo-localhost-api-item/files.jsonl b/public/framework/core/Item/tasks/ui-actions-as-deltas/layout-check/monorepo-localhost-api-item/files.jsonl
+index 7429f92eb9..eb92371b56 100644
+--- a/public/framework/core/Item/tasks/ui-actions-as-deltas/layout-check/monorepo-localhost-api-item/files.jsonl
++++ b/public/framework/core/Item/tasks/ui-actions-as-deltas/layout-check/monorepo-localhost-api-item/files.jsonl
+@@ -88,3 +88,9 @@
+ {"file":"3440.png"}
+ {"file":"layout.json"}
+ {"file":"sheet.png"}
++{"file":"1280.png","gone":true}
++{"file":"1920.png","gone":true}
++{"file":"2560.png","gone":true}
++{"file":"3440.png","gone":true}
++{"file":"layout.json","gone":true}
++{"file":"sheet.png","gone":true}
+diff --git a/public/framework/core/Page/ai/files.jsonl b/public/framework/core/Page/ai/files.jsonl
+index deb8003ced..ae88dcfa0b 100644
+--- a/public/framework/core/Page/ai/files.jsonl
++++ b/public/framework/core/Page/ai/files.jsonl
+@@ -17,3 +17,4 @@
+ {"file":"PageWork.js"}
+ {"file":"log.jsonl"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Page/audit/design/files.jsonl b/public/framework/core/Page/audit/design/files.jsonl
+index 612717fb9e..4a6d844523 100644
+--- a/public/framework/core/Page/audit/design/files.jsonl
++++ b/public/framework/core/Page/audit/design/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"page.js"}
+ {"file":"findings.md"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Page/audit/design/shots/files.jsonl b/public/framework/core/Page/audit/design/shots/files.jsonl
+index d62d15b11f..dd66b42df5 100644
+--- a/public/framework/core/Page/audit/design/shots/files.jsonl
++++ b/public/framework/core/Page/audit/design/shots/files.jsonl
+@@ -304,3 +304,21 @@
+ {"file":"layouts-400.jpg"}
+ {"file":"notes-1920.jpg"}
+ {"file":"notes-400.jpg"}
++{"file":"home-400.jpg","gone":true}
++{"file":"framework-400.jpg","gone":true}
++{"file":"home-1920.jpg","gone":true}
++{"file":"framework-1920.jpg","gone":true}
++{"file":"framework-ai-400.jpg","gone":true}
++{"file":"framework-ai-1920.jpg","gone":true}
++{"file":"framework-ai2-400.jpg","gone":true}
++{"file":"framework-ai2-1920.jpg","gone":true}
++{"file":"framework-core-Layout-400.jpg","gone":true}
++{"file":"framework-core-Layout-1920.jpg","gone":true}
++{"file":"framework-core-Page-400.jpg","gone":true}
++{"file":"framework-core-Page-1920.jpg","gone":true}
++{"file":"imagine-400.jpg","gone":true}
++{"file":"imagine-1920.jpg","gone":true}
++{"file":"layouts-400.jpg","gone":true}
++{"file":"layouts-1920.jpg","gone":true}
++{"file":"notes-400.jpg","gone":true}
++{"file":"notes-1920.jpg","gone":true}
+diff --git a/public/framework/core/Page/audit/files.jsonl b/public/framework/core/Page/audit/files.jsonl
+index 58d6a459c0..c3cd9263f2 100644
+--- a/public/framework/core/Page/audit/files.jsonl
++++ b/public/framework/core/Page/audit/files.jsonl
+@@ -8,3 +8,4 @@
+ {"file":"readme.md"}
+ {"file":"sheets/"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Page/audit/shots/files.jsonl b/public/framework/core/Page/audit/shots/files.jsonl
+index de8ef74c82..c224e54f1f 100644
+--- a/public/framework/core/Page/audit/shots/files.jsonl
++++ b/public/framework/core/Page/audit/shots/files.jsonl
+@@ -185,3 +185,14 @@
+ {"file":"standard.jpg"}
+ {"file":"switcher.jpg"}
+ {"file":"wall.jpg"}
++{"file":"ai2.jpg","gone":true}
++{"file":"blog.jpg","gone":true}
++{"file":"browse.jpg","gone":true}
++{"file":"catalog.jpg","gone":true}
++{"file":"columns.jpg","gone":true}
++{"file":"custom.jpg","gone":true}
++{"file":"doc.jpg","gone":true}
++{"file":"sources.jpg","gone":true}
++{"file":"standard.jpg","gone":true}
++{"file":"switcher.jpg","gone":true}
++{"file":"wall.jpg","gone":true}
+diff --git a/public/framework/core/Page/files.jsonl b/public/framework/core/Page/files.jsonl
+index 38d705128b..a959d5397c 100644
+--- a/public/framework/core/Page/files.jsonl
++++ b/public/framework/core/Page/files.jsonl
+@@ -129,3 +129,6 @@
+ {"file":"layout-check/"}
+ {"file":"screenshots/"}
+ {"file":"failures.jsonl"}
++{"file":"screenshots/","gone":true}
++{"file":"layout-check/","gone":true}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Page/make/files.jsonl b/public/framework/core/Page/make/files.jsonl
+index f9ec34642e..77cae70058 100644
+--- a/public/framework/core/Page/make/files.jsonl
++++ b/public/framework/core/Page/make/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"readme-page/page.js"}
+ {"file":"weight.jsonl"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Page/navigation/shots/files.jsonl b/public/framework/core/Page/navigation/shots/files.jsonl
+index 85ae0d05fa..df990d162c 100644
+--- a/public/framework/core/Page/navigation/shots/files.jsonl
++++ b/public/framework/core/Page/navigation/shots/files.jsonl
+@@ -16,3 +16,4 @@
+ {"file":"levels-1920.png"}
+ {"file":"levels-1920.png","gone":true}
+ {"file":"levels-1920.png"}
++{"file":"levels-1920.png","gone":true}
+diff --git a/public/framework/core/Page/overview/folders/files.jsonl b/public/framework/core/Page/overview/folders/files.jsonl
+index 0f0d0c00d5..a2742cfb08 100644
+--- a/public/framework/core/Page/overview/folders/files.jsonl
++++ b/public/framework/core/Page/overview/folders/files.jsonl
+@@ -1,2 +1,3 @@
+ {"file":"page.js"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Page/tasks/page-mastermind/ai-dashboard/files.jsonl b/public/framework/core/Page/tasks/page-mastermind/ai-dashboard/files.jsonl
+index 70e4074e61..ebd24c524c 100644
+--- a/public/framework/core/Page/tasks/page-mastermind/ai-dashboard/files.jsonl
++++ b/public/framework/core/Page/tasks/page-mastermind/ai-dashboard/files.jsonl
+@@ -20,3 +20,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/Page/tasks/page-mastermind/ai-head-row/files.jsonl b/public/framework/core/Page/tasks/page-mastermind/ai-head-row/files.jsonl
+index 871c82a9e8..01dac60f43 100644
+--- a/public/framework/core/Page/tasks/page-mastermind/ai-head-row/files.jsonl
++++ b/public/framework/core/Page/tasks/page-mastermind/ai-head-row/files.jsonl
+@@ -17,3 +17,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/Page/tasks/page-mastermind/core-page-a-folder-with-only-a-readme-md/files.jsonl b/public/framework/core/Page/tasks/page-mastermind/core-page-a-folder-with-only-a-readme-md/files.jsonl
+index d01d52a92c..b9b0c80382 100644
+--- a/public/framework/core/Page/tasks/page-mastermind/core-page-a-folder-with-only-a-readme-md/files.jsonl
++++ b/public/framework/core/Page/tasks/page-mastermind/core-page-a-folder-with-only-a-readme-md/files.jsonl
+@@ -22,3 +22,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/Page/tasks/page-mastermind/ext-tabs/files.jsonl b/public/framework/core/Page/tasks/page-mastermind/ext-tabs/files.jsonl
+index 5b4dcf83c2..f1f3cc3dfe 100644
+--- a/public/framework/core/Page/tasks/page-mastermind/ext-tabs/files.jsonl
++++ b/public/framework/core/Page/tasks/page-mastermind/ext-tabs/files.jsonl
+@@ -19,3 +19,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/Page/tasks/page-mastermind/files.jsonl b/public/framework/core/Page/tasks/page-mastermind/files.jsonl
+index ac9c3a51e9..f271d277f4 100644
+--- a/public/framework/core/Page/tasks/page-mastermind/files.jsonl
++++ b/public/framework/core/Page/tasks/page-mastermind/files.jsonl
+@@ -73,3 +73,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/Page/tasks/page-mastermind/item-tool/files.jsonl b/public/framework/core/Page/tasks/page-mastermind/item-tool/files.jsonl
+index 5b4dcf83c2..f1f3cc3dfe 100644
+--- a/public/framework/core/Page/tasks/page-mastermind/item-tool/files.jsonl
++++ b/public/framework/core/Page/tasks/page-mastermind/item-tool/files.jsonl
+@@ -19,3 +19,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/Page/tasks/page-mastermind/part-types/files.jsonl b/public/framework/core/Page/tasks/page-mastermind/part-types/files.jsonl
+index e213f44996..81142ea24e 100644
+--- a/public/framework/core/Page/tasks/page-mastermind/part-types/files.jsonl
++++ b/public/framework/core/Page/tasks/page-mastermind/part-types/files.jsonl
+@@ -31,3 +31,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/Page/tasks/page-mastermind/queue-page/files.jsonl b/public/framework/core/Page/tasks/page-mastermind/queue-page/files.jsonl
+index 70e4074e61..ebd24c524c 100644
+--- a/public/framework/core/Page/tasks/page-mastermind/queue-page/files.jsonl
++++ b/public/framework/core/Page/tasks/page-mastermind/queue-page/files.jsonl
+@@ -20,3 +20,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/Page/tasks/page-mastermind/sessions-fit/files.jsonl b/public/framework/core/Page/tasks/page-mastermind/sessions-fit/files.jsonl
+index f8b38bbe6e..f5e9403006 100644
+--- a/public/framework/core/Page/tasks/page-mastermind/sessions-fit/files.jsonl
++++ b/public/framework/core/Page/tasks/page-mastermind/sessions-fit/files.jsonl
+@@ -28,3 +28,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/Page/tasks/page-mastermind/sidebar-pins/files.jsonl b/public/framework/core/Page/tasks/page-mastermind/sidebar-pins/files.jsonl
+index 780360f4be..609558d057 100644
+--- a/public/framework/core/Page/tasks/page-mastermind/sidebar-pins/files.jsonl
++++ b/public/framework/core/Page/tasks/page-mastermind/sidebar-pins/files.jsonl
+@@ -17,3 +17,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/Page/tasks/page-mastermind/top-tabs/files.jsonl b/public/framework/core/Page/tasks/page-mastermind/top-tabs/files.jsonl
+index ad8bf3d371..7b86567640 100644
+--- a/public/framework/core/Page/tasks/page-mastermind/top-tabs/files.jsonl
++++ b/public/framework/core/Page/tasks/page-mastermind/top-tabs/files.jsonl
+@@ -21,3 +21,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/Plugin/files.jsonl b/public/framework/core/Plugin/files.jsonl
+index 92a9a791f8..4153920fac 100644
+--- a/public/framework/core/Plugin/files.jsonl
++++ b/public/framework/core/Plugin/files.jsonl
+@@ -9,3 +9,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Session/files.jsonl b/public/framework/core/Session/files.jsonl
+index 27693da6e1..1cd0569f3c 100644
+--- a/public/framework/core/Session/files.jsonl
++++ b/public/framework/core/Session/files.jsonl
+@@ -45,3 +45,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"SessionFolders.mjs"}
+ {"file":"SessionFolders.test.mjs"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework-ai2/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework-ai2/files.jsonl
+index 0a3049368f..0d809b8912 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework-ai2/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework-ai2/files.jsonl
+@@ -52,3 +52,9 @@
+ {"file":"3440.png"}
+ {"file":"layout.json"}
+ {"file":"sheet.png"}
++{"file":"1920.png","gone":true}
++{"file":"3440.png","gone":true}
++{"file":"1280.png","gone":true}
++{"file":"2560.png","gone":true}
++{"file":"layout.json","gone":true}
++{"file":"sheet.png","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework/files.jsonl
+index 773752538b..abfe1d8196 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework/files.jsonl
+@@ -52,3 +52,9 @@
+ {"file":"3440.png"}
+ {"file":"layout.json"}
+ {"file":"sheet.png"}
++{"file":"1280.png","gone":true}
++{"file":"1920.png","gone":true}
++{"file":"2560.png","gone":true}
++{"file":"3440.png","gone":true}
++{"file":"layout.json","gone":true}
++{"file":"sheet.png","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/browser-refs/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/browser-refs/files.jsonl
+index 472c8b4e63..d18f5e4086 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/browser-refs/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/browser-refs/files.jsonl
+@@ -14,3 +14,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/class-docs/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/class-docs/files.jsonl
+index 53657fb282..698db65f67 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/class-docs/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/class-docs/files.jsonl
+@@ -22,3 +22,5 @@
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/default-view/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/default-view/files.jsonl
+index 0dfced1fca..7da030db5d 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/default-view/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/default-view/files.jsonl
+@@ -21,3 +21,5 @@
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/integration/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/integration/files.jsonl
+index d861548698..ccc9def046 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/integration/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/integration/files.jsonl
+@@ -22,3 +22,5 @@
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/one-writer/layout-check/monorepo-localhost-api-item/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/one-writer/layout-check/monorepo-localhost-api-item/files.jsonl
+index 773752538b..abfe1d8196 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/one-writer/layout-check/monorepo-localhost-api-item/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/one-writer/layout-check/monorepo-localhost-api-item/files.jsonl
+@@ -52,3 +52,9 @@
+ {"file":"3440.png"}
+ {"file":"layout.json"}
+ {"file":"sheet.png"}
++{"file":"1280.png","gone":true}
++{"file":"1920.png","gone":true}
++{"file":"2560.png","gone":true}
++{"file":"3440.png","gone":true}
++{"file":"layout.json","gone":true}
++{"file":"sheet.png","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/phone-preview/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/phone-preview/files.jsonl
+index 4745841cbf..5e1e3dabab 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/phone-preview/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/phone-preview/files.jsonl
+@@ -11,3 +11,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/test-view/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/test-view/files.jsonl
+index 71f371c82c..c4952a56f6 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/test-view/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/test-view/files.jsonl
+@@ -21,3 +21,5 @@
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/core/Sidebar/variants/walkthrough/files.jsonl b/public/framework/core/Sidebar/variants/walkthrough/files.jsonl
+index 0f0d0c00d5..a2742cfb08 100644
+--- a/public/framework/core/Sidebar/variants/walkthrough/files.jsonl
++++ b/public/framework/core/Sidebar/variants/walkthrough/files.jsonl
+@@ -1,2 +1,3 @@
+ {"file":"page.js"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Task/files.jsonl b/public/framework/core/Task/files.jsonl
+index 098d5e48cc..18fe6b7f60 100644
+--- a/public/framework/core/Task/files.jsonl
++++ b/public/framework/core/Task/files.jsonl
+@@ -58,3 +58,4 @@
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
+ {"file":"completion.test.mjs"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Task/process/files.jsonl b/public/framework/core/Task/process/files.jsonl
+index a177265e4d..00d3e95ac8 100644
+--- a/public/framework/core/Task/process/files.jsonl
++++ b/public/framework/core/Task/process/files.jsonl
+@@ -12,3 +12,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Task/tasks/prompt-extends-task/files.jsonl b/public/framework/core/Task/tasks/prompt-extends-task/files.jsonl
+index 657f41c033..5247e8d6a4 100644
+--- a/public/framework/core/Task/tasks/prompt-extends-task/files.jsonl
++++ b/public/framework/core/Task/tasks/prompt-extends-task/files.jsonl
+@@ -20,3 +20,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/core/Test/files.jsonl b/public/framework/core/Test/files.jsonl
+index 50da103246..8b1ddce9ff 100644
+--- a/public/framework/core/Test/files.jsonl
++++ b/public/framework/core/Test/files.jsonl
+@@ -57,3 +57,5 @@
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
+ {"file":"save-results.jsonl"}
++{"file":"save-results.jsonl","gone":true}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Test/tasks/test-system/files.jsonl b/public/framework/core/Test/tasks/test-system/files.jsonl
+index 7fe53714dd..b8872a799b 100644
+--- a/public/framework/core/Test/tasks/test-system/files.jsonl
++++ b/public/framework/core/Test/tasks/test-system/files.jsonl
+@@ -27,3 +27,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/files.jsonl b/public/framework/core/files.jsonl
+index fb6116daba..7c88081147 100644
+--- a/public/framework/core/files.jsonl
++++ b/public/framework/core/files.jsonl
+@@ -55,3 +55,4 @@
+ {"file":"Settings/page.js"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/dev/DevBar/files.jsonl b/public/framework/dev/DevBar/files.jsonl
+index 202eb15fe5..ae6a10cc92 100644
+--- a/public/framework/dev/DevBar/files.jsonl
++++ b/public/framework/dev/DevBar/files.jsonl
+@@ -23,3 +23,4 @@
+ {"file":"shots.js"}
+ {"file":"tasks/"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/dev/DevShell/files.jsonl b/public/framework/dev/DevShell/files.jsonl
+index 75aa1a2d74..402c18c6b1 100644
+--- a/public/framework/dev/DevShell/files.jsonl
++++ b/public/framework/dev/DevShell/files.jsonl
+@@ -21,3 +21,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/dev/Socket/files.jsonl b/public/framework/dev/Socket/files.jsonl
+index 504c598042..16ac56499c 100644
+--- a/public/framework/dev/Socket/files.jsonl
++++ b/public/framework/dev/Socket/files.jsonl
+@@ -19,3 +19,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/Chat/doc/proof/shots/files.jsonl b/public/framework/ext/Chat/doc/proof/shots/files.jsonl
+index d1f5635fa7..8406df4a79 100644
+--- a/public/framework/ext/Chat/doc/proof/shots/files.jsonl
++++ b/public/framework/ext/Chat/doc/proof/shots/files.jsonl
+@@ -421,3 +421,28 @@
+ {"file":"run-voice-1920.png"}
+ {"file":"run-voice-400.png"}
+ {"file":"sheet-400.png"}
++{"file":"before-typed-1920.png","gone":true}
++{"file":"before-voice-1920.png","gone":true}
++{"file":"before-typed-400.png","gone":true}
++{"file":"before-voice-400.png","gone":true}
++{"file":"after-typed-1920.png","gone":true}
++{"file":"after-voice-1920.png","gone":true}
++{"file":"after-typed-400.png","gone":true}
++{"file":"after-voice-400.png","gone":true}
++{"file":"after-navigate-1920.png","gone":true}
++{"file":"before-navigate-1920.png","gone":true}
++{"file":"before-navigate-400.png","gone":true}
++{"file":"after-navigate-400.png","gone":true}
++{"file":"sheet-400.png","gone":true}
++{"file":"rerun-navigate-1920.png","gone":true}
++{"file":"rerun-navigate-400.png","gone":true}
++{"file":"rerun-typed-1920.png","gone":true}
++{"file":"rerun-typed-400.png","gone":true}
++{"file":"rerun-voice-1920.png","gone":true}
++{"file":"rerun-voice-400.png","gone":true}
++{"file":"run-typed-1920.png","gone":true}
++{"file":"run-voice-1920.png","gone":true}
++{"file":"run-navigate-1920.png","gone":true}
++{"file":"run-typed-400.png","gone":true}
++{"file":"run-voice-400.png","gone":true}
++{"file":"run-navigate-400.png","gone":true}
+diff --git a/public/framework/ext/Chat/files.jsonl b/public/framework/ext/Chat/files.jsonl
+index 0b9445ec89..45ba47d814 100644
+--- a/public/framework/ext/Chat/files.jsonl
++++ b/public/framework/ext/Chat/files.jsonl
+@@ -66,3 +66,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/Chat/list/files.jsonl b/public/framework/ext/Chat/list/files.jsonl
+index c9e2b8c40a..5c0f3ad13a 100644
+--- a/public/framework/ext/Chat/list/files.jsonl
++++ b/public/framework/ext/Chat/list/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"readme.md"}
+ {"file":"failures.jsonl"}
+ {"file":"ChatList.test.mjs"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/Chat/v2/files.jsonl b/public/framework/ext/Chat/v2/files.jsonl
+index c1f357ef23..ff401801af 100644
+--- a/public/framework/ext/Chat/v2/files.jsonl
++++ b/public/framework/ext/Chat/v2/files.jsonl
+@@ -25,3 +25,4 @@
+ {"file":"report.test.mjs"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/Chat/v2/fixture/files.jsonl b/public/framework/ext/Chat/v2/fixture/files.jsonl
+index 9b502c3689..9d65fc6979 100644
+--- a/public/framework/ext/Chat/v2/fixture/files.jsonl
++++ b/public/framework/ext/Chat/v2/fixture/files.jsonl
+@@ -471,3 +471,5 @@
+ {"file":"live-40084.jsonl","gone":true}
+ {"file":"dbg-27008.jsonl"}
+ {"file":"live-40084.jsonl"}
++{"file":"dbg-27008.jsonl","gone":true}
++{"file":"live-40084.jsonl","gone":true}
+diff --git a/public/framework/ext/Chat/v3/files.jsonl b/public/framework/ext/Chat/v3/files.jsonl
+index 349551903a..c0b03fc1da 100644
+--- a/public/framework/ext/Chat/v3/files.jsonl
++++ b/public/framework/ext/Chat/v3/files.jsonl
+@@ -21,3 +21,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/DataGrid/files.jsonl b/public/framework/ext/DataGrid/files.jsonl
+index 4e141b7a1a..d1ae0fdb79 100644
+--- a/public/framework/ext/DataGrid/files.jsonl
++++ b/public/framework/ext/DataGrid/files.jsonl
+@@ -25,3 +25,4 @@
+ {"file":"screenshots/"}
+ {"file":"screenshots/","gone":true}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/framework/ext/DesignTool/journey/shots/files.jsonl b/public/framework/ext/DesignTool/journey/shots/files.jsonl
+index d199444167..ce115d8b77 100644
+--- a/public/framework/ext/DesignTool/journey/shots/files.jsonl
++++ b/public/framework/ext/DesignTool/journey/shots/files.jsonl
+@@ -7665,3 +7665,454 @@
+ {"file":"web-nav-wall.jpg"}
+ {"file":"web-nav.jpg"}
+ {"file":"web.jpg"}
++{"file":"alex-framework.jpg","gone":true}
++{"file":"alex-styles.jpg","gone":true}
++{"file":"alex.jpg","gone":true}
++{"file":"arya-framework-app.jpg","gone":true}
++{"file":"arya-framework-page.jpg","gone":true}
++{"file":"arya-framework-view.jpg","gone":true}
++{"file":"arya-framework.jpg","gone":true}
++{"file":"arya-notes.jpg","gone":true}
++{"file":"arya-styles-build.jpg","gone":true}
++{"file":"arya-styles-flex.jpg","gone":true}
++{"file":"arya-styles-forms.jpg","gone":true}
++{"file":"arya-styles-grid.jpg","gone":true}
++{"file":"arya-styles-html.jpg","gone":true}
++{"file":"arya-styles.jpg","gone":true}
++{"file":"arya.jpg","gone":true}
++{"file":"blog-ai-claude-tooling.jpg","gone":true}
++{"file":"blog-ai-dashboard.jpg","gone":true}
++{"file":"blog-ai.jpg","gone":true}
++{"file":"blog-framework-hello-lew42.jpg","gone":true}
++{"file":"blog-framework-how-this-blog-works.jpg","gone":true}
++{"file":"blog-framework.jpg","gone":true}
++{"file":"blog-systems-layout-generators.jpg","gone":true}
++{"file":"blog-systems-panel-playground.jpg","gone":true}
++{"file":"blog-systems.jpg","gone":true}
++{"file":"blog.jpg","gone":true}
++{"file":"castin.jpg","gone":true}
++{"file":"edric-components.jpg","gone":true}
++{"file":"edric-framework.jpg","gone":true}
++{"file":"edric-style.jpg","gone":true}
++{"file":"edric.jpg","gone":true}
++{"file":"framework-ai.jpg","gone":true}
++{"file":"framework-audit-browsable.jpg","gone":true}
++{"file":"framework-audit-overview-organization.jpg","gone":true}
++{"file":"framework-audit-overview-priorities.jpg","gone":true}
++{"file":"framework-audit.jpg","gone":true}
++{"file":"framework-core-App.jpg","gone":true}
++{"file":"framework-core-Item.jpg","gone":true}
++{"file":"framework-core-List.jpg","gone":true}
++{"file":"framework-core-Page-generator.jpg","gone":true}
++{"file":"framework-core-Page-old-children.jpg","gone":true}
++{"file":"framework-core-Page-old-flow.jpg","gone":true}
++{"file":"framework-core-Page-old-intro.jpg","gone":true}
++{"file":"framework-core-Page-old-nav.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-add.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-catalog.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-children.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-dashboard.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-deep.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-docs.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-labels.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-landing.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-page.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-route.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-shapes.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-site.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-strip.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-wall.jpg","gone":true}
++{"file":"framework-core-Page-old-overview.jpg","gone":true}
++{"file":"framework-core-Page-old-previews.jpg","gone":true}
++{"file":"framework-core-Page-old-shell.jpg","gone":true}
++{"file":"framework-core-Page-old.jpg","gone":true}
++{"file":"framework-core-Page-overview-catalog.jpg","gone":true}
++{"file":"framework-core-Page-overview-children.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-grids-flush-wall.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-grids-grid-detail.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-grids-list-large.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-grids-measure-3440.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-grids.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-looks-backgrounds.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-looks-padding.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-looks-scrollbars.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-looks.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-finder.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-panels.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-refs.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-uses-docs.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-uses-inbox.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-uses-split.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-uses-workbench.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-uses.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns.jpg","gone":true}
++{"file":"framework-core-Page-overview-crumbs.jpg","gone":true}
++{"file":"framework-core-Page-overview-dashboard.jpg","gone":true}
++{"file":"framework-core-Page-overview-docs.jpg","gone":true}
++{"file":"framework-core-Page-overview-flush.jpg","gone":true}
++{"file":"framework-core-Page-overview-full.jpg","gone":true}
++{"file":"framework-core-Page-overview-grid.jpg","gone":true}
++{"file":"framework-core-Page-overview-inset.jpg","gone":true}
++{"file":"framework-core-Page-overview-labels.jpg","gone":true}
++{"file":"framework-core-Page-overview-landing.jpg","gone":true}
++{"file":"framework-core-Page-overview-list.jpg","gone":true}
++{"file":"framework-core-Page-overview-measure.jpg","gone":true}
++{"file":"framework-core-Page-overview-mounts.jpg","gone":true}
++{"file":"framework-core-Page-overview-page.jpg","gone":true}
++{"file":"framework-core-Page-overview-prose.jpg","gone":true}
++{"file":"framework-core-Page-overview-rail.jpg","gone":true}
++{"file":"framework-core-Page-overview-region.jpg","gone":true}
++{"file":"framework-core-Page-overview-render.jpg","gone":true}
++{"file":"framework-core-Page-overview-replace.jpg","gone":true}
++{"file":"framework-core-Page-overview-route.jpg","gone":true}
++{"file":"framework-core-Page-overview-shell.jpg","gone":true}
++{"file":"framework-core-Page-overview-site.jpg","gone":true}
++{"file":"framework-core-Page-overview-strip.jpg","gone":true}
++{"file":"framework-core-Page-overview-tabs.jpg","gone":true}
++{"file":"framework-core-Page-overview-vtabs.jpg","gone":true}
++{"file":"framework-core-Page-overview-wall.jpg","gone":true}
++{"file":"framework-core-Page-overview-width.jpg","gone":true}
++{"file":"framework-core-Page.jpg","gone":true}
++{"file":"framework-core-Router.jpg","gone":true}
++{"file":"framework-core-Sidebar.jpg","gone":true}
++{"file":"framework-core-View.jpg","gone":true}
++{"file":"framework-core.jpg","gone":true}
++{"file":"framework-dev-Claim.jpg","gone":true}
++{"file":"framework-dev-DevBar.jpg","gone":true}
++{"file":"framework-dev-Socket.jpg","gone":true}
++{"file":"framework-dev.jpg","gone":true}
++{"file":"framework-ext-AITask.jpg","gone":true}
++{"file":"framework-ext-Ask.jpg","gone":true}
++{"file":"framework-ext-catalog.jpg","gone":true}
++{"file":"framework-ext-demo-shell.jpg","gone":true}
++{"file":"framework-ext-demo.jpg","gone":true}
++{"file":"framework-ext-depth.jpg","gone":true}
++{"file":"framework-ext-DesignTool-audit-taste.jpg","gone":true}
++{"file":"framework-ext-DesignTool-audit.jpg","gone":true}
++{"file":"framework-ext-DesignTool-knowledge.jpg","gone":true}
++{"file":"framework-ext-DesignTool-library-bad.jpg","gone":true}
++{"file":"framework-ext-DesignTool-library.jpg","gone":true}
++{"file":"framework-ext-DesignTool-taste-corpus.jpg","gone":true}
++{"file":"framework-ext-DesignTool-taste.jpg","gone":true}
++{"file":"framework-ext-DesignTool-tests.jpg","gone":true}
++{"file":"framework-ext-DesignTool-vision.jpg","gone":true}
++{"file":"framework-ext-DesignTool-widths.jpg","gone":true}
++{"file":"framework-ext-DesignTool.jpg","gone":true}
++{"file":"framework-ext-Doc-overview-urls.jpg","gone":true}
++{"file":"framework-ext-Doc.jpg","gone":true}
++{"file":"framework-ext-Draggable.jpg","gone":true}
++{"file":"framework-ext-drawer.jpg","gone":true}
++{"file":"framework-ext-Dropdown.jpg","gone":true}
++{"file":"framework-ext-editor.jpg","gone":true}
++{"file":"framework-ext-files.jpg","gone":true}
++{"file":"framework-ext-grip.jpg","gone":true}
++{"file":"framework-ext-highlight.jpg","gone":true}
++{"file":"framework-ext-JSONL.jpg","gone":true}
++{"file":"framework-ext-layout.jpg","gone":true}
++{"file":"framework-ext-markdown.jpg","gone":true}
++{"file":"framework-ext-Panel-demo.jpg","gone":true}
++{"file":"framework-ext-Panel-playground.jpg","gone":true}
++{"file":"framework-ext-Panel-Workspace.jpg","gone":true}
++{"file":"framework-ext-Panel.jpg","gone":true}
++{"file":"framework-ext-Playground.jpg","gone":true}
++{"file":"framework-ext-Research.jpg","gone":true}
++{"file":"framework-ext-Saver.jpg","gone":true}
++{"file":"framework-ext-tabs.jpg","gone":true}
++{"file":"framework-ext-Timeline.jpg","gone":true}
++{"file":"framework-ext-toc.jpg","gone":true}
++{"file":"framework-ext.jpg","gone":true}
++{"file":"framework-faq.jpg","gone":true}
++{"file":"framework-research.jpg","gone":true}
++{"file":"framework-start-example-about-team.jpg","gone":true}
++{"file":"framework-start-example-about.jpg","gone":true}
++{"file":"framework-start-example.jpg","gone":true}
++{"file":"framework-start.jpg","gone":true}
++{"file":"framework-styles-elements-code.jpg","gone":true}
++{"file":"framework-styles-elements-forms.jpg","gone":true}
++{"file":"framework-styles-elements-lists.jpg","gone":true}
++{"file":"framework-styles-elements-media.jpg","gone":true}
++{"file":"framework-styles-elements-misc.jpg","gone":true}
++{"file":"framework-styles-elements-table.jpg","gone":true}
++{"file":"framework-styles-elements-text.jpg","gone":true}
++{"file":"framework-styles-elements.jpg","gone":true}
++{"file":"framework-styles-layers-base.jpg","gone":true}
++{"file":"framework-styles-layers-site.jpg","gone":true}
++{"file":"framework-styles-layers-theme-guide.jpg","gone":true}
++{"file":"framework-styles-layers-theme-lew42.jpg","gone":true}
++{"file":"framework-styles-layers-theme.jpg","gone":true}
++{"file":"framework-styles-layers-util.jpg","gone":true}
++{"file":"framework-styles-layers.jpg","gone":true}
++{"file":"framework-styles-layouts-400.jpg","gone":true}
++{"file":"framework-styles-layouts-anatomy.jpg","gone":true}
++{"file":"framework-styles-layouts-apidoc.jpg","gone":true}
++{"file":"framework-styles-layouts-bold-editorial.jpg","gone":true}
++{"file":"framework-styles-layouts-carousel.jpg","gone":true}
++{"file":"framework-styles-layouts-chat.jpg","gone":true}
++{"file":"framework-styles-layouts-cols-matrix.jpg","gone":true}
++{"file":"framework-styles-layouts-cols.jpg","gone":true}
++{"file":"framework-styles-layouts-dashboard.jpg","gone":true}
++{"file":"framework-styles-layouts-docs.jpg","gone":true}
++{"file":"framework-styles-layouts-document.jpg","gone":true}
++{"file":"framework-styles-layouts-feed.jpg","gone":true}
++{"file":"framework-styles-layouts-fit.jpg","gone":true}
++{"file":"framework-styles-layouts-flex.jpg","gone":true}
++{"file":"framework-styles-layouts-gallery.jpg","gone":true}
++{"file":"framework-styles-layouts-grid.jpg","gone":true}
++{"file":"framework-styles-layouts-hero.jpg","gone":true}
++{"file":"framework-styles-layouts-home.jpg","gone":true}
++{"file":"framework-styles-layouts-landing.jpg","gone":true}
++{"file":"framework-styles-layouts-mail.jpg","gone":true}
++{"file":"framework-styles-layouts-masonry-packed.jpg","gone":true}
++{"file":"framework-styles-layouts-masonry.jpg","gone":true}
++{"file":"framework-styles-layouts-model.jpg","gone":true}
++{"file":"framework-styles-layouts-overlay.jpg","gone":true}
++{"file":"framework-styles-layouts-pricing.jpg","gone":true}
++{"file":"framework-styles-layouts-screens.jpg","gone":true}
++{"file":"framework-styles-layouts-set.jpg","gone":true}
++{"file":"framework-styles-layouts-shell.jpg","gone":true}
++{"file":"framework-styles-layouts-sidebar.jpg","gone":true}
++{"file":"framework-styles-layouts-space-compose.jpg","gone":true}
++{"file":"framework-styles-layouts-space-hunt.jpg","gone":true}
++{"file":"framework-styles-layouts-space-words.jpg","gone":true}
++{"file":"framework-styles-layouts-space.jpg","gone":true}
++{"file":"framework-styles-layouts-spec.jpg","gone":true}
++{"file":"framework-styles-layouts-split.jpg","gone":true}
++{"file":"framework-styles-layouts-stack.jpg","gone":true}
++{"file":"framework-styles-layouts-toc-studio.jpg","gone":true}
++{"file":"framework-styles-layouts-wire.jpg","gone":true}
++{"file":"framework-styles-layouts.jpg","gone":true}
++{"file":"framework-styles-rules.jpg","gone":true}
++{"file":"framework-styles-sections.jpg","gone":true}
++{"file":"framework-styles-stacks.jpg","gone":true}
++{"file":"framework-styles.jpg","gone":true}
++{"file":"framework-ui-accordion.jpg","gone":true}
++{"file":"framework-ui-alert.jpg","gone":true}
++{"file":"framework-ui-avatar.jpg","gone":true}
++{"file":"framework-ui-badge.jpg","gone":true}
++{"file":"framework-ui-card.jpg","gone":true}
++{"file":"framework-ui-crumbs.jpg","gone":true}
++{"file":"framework-ui-dialog.jpg","gone":true}
++{"file":"framework-ui-field.jpg","gone":true}
++{"file":"framework-ui-kbd.jpg","gone":true}
++{"file":"framework-ui-menu.jpg","gone":true}
++{"file":"framework-ui-pagination.jpg","gone":true}
++{"file":"framework-ui-panel.jpg","gone":true}
++{"file":"framework-ui-progress.jpg","gone":true}
++{"file":"framework-ui-stats.jpg","gone":true}
++{"file":"framework-ui-table.jpg","gone":true}
++{"file":"framework-ui-tags.jpg","gone":true}
++{"file":"framework-ui-timeline.jpg","gone":true}
++{"file":"framework-ui-toolbar.jpg","gone":true}
++{"file":"framework-ui-tooltip.jpg","gone":true}
++{"file":"framework-ui-tree.jpg","gone":true}
++{"file":"framework-ui-words.jpg","gone":true}
++{"file":"framework-ui.jpg","gone":true}
++{"file":"framework-util-is.jpg","gone":true}
++{"file":"framework-util-markup.jpg","gone":true}
++{"file":"framework-util-source.jpg","gone":true}
++{"file":"framework-util.jpg","gone":true}
++{"file":"framework-ux-Auth.jpg","gone":true}
++{"file":"framework-ux-Course.jpg","gone":true}
++{"file":"framework-ux-Filter.jpg","gone":true}
++{"file":"framework-ux-Menu.jpg","gone":true}
++{"file":"framework-ux-Pagination.jpg","gone":true}
++{"file":"framework-ux-Tags.jpg","gone":true}
++{"file":"framework-ux-Tree-drag.jpg","gone":true}
++{"file":"framework-ux-Tree.jpg","gone":true}
++{"file":"framework-ux-Wizard.jpg","gone":true}
++{"file":"framework-ux.jpg","gone":true}
++{"file":"framework-versus.jpg","gone":true}
++{"file":"framework.jpg","gone":true}
++{"file":"imagine-blogx-board.jpg","gone":true}
++{"file":"imagine-blogx-deck.jpg","gone":true}
++{"file":"imagine-blogx-dig.jpg","gone":true}
++{"file":"imagine-blogx-finder.jpg","gone":true}
++{"file":"imagine-blogx-front.jpg","gone":true}
++{"file":"imagine-blogx-parts.jpg","gone":true}
++{"file":"imagine-blogx-rail.jpg","gone":true}
++{"file":"imagine-blogx-swap.jpg","gone":true}
++{"file":"imagine-blogx.jpg","gone":true}
++{"file":"imagine-cms-edit.jpg","gone":true}
++{"file":"imagine-cms-json-edit.jpg","gone":true}
++{"file":"imagine-cms-json.jpg","gone":true}
++{"file":"imagine-cms-services.jpg","gone":true}
++{"file":"imagine-cms-thinking.jpg","gone":true}
++{"file":"imagine-cms.jpg","gone":true}
++{"file":"imagine-decks-aside.jpg","gone":true}
++{"file":"imagine-decks-four.jpg","gone":true}
++{"file":"imagine-decks-golden.jpg","gone":true}
++{"file":"imagine-decks-half.jpg","gone":true}
++{"file":"imagine-decks-persist.jpg","gone":true}
++{"file":"imagine-decks-pitch.jpg","gone":true}
++{"file":"imagine-decks-poster.jpg","gone":true}
++{"file":"imagine-decks-swap.jpg","gone":true}
++{"file":"imagine-decks-triptych.jpg","gone":true}
++{"file":"imagine-decks.jpg","gone":true}
++{"file":"imagine-design.jpg","gone":true}
++{"file":"imagine-feeds-data-cards.jpg","gone":true}
++{"file":"imagine-feeds-data-table.jpg","gone":true}
++{"file":"imagine-feeds-data-tree.jpg","gone":true}
++{"file":"imagine-feeds-data.jpg","gone":true}
++{"file":"imagine-feeds-live.jpg","gone":true}
++{"file":"imagine-feeds-video.jpg","gone":true}
++{"file":"imagine-feeds.jpg","gone":true}
++{"file":"imagine-gallery-answers.jpg","gone":true}
++{"file":"imagine-gallery-cards.jpg","gone":true}
++{"file":"imagine-gallery-lists.jpg","gone":true}
++{"file":"imagine-gallery.jpg","gone":true}
++{"file":"imagine-game.jpg","gone":true}
++{"file":"imagine-generated-seed-7-list-wall-prose-2.jpg","gone":true}
++{"file":"imagine-generated-seed-7-list-wall-prose.jpg","gone":true}
++{"file":"imagine-generated-seed-7-list-wall-tabs-prose-2.jpg","gone":true}
++{"file":"imagine-generated-seed-7-list-wall-tabs-prose.jpg","gone":true}
++{"file":"imagine-generated-seed-7-list-wall-tabs.jpg","gone":true}
++{"file":"imagine-generated-seed-7-list-wall.jpg","gone":true}
++{"file":"imagine-generated-seed-7-list.jpg","gone":true}
++{"file":"imagine-generated-seed-7-vtabs-prose.jpg","gone":true}
++{"file":"imagine-generated-seed-7-vtabs-wall-list-prose-2.jpg","gone":true}
++{"file":"imagine-generated-seed-7-vtabs-wall-list-prose.jpg","gone":true}
++{"file":"imagine-generated-seed-7-vtabs-wall-list.jpg","gone":true}
++{"file":"imagine-generated-seed-7-vtabs-wall-prose.jpg","gone":true}
++{"file":"imagine-generated-seed-7-vtabs-wall.jpg","gone":true}
++{"file":"imagine-generated-seed-7-vtabs.jpg","gone":true}
++{"file":"imagine-generated-seed-7.jpg","gone":true}
++{"file":"imagine-generated.jpg","gone":true}
++{"file":"imagine-mag-contents.jpg","gone":true}
++{"file":"imagine-mag.jpg","gone":true}
++{"file":"imagine-research-depictions.jpg","gone":true}
++{"file":"imagine-research-disclosure.jpg","gone":true}
++{"file":"imagine-research-stone-barabar-caves.jpg","gone":true}
++{"file":"imagine-research-stone-giza-coffer.jpg","gone":true}
++{"file":"imagine-research-stone-predynastic-vases.jpg","gone":true}
++{"file":"imagine-research-stone-puma-punku.jpg","gone":true}
++{"file":"imagine-research-stone-sacsayhuaman.jpg","gone":true}
++{"file":"imagine-research-stone-serapeum.jpg","gone":true}
++{"file":"imagine-research-stone-unfinished-obelisk.jpg","gone":true}
++{"file":"imagine-research-stone.jpg","gone":true}
++{"file":"imagine-research-theories-ancient-astronauts.jpg","gone":true}
++{"file":"imagine-research-theories-catastrophism-gradualism.jpg","gone":true}
++{"file":"imagine-research-theories-lost-civilization.jpg","gone":true}
++{"file":"imagine-research-theories-patterns.jpg","gone":true}
++{"file":"imagine-research-theories-synthesis.jpg","gone":true}
++{"file":"imagine-research-theories-uap-hypotheses.jpg","gone":true}
++{"file":"imagine-research-theories-younger-dryas.jpg","gone":true}
++{"file":"imagine-research-theories.jpg","gone":true}
++{"file":"imagine-research.jpg","gone":true}
++{"file":"imagine-scenes-gallery.jpg","gone":true}
++{"file":"imagine-scenes-observatory.jpg","gone":true}
++{"file":"imagine-scenes-plinth.jpg","gone":true}
++{"file":"imagine-scenes-quarters.jpg","gone":true}
++{"file":"imagine-scenes-tour.jpg","gone":true}
++{"file":"imagine-scenes-worlds.jpg","gone":true}
++{"file":"imagine-scenes.jpg","gone":true}
++{"file":"imagine-screens-deck.jpg","gone":true}
++{"file":"imagine-screens-divide.jpg","gone":true}
++{"file":"imagine-screens-mix.jpg","gone":true}
++{"file":"imagine-screens-quad.jpg","gone":true}
++{"file":"imagine-screens-read.jpg","gone":true}
++{"file":"imagine-screens-stack.jpg","gone":true}
++{"file":"imagine-screens-title.jpg","gone":true}
++{"file":"imagine-screens-uneven.jpg","gone":true}
++{"file":"imagine-screens.jpg","gone":true}
++{"file":"imagine-shells-both.jpg","gone":true}
++{"file":"imagine-shells-canvas.jpg","gone":true}
++{"file":"imagine-shells-columns.jpg","gone":true}
++{"file":"imagine-shells-foot.jpg","gone":true}
++{"file":"imagine-shells-head-foot.jpg","gone":true}
++{"file":"imagine-shells-inner-bar.jpg","gone":true}
++{"file":"imagine-shells-inner-rail.jpg","gone":true}
++{"file":"imagine-shells-left.jpg","gone":true}
++{"file":"imagine-shells-rail-foot.jpg","gone":true}
++{"file":"imagine-shells-right.jpg","gone":true}
++{"file":"imagine-shells.jpg","gone":true}
++{"file":"imagine-stream-blocks.jpg","gone":true}
++{"file":"imagine-stream-deck.jpg","gone":true}
++{"file":"imagine-stream-wire.jpg","gone":true}
++{"file":"imagine-stream.jpg","gone":true}
++{"file":"imagine-team.jpg","gone":true}
++{"file":"imagine-vary-colstyles-cards.jpg","gone":true}
++{"file":"imagine-vary-colstyles-finder.jpg","gone":true}
++{"file":"imagine-vary-colstyles-glass.jpg","gone":true}
++{"file":"imagine-vary-colstyles-hooks.jpg","gone":true}
++{"file":"imagine-vary-colstyles-ink.jpg","gone":true}
++{"file":"imagine-vary-colstyles.jpg","gone":true}
++{"file":"imagine-vary-place-add.jpg","gone":true}
++{"file":"imagine-vary-place-carousel.jpg","gone":true}
++{"file":"imagine-vary-place-swap.jpg","gone":true}
++{"file":"imagine-vary-place.jpg","gone":true}
++{"file":"imagine-vary-scroll-flush.jpg","gone":true}
++{"file":"imagine-vary-scroll-full.jpg","gone":true}
++{"file":"imagine-vary-scroll-padded.jpg","gone":true}
++{"file":"imagine-vary-scroll.jpg","gone":true}
++{"file":"imagine-vary-tone-alt.jpg","gone":true}
++{"file":"imagine-vary-tone-down.jpg","gone":true}
++{"file":"imagine-vary-tone-flip.jpg","gone":true}
++{"file":"imagine-vary-tone-live.jpg","gone":true}
++{"file":"imagine-vary-tone-up.jpg","gone":true}
++{"file":"imagine-vary-tone.jpg","gone":true}
++{"file":"imagine-vary.jpg","gone":true}
++{"file":"imagine-youtube-chat.jpg","gone":true}
++{"file":"imagine-youtube-course.jpg","gone":true}
++{"file":"imagine-youtube-marks.jpg","gone":true}
++{"file":"imagine-youtube-panel.jpg","gone":true}
++{"file":"imagine-youtube-split.jpg","gone":true}
++{"file":"imagine-youtube-yield.jpg","gone":true}
++{"file":"imagine-youtube.jpg","gone":true}
++{"file":"imagine.jpg","gone":true}
++{"file":"michael-column-pager-anatomy.jpg","gone":true}
++{"file":"michael-column-pager-mvp.jpg","gone":true}
++{"file":"michael-column-pager.jpg","gone":true}
++{"file":"michael-components.jpg","gone":true}
++{"file":"michael-elements-button.jpg","gone":true}
++{"file":"michael-elements-img.jpg","gone":true}
++{"file":"michael-elements-input.jpg","gone":true}
++{"file":"michael-elements-list.jpg","gone":true}
++{"file":"michael-elements-other.jpg","gone":true}
++{"file":"michael-elements-text.jpg","gone":true}
++{"file":"michael-elements.jpg","gone":true}
++{"file":"michael-layout-containers.jpg","gone":true}
++{"file":"michael-layout-flex.jpg","gone":true}
++{"file":"michael-layout-gap.jpg","gone":true}
++{"file":"michael-layout-grid.jpg","gone":true}
++{"file":"michael-layout.jpg","gone":true}
++{"file":"michael-page-links.jpg","gone":true}
++{"file":"michael-page-mvp.jpg","gone":true}
++{"file":"michael-page-tree.jpg","gone":true}
++{"file":"michael-page.jpg","gone":true}
++{"file":"michael-pager-mvp.jpg","gone":true}
++{"file":"michael-pager-tabs.jpg","gone":true}
++{"file":"michael-pager.jpg","gone":true}
++{"file":"michael-previews.jpg","gone":true}
++{"file":"michael-router-interception.jpg","gone":true}
++{"file":"michael-router-mvp.jpg","gone":true}
++{"file":"michael-router.jpg","gone":true}
++{"file":"michael-sections.jpg","gone":true}
++{"file":"michael.jpg","gone":true}
++{"file":"notes-auth.jpg","gone":true}
++{"file":"notes-git-branch-names.jpg","gone":true}
++{"file":"notes-team-note.jpg","gone":true}
++{"file":"notes.jpg","gone":true}
++{"file":"resume.jpg","gone":true}
++{"file":"root.jpg","gone":true}
++{"file":"web-layout-flex.jpg","gone":true}
++{"file":"web-layout-flow.jpg","gone":true}
++{"file":"web-layout-grid.jpg","gone":true}
++{"file":"web-layout-measure.jpg","gone":true}
++{"file":"web-layout-respond.jpg","gone":true}
++{"file":"web-layout-screens.jpg","gone":true}
++{"file":"web-layout-tracks.jpg","gone":true}
++{"file":"web-layout.jpg","gone":true}
++{"file":"web-nav-bar.jpg","gone":true}
++{"file":"web-nav-crumbs.jpg","gone":true}
++{"file":"web-nav-drawer.jpg","gone":true}
++{"file":"web-nav-drill.jpg","gone":true}
++{"file":"web-nav-footer.jpg","gone":true}
++{"file":"web-nav-jumps.jpg","gone":true}
++{"file":"web-nav-links.jpg","gone":true}
++{"file":"web-nav-rail.jpg","gone":true}
++{"file":"web-nav-sidebar.jpg","gone":true}
++{"file":"web-nav-tabs.jpg","gone":true}
++{"file":"web-nav-wall.jpg","gone":true}
++{"file":"web-nav.jpg","gone":true}
++{"file":"web.jpg","gone":true}
+diff --git a/public/framework/ext/ErrorLog/files.jsonl b/public/framework/ext/ErrorLog/files.jsonl
+index 608632787a..5af9237834 100644
+--- a/public/framework/ext/ErrorLog/files.jsonl
++++ b/public/framework/ext/ErrorLog/files.jsonl
+@@ -11,3 +11,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/Figma/colors/files.jsonl b/public/framework/ext/Figma/colors/files.jsonl
+index d30391a567..7e43e34be2 100644
+--- a/public/framework/ext/Figma/colors/files.jsonl
++++ b/public/framework/ext/Figma/colors/files.jsonl
+@@ -18,3 +18,4 @@
+ {"file":"screenshots/"}
+ {"file":"screenshots/","gone":true}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/shots/files.jsonl b/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/shots/files.jsonl
+index b5077fa7d4..9e2ef56787 100644
+--- a/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/shots/files.jsonl
++++ b/public/framework/ext/Figma/data/QYN0G2URSBHYH5I06MOjxU/shots/files.jsonl
+@@ -321,3 +321,22 @@
+ {"file":"24-5995.png"}
+ {"file":"69-4759.png"}
+ {"file":"7-1148.png"}
++{"file":"0-1.png","gone":true}
++{"file":"7-1148.png","gone":true}
++{"file":"69-4759.png","gone":true}
++{"file":"11-1467.png","gone":true}
++{"file":"112-11362.png","gone":true}
++{"file":"112-10252.png","gone":true}
++{"file":"119-15240.png","gone":true}
++{"file":"19-5982.png","gone":true}
++{"file":"24-5995.png","gone":true}
++{"file":"115-2340.png","gone":true}
++{"file":"115-2388.png","gone":true}
++{"file":"115-2441.png","gone":true}
++{"file":"115-2568.png","gone":true}
++{"file":"115-2646.png","gone":true}
++{"file":"115-2746.png","gone":true}
++{"file":"115-2859.png","gone":true}
++{"file":"115-2950.png","gone":true}
++{"file":"115-3038.png","gone":true}
++{"file":"131-1062.png","gone":true}
+diff --git a/public/framework/ext/Figma/files.jsonl b/public/framework/ext/Figma/files.jsonl
+index 72e895dee8..73e7ede973 100644
+--- a/public/framework/ext/Figma/files.jsonl
++++ b/public/framework/ext/Figma/files.jsonl
+@@ -55,3 +55,4 @@
+ {"file":"screenshots/"}
+ {"file":"screenshots/","gone":true}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/framework/ext/Figma/guide/files.jsonl b/public/framework/ext/Figma/guide/files.jsonl
+index 35ab3ac1d6..1705f261a3 100644
+--- a/public/framework/ext/Figma/guide/files.jsonl
++++ b/public/framework/ext/Figma/guide/files.jsonl
+@@ -17,3 +17,4 @@
+ {"file":"screenshots/"}
+ {"file":"screenshots/","gone":true}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/framework/ext/JSONL/files.jsonl b/public/framework/ext/JSONL/files.jsonl
+index 8c44dd8852..9117741657 100644
+--- a/public/framework/ext/JSONL/files.jsonl
++++ b/public/framework/ext/JSONL/files.jsonl
+@@ -12,3 +12,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/Mention/files.jsonl b/public/framework/ext/Mention/files.jsonl
+index 803710e4ec..a7f65d3ddf 100644
+--- a/public/framework/ext/Mention/files.jsonl
++++ b/public/framework/ext/Mention/files.jsonl
+@@ -17,3 +17,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/Refine/files.jsonl b/public/framework/ext/Refine/files.jsonl
+index 7a531b1837..7de9cef072 100644
+--- a/public/framework/ext/Refine/files.jsonl
++++ b/public/framework/ext/Refine/files.jsonl
+@@ -83,3 +83,5 @@
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/Refine/tasks/asks-to-tasks/files.jsonl b/public/framework/ext/Refine/tasks/asks-to-tasks/files.jsonl
+index 05589be0db..0e656ef951 100644
+--- a/public/framework/ext/Refine/tasks/asks-to-tasks/files.jsonl
++++ b/public/framework/ext/Refine/tasks/asks-to-tasks/files.jsonl
+@@ -19,3 +19,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ext/Session/files.jsonl b/public/framework/ext/Session/files.jsonl
+index 6fa4b193af..1535fc3c12 100644
+--- a/public/framework/ext/Session/files.jsonl
++++ b/public/framework/ext/Session/files.jsonl
+@@ -20,3 +20,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/drawer/files.jsonl b/public/framework/ext/drawer/files.jsonl
+index ac10446f96..b87a68cb1b 100644
+--- a/public/framework/ext/drawer/files.jsonl
++++ b/public/framework/ext/drawer/files.jsonl
+@@ -54,3 +54,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/drawer/rail/shots/files.jsonl b/public/framework/ext/drawer/rail/shots/files.jsonl
+index dfb4035b20..e6a931e97f 100644
+--- a/public/framework/ext/drawer/rail/shots/files.jsonl
++++ b/public/framework/ext/drawer/rail/shots/files.jsonl
+@@ -134,3 +134,11 @@
+ {"file":"sheet-4-after-back.png"}
+ {"file":"sheet-5-closed.png"}
+ {"file":"sheet-cards-400.png"}
++{"file":"desktop-1920-no-rail.png","gone":true}
++{"file":"rail-400.png","gone":true}
++{"file":"sheet-cards-400.png","gone":true}
++{"file":"sheet-1-open.png","gone":true}
++{"file":"sheet-2-dragged.png","gone":true}
++{"file":"sheet-3-full.png","gone":true}
++{"file":"sheet-4-after-back.png","gone":true}
++{"file":"sheet-5-closed.png","gone":true}
+diff --git a/public/framework/ext/drawer/walkthrough/shots/files.jsonl b/public/framework/ext/drawer/walkthrough/shots/files.jsonl
+index 14fc075fdf..f54273d789 100644
+--- a/public/framework/ext/drawer/walkthrough/shots/files.jsonl
++++ b/public/framework/ext/drawer/walkthrough/shots/files.jsonl
+@@ -239,3 +239,17 @@
+ {"file":"select-paragraph-properties-1920.png"}
+ {"file":"tab-dictation-1280.png"}
+ {"file":"thread-resumed-1280.png"}
++{"file":"chip-in-input-1920.png","gone":true}
++{"file":"menu-3440-devbar.png","gone":true}
++{"file":"phone-mic-error-400.png","gone":true}
++{"file":"phone-nav-400.png","gone":true}
++{"file":"phone-rail-400.png","gone":true}
++{"file":"phone-sheet-cards-400.png","gone":true}
++{"file":"plain-ai-1920.png","gone":true}
++{"file":"reload-sessions.png","gone":true}
++{"file":"select-paragraph-properties-1920.png","gone":true}
++{"file":"tab-dictation-1280.png","gone":true}
++{"file":"thread-resumed-1280.png","gone":true}
++{"file":"inbox-authors-400.png","gone":true}
++{"file":"inbox-coordinated-400.png","gone":true}
++{"file":"inbox-note-1920.png","gone":true}
+diff --git a/public/framework/files.jsonl b/public/framework/files.jsonl
+index 095bdde3c8..071e6b8bf3 100644
+--- a/public/framework/files.jsonl
++++ b/public/framework/files.jsonl
+@@ -180,3 +180,4 @@
+ {"file":"zz-item-tool-test-38152/","gone":true}
+ {"file":"zz-item-tool-test-55056/"}
+ {"file":"zz-item-tool-test-55056/","gone":true}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/library/files.jsonl b/public/framework/library/files.jsonl
+index 8f3b616e45..6978c9923b 100644
+--- a/public/framework/library/files.jsonl
++++ b/public/framework/library/files.jsonl
+@@ -27,3 +27,4 @@
+ {"file":"screenshots/"}
+ {"file":"screenshots/","gone":true}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/framework/servex/tasks/pool-restore-freeze/files.jsonl b/public/framework/servex/tasks/pool-restore-freeze/files.jsonl
+index 5e00a5b9b7..6870b9737d 100644
+--- a/public/framework/servex/tasks/pool-restore-freeze/files.jsonl
++++ b/public/framework/servex/tasks/pool-restore-freeze/files.jsonl
+@@ -21,3 +21,4 @@
+ {"file":"past-work.md","gone":true}
+ {"file":"past-work.md"}
+ {"file":"session.jsonl"}
++{"file":"past-work.md","gone":true}
+diff --git a/public/framework/styles/layouts/catalog/shots/files.jsonl b/public/framework/styles/layouts/catalog/shots/files.jsonl
+index d737386098..6e7f559fc9 100644
+--- a/public/framework/styles/layouts/catalog/shots/files.jsonl
++++ b/public/framework/styles/layouts/catalog/shots/files.jsonl
+@@ -236,3 +236,17 @@
+ {"file":"rail-wall.jpg"}
+ {"file":"split.jpg"}
+ {"file":"steps.jpg"}
++{"file":"document.jpg","gone":true}
++{"file":"left-nav.jpg","gone":true}
++{"file":"docs.jpg","gone":true}
++{"file":"rail-wall.jpg","gone":true}
++{"file":"inbox.jpg","gone":true}
++{"file":"split.jpg","gone":true}
++{"file":"data-grid.jpg","gone":true}
++{"file":"dashboard.jpg","gone":true}
++{"file":"columns.jpg","gone":true}
++{"file":"steps.jpg","gone":true}
++{"file":"properties.jpg","gone":true}
++{"file":"chat.jpg","gone":true}
++{"file":"landing.jpg","gone":true}
++{"file":"figma-card.jpg","gone":true}
+diff --git a/public/framework/styles/system/studies/color/shots/files.jsonl b/public/framework/styles/system/studies/color/shots/files.jsonl
+index f9d0e6deb0..dbc82826dd 100644
+--- a/public/framework/styles/system/studies/color/shots/files.jsonl
++++ b/public/framework/styles/system/studies/color/shots/files.jsonl
+@@ -134,3 +134,11 @@
+ {"file":"ok-dark-mode.jpg"}
+ {"file":"ok-padding-clean.jpg"}
+ {"file":"ok-theme-source-dark.jpg"}
++{"file":"fail-accent-overload.jpg","gone":true}
++{"file":"fail-ai-card-title.jpg","gone":true}
++{"file":"fail-stray-blue-link.jpg","gone":true}
++{"file":"fail-toc-current.jpg","gone":true}
++{"file":"grounds.jpg","gone":true}
++{"file":"ok-dark-mode.jpg","gone":true}
++{"file":"ok-padding-clean.jpg","gone":true}
++{"file":"ok-theme-source-dark.jpg","gone":true}
+diff --git a/public/framework/styles/system/studies/padding/shots/files.jsonl b/public/framework/styles/system/studies/padding/shots/files.jsonl
+index 590c0cd4bc..981dbf7954 100644
+--- a/public/framework/styles/system/studies/padding/shots/files.jsonl
++++ b/public/framework/styles/system/studies/padding/shots/files.jsonl
+@@ -100,3 +100,9 @@
+ {"file":"good-sidebar-link.png"}
+ {"file":"worst-md-details.png"}
+ {"file":"worst-panel-workspace.png"}
++{"file":"check-scene-hint.png","gone":true}
++{"file":"falsepos-thumb.png","gone":true}
++{"file":"good-page-preview.png","gone":true}
++{"file":"good-sidebar-link.png","gone":true}
++{"file":"worst-md-details.png","gone":true}
++{"file":"worst-panel-workspace.png","gone":true}
+diff --git a/public/framework/styles/system/studies/scale/shots/files.jsonl b/public/framework/styles/system/studies/scale/shots/files.jsonl
+index d992bca9f9..84de6ecc97 100644
+--- a/public/framework/styles/system/studies/scale/shots/files.jsonl
++++ b/public/framework/styles/system/studies/scale/shots/files.jsonl
+@@ -107,3 +107,9 @@
+ {"file":"notes-git-branch-names.jpg"}
+ {"file":"notes.jpg"}
+ {"file":"observatory.jpg"}
++{"file":"gallery.jpg","gone":true}
++{"file":"mag.jpg","gone":true}
++{"file":"michael.jpg","gone":true}
++{"file":"notes-git-branch-names.jpg","gone":true}
++{"file":"notes.jpg","gone":true}
++{"file":"observatory.jpg","gone":true}
+diff --git a/public/framework/styles/system/studies/size/shots/files.jsonl b/public/framework/styles/system/studies/size/shots/files.jsonl
+index 85daca8a83..1580aa9701 100644
+--- a/public/framework/styles/system/studies/size/shots/files.jsonl
++++ b/public/framework/styles/system/studies/size/shots/files.jsonl
+@@ -17,3 +17,4 @@
+ {"file":"size.jpg"}
+ {"file":"size.jpg","gone":true}
+ {"file":"size.jpg"}
++{"file":"size.jpg","gone":true}
+diff --git a/public/framework/styles/system/studies/spacing/audit/shots/files.jsonl b/public/framework/styles/system/studies/spacing/audit/shots/files.jsonl
+index 2f693bae23..2580c77647 100644
+--- a/public/framework/styles/system/studies/spacing/audit/shots/files.jsonl
++++ b/public/framework/styles/system/studies/spacing/audit/shots/files.jsonl
+@@ -1097,3 +1097,64 @@
+ {"file":"web-nav-after.jpg"}
+ {"file":"web-nav-before.jpg"}
+ {"file":"web-nav-components.jpg"}
++{"file":"blog-framework-how-this-blog-works-after.jpg","gone":true}
++{"file":"blog-framework-how-this-blog-works-before.jpg","gone":true}
++{"file":"blog-framework-how-this-blog-works-components.jpg","gone":true}
++{"file":"framework-after.jpg","gone":true}
++{"file":"framework-before.jpg","gone":true}
++{"file":"framework-components.jpg","gone":true}
++{"file":"framework-core-after.jpg","gone":true}
++{"file":"framework-core-before.jpg","gone":true}
++{"file":"framework-core-components.jpg","gone":true}
++{"file":"framework-ext-after.jpg","gone":true}
++{"file":"framework-ext-before.jpg","gone":true}
++{"file":"framework-ext-components.jpg","gone":true}
++{"file":"framework-styles-after.jpg","gone":true}
++{"file":"framework-styles-before.jpg","gone":true}
++{"file":"framework-styles-components.jpg","gone":true}
++{"file":"framework-ui-after.jpg","gone":true}
++{"file":"framework-ui-before.jpg","gone":true}
++{"file":"framework-ui-components.jpg","gone":true}
++{"file":"framework-ui-doc-record-after.jpg","gone":true}
++{"file":"framework-ui-doc-record-before.jpg","gone":true}
++{"file":"framework-ui-doc-record-components.jpg","gone":true}
++{"file":"framework-ux-after.jpg","gone":true}
++{"file":"framework-ux-before.jpg","gone":true}
++{"file":"framework-ux-components.jpg","gone":true}
++{"file":"imagine-blogx-after.jpg","gone":true}
++{"file":"imagine-blogx-before.jpg","gone":true}
++{"file":"imagine-blogx-board-after.jpg","gone":true}
++{"file":"imagine-blogx-board-before.jpg","gone":true}
++{"file":"imagine-blogx-board-components.jpg","gone":true}
++{"file":"imagine-blogx-components.jpg","gone":true}
++{"file":"imagine-cms-thinking-after.jpg","gone":true}
++{"file":"imagine-cms-thinking-before.jpg","gone":true}
++{"file":"imagine-cms-thinking-components.jpg","gone":true}
++{"file":"imagine-decks-after.jpg","gone":true}
++{"file":"imagine-decks-before.jpg","gone":true}
++{"file":"imagine-decks-components.jpg","gone":true}
++{"file":"imagine-design-journey-after.jpg","gone":true}
++{"file":"imagine-design-journey-before.jpg","gone":true}
++{"file":"imagine-design-journey-components.jpg","gone":true}
++{"file":"imagine-research-after.jpg","gone":true}
++{"file":"imagine-research-before.jpg","gone":true}
++{"file":"imagine-research-components.jpg","gone":true}
++{"file":"imagine-research-depictions-after.jpg","gone":true}
++{"file":"imagine-research-depictions-before.jpg","gone":true}
++{"file":"imagine-research-depictions-components.jpg","gone":true}
++{"file":"imagine-review-rethink-after.jpg","gone":true}
++{"file":"imagine-review-rethink-before.jpg","gone":true}
++{"file":"imagine-review-rethink-components.jpg","gone":true}
++{"file":"imagine-screens-after.jpg","gone":true}
++{"file":"imagine-screens-before.jpg","gone":true}
++{"file":"imagine-screens-components.jpg","gone":true}
++{"file":"imagine-shells-after.jpg","gone":true}
++{"file":"imagine-shells-before.jpg","gone":true}
++{"file":"imagine-shells-components.jpg","gone":true}
++{"file":"imagine-stream-after.jpg","gone":true}
++{"file":"imagine-stream-before.jpg","gone":true}
++{"file":"imagine-stream-components.jpg","gone":true}
++{"file":"levels-3440.jpg","gone":true}
++{"file":"web-nav-after.jpg","gone":true}
++{"file":"web-nav-before.jpg","gone":true}
++{"file":"web-nav-components.jpg","gone":true}
+diff --git a/public/framework/styles/system/studies/spacing/ceilings/shots/files.jsonl b/public/framework/styles/system/studies/spacing/ceilings/shots/files.jsonl
+index 2a8c32200d..55dd617301 100644
+--- a/public/framework/styles/system/studies/spacing/ceilings/shots/files.jsonl
++++ b/public/framework/styles/system/studies/spacing/ceilings/shots/files.jsonl
+@@ -161,3 +161,12 @@
+ {"file":"stream-1.5x.jpg"}
+ {"file":"stream-2x.jpg"}
+ {"file":"stream-current.jpg"}
++{"file":"cms-1.5x.jpg","gone":true}
++{"file":"cms-2x.jpg","gone":true}
++{"file":"cms-current.jpg","gone":true}
++{"file":"paging-1.5x.jpg","gone":true}
++{"file":"paging-2x.jpg","gone":true}
++{"file":"paging-current.jpg","gone":true}
++{"file":"stream-1.5x.jpg","gone":true}
++{"file":"stream-2x.jpg","gone":true}
++{"file":"stream-current.jpg","gone":true}
+diff --git a/public/framework/styles/system/studies/spacing/shots/files.jsonl b/public/framework/styles/system/studies/spacing/shots/files.jsonl
+index 89ff91cea4..45be055817 100644
+--- a/public/framework/styles/system/studies/spacing/shots/files.jsonl
++++ b/public/framework/styles/system/studies/spacing/shots/files.jsonl
+@@ -49,3 +49,6 @@
+ {"file":"blogx.jpg"}
+ {"file":"platform.jpg"}
+ {"file":"stream.jpg"}
++{"file":"blogx.jpg","gone":true}
++{"file":"platform.jpg","gone":true}
++{"file":"stream.jpg","gone":true}
+diff --git a/public/framework/styles/system/studies/themes/shots/files.jsonl b/public/framework/styles/system/studies/themes/shots/files.jsonl
+index 509e92d152..a837e214d0 100644
+--- a/public/framework/styles/system/studies/themes/shots/files.jsonl
++++ b/public/framework/styles/system/studies/themes/shots/files.jsonl
+@@ -15,3 +15,4 @@
+ {"file":"mock-wall.jpg"}
+ {"file":"mock-wall.jpg","gone":true}
+ {"file":"mock-wall.jpg"}
++{"file":"mock-wall.jpg","gone":true}
+diff --git a/public/framework/styles/system/studies/type/shots/files.jsonl b/public/framework/styles/system/studies/type/shots/files.jsonl
+index 51e9f82af4..58a4380781 100644
+--- a/public/framework/styles/system/studies/type/shots/files.jsonl
++++ b/public/framework/styles/system/studies/type/shots/files.jsonl
+@@ -49,3 +49,6 @@
+ {"file":"caption-vs-body.jpg"}
+ {"file":"h5h6-fail.jpg"}
+ {"file":"scale-good.jpg"}
++{"file":"caption-vs-body.jpg","gone":true}
++{"file":"h5h6-fail.jpg","gone":true}
++{"file":"scale-good.jpg","gone":true}
+diff --git a/public/framework/styles/widths/shots/files.jsonl b/public/framework/styles/widths/shots/files.jsonl
+index 126dac6b49..de32a1e8c4 100644
+--- a/public/framework/styles/widths/shots/files.jsonl
++++ b/public/framework/styles/widths/shots/files.jsonl
+@@ -32,3 +32,5 @@
+ {"file":"3440.png","gone":true}
+ {"file":"1920.png"}
+ {"file":"3440.png"}
++{"file":"1920.png","gone":true}
++{"file":"3440.png","gone":true}
+diff --git a/public/framework/ui/controls/study/shots/files.jsonl b/public/framework/ui/controls/study/shots/files.jsonl
+index 40f6193221..82f1c4fe79 100644
+--- a/public/framework/ui/controls/study/shots/files.jsonl
++++ b/public/framework/ui/controls/study/shots/files.jsonl
+@@ -253,3 +253,18 @@
+ {"file":"style-sidebar-link.png"}
+ {"file":"tabs-active.png"}
+ {"file":"tabs-default.png"}
++{"file":"drawer-open.png","gone":true}
++{"file":"drawer-resized.png","gone":true}
++{"file":"dropdown-default.png","gone":true}
++{"file":"dropdown-open.png","gone":true}
++{"file":"editor-default.png","gone":true}
++{"file":"files-default.png","gone":true}
++{"file":"mode-after.png","gone":true}
++{"file":"mode-before.png","gone":true}
++{"file":"panel-default.png","gone":true}
++{"file":"style-blog-chip.png","gone":true}
++{"file":"style-demo-btn.png","gone":true}
++{"file":"style-mode-btn.png","gone":true}
++{"file":"style-sidebar-link.png","gone":true}
++{"file":"tabs-active.png","gone":true}
++{"file":"tabs-default.png","gone":true}
+diff --git a/public/framework/ui/scale/files.jsonl b/public/framework/ui/scale/files.jsonl
+index 24d7e8a9a4..84bb44bbe0 100644
+--- a/public/framework/ui/scale/files.jsonl
++++ b/public/framework/ui/scale/files.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"readme.md"}
+ {"file":"scale.js"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ux/Card/files.jsonl b/public/framework/ux/Card/files.jsonl
+index 97639ee921..7a1aae8a14 100644
+--- a/public/framework/ux/Card/files.jsonl
++++ b/public/framework/ux/Card/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"readme.md"}
+ {"file":"page.js"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ux/Dictate/files.jsonl b/public/framework/ux/Dictate/files.jsonl
+index 61afdca32f..4955ddc22c 100644
+--- a/public/framework/ux/Dictate/files.jsonl
++++ b/public/framework/ux/Dictate/files.jsonl
+@@ -84,3 +84,4 @@
+ {"file":"ChatStatus.js"}
+ {"file":"ChatStatus.test.mjs"}
+ {"file":"mastermind.md"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ux/Dictate/playground/walkthrough/shots/files.jsonl b/public/framework/ux/Dictate/playground/walkthrough/shots/files.jsonl
+index 2cd4d15eff..8917184f13 100644
+--- a/public/framework/ux/Dictate/playground/walkthrough/shots/files.jsonl
++++ b/public/framework/ux/Dictate/playground/walkthrough/shots/files.jsonl
+@@ -100,3 +100,9 @@
+ {"file":"4-corrections.png"}
+ {"file":"5-live-clean.png"}
+ {"file":"5-live-fading.png"}
++{"file":"1-where.png","gone":true}
++{"file":"2-audio.png","gone":true}
++{"file":"3-raw.png","gone":true}
++{"file":"4-corrections.png","gone":true}
++{"file":"5-live-clean.png","gone":true}
++{"file":"5-live-fading.png","gone":true}
+diff --git a/public/framework/ux/Popover/files.jsonl b/public/framework/ux/Popover/files.jsonl
+index 33812be042..c98717509c 100644
+--- a/public/framework/ux/Popover/files.jsonl
++++ b/public/framework/ux/Popover/files.jsonl
+@@ -20,3 +20,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/imagine/blogx/shots/files.jsonl b/public/imagine/blogx/shots/files.jsonl
+index 3ba616fa23..759bd77b21 100644
+--- a/public/imagine/blogx/shots/files.jsonl
++++ b/public/imagine/blogx/shots/files.jsonl
+@@ -134,3 +134,11 @@
+ {"file":"parts.jpg"}
+ {"file":"rail.jpg"}
+ {"file":"swap.jpg"}
++{"file":"board.jpg","gone":true}
++{"file":"deck.jpg","gone":true}
++{"file":"dig.jpg","gone":true}
++{"file":"finder.jpg","gone":true}
++{"file":"front.jpg","gone":true}
++{"file":"parts.jpg","gone":true}
++{"file":"rail.jpg","gone":true}
++{"file":"swap.jpg","gone":true}
+diff --git a/public/imagine/cms/shots/files.jsonl b/public/imagine/cms/shots/files.jsonl
+index 3c427d72d8..334415f47f 100644
+--- a/public/imagine/cms/shots/files.jsonl
++++ b/public/imagine/cms/shots/files.jsonl
+@@ -100,3 +100,9 @@
+ {"file":"services.jpg"}
+ {"file":"thinking.jpg"}
+ {"file":"welcome.jpg"}
++{"file":"d1.jpg","gone":true}
++{"file":"edit.jpg","gone":true}
++{"file":"json.jpg","gone":true}
++{"file":"services.jpg","gone":true}
++{"file":"thinking.jpg","gone":true}
++{"file":"welcome.jpg","gone":true}
+diff --git a/public/imagine/design/color/shots/files.jsonl b/public/imagine/design/color/shots/files.jsonl
+index 89bcbb3780..96d226a3c1 100644
+--- a/public/imagine/design/color/shots/files.jsonl
++++ b/public/imagine/design/color/shots/files.jsonl
+@@ -117,3 +117,10 @@
+ {"file":"ok-dark-mode.jpg"}
+ {"file":"ok-padding-clean.jpg"}
+ {"file":"ok-theme-source-dark.jpg"}
++{"file":"fail-accent-overload.jpg","gone":true}
++{"file":"fail-ai-card-title.jpg","gone":true}
++{"file":"fail-stray-blue-link.jpg","gone":true}
++{"file":"fail-toc-current.jpg","gone":true}
++{"file":"ok-dark-mode.jpg","gone":true}
++{"file":"ok-padding-clean.jpg","gone":true}
++{"file":"ok-theme-source-dark.jpg","gone":true}
+diff --git a/public/imagine/design/controls/shots/files.jsonl b/public/imagine/design/controls/shots/files.jsonl
+index 40f6193221..82f1c4fe79 100644
+--- a/public/imagine/design/controls/shots/files.jsonl
++++ b/public/imagine/design/controls/shots/files.jsonl
+@@ -253,3 +253,18 @@
+ {"file":"style-sidebar-link.png"}
+ {"file":"tabs-active.png"}
+ {"file":"tabs-default.png"}
++{"file":"drawer-open.png","gone":true}
++{"file":"drawer-resized.png","gone":true}
++{"file":"dropdown-default.png","gone":true}
++{"file":"dropdown-open.png","gone":true}
++{"file":"editor-default.png","gone":true}
++{"file":"files-default.png","gone":true}
++{"file":"mode-after.png","gone":true}
++{"file":"mode-before.png","gone":true}
++{"file":"panel-default.png","gone":true}
++{"file":"style-blog-chip.png","gone":true}
++{"file":"style-demo-btn.png","gone":true}
++{"file":"style-mode-btn.png","gone":true}
++{"file":"style-sidebar-link.png","gone":true}
++{"file":"tabs-active.png","gone":true}
++{"file":"tabs-default.png","gone":true}
+diff --git a/public/imagine/design/journey/shots/files.jsonl b/public/imagine/design/journey/shots/files.jsonl
+index d199444167..ce115d8b77 100644
+--- a/public/imagine/design/journey/shots/files.jsonl
++++ b/public/imagine/design/journey/shots/files.jsonl
+@@ -7665,3 +7665,454 @@
+ {"file":"web-nav-wall.jpg"}
+ {"file":"web-nav.jpg"}
+ {"file":"web.jpg"}
++{"file":"alex-framework.jpg","gone":true}
++{"file":"alex-styles.jpg","gone":true}
++{"file":"alex.jpg","gone":true}
++{"file":"arya-framework-app.jpg","gone":true}
++{"file":"arya-framework-page.jpg","gone":true}
++{"file":"arya-framework-view.jpg","gone":true}
++{"file":"arya-framework.jpg","gone":true}
++{"file":"arya-notes.jpg","gone":true}
++{"file":"arya-styles-build.jpg","gone":true}
++{"file":"arya-styles-flex.jpg","gone":true}
++{"file":"arya-styles-forms.jpg","gone":true}
++{"file":"arya-styles-grid.jpg","gone":true}
++{"file":"arya-styles-html.jpg","gone":true}
++{"file":"arya-styles.jpg","gone":true}
++{"file":"arya.jpg","gone":true}
++{"file":"blog-ai-claude-tooling.jpg","gone":true}
++{"file":"blog-ai-dashboard.jpg","gone":true}
++{"file":"blog-ai.jpg","gone":true}
++{"file":"blog-framework-hello-lew42.jpg","gone":true}
++{"file":"blog-framework-how-this-blog-works.jpg","gone":true}
++{"file":"blog-framework.jpg","gone":true}
++{"file":"blog-systems-layout-generators.jpg","gone":true}
++{"file":"blog-systems-panel-playground.jpg","gone":true}
++{"file":"blog-systems.jpg","gone":true}
++{"file":"blog.jpg","gone":true}
++{"file":"castin.jpg","gone":true}
++{"file":"edric-components.jpg","gone":true}
++{"file":"edric-framework.jpg","gone":true}
++{"file":"edric-style.jpg","gone":true}
++{"file":"edric.jpg","gone":true}
++{"file":"framework-ai.jpg","gone":true}
++{"file":"framework-audit-browsable.jpg","gone":true}
++{"file":"framework-audit-overview-organization.jpg","gone":true}
++{"file":"framework-audit-overview-priorities.jpg","gone":true}
++{"file":"framework-audit.jpg","gone":true}
++{"file":"framework-core-App.jpg","gone":true}
++{"file":"framework-core-Item.jpg","gone":true}
++{"file":"framework-core-List.jpg","gone":true}
++{"file":"framework-core-Page-generator.jpg","gone":true}
++{"file":"framework-core-Page-old-children.jpg","gone":true}
++{"file":"framework-core-Page-old-flow.jpg","gone":true}
++{"file":"framework-core-Page-old-intro.jpg","gone":true}
++{"file":"framework-core-Page-old-nav.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-add.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-catalog.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-children.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-dashboard.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-deep.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-docs.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-labels.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-landing.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-page.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-route.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-shapes.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-site.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-strip.jpg","gone":true}
++{"file":"framework-core-Page-old-overview-wall.jpg","gone":true}
++{"file":"framework-core-Page-old-overview.jpg","gone":true}
++{"file":"framework-core-Page-old-previews.jpg","gone":true}
++{"file":"framework-core-Page-old-shell.jpg","gone":true}
++{"file":"framework-core-Page-old.jpg","gone":true}
++{"file":"framework-core-Page-overview-catalog.jpg","gone":true}
++{"file":"framework-core-Page-overview-children.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-grids-flush-wall.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-grids-grid-detail.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-grids-list-large.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-grids-measure-3440.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-grids.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-looks-backgrounds.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-looks-padding.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-looks-scrollbars.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples-looks.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-examples.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-finder.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-panels.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-refs.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-uses-docs.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-uses-inbox.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-uses-split.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-uses-workbench.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns-uses.jpg","gone":true}
++{"file":"framework-core-Page-overview-columns.jpg","gone":true}
++{"file":"framework-core-Page-overview-crumbs.jpg","gone":true}
++{"file":"framework-core-Page-overview-dashboard.jpg","gone":true}
++{"file":"framework-core-Page-overview-docs.jpg","gone":true}
++{"file":"framework-core-Page-overview-flush.jpg","gone":true}
++{"file":"framework-core-Page-overview-full.jpg","gone":true}
++{"file":"framework-core-Page-overview-grid.jpg","gone":true}
++{"file":"framework-core-Page-overview-inset.jpg","gone":true}
++{"file":"framework-core-Page-overview-labels.jpg","gone":true}
++{"file":"framework-core-Page-overview-landing.jpg","gone":true}
++{"file":"framework-core-Page-overview-list.jpg","gone":true}
++{"file":"framework-core-Page-overview-measure.jpg","gone":true}
++{"file":"framework-core-Page-overview-mounts.jpg","gone":true}
++{"file":"framework-core-Page-overview-page.jpg","gone":true}
++{"file":"framework-core-Page-overview-prose.jpg","gone":true}
++{"file":"framework-core-Page-overview-rail.jpg","gone":true}
++{"file":"framework-core-Page-overview-region.jpg","gone":true}
++{"file":"framework-core-Page-overview-render.jpg","gone":true}
++{"file":"framework-core-Page-overview-replace.jpg","gone":true}
++{"file":"framework-core-Page-overview-route.jpg","gone":true}
++{"file":"framework-core-Page-overview-shell.jpg","gone":true}
++{"file":"framework-core-Page-overview-site.jpg","gone":true}
++{"file":"framework-core-Page-overview-strip.jpg","gone":true}
++{"file":"framework-core-Page-overview-tabs.jpg","gone":true}
++{"file":"framework-core-Page-overview-vtabs.jpg","gone":true}
++{"file":"framework-core-Page-overview-wall.jpg","gone":true}
++{"file":"framework-core-Page-overview-width.jpg","gone":true}
++{"file":"framework-core-Page.jpg","gone":true}
++{"file":"framework-core-Router.jpg","gone":true}
++{"file":"framework-core-Sidebar.jpg","gone":true}
++{"file":"framework-core-View.jpg","gone":true}
++{"file":"framework-core.jpg","gone":true}
++{"file":"framework-dev-Claim.jpg","gone":true}
++{"file":"framework-dev-DevBar.jpg","gone":true}
++{"file":"framework-dev-Socket.jpg","gone":true}
++{"file":"framework-dev.jpg","gone":true}
++{"file":"framework-ext-AITask.jpg","gone":true}
++{"file":"framework-ext-Ask.jpg","gone":true}
++{"file":"framework-ext-catalog.jpg","gone":true}
++{"file":"framework-ext-demo-shell.jpg","gone":true}
++{"file":"framework-ext-demo.jpg","gone":true}
++{"file":"framework-ext-depth.jpg","gone":true}
++{"file":"framework-ext-DesignTool-audit-taste.jpg","gone":true}
++{"file":"framework-ext-DesignTool-audit.jpg","gone":true}
++{"file":"framework-ext-DesignTool-knowledge.jpg","gone":true}
++{"file":"framework-ext-DesignTool-library-bad.jpg","gone":true}
++{"file":"framework-ext-DesignTool-library.jpg","gone":true}
++{"file":"framework-ext-DesignTool-taste-corpus.jpg","gone":true}
++{"file":"framework-ext-DesignTool-taste.jpg","gone":true}
++{"file":"framework-ext-DesignTool-tests.jpg","gone":true}
++{"file":"framework-ext-DesignTool-vision.jpg","gone":true}
++{"file":"framework-ext-DesignTool-widths.jpg","gone":true}
++{"file":"framework-ext-DesignTool.jpg","gone":true}
++{"file":"framework-ext-Doc-overview-urls.jpg","gone":true}
++{"file":"framework-ext-Doc.jpg","gone":true}
++{"file":"framework-ext-Draggable.jpg","gone":true}
++{"file":"framework-ext-drawer.jpg","gone":true}
++{"file":"framework-ext-Dropdown.jpg","gone":true}
++{"file":"framework-ext-editor.jpg","gone":true}
++{"file":"framework-ext-files.jpg","gone":true}
++{"file":"framework-ext-grip.jpg","gone":true}
++{"file":"framework-ext-highlight.jpg","gone":true}
++{"file":"framework-ext-JSONL.jpg","gone":true}
++{"file":"framework-ext-layout.jpg","gone":true}
++{"file":"framework-ext-markdown.jpg","gone":true}
++{"file":"framework-ext-Panel-demo.jpg","gone":true}
++{"file":"framework-ext-Panel-playground.jpg","gone":true}
++{"file":"framework-ext-Panel-Workspace.jpg","gone":true}
++{"file":"framework-ext-Panel.jpg","gone":true}
++{"file":"framework-ext-Playground.jpg","gone":true}
++{"file":"framework-ext-Research.jpg","gone":true}
++{"file":"framework-ext-Saver.jpg","gone":true}
++{"file":"framework-ext-tabs.jpg","gone":true}
++{"file":"framework-ext-Timeline.jpg","gone":true}
++{"file":"framework-ext-toc.jpg","gone":true}
++{"file":"framework-ext.jpg","gone":true}
++{"file":"framework-faq.jpg","gone":true}
++{"file":"framework-research.jpg","gone":true}
++{"file":"framework-start-example-about-team.jpg","gone":true}
++{"file":"framework-start-example-about.jpg","gone":true}
++{"file":"framework-start-example.jpg","gone":true}
++{"file":"framework-start.jpg","gone":true}
++{"file":"framework-styles-elements-code.jpg","gone":true}
++{"file":"framework-styles-elements-forms.jpg","gone":true}
++{"file":"framework-styles-elements-lists.jpg","gone":true}
++{"file":"framework-styles-elements-media.jpg","gone":true}
++{"file":"framework-styles-elements-misc.jpg","gone":true}
++{"file":"framework-styles-elements-table.jpg","gone":true}
++{"file":"framework-styles-elements-text.jpg","gone":true}
++{"file":"framework-styles-elements.jpg","gone":true}
++{"file":"framework-styles-layers-base.jpg","gone":true}
++{"file":"framework-styles-layers-site.jpg","gone":true}
++{"file":"framework-styles-layers-theme-guide.jpg","gone":true}
++{"file":"framework-styles-layers-theme-lew42.jpg","gone":true}
++{"file":"framework-styles-layers-theme.jpg","gone":true}
++{"file":"framework-styles-layers-util.jpg","gone":true}
++{"file":"framework-styles-layers.jpg","gone":true}
++{"file":"framework-styles-layouts-400.jpg","gone":true}
++{"file":"framework-styles-layouts-anatomy.jpg","gone":true}
++{"file":"framework-styles-layouts-apidoc.jpg","gone":true}
++{"file":"framework-styles-layouts-bold-editorial.jpg","gone":true}
++{"file":"framework-styles-layouts-carousel.jpg","gone":true}
++{"file":"framework-styles-layouts-chat.jpg","gone":true}
++{"file":"framework-styles-layouts-cols-matrix.jpg","gone":true}
++{"file":"framework-styles-layouts-cols.jpg","gone":true}
++{"file":"framework-styles-layouts-dashboard.jpg","gone":true}
++{"file":"framework-styles-layouts-docs.jpg","gone":true}
++{"file":"framework-styles-layouts-document.jpg","gone":true}
++{"file":"framework-styles-layouts-feed.jpg","gone":true}
++{"file":"framework-styles-layouts-fit.jpg","gone":true}
++{"file":"framework-styles-layouts-flex.jpg","gone":true}
++{"file":"framework-styles-layouts-gallery.jpg","gone":true}
++{"file":"framework-styles-layouts-grid.jpg","gone":true}
++{"file":"framework-styles-layouts-hero.jpg","gone":true}
++{"file":"framework-styles-layouts-home.jpg","gone":true}
++{"file":"framework-styles-layouts-landing.jpg","gone":true}
++{"file":"framework-styles-layouts-mail.jpg","gone":true}
++{"file":"framework-styles-layouts-masonry-packed.jpg","gone":true}
++{"file":"framework-styles-layouts-masonry.jpg","gone":true}
++{"file":"framework-styles-layouts-model.jpg","gone":true}
++{"file":"framework-styles-layouts-overlay.jpg","gone":true}
++{"file":"framework-styles-layouts-pricing.jpg","gone":true}
++{"file":"framework-styles-layouts-screens.jpg","gone":true}
++{"file":"framework-styles-layouts-set.jpg","gone":true}
++{"file":"framework-styles-layouts-shell.jpg","gone":true}
++{"file":"framework-styles-layouts-sidebar.jpg","gone":true}
++{"file":"framework-styles-layouts-space-compose.jpg","gone":true}
++{"file":"framework-styles-layouts-space-hunt.jpg","gone":true}
++{"file":"framework-styles-layouts-space-words.jpg","gone":true}
++{"file":"framework-styles-layouts-space.jpg","gone":true}
++{"file":"framework-styles-layouts-spec.jpg","gone":true}
++{"file":"framework-styles-layouts-split.jpg","gone":true}
++{"file":"framework-styles-layouts-stack.jpg","gone":true}
++{"file":"framework-styles-layouts-toc-studio.jpg","gone":true}
++{"file":"framework-styles-layouts-wire.jpg","gone":true}
++{"file":"framework-styles-layouts.jpg","gone":true}
++{"file":"framework-styles-rules.jpg","gone":true}
++{"file":"framework-styles-sections.jpg","gone":true}
++{"file":"framework-styles-stacks.jpg","gone":true}
++{"file":"framework-styles.jpg","gone":true}
++{"file":"framework-ui-accordion.jpg","gone":true}
++{"file":"framework-ui-alert.jpg","gone":true}
++{"file":"framework-ui-avatar.jpg","gone":true}
++{"file":"framework-ui-badge.jpg","gone":true}
++{"file":"framework-ui-card.jpg","gone":true}
++{"file":"framework-ui-crumbs.jpg","gone":true}
++{"file":"framework-ui-dialog.jpg","gone":true}
++{"file":"framework-ui-field.jpg","gone":true}
++{"file":"framework-ui-kbd.jpg","gone":true}
++{"file":"framework-ui-menu.jpg","gone":true}
++{"file":"framework-ui-pagination.jpg","gone":true}
++{"file":"framework-ui-panel.jpg","gone":true}
++{"file":"framework-ui-progress.jpg","gone":true}
++{"file":"framework-ui-stats.jpg","gone":true}
++{"file":"framework-ui-table.jpg","gone":true}
++{"file":"framework-ui-tags.jpg","gone":true}
++{"file":"framework-ui-timeline.jpg","gone":true}
++{"file":"framework-ui-toolbar.jpg","gone":true}
++{"file":"framework-ui-tooltip.jpg","gone":true}
++{"file":"framework-ui-tree.jpg","gone":true}
++{"file":"framework-ui-words.jpg","gone":true}
++{"file":"framework-ui.jpg","gone":true}
++{"file":"framework-util-is.jpg","gone":true}
++{"file":"framework-util-markup.jpg","gone":true}
++{"file":"framework-util-source.jpg","gone":true}
++{"file":"framework-util.jpg","gone":true}
++{"file":"framework-ux-Auth.jpg","gone":true}
++{"file":"framework-ux-Course.jpg","gone":true}
++{"file":"framework-ux-Filter.jpg","gone":true}
++{"file":"framework-ux-Menu.jpg","gone":true}
++{"file":"framework-ux-Pagination.jpg","gone":true}
++{"file":"framework-ux-Tags.jpg","gone":true}
++{"file":"framework-ux-Tree-drag.jpg","gone":true}
++{"file":"framework-ux-Tree.jpg","gone":true}
++{"file":"framework-ux-Wizard.jpg","gone":true}
++{"file":"framework-ux.jpg","gone":true}
++{"file":"framework-versus.jpg","gone":true}
++{"file":"framework.jpg","gone":true}
++{"file":"imagine-blogx-board.jpg","gone":true}
++{"file":"imagine-blogx-deck.jpg","gone":true}
++{"file":"imagine-blogx-dig.jpg","gone":true}
++{"file":"imagine-blogx-finder.jpg","gone":true}
++{"file":"imagine-blogx-front.jpg","gone":true}
++{"file":"imagine-blogx-parts.jpg","gone":true}
++{"file":"imagine-blogx-rail.jpg","gone":true}
++{"file":"imagine-blogx-swap.jpg","gone":true}
++{"file":"imagine-blogx.jpg","gone":true}
++{"file":"imagine-cms-edit.jpg","gone":true}
++{"file":"imagine-cms-json-edit.jpg","gone":true}
++{"file":"imagine-cms-json.jpg","gone":true}
++{"file":"imagine-cms-services.jpg","gone":true}
++{"file":"imagine-cms-thinking.jpg","gone":true}
++{"file":"imagine-cms.jpg","gone":true}
++{"file":"imagine-decks-aside.jpg","gone":true}
++{"file":"imagine-decks-four.jpg","gone":true}
++{"file":"imagine-decks-golden.jpg","gone":true}
++{"file":"imagine-decks-half.jpg","gone":true}
++{"file":"imagine-decks-persist.jpg","gone":true}
++{"file":"imagine-decks-pitch.jpg","gone":true}
++{"file":"imagine-decks-poster.jpg","gone":true}
++{"file":"imagine-decks-swap.jpg","gone":true}
++{"file":"imagine-decks-triptych.jpg","gone":true}
++{"file":"imagine-decks.jpg","gone":true}
++{"file":"imagine-design.jpg","gone":true}
++{"file":"imagine-feeds-data-cards.jpg","gone":true}
++{"file":"imagine-feeds-data-table.jpg","gone":true}
++{"file":"imagine-feeds-data-tree.jpg","gone":true}
++{"file":"imagine-feeds-data.jpg","gone":true}
++{"file":"imagine-feeds-live.jpg","gone":true}
++{"file":"imagine-feeds-video.jpg","gone":true}
++{"file":"imagine-feeds.jpg","gone":true}
++{"file":"imagine-gallery-answers.jpg","gone":true}
++{"file":"imagine-gallery-cards.jpg","gone":true}
++{"file":"imagine-gallery-lists.jpg","gone":true}
++{"file":"imagine-gallery.jpg","gone":true}
++{"file":"imagine-game.jpg","gone":true}
++{"file":"imagine-generated-seed-7-list-wall-prose-2.jpg","gone":true}
++{"file":"imagine-generated-seed-7-list-wall-prose.jpg","gone":true}
++{"file":"imagine-generated-seed-7-list-wall-tabs-prose-2.jpg","gone":true}
++{"file":"imagine-generated-seed-7-list-wall-tabs-prose.jpg","gone":true}
++{"file":"imagine-generated-seed-7-list-wall-tabs.jpg","gone":true}
++{"file":"imagine-generated-seed-7-list-wall.jpg","gone":true}
++{"file":"imagine-generated-seed-7-list.jpg","gone":true}
++{"file":"imagine-generated-seed-7-vtabs-prose.jpg","gone":true}
++{"file":"imagine-generated-seed-7-vtabs-wall-list-prose-2.jpg","gone":true}
++{"file":"imagine-generated-seed-7-vtabs-wall-list-prose.jpg","gone":true}
++{"file":"imagine-generated-seed-7-vtabs-wall-list.jpg","gone":true}
++{"file":"imagine-generated-seed-7-vtabs-wall-prose.jpg","gone":true}
++{"file":"imagine-generated-seed-7-vtabs-wall.jpg","gone":true}
++{"file":"imagine-generated-seed-7-vtabs.jpg","gone":true}
++{"file":"imagine-generated-seed-7.jpg","gone":true}
++{"file":"imagine-generated.jpg","gone":true}
++{"file":"imagine-mag-contents.jpg","gone":true}
++{"file":"imagine-mag.jpg","gone":true}
++{"file":"imagine-research-depictions.jpg","gone":true}
++{"file":"imagine-research-disclosure.jpg","gone":true}
++{"file":"imagine-research-stone-barabar-caves.jpg","gone":true}
++{"file":"imagine-research-stone-giza-coffer.jpg","gone":true}
++{"file":"imagine-research-stone-predynastic-vases.jpg","gone":true}
++{"file":"imagine-research-stone-puma-punku.jpg","gone":true}
++{"file":"imagine-research-stone-sacsayhuaman.jpg","gone":true}
++{"file":"imagine-research-stone-serapeum.jpg","gone":true}
++{"file":"imagine-research-stone-unfinished-obelisk.jpg","gone":true}
++{"file":"imagine-research-stone.jpg","gone":true}
++{"file":"imagine-research-theories-ancient-astronauts.jpg","gone":true}
++{"file":"imagine-research-theories-catastrophism-gradualism.jpg","gone":true}
++{"file":"imagine-research-theories-lost-civilization.jpg","gone":true}
++{"file":"imagine-research-theories-patterns.jpg","gone":true}
++{"file":"imagine-research-theories-synthesis.jpg","gone":true}
++{"file":"imagine-research-theories-uap-hypotheses.jpg","gone":true}
++{"file":"imagine-research-theories-younger-dryas.jpg","gone":true}
++{"file":"imagine-research-theories.jpg","gone":true}
++{"file":"imagine-research.jpg","gone":true}
++{"file":"imagine-scenes-gallery.jpg","gone":true}
++{"file":"imagine-scenes-observatory.jpg","gone":true}
++{"file":"imagine-scenes-plinth.jpg","gone":true}
++{"file":"imagine-scenes-quarters.jpg","gone":true}
++{"file":"imagine-scenes-tour.jpg","gone":true}
++{"file":"imagine-scenes-worlds.jpg","gone":true}
++{"file":"imagine-scenes.jpg","gone":true}
++{"file":"imagine-screens-deck.jpg","gone":true}
++{"file":"imagine-screens-divide.jpg","gone":true}
++{"file":"imagine-screens-mix.jpg","gone":true}
++{"file":"imagine-screens-quad.jpg","gone":true}
++{"file":"imagine-screens-read.jpg","gone":true}
++{"file":"imagine-screens-stack.jpg","gone":true}
++{"file":"imagine-screens-title.jpg","gone":true}
++{"file":"imagine-screens-uneven.jpg","gone":true}
++{"file":"imagine-screens.jpg","gone":true}
++{"file":"imagine-shells-both.jpg","gone":true}
++{"file":"imagine-shells-canvas.jpg","gone":true}
++{"file":"imagine-shells-columns.jpg","gone":true}
++{"file":"imagine-shells-foot.jpg","gone":true}
++{"file":"imagine-shells-head-foot.jpg","gone":true}
++{"file":"imagine-shells-inner-bar.jpg","gone":true}
++{"file":"imagine-shells-inner-rail.jpg","gone":true}
++{"file":"imagine-shells-left.jpg","gone":true}
++{"file":"imagine-shells-rail-foot.jpg","gone":true}
++{"file":"imagine-shells-right.jpg","gone":true}
++{"file":"imagine-shells.jpg","gone":true}
++{"file":"imagine-stream-blocks.jpg","gone":true}
++{"file":"imagine-stream-deck.jpg","gone":true}
++{"file":"imagine-stream-wire.jpg","gone":true}
++{"file":"imagine-stream.jpg","gone":true}
++{"file":"imagine-team.jpg","gone":true}
++{"file":"imagine-vary-colstyles-cards.jpg","gone":true}
++{"file":"imagine-vary-colstyles-finder.jpg","gone":true}
++{"file":"imagine-vary-colstyles-glass.jpg","gone":true}
++{"file":"imagine-vary-colstyles-hooks.jpg","gone":true}
++{"file":"imagine-vary-colstyles-ink.jpg","gone":true}
++{"file":"imagine-vary-colstyles.jpg","gone":true}
++{"file":"imagine-vary-place-add.jpg","gone":true}
++{"file":"imagine-vary-place-carousel.jpg","gone":true}
++{"file":"imagine-vary-place-swap.jpg","gone":true}
++{"file":"imagine-vary-place.jpg","gone":true}
++{"file":"imagine-vary-scroll-flush.jpg","gone":true}
++{"file":"imagine-vary-scroll-full.jpg","gone":true}
++{"file":"imagine-vary-scroll-padded.jpg","gone":true}
++{"file":"imagine-vary-scroll.jpg","gone":true}
++{"file":"imagine-vary-tone-alt.jpg","gone":true}
++{"file":"imagine-vary-tone-down.jpg","gone":true}
++{"file":"imagine-vary-tone-flip.jpg","gone":true}
++{"file":"imagine-vary-tone-live.jpg","gone":true}
++{"file":"imagine-vary-tone-up.jpg","gone":true}
++{"file":"imagine-vary-tone.jpg","gone":true}
++{"file":"imagine-vary.jpg","gone":true}
++{"file":"imagine-youtube-chat.jpg","gone":true}
++{"file":"imagine-youtube-course.jpg","gone":true}
++{"file":"imagine-youtube-marks.jpg","gone":true}
++{"file":"imagine-youtube-panel.jpg","gone":true}
++{"file":"imagine-youtube-split.jpg","gone":true}
++{"file":"imagine-youtube-yield.jpg","gone":true}
++{"file":"imagine-youtube.jpg","gone":true}
++{"file":"imagine.jpg","gone":true}
++{"file":"michael-column-pager-anatomy.jpg","gone":true}
++{"file":"michael-column-pager-mvp.jpg","gone":true}
++{"file":"michael-column-pager.jpg","gone":true}
++{"file":"michael-components.jpg","gone":true}
++{"file":"michael-elements-button.jpg","gone":true}
++{"file":"michael-elements-img.jpg","gone":true}
++{"file":"michael-elements-input.jpg","gone":true}
++{"file":"michael-elements-list.jpg","gone":true}
++{"file":"michael-elements-other.jpg","gone":true}
++{"file":"michael-elements-text.jpg","gone":true}
++{"file":"michael-elements.jpg","gone":true}
++{"file":"michael-layout-containers.jpg","gone":true}
++{"file":"michael-layout-flex.jpg","gone":true}
++{"file":"michael-layout-gap.jpg","gone":true}
++{"file":"michael-layout-grid.jpg","gone":true}
++{"file":"michael-layout.jpg","gone":true}
++{"file":"michael-page-links.jpg","gone":true}
++{"file":"michael-page-mvp.jpg","gone":true}
++{"file":"michael-page-tree.jpg","gone":true}
++{"file":"michael-page.jpg","gone":true}
++{"file":"michael-pager-mvp.jpg","gone":true}
++{"file":"michael-pager-tabs.jpg","gone":true}
++{"file":"michael-pager.jpg","gone":true}
++{"file":"michael-previews.jpg","gone":true}
++{"file":"michael-router-interception.jpg","gone":true}
++{"file":"michael-router-mvp.jpg","gone":true}
++{"file":"michael-router.jpg","gone":true}
++{"file":"michael-sections.jpg","gone":true}
++{"file":"michael.jpg","gone":true}
++{"file":"notes-auth.jpg","gone":true}
++{"file":"notes-git-branch-names.jpg","gone":true}
++{"file":"notes-team-note.jpg","gone":true}
++{"file":"notes.jpg","gone":true}
++{"file":"resume.jpg","gone":true}
++{"file":"root.jpg","gone":true}
++{"file":"web-layout-flex.jpg","gone":true}
++{"file":"web-layout-flow.jpg","gone":true}
++{"file":"web-layout-grid.jpg","gone":true}
++{"file":"web-layout-measure.jpg","gone":true}
++{"file":"web-layout-respond.jpg","gone":true}
++{"file":"web-layout-screens.jpg","gone":true}
++{"file":"web-layout-tracks.jpg","gone":true}
++{"file":"web-layout.jpg","gone":true}
++{"file":"web-nav-bar.jpg","gone":true}
++{"file":"web-nav-crumbs.jpg","gone":true}
++{"file":"web-nav-drawer.jpg","gone":true}
++{"file":"web-nav-drill.jpg","gone":true}
++{"file":"web-nav-footer.jpg","gone":true}
++{"file":"web-nav-jumps.jpg","gone":true}
++{"file":"web-nav-links.jpg","gone":true}
++{"file":"web-nav-rail.jpg","gone":true}
++{"file":"web-nav-sidebar.jpg","gone":true}
++{"file":"web-nav-tabs.jpg","gone":true}
++{"file":"web-nav-wall.jpg","gone":true}
++{"file":"web-nav.jpg","gone":true}
++{"file":"web.jpg","gone":true}
+diff --git a/public/imagine/design/layout/shots/files.jsonl b/public/imagine/design/layout/shots/files.jsonl
+index 8e8a4e32d7..87f7166908 100644
+--- a/public/imagine/design/layout/shots/files.jsonl
++++ b/public/imagine/design/layout/shots/files.jsonl
+@@ -185,3 +185,14 @@
+ {"file":"tax-reading-column.jpg"}
+ {"file":"tax-solo.jpg"}
+ {"file":"tax-tile-wall.jpg"}
++{"file":"fail-imagine-design-3440.jpg","gone":true}
++{"file":"fail-imagine-gallery-3440.jpg","gone":true}
++{"file":"fail-imagine-root-3440.jpg","gone":true}
++{"file":"fail-michael-3440.jpg","gone":true}
++{"file":"fail-michael-layout-3440.jpg","gone":true}
++{"file":"tax-columns-row.jpg","gone":true}
++{"file":"tax-dashboard-row.jpg","gone":true}
++{"file":"tax-rail-content.jpg","gone":true}
++{"file":"tax-reading-column.jpg","gone":true}
++{"file":"tax-solo.jpg","gone":true}
++{"file":"tax-tile-wall.jpg","gone":true}
+diff --git a/public/imagine/design/navigation/shots/files.jsonl b/public/imagine/design/navigation/shots/files.jsonl
+index 492db894f4..7e7d564b3d 100644
+--- a/public/imagine/design/navigation/shots/files.jsonl
++++ b/public/imagine/design/navigation/shots/files.jsonl
+@@ -253,3 +253,18 @@
+ {"file":"tabs-390.png"}
+ {"file":"toc-1280.png"}
+ {"file":"toc-390.png"}
++{"file":"columns-1280.png","gone":true}
++{"file":"columns-deep-1280.png","gone":true}
++{"file":"columns-deep-390.png","gone":true}
++{"file":"crumbs-1280.png","gone":true}
++{"file":"prev-next-1280.png","gone":true}
++{"file":"prev-next-390.png","gone":true}
++{"file":"preview-wall-1280.png","gone":true}
++{"file":"preview-wall-390.png","gone":true}
++{"file":"rail-nested-1280.png","gone":true}
++{"file":"rail-nested-390-open.png","gone":true}
++{"file":"rail-nested-390.png","gone":true}
++{"file":"tabs-1280.png","gone":true}
++{"file":"tabs-390.png","gone":true}
++{"file":"toc-1280.png","gone":true}
++{"file":"toc-390.png","gone":true}
+diff --git a/public/imagine/design/padding/shots/files.jsonl b/public/imagine/design/padding/shots/files.jsonl
+index 590c0cd4bc..981dbf7954 100644
+--- a/public/imagine/design/padding/shots/files.jsonl
++++ b/public/imagine/design/padding/shots/files.jsonl
+@@ -100,3 +100,9 @@
+ {"file":"good-sidebar-link.png"}
+ {"file":"worst-md-details.png"}
+ {"file":"worst-panel-workspace.png"}
++{"file":"check-scene-hint.png","gone":true}
++{"file":"falsepos-thumb.png","gone":true}
++{"file":"good-page-preview.png","gone":true}
++{"file":"good-sidebar-link.png","gone":true}
++{"file":"worst-md-details.png","gone":true}
++{"file":"worst-panel-workspace.png","gone":true}
+diff --git a/public/imagine/design/scale/shots/files.jsonl b/public/imagine/design/scale/shots/files.jsonl
+index f9a725ff89..34159b9e2b 100644
+--- a/public/imagine/design/scale/shots/files.jsonl
++++ b/public/imagine/design/scale/shots/files.jsonl
+@@ -100,3 +100,9 @@
+ {"file":"notes-git-branch-names.jpg"}
+ {"file":"notes.jpg"}
+ {"file":"observatory.jpg"}
++{"file":"gallery.jpg","gone":true}
++{"file":"mag.jpg","gone":true}
++{"file":"michael.jpg","gone":true}
++{"file":"notes-git-branch-names.jpg","gone":true}
++{"file":"notes.jpg","gone":true}
++{"file":"observatory.jpg","gone":true}
+diff --git a/public/imagine/design/size/shots/files.jsonl b/public/imagine/design/size/shots/files.jsonl
+index a659b9ee34..0bd0abb518 100644
+--- a/public/imagine/design/size/shots/files.jsonl
++++ b/public/imagine/design/size/shots/files.jsonl
+@@ -15,3 +15,4 @@
+ {"file":"size.jpg"}
+ {"file":"size.jpg","gone":true}
+ {"file":"size.jpg"}
++{"file":"size.jpg","gone":true}
+diff --git a/public/imagine/design/spacing/audit/shots/files.jsonl b/public/imagine/design/spacing/audit/shots/files.jsonl
+index 22ddeacaa0..0af9780aa3 100644
+--- a/public/imagine/design/spacing/audit/shots/files.jsonl
++++ b/public/imagine/design/spacing/audit/shots/files.jsonl
+@@ -1035,3 +1035,64 @@
+ {"file":"web-nav-after.jpg"}
+ {"file":"web-nav-before.jpg"}
+ {"file":"web-nav-components.jpg"}
++{"file":"blog-framework-how-this-blog-works-after.jpg","gone":true}
++{"file":"blog-framework-how-this-blog-works-before.jpg","gone":true}
++{"file":"blog-framework-how-this-blog-works-components.jpg","gone":true}
++{"file":"framework-after.jpg","gone":true}
++{"file":"framework-before.jpg","gone":true}
++{"file":"framework-components.jpg","gone":true}
++{"file":"framework-core-after.jpg","gone":true}
++{"file":"framework-core-before.jpg","gone":true}
++{"file":"framework-core-components.jpg","gone":true}
++{"file":"framework-ext-after.jpg","gone":true}
++{"file":"framework-ext-before.jpg","gone":true}
++{"file":"framework-ext-components.jpg","gone":true}
++{"file":"framework-styles-after.jpg","gone":true}
++{"file":"framework-styles-before.jpg","gone":true}
++{"file":"framework-styles-components.jpg","gone":true}
++{"file":"framework-ui-after.jpg","gone":true}
++{"file":"framework-ui-before.jpg","gone":true}
++{"file":"framework-ui-components.jpg","gone":true}
++{"file":"framework-ui-doc-record-after.jpg","gone":true}
++{"file":"framework-ui-doc-record-before.jpg","gone":true}
++{"file":"framework-ui-doc-record-components.jpg","gone":true}
++{"file":"framework-ux-after.jpg","gone":true}
++{"file":"framework-ux-before.jpg","gone":true}
++{"file":"framework-ux-components.jpg","gone":true}
++{"file":"imagine-blogx-after.jpg","gone":true}
++{"file":"imagine-blogx-before.jpg","gone":true}
++{"file":"imagine-blogx-board-after.jpg","gone":true}
++{"file":"imagine-blogx-board-before.jpg","gone":true}
++{"file":"imagine-blogx-board-components.jpg","gone":true}
++{"file":"imagine-blogx-components.jpg","gone":true}
++{"file":"imagine-cms-thinking-after.jpg","gone":true}
++{"file":"imagine-cms-thinking-before.jpg","gone":true}
++{"file":"imagine-cms-thinking-components.jpg","gone":true}
++{"file":"imagine-decks-after.jpg","gone":true}
++{"file":"imagine-decks-before.jpg","gone":true}
++{"file":"imagine-decks-components.jpg","gone":true}
++{"file":"imagine-design-journey-after.jpg","gone":true}
++{"file":"imagine-design-journey-before.jpg","gone":true}
++{"file":"imagine-design-journey-components.jpg","gone":true}
++{"file":"imagine-research-after.jpg","gone":true}
++{"file":"imagine-research-before.jpg","gone":true}
++{"file":"imagine-research-components.jpg","gone":true}
++{"file":"imagine-research-depictions-after.jpg","gone":true}
++{"file":"imagine-research-depictions-before.jpg","gone":true}
++{"file":"imagine-research-depictions-components.jpg","gone":true}
++{"file":"imagine-review-rethink-after.jpg","gone":true}
++{"file":"imagine-review-rethink-before.jpg","gone":true}
++{"file":"imagine-review-rethink-components.jpg","gone":true}
++{"file":"imagine-screens-after.jpg","gone":true}
++{"file":"imagine-screens-before.jpg","gone":true}
++{"file":"imagine-screens-components.jpg","gone":true}
++{"file":"imagine-shells-after.jpg","gone":true}
++{"file":"imagine-shells-before.jpg","gone":true}
++{"file":"imagine-shells-components.jpg","gone":true}
++{"file":"imagine-stream-after.jpg","gone":true}
++{"file":"imagine-stream-before.jpg","gone":true}
++{"file":"imagine-stream-components.jpg","gone":true}
++{"file":"levels-3440.jpg","gone":true}
++{"file":"web-nav-after.jpg","gone":true}
++{"file":"web-nav-before.jpg","gone":true}
++{"file":"web-nav-components.jpg","gone":true}
+diff --git a/public/imagine/design/spacing/ceilings/shots/files.jsonl b/public/imagine/design/spacing/ceilings/shots/files.jsonl
+index 2a8c32200d..55dd617301 100644
+--- a/public/imagine/design/spacing/ceilings/shots/files.jsonl
++++ b/public/imagine/design/spacing/ceilings/shots/files.jsonl
+@@ -161,3 +161,12 @@
+ {"file":"stream-1.5x.jpg"}
+ {"file":"stream-2x.jpg"}
+ {"file":"stream-current.jpg"}
++{"file":"cms-1.5x.jpg","gone":true}
++{"file":"cms-2x.jpg","gone":true}
++{"file":"cms-current.jpg","gone":true}
++{"file":"paging-1.5x.jpg","gone":true}
++{"file":"paging-2x.jpg","gone":true}
++{"file":"paging-current.jpg","gone":true}
++{"file":"stream-1.5x.jpg","gone":true}
++{"file":"stream-2x.jpg","gone":true}
++{"file":"stream-current.jpg","gone":true}
+diff --git a/public/imagine/design/spacing/shots/files.jsonl b/public/imagine/design/spacing/shots/files.jsonl
+index 89ff91cea4..45be055817 100644
+--- a/public/imagine/design/spacing/shots/files.jsonl
++++ b/public/imagine/design/spacing/shots/files.jsonl
+@@ -49,3 +49,6 @@
+ {"file":"blogx.jpg"}
+ {"file":"platform.jpg"}
+ {"file":"stream.jpg"}
++{"file":"blogx.jpg","gone":true}
++{"file":"platform.jpg","gone":true}
++{"file":"stream.jpg","gone":true}
+diff --git a/public/imagine/design/themes/shots/files.jsonl b/public/imagine/design/themes/shots/files.jsonl
+index 509e92d152..a837e214d0 100644
+--- a/public/imagine/design/themes/shots/files.jsonl
++++ b/public/imagine/design/themes/shots/files.jsonl
+@@ -15,3 +15,4 @@
+ {"file":"mock-wall.jpg"}
+ {"file":"mock-wall.jpg","gone":true}
+ {"file":"mock-wall.jpg"}
++{"file":"mock-wall.jpg","gone":true}
+diff --git a/public/imagine/design/type/shots/files.jsonl b/public/imagine/design/type/shots/files.jsonl
+index 51e9f82af4..58a4380781 100644
+--- a/public/imagine/design/type/shots/files.jsonl
++++ b/public/imagine/design/type/shots/files.jsonl
+@@ -49,3 +49,6 @@
+ {"file":"caption-vs-body.jpg"}
+ {"file":"h5h6-fail.jpg"}
+ {"file":"scale-good.jpg"}
++{"file":"caption-vs-body.jpg","gone":true}
++{"file":"h5h6-fail.jpg","gone":true}
++{"file":"scale-good.jpg","gone":true}
+diff --git a/public/imagine/feeds/shots/files.jsonl b/public/imagine/feeds/shots/files.jsonl
+index 0a3151a943..54184ebba6 100644
+--- a/public/imagine/feeds/shots/files.jsonl
++++ b/public/imagine/feeds/shots/files.jsonl
+@@ -49,3 +49,6 @@
+ {"file":"data.jpg"}
+ {"file":"live.jpg"}
+ {"file":"video.jpg"}
++{"file":"data.jpg","gone":true}
++{"file":"live.jpg","gone":true}
++{"file":"video.jpg","gone":true}
+diff --git a/public/imagine/paging/critique/shots/files.jsonl b/public/imagine/paging/critique/shots/files.jsonl
+index 9c8f13ed57..6fc26fed5a 100644
+--- a/public/imagine/paging/critique/shots/files.jsonl
++++ b/public/imagine/paging/critique/shots/files.jsonl
+@@ -321,3 +321,22 @@
+ {"file":"team.jpg"}
+ {"file":"vary.jpg"}
+ {"file":"youtube.jpg"}
++{"file":"blogx.jpg","gone":true}
++{"file":"cms.jpg","gone":true}
++{"file":"decks.jpg","gone":true}
++{"file":"design.jpg","gone":true}
++{"file":"feeds.jpg","gone":true}
++{"file":"gallery.jpg","gone":true}
++{"file":"game.jpg","gone":true}
++{"file":"generated.jpg","gone":true}
++{"file":"mag.jpg","gone":true}
++{"file":"paging.jpg","gone":true}
++{"file":"platform.jpg","gone":true}
++{"file":"research.jpg","gone":true}
++{"file":"scenes.jpg","gone":true}
++{"file":"screens.jpg","gone":true}
++{"file":"shells.jpg","gone":true}
++{"file":"stream.jpg","gone":true}
++{"file":"team.jpg","gone":true}
++{"file":"vary.jpg","gone":true}
++{"file":"youtube.jpg","gone":true}
+diff --git a/public/imagine/shells/shots/files.jsonl b/public/imagine/shells/shots/files.jsonl
+index acc3ca37ce..1890dd2fa9 100644
+--- a/public/imagine/shells/shots/files.jsonl
++++ b/public/imagine/shells/shots/files.jsonl
+@@ -168,3 +168,13 @@
+ {"file":"left.jpg"}
+ {"file":"rail-foot.jpg"}
+ {"file":"right.jpg"}
++{"file":"both.jpg","gone":true}
++{"file":"canvas.jpg","gone":true}
++{"file":"columns.jpg","gone":true}
++{"file":"foot.jpg","gone":true}
++{"file":"head-foot.jpg","gone":true}
++{"file":"inner-bar.jpg","gone":true}
++{"file":"inner-rail.jpg","gone":true}
++{"file":"left.jpg","gone":true}
++{"file":"rail-foot.jpg","gone":true}
++{"file":"right.jpg","gone":true}
+diff --git a/public/imagine/vary/shots/files.jsonl b/public/imagine/vary/shots/files.jsonl
+index 94328df49e..16ca8609ba 100644
+--- a/public/imagine/vary/shots/files.jsonl
++++ b/public/imagine/vary/shots/files.jsonl
+@@ -66,3 +66,7 @@
+ {"file":"place.jpg"}
+ {"file":"scroll.jpg"}
+ {"file":"tone.jpg"}
++{"file":"colstyles.jpg","gone":true}
++{"file":"place.jpg","gone":true}
++{"file":"scroll.jpg","gone":true}
++{"file":"tone.jpg","gone":true}
+diff --git a/public/imagine/youtube/shots/files.jsonl b/public/imagine/youtube/shots/files.jsonl
+index fbdc5a13f6..f3a4170bd4 100644
+--- a/public/imagine/youtube/shots/files.jsonl
++++ b/public/imagine/youtube/shots/files.jsonl
+@@ -83,3 +83,8 @@
+ {"file":"marks.jpg"}
+ {"file":"split.jpg"}
+ {"file":"yield.jpg"}
++{"file":"chat.jpg","gone":true}
++{"file":"course.jpg","gone":true}
++{"file":"marks.jpg","gone":true}
++{"file":"split.jpg","gone":true}
++{"file":"yield.jpg","gone":true}
+diff --git a/public/layouts/browse/shots/files.jsonl b/public/layouts/browse/shots/files.jsonl
+index 2e17140ac7..5c766bce62 100644
+--- a/public/layouts/browse/shots/files.jsonl
++++ b/public/layouts/browse/shots/files.jsonl
+@@ -4333,3 +4333,258 @@
+ {"file":"ux-wizard-1920.jpg"}
+ {"file":"ux-wizard-3440.jpg"}
+ {"file":"ux-wizard-400.jpg"}
++{"file":"arrangement-1-measure-1920.jpg","gone":true}
++{"file":"arrangement-1-measure-3440.jpg","gone":true}
++{"file":"arrangement-1-measure-400.jpg","gone":true}
++{"file":"arrangement-1-rows-1920.jpg","gone":true}
++{"file":"arrangement-1-rows-3440.jpg","gone":true}
++{"file":"arrangement-1-rows-400.jpg","gone":true}
++{"file":"arrangement-1-sections-1920.jpg","gone":true}
++{"file":"arrangement-1-sections-3440.jpg","gone":true}
++{"file":"arrangement-1-sections-400.jpg","gone":true}
++{"file":"arrangement-1-stack-1920.jpg","gone":true}
++{"file":"arrangement-1-stack-3440.jpg","gone":true}
++{"file":"arrangement-1-stack-400.jpg","gone":true}
++{"file":"arrangement-2-equal-1920.jpg","gone":true}
++{"file":"arrangement-2-equal-3440.jpg","gone":true}
++{"file":"arrangement-2-equal-400.jpg","gone":true}
++{"file":"arrangement-2-fixed-fluid-1920.jpg","gone":true}
++{"file":"arrangement-2-fixed-fluid-3440.jpg","gone":true}
++{"file":"arrangement-2-fixed-fluid-400.jpg","gone":true}
++{"file":"arrangement-2-fr-1920.jpg","gone":true}
++{"file":"arrangement-2-fr-3440.jpg","gone":true}
++{"file":"arrangement-2-fr-400.jpg","gone":true}
++{"file":"arrangement-2-golden-1920.jpg","gone":true}
++{"file":"arrangement-2-golden-3440.jpg","gone":true}
++{"file":"arrangement-2-golden-400.jpg","gone":true}
++{"file":"arrangement-2-main-aside-1920.jpg","gone":true}
++{"file":"arrangement-2-main-aside-3440.jpg","gone":true}
++{"file":"arrangement-2-main-aside-400.jpg","gone":true}
++{"file":"arrangement-3-card-1920.jpg","gone":true}
++{"file":"arrangement-3-card-3440.jpg","gone":true}
++{"file":"arrangement-3-card-400.jpg","gone":true}
++{"file":"arrangement-3-rail-main-aside-1920.jpg","gone":true}
++{"file":"arrangement-3-rail-main-aside-3440.jpg","gone":true}
++{"file":"arrangement-3-rail-main-aside-400.jpg","gone":true}
++{"file":"arrangement-3-rows-in-columns-1920.jpg","gone":true}
++{"file":"arrangement-3-rows-in-columns-3440.jpg","gone":true}
++{"file":"arrangement-3-rows-in-columns-400.jpg","gone":true}
++{"file":"arrangement-3-scroll-1920.jpg","gone":true}
++{"file":"arrangement-3-scroll-3440.jpg","gone":true}
++{"file":"arrangement-3-scroll-400.jpg","gone":true}
++{"file":"arrangement-3-thirds-1920.jpg","gone":true}
++{"file":"arrangement-3-thirds-3440.jpg","gone":true}
++{"file":"arrangement-3-thirds-400.jpg","gone":true}
++{"file":"arrangement-4-quad-1920.jpg","gone":true}
++{"file":"arrangement-4-quad-3440.jpg","gone":true}
++{"file":"arrangement-4-quad-400.jpg","gone":true}
++{"file":"arrangement-4-quarters-1920.jpg","gone":true}
++{"file":"arrangement-4-quarters-3440.jpg","gone":true}
++{"file":"arrangement-4-quarters-400.jpg","gone":true}
++{"file":"arrangement-4-shell-1920.jpg","gone":true}
++{"file":"arrangement-4-shell-3440.jpg","gone":true}
++{"file":"arrangement-4-shell-400.jpg","gone":true}
++{"file":"arrangement-4-wall-1920.jpg","gone":true}
++{"file":"arrangement-4-wall-3440.jpg","gone":true}
++{"file":"arrangement-4-wall-400.jpg","gone":true}
++{"file":"practice-catalog-1920.jpg","gone":true}
++{"file":"practice-catalog-3440.jpg","gone":true}
++{"file":"practice-catalog-400.jpg","gone":true}
++{"file":"practice-reader-1920.jpg","gone":true}
++{"file":"practice-reader-3440.jpg","gone":true}
++{"file":"practice-reader-400.jpg","gone":true}
++{"file":"practice-workbench-1920.jpg","gone":true}
++{"file":"practice-workbench-3440.jpg","gone":true}
++{"file":"practice-workbench-400.jpg","gone":true}
++{"file":"screen-deck-1920.jpg","gone":true}
++{"file":"screen-deck-3440.jpg","gone":true}
++{"file":"screen-deck-400.jpg","gone":true}
++{"file":"screen-divide-1920.jpg","gone":true}
++{"file":"screen-divide-3440.jpg","gone":true}
++{"file":"screen-divide-400.jpg","gone":true}
++{"file":"screen-mix-1920.jpg","gone":true}
++{"file":"screen-mix-3440.jpg","gone":true}
++{"file":"screen-mix-400.jpg","gone":true}
++{"file":"screen-quad-1920.jpg","gone":true}
++{"file":"screen-quad-3440.jpg","gone":true}
++{"file":"screen-quad-400.jpg","gone":true}
++{"file":"screen-read-1920.jpg","gone":true}
++{"file":"screen-read-3440.jpg","gone":true}
++{"file":"screen-read-400.jpg","gone":true}
++{"file":"screen-stack-1920.jpg","gone":true}
++{"file":"screen-stack-3440.jpg","gone":true}
++{"file":"screen-stack-400.jpg","gone":true}
++{"file":"screen-title-1920.jpg","gone":true}
++{"file":"screen-title-3440.jpg","gone":true}
++{"file":"screen-title-400.jpg","gone":true}
++{"file":"screen-uneven-1920.jpg","gone":true}
++{"file":"screen-uneven-3440.jpg","gone":true}
++{"file":"screen-uneven-400.jpg","gone":true}
++{"file":"section-full-1920.jpg","gone":true}
++{"file":"section-full-3440.jpg","gone":true}
++{"file":"section-full-400.jpg","gone":true}
++{"file":"section-nav-1920.jpg","gone":true}
++{"file":"section-nav-3440.jpg","gone":true}
++{"file":"section-nav-400.jpg","gone":true}
++{"file":"section-stack-1920.jpg","gone":true}
++{"file":"section-stack-3440.jpg","gone":true}
++{"file":"section-stack-400.jpg","gone":true}
++{"file":"sections-index-1920.jpg","gone":true}
++{"file":"sections-index-3440.jpg","gone":true}
++{"file":"sections-index-400.jpg","gone":true}
++{"file":"shell-both-1920.jpg","gone":true}
++{"file":"shell-both-3440.jpg","gone":true}
++{"file":"shell-both-400.jpg","gone":true}
++{"file":"shell-canvas-1920.jpg","gone":true}
++{"file":"shell-canvas-3440.jpg","gone":true}
++{"file":"shell-canvas-400.jpg","gone":true}
++{"file":"shell-columns-1920.jpg","gone":true}
++{"file":"shell-columns-3440.jpg","gone":true}
++{"file":"shell-columns-400.jpg","gone":true}
++{"file":"shell-foot-1920.jpg","gone":true}
++{"file":"shell-foot-3440.jpg","gone":true}
++{"file":"shell-foot-400.jpg","gone":true}
++{"file":"shell-head-foot-1920.jpg","gone":true}
++{"file":"shell-head-foot-3440.jpg","gone":true}
++{"file":"shell-head-foot-400.jpg","gone":true}
++{"file":"shell-inner-bar-1920.jpg","gone":true}
++{"file":"shell-inner-bar-3440.jpg","gone":true}
++{"file":"shell-inner-bar-400.jpg","gone":true}
++{"file":"shell-inner-rail-1920.jpg","gone":true}
++{"file":"shell-inner-rail-3440.jpg","gone":true}
++{"file":"shell-inner-rail-400.jpg","gone":true}
++{"file":"shell-left-1920.jpg","gone":true}
++{"file":"shell-left-3440.jpg","gone":true}
++{"file":"shell-left-400.jpg","gone":true}
++{"file":"shell-rail-foot-1920.jpg","gone":true}
++{"file":"shell-rail-foot-3440.jpg","gone":true}
++{"file":"shell-rail-foot-400.jpg","gone":true}
++{"file":"shell-right-1920.jpg","gone":true}
++{"file":"shell-right-3440.jpg","gone":true}
++{"file":"shell-right-400.jpg","gone":true}
++{"file":"template-blog-1920.jpg","gone":true}
++{"file":"template-blog-3440.jpg","gone":true}
++{"file":"template-blog-400.jpg","gone":true}
++{"file":"template-columns-1920.jpg","gone":true}
++{"file":"template-columns-3440.jpg","gone":true}
++{"file":"template-columns-400.jpg","gone":true}
++{"file":"template-decks-1920.jpg","gone":true}
++{"file":"template-decks-3440.jpg","gone":true}
++{"file":"template-decks-400.jpg","gone":true}
++{"file":"template-layouts-1920.jpg","gone":true}
++{"file":"template-layouts-3440.jpg","gone":true}
++{"file":"template-layouts-400.jpg","gone":true}
++{"file":"template-magazine-1920.jpg","gone":true}
++{"file":"template-magazine-3440.jpg","gone":true}
++{"file":"template-magazine-400.jpg","gone":true}
++{"file":"template-navigation-1920.jpg","gone":true}
++{"file":"template-navigation-3440.jpg","gone":true}
++{"file":"template-navigation-400.jpg","gone":true}
++{"file":"template-screens-1920.jpg","gone":true}
++{"file":"template-screens-3440.jpg","gone":true}
++{"file":"template-screens-400.jpg","gone":true}
++{"file":"template-sections-1920.jpg","gone":true}
++{"file":"template-sections-3440.jpg","gone":true}
++{"file":"template-sections-400.jpg","gone":true}
++{"file":"template-shells-1920.jpg","gone":true}
++{"file":"template-shells-3440.jpg","gone":true}
++{"file":"template-shells-400.jpg","gone":true}
++{"file":"template-theming-1920.jpg","gone":true}
++{"file":"template-theming-3440.jpg","gone":true}
++{"file":"template-theming-400.jpg","gone":true}
++{"file":"template-ui-1920.jpg","gone":true}
++{"file":"template-ui-3440.jpg","gone":true}
++{"file":"template-ui-400.jpg","gone":true}
++{"file":"template-ux-1920.jpg","gone":true}
++{"file":"template-ux-3440.jpg","gone":true}
++{"file":"template-ux-400.jpg","gone":true}
++{"file":"ui-accordion-1920.jpg","gone":true}
++{"file":"ui-accordion-3440.jpg","gone":true}
++{"file":"ui-accordion-400.jpg","gone":true}
++{"file":"ui-alert-1920.jpg","gone":true}
++{"file":"ui-alert-3440.jpg","gone":true}
++{"file":"ui-alert-400.jpg","gone":true}
++{"file":"ui-avatar-1920.jpg","gone":true}
++{"file":"ui-avatar-3440.jpg","gone":true}
++{"file":"ui-avatar-400.jpg","gone":true}
++{"file":"ui-badge-1920.jpg","gone":true}
++{"file":"ui-badge-3440.jpg","gone":true}
++{"file":"ui-badge-400.jpg","gone":true}
++{"file":"ui-card-1920.jpg","gone":true}
++{"file":"ui-card-3440.jpg","gone":true}
++{"file":"ui-card-400.jpg","gone":true}
++{"file":"ui-controls-1920.jpg","gone":true}
++{"file":"ui-controls-3440.jpg","gone":true}
++{"file":"ui-controls-400.jpg","gone":true}
++{"file":"ui-crumbs-1920.jpg","gone":true}
++{"file":"ui-crumbs-3440.jpg","gone":true}
++{"file":"ui-crumbs-400.jpg","gone":true}
++{"file":"ui-dialog-1920.jpg","gone":true}
++{"file":"ui-dialog-3440.jpg","gone":true}
++{"file":"ui-dialog-400.jpg","gone":true}
++{"file":"ui-field-1920.jpg","gone":true}
++{"file":"ui-field-3440.jpg","gone":true}
++{"file":"ui-field-400.jpg","gone":true}
++{"file":"ui-kbd-1920.jpg","gone":true}
++{"file":"ui-kbd-3440.jpg","gone":true}
++{"file":"ui-kbd-400.jpg","gone":true}
++{"file":"ui-menu-1920.jpg","gone":true}
++{"file":"ui-menu-3440.jpg","gone":true}
++{"file":"ui-menu-400.jpg","gone":true}
++{"file":"ui-pagination-1920.jpg","gone":true}
++{"file":"ui-pagination-3440.jpg","gone":true}
++{"file":"ui-pagination-400.jpg","gone":true}
++{"file":"ui-panel-1920.jpg","gone":true}
++{"file":"ui-panel-3440.jpg","gone":true}
++{"file":"ui-panel-400.jpg","gone":true}
++{"file":"ui-progress-1920.jpg","gone":true}
++{"file":"ui-progress-3440.jpg","gone":true}
++{"file":"ui-progress-400.jpg","gone":true}
++{"file":"ui-stats-1920.jpg","gone":true}
++{"file":"ui-stats-3440.jpg","gone":true}
++{"file":"ui-stats-400.jpg","gone":true}
++{"file":"ui-table-1920.jpg","gone":true}
++{"file":"ui-table-3440.jpg","gone":true}
++{"file":"ui-table-400.jpg","gone":true}
++{"file":"ui-tags-1920.jpg","gone":true}
++{"file":"ui-tags-3440.jpg","gone":true}
++{"file":"ui-tags-400.jpg","gone":true}
++{"file":"ui-timeline-1920.jpg","gone":true}
++{"file":"ui-timeline-3440.jpg","gone":true}
++{"file":"ui-timeline-400.jpg","gone":true}
++{"file":"ui-toolbar-1920.jpg","gone":true}
++{"file":"ui-toolbar-3440.jpg","gone":true}
++{"file":"ui-toolbar-400.jpg","gone":true}
++{"file":"ui-tooltip-1920.jpg","gone":true}
++{"file":"ui-tooltip-3440.jpg","gone":true}
++{"file":"ui-tooltip-400.jpg","gone":true}
++{"file":"ui-tree-1920.jpg","gone":true}
++{"file":"ui-tree-3440.jpg","gone":true}
++{"file":"ui-tree-400.jpg","gone":true}
++{"file":"ui-words-1920.jpg","gone":true}
++{"file":"ui-words-3440.jpg","gone":true}
++{"file":"ui-words-400.jpg","gone":true}
++{"file":"ux-auth-1920.jpg","gone":true}
++{"file":"ux-auth-3440.jpg","gone":true}
++{"file":"ux-auth-400.jpg","gone":true}
++{"file":"ux-course-1920.jpg","gone":true}
++{"file":"ux-course-3440.jpg","gone":true}
++{"file":"ux-course-400.jpg","gone":true}
++{"file":"ux-filter-1920.jpg","gone":true}
++{"file":"ux-filter-3440.jpg","gone":true}
++{"file":"ux-filter-400.jpg","gone":true}
++{"file":"ux-menu-1920.jpg","gone":true}
++{"file":"ux-menu-3440.jpg","gone":true}
++{"file":"ux-menu-400.jpg","gone":true}
++{"file":"ux-pagination-1920.jpg","gone":true}
++{"file":"ux-pagination-3440.jpg","gone":true}
++{"file":"ux-pagination-400.jpg","gone":true}
++{"file":"ux-tags-1920.jpg","gone":true}
++{"file":"ux-tags-3440.jpg","gone":true}
++{"file":"ux-tags-400.jpg","gone":true}
++{"file":"ux-tree-1920.jpg","gone":true}
++{"file":"ux-tree-3440.jpg","gone":true}
++{"file":"ux-tree-400.jpg","gone":true}
++{"file":"ux-wizard-1920.jpg","gone":true}
++{"file":"ux-wizard-3440.jpg","gone":true}
++{"file":"ux-wizard-400.jpg","gone":true}
+diff --git a/public/layouts/decide/amount/shots/files.jsonl b/public/layouts/decide/amount/shots/files.jsonl
+index 49cc39ab8e..9f29844052 100644
+--- a/public/layouts/decide/amount/shots/files.jsonl
++++ b/public/layouts/decide/amount/shots/files.jsonl
+@@ -32,3 +32,5 @@
+ {"file":"amount-3440.jpg","gone":true}
+ {"file":"amount-1920.jpg"}
+ {"file":"amount-3440.jpg"}
++{"file":"amount-1920.jpg","gone":true}
++{"file":"amount-3440.jpg","gone":true}
+diff --git a/public/layouts/decide/centred/shots/files.jsonl b/public/layouts/decide/centred/shots/files.jsonl
+index 9ae1abf888..fe963b14aa 100644
+--- a/public/layouts/decide/centred/shots/files.jsonl
++++ b/public/layouts/decide/centred/shots/files.jsonl
+@@ -32,3 +32,5 @@
+ {"file":"centred-3440.jpg","gone":true}
+ {"file":"centred-1920.jpg"}
+ {"file":"centred-3440.jpg"}
++{"file":"centred-1920.jpg","gone":true}
++{"file":"centred-3440.jpg","gone":true}
+diff --git a/public/layouts/decide/equal/shots/files.jsonl b/public/layouts/decide/equal/shots/files.jsonl
+index 9086722a80..e2a0dee9d1 100644
+--- a/public/layouts/decide/equal/shots/files.jsonl
++++ b/public/layouts/decide/equal/shots/files.jsonl
+@@ -32,3 +32,5 @@
+ {"file":"equal-3440.jpg","gone":true}
+ {"file":"equal-1920.jpg"}
+ {"file":"equal-3440.jpg"}
++{"file":"equal-1920.jpg","gone":true}
++{"file":"equal-3440.jpg","gone":true}
+diff --git a/public/layouts/decide/short/shots/files.jsonl b/public/layouts/decide/short/shots/files.jsonl
+index cb6df139a5..01b2b844f4 100644
+--- a/public/layouts/decide/short/shots/files.jsonl
++++ b/public/layouts/decide/short/shots/files.jsonl
+@@ -32,3 +32,5 @@
+ {"file":"short-3440.jpg","gone":true}
+ {"file":"short-1920.jpg"}
+ {"file":"short-3440.jpg"}
++{"file":"short-1920.jpg","gone":true}
++{"file":"short-3440.jpg","gone":true}
+diff --git a/public/layouts/doc/studies/shots/files.jsonl b/public/layouts/doc/studies/shots/files.jsonl
+index 8e8a4e32d7..87f7166908 100644
+--- a/public/layouts/doc/studies/shots/files.jsonl
++++ b/public/layouts/doc/studies/shots/files.jsonl
+@@ -185,3 +185,14 @@
+ {"file":"tax-reading-column.jpg"}
+ {"file":"tax-solo.jpg"}
+ {"file":"tax-tile-wall.jpg"}
++{"file":"fail-imagine-design-3440.jpg","gone":true}
++{"file":"fail-imagine-gallery-3440.jpg","gone":true}
++{"file":"fail-imagine-root-3440.jpg","gone":true}
++{"file":"fail-michael-3440.jpg","gone":true}
++{"file":"fail-michael-layout-3440.jpg","gone":true}
++{"file":"tax-columns-row.jpg","gone":true}
++{"file":"tax-dashboard-row.jpg","gone":true}
++{"file":"tax-rail-content.jpg","gone":true}
++{"file":"tax-reading-column.jpg","gone":true}
++{"file":"tax-solo.jpg","gone":true}
++{"file":"tax-tile-wall.jpg","gone":true}
+diff --git a/public/layouts/files.jsonl b/public/layouts/files.jsonl
+index 30d15da95e..66e0703bf2 100644
+--- a/public/layouts/files.jsonl
++++ b/public/layouts/files.jsonl
+@@ -29,3 +29,4 @@
+ {"file":"screenshots/"}
+ {"file":"screenshots/","gone":true}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/layouts/labs/blogx/shots/files.jsonl b/public/layouts/labs/blogx/shots/files.jsonl
+index 3ba616fa23..759bd77b21 100644
+--- a/public/layouts/labs/blogx/shots/files.jsonl
++++ b/public/layouts/labs/blogx/shots/files.jsonl
+@@ -134,3 +134,11 @@
+ {"file":"parts.jpg"}
+ {"file":"rail.jpg"}
+ {"file":"swap.jpg"}
++{"file":"board.jpg","gone":true}
++{"file":"deck.jpg","gone":true}
++{"file":"dig.jpg","gone":true}
++{"file":"finder.jpg","gone":true}
++{"file":"front.jpg","gone":true}
++{"file":"parts.jpg","gone":true}
++{"file":"rail.jpg","gone":true}
++{"file":"swap.jpg","gone":true}
+diff --git a/public/layouts/labs/shells/shots/files.jsonl b/public/layouts/labs/shells/shots/files.jsonl
+index acc3ca37ce..1890dd2fa9 100644
+--- a/public/layouts/labs/shells/shots/files.jsonl
++++ b/public/layouts/labs/shells/shots/files.jsonl
+@@ -168,3 +168,13 @@
+ {"file":"left.jpg"}
+ {"file":"rail-foot.jpg"}
+ {"file":"right.jpg"}
++{"file":"both.jpg","gone":true}
++{"file":"canvas.jpg","gone":true}
++{"file":"columns.jpg","gone":true}
++{"file":"foot.jpg","gone":true}
++{"file":"head-foot.jpg","gone":true}
++{"file":"inner-bar.jpg","gone":true}
++{"file":"inner-rail.jpg","gone":true}
++{"file":"left.jpg","gone":true}
++{"file":"rail-foot.jpg","gone":true}
++{"file":"right.jpg","gone":true}
+diff --git a/public/layouts/practice/shots/files.jsonl b/public/layouts/practice/shots/files.jsonl
+index a607a01947..9d77a58867 100644
+--- a/public/layouts/practice/shots/files.jsonl
++++ b/public/layouts/practice/shots/files.jsonl
+@@ -202,3 +202,15 @@
+ {"file":"practice-workbench-1920.jpg"}
+ {"file":"practice-workbench-3440.jpg"}
+ {"file":"practice-workbench-400.jpg"}
++{"file":"practice-catalog-1920.jpg","gone":true}
++{"file":"practice-catalog-3440.jpg","gone":true}
++{"file":"practice-catalog-400.jpg","gone":true}
++{"file":"practice-index-1920.jpg","gone":true}
++{"file":"practice-index-3440.jpg","gone":true}
++{"file":"practice-index-400.jpg","gone":true}
++{"file":"practice-reader-1920.jpg","gone":true}
++{"file":"practice-reader-3440.jpg","gone":true}
++{"file":"practice-reader-400.jpg","gone":true}
++{"file":"practice-workbench-1920.jpg","gone":true}
++{"file":"practice-workbench-3440.jpg","gone":true}
++{"file":"practice-workbench-400.jpg","gone":true}
+diff --git a/public/layouts/shell/shots/files.jsonl b/public/layouts/shell/shots/files.jsonl
+index bce5fdc41f..d7f9a222a8 100644
+--- a/public/layouts/shell/shots/files.jsonl
++++ b/public/layouts/shell/shots/files.jsonl
+@@ -100,3 +100,9 @@
+ {"file":"shell-1920-split-hero.jpg"}
+ {"file":"shell-3440-with-rail.jpg"}
+ {"file":"shell-400-strip.jpg"}
++{"file":"shell-1920-14rem.jpg","gone":true}
++{"file":"shell-1920-40rem.jpg","gone":true}
++{"file":"shell-1920-dark-band.jpg","gone":true}
++{"file":"shell-1920-split-hero.jpg","gone":true}
++{"file":"shell-3440-with-rail.jpg","gone":true}
++{"file":"shell-400-strip.jpg","gone":true}
+diff --git a/public/live/page.jsonl b/public/live/page.jsonl
+index 34ac7ee670..ee96b7c35f 100644
+--- a/public/live/page.jsonl
++++ b/public/live/page.jsonl
+@@ -139,3 +139,6 @@
+ {"content":{"add":{"id":"link-design","path":"./design/","text":"page-design's page.ui prototype and the recursive pages plan, built live.","title":"Design lab","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T22:08:06.053Z"}
+ {"content":{"add":{"id":"link-demos","path":"./demos/","text":"Tabs, nav, place and columns tried from voice, one tap-through each.","title":"Feature demos","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T22:08:06.533Z"}
+ {"content":{"add":{"id":"link-next","path":"./next/","text":"The sub-page I made earlier as a test.","title":"What's next","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T22:08:07.009Z"}
++{"file":"next/page.jsonl","gone":true}
++{"file":"demos/page.jsonl","gone":true}
++{"file":"design-tmp/","gone":true}
+diff --git a/public/notes/files.jsonl b/public/notes/files.jsonl
+index 3116320f11..2c12f2df37 100644
+--- a/public/notes/files.jsonl
++++ b/public/notes/files.jsonl
+@@ -95,3 +95,4 @@
+ {"file":"inbox/"}
+ {"file":"inbox/","gone":true}
+ {"file":"inbox/"}
++{"file":"inbox/","gone":true}
+diff --git a/public/web/nav/doc/study/shots/files.jsonl b/public/web/nav/doc/study/shots/files.jsonl
+index 80b9e1cb47..bf8cb5da28 100644
+--- a/public/web/nav/doc/study/shots/files.jsonl
++++ b/public/web/nav/doc/study/shots/files.jsonl
+@@ -287,3 +287,20 @@
+ {"file":"tabs-390.png"}
+ {"file":"toc-1280.png"}
+ {"file":"toc-390.png"}
++{"file":"columns-1280.png","gone":true}
++{"file":"columns-deep-1280.png","gone":true}
++{"file":"columns-deep-390.png","gone":true}
++{"file":"crumbs-1280.png","gone":true}
++{"file":"prev-next-1280.png","gone":true}
++{"file":"prev-next-390.png","gone":true}
++{"file":"preview-wall-1280.png","gone":true}
++{"file":"preview-wall-390.png","gone":true}
++{"file":"rail-nested-1280.png","gone":true}
++{"file":"rail-nested-390-open.png","gone":true}
++{"file":"rail-nested-390.png","gone":true}
++{"file":"stability-1920.png","gone":true}
++{"file":"stability-card.png","gone":true}
++{"file":"tabs-1280.png","gone":true}
++{"file":"tabs-390.png","gone":true}
++{"file":"toc-1280.png","gone":true}
++{"file":"toc-390.png","gone":true}

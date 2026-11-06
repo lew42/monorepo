@@ -85,3 +85,12 @@
 {"sessions":[{"id":"mastermind-page-design","task":"/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/"}],"by":"mastermind-page-design","ts":"2026-11-06T23:02:51.806Z"}
 {"commit":"0c38f02881db","by":"append.mjs","ts":"2026-11-06T23:03:31.803Z"}
 {"log":{"at":"2026-11-06T17:03:50-06:00","msg":"Owner rules via voice-app: (1) docs current per task, as each change lands; written into minion.md and mastermind.md (0c38f0288). (2) Item-tool tasks: my children were closed with close_task, which records stopped, not complete. Wrote complete+outcome+evidence on tabs-page, page-ui, page-features, minion-tabs-page and past-work; role readme now says complete first; ai inbox i-mw5kzee8nne proposes close_task take an outcome (woke mastermind-ai). Answered voice-app in two lines."}}
+{"commit":"60318f34a4df","by":"append.mjs","ts":"2026-11-06T23:03:51.350Z"}
+{"commit":"2feec7782ef2","by":"append.mjs","ts":"2026-11-06T23:05:17.952Z"}
+{"commit":"0f1e2addd838","by":"append.mjs","ts":"2026-11-06T23:05:48.405Z"}
+{"log":{"at":"2026-11-06T17:08:02-06:00","msg":"LIVE BREAK seen at 23:08Z: /live/demos/tabs-page/alpha/ (P.Settings is not a constructor) and /live/demos/columns-page/ (P.tabs_of is not a function, LivePage.js:304), from mastermind-live-page's uncommitted LivePage.js in the main tree (P = page.constructor is Page for plain-Page sub-pages). Told live-page at priority now; not editing its file. Also: page-features doc review (qf-2) flagged the columns verdict as stale; on hold until the live break is fixed so it can be re-tested."}}
+{"commit":"639b8f8632f4","by":"append.mjs","ts":"2026-11-06T23:08:32.879Z"}
+{"log":{"at":"2026-11-06T17:09:28-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-06T23:09:28.830Z"}
+{"commit":"9c04508f63f7","by":"append.mjs","ts":"2026-11-06T23:10:23.469Z"}
+{"commit":"4299853904f8","by":"append.mjs","ts":"2026-11-06T23:11:26.439Z"}
+{"log":{"at":"2026-11-06T17:12:02-06:00","msg":"Live break was live-page's (reverted; checked tabs-page/alpha and columns-page clean, and /live/design/ still filters). New owner rule acknowledged: bigger than a quick edit means a worktree, a smoke test, and a merge only when error-free. page-features doc corrected (columns now works on a plain Page) and merged 77c2d8b3c; qf-2 and qf-5 returned. Voice tab content works today (doc corrected 2feec7782). Nothing in flight; wake-up cancelled."}}
