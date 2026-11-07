@@ -443,7 +443,7 @@ export function sticky_scroll(box, { observe = true } = {}){   // observe:false 
 	$btn.textContent = "↓";   // small round button at the bottom; its title and aria-label say the job (the owner, 2026-10-25)
 	$btn.hidden = true;
 	box.appendChild($btn);
-	const show = on => { $btn.hidden = !on; };
+	const show = on => { $btn.hidden = !on; if (!on) $btn.classList.remove("has-new"); };   // dim while scrolled up; lit (has-new) once something new arrives below
 	const go_down = () => { if ($btn !== box.lastChild) box.appendChild($btn); box.scrollTop = bottom(); last = box.scrollTop; };
 	$btn.addEventListener("click", () => { locked = true; show(false); go_down(); });
 	// only the reader can unlock: a scroll event from a redraw, a clamp or a pin() never counts (it used to, and the log jumped)
@@ -460,7 +460,13 @@ export function sticky_scroll(box, { observe = true } = {}){   // observe:false 
 	if (observe && typeof ResizeObserver === "function") new ResizeObserver(pin).observe(box);
 	if (observe && typeof MutationObserver === "function"){   // late growth (live edits, refinements) re-pins while locked; a reader who scrolled up is never moved
 		let raf = 0;
-		new MutationObserver(() => { if (locked && !raf) raf = requestAnimationFrame(() => { raf = 0; pin(); }); }).observe(box, { childList: true, subtree: true, characterData: true });
+		new MutationObserver(records => {
+			if (!locked){   // a reader who scrolled up: a new element below lights the button (its own move to the end does not count)
+				if (records.some(r => [...r.addedNodes].some(n => n !== $btn && n.nodeType === 1))) $btn.classList.add("has-new");
+				return;
+			}
+			if (!raf) raf = requestAnimationFrame(() => { raf = 0; pin(); });
+		}).observe(box, { childList: true, subtree: true, characterData: true });
 	}
 	return { pin, locked: () => locked };
 }

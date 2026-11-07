@@ -264,6 +264,8 @@
 		line-height: 1;
 	}
 	.chatbox-jump:not([hidden]) { display: grid; place-items: center; }
+	.chatbox-jump:not(.has-new) { opacity: .45; }   /* dim while you read above; lit when something new arrived below (2026-11-06, /live/) */
+	.chatbox-jump.has-new { background: var(--prime, #FF6157); color: #1a1a1a; }
 	.chatbox-jump[hidden] { display: none; }
 
 	/* ONE LINE PER THING SAID — who, then what. Updates are quieter than talk. */
