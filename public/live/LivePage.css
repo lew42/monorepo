@@ -16,7 +16,7 @@
 	.live-page {
 		box-sizing: border-box; width: 100%; height: 100%;
 		--live-pad: .75rem; --live-pad-x: clamp(.5rem, 3vw, 1.5rem);
-		--live-col: max(0px, (100% - 60rem) / 2);   /* the side room that centres a 60rem column; header and bar pad by it */
+		--live-col: max(0px, (100% - 2 * var(--live-pad-x) - 60rem) / 2);   /* the side room that centres a 60rem column; header and bar pad by it */
 		padding: 0; overflow: hidden;
 		display: flex; flex-direction: column;
 		font-size: clamp(1rem, 1.2vw + .75rem, 1.5rem);
