@@ -1,4 +1,5 @@
 import PromptRun from "./PromptRun.js";
+import AISession from "/framework/ai/AISession/AISession.js";
 import { View, div, span, p, h4, button, a } from "../../core/View/View.js";
 
 View.stylesheet(import.meta, "Prompt.css");
@@ -93,12 +94,12 @@ PromptRun.View = class extends View {
 			}));
 			if (prompt.session) p.c("refine-what", () => {
 				span("Kept in the session log as raw, clean, outline and notes: ");
-				a("open the session").href("/framework/ai/sessions/" + prompt.session + "/").ac("refine-class-key");
+				a("open the session").href(AISession.page_url(prompt.session, "/framework/ai/sessions/" + prompt.session + "/")).ac("refine-class-key");
 			});
 			h4.c("refine-prompt-h", () => span("Model runs"));
 			p.c("refine-what", "Each run is its own session: click one to see exactly what was asked.");
 			prompt.runs.forEach(r => div.c("refine-run", () => {
-				r.session_id ? a(r.stage).href(`/framework/ai/sessions/${r.session_id}/`) : span(r.stage);
+				r.session_id ? a(r.stage).href(AISession.page_url(r.session_id, `/framework/ai/sessions/${r.session_id}/`)) : span(r.stage);
 				span.c("refine-s-scores", `${r.model} · ${secs(r.duration_ms)} · $${r.cost_usd}`);
 			}));
 		});

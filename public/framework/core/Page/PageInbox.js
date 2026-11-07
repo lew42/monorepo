@@ -1,5 +1,6 @@
 import { JSONL } from "../../ext/JSONL/JSONL.js";
 import { View, div, span, small, button, a, p } from "../View/View.js";
+import AISession from "/framework/ai/AISession/AISession.js";
 
 View.stylesheet(import.meta, "PageInbox.css");
 
@@ -108,7 +109,7 @@ export default class PageInbox {
 		live.forEach(n => div.c("page-inbox-row flex v").ac(fresh.includes(n) && "page-inbox-new").append(() => {
 			div.c("page-inbox-meta flex v-center", () => {
 				if (fresh.includes(n)) span.c("page-inbox-dot").attr("title", "new").attr("aria-label", "new");
-				a.c("page-inbox-from", n.from === "owner" ? "you" : n.from).href(`/framework/ai/sessions/${n.from}/`).attr("title", `${n.from}'s session`);
+				a.c("page-inbox-from", n.from === "owner" ? "you" : n.from).href(AISession.page_url(n.from, `/framework/ai/sessions/${n.from}/`)).attr("title", `${n.from}'s session`);
 				small.c("page-inbox-age muted", n.at ? new Date(n.at).toLocaleString() : "");
 				button.c("page-inbox-archive", "Archive").attr("type", "button").click(() => this.mark([n.id], "archived"));
 			});
