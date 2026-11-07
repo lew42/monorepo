@@ -448,3 +448,73 @@
 {"tool_call":{"at":"2026-11-07T04:20:08.524Z","tool":"shell","args_hash":"34e847c456f7","caller":"voice-app"}}
 {"tool_call":{"at":"2026-11-07T04:20:15.304Z","tool":"read_file","args_hash":"d1ba8385af6f","caller":"voice-app"}}
 {"tool_call":{"at":"2026-11-07T04:20:15.702Z","tool":"read_file","args_hash":"b7176bd7993b","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T04:20:54.741Z","tool":"write_file","args_hash":"45a919d01585","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T04:20:55.698Z","tool":"write_file","args_hash":"319a8d405739","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T04:21:01.301Z","tool":"shell","args_hash":"e2925ec962c9","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T04:21:08.475Z","tool":"shell","args_hash":"19b0cdb76e6e","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T04:22:56.059Z","tool":"shell","args_hash":"cca485980d22","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T04:22:59.894Z","tool":"shell","args_hash":"655036e5b766","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T04:23:15.060Z","tool":"item","args_hash":"0e90cf02b497","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T04:23:29.299Z","tool":"item","args_hash":"f59549787ea3","caller":"voice-app"}}
+{"tasks":{"add":{"type":"Task","id":"index-past-work","title":"One doc for finding past work, linked from every readme that needs it","why":"Owner, 11-06: we keep asking for past-work search and can't find things."}},"by":"voice-app","ts":"2026-11-07T04:23:29.308Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.index-past-work","by":"servex","at":"2026-11-07T04:23:29.323Z"}},"by":"servex","ts":"2026-11-07T04:23:29.323Z"}
+{"sessions":[{"id":"voice-app","task":"/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/"}],"by":"voice-app","ts":"2026-11-07T04:23:29.333Z"}
+{"tool_call":{"at":"2026-11-07T04:23:50.169Z","tool":"item","args_hash":"879158842bee","caller":"voice-app"}}
+{"tasks":{"add":{"type":"Task","id":"agents-md","title":"CLAUDE.md is one import of agents.md; every shared rule lives in agents.md"}},"by":"voice-app","ts":"2026-11-07T04:23:50.184Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.agents-md","by":"servex","at":"2026-11-07T04:23:50.186Z"}},"by":"servex","ts":"2026-11-07T04:23:50.186Z"}
+{"tasks":{"add":{"type":"Task","id":"owner-blocks","title":"A block that needs the owner is a waiting task, asked again every check-in (law 5)"}},"by":"voice-app","ts":"2026-11-07T04:23:50.188Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.owner-blocks","by":"servex","at":"2026-11-07T04:23:50.189Z"}},"by":"servex","ts":"2026-11-07T04:23:50.189Z"}
+{"tasks":{"add":{"type":"Task","id":"live-in-git","title":"Stop ignoring public/live/ in git"}},"by":"voice-app","ts":"2026-11-07T04:23:50.191Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.live-in-git","by":"servex","at":"2026-11-07T04:23:50.192Z"}},"by":"servex","ts":"2026-11-07T04:23:50.192Z"}
+{"tasks":{"add":{"type":"Task","id":"completion-page","title":"/live/completion/: real completion of the 200 costliest sessions"}},"by":"voice-app","ts":"2026-11-07T04:23:50.194Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.completion-page","by":"servex","at":"2026-11-07T04:23:50.195Z"}},"by":"servex","ts":"2026-11-07T04:23:50.195Z"}
+{"tasks":{"add":{"type":"Task","id":"restart-servex","title":"Restart Servex so the item-tool fixes go live"}},"by":"voice-app","ts":"2026-11-07T04:23:50.197Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.restart-servex","by":"servex","at":"2026-11-07T04:23:50.198Z"}},"by":"servex","ts":"2026-11-07T04:23:50.198Z"}
+{"tasks":{"add":{"type":"Task","id":"capture-sentences","module":"/framework/ai/sessions/","title":"Capture the owner's raw sentences on every channel (VS Code hook, voice, app)","why":"Owner, 11-06: three shapes for the same ask; nothing finds them all."}},"by":"voice-app","ts":"2026-11-07T04:23:50.200Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.capture-sentences","by":"servex","at":"2026-11-07T04:23:50.201Z"}},"by":"servex","ts":"2026-11-07T04:23:50.201Z"}
+{"tasks":{"add":{"type":"Task","id":"place-sentences","module":"/framework/ai/","title":"Place every sentence into a task; keep ONE prompt refinement mechanism of the 8"}},"by":"voice-app","ts":"2026-11-07T04:23:50.202Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.place-sentences","by":"servex","at":"2026-11-07T04:23:50.203Z"}},"by":"servex","ts":"2026-11-07T04:23:50.203Z"}
+{"tasks":{"add":{"type":"Task","id":"handoff-whole","module":"/Servex/","title":"Hand off the task itself with the owner's sentences, never a paraphrase","why":"Owner, 11-06: the telephone game loses meaning."}},"by":"voice-app","ts":"2026-11-07T04:23:50.205Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.handoff-whole","by":"servex","at":"2026-11-07T04:23:50.206Z"}},"by":"servex","ts":"2026-11-07T04:23:50.206Z"}
+{"tasks":{"add":{"type":"Task","id":"close-with-proof","module":"/framework/core/Session/","title":"Close with proof; under 100% makes a waiting task; no-task sessions show no score; daily /live/truth/"}},"by":"voice-app","ts":"2026-11-07T04:23:50.207Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.close-with-proof","by":"servex","at":"2026-11-07T04:23:50.208Z"}},"by":"servex","ts":"2026-11-07T04:23:50.208Z"}
+{"tasks":{"add":{"type":"Task","id":"pid-accounting","module":"/Servex/","title":"Every process logged with a start and an exit; fix the cause of every leak"}},"by":"voice-app","ts":"2026-11-07T04:23:50.209Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.pid-accounting","by":"servex","at":"2026-11-07T04:23:50.211Z"}},"by":"servex","ts":"2026-11-07T04:23:50.211Z"}
+{"tasks":{"add":{"type":"Task","id":"children-link","module":"/Servex/","title":"Agents spawned from this voice session roll up here, not to the old voice-20261019-live-page","why":"Found 11-06: parent_session is stale, so child costs and tasks never reach today's session."}},"by":"voice-app","ts":"2026-11-07T04:23:50.213Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.children-link","by":"servex","at":"2026-11-07T04:23:50.214Z"}},"by":"servex","ts":"2026-11-07T04:23:50.214Z"}
+{"tasks":{"add":{"type":"Task","id":"mentions-index","module":"/framework/ai/","title":"Mentions index: @Page in a prompt tags it; each module lists the prompts that mention it"}},"by":"voice-app","ts":"2026-11-07T04:23:50.216Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.mentions-index","by":"servex","at":"2026-11-07T04:23:50.217Z"}},"by":"servex","ts":"2026-11-07T04:23:50.217Z"}
+{"tasks":{"add":{"type":"Task","id":"readme-maps","module":"/framework/ai/","title":"Readmes as system maps with per-module search terms (start: Item/List/Page, sessions, Servex, Dictate family)"}},"by":"voice-app","ts":"2026-11-07T04:23:50.219Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.readme-maps","by":"servex","at":"2026-11-07T04:23:50.221Z"}},"by":"servex","ts":"2026-11-07T04:23:50.221Z"}
+{"tasks":{"add":{"type":"Task","id":"past-work-audit","module":"/framework/ai/","title":"Calibrated past-work audit, newest first, starting with the 94 'waiting on you' moments"}},"by":"voice-app","ts":"2026-11-07T04:23:50.222Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.past-work-audit","by":"servex","at":"2026-11-07T04:23:50.223Z"}},"by":"servex","ts":"2026-11-07T04:23:50.223Z"}
+{"tasks":{"add":{"type":"Task","id":"old-lessons","module":"/framework/ai/","title":"Write down lessons from old systems before retiring them"}},"by":"voice-app","ts":"2026-11-07T04:23:50.224Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.old-lessons","by":"servex","at":"2026-11-07T04:23:50.226Z"}},"by":"servex","ts":"2026-11-07T04:23:50.226Z"}
+{"tasks":{"add":{"type":"Task","id":"live-streaming","module":"/live/","title":"Verify streaming: a write to thing.jsonl and a tab change both show without reload"}},"by":"voice-app","ts":"2026-11-07T04:23:50.227Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.live-streaming","by":"servex","at":"2026-11-07T04:23:50.229Z"}},"by":"servex","ts":"2026-11-07T04:23:50.229Z"}
+{"tasks":{"add":{"type":"Task","id":"session-live-view","module":"/framework/ai/sessions/","title":"Session page shows its tasks and plan evolving live (session detail on LivePage features)"}},"by":"voice-app","ts":"2026-11-07T04:23:50.230Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.session-live-view","by":"servex","at":"2026-11-07T04:23:50.231Z"}},"by":"servex","ts":"2026-11-07T04:23:50.231Z"}
+{"tasks":{"add":{"type":"Task","id":"livepage-into-page","module":"/framework/core/Page/","title":"Merge LivePage's header, breadcrumb, gear and settings into the default Page (opt-in first)"}},"by":"voice-app","ts":"2026-11-07T04:23:50.232Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.livepage-into-page","by":"servex","at":"2026-11-07T04:23:50.234Z"}},"by":"servex","ts":"2026-11-07T04:23:50.234Z"}
+{"tasks":{"add":{"type":"Task","id":"item-three-verbs","module":"/Servex/","title":"Item tool as get/set/call on Item.open; shrink page_tools.js; cut the 97 tools"}},"by":"voice-app","ts":"2026-11-07T04:23:50.235Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.item-three-verbs","by":"servex","at":"2026-11-07T04:23:50.236Z"}},"by":"servex","ts":"2026-11-07T04:23:50.236Z"}
+{"tasks":{"add":{"type":"Task","id":"page-file","title":"Raise the Windows page file to 48 GB (insurance; owner only)"}},"by":"voice-app","ts":"2026-11-07T04:23:50.237Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.page-file","by":"servex","at":"2026-11-07T04:23:50.239Z"}},"by":"servex","ts":"2026-11-07T04:23:50.239Z"}
+{"tool_call":{"at":"2026-11-07T04:23:59.845Z","tool":"item","args_hash":"0141c445f682","caller":"voice-app"}}
+{"tasks":{"agents-md":{"complete":{"evidence":["1ba85723d"],"outcome":"CLAUDE.md is one @import of public/framework/ai/agents.md; laws 1-12 and every rules section moved there; all links checked."}},"completion-page":{"complete":{"evidence":["b48b0ad10","/live/completion/"],"outcome":"/live/completion/ shows the 200 costliest sessions since 10-24: 149 of 185 with no tasks, 313 of 855 done without proof, no-task score bug."}},"index-past-work":{"complete":{"evidence":["3045730ce","42edc59eb","8dd89f420","3cd1a2cbc","/framework/ai/indexing-past-work.md"],"outcome":"ai/indexing-past-work.md: git grep recipes (rg not installed), the owner's words per channel, raw transcripts by date, git history, logging contract, map of existing indexes; linked from agents.md, ai/readme, sessions readme, roles readme, readme-system."}},"live-in-git":{"complete":{"evidence":["a52d1d165","b48b0ad10"],"outcome":".gitignore no longer ignores public/live/; voice-app's live pages committed."}},"owner-blocks":{"complete":{"evidence":["a52d1d165","1ba85723d"],"outcome":"Law 5 now says a real block is a task waiting on the owner, asked again every check-in; a question left in a report is a dropped task."}},"restart-servex":{"complete":{"evidence":["sustain.log 03:51:05 'Servex is back as pid 54668'","item {content:{text:1}} on /live/item-test/ refused by name"],"outcome":"Restarted 03:50 UTC; back in ~30 s; item-tool validation live; both masterminds survived."}}},"by":"voice-app","ts":"2026-11-07T04:23:59.849Z"}
+{"tool_call":{"at":"2026-11-07T04:24:05.980Z","tool":"item","args_hash":"59a9e3b23de0","caller":"voice-app"}}
+{"tasks":{"capture-sentences":{"start":{}},"close-with-proof":{"start":{}},"page-file":{"wait":{"on":"owner"}},"pid-accounting":{"start":{}}},"by":"voice-app","ts":"2026-11-07T04:24:05.984Z"}
+{"tool_call":{"at":"2026-11-07T04:24:06.357Z","tool":"item","args_hash":"fb7635dfcaba","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T04:24:24.505Z","tool":"send_to_agent","args_hash":"c67c5c94f506","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T04:24:25.985Z","tool":"item","args_hash":"c29173867025","caller":"voice-app"}}
+{"tasks":{"handoff-whole":{"log":"First practice run, 11-07 04:25 UTC: live-streaming and session-live-view were handed to mastermind-live-page by task id, not by paraphrase. It works them in this record."}},"by":"voice-app","ts":"2026-11-07T04:24:25.993Z"}
+{"tasks":{"live-streaming":{"start":{}}},"by":"mastermind-live-page","ts":"2026-11-07T04:24:49.941Z"}
+{"sessions":[{"id":"voice-app","task":"/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/"},{"id":"mastermind-live-page","task":"/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/"}],"by":"mastermind-live-page","ts":"2026-11-07T04:24:49.942Z"}
+{"log":{"at":"2026-11-06T22:30:47-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-06T22:35:47-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"tasks":{"session-live-view":{"start":{}}},"by":"mastermind-live-page","ts":"2026-11-07T04:37:07.522Z"}
+{"log":{"at":"2026-11-06T22:45:50-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"tasks":{"live-streaming":{"complete":{"outcome":"(a) A write to thing.jsonl already streamed: its title and text show on /live/item-test/'s card, its cards on /live/item-test/thing/. (b) The parent's tab picks streamed, but a line in a sub-page's OWN file ({\"tab\": true}, a new title) needed a reload: LivePage fetched each sub-page's file once. It now streams it (LivePage.meta_stream), so the tab row, link cards and Pages list redraw. Also fixed: /live/design/'s strip sat at the screen edge since the new layout.","evidence":"Merged 4324f2762. Probe on the live site: /framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-r16/shots/tabs-after.txt; LivePage.test check 14 (44 passed); smoke clean."}}},"by":"mastermind-live-page","ts":"2026-11-07T04:46:12.151Z"}
+{"tasks":{"session-live-view":{"tasks":{"add":{"id":"prove-stream","title":"PROBE-SUBTASK: prove a new task shows on this session's page with no reload"}}}},"by":"mastermind-live-page","ts":"2026-11-07T04:47:37.487Z"}
+{"tasks":{"session-live-view":{"tasks":{"prove-stream":{"complete":{"outcome":"Completing this subtask is the probe: the session page's In flight row for its parent should move from 0% without a reload.","evidence":"live-r17/shots (sesslive2.mjs)"}}}}},"by":"mastermind-live-page","ts":"2026-11-07T04:49:13.364Z"}
+{"tasks":{"session-live-view":{"start":{}}},"by":"mastermind-live-page","ts":"2026-11-07T04:50:18.983Z"}

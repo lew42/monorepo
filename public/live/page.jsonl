@@ -201,3 +201,9 @@
 {"file":"completion/page.jsonl"}
 {"content":{"add":{"type":"part-link","id":"link-completion","path":"./completion/","title":"Completion"}},"by":"pages.add","ts":"2026-11-07T03:19:09.229Z"}
 {"file":"truth/page.js"}
+{"file":"zzitem/page.jsonl"}
+{"file":"zztabs/page.jsonl"}
+{"file":"zztabs/"}
+{"file":"zzitem/"}
+{"file":"zzitem/","gone":true}
+{"file":"zztabs/","gone":true}

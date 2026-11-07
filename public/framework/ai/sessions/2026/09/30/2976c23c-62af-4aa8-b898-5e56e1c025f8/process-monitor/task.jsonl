@@ -102,3 +102,4 @@
 {"task":"/framework/ai/sessions/2026/09/30/2976c23c-62af-4aa8-b898-5e56e1c025f8/process-monitor/idle/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.000Z"}
 {"task":"/framework/ai/sessions/2026/09/30/2976c23c-62af-4aa8-b898-5e56e1c025f8/process-monitor/ram/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.001Z"}
 {"pid":101,"cmd":"bash -c source /c/Users/x/.claude/shell-snapshots/s.sh","why":"child of claude.exe","agent":"task-mastermind-x","session":null,"started":"1969-12-31T18:00:02-06:00","ppid":100,"seen":"sample","by":"servex"}
+{"pid_exit":101,"ended":"2026-11-07T04:47:14.365Z","code":null,"signal":null,"seen":"sample","why":"test junk line closed","by":"servex"}

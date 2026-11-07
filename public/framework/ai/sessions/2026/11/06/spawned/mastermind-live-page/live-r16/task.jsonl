@@ -5,3 +5,5 @@
 {"review":{"at":"2026-11-06T22:39:01-06:00","answer":{"n":4,"reply":"noted: a left view's closure stays until the next meta line from any watched page; a few closures per page visit, gone at the first change. Accepted."}}}
 {"review":{"at":"2026-11-06T22:39:01-06:00","answer":{"n":5,"reply":"noted."}}}
 {"review":{"at":"2026-11-06T22:39:56-06:00","answer":{"n":2,"reply":"declined: the outcome and evidence line is written by close_task right after the merge (as in live-r12 to r15), so it can name the merge commit; writing it before the merge would claim a landing that has not happened."}}}
+{"complete":{"outcome":"A sub-page's own file now streams into /live/'s tab row, link cards and Pages list (its {\"tab\": true} or a new title needed a reload); item files already streamed; /live/design/'s strip is back in the column.","evidence":["merged 4324f2762","shots/tabs-after.txt (live site probe)","LivePage.test check 14, 44 passed","shots/smoke.txt clean, shots/design-400.png"],"at":"2026-11-06T22:46:18-06:00"}}
+{"assign":{"closed_by":"mastermind-live-page","closed_at":"2026-11-06T22:46:18-06:00","closed_why":null}}
