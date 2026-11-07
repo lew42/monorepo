@@ -41,7 +41,8 @@ export default class Fixer {
 
 	/* The slot it holds is dead when its folder lost its .git (gutted by a remove, 2026-11-06) or the pool no longer lists it. Doc: doc/pool.md */
 	gutted(slot){
-		return !fs.existsSync(path.join(slot.path, ".git")) || !this.servex?.pool?.slots?.some(s => s.id === slot.id && s.path === slot.path);
+		const slots = this.servex?.pool?.slots;
+		return !fs.existsSync(path.join(slot.path, ".git")) || (Array.isArray(slots) && !slots.some(s => s.id === slot.id && s.path === slot.path));
 	}
 
 	/* Forget a dead slot, and stop the fixer if it sits in that folder, so ensure() starts it fresh in a new slot. */
