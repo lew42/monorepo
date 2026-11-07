@@ -43,6 +43,28 @@ git grep --untracked -lEi '"type":"Prompt","text":"[^"]*tools' -- "$S/**"
 | A queued spawn | `"queued":{` (and `"started":{` when it began) | `git grep -n '"queued":{' -- 'public/framework/ai/sessions/**'`; in the parent's `session.jsonl`, with `commit_pct` and `page_file_mb` |
 | Which session made commit abc123 | `abc123` | only ~240 of 1,321 session logs record any commit |
 
+## Only the owner's words
+
+VS Code tabs: the `UserPromptSubmit` hook (`.claude/hooks/prompt-relay.mjs`) writes every prompt the owner submits into that tab's `session.jsonl` as a `Prompt` line. It duplicates the raw transcript on purpose: small, dated and fast to search.
+
+```sh
+git grep --untracked -lEi '"type":"Prompt","text":"[^"]*footprint' -- "$S/**"
+```
+
+Voice: the owner's words are `"from":"owner (voice)"` lines. SDK agents only see the owner's words relayed by voice ("From Michael: …"). Until one `"ask"` shape exists, search all three.
+
+## The raw transcripts (the full story)
+
+`~/.claude/projects/C--Code-lew42-monorepo/<session id>.jsonl`: every prompt, reply, tool call and cost. That's 9,523 files and 9.5 GB, flat, with no date folders. **Filter by modified time first**, then grep only those files (timed 2026-11-06: 577 files changed in 7 days, listed in 0.6 s; the grep took 7.7 s):
+
+```sh
+P=~/.claude/projects/C--Code-lew42-monorepo
+find $P -name '*.jsonl' -mtime -7 -print0 \
+ | xargs -0 grep -l '"type":"user".\{0,400\}footprint'
+```
+
+`"type":"user"` lines also carry tool results, so treat hits as candidates and read the line. Search the session logs first; go to the transcripts when you need the replies, tool calls or costs, or when the logs missed it.
+
 ## The logging contract (what to aim for)
 
 One event, one line, **one fixed first key**, plus `by` and `ts`. The same event is always written the same way, whoever writes it, so one search term finds every instance.
