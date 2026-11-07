@@ -4,3 +4,4 @@
 {"review":{"at":"2026-11-06T22:39:01-06:00","answer":{"n":3,"reply":"fixed: the probe writes beta's title back to \"Beta\" after the rename line, so line 5 shows Beta; requirements.md now says so."}}}
 {"review":{"at":"2026-11-06T22:39:01-06:00","answer":{"n":4,"reply":"noted: a left view's closure stays until the next meta line from any watched page; a few closures per page visit, gone at the first change. Accepted."}}}
 {"review":{"at":"2026-11-06T22:39:01-06:00","answer":{"n":5,"reply":"noted."}}}
+{"review":{"at":"2026-11-06T22:39:56-06:00","answer":{"n":2,"reply":"declined: the outcome and evidence line is written by close_task right after the merge (as in live-r12 to r15), so it can name the merge commit; writing it before the merge would claim a landing that has not happened."}}}
