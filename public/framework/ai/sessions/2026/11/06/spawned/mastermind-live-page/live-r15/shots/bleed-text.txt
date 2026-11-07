@@ -1,0 +1,8 @@
+== 400 px, with a non-code {bleed:true} block: [left, right, where the words start]
+[[0,400],[0,400]]
+text padding: {"code_card_block":[0,400,"words at 0"],"code_card_title":[0,400,"words at 12"],"code_caption":[0,400,"words at 12"],"bleed_text_block":[0,400,"words at 0"],"bleed_text_words":[0,400,"words at 12"],"plain_text_words":[12,388,"words at 12"]}
+== header/status alignment (align.mjs): left of title, status dot
+400 {"title":38,"card":0,"status":12}
+1200 {"title":146,"card":0,"status":120}
+1920 {"title":354,"card":0,"status":328}
+3440 {"title":1114,"card":0,"status":1088}

@@ -1,0 +1,164 @@
+diff --git a/public/live/LiveCode.js b/public/live/LiveCode.js
+index 526c083dd..d210cddb4 100644
+--- a/public/live/LiveCode.js
++++ b/public/live/LiveCode.js
+@@ -13,6 +13,7 @@ export default class LiveCode extends Item {
+ LiveCode.View = class LiveCodeView extends View {
+ 	render(){
+ 		const item = this.item;
++		this.ac("bleed");   // code runs edge to edge on a phone: the line has the room it needs (LivePage.css .bleed)
+ 		return div.c("live-code-card", () => {
+ 			h4.c("live-card-title").bind(item, "title", function(t){ this.tc("is-empty", !t).text(t ?? ""); });
+ 			const $wrap = div.c("live-code-wrap");
+diff --git a/public/live/LivePage.css b/public/live/LivePage.css
+index 58a9f977a..84dfd2114 100644
+--- a/public/live/LivePage.css
++++ b/public/live/LivePage.css
+@@ -16,7 +16,7 @@
+ 	.live-page {
+ 		box-sizing: border-box; width: 100%; height: 100%;
+ 		--live-pad: .75rem; --live-pad-x: clamp(.5rem, 3vw, 1.5rem);
+-		--live-col: max(0px, (100% - 60rem) / 2);   /* the side room that centres a 60rem column; header and bar pad by it */
++		--live-col: max(0px, (100% - 2 * var(--live-pad-x) - 60rem) / 2);   /* the side room that centres a 60rem column; header and bar pad by it */
+ 		padding: 0; overflow: hidden;
+ 		display: flex; flex-direction: column;
+ 		font-size: clamp(1rem, 1.2vw + .75rem, 1.5rem);
+@@ -136,10 +136,12 @@
+ 	.live-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--live-step); }
+ 	/* The whole card is one link: the chevron's ::after covers the card. A mention or a button inside sits above it, so
+ 	   it is tapped on its own (a link inside a link is not allowed in HTML, so the card is a div).
+-	   The chevron sits in the bottom-right corner, inside the card's padding: it takes no width and adds no row. */
++	   The chevron sits at the right, centred top to bottom, in a padding of its own so text never runs under it
++	   (2026-11-06: it was small and crammed into the bottom corner). */
+ 	.live-card-go { color: inherit; text-decoration: none; }
+ 	.live-card-go::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+-	.live-card-chevron { position: absolute; right: .4rem; bottom: .2rem; font-size: 1.1rem; line-height: 1; opacity: .4; pointer-events: none; }
++	.live-card:has(> .live-card-go) { padding-right: 2.5rem; }
++	.live-card-chevron { position: absolute; right: .75rem; top: 50%; transform: translateY(-50%); font-size: 1.75rem; line-height: 1; opacity: .45; pointer-events: none; }
+ 	.live-card :is(a:not(.live-card-go), button, input, select, label, pre, .live-code-wrap, table) { position: relative; z-index: 1; }   /* tapped, or swiped sideways, on their own */
+ 	/* A card's preview (LivePage.Preview) starts where its title starts, not under the icon; an "@Page" card has no icon. */
+ 	.live-preview, .live-preview-list { display: flex; flex-direction: column; gap: var(--live-step); min-width: 0; }
+@@ -175,8 +177,12 @@
+ 	/* A phone has no width to spare: code runs edge to edge (one padding, the code's own), and a table's rows stack, each
+ 	   cell under its column's name (LivePage.label_tables writes data-label from the table's header). */
+ 	@media (max-width: 40rem) {
+-		:is(.live-main > .live-block, .live-focus, .live-page > .live-preview) :is(.live-card-text pre, .live-sub pre, .live-code-wrap) { margin-inline: calc(-1 * var(--live-pad-x)); border-radius: 0; }
+-		.live-card :is(.live-card-text pre, .live-code-wrap) { margin-inline: -1rem; border-radius: 0; }
++		:is(.live-main > .live-block, .live-focus, .live-scroll > .live-preview) :is(.live-card-text pre, .live-sub pre) { margin-inline: calc(-1 * var(--live-pad-x)); border-radius: 0; }
++		/* .bleed: a block that runs edge to edge (a code card by itself, or any block given {"bleed": true}); max-width would stop it short of the right edge */
++		.live-scroll .live-main > .bleed, .live-scroll .live-main > .live-block:has(> .bleed) { margin-inline: calc(-1 * var(--live-pad-x)); max-width: none; }
++		.live-scroll .bleed :is(.live-card-title, .live-code-caption, .live-card-text > :not(pre)) { padding-inline: var(--live-pad-x); }
++		.live-scroll .bleed :is(.live-code-wrap, pre) { max-width: none; border-radius: 0; }
++		.live-card :is(.live-card-text pre, .live-code-wrap) { margin-inline: -1rem; max-width: none; border-radius: 0; }
+ 		.live-page table:has(td[data-label]) { display: block; border: 0; width: 100%; }
+ 		.live-page table:has(td[data-label]) thead { display: none; }
+ 		.live-page table:has(td[data-label]) :is(tbody, tr) { display: block; }
+diff --git a/public/live/LivePage.js b/public/live/LivePage.js
+index 2b68cff74..4562f2557 100644
+--- a/public/live/LivePage.js
++++ b/public/live/LivePage.js
+@@ -314,6 +314,9 @@ export default class LivePage extends Page {
+ 			.catch(e => console.warn("LivePage: no scroll lock (" + e.message + ")"));
+ 	}
+ 
++	// A link card's target: its `path`, or `href` (a common guess: two cards on /live/ used it, drew as /live/ itself and showed "Live").
++	static path_of(link){ return link.get("path") ?? link.get("href"); }
++
+ 	// A link's path ("./plan/" or "plan/") against the url of the page its card was written on: this page, or for a saved
+ 	// screen the page it was saved from (its cards still point where they pointed on /live/).
+ 	link_url(path){
+@@ -375,7 +378,7 @@ export default class LivePage extends Page {
+ 			const m = await this.meta_of(u), name = u.slice(url.length, -1);
+ 			return { url: u, title: m.title, description: m.description, icon: m.icon ?? this.stored.folder, tab: (picks.get(name) ?? m.tab) === true && !m.js && plain(m.cls) };
+ 		}));
+-		const linked = new Set((loaded?.content?.items ?? []).filter(i => i instanceof PageLink).map(i => loaded.link_url(i.get("path"))));
++		const linked = new Set((loaded?.content?.items ?? []).filter(i => i instanceof PageLink).map(i => loaded.link_url(LivePage.path_of(i))));
+ 		const shown = loaded && !loaded.screen && !loaded.focus && !loaded.settings_of;
+ 		const screens = shown ? loaded.screens.items.map(s => ({ url: url + s.id + "/", title: s.get("title") ?? s.id, icon: s.get("icon") ?? this.stored.item })) : [];
+ 		let tabs = rows.filter(r => r.tab), cards = rows.filter(r => !r.tab);
+@@ -656,6 +659,7 @@ export default class LivePage extends Page {
+ 		render(){
+ 			const { page, item } = this, P = page.constructor, Own = item.constructor.View;
+ 			this.attr("id", item.id).attr("data-kind", item.constructor.name);
++			this.bind(item, "bleed", function(on){ this.tc("bleed", !!on); });   // {"bleed": true}: edge to edge on a phone (LivePage.css)
+ 			if (Item.foreign(item)) return;   // a registered class that is not an Item ({"type":"View"}) draws itself
+ 			if (P.kinds.has(item.constructor) || (Own && Own !== Item.View && !PART_TYPES.includes(item.wire?.())))
+ 				return void new Own({ item, subject: item });
+@@ -671,7 +675,7 @@ export default class LivePage extends Page {
+ 	static Card = class LiveCardView extends View {
+ 		render(){
+ 			const { page, item } = this, P = page.constructor;
+-			const own = item instanceof PageLink ? page.link_url(item.get("path")) : page.url + item.id + "/";
++			const own = item instanceof PageLink ? page.link_url(LivePage.path_of(item)) : page.url + item.id + "/";
+ 			let $title, $icon;
+ 			const go = () => {
+ 				this.tc("live-entity", !!$title?.only);
+diff --git a/public/live/LivePage.test.mjs b/public/live/LivePage.test.mjs
+index 4546d8531..521a5be91 100644
+--- a/public/live/LivePage.test.mjs
++++ b/public/live/LivePage.test.mjs
+@@ -122,6 +122,7 @@ try {
+ 	tp.replay_line({ tasks: { add: { id: "x", title: "X" } } });
+ 	tp.replay_line({ tasks: { x: { complete: { outcome: "o", evidence: "e" } } } });
+ 	ok(tp.tasks.find("x").state === "complete" && heard > 0, "a task's state change reaches the page (the checklist redraws its count)");
++	ok(LivePage.path_of({ get: k => ({ href: "/live/tabs/" })[k] }) === "/live/tabs/" && LivePage.path_of({ get: k => ({ path: "./a/", href: "/b/" })[k] }) === "./a/", "a link card's target: path, else href");
+ 	console.log(`LivePage.test: ${n} passed`);
+ } finally {
+ 	fs.rmSync(DIR, { recursive: true, force: true });
+diff --git a/public/live/doc/names.md b/public/live/doc/names.md
+new file mode 100644
+index 000000000..6b55fc00d
+--- /dev/null
++++ b/public/live/doc/names.md
+@@ -0,0 +1,21 @@
++# Name, id, slug, title: four words, four jobs
++
++Asked on /live/ (task `ox5xlkmz`, 2026-11-06): "default id = slug of the title (lowercase, hyphens); write a doc page comparing name / id / slug / title".
++
++## The four, side by side
++
++| Word | What it is | Example | Who makes it | Can it change? | Where you see it |
++|---|---|---|---|---|---|
++| **title** | The words a person reads | `Fix the tab bar` | whoever writes the card or task | yes, any time | the card, the h1, the tab, the link card |
++| **slug** | The title made url-safe: lowercase, hyphens, nothing else | `fix-the-tab-bar` | code, from the title (`Task.slug` in [core/Task/Task.js](/framework/core/Task/Task.js)) | it follows the title; whatever kept an old slug keeps it | folder names of tasks |
++| **id** | The address of one item inside its list | `k2p9x4mq` today | the item tool, when an `add` brings none (`stamp_ids` in [Servex/agents/page_tools.js](/Servex/agents/page_tools.js)) | never: lines and links point at it | `/live/<id>/`, `{"content":{"<id>":…}}`, `tasks.<id>.complete` |
++| **name** | A folder's name: the last part of a sub-page's url | `plan` in `/live/plan/` | whoever calls `pages.add` | only by a scripted rename (`pages.rename`) | the url, the crumbs |
++
++The short version: **the title is for reading, the id is for pointing, the name is the folder, and the slug is how a title becomes a name or an id.**
++
++## Ids: random today, slugs asked for
++
++- **Today** an id the agent does not give is 8 random letters and digits (`k2p9x4mq`). That was decided in [ids-and-paths.md §5](/framework/core/Session/tasks/data-shapes/ids-and-paths.md), which compared seven schemes and rejected slugs because a renamed card keeps an id that no longer matches its title.
++- **The ask** is to make the default id the slug of the title, so `/live/fix-the-tab-bar/` reads as what it is.
++- **The trade:** a slug id is readable in a url and a log line. Its cost is a stale id after a rename (the url still says the old words) and a `-2` when two titles match. The id still never changes, so nothing breaks; it only reads wrong.
++- **Proposed** (sent to the owner of the item tool, mastermind-page-design, 2026-11-06): an `add` that has a `title` and no `id` gets `slug(title)`, with `-2`, `-3` on a clash among its siblings; an add with no title keeps the random id; ids already written stay as they are. Until that lands, an agent that wants a readable id passes `id` itself (`{"content":{"add":{"id":"tab-bar","title":"Fix the tab bar"}}}`).
+diff --git a/public/live/readme.md b/public/live/readme.md
+index a5b2c6f5a..591e65f84 100644
+--- a/public/live/readme.md
++++ b/public/live/readme.md
+@@ -8,7 +8,7 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
+ 
+ 1. **Look:** `page_read({path: "/live/"})` gives the title, every card with its id, and the sub-pages. `item({path: "/live/", read: "content"})` (or `"screens"`, `"removed"`) lists one list as `{total, rows: [{id, type, title}]}` and writes nothing. `item({path: "/live/", delta: {"help": {}}})` lists every verb and card type.
+ 2. **New topic:** save what is there (`{"save": {"name": "…", "title": "…"}}`) or clear it (`{"content": {"clear": true}}`; nothing is lost, see *removed cards*).
+-3. **Show:** one `item({path: "/live/", delta})` call per change, with a delta from the table below. Every open tab, the phone included, redraws within a second.
++3. **Show:** one `item({path: "/live/", delta})` call per change, with a delta from the table below. Every open tab, the phone included, redraws within a second. **One idea per card, the picture first** (the owner, 2026-11-06): a card is a title and a line or two, or a code block, a light or a checklist; never a wall of bullets. Five points are five cards, or a sub-page with five cards.
+ 4. **Hear taps:** `follow({path: "public/live/page.jsonl", agent: "<your id>"})` once, then `updates` each turn (*A tap reaches the agents*).
+ 
+ ## Showing things
+@@ -24,6 +24,7 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
+ | a line under the title / at the bottom | `{"header":"text"}` · `{"footer":"text"}` (`null` hides it) |
+ | blink / a 4 s banner | `{"flash":{}}` · `{"flash":"red"}` · `{"alert":"Look at this"}` |
+ | a status light | `{"content":{"add":{"type":"live-light","id":"build","label":"Build","on":true,"color":"green"}}}`, then `{"content":{"build":{"color":"red"}}}` |
++| a block that runs edge to edge on a phone | add `"bleed": true` to any card that draws with no frame (a code card does it by itself) |
+ | a checklist | `{"content":{"add":{"type":"live-checklist","id":"today","title":"Today","items":[{"id":"milk","text":"Buy milk"}]}}}`; tick `{"content":{"today":{"items":{"milk":{"done":true}}}}}`; flip `{"content":{"today":{"check":"milk"}}}`; add `{"content":{"today":{"items":{"add":{"id":"tea","text":"Tea"}}}}}` |
+ | the page's own tasks | `{"tasks":{"add":{"id":"t1","title":"Ship it"}}}`; close one `{"tasks":{"t1":{"complete":{"outcome":"…","evidence":"…"}}}}`. Drawn as one checklist card above the cards, "Tasks · 2 of 8 done", ticking live ([core/Task](/framework/core/Task/) rows, `LivePage.Tasks`). Shown on the page itself (not on a saved screen, an opened card or settings); hidden while there are none. |
+ | a button | `{"content":{"add":{"type":"live-button","id":"b1","label":"Flash red","method":"flash","args":"red"}}}`; press `{"content":{"b1":{"press":{}}}}` |
+@@ -43,6 +44,8 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
+ 
+ The screen stays live by itself: a dev socket that goes quiet (a phone that slept, a dropped tunnel) is pinged and reopened, and each stream picks up from where it stopped ([dev/Socket, Watch out](/framework/dev/Socket/readme.md)).
+ 
++**The Pages list at the bottom is built by code, never written:** it lists every sub-folder of the page that holds a page (`page.jsonl` or `page.js`), then the saved screens, each as a link card with the sub-page's own title and description (`LivePage.pages_of`). A sub-page that a card in the content already links to is left out, so nothing shows twice; so is a tab. A link card names its target with `path` (`href` is read too, since 2026-11-06: two cards with `href` drew as /live/ itself, titled "Live"). Every card's id, title, slug and folder name, compared: [doc/names.md](doc/names.md).
++
+ A card already on screen can become a sub-page (a link card stays in its place): `{"pages":{"promote":{"id":"<card id>","name":"plan"}}}` ([core/Page/doc/ai-api.md](/framework/core/Page/doc/ai-api.md)).
+ 
+ **Page features from voice** (tabs, columns, place, nav, previews, tried live under [/live/demos/](/live/demos/): tabs works via real sub-pages, columns/nav/place do not draw under LivePage; previews are now the `preview` list, in the table above — one table, the cause for each, and what is still missing): [doc/page-features.md](doc/page-features.md).
