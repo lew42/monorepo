@@ -128,3 +128,8 @@
 {"log":{"at":"2026-11-06T16:27:22-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-06T17:27:23-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-06T18:27:23-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-06T19:27:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"content":{"add":{"id":"l0bem26d","type":"Prompt","text":"link me to your session","counted":true}},"by":"owner","ts":"2026-11-07T01:39:51.916Z"}
+{"content":{"add":{"id":"pebejhwy","type":"Prompt","text":"Why the heck are you using two session folders? Whose idea was that? Why can we not get a single session folder for a single session? This is crazy. Like, why would we want two session folders that represent the same thing? Haven't I asked 100 times in the past to fix our AI sessions directories? Like, what the actual fuck, man?","counted":true}},"by":"owner","ts":"2026-11-07T01:40:48.262Z"}
+{"content":{"add":{"id":"p09zlyv5","type":"Prompt","text":"404 — nothing matches \"/framework/ai/sessions/2026/11/04/session-5132a480/\"","counted":true}},"by":"owner","ts":"2026-11-07T01:41:18.622Z"}
+{"content":{"add":{"id":"kcpevlpa","type":"Prompt","text":"404 — nothing matches \"/framework/ai/sessions/5132a480-c10b-4dc0-8d72-8e6bf9e6f483/\"","counted":true}},"by":"owner","ts":"2026-11-07T01:41:50.072Z"}
