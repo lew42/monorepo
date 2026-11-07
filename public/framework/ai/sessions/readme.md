@@ -82,7 +82,7 @@ The full guide (search steps, every event's search term, the logging contract): 
 | Which session a running process is | PowerShell: `Get-CimInstance Win32_Process -Filter "Name='claude.exe'" \| select ProcessId,CreationDate,CommandLine`. A Servex agent's command line carries `--resume=<session id>`; the folder is `session-<first 8 hex>`. A `claude.exe` under `WindowsApps\Claude_*` is the Claude desktop app, not a session. |
 | A session's transcript | `~/.claude/projects/C--Code-lew42-monorepo/<session id>.jsonl` |
 
-**Not findable yet:** who started a given process id and why. No log records a spawn's pid today; the planned fix is on [/live/plan/](/live/plan/), "Open questions".
+**Who started a process id, and why:** Servex logs every async child it starts (2026-11-06). `git grep --untracked -n '"pid":12345' -- 'public/framework/ai/sessions/**'` (`--untracked` also reads session folders not committed yet) finds the start line (agent, command, why) in that agent's `session.jsonl`; `"pid_exit":12345` finds how it ended. A pid started by Servex itself, with no agent, is in `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl`. A queued spawn: `git grep --untracked -n '"queued":{' -- 'public/framework/ai/sessions/**'`. What is and is not logged: `Servex/doc/processes.md`, "Who started this pid".
 
 ## Top-level files here (generated; never hand-edit)
 
