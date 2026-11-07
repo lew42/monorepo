@@ -7,3 +7,5 @@
 {"review":{"at":"2026-11-06T20:23:24-06:00","answer":{"n":6,"reply":"noted: List takes no `of` option; it is set after construction, as Task.js does."}}}
 {"review":{"at":"2026-11-06T20:23:24-06:00","answer":{"n":7,"reply":"noted: the class names are TaskView's one row look; a rename there would show at once on /live/."}}}
 {"log":{"at":"2026-11-06T20:23:24-06:00","msg":"Review answered; merging live-r13 (page tasks checklist, qsglj96w)."}}
+{"complete":{"outcome":"A page's tasks show as one live checklist card on /live/ (Tasks · N of M done); tasks.add no longer replaces the last.","evidence":["eb0c6b3f5 on compliance/dev","live-r13/shots/live-tick.txt"],"at":"2026-11-06T20:33:07-06:00"}}
+{"assign":{"closed_by":"mastermind-live-page","closed_at":"2026-11-06T20:33:07-06:00","closed_why":"landed"}}

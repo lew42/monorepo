@@ -1,0 +1,282 @@
+diff --git a/public/framework/ext/Chat/Chat.css b/public/framework/ext/Chat/Chat.css
+index 58a0434c7..3656ef96f 100644
+--- a/public/framework/ext/Chat/Chat.css
++++ b/public/framework/ext/Chat/Chat.css
+@@ -264,6 +264,8 @@
+ 		line-height: 1;
+ 	}
+ 	.chatbox-jump:not([hidden]) { display: grid; place-items: center; }
++	.chatbox-jump:not(.has-new) { opacity: .45; }   /* dim while you read above; lit when something new arrived below (2026-11-06, /live/) */
++	.chatbox-jump.has-new { background: var(--prime, #FF6157); color: #1a1a1a; }
+ 	.chatbox-jump[hidden] { display: none; }
+ 
+ 	/* ONE LINE PER THING SAID — who, then what. Updates are quieter than talk. */
+diff --git a/public/framework/ext/Chat/Chat.js b/public/framework/ext/Chat/Chat.js
+index 06b7e858b..aee6d6ccb 100644
+--- a/public/framework/ext/Chat/Chat.js
++++ b/public/framework/ext/Chat/Chat.js
+@@ -443,7 +443,7 @@ export function sticky_scroll(box, { observe = true } = {}){   // observe:false
+ 	$btn.textContent = "↓";   // small round button at the bottom; its title and aria-label say the job (the owner, 2026-10-25)
+ 	$btn.hidden = true;
+ 	box.appendChild($btn);
+-	const show = on => { $btn.hidden = !on; };
++	const show = on => { $btn.hidden = !on; if (!on) $btn.classList.remove("has-new"); };   // dim while scrolled up; lit (has-new) once something new arrives below
+ 	const go_down = () => { if ($btn !== box.lastChild) box.appendChild($btn); box.scrollTop = bottom(); last = box.scrollTop; };
+ 	$btn.addEventListener("click", () => { locked = true; show(false); go_down(); });
+ 	// only the reader can unlock: a scroll event from a redraw, a clamp or a pin() never counts (it used to, and the log jumped)
+@@ -460,7 +460,13 @@ export function sticky_scroll(box, { observe = true } = {}){   // observe:false
+ 	if (observe && typeof ResizeObserver === "function") new ResizeObserver(pin).observe(box);
+ 	if (observe && typeof MutationObserver === "function"){   // late growth (live edits, refinements) re-pins while locked; a reader who scrolled up is never moved
+ 		let raf = 0;
+-		new MutationObserver(() => { if (locked && !raf) raf = requestAnimationFrame(() => { raf = 0; pin(); }); }).observe(box, { childList: true, subtree: true, characterData: true });
++		new MutationObserver(records => {
++			if (!locked){   // a reader who scrolled up: a new element below lights the button (its own move to the end does not count)
++				if (records.some(r => [...r.addedNodes].some(n => n !== $btn && n.nodeType === 1))) $btn.classList.add("has-new");
++				return;
++			}
++			if (!raf) raf = requestAnimationFrame(() => { raf = 0; pin(); });
++		}).observe(box, { childList: true, subtree: true, characterData: true });
+ 	}
+ 	return { pin, locked: () => locked };
+ }
+diff --git a/public/framework/ext/Chat/doc/notes.md b/public/framework/ext/Chat/doc/notes.md
+index c3072ed31..c90917204 100644
+--- a/public/framework/ext/Chat/doc/notes.md
++++ b/public/framework/ext/Chat/doc/notes.md
+@@ -82,6 +82,8 @@ A universal chat line has no `type`/`id` to key on: every one would collide on t
+ 
+ One scroll behaviour for every scrolling chat log on the site: `chat()`'s log and `ux/Dictate/Widget.js`'s `Thread` (the Dictate page and the ✦ sheet build their chat through that class, not `chat()`, since it owns a lighter box with no selection/reaction/drill wiring). The third user is Chat v2: `ext/drawer/ChatView.js` calls it on the v2 sheet with a `MutationObserver` as `observe`, so v2 and the bubble chat scroll, lock and show the ↓ button the same way (bottom-right, `align-self: flex-end` so a flex-column box keeps it on the right). `Thread` used to hand-roll its own broken copy; CLAUDE.md law 6 says fix it once, here. `box` is the element that actually scrolls (`overflow-y: auto`); a jump-to-bottom button is appended into it, so `box`'s CSS also needs `position: relative` for the button to anchor to it.
+ 
++**The ↓ button is dim while you read above, and lit once something new arrives below** (`has-new`, 2026-11-06, asked for /live/): a new element added to the box while unlocked lights it; the button's own move to the end does not count. Jumping or scrolling back down clears it. /live/ uses the same function on its scroll area (`public/live/LivePage.js`, `follow()`).
++
+ `locked` starts true: the reader is at the bottom, so every new line follows (the owner: sticks to the bottom, follows every new message, unless scrolled up, in which case it stays put and a small button appears; clicking it jumps down and resumes following). Scrolling up turns it false and shows the button; reaching the bottom again (by hand or the button) turns it on.
+ 
+ `pin()`, called once after drawing new lines, jumps to the bottom only while locked. A `ResizeObserver` on `box` also calls it, so a composer growing under the log, or the box's first layout (0px tall until the page is on screen), re-pins with no scroll event. See `doc/scroll.md` for why only a move up unlocks (reading "am I at the bottom?" on every event lost the lock on first load, because our own jump-to-bottom's scroll event arrives a frame later, after the box is already taller). The button is moved to the very end of `box` every jump, never left as its first child, so `.chatbox-log > :first-child`'s push-to-the-bottom margin (Chat.css) still lands on the real first message.
+diff --git a/public/live/LivePage.css b/public/live/LivePage.css
+index b3ba62437..58a9f977a 100644
+--- a/public/live/LivePage.css
++++ b/public/live/LivePage.css
+@@ -11,11 +11,14 @@
+ 		background: var(--live-floor);
+ 		color: var(--live-ink);
+ 	}
++	/* THREE ROWS, the height of the app's scroller (2026-11-06): the header, ONE scroll area, the status bar. The page itself
++	   never scrolls, so the header and the bar stay put without sticky, and the scroll area can follow new cards (LivePage.follow). */
+ 	.live-page {
+-		box-sizing: border-box; width: 100%; min-height: 100dvh;
++		box-sizing: border-box; width: 100%; height: 100%;
+ 		--live-pad: .75rem; --live-pad-x: clamp(.5rem, 3vw, 1.5rem);
+-		padding: var(--live-pad) var(--live-pad-x) 5rem;   /* 5rem: clear of the app bar fixed at the bottom of a phone */
+-		display: flex; flex-direction: column; gap: var(--live-gap);
++		--live-col: max(0px, (100% - 60rem) / 2);   /* the side room that centres a 60rem column; header and bar pad by it */
++		padding: 0; overflow: hidden;
++		display: flex; flex-direction: column;
+ 		font-size: clamp(1rem, 1.2vw + .75rem, 1.5rem);
+ 		/* ONE RHYTHM, two steps: --live-gap between every two things on the page (header, cards, footer),
+ 		   --live-step between the parts of one thing (title, text, paragraphs, buttons). No card sets its own. */
+@@ -23,16 +26,21 @@
+ 		--live-step: .5em;
+ 	}
+ 
+-	.live-page > :not(.live-alerts) { box-sizing: border-box; width: 100%; max-width: 60rem; margin-inline: auto; }   /* the floor is full width, the column is not */
++	.live-scroll {
++		flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
++		position: relative;   /* the containing block for the ↓ button (ext/Chat/Chat.css .chatbox-jump) */
++		padding: var(--live-pad) var(--live-pad-x) 1.5rem;
++		display: flex; flex-direction: column; gap: var(--live-gap);
++	}
++	.live-scroll > :not(.chatbox-jump) { box-sizing: border-box; width: 100%; max-width: 60rem; margin-inline: auto; flex: none; }   /* the floor is full width, the column is not */
++	.live-scroll > .chatbox-jump { margin-block-start: calc(-1 * var(--live-gap)); flex: none; font-size: 1rem; inline-size: 2.25rem; block-size: 2.25rem; min-block-size: 0; }   /* no gap of its own; a round tap target (a site button rule set a min height) */
+ 	/* THE HEADER: sticky, one size at every depth and width (rem, not the page's growing em), under 100 px: a tiny
+ 	   breadcrumb with the settings icon, a small title, one row of tabs. Its floor is opaque so cards pass under it. */
+ 	.live-page > .live-head {
+-		position: sticky; top: 0; z-index: 5;
++		flex: none; z-index: 5;
+ 		display: flex; flex-direction: column; gap: 0;
+-		/* Full width with its own padding: the margins cancel the page's padding (flush with the top and both sides when
+-		   stuck), the padding puts its text back in line with the column (60rem, centred) below it. */
+-		max-width: none; width: auto; margin: calc(-1 * var(--live-pad)) calc(-1 * var(--live-pad-x)) 0;
+-		padding: .3rem calc(var(--live-pad-x) + max(0px, (100% - 60rem) / 2)) .3rem;
++		/* Full width; the padding puts its text in line with the column (60rem, centred) below it. */
++		padding: .3rem calc(var(--live-pad-x) + var(--live-col)) .3rem;
+ 		background: var(--live-floor);
+ 		border-bottom: 1px solid light-dark(#0002, #fff2);
+ 		font-size: 1rem;
+@@ -218,6 +226,22 @@
+ 	.live-foot-links { display: flex; gap: 1rem; opacity: .7; }
+ 	.live-foot-links a { color: inherit; }
+ 
++	/* THE STATUS BAR (LivePage.Status): the bottom row, one line; a tap opens the sheet above it. rem, like the header. */
++	.live-status { flex: none; font-size: .8rem; background: var(--live-floor); border-top: 1px solid light-dark(#0002, #fff2); }
++	.live-status-bar {
++		display: flex; align-items: center; gap: .5rem; width: 100%; min-height: 2.25rem; box-sizing: border-box;
++		padding: .3rem calc(var(--live-pad-x) + var(--live-col));
++		font: inherit; color: inherit; background: none; border: 0; cursor: pointer; text-align: start;
++	}
++	.live-status-text { flex: 1; min-width: 0; opacity: .75; }
++	.live-status-chev { font-size: 1.1rem; opacity: .5; transition: transform .2s; }
++	.live-status.is-open .live-status-chev { transform: rotate(180deg); }
++	.live-status-sheet { display: flex; flex-direction: column; gap: .4rem; padding: .6rem calc(var(--live-pad-x) + var(--live-col)) .2rem; }
++	.live-status-sheet[hidden] { display: none; }
++	.live-status-row { opacity: .8; line-height: 1.4; }
++	.live-status-links { display: flex; gap: 1rem; }
++	.live-status-links a { color: inherit; }
++
+ 	/* alert(text): banners stacked at the top, over the page. */
+ 	.live-alerts { position: fixed; inset: .75rem .75rem auto; z-index: 10; display: flex; flex-direction: column; gap: .5rem; pointer-events: none; max-width: 40rem; margin-inline: auto; }
+ 	.live-alert { background: light-dark(#1a1a1a, #fff); color: light-dark(#fff, #1a1a1a); border-radius: .6rem; padding: .75rem 1rem; box-shadow: 0 .25em 1em #0004; transition: opacity .5s, transform .5s; }
+diff --git a/public/live/LivePage.js b/public/live/LivePage.js
+index 1f34c3f2c..054ee4eee 100644
+--- a/public/live/LivePage.js
++++ b/public/live/LivePage.js
+@@ -1,5 +1,5 @@
+ import Page from "/framework/core/Page/Page.class.js";
+-import View, { div, span, a, h1, h4, select, option, icon, code } from "/framework/core/View/View.js";
++import View, { div, span, a, h1, h4, select, option, icon, code, button } from "/framework/core/View/View.js";
+ import Item from "/framework/core/Item/Item.js";
+ import List from "/framework/core/List/List.js";
+ import DefaultView from "/framework/ux/Content/Object/DefaultView.js";
+@@ -241,6 +241,7 @@ export default class LivePage extends Page {
+ 		const agent = line => line?.by && line.by !== "owner" ? Date.parse(line.ts) : NaN;
+ 		for (const line of this.jsonl_lines ?? []) this.voice_at(agent(line));
+ 		this.on("line", line => {
++			if (line?.by && line.by !== "owner") this.last_by = line.by;
+ 			this.voice_at(agent(line));
+ 			if (Item.source !== "remote" || !line?.ts) return;
+ 			const ms = Date.now() - Date.parse(line.ts);
+@@ -258,6 +259,8 @@ export default class LivePage extends Page {
+ 		if (!this.$dot) return;
+ 		const left = (this.last_voice ?? 0) + this.constructor.voice_ms - Date.now(), on = left > 0;
+ 		LiveLight.paint(this.$dot, { on, color: "#22c55e" }).attr("title", on ? "Voice is driving this screen" : "Voice is quiet");
++		this.$state?.text(on ? "Voice is driving" : "Quiet");
++		this.$who?.text(this.last_voice ? `Last line by ${this.last_by ?? "an agent"} at ${new Date(this.last_voice).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "No agent has written here yet");
+ 		clearTimeout(this.voice_off);
+ 		if (on) this.voice_off = setTimeout(() => this.paint_voice(), left + 50);   // one timer to turn it off, no polling
+ 	}
+@@ -276,24 +279,41 @@ export default class LivePage extends Page {
+ 		this.view = div.c("page live-page", () => {
+ 			this.$alerts = div.c("live-alerts");
+ 			part("header", P.Head);
+-			part("subheader", P.Md, { item: this, key: "header", classes: "live-sub" });   // below the sticky header, so the header stays one size
+-			if (!this.focus && !this.screen && !this.settings_of) part("text", P.Md, { item: this, key: "text", classes: "live-sub" });   // a page.items file opened whole: its own text
+-			new P.Errors({ page: this });
+-			if (this.settings_of) return void part("settings", P.Settings, { of: this.settings_of, at: this.at });
+-			part("preview", P.Preview, { item: this.focus ?? this });   // the same preview its card shows, as the top of the page
+-			if (this.focus) part("card", P.Focus, { item: this.focus });
+-			if (!this.focus && !this.screen && !this.settings_of) part("tasks", P.Tasks);
+-			part("cards", P.Main, { list: this.cards });
+-			if (!this.focus && !this.screen && !this.settings_of) part("items", P.Items, { classes: "live-items" });
+-			part("pages", P.Pages);
+-			part("footer", P.Foot);
++			// ONE scroll area between the header and the status bar (2026-11-06): it follows new cards while you are at the
++			// bottom and stops when you scroll up (ext/Chat sticky_scroll, the chat's own lock and ↓ button).
++			this.$scroll = div.c("live-scroll", () => this.body(part, P));
++			part("status", P.Status);
+ 		});
++		this.follow();
+ 		this.listen();
+ 		this.paint_voice();
+ 		Page.views.set(this.view.el, this);
+ 		return this.view;
+ 	}
+ 
++	// Everything that scrolls: the page's sub-line and text, its tasks, its cards, its pages and its footer.
++	body(part, P){
++		part("subheader", P.Md, { item: this, key: "header", classes: "live-sub" });   // below the sticky header, so the header stays one size
++		if (!this.focus && !this.screen && !this.settings_of) part("text", P.Md, { item: this, key: "text", classes: "live-sub" });   // a page.items file opened whole: its own text
++		new P.Errors({ page: this });
++		if (this.settings_of) return void part("settings", P.Settings, { of: this.settings_of, at: this.at });
++		part("preview", P.Preview, { item: this.focus ?? this });   // the same preview its card shows, as the top of the page
++		if (this.focus) part("card", P.Focus, { item: this.focus });
++		if (!this.focus && !this.screen && !this.settings_of) part("tasks", P.Tasks);
++		part("cards", P.Main, { list: this.cards });
++		if (!this.focus && !this.screen && !this.settings_of) part("items", P.Items, { classes: "live-items" });
++		part("pages", P.Pages);
++		part("footer", P.Foot);
++	}
++
++	// The scroll lock: browser only, loaded on demand so node (the item tool replays this class) never imports the chat.
++	follow(){
++		const box = this.$scroll?.el;
++		if (!box || typeof document === "undefined" || this.settings_of || this.at) return;   // settings and a file read from the top
++		import("/framework/ext/Chat/Chat.js").then(({ sticky_scroll }) => { this.scroll = sticky_scroll(box); this.scroll.pin(); })
++			.catch(e => console.warn("LivePage: no scroll lock (" + e.message + ")"));
++	}
++
+ 	// A link's path ("./plan/" or "plan/") against the url of the page its card was written on: this page, or for a saved
+ 	// screen the page it was saved from (its cards still point where they pointed on /live/).
+ 	link_url(path){
+@@ -455,7 +475,6 @@ export default class LivePage extends Page {
+ 			div.c("live-head-top", () => {
+ 				new P.Crumbs({ page });
+ 				if (page.at) page.$raw = a.c("live-raw is-empty", "raw").attr("target", "_blank").attr("title", "The file itself, as text");   // a file's page shows it (LivePage.Files)
+-				page.$dot = span.c("live-dot");   // the voice light: small, by the gear, never beside the title (that is the page's own icon)
+ 				// The gear opens settings; on a settings page (or a file under it) the same spot is an X back to the page.
+ 				const back = page.settings_of?.url;
+ 				if (back) a.c("live-gear is-close", () => icon("close")).href(back).attr("aria-label", "Close settings").attr("title", "Back to the page");
+@@ -465,7 +484,6 @@ export default class LivePage extends Page {
+ 				page.$icon = span.c("live-icon", () => P.icon(page, page.icon_name));
+ 				const $h1 = new P.Heading({ tag: "h1", item: page.focus ?? page, fallback: "Live", classes: "live-title" });
+ 				P.tabs_of(page).then(({ title }) => title && $h1.fix(title)).catch(() => {});   // a tab keeps its parent's h1: the tab says which one
+-				page.$ms = span.c("live-ms");
+ 				if (page.is_top) select.c("live-version", () => {
+ 					P.versions.forEach(v => option(v.label).attr("value", v.url));
+ 				}).attr("aria-label", "Version").on("change", e => { location.href = e.target.value; });
+@@ -796,6 +814,35 @@ export default class LivePage extends Page {
+ 		}
+ 	};
+ 
++	// THE STATUS BAR, the bottom of the screen (2026-11-06): the voice light, what it means and the delay of the last line.
++	// A tap opens a small sheet above it: who wrote last and when, the delay explained, and the page's settings and removed cards.
++	static Status = class LiveStatusView extends View {
++		render(){
++			const { page } = this;
++			this.ac("live-status");
++			const $sheet = div.c("live-status-sheet", () => {
++				page.$who = div.c("live-status-row");
++				div.c("live-status-row", "The number on the bar is the time from an agent's write to this screen.");
++				div.c("live-status-links", () => {
++					a("Settings").href(page.url + "settings/");
++					if (!page.screen && !page.focus) a("Removed cards").href(page.url + "removed/");
++				});
++			}).attr("hidden", "");
++			const $bar = button.c("live-status-bar", () => {
++				page.$dot = span.c("live-dot");
++				page.$state = span.c("live-status-text");
++				page.$ms = span.c("live-ms");
++				icon("expand_less").ac("live-status-chev");
++			}).attr("type", "button").attr("aria-expanded", "false").attr("aria-label", "Status; tap for details");
++			$bar.on("click", () => {
++				const open = $sheet.el.hidden;
++				$sheet.el.hidden = !open;
++				$bar.attr("aria-expanded", String(open));
++				this.tc("is-open", open);
++			});
++		}
++	};
++
+ 	// The page's tasks as one checklist card: a row per task (core/Task/TaskView.js, the one task row), done ones ticked, with
+ 	// a count in the title. Redraws when a task is added, removed or changes state; hidden while the page has none.
+ 	static Tasks = class LiveTasksView extends View {
+diff --git a/public/live/readme.md b/public/live/readme.md
+index cb8d490de..458dfffb2 100644
+--- a/public/live/readme.md
++++ b/public/live/readme.md
+@@ -2,7 +2,7 @@
+ 
+ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the phone (with the site key). It is `class LivePage extends Page` ([LivePage.js](LivePage.js)), built from [page.jsonl](page.jsonl): line 1 names the class (`"class":"./LivePage.js"`), and every later line is one `set()`. Voice Claude writes with the Servex `item` tool, `item({path: "/live/", delta})`. The tool appends one line, the dev server streams it, and every open tab applies it with no reload. Measured: 7–17 ms on the PC (`probe.mjs` in the [task folder](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/)), 82 ms over the tunnel.
+ 
+-**What you see:** a sticky header under 100 px at every depth (a tiny breadcrumb that is the url itself, "live / lab", with a small voice light and a settings icon, then the page icon and a small title, a version dropdown on /live/, and a row of tabs when the page has core sections), the content, and a footer (removed cards; on /live/ the old views). A **card** (`part-card`, or a `part-link` to a sub-page) is framed and opens a page when tapped; text, headings, checklists, lights and buttons draw with **no frame**. Buttons side by side sit in one row, and a card's own buttons sit inside it. Every title and text is markdown with mentions (`@Page`, `#Task`, `/live/lab/` become icon links), scrubbed so no script runs; a card whose title is only a mention (`"title":"@Page"`) is that thing's card and opens it. Spacing is one rhythm in [LivePage.css](LivePage.css) (`--live-gap` between things, `--live-step` inside one): no card sets its own. Light and dark follow the phone. The old page is kept at [/live/v1/](/live/v1/) ([v1/readme.md](v1/readme.md)).
++**What you see:** three rows the height of the screen. A header under 100 px at every depth (a tiny breadcrumb that is the url itself, "live / lab", with a settings icon, then the page icon and a small title, a version dropdown on /live/, and a row of tabs when the page has core sections). Then ONE scroll area: the tasks, the content and a footer (removed cards; on /live/ the old views). It follows new cards while you are at the bottom; scroll up and it stops, with a dim ↓ that lights when something new arrives below; tap it, or scroll back down, and it follows again (`sticky_scroll` in [ext/Chat/Chat.js](/framework/ext/Chat/Chat.js), the chat's own lock). Settings and a file view open at the top and never follow. Last, a status bar: the voice light, "Voice is driving" or "Quiet", and the delay of the last line; a tap opens a small sheet with who wrote last and when, and links to settings and removed cards (`LivePage.Status`). A **card** (`part-card`, or a `part-link` to a sub-page) is framed and opens a page when tapped; text, headings, checklists, lights and buttons draw with **no frame**. Buttons side by side sit in one row, and a card's own buttons sit inside it. Every title and text is markdown with mentions (`@Page`, `#Task`, `/live/lab/` become icon links), scrubbed so no script runs; a card whose title is only a mention (`"title":"@Page"`) is that thing's card and opens it. Spacing is one rhythm in [LivePage.css](LivePage.css) (`--live-gap` between things, `--live-step` inside one): no card sets its own. Light and dark follow the phone. The old page is kept at [/live/v1/](/live/v1/) ([v1/readme.md](v1/readme.md)).
+ 
+ ## Start here (an agent with only this file)
+ 
+@@ -98,7 +98,7 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
+ - **One title everywhere:** a tab label, a link card's title and the page's own h1 all read the sub-page's own `title` (the last `title` in its `page.jsonl`, else its `page.js`; `LivePage.title_of`). To rename a sub-page, set its title on its own path: `item({path: "/live/demos/", delta: {"title": "Feature demos"}})`. A link card's `title` shows only until the page's own one arrives.
+ - **The breadcrumb is the url** (`location.pathname`, word for word, every step a link): a phone hides the address bar, so this is where the owner reads it. It redraws on every url change, a tab switch included (`LivePage.on_url`), and the tab row lights the tab the url is in.
+ - **Settings** (the gear, `<page>/settings/`): first the class file that draws the page (`LivePage.js`, or `DesignPage.js` on /live/design/), a tap opens its code; then, for a card or a saved screen, which `page.jsonl` it is saved in; then the page's folder, labelled with its path ("/live"), one list top to bottom: folders, then files, `page.jsonl` included (`LivePage.Files`). A folder opens its own list (`/live/settings/doc/`); a file opens its code on its own page, the full width with no line numbers, highlighted by ext/highlight (`/live/settings/LivePage.js/`), and the header's small **raw** link is the file itself. Every settings page is a LivePage whose gear is an **X** back to the page (`/live/settings/` → `/live/`), so the same spot toggles settings; a settings page has no settings of its own. A folder or a saved screen named `settings` wins over it. Below the files: "What it is made of" and "How it got here", [ext/Inspect](/framework/ext/Inspect/readme.md)'s `ItemInspector` (its content, methods, fields) and `DeltaHistory` (a slider replaying the folder's `page.jsonl` in memory), both loaded only once settings opens.
+-- **The icon** is the page's own `{"icon": "⚡"}` (an emoji, or a Material name such as `"folder"`), shown in its header and on every card that links to it. A page that names none shows **where it is stored** (`LivePage.stored`): a small circle for an item inside its parent's `page.jsonl` (a card, a saved screen), a file for a loose `.jsonl` file of its own, a folder for a folder of its own (`folder/page.jsonl`); settings shows a gear (`LivePage.icon_name`, `LivePage.icon_of`). The voice light is a separate small dot beside the gear, never beside the title.
++- **The icon** is the page's own `{"icon": "⚡"}` (an emoji, or a Material name such as `"folder"`), shown in its header and on every card that links to it. A page that names none shows **where it is stored** (`LivePage.stored`): a small circle for an item inside its parent's `page.jsonl` (a card, a saved screen), a file for a loose `.jsonl` file of its own, a folder for a folder of its own (`folder/page.jsonl`); settings shows a gear (`LivePage.icon_name`, `LivePage.icon_of`). The voice light is a small dot in the status bar at the bottom, never beside the title.
+ - **`header`** (`{"header": "text"}`) draws just below the sticky header, so the header keeps one size.
+ 
+ ## Files

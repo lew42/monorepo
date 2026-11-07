@@ -1,0 +1,36 @@
+== 400 px
+start                  {"gap":0,"btn":"hidden","last":"Card 12","pagesScroll":0,"status":"Voice is driving expand_less"}
+new while at bottom    {"gap":0,"btn":"hidden","last":"New n1","pagesScroll":0,"status":"Voice is driving 10 ms expand_less"}
+scrolled up            {"gap":561,"btn":"dim","last":"New n1","pagesScroll":0,"status":"Voice is driving 10 ms expand_less"}
+new while scrolled up  {"gap":649,"btn":"lit","last":"New n2","pagesScroll":0,"status":"Voice is driving 2 ms expand_less"}
+tapped down            {"gap":0,"btn":"hidden","last":"New n2","pagesScroll":0,"status":"Voice is driving 2 ms expand_less"}
+new after relock       {"gap":0,"btn":"hidden","last":"New n3","pagesScroll":0,"status":"Voice is driving 4 ms expand_less"}
+sheet                  "Last line by probe at 8:31 PM The number on the bar is the time from an agent's write to this screen. Settings Removed cards"
+errors: Failed to load resource: the server responded with a status of 404 (Not Found) | Failed to load resource: the server responded with a status of 404 (Not Found)
+== 1200 px
+start                  {"gap":0,"btn":"hidden","last":"Card 12","pagesScroll":0,"status":"Voice is driving expand_less"}
+new while at bottom    {"gap":0,"btn":"hidden","last":"New n1","pagesScroll":0,"status":"Voice is driving 5 ms expand_less"}
+scrolled up            {"gap":707,"btn":"dim","last":"New n1","pagesScroll":0,"status":"Voice is driving 5 ms expand_less"}
+new while scrolled up  {"gap":808,"btn":"lit","last":"New n2","pagesScroll":0,"status":"Voice is driving 4 ms expand_less"}
+tapped down            {"gap":0,"btn":"hidden","last":"New n2","pagesScroll":0,"status":"Voice is driving 4 ms expand_less"}
+new after relock       {"gap":0,"btn":"hidden","last":"New n3","pagesScroll":0,"status":"Voice is driving 3 ms expand_less"}
+sheet                  "Last line by probe at 8:32 PM The number on the bar is the time from an agent's write to this screen. Settings Removed cards"
+errors: Failed to load resource: the server responded with a status of 404 (Not Found) | Failed to load resource: the server responded with a status of 404 (Not Found)
+== 1920 px
+start                  {"gap":0,"btn":"hidden","last":"Card 12","pagesScroll":0,"status":"Voice is driving expand_less"}
+new while at bottom    {"gap":0,"btn":"hidden","last":"New n1","pagesScroll":0,"status":"Voice is driving 5 ms expand_less"}
+scrolled up            {"gap":731,"btn":"dim","last":"New n1","pagesScroll":0,"status":"Voice is driving 5 ms expand_less"}
+new while scrolled up  {"gap":832,"btn":"lit","last":"New n2","pagesScroll":0,"status":"Voice is driving 3 ms expand_less"}
+tapped down            {"gap":0,"btn":"hidden","last":"New n2","pagesScroll":0,"status":"Voice is driving 3 ms expand_less"}
+new after relock       {"gap":0,"btn":"hidden","last":"New n3","pagesScroll":0,"status":"Voice is driving 3 ms expand_less"}
+sheet                  "Last line by probe at 8:32 PM The number on the bar is the time from an agent's write to this screen. Settings Removed cards"
+errors: Failed to load resource: the server responded with a status of 404 (Not Found) | Failed to load resource: the server responded with a status of 404 (Not Found)
+== 3440 px
+start                  {"gap":0,"btn":"hidden","last":"Card 12","pagesScroll":0,"status":"Voice is driving expand_less"}
+new while at bottom    {"gap":0,"btn":"hidden","last":"New n1","pagesScroll":0,"status":"Voice is driving 4 ms expand_less"}
+scrolled up            {"gap":707,"btn":"dim","last":"New n1","pagesScroll":0,"status":"Voice is driving 4 ms expand_less"}
+new while scrolled up  {"gap":808,"btn":"lit","last":"New n2","pagesScroll":0,"status":"Voice is driving 5 ms expand_less"}
+tapped down            {"gap":0,"btn":"hidden","last":"New n2","pagesScroll":0,"status":"Voice is driving 5 ms expand_less"}
+new after relock       {"gap":0,"btn":"hidden","last":"New n3","pagesScroll":0,"status":"Voice is driving 4 ms expand_less"}
+sheet                  "Last line by probe at 8:32 PM The number on the bar is the time from an agent's write to this screen. Settings Removed cards"
+errors: Failed to load resource: the server responded with a status of 404 (Not Found) | Failed to load resource: the server responded with a status of 404 (Not Found)

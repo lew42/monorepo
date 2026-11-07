@@ -10,3 +10,5 @@
 {"review":{"at":"2026-11-06T20:04:55-06:00","answer":{"n":3,"reply":"noted: kept on purpose; only a LivePage.js parent gets the card, any other page keeps its Pages footer. Live at the next Servex restart."}}}
 {"review":{"at":"2026-11-06T20:04:55-06:00","answer":{"n":4,"reply":"noted: one entry per dead check, as Outbox did before; the restart replaces the socket that owned it."}}}
 {"review":{"at":"2026-11-06T20:04:55-06:00","answer":{"n":5,"reply":"noted: agreed, nothing to do."}}}
+{"complete":{"outcome":"/live/ reconnects by itself when its socket is open but dead (Socket.alive, one shared Socket.ping), and pages.add on a LivePage writes the sub-page's link card.","evidence":["cd3321732 on compliance/dev","live-r12/requirements.md"],"at":"2026-11-06T20:33:06-06:00"}}
+{"assign":{"closed_by":"mastermind-live-page","closed_at":"2026-11-06T20:33:06-06:00","closed_why":"landed"}}
