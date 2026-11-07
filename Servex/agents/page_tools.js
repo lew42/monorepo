@@ -7,6 +7,7 @@ import Promote from "./Promote.js";
 import TaskHomes from "../../Server/TaskHomes.mjs";
 import Task from "../../public/framework/core/Task/Task.js";
 import Item from "../../public/framework/core/Item/Item.js";
+import List from "../../public/framework/core/List/List.js";
 import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
 import ChatWriter from "./ChatWriter.js";
 import LogLine from "../../Server/LogLine.mjs";
@@ -411,9 +412,16 @@ function render_html({ page, items }, subpages){
 /* `{"pages":{"add":{name,title,icon,description}, "rename":{name,to}, "remove":"name"}}`:
  * folders sit beside the page's own page.jsonl, so a session page's subpage goes in the
  * session's own folder. Only on the page itself (no target): a subpage is a folder. */
+const PAGES_VERBS = new Set(["add", "rename", "remove", "promote"]);
 function apply_pages(at, pages, url){
 	if (at.target.length) return { why: "`pages` works on the page itself, not inside a target" };
-	if (!is_plain(pages)) return { why: "`pages` must be {add|rename|remove: …}" };
+	if (!is_plain(pages)) return { why: "`pages` must be {add|rename|remove|promote: …}" };
+	// `pages` is a reserved top-level key (this function), never a card id — a mistaken {"pages":{"text":…}} used to fall
+	// through with none of its keys matching add/rename/remove/promote, so nothing ran, `done` stayed empty, and the
+	// caller (run_item_now) read "nothing to write" and silently dropped the whole delta: ok:true, line:null, no why
+	// (mastermind-page-design, 2026-11-06). An unknown key here is refused by name instead.
+	const unknown = Object.keys(pages).filter(k => !PAGES_VERBS.has(k));
+	if (unknown.length) return { why: `"pages" takes add, rename, remove or promote — not ${unknown.map(k => `"${k}"`).join(", ")}. A card id never collides with "pages": name a real subpage verb, or use "content" for a card.` };
 	const subs = new Subpages(path.dirname(at.file)), base = String(url ?? "").replace(/\/?$/, "/"), done = [];
 	try {
 		for (const spec of [].concat(pages.add ?? [])){ subs.add(spec); done.push({ added: spec.name, url: base + spec.name + "/" }); }
@@ -449,6 +457,10 @@ const page_class = () => page_loaded ??= (async () => {
 	const { PART_TYPES } = await import("../../public/framework/core/Page/parts/kinds.js");
 	return Object.assign(Page, { PART_TYPES });
 })().catch(e => { console.warn(`item tool: Page.class.js did not import in node, so page lines are written unchecked (${e.message})`); return null; });
+// Loaded once, at import time (not only on first item() call), so record_lines below — called SYNCHRONOUSLY by
+// LogLine.append (Server/LogLine.mjs), for a browser tab's own page.jsonl post and append.mjs — can run the
+// same structural refusal (bad_page_delta) the item() tool's write path runs, without awaiting it per line.
+const PAGE_PRELOADED = await page_class();
 /* A page.jsonl's own class (line 1's "class": "./LivePage.js", class_of below): resolved against the FILE'S FOLDER and
  * imported, so a page replays as what it says it is (LivePage's methods, LivePage's own `kinds`) instead of plain Page.
  * Used only when it extends the real Page (else a mistyped or unrelated module would silently become "the page class").
@@ -1294,6 +1306,43 @@ async function page_refusal(at, delta){
 	return why ? { ok: false, why: `${why}. Nothing was written.` } : null;
 }
 
+/* A key reached inside a List (`content`, `pages`, …) must be one of ITS OWN verbs OR an existing member's id — never an
+ * arbitrary field (review, mastermind-page-design, 2026-11-06): `{"content":{"text":"x"}}` names no verb and no card "text";
+ * `{"content":{"nope":{"text":"x"}}}` names no card "nope". Both used to write a line that did nothing on a real replay:
+ * Item/List's own apply() is deliberately forgiving (an unrecognised key is just stored as a plain FIELD ON THE LIST ITSELF,
+ * never a warn or a throw — the "replay never crashes" rule page_refusal's own comment relies on), so `try_line` never
+ * caught it either. "A verb" is `List.is_verb(list, key)` (List.js), never a hardcoded five here: a LivePage card's own
+ * content is a LiveContent (public/live/LiveContent.js, a List subclass with its own `remove`/`clear` overrides), so this
+ * must agree with `List.js`'s own `set_one` about what counts as that list's verb, not just the base five (page-design
+ * review, 2026-11-07). Checked against the LIVE node (after `page_refusal`'s structural, class-only pass), so an existing
+ * card id answers true even though bad_page_delta alone cannot know it. Walks into an Item's own List fields the same way
+ * (`node.get(key)`); a plain data key on an Item (not a List) is left alone — Page already allows arbitrary fields there. */
+function bad_list_delta(node, delta, trail = ""){
+	if (!is_plain(delta)) return null;
+	if (node instanceof List){
+		for (const [key, value] of Object.entries(delta)){
+			// `after` can ride BESIDE `add` at this same level, not only nested inside it (List.add: "`after` can arrive
+			// two ways: the live two-argument form… or `is_plain(x) ? x.after : undefined`"; real usage, public/live/lab/
+			// page.jsonl line 15), and its value is a position (an id, or null for "first"), never itself a card to find.
+			if (List.is_verb(node, key) || key === "after") continue;
+			const member = node.find?.(key);
+			if (member === undefined) return `"${trail}${key}" is not a list verb (${Object.keys(node.constructor.callable ?? { add: 1, remove: 1, move: 1, order: 1, clear: 1, set: 1 }).join(", ")}) and not an existing card in this list`;
+			const why = bad_list_delta(member, value, `${trail}${key}.`);
+			if (why) return why;
+		}
+		return null;
+	}
+	for (const [key, value] of Object.entries(delta)){
+		if (!is_plain(value)) continue;
+		const target = typeof node?.get === "function" ? node.get(key) : undefined;
+		if (target instanceof Item || target instanceof List){
+			const why = bad_list_delta(target, value, `${trail}${key}.`);
+			if (why) return why;
+		}
+	}
+	return null;
+}
+
 // A new folder is one more line in its parent's files.jsonl, through ModuleLog (a failure here never fails the write).
 async function record_new_folder(parent, name){
 	try { (await import("../../Server/ModuleLog.mjs")).default.record(parent, `${name}/page.js`); } catch {}
@@ -1348,7 +1397,16 @@ export function record_lines(file, lines){
 	for (const [i, line] of lines.entries()){   // `i` names the caller's own line in a refusal
 		if (!fresh.has(line)){ out.skipped++; continue; }
 		if (!is_plain(line)){ out.refused.push({ i, why: "a line is one object" }); continue; }
-		if (path.basename(file) === "page.jsonl"){ let why = null; try { why = check(file, line); } catch {} if (why){ out.refused.push({ i, why }); continue; } }
+		// Two checks, same ones the item() tool's own write path runs (page_refusal/bad_page_delta): the generic
+		// jsonl-schema shape (page.jsonl is "open" — an unknown key is plain data, by design), THEN whether the line
+		// would hold up on a real Page (a private key, or a part type nobody registered). Before this fix, only the
+		// first ran here: a raw line (a browser tab's own post, or append.mjs) skipped bad_page_delta entirely, so
+		// a line the item() tool refuses (item_tool.test.mjs, "part-nope is refused") landed in the file unrefused.
+		if (path.basename(file) === "page.jsonl"){
+			let why = null; try { why = check(file, line); } catch {}
+			if (!why && PAGE_PRELOADED) try { why = bad_page_delta(PAGE_PRELOADED, line); } catch {}
+			if (why){ out.refused.push({ i, why }); continue; }
+		}
 		let warm = store?.host && store.sig === sig(file) && store.deps.every(([f, s]) => sig(f) === s) ? store.host : null;
 		// A page line the browser wrote and its schema passed is kept even when node's live Page cannot apply it (a part only the browser
 		// registers): the warm root is dropped (try_line does that) and the next read replays the file. A task line is still refused.
@@ -1509,7 +1567,14 @@ async function run_item_now({ path: url, target, delta, read } = {}, ctx = {}, a
 		}
 	}
 	if (tasky){ const node = node_at(root(), at.target); const no = validate(node?.constructor ?? Class, node ?? root(), flat); if (no) return no; }
-	else if (paged){ const no = await page_refusal(at, flat); if (no) return no; }
+	else if (paged){
+		const no = await page_refusal(at, flat);
+		if (no) return no;
+		// `pages` has its own verbs (add/rename/remove/promote, checked by apply_pages below) — left out of this pass.
+		const { pages: _pages_ignored, folder: _folder_ignored, ...list_check } = flat;
+		const list_why = bad_list_delta(walk(root(), at.target) ?? root(), list_check);
+		if (list_why) return { ok: false, why: `${list_why}. Nothing was written.` };
+	}
 	// A complete without evidence is refused BEFORE a line is written: a written line would replay as a recorded fact.
 	if (tasky) for (const { args, trail } of complete_calls(flat)){
 		const node = node_at(root(), at.target, trail), Own = node?.constructor ?? Class;

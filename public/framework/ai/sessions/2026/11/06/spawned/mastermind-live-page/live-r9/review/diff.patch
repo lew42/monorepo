@@ -1,0 +1,192 @@
+diff --git a/public/live/LivePage.css b/public/live/LivePage.css
+index 5fd446dbe..3752001e6 100644
+--- a/public/live/LivePage.css
++++ b/public/live/LivePage.css
+@@ -92,10 +92,15 @@
+ 	.live-focus { display: flex; flex-direction: column; gap: var(--live-step); }
+ 	.live-focus .live-sub { opacity: 1; }   /* a card opened as a page: its text is the page, not a note under the title */
+ 
+-	/* The light: a dot, gray when off, green and glowing when on. */
+-	.live-icon { flex: none; display: inline-flex; align-items: center; font-size: 1.1rem; line-height: 1; }
++	/* A page's icon (LivePage.stored when it names none): the same in its header and on its cards. The small circle is
++	   an item kept inside its parent's page.jsonl; it is ink, not the light's gray, and smaller than the other icons. */
++	.live-icon { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 1.1rem; font-size: 1.1rem; line-height: 1; }
+ 	.live-icon .icon { font-size: inherit; opacity: .75; }
+-	.live-dot { width: .8em; height: .8em; border-radius: 50%; flex: none; background: light-dark(#c9ccd2, #3a3940); transition: background .15s, box-shadow .15s; }
++	.live-icon .icon.is-small { font-size: .5em; opacity: .6; }
++	.live-icon.is-empty, .live-icon.is-hidden { display: none; }
++	.live-card-icon { font-size: 1.25rem; width: 1.25rem; }
++	/* The light: a small dot by the gear, gray when off, green and glowing when on. */
++	.live-dot { width: .45rem; height: .45rem; border-radius: 50%; flex: none; background: light-dark(#c9ccd2, #3a3940); transition: background .15s, box-shadow .15s; }
+ 	.live-dot.is-on { background: var(--live-light, #22c55e); box-shadow: 0 0 .6em var(--live-light, #22c55e); }
+ 
+ 	/* One gap between every two cards, whatever they are. A row, wrapping: every card takes a whole line except the
+@@ -103,7 +108,7 @@
+ 	.live-main { display: flex; flex-flow: row wrap; align-items: flex-start; gap: var(--live-gap) .6rem; }
+ 	.live-main > * { flex: 1 1 100%; }
+ 	.live-main > [data-kind="LiveButton"] { flex: none; }
+-	.live-main.is-empty::before { content: "Nothing on screen yet."; opacity: .5; text-align: center; padding: 2rem 0; }
++	.live-main.is-empty::before { content: "Nothing on screen yet."; opacity: .5; text-align: center; padding: .25rem 0 0; }   /* close under the header: the page's own gap is the space above */
+ 	/* What cannot be tapped draws with no frame (a block); what can is a card (a link to a sub-page), with a chevron. */
+ 	.live-block { display: flex; flex-direction: column; gap: var(--live-step); min-width: 0; overflow-wrap: anywhere; }   /* no frame, so no inset: it runs the full width */
+ 	.live-card {
+diff --git a/public/live/LivePage.js b/public/live/LivePage.js
+index 217feab9c..164cb3c6b 100644
+--- a/public/live/LivePage.js
++++ b/public/live/LivePage.js
+@@ -257,16 +257,18 @@ export default class LivePage extends Page {
+ 					if (typeof o?.title === "string") meta.title = o.title;
+ 					if (i === 0 && typeof o?.class === "string") meta.cls = o.class;
+ 					if (typeof o?.tab === "boolean") meta.tab = o.tab;
++					if (typeof o?.icon === "string") meta.icon = o.icon;
+ 				} catch {} });
+ 				return meta;
+ 			}
+ 			const js = kind === "js" ? await import(url + "page.js").catch(() => null) : null;
+-			return { title: js?.default?.title ?? name, js: kind === "js" };
++			const own = js?.default?.icon;
++			return { title: js?.default?.title ?? name, js: kind === "js", ...typeof own === "string" && { icon: own } };
+ 		})()).get(url);
+ 	}
+ 	static title_of(url){ return this.meta_of(url).then(m => m.title); }
+ 
+-	// A page's own pages: { tabs, cards, screens }, each [{url, title}]. A page is EITHER a tab OR a link card, never both.
++	// A page's own pages: { tabs, cards, screens }, each [{url, title, icon}]. A page is EITHER a tab OR a link card, never both.
+ 	// A TAB is a permanent core section of this page, one that becomes familiar: a sub-page says so itself with a
+ 	// {"tab": true} line, and it must draw as this page's content (a plain LivePage, not a page.js or a DesignPage).
+ 	// Switching tabs keeps the same row and the same h1 (the parent's). Everything else (plans, demos, labs, saved
+@@ -288,11 +290,11 @@ export default class LivePage extends Page {
+ 		const picks = this.picks_of(loaded?.jsonl_lines);   // the parent's own {"tab": {"name": x, "tab": true}} lines win
+ 		const rows = await Promise.all(folders.map(async u => {
+ 			const m = await this.meta_of(u), name = u.slice(url.length, -1);
+-			return { url: u, title: m.title, tab: (picks.get(name) ?? m.tab) === true && !m.js && plain(m.cls) };
++			return { url: u, title: m.title, icon: m.icon ?? this.stored.folder, tab: (picks.get(name) ?? m.tab) === true && !m.js && plain(m.cls) };
+ 		}));
+ 		const linked = new Set((loaded?.content?.items ?? []).filter(i => i instanceof PageLink).map(i => loaded.link_url(i.get("path"))));
+ 		const shown = loaded && !loaded.screen && !loaded.focus && !loaded.settings_of;
+-		const screens = shown ? loaded.screens.items.map(s => ({ url: url + s.id + "/", title: s.get("title") ?? s.id })) : [];
++		const screens = shown ? loaded.screens.items.map(s => ({ url: url + s.id + "/", title: s.get("title") ?? s.id, icon: s.get("icon") ?? this.stored.item })) : [];
+ 		let tabs = rows.filter(r => r.tab), cards = rows.filter(r => !r.tab);
+ 		if (tabs.length > this.tab_max) [tabs, cards] = [[], rows];
+ 		const by_title = (x, y) => String(x.title).localeCompare(String(y.title));
+@@ -342,31 +344,47 @@ export default class LivePage extends Page {
+ 		}
+ 	};
+ 
+-	// A page's icon, before its light: what the page names itself ({"icon": "⚡"} or a Material name like "folder"),
+-	// else the gear on settings and a folder on a folder's page (a file's page says "description" once it knows).
++	// A page's icon, the one in its header and on every card that links to it: what the page names itself
++	// ({"icon": "⚡"} or a Material name like "folder"), else where it is stored (LivePage.stored), else the gear on settings.
+ 	get icon_name(){
+ 		const own = (this.focus ?? this).get?.("icon");
+-		return own ?? (this.settings_of ? (this.at ? "folder" : "settings") : this.focus || this.screen ? "article" : "folder");   // a page of its own is a folder; a card or a saved screen, an article
++		if (own) return own;
++		if (this.settings_of) return this.at ? this.constructor.stored.folder : "settings";
++		return this.constructor.stored[this.focus || this.screen ? "item" : "folder"];
++	}
++	// The icon a page has when it names none says where it is stored: a small circle for an item inside its parent's
++	// page.jsonl (a card, a saved screen), a file for a loose .jsonl file of its own, a folder for a folder of its own
++	// (folder/page.jsonl). The voice light is a separate dot, by the gear.
++	static stored = { item: "circle", file: "description", folder: "folder" };
++	// The icon a page names for itself at a url (its page.jsonl or page.js), or null: a link card shows it, else `stored`.
++	static icon_of(url){
++		if (/\.jsonl\/?$/.test(url)) return Promise.resolve(null);
++		return this.meta_of(url).then(m => m.icon ?? null);
+ 	}
+ 	static icon(page, name){
+-		const $box = page.$icon;
+-		if (!$box) return void (name && (/^[a-z_]+$/.test(name) ? icon(name) : span(name)));
+-		$box.empty(() => name && (/^[a-z_]+$/.test(name) ? icon(name) : span(name))).tc("is-empty", !name);
++		if (!page.$icon) return void this.glyph(null, name);
++		this.glyph(page.$icon, name);
++	}
++	// Draw an icon name into $box (or, with no box, where we are): a Material name, else the text itself (an emoji).
++	static glyph($box, name){
++		const draw = () => name && (/^[a-z_]+$/.test(name) ? icon(name).ac(name === this.stored.item && "is-small") : span(name));
++		if (!$box) return void draw();
++		$box.empty(draw).tc("is-empty", !name);
+ 	}
+ 
+-	// The header, sticky and under 100 px at any depth: the breadcrumb and the settings icon, then the voice light, the
+-	// title, the last line's delay and (on /live/) the version dropdown, then the tab row.
++	// The header, sticky and under 100 px at any depth: the breadcrumb, the voice light and the settings icon, then the
++	// page's icon, the title, the last line's delay and (on /live/) the version dropdown, then the tab row.
+ 	static Head = class LiveHeadView extends View {
+ 		render(){
+ 			const { page } = this, P = page.constructor;
+ 			div.c("live-head-top", () => {
+ 				new P.Crumbs({ page });
+ 				if (page.at) page.$raw = a.c("live-raw is-empty", "raw").attr("target", "_blank").attr("title", "The file itself, as text");   // a file's page shows it (LivePage.Files)
++				page.$dot = span.c("live-dot");   // the voice light: small, by the gear, never beside the title (that is the page's own icon)
+ 				a.c("live-gear", () => icon("settings")).href(page.url + "settings/").attr("aria-label", "Settings: where this page comes from").attr("title", "Where this page comes from");
+ 			});
+ 			div.c("live-head-row", () => {
+ 				page.$icon = span.c("live-icon", () => P.icon(page, page.icon_name));
+-				page.$dot = span.c("live-dot");
+ 				const $h1 = new P.Heading({ tag: "h1", item: page.focus ?? page, fallback: "Live", classes: "live-title" });
+ 				P.tabs_of(page).then(({ title }) => title && $h1.fix(title)).catch(() => {});   // a tab keeps its parent's h1: the tab says which one
+ 				page.$ms = span.c("live-ms");
+@@ -504,9 +522,17 @@ export default class LivePage extends Page {
+ 			let $title;
+ 			const go = () => {
+ 				this.tc("live-entity", !!$title?.only);
++				$icon?.tc("is-hidden", !!$title?.only);   // "@Page" brings that thing's own icon in its mention
+ 				this.$go?.attr("href", $title?.only ?? own).attr("aria-label", String(item.get("title") ?? item.id));
+ 			};
+ 			this.attr("id", item.id).attr("data-kind", item.constructor.name);
++			// The icon its page's header shows (LivePage.icon_name): a link asks the page, a card is an item stored here.
++			const $icon = span.c("live-icon live-card-icon");
++			if (item instanceof PageLink){
++				const fallback = item.get("icon") ?? (/\.jsonl$/.test(own) ? P.stored.file : P.stored.folder);
++				P.glyph($icon, fallback);
++				if (own.startsWith("/live/")) P.icon_of(own).then(n => P.glyph($icon, n ?? fallback)).catch(() => {});   // the page's own icon wins: the same as its header
++			} else this.bind(item, "icon", n => P.glyph($icon, n ?? P.stored.item));
+ 			div.c("live-card-body", () => {
+ 				$title = new P.Heading({ tag: "h4", item, classes: "live-card-title", on_text: go });
+ 				if (item instanceof PageLink && own.startsWith("/live/")) P.title_of(own).then(t => $title.fix(t)).catch(() => {});
+@@ -597,6 +623,7 @@ export default class LivePage extends Page {
+ 			const group = (label, list) => list.length && div.c("live-pages-group", () => {
+ 				h4.c("live-pages-label", label);
+ 				list.forEach(c => div.c("live-card live-page-card", () => {
++					span.c("live-icon live-card-icon", () => P.glyph(null, c.icon));
+ 					div.c("live-card-body", () => h4.c("live-card-title", c.title));
+ 					a.c("live-card-go", "›").href(c.url).attr("aria-label", c.title);
+ 				}));
+diff --git a/public/live/LivePage.test.mjs b/public/live/LivePage.test.mjs
+index 1983b5df1..be2a12e10 100644
+--- a/public/live/LivePage.test.mjs
++++ b/public/live/LivePage.test.mjs
+@@ -82,6 +82,11 @@ try {
+ 	ok(file.at === "LivePage.js/" && file.folder === "/live/p/" && file.url === "/live/p/settings/LivePage.js/", "settings/<file>/: a path inside the folder");
+ 	ok(set2.settings_of === file && set2.folder === "/live/p/" && set2.url === "/live/p/settings/LivePage.js/settings/", "a settings page has its own settings");
+ 	ok(page.icon_name === "folder" && LivePage.src_of(LivePage).endsWith("/live/LivePage.js"), "a page with no icon of its own is a folder; LivePage's file is known");
++	// 10. A page with no icon of its own shows where it is stored: an item inside its parent's page.jsonl is a small circle.
++	const card = new LivePage({ title: "C", url: "/live/p/c/", focus: { get: () => undefined } });
++	const named = new LivePage({ title: "N", url: "/live/p/n/", focus: { get: k => k === "icon" ? "⚡" : undefined } });
++	ok(card.icon_name === LivePage.stored.item && named.icon_name === "⚡", "a card opened as a page: a small circle, or its own icon");
++	ok(await LivePage.icon_of("/live/p/x.jsonl") === null && LivePage.stored.file === "description", "a loose .jsonl names no icon: a file is drawn");
+ 	console.log(`LivePage.test: ${n} passed`);
+ } finally {
+ 	fs.rmSync(DIR, { recursive: true, force: true });
+diff --git a/public/live/readme.md b/public/live/readme.md
+index ae65bc2a9..7f71b6166 100644
+--- a/public/live/readme.md
++++ b/public/live/readme.md
+@@ -2,7 +2,7 @@
+ 
+ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the phone (with the site key). It is `class LivePage extends Page` ([LivePage.js](LivePage.js)), built from [page.jsonl](page.jsonl): line 1 names the class (`"class":"./LivePage.js"`), and every later line is one `set()`. Voice Claude writes with the Servex `item` tool, `item({path: "/live/", delta})`. The tool appends one line, the dev server streams it, and every open tab applies it with no reload. Measured: 7–17 ms on the PC (`probe.mjs` in the [task folder](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/)), 82 ms over the tunnel.
+ 
+-**What you see:** a sticky header under 100 px at every depth (a tiny breadcrumb that is the url itself, "live / lab", with a settings icon, the page icon, the voice light and a small title, a version dropdown on /live/, and a row of tabs when the page has core sections), the content, and a footer (removed cards; on /live/ the old views). A **card** (`part-card`, or a `part-link` to a sub-page) is framed and opens a page when tapped; text, headings, checklists, lights and buttons draw with **no frame**. Buttons side by side sit in one row, and a card's own buttons sit inside it. Every title and text is markdown with mentions (`@Page`, `#Task`, `/live/lab/` become icon links), scrubbed so no script runs; a card whose title is only a mention (`"title":"@Page"`) is that thing's card and opens it. Spacing is one rhythm in [LivePage.css](LivePage.css) (`--live-gap` between things, `--live-step` inside one): no card sets its own. Light and dark follow the phone. The old page is kept at [/live/v1/](/live/v1/) ([v1/readme.md](v1/readme.md)).
++**What you see:** a sticky header under 100 px at every depth (a tiny breadcrumb that is the url itself, "live / lab", with a small voice light and a settings icon, then the page icon and a small title, a version dropdown on /live/, and a row of tabs when the page has core sections), the content, and a footer (removed cards; on /live/ the old views). A **card** (`part-card`, or a `part-link` to a sub-page) is framed and opens a page when tapped; text, headings, checklists, lights and buttons draw with **no frame**. Buttons side by side sit in one row, and a card's own buttons sit inside it. Every title and text is markdown with mentions (`@Page`, `#Task`, `/live/lab/` become icon links), scrubbed so no script runs; a card whose title is only a mention (`"title":"@Page"`) is that thing's card and opens it. Spacing is one rhythm in [LivePage.css](LivePage.css) (`--live-gap` between things, `--live-step` inside one): no card sets its own. Light and dark follow the phone. The old page is kept at [/live/v1/](/live/v1/) ([v1/readme.md](v1/readme.md)).
+ 
+ ## Start here (an agent with only this file)
+ 
+@@ -88,7 +88,7 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
+ - **One title everywhere:** a tab label, a link card's title and the page's own h1 all read the sub-page's own `title` (the last `title` in its `page.jsonl`, else its `page.js`; `LivePage.title_of`). To rename a sub-page, set its title on its own path: `item({path: "/live/demos/", delta: {"title": "Feature demos"}})`. A link card's `title` shows only until the page's own one arrives.
+ - **The breadcrumb is the url** (`location.pathname`, word for word, every step a link): a phone hides the address bar, so this is where the owner reads it. It redraws on every url change, a tab switch included (`LivePage.on_url`), and the tab row lights the tab the url is in.
+ - **Settings** (the gear, `<page>/settings/`): first the class file that draws the page (`LivePage.js`, or `DesignPage.js` on /live/design/), a tap opens its code; then, for a card or a saved screen, which `page.jsonl` it is saved in; then the page's folder, labelled with its path ("/live"), one list top to bottom: folders, then files, `page.jsonl` included (`LivePage.Files`). A folder opens its own list (`/live/settings/doc/`); a file opens its code on its own page, the full width with no line numbers, highlighted by ext/highlight (`/live/settings/LivePage.js/`), and the header's small **raw** link is the file itself. Every settings page is a LivePage with its own gear: `/live/settings/LivePage.js/settings/` is that page's settings. A folder or a saved screen named `settings` wins over it.
+-- **The icon** before the voice light is the page's own `{"icon": "⚡"}` (an emoji, or a Material name such as `"folder"`), else a gear on settings, a folder on any page with a folder of its own (and on a folder's list), an article on a card or a saved screen, and a page on a file (`LivePage.icon_name`).
++- **The icon** is the page's own `{"icon": "⚡"}` (an emoji, or a Material name such as `"folder"`), shown in its header and on every card that links to it. A page that names none shows **where it is stored** (`LivePage.stored`): a small circle for an item inside its parent's `page.jsonl` (a card, a saved screen), a file for a loose `.jsonl` file of its own, a folder for a folder of its own (`folder/page.jsonl`); settings shows a gear (`LivePage.icon_name`, `LivePage.icon_of`). The voice light is a separate small dot beside the gear, never beside the title.
+ - **`header`** (`{"header": "text"}`) draws just below the sticky header, so the header keeps one size.
+ 
+ ## Files

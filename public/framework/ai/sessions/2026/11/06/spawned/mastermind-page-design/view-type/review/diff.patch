@@ -1,0 +1,132 @@
+diff --git a/public/framework/core/Item/Item.js b/public/framework/core/Item/Item.js
+index 2ec0c4d52..444373093 100644
+--- a/public/framework/core/Item/Item.js
++++ b/public/framework/core/Item/Item.js
+@@ -2,6 +2,7 @@ import Store from "./Store.js";
+ import Snapshot from "./Snapshot.js";
+ import LineKey from "./LineKey.js";
+ import { Events } from "../Events/Events.js";
++import View from "../View/View.js";   // registered at the bottom: a page line may be {"type":"View"} (Item.foreign)
+ 
+ const is_data = value => !!value && typeof value === "object" && !Array.isArray(value);
+ const is_plain = value => !!value && typeof value === "object" && value.constructor === Object;
+@@ -672,7 +673,9 @@ export class Item extends Events(Object) {
+ 			data[key] = raw[key];
+ 		}
+ 
+-		const item = new (Class ?? Item)({ id, data, type: Class ? undefined : raw.type });
++		// A registered class that is not an Item (View) stays a plain Item wearing its type; Item.foreign builds it when drawn.
++		const own = Class && Item.is_item_class(Class);
++		const item = new (own ? Class : Item)({ id, data, type: own ? undefined : raw.type });
+ 
+ 		for (const key in lists){
+ 			if (!Item.makeList){ warn(`hydrate(): "${key}" is an array but List.js never loaded — kept as plain data`, "hydrate:nolist"); item.data[key] = lists[key]; continue; }
+@@ -690,10 +693,24 @@ export class Item extends Events(Object) {
+ 	static register(Class, name = Class.name){
+ 		Item.types.set(name, Class);
+ 		Item.names.set(Class, name);
+-		Class.define_fields();
++		Class.define_fields?.();   // a class that is not an Item (View) has no fields to define
+ 		return Class;
+ 	}
+ 
++	static is_item_class(Class){ return Class === Item || Class?.prototype instanceof Item; }
++
++	/* A member whose registered type is not an Item ({"type":"View","content":"Hello world"}): build that class from the
++	   member's data and return it, or null for an ordinary Item. `content` is appended, not assigned, so a View shows it;
++	   a View's tag defaults to div. Call it inside a View's render, so the new view is captured there. */
++	static foreign(item){
++		const Class = Item.types.get(item?.wire?.());
++		if (!Class || Item.is_item_class(Class)) return null;
++		const { content, ...rest } = item.data ?? {};
++		const made = new Class({ ...rest, id: item.id });
++		if (content != null && typeof made.append === "function") made.append(content);
++		return made;
++	}
++
+ 	// Replay: ONE path for every Item, in node (`replay(lines)`) and in the browser (Store.read calls
+ 	// `replay_line` per entry). A subclass overrides `replay_new` (what line 1 builds), `replay_line`
+ 	// (its legacy line shapes) and `replay_end` (anything inferred once all lines are in).
+@@ -880,3 +897,4 @@ Item.makeList = null;
+ export default Item;
+ 
+ Item.register(Item);
++Item.register(View);   // the one non-Item class registered up front; any other class registers itself where it lives
+diff --git a/public/framework/core/Item/Item.test.mjs b/public/framework/core/Item/Item.test.mjs
+index 0283c5573..1ebf90413 100644
+--- a/public/framework/core/Item/Item.test.mjs
++++ b/public/framework/core/Item/Item.test.mjs
+@@ -177,4 +177,14 @@ n++;
+ 	t(page.pages.find("kid") && page.data.pages === undefined, "(2) a page's {\"pages\":{\"add\":…}} line adds a sub-page on replay");
+ }
+ 
++// A registered class that is not an Item (View): hydrate keeps a plain Item wearing its type, and it saves the same line back.
++{
++	await import("../List/List.js");
++	const page = Item.hydrate({ id: "p", content: [{ id: "hello-div", type: "View", content: "Hello world" }] });
++	const kid = page.content.items[0];
++	t(Item.types.has("View") && kid.constructor === Item && kid.wire() === "View", "a {type:\"View\"} member hydrates as a plain Item named View");
++	t(JSON.stringify(kid.toJSON()) === '{"type":"View","id":"hello-div","data":{"content":"Hello world"}}', "it saves back the same type and data");
++	t(Item.foreign(new Item({})) === null, "Item.foreign builds nothing for an ordinary Item");
++}
++
+ console.log(`ok — ${n} assertions passed`);
+diff --git a/public/framework/core/Item/readme.md b/public/framework/core/Item/readme.md
+index 34dbb9ab5..aea2cdd3f 100644
+--- a/public/framework/core/Item/readme.md
++++ b/public/framework/core/Item/readme.md
+@@ -147,6 +147,7 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
+   - ⚠ A child added with the item tool's `tasks.add` that lives only inside its parent's log has no log of its own, so it gets no row of its own; it shows through the parent's replay. A child with its own file (`Task.open_ref`) is indexed like any task.
+   - ⚠ A start-up read of old sessions writes no day line on purpose, and a log outside the two stores (sessions, `*/tasks/<slug>/`) is never indexed.
+ - Register every subclass (`Item.register(Class, name)`) — `Item.names` is an inverse Map, so an unregistered subclass serializes under its parent's wire name: [doc/decisions.md](./doc/decisions.md).
++- The registry takes a class that is not an Item too: `View` is registered in `Item.js`, so a page line `{"type":"View","content":"Hello world"}` draws a div. It stays a plain Item named `View` in the list (it saves the same line back), and `Item.foreign(item)` builds the View when a page draws it (`PageContent`, `LivePage`). Demo: [/live/div-test/](/live/div-test/).
+ - `contains()` excludes self — guard a drop with `target !== this && !this.contains(target)`: [doc/method/contains.md](./doc/method/contains.md).
+ - Constructors do no I/O; `Item.open(saver)` is the one async entry: [doc/method/open.md](./doc/method/open.md).
+ - Warnings fire once per message — clear `Item.warned` to re-hear them: [doc/decisions.md](./doc/decisions.md).
+diff --git a/public/framework/core/Page/PageContent.js b/public/framework/core/Page/PageContent.js
+index 63f643973..2df7ff14c 100644
+--- a/public/framework/core/Page/PageContent.js
++++ b/public/framework/core/Page/PageContent.js
+@@ -1,4 +1,5 @@
+ import List from "../List/List.js";
++import Item from "../Item/Item.js";
+ import View, { div, h4, is } from "../View/View.js";
+ import PageContentItem from "./PageContentItem.js";
+ import PageCode from "./PageCode.js";
+@@ -74,6 +75,8 @@ PageContent.View = class PageContentView extends PageContentItem.View {
+ 		let result;
+ 		this.list.items.forEach(item => {
+ 			if (result !== undefined) View.captor.append(result);
++			result = undefined;
++			if (Item.foreign(item)) return;   // a registered class that is not an Item ({"type":"View"}) draws itself, captured here
+ 			result = new item.constructor.View({ item }).result;
+ 		});
+ 		return result;
+@@ -114,6 +117,7 @@ PageContent.View = class PageContentView extends PageContentItem.View {
+ 					});
+ 					return;
+ 				}
++				if (Item.foreign(item)) return;   // a registered class that is not an Item ({"type":"View"}) draws itself
+ 				if (Draw){
+ 					const made = new Draw({ item });
+ 					return made.result;
+diff --git a/public/live/LivePage.js b/public/live/LivePage.js
+index e51c2be4e..214bf9717 100644
+--- a/public/live/LivePage.js
++++ b/public/live/LivePage.js
+@@ -411,6 +411,7 @@ export default class LivePage extends Page {
+ 		render(){
+ 			const { item } = this, Own = item.constructor.View;
+ 			this.attr("data-kind", item.constructor.name);
++			if (Item.foreign(item)) return;   // a registered class that is not an Item ({"type":"View"}) draws itself
+ 			if (Own && Own !== Item.View && !PART_TYPES.includes(item.wire?.())) return void new Own({ item, subject: item });
+ 			new this.page.constructor.Md({ item, key: "text", classes: "live-sub" });
+ 		}
+@@ -438,6 +439,7 @@ export default class LivePage extends Page {
+ 		render(){
+ 			const { page, item } = this, P = page.constructor, Own = item.constructor.View;
+ 			this.attr("id", item.id).attr("data-kind", item.constructor.name);
++			if (Item.foreign(item)) return;   // a registered class that is not an Item ({"type":"View"}) draws itself
+ 			if (P.kinds.has(item.constructor) || (Own && Own !== Item.View && !PART_TYPES.includes(item.wire?.())))
+ 				return void new Own({ item, subject: item });
+ 			new P.Heading({ tag: "h4", item, classes: "live-card-title" });

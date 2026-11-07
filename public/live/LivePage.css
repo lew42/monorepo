@@ -28,25 +28,27 @@
 	   breadcrumb with the settings icon, a small title, one row of tabs. Its floor is opaque so cards pass under it. */
 	.live-page > .live-head {
 		position: sticky; top: 0; z-index: 5;
-		display: flex; flex-direction: column; gap: .15rem;
+		display: flex; flex-direction: column; gap: 0;
 		/* Full width with its own padding: the margins cancel the page's padding (flush with the top and both sides when
 		   stuck), the padding puts its text back in line with the column (60rem, centred) below it. */
 		max-width: none; width: auto; margin: calc(-1 * var(--live-pad)) calc(-1 * var(--live-pad-x)) 0;
-		padding: .5rem calc(var(--live-pad-x) + max(0px, (100% - 60rem) / 2)) .25rem;
+		padding: .3rem calc(var(--live-pad-x) + max(0px, (100% - 60rem) / 2)) .3rem;
 		background: var(--live-floor);
 		border-bottom: 1px solid light-dark(#0002, #fff2);
 		font-size: 1rem;
 	}
-	.live-head-top { display: flex; align-items: center; gap: .5rem; min-height: 1.4rem; }
+	.live-head-top { display: flex; align-items: center; gap: .6rem; min-height: 1.2rem; }
 	.live-crumbs { display: flex; flex-wrap: nowrap; overflow: hidden; align-items: center; gap: .15em .4em; font-size: .72rem; flex: 1; min-width: 0; white-space: nowrap; }
 	.live-gear { flex: none; display: inline-flex; color: inherit; opacity: .6; text-decoration: none; }
 	.live-gear:hover { opacity: 1; }
-	.live-gear .icon { font-size: 1.1rem; }
+	.live-gear .icon { font-size: 1rem; }
+	.live-raw { flex: none; font-size: .72rem; color: inherit; opacity: .7; }
+	.live-raw.is-empty { display: none; }
 	.live-crumb { color: inherit; opacity: .7; text-decoration: none; }
 	.live-crumb[aria-current] { opacity: 1; font-weight: 600; }
 	.live-crumb-sep { opacity: .4; }
-	.live-head-row { display: flex; align-items: center; gap: .6rem; }
-	.live-title { margin: 0; font-size: 1.15rem; line-height: 1.25; height: 1.25em; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.live-head-row { display: flex; align-items: center; gap: .5rem; }
+	.live-title { margin: 0; font-size: 1.05rem; line-height: 1.25; height: 1.25em; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.live-ms { font-size: .7em; opacity: .55; font-variant-numeric: tabular-nums; white-space: nowrap; }
 	.live-version { flex: none; width: auto; font: inherit; font-size: .75em; color: inherit; background: var(--live-card); border: 1px solid light-dark(#0002, #fff3); border-radius: .4em; padding: .15em .3em; }
 	.live-sub, .live-foot-text { opacity: .8; }
@@ -56,7 +58,7 @@
 	.live-head:has(.live-tabs:not(.is-empty)) { padding-bottom: 0; }   /* the tabs' underline sits on the header's border, */
 	.live-tabs > .tab-bar { border-bottom: 0; }                          /* which is their baseline: one line, not two */
 	.live-tabs.is-empty { display: none; }
-	.live-tabs > .tab-bar > .tab { min-height: 2.1em; --tab-pad-x: .7em; }
+	.live-tabs > .tab-bar > .tab { min-height: 1.9em; --tab-pad-x: .7em; }
 	.live-tabs::before, .live-tabs::after {
 		content: ""; position: absolute; top: 0; bottom: 1px; width: 2rem; pointer-events: none; opacity: 0; transition: opacity .15s;
 	}
@@ -70,23 +72,38 @@
 	.live-settings-label { min-width: 8rem; font-weight: 600; }
 	.live-settings-value { min-width: 0; overflow-wrap: anywhere; }
 	.live-settings-value a { color: inherit; }
-	.live-settings-files-title { margin: var(--live-step) 0 0; }
+	.live-settings-class { background: var(--live-card); border-radius: .6rem; font-weight: 600; }
+	.live-settings-note { margin-left: auto; font-size: .8em; font-weight: 400; opacity: .6; }
 	/* LivePage.Files: one list, top to bottom (folders, then files); a file is its text, wrapped to the phone. */
 	.live-files { display: flex; flex-direction: column; gap: var(--live-step); }
+	.live-files-title { margin: var(--live-step) 0 0; font-size: .9em; opacity: .7; overflow-wrap: anywhere; text-transform: none; letter-spacing: normal; }
+	.live-files.is-file > .live-files-title { display: none; }
 	.live-files-body { display: flex; flex-direction: column; background: var(--live-card); border-radius: .6rem; padding: .25rem 0; min-width: 0; }
 	.live-files-row { display: flex; align-items: center; gap: .6em; padding: .55em .75rem; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
 	.live-files-row + .live-files-row { border-top: 1px solid light-dark(#0001, #fff1); }
 	.live-files-row.is-dir { font-weight: 600; }
 	.live-files-row .ui-icon, .live-files-row .icon { flex: none; opacity: .6; }
 	.live-files-said { padding: .55em .75rem; opacity: .7; }
-	.live-files-raw { padding: .4em .75rem; color: inherit; font-size: .85em; }
+		/* A file's page: the code alone, the full width, no card and no gutter (a phone needs the width). */
+	.live-files.is-file > .live-files-body { background: none; border-radius: 0; padding: 0; margin-inline: calc(-1 * var(--live-pad-x)); }
 	.live-files-body pre { margin: 0; font-size: .78em; overflow-x: hidden; }
+	.live-files.is-file pre { padding: .6rem .5rem; border-radius: 0; }   /* the code keeps its own colours and floor, edge to edge */
 	.live-files-body pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
 	.live-focus { display: flex; flex-direction: column; gap: var(--live-step); }
 	.live-focus .live-sub { opacity: 1; }   /* a card opened as a page: its text is the page, not a note under the title */
 
-	/* The light: a dot, gray when off, green and glowing when on. */
-	.live-dot { width: .8em; height: .8em; border-radius: 50%; flex: none; background: light-dark(#c9ccd2, #3a3940); transition: background .15s, box-shadow .15s; }
+	/* A page's icon (LivePage.stored when it names none): the same in its header and on its cards. The small circle is
+	   an item kept inside its parent's page.jsonl; it is ink, not the light's gray, and smaller than the other icons. */
+	.live-icon { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 1.1rem; font-size: 1.1rem; line-height: 1; }
+	.live-icon .icon { font-size: inherit; opacity: .75; }
+	.live-icon .icon.is-small { font-size: .6rem; opacity: .6; }
+	.live-icon.is-empty, .live-icon.is-hidden { display: none; }
+	/* A card's icon and title share a row, on the title's first baseline (titles are sized per context: no fixed height). */
+	.live-card-head { display: flex; align-items: baseline; gap: .5rem; min-width: 0; }
+	.live-card-head > .live-card-title { flex: 1; min-width: 0; }
+	.live-card-icon { width: 1.25rem; font-size: 1.25rem; }
+	/* The light: a small dot by the gear, gray when off, green and glowing when on. */
+	.live-dot { width: .45rem; height: .45rem; border-radius: 50%; flex: none; background: light-dark(#c9ccd2, #3a3940); transition: background .15s, box-shadow .15s; }
 	.live-dot.is-on { background: var(--live-light, #22c55e); box-shadow: 0 0 .6em var(--live-light, #22c55e); }
 
 	/* One gap between every two cards, whatever they are. A row, wrapping: every card takes a whole line except the
@@ -94,7 +111,7 @@
 	.live-main { display: flex; flex-flow: row wrap; align-items: flex-start; gap: var(--live-gap) .6rem; }
 	.live-main > * { flex: 1 1 100%; }
 	.live-main > [data-kind="LiveButton"] { flex: none; }
-	.live-main.is-empty::before { content: "Nothing on screen yet."; opacity: .5; text-align: center; padding: 2rem 0; }
+	.live-main.is-empty::before { content: "Nothing on screen yet."; opacity: .5; text-align: center; padding: .25rem 0 0; }   /* close under the header: the page's own gap is the space above */
 	/* What cannot be tapped draws with no frame (a block); what can is a card (a link to a sub-page), with a chevron. */
 	.live-block { display: flex; flex-direction: column; gap: var(--live-step); min-width: 0; overflow-wrap: anywhere; }   /* no frame, so no inset: it runs the full width */
 	.live-card {
@@ -156,7 +173,9 @@
 	@keyframes live-press { from { transform: scale(.94); filter: brightness(1.2); } to { transform: none; filter: none; } }
 
 	/* LivePage.Pages: the pages that are somewhere else, a link card each, one gap apart like the content. */
-	.live-pages { display: flex; flex-direction: column; gap: var(--live-gap); }
+	.live-pages, .live-pages-group { display: flex; flex-direction: column; gap: var(--live-gap); }
+	.live-pages-group { gap: .6rem; }
+	.live-pages-label { margin: 0; font-size: .75em; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; opacity: .55; }
 	.live-pages.is-empty { display: none; }
 	.live-foot { display: flex; flex-direction: column; gap: var(--live-step); margin-top: auto; font-size: .8em; }
 	.live-foot-links { display: flex; gap: 1rem; opacity: .7; }

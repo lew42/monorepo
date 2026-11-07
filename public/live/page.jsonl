@@ -153,3 +153,17 @@
 {"content":{"add":{"id":"link-design","after":"link-plan","path":"./design/","text":"Method map, storage findings, tabs findings.","title":"Design lab","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T23:40:13.150Z"}
 {"content":{"add":{"id":"link-demos","after":"link-design","path":"./demos/","text":"Tabs, nav, place and columns, one tap-through each.","title":"Demos","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T23:40:14.176Z"}
 {"content":{"add":{"id":"link-lab","after":"link-demos","path":"./lab/","text":"Any class as a card, cards as pages.","title":"Lab","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T23:40:15.009Z"}
+{"file":"improvements.jsonl"}
+{"content":{"remove":"link-design"},"by":"voice-app","ts":"2026-11-06T23:53:29.633Z"}
+{"content":{"remove":"link-demos"},"by":"voice-app","ts":"2026-11-06T23:53:31.975Z"}
+{"content":{"remove":"link-lab"},"by":"voice-app","ts":"2026-11-06T23:53:32.338Z"}
+{"file":"LiveCode.js"}
+{"file":"LiveCode.test.mjs"}
+{"file":"div-test/page.jsonl"}
+{"content":{"add":{"id":"div-test","path":"./div-test/","title":"Div test","type":"part-link"}},"by":"voice-app","ts":"2026-11-07T00:03:35.674Z"}
+{"tab":{"name":"div-test","tab":false},"by":"voice-app","ts":"2026-11-07T00:04:02.225Z"}
+{"content":{"add":{"id":"item-tool","title":"Item tool","type":"part-card"}},"by":"voice-app","ts":"2026-11-07T00:20:05.774Z"}
+{"content":{"item-tool":{"content":{"add":{"id":"read-mode","code":"// read: no delta, no write\nitem({\n  path: \"/live/next/\",\n  read: \"content\"\n})\n// → {total, rows:[{id,type,title}]}","lang":"js","title":"Read (get)","type":"live-code"}}}},"by":"voice-app","ts":"2026-11-07T00:20:18.020Z"}
+{"content":{"item-tool":{"content":{"add":{"id":"write-mode","code":"// write: one delta = one log line\nitem({\n  path: \"/live/\",\n  delta: {\n    content: {\n      add: {\n        type: \"part-card\",\n        title: \"Item tool\"\n      }\n    }\n  }\n})","lang":"js","title":"Write (set)","type":"live-code"}}}},"by":"voice-app","ts":"2026-11-07T00:20:18.437Z"}
+{"file":"item-test/page.jsonl"}
+{"content":{"add":{"id":"item-test","path":"./item-test/","title":"Item test","type":"part-link"}},"by":"voice-app","ts":"2026-11-07T00:24:15.456Z"}
