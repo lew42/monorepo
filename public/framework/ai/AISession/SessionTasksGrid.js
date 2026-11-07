@@ -46,7 +46,7 @@ export default class SessionTasksGrid extends View {
 				{ key: "title", label: "Task", width: "1fr", min: "12rem", format: (v, r) => () => a.c("stg-title", v).href(r.url ?? "#") },
 				{ key: "day", label: "Day", width: "8rem", min: "6.5rem" },
 				{ key: "kind", label: "Kind", width: "8rem", min: "6rem" },
-				{ key: "owner", label: "Session", width: "11rem", format: (v, r) => () => r.owner ? a.c("stg-owner", r.node.snap?.title ?? r.node.agent ?? r.owner.slice(0, 8)).href(AICost.session_url(r.owner)) : span.c("muted", "this session") },
+				{ key: "owner", label: "Session", width: "11rem", format: (v, r) => () => r.owner ? a.c("stg-owner", r.node.snap?.title ?? r.node.agent ?? r.owner.slice(0, 8)).href(AICost.session_href(r.owner)) : span.c("muted", "this session") },
 				{ key: "cost", label: "Cost", type: "number", width: "6rem", format: v => v == null ? "" : "$" + v.toFixed(2) },
 			],
 			rows: [], filters: false, row_height: null, page_size: 100, prefs_id: "session-tasks",

@@ -71,11 +71,11 @@ function resolve_file(url, item = false){
 
 /* ROUTE PATHS (2026-10-09, the page tool): an agent names the page it SEES, and this finds
  * the file behind it, even when none exists yet. Today one family of routes keeps its file
- * somewhere else: a session page, `/framework/ai/sessions/<id>/`, is drawn by a template
+ * somewhere else: a session page (its dated folder; the bare `/framework/ai/sessions/<id>/` form is still accepted here as input only), is drawn by a template
  * (ai/AISession/AISessionDetail.js) and its page.jsonl lives in the session's own dated
  * folder, `sessions/YYYY/MM/DD/<slug>/` (Session.create(), the one creator, makes one for a session that has
  * none). `<id>` is a session uuid or a Servex agent id (its registry row holds the uuid). A
- * deeper path, `/framework/ai/sessions/<id>/notes/`, is a tab built from a line in that same
+ * deeper path, `<session folder>/notes/`, is a tab built from a line in that same
  * file, so its segments go on the front of the target: ["notes", ...target]. Anything else
  * resolves the plain way above. Returns { file, target } or null. */
 const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;

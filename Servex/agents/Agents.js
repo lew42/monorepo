@@ -224,7 +224,7 @@ export class Agents {
 			if (!guard.ok) throw new Error(`openrouter spawn refused: ${guard.reason}`);
 		}
 		/* Minted here for every fresh spawn (the constructor would mint the same thing later), so
-		 * the first-turn line can tell the agent its own page, /framework/ai/sessions/<session_id>/. */
+		 * the first-turn line can tell the agent its own page, its dated folder. */
 		const session_id = !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
 		/* EVERY SPAWN HAS A TASK DIR (2026-10-18): a bare spawn gets one here, `task: false` opts out (default_task below). */
 		if ((spec.task === undefined || (spec.task && !spec.task.dir)) && !again){ const task = this.default_task(spec, id); if (task) spec = { ...spec, task: { ...task, ...(spec.task || {}) } }; }   // a handoff `task: {from, id}` with no dir lands in the default folder
