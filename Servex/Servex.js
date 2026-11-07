@@ -1588,7 +1588,7 @@ export default class Servex extends Events {
             last = Date.now();
             const dry = !!process.env.SERVEX_REAPER_DRY;
             const mine = this.reaping = this.lifecycle.sweep({ dry })
-                .then(r => { this.log.append("servex", { type: "lifecycle-sweep", dry, closed: r.close.length, gone: r.gone.length, kept: r.kept.length }).catch(() => {}); return r; })   // every sweep leaves a line, even an empty one
+                .then(r => { this.log.append("servex", { type: "lifecycle-sweep", dry, closed: r.close.length, gone: r.gone.length, kept: r.kept.length, dormant: r.dormant ?? 0 }).catch(() => {}); return r; })   // every sweep leaves a line, even an empty one
                 .then(({ close, gone }) => (close.length || gone.length) && this.say(`lifecycle${dry ? " (dry)" : ""}: ${dry ? "would close" : "closed"} ${close.map(r => `${r.kind} ${r.id} (${r.why})`).join("; ") || "nothing"}; ${gone.length} dead log line(s) ended`))
                 .catch(e => this.say(`lifecycle: sweep failed: ${e.message || e}`))
                 .finally(() => { if (this.reaping === mine) this.reaping = null; });

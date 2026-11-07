@@ -95,10 +95,22 @@ export default class Relief extends Events {
 		await this.log(entry);
 		this.runs.push(entry); if (this.runs.length > 20) this.runs.shift();
 
-		const after = this.commit_pct();
+		const after = await this.fresh_pct();   // the snapshot the run started from is stale: wait for the monitor's next reading (review 2026-11-06)
 		if (after !== null && after >= this.threshold && this.armed) await this.note(after);
 		this.emit("run", entry);
 		return entry;
+	}
+
+	/* The commit charge after the monitor's next tick (Processes.js samples every 10 s), or now if no tick comes within settle_ms. */
+	fresh_pct(){
+		const p = this.servex?.procmon;
+		if (typeof p?.once !== "function") return Promise.resolve(this.commit_pct());
+		return new Promise(done => {
+			let t = null;
+			const fire = () => { clearTimeout(t); p.off?.("tick", fire); done(this.commit_pct()); };
+			t = setTimeout(fire, this.settle_ms ?? 30000); t.unref?.();
+			p.once("tick", fire);
+		});
 	}
 
 	/* Agents that may sleep now: idle past `idle_min`, not standing (front desk, voice seats, the fixer), not holding "session". */

@@ -107,6 +107,16 @@ await check("relief that gets the commit under the line posts no note", async ()
     assert.equal(w.notes.length, 0);
 });
 
+await check("the 'still over' check waits for the monitor's next reading, not the stale snapshot", async () => {
+    const w = world(80);
+    const fns = [];
+    w.sv.procmon.once = (ev, fn) => { if (ev === "tick") fns.push(fn); };
+    w.sv.procmon.off = () => {};
+    w.sv.lifecycle.sweep = async () => { setTimeout(() => { w.sv.procmon.commit_mb = 5000; fns.splice(0).forEach(fn => fn()); }, 20); return { close: [], gone: [], kept: [] }; };
+    await new Relief({ servex: w.sv }).tick(Date.now());
+    assert.equal(w.notes.length, 0, "the fresh reading is under the line: no note");
+});
+
 await check("nothing in `other` is ever ended, and a missing worktrees/lifecycle does not stop the run", async () => {
     const w = world(80);
     delete w.sv.worktrees; delete w.sv.lifecycle;
