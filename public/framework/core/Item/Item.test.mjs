@@ -213,7 +213,7 @@ n++;
 	page.url = BASE + "/page-a/";
 	const embedded = page.items.add({ title: "Note" });
 	t(embedded.file_url() === null, "page.items: neither file nor path = embedded (no file_url)");
-	t(embedded.load() === embedded, "and load() answers the item itself");
+	t((await embedded.load()) === embedded, "and load() answers the item itself (a Promise, like a file member's)");
 
 	const byFile = page.items.add({ file: "thing.jsonl" });
 	t(byFile.default_id() === "thing", "default_id(): the file name, minus .jsonl (Page.items uses it as the id; Page.test)");

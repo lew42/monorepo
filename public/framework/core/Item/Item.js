@@ -533,7 +533,7 @@ export class Item extends Events(Object) {
 	}
 
 	/* page.items: an item whose data carries `file` and/or `path` keeps its own lines in a file beside the page, instead of
-	   a line in the page's own file (ids-and-paths.md, "page.items"). Resolved against the folder of the LIST THAT HOLDS ME
+	   a line in the page's own file (core/Item/readme.md and core/Page/doc/jsonl.md, "page.items"). Resolved against the folder of the LIST THAT HOLDS ME
 	   (`this.parent`, a list member's owner — List.adopt — never `root()`, which climbs past my own page to the whole
 	   page tree's top): `file` alone → `<folder><file>`; `path` alone → `<folder><path>/page.jsonl`; both → `<folder><path>/<file>`.
 	   null when embedded (a line in the page's own file, as before). */
@@ -546,10 +546,11 @@ export class Item extends Events(Object) {
 
 	/** The live object this item's own data is on: itself when embedded, else the shared root `Item.open(file_url())` opens —
 	    one object per url (Store.for), so two pages that list the SAME file share it (never two copies drifting apart). Its
-	    class: the file's own line 1 `type`/`class`, else the class of the page that lists it (`this.parent`'s own class). */
+	    class: the file's own line 1 `type`/`class`, else the class of the page that lists it (`this.parent`'s own class).
+	    Always a Promise, embedded too, so a caller can `.then()` every member alike. */
 	load(){
 		const url = this.file_url();
-		return url ? Item.open(url, this.parent?.constructor) : this;
+		return url ? Item.open(url, this.parent?.constructor) : Promise.resolve(this);
 	}
 
 	root(){ let item = this; while (item.parent) item = item.parent; return item; }

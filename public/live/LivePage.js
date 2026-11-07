@@ -148,7 +148,7 @@ export default class LivePage extends Page {
 	async child(name, levels){
 		if (!this.children.get(name)){   // not built yet (undefined), or named by a {"file": "x/page.jsonl"} line (null)
 			// page.items first: an item saved in its own file opens as a full page at this address (its lines may sit in a
-			// sibling .jsonl, not a same-named folder) — core/Item's file_url/load, doc/jsonl.md "page.items".
+			// sibling .jsonl, not a same-named folder) — core/Item's file_url/load, core/Page/doc/jsonl.md "page.items".
 			const stub = this.items.find(name), url = stub?.file_url?.();
 			if (url){
 				const page = await LivePage.jsonl_file(url, this.url + name + "/");
@@ -226,10 +226,11 @@ export default class LivePage extends Page {
 			this.$alerts = div.c("live-alerts");
 			new P.Head({ page: this });
 			new P.Md({ item: this, key: "header", classes: "live-sub" });   // below the sticky header, so the header stays one size
+			if (!this.focus && !this.screen && !this.settings_of) new P.Md({ item: this, key: "text", classes: "live-sub" });   // a page.items file opened whole: its own text
 			if (this.settings_of) return void new P.Settings({ page: this, of: this.settings_of, at: this.at });
 			if (this.focus) new P.Focus({ page: this, item: this.focus });
 			new P.Main({ page: this, list: this.cards });
-			if (!this.focus && !this.screen && !this.settings_of) new P.Items({ page: this });
+			if (!this.focus && !this.screen && !this.settings_of) new P.Items({ page: this, classes: "live-items" });
 			new P.Pages({ page: this });
 			new P.Foot({ page: this });
 		});
@@ -520,11 +521,14 @@ export default class LivePage extends Page {
 				for (const [id, $row] of [...rows]) if (!seen.has(id)){ $row.el.remove(); rows.delete(id); }
 				list.items.forEach(item => {
 					if (rows.has(item.id)) return;
-					let $row; this.append(() => $row = div.c("live-item"));
+					let $row; this.append(() => $row = div.c("live-card live-item"));   // framed like a card; the chevron opens it whole (child())
 					rows.set(item.id, $row);
 					item.load().then(obj => $row.append(() => {
-						new P.Heading({ tag: "h4", item: obj, classes: "live-item-title" });
-						new P.Md({ item: obj, key: "text", classes: "live-item-text" });
+						div.c("live-card-body", () => {
+							new P.Heading({ tag: "h4", item: obj, classes: "live-card-title" });
+							new P.Md({ item: obj, key: "text", classes: "live-card-text" });
+						});
+						if (item !== obj) a.c("live-card-go", "›").href(page.url + item.id + "/").attr("aria-label", String(obj.get?.("title") ?? item.id));
 					})).catch(err => $row.append(() => span.c("live-item-error", String(err?.message ?? err))));
 				});
 			};

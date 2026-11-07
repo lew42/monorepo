@@ -544,7 +544,14 @@ function expand_dots(delta){
 function class_of(file){
 	const first = parse_lines(file)[0];
 	// A record that opens with {"session":{id,…}} is a session (a VS Code tab, a voice agent): Session, not Task, so it gets its cost and children.
-	return (is_plain(first) && typeof first.class === "string" ? first.class : null) ?? (is_plain(first?.session) ? "Session" : null) ?? (SessionRecord.log_file(path.dirname(file)) === file ? "Task" : null) ?? FILE_CLASS[path.basename(file)] ?? "Page";
+	return (is_plain(first) && typeof first.class === "string" ? first.class : null) ?? (is_plain(first?.session) ? "Session" : null) ?? (SessionRecord.log_file(path.dirname(file)) === file ? "Task" : null) ?? FILE_CLASS[path.basename(file)] ?? listed_class(file) ?? "Page";
+}
+// page.items: a loose sibling .jsonl with no class of its own, listed by its folder's page.jsonl as {"items":{"add":{"file":…}}},
+// is read as that page's class (a LivePage folder's thing.jsonl is a LivePage). Not listed: plain Page, as before (core/Page/doc/jsonl.md, "page.items").
+function listed_class(file){
+	const page = path.join(path.dirname(file), "page.jsonl"), name = path.basename(file);
+	if (name === "page.jsonl" || !fs.existsSync(page)) return null;
+	return parse_lines(page).some(l => l?.items?.add?.file === name && !l.items.add.path) ? class_of(page) : null;
 }
 
 // The methods a delta may call on `Class`, as [{name, doc}]. Walk up the chain: a class with its own `static callable` ({name: "doc"}) is

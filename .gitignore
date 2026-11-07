@@ -258,3 +258,4 @@ public/public/
 public/framework/ext/Chat/v2/fixture/dbg-*.jsonl
 # temp folders left by the page-tools test
 **/.page-tools-test-*/
+**/.page-tools-items-test-*/
