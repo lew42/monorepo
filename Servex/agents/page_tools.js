@@ -1164,8 +1164,13 @@ function walk_path(root, read){
 	const parts = hops(read);
 	let node = root;
 	for (const key of parts){
-		const next = hop(node, key);
-		if (next === undefined) return { why: `no such path: ${key}`, here: keys_at(node) };
+		let next = hop(node, key);
+		if (next === undefined && node instanceof Item){
+			// A query the class lists (`static queries`: completion_score, tally, cost, …) is CALLED, the same as a `{"<query>":{}}` delta: no write, no line.
+			if (node.constructor.queries?.includes(key)) next = walk_queries(node, { [key]: {} }).answer[key];
+			else { const v = node.get?.(key); if (v !== undefined && v !== null) next = v; }   // a plain value: a title, a text
+		} else if (next === undefined && is_plain(node) && key in node) next = node[key];   // inside a query's answer: {cost:{usd}} reads "cost.usd"
+		if (next === undefined) return { why: `no such path: ${key}`, here: [...keys_at(node), ...(node instanceof Item ? node.constructor.queries ?? [] : [])] };
 		node = next;
 	}
 	return { node };
