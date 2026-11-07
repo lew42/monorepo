@@ -6,3 +6,5 @@
 {"review":{"at":"2026-11-06T23:02:15-06:00","answer":{"n":5,"reply":"noted: the brief keeps livepage-into-page separate."}}}
 {"review":{"at":"2026-11-06T23:02:15-06:00","answer":{"n":6,"reply":"noted: an empty or unchanged late answer leaves fetched set; the next non-empty answer resets the fetched copy and reads the whole file, which is still right."}}}
 {"review":{"at":"2026-11-06T23:02:15-06:00","answer":{"n":7,"reply":"noted; shots/after-1200.png added."}}}
+{"complete":{"outcome":"A slow page's live streams now keep streaming: JSONL.live()'s 1.5 s fallback fetched once and dropped the reader, so the session page never showed a task change without a reload; now a new task shows in 1 s.","evidence":["merged 9782b2db5","ext/JSONL/live.test.mjs 4 passed (fails on old code)","shots/before.txt vs shots/after.txt (forced fallback)","shots/dup.mjs: 11 of 25 done both ways"],"at":"2026-11-06T23:08:29-06:00"}}
+{"assign":{"closed_by":"mastermind-live-page","closed_at":"2026-11-06T23:08:29-06:00","closed_why":null}}
