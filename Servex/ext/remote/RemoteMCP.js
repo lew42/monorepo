@@ -12,6 +12,7 @@ import Ask from "../../../Server/Ask.mjs";
  * Why and how to use it: public/framework/ux/Dictate/doc/voice-bridge.md. Reached through Server/Tunnel.mjs,
  * whose gateway forwards this one path and nothing else. */
 export default class RemoteMCP {
+    static SESSION = Symbol("caller session");   // intercept() -> the tool's ctx.session (see intercept)
     static PATH = "/mcp/remote";
     static DIR = path.join(process.env.LOCALAPPDATA ?? path.join(os.homedir(), "AppData", "Local"), "lew42", "servex");
     static TOKEN_FILE = path.join(RemoteMCP.DIR, "remote.token");
@@ -133,7 +134,7 @@ export default class RemoteMCP {
                 const { tool, args } = params.arguments ?? {};
                 if (tool === "list") return ok({ content: [{ type: "text", text: JSON.stringify(this.tools().map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }))) }] });
                 if (tool === RemoteMCP.TOOL.name || tool === RemoteMCP.HEAR.name) params = { name: tool, arguments: args };
-                else try { return ok(this.after(tool, header_sid, await this.servex.mcp.call(tool, args ?? {}, { caller: RemoteMCP.CALLER }), args)); }
+                else try { return ok(this.after(tool, header_sid, await this.servex.mcp.call(tool, args ?? {}, { caller: RemoteMCP.CALLER, session: params[RemoteMCP.SESSION] }), args)); }
                 catch (e) { return bad(e.code ?? -32603, String(e.message || e)); }
             }
             if (params?.name === RemoteMCP.HEAR.name){
@@ -141,7 +142,7 @@ export default class RemoteMCP {
             }
             if (params?.name !== RemoteMCP.TOOL.name){
                 // every other tool is the servex registry's own handler; the caller is this app, so writes say who made them
-                try { return ok(this.after(params?.name, header_sid, await this.servex.mcp.call(params?.name, params?.arguments ?? {}, { caller: RemoteMCP.CALLER }), params?.arguments)); }
+                try { return ok(this.after(params?.name, header_sid, await this.servex.mcp.call(params?.name, params?.arguments ?? {}, { caller: RemoteMCP.CALLER, session: params[RemoteMCP.SESSION] }), params?.arguments)); }
                 catch (e) { return bad(e.code ?? -32603, String(e.message || e)); }
             }
             const question = String(params.arguments?.question ?? "").trim().slice(0, 4000);
@@ -184,12 +185,12 @@ export default class RemoteMCP {
         this.record(v, inner, inner === RemoteMCP.LOG.name ? target.words : null, { tool: inner, args: target }, sid);
         if (inner === RemoteMCP.LOG.name) return { done: { content: [{ type: "text", text: JSON.stringify({ ok: !!v && !!String(target.words ?? "").trim(), session: v?.id ?? null }) }] } };
         if (v && /^(session_summary|session_line|quick_fix)$/.test(inner) && !this.servex.sessions?.map?.[target.session]) target.session = v.id;
-        // a commit made through the shell lands on this record (Servex/files.js env_of, Server/git-hooks/CommitLog.mjs shell_caller)
-        if (v && inner === "shell") target.caller_session = { id: v.id, file: path.join(this.root, "public", v.file) };
         if (v && registering){
             return { done: { content: [{ type: "text", text: JSON.stringify({ ok: true, session: v.id, file: v.file, note: "You are a cloud voice agent: use this session id for session_summary and session_line. Call cloud_voice_log with the owner's exact words first on every turn. Guide: Servex/ext/remote/doc/cloud-voice-agent.md" }) }] } };
         }
-        return { ...params, arguments: args };
+        // the record this call belongs to, in the tool's context (never its arguments, which the caller writes): a commit made through
+        // the shell lands on it (Servex/files.js env_of, Server/git-hooks/CommitLog.mjs shell_caller). A symbol, so no JSON body can set it.
+        return { ...params, arguments: args, [RemoteMCP.SESSION]: v ? { id: v.id, file: path.join(this.root, "public", v.file) } : null };
     }
 
     /* One folder per cloud voice agent per day (owner, 2026-10-19): sessions/YYYY/MM/DD/cloud-voice-<name>/session.jsonl, kind

@@ -3,6 +3,7 @@
 Six tools live in the one Servex registry (`Servex/files.js`, class `FileTools`, registered in `Servex/agents/Global.js` next to `page_tools`). The voice app gets them through `POST /mcp/remote` like every other tool; local sessions get them too.
 
 - `read_file`, `write_file`, `edit_file` (one exact string, unique unless `replace_all`), `list_dir`, `glob` (`**`, `*`, `?`), `shell` (`bash` by default, or `powershell`; returns stdout, stderr, exit code; 60 s timeout, max 600 s).
+- **Commits through `shell` land on the voice app's record.** `RemoteMCP.intercept` puts the day's record in the tool's context (`ctx.session`, never an argument, so a caller cannot name another record), and `FileTools.env_of` hands it to the command as `SERVEX_SESSION_ID` and `SERVEX_SESSION_RECORD`, which the git hooks read ([Server/git-hooks/readme.md](../../../../Server/git-hooks/readme.md)).
 - **Root:** every tool takes `root`: omit it for the monorepo, give a worktree name (`remote-tools` means `C:/Code/lew42/worktrees/remote-tools`) or a full path. Relative paths resolve against it.
 - **No lockdown.** The owner accepted the risk. The only gate is the bearer token on the remote path; the local `/mcp` loopback rule is untouched (see the dev-server RCE note).
 - **`.jsonl` is refused** by `write_file` and `edit_file` with a pointer to `.claude/hooks/append.mjs` (validated append), so live pages never see a rewrite. Use `shell` to run the hook, or `page_add` / `append_log`.
