@@ -21,6 +21,8 @@ The brief is the spawn prompt from voice-app, line 1 of [session.jsonl](session.
 ## Added 2026-11-07 (via voice-app; pace 75%, keep each cheap)
 
 - [x] **t13, shell commits:** a commit voice-app makes through the Servex shell lands on its session record (it has no `CLAUDE_CODE_SESSION_ID`). Proof: merge 397c6d72d; live after the next Servex restart.
-- [x] **t14, calibration:** the first prompt-refinement calibration ([doc/prompt-refinement-and-tasks.md](/framework/ai/doc/prompt-refinement-and-tasks.md), "Next" step 1). 3–5 of the owner's prompts from the cloud transcript `cloud-8849dcc6.jsonl`, Haiku then Sonnet on the same fixed instructions, judged by Opus. For each prompt: the asks, questions, mentions and coverage against the 24 tasks of the voice-app record. Write no tasks into that record; suggestions go on a /live/ sub-page. A transcript reader named for Claude Code transcripts. About $5 in all. Done: [calibration/results.md](calibration/results.md), [/live/calibration/](/live/calibration/); reader: `Server/ClaudeCodeTranscript.mjs` (merge 3ac432ec3).
+- [x] **t14, calibration:** first prompt-refinement test: 3–5 owner prompts from `cloud-8849dcc6.jsonl`, run through Haiku then Sonnet, judged by Opus, checked against the 24 voice-app tasks. No tasks written. Proof: [results](calibration/results.md), [/live/calibration/](/live/calibration/), reader `Server/ClaudeCodeTranscript.mjs` (merge 3ac432ec3). Plan: [doc/prompt-refinement-and-tasks.md](/framework/ai/doc/prompt-refinement-and-tasks.md), "Next" step 1.
 
-The tasks themselves (t1–t14) are in the session record. Read them with the item tool.
+- [x] **t15, midnight split:** voice-app's one conversation had two records (11-06, 11-07). Now linked, and from the next Servex restart a call under 2 hours after the last stays on the same record (merge bedd31fad, [voice-logging.md](/Servex/ext/remote/doc/voice-logging.md), "One record per conversation"). Still open: two cloud chats at once share one record.
+
+The tasks themselves (t1–t15) are in the session record. Read them with the item tool.
