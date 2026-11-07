@@ -59,3 +59,4 @@
 {"tab":{"name":"today","tab":true,"title":"Today"},"by":"voice-app","ts":"2026-11-07T01:05:05.431Z"}
 {"tab":{"name":"questions","tab":true,"title":"Questions"},"by":"voice-app","ts":"2026-11-07T01:05:05.904Z"}
 {"file":"ai/"}
+{"content":{"fut-questions":{"text":"Not decided yet; each one leans one way. [In full, with pros and cons](/live/plan/questions/).\n\n1. **Item vs Page:** any Item can be opened as a page.\n2. **One url:** short, searched in order: folder, then file, then the page's items.\n3. **Trailing slash:** a file name + `/` draws it (`readme.md/`).\n4. **Ids and urls:** `_` in ids, `-` in urls.\n5. **Default id:** passed id, else file name, else the title as `my_thing`.\n\n**Back burner:** a Function type saved in a file. Useful, but anyone who can write the file could make the page run code. [Notes](/live/plan/questions/)."}},"by":"mastermind-page-design","ts":"2026-11-07T01:21:12.573Z"}

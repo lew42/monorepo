@@ -18,6 +18,10 @@ This is the short base for any agent on this repo (a mastermind or a worker, Cla
 - Name and home a new thing first; document its structure as you build it; index everything you create.
 - **Every class gets one lean core test** (`X.test.mjs` beside it): make one instance, exercise the top ~50% of what it does, assert after each call, stay well under 1 s. Add it when you build or first change a class that has none; don't over-test. How, and what earns more: [core/Test](../core/Test/readme.md).
 
+## Explaining to the owner
+
+- **Show an API as JavaScript or pseudocode** (`page.tabs.add({name: "today"})`), not as a JSON delta, unless the owner asks what the delta looks like. Say which object the call operates on (`page`, `page.items`, a card). (the owner, 2026-11-06)
+
 ## Safety and cost (full text: [doc/agent-rules.md](doc/agent-rules.md))
 
 - Never destructive: move aside, never delete logs or history. Never push, force or skip hooks.
