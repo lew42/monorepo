@@ -57,7 +57,7 @@ Opening a page is the same road from offset 0. Off localhost there is no socket:
 
 ## Parts of a page
 
-`content` is a list of parts (heading, text, card), one `page.jsonl` line each: [parts/](parts/readme.md). Templates (one layout, many data rows): [doc/templates.md](doc/templates.md). Binding a view to its data: [doc/binding.md](doc/binding.md). A page whose data lives in node: [doc/server.md](doc/server.md). Pick a layout from the catalog before inventing one: [layout/](layout/).
+`content` is a list of parts (heading, text, card), one `page.jsonl` line each: [parts/](parts/readme.md). Templates (one layout, many data rows): [doc/templates.md](doc/templates.md). Binding a view to its data: [doc/binding.md](doc/binding.md). A page whose data lives in node: [doc/server.md](doc/server.md). Pick a layout from the catalog before inventing one: [layout/](layout/). A part's type may also be a registered class that is not an Item: `{"type":"View","content":"Hello world"}` draws a div, built by `Item.foreign` inside the row (`PageContent.js`; LivePage's Block and Focus do the same): [Item readme](../Item/readme.md).
 
 A page's side inset is `--gutter-x: clamp(1em, 4%, 5em)` (`Page.css`; `ext/Doc/Doc.css` restates it, keep the two equal): about 15px at 390 and unchanged from ~700px up. The floor was `2em` until 2026-10-24, when the phone inset was halved at the source rather than with a per-page word.
 
