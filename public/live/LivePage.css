@@ -112,6 +112,9 @@
 	.live-main > * { flex: 1 1 100%; }
 	.live-main > [data-kind="LiveButton"] { flex: none; }
 	.live-main.is-empty::before { content: "Nothing on screen yet."; opacity: .5; text-align: center; padding: .25rem 0 0; }   /* close under the header: the page's own gap is the space above */
+	.live-page:has(> .live-sub:not(.is-empty)) > .live-main.is-empty::before { content: none; }   /* a page with its own text is not empty */
+	.live-items { display: flex; flex-direction: column; gap: var(--live-gap); }   /* page.items: one card each, spaced like the content */
+	.live-items.is-empty { display: none; }
 	/* What cannot be tapped draws with no frame (a block); what can is a card (a link to a sub-page), with a chevron. */
 	.live-block { display: flex; flex-direction: column; gap: var(--live-step); min-width: 0; overflow-wrap: anywhere; }   /* no frame, so no inset: it runs the full width */
 	.live-card {

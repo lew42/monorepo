@@ -183,6 +183,23 @@ try {
 		ok(fs.readFileSync(rec, "utf8").includes('"own task"'), "the line is in that file");
 	}
 
+	// page.items: `path: "thing"` on an items member means its own lines live at `<folder>/thing/page.jsonl` — made on the
+	// first write (the item tool, never the browser); a loose sibling `file` just names an existing file, no folder needed.
+	// A folder OUTSIDE ai/sessions/ (the DATED_SESSION guard above refuses an unmade session subfolder on purpose; this isn't one).
+	{
+		const itemsDir = path.join(ROOT, "public/framework/core/Item/.page-tools-items-test-" + process.pid);
+		const sub = path.join(itemsDir, "thing");
+		fs.mkdirSync(itemsDir, { recursive: true });
+		try {
+			ok(!fs.existsSync(sub), "the path folder does not exist yet");
+			const itemsUrl = "/" + path.relative(path.join(ROOT, "public"), itemsDir).split(path.sep).join("/") + "/";
+			const out = await call("page_set", { path: itemsUrl + "thing/", delta: { title: "Thing" } }, "test-agent");
+			ok(out.ok, "page_set to a page.items path that has no folder yet is not refused");
+			ok(fs.existsSync(path.join(sub, "page.jsonl")), "the folder (and its page.jsonl) is made on this first write");
+			ok(fs.readFileSync(path.join(sub, "page.jsonl"), "utf8").includes('"Thing"'), "and holds the line just written");
+		} finally { fs.rmSync(itemsDir, { recursive: true, force: true }); }
+	}
+
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });
 }

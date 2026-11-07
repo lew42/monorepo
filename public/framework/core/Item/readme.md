@@ -16,6 +16,8 @@
 
 **When to reach for which:** a **List** when something is ordered and needs watching (events are built in — there's no event-less variant any more); an **Item** when it is a thing (an icon, a title, saved); a **Page** when it has a URL.
 
+**page.items — an item saved in its own file.** Any list member with `file` and/or `path` keeps its own lines in a file beside the page that lists it instead of a line here: `file_url()` resolves it (against `this.parent`'s own url, never `root()`), `load()` answers the shared live object (`Item.open`, one per url — two pages that list the same file share it), and its id defaults to the file's name. `public/live/readme.md`, "an item in its own file", and `Page.class.js`'s `items` getter.
+
 ## Architecture
 
 ```js

@@ -96,4 +96,13 @@ const names = list => [...list].map(x => `${x.constructor.name}:${x.id}`);
 	} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
 }
 
+// page.items: a member saved in its own file takes the file's name as its id; an embedded one and a content card with a path keep a fresh id.
+{
+	const page = new Page({ title: "Items" });
+	ok(page.items.add({ file: "thing.jsonl" }).id === "thing", "page.items: {file: \"thing.jsonl\"} gets id \"thing\"");
+	ok(page.items.add({ path: "a/sub" }).id === "sub", "page.items: {path: \"a/sub\"} gets id \"sub\"");
+	ok(page.items.add({ id: "x", file: "y.jsonl" }).id === "x", "a passed id wins");
+	ok(page.content.add({ type: "part-card", path: "/framework/z/" }).id !== "z", "a content card that carries a path keeps its own id");
+}
+
 console.log(`Page: ${checks} checks passed`);

@@ -1,0 +1,797 @@
+diff --git a/Servex/agents/page_tools.test.mjs b/Servex/agents/page_tools.test.mjs
+index bb508a410b..0d9e750192 100644
+--- a/Servex/agents/page_tools.test.mjs
++++ b/Servex/agents/page_tools.test.mjs
+@@ -183,6 +183,23 @@ try {
+ 		ok(fs.readFileSync(rec, "utf8").includes('"own task"'), "the line is in that file");
+ 	}
+ 
++	// page.items: `path: "thing"` on an items member means its own lines live at `<folder>/thing/page.jsonl` — made on the
++	// first write (the item tool, never the browser); a loose sibling `file` just names an existing file, no folder needed.
++	// A folder OUTSIDE ai/sessions/ (the DATED_SESSION guard above refuses an unmade session subfolder on purpose; this isn't one).
++	{
++		const itemsDir = path.join(ROOT, "public/framework/core/Item/.page-tools-items-test-" + process.pid);
++		const sub = path.join(itemsDir, "thing");
++		fs.mkdirSync(itemsDir, { recursive: true });
++		try {
++			ok(!fs.existsSync(sub), "the path folder does not exist yet");
++			const itemsUrl = "/" + path.relative(path.join(ROOT, "public"), itemsDir).split(path.sep).join("/") + "/";
++			const out = await call("page_set", { path: itemsUrl + "thing/", delta: { title: "Thing" } }, "test-agent");
++			ok(out.ok, "page_set to a page.items path that has no folder yet is not refused");
++			ok(fs.existsSync(path.join(sub, "page.jsonl")), "the folder (and its page.jsonl) is made on this first write");
++			ok(fs.readFileSync(path.join(sub, "page.jsonl"), "utf8").includes('"Thing"'), "and holds the line just written");
++		} finally { fs.rmSync(itemsDir, { recursive: true, force: true }); }
++	}
++
+ } finally {
+ 	fs.rmSync(DIR, { recursive: true, force: true });
+ }
+diff --git a/public/files.jsonl b/public/files.jsonl
+index efb6f44af6..1a6fbf16e0 100644
+--- a/public/files.jsonl
++++ b/public/files.jsonl
+@@ -147,3 +147,5 @@
+ {"file":"failures.jsonl","gone":true}
+ {"file":"public/"}
+ {"file":"public/","gone":true}
++{"file":"data/","gone":true}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/errors/files.jsonl b/public/framework/ai/errors/files.jsonl
+index f671f905da..08f2a664a0 100644
+--- a/public/framework/ai/errors/files.jsonl
++++ b/public/framework/ai/errors/files.jsonl
+@@ -114,3 +114,4 @@
+ {"file":"2026-11-01.jsonl","gone":true}
+ {"file":"2026-11-02.jsonl","gone":true}
+ {"file":"2026-11-03.jsonl","gone":true}
++{"file":"2026-11-07.jsonl"}
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/ref-file/dropped-ref-file.patch b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/ref-file/dropped-ref-file.patch
+new file mode 100644
+index 0000000000..0050f60dce
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/ref-file/dropped-ref-file.patch
+@@ -0,0 +1,105 @@
++diff --git a/public/framework/core/Item/Ref.js b/public/framework/core/Item/Ref.js
++index 659af875fc..f5cea7a8ff 100644
++--- a/public/framework/core/Item/Ref.js
+++++ b/public/framework/core/Item/Ref.js
++@@ -18,11 +18,22 @@ import Store from "./Store.js";
++    Node: Item.open fetches the url, so an absolute http url resolves (Ref.test.mjs); a task's {"task":"<folder>"} keeps Task.resolver. */
++ export class Ref extends Item {
++ 
++-	static fields = ["url", "path"];
+++	// `file` ("thing.jsonl") is a sibling of the page that holds this Ref: resolved against that page's own folder (`folder()`),
+++	// never against the Ref's own file — a page moved keeps naming the same sibling. `url` wins when both are set.
+++	static fields = ["url", "path", "file"];
++ 	static HOPS = 8;   // forwards followed before a chain is called a loop
++ 	static changes = 0;   // bumped when any Ref changes its address: the backlinks are walked again
++ 
++-	put(key, value){ super.put(key, value); if (key === "path" || key === "url") Ref.changes++; }
+++	put(key, value){ super.put(key, value); if (key === "path" || key === "url" || key === "file") Ref.changes++; }
+++
+++	// The folder of the page this Ref sits in (its root's own `url`, which a Page always ends in "/"): where `file` is looked for.
+++	folder(){
+++		const root = this.root(), u = root?.url ?? root?.get_one?.("url");
+++		return u ? String(u).replace(/[^/]*$/, "") : "";
+++	}
+++
+++	/** Where this Ref points, as a url `resolve()` can open: `url` itself, or `file` against this Ref's own page's folder. */
+++	get address(){ return this.url || (this.file ? this.folder() + this.file : null); }
++ 
++ 	/** The resolved item: undefined until resolve() has run, null when it is gone. */
++ 	get target(){ return this._target; }
++@@ -30,8 +41,9 @@ export class Ref extends Item {
++ 
++ 	/** Resolve (again): find the root, the target, follow forwards; returns the target or null. A live root's change re-runs it. */
++ 	async resolve(){
++-		const root = await this.root_of(this.url);
++-		return this.settle(root, this.url);
+++		const url = this.address;
+++		const root = await this.root_of(url);
+++		return this.settle(root, url);
++ 	}
++ 
++ 	// Steps 2 to 4 above, from a root already open.
++@@ -81,7 +93,7 @@ export class Ref extends Item {
++ 		if (this._watched === root) return;
++ 		if (this._watched) this._watched.off?.("read", this._on_root);
++ 		this._watched = root;
++-		root.on?.("read", this._on_root ??= () => this.settle(this._watched, this.url));
+++		root.on?.("read", this._on_root ??= () => this.settle(this._watched, this.address));
++ 	}
++ 
++ 	/** Why it is gone, in words, for the "gone" row. */
++diff --git a/public/framework/core/Item/Ref.test.mjs b/public/framework/core/Item/Ref.test.mjs
++index eeb569625a..b2b8462bed 100644
++--- a/public/framework/core/Item/Ref.test.mjs
+++++ b/public/framework/core/Item/Ref.test.mjs
++@@ -68,6 +68,18 @@ try {
++ 	const nofile = new Ref({ url: BASE + "/s/never-made/", path: "tasks.t1" });
++ 	t.eq(await nofile.resolve(), null, "a Ref to a folder with no record is gone too, not a throw");
++ 
+++	// 1b. `file`: a sibling .jsonl beside the page that holds this Ref, resolved against that page's own folder
+++	write("page-dir/page.jsonl", [{ id: "pg", title: "Page" }]);
+++	write("page-dir/thing.jsonl", [{ title: "Thing" }]);
+++	const page = Item.hydrate({ id: "pg", title: "Page", chat: [] });
+++	page.url = BASE + "/page-dir/";
+++	const fileRef = page.chat.add({ type: "Ref", id: "fr", file: "thing.jsonl" });
+++	t.eq(fileRef.address, BASE + "/page-dir/thing.jsonl", "file resolves against the holding page's own folder (its root's url)");
+++	t.eq((await fileRef.resolve())?.get_one("title"), "Thing", "and opens that sibling file as its target");
+++	fs.appendFileSync(path.join(DIR, "page-dir/thing.jsonl"), JSON.stringify({ text: "Loose, tailed, and alive." }) + "\n");
+++	await fileRef.target.store.load();   // a static re-read of the growth (no live socket in this test harness)
+++	t.eq(fileRef.target.get_one("text"), "Loose, tailed, and alive.", "a line appended to the file it points at reaches the same live target");
+++
++ 	// 2. an id fallback
++ 	const before = fs.readFileSync(path.join(DIR, "s/child-1/session.jsonl"), "utf8");
++ 	const stale = new Ref({ url: BASE + "/s/child-1/", path: "tasks.t1.tasks.t3" });   // t3 was under t2, never t1
++diff --git a/public/framework/core/Item/RefView.js b/public/framework/core/Item/RefView.js
++index 89895742f7..d406f2f7f8 100644
++--- a/public/framework/core/Item/RefView.js
+++++ b/public/framework/core/Item/RefView.js
++@@ -1,4 +1,4 @@
++-import View, { a, span, icon } from "../View/View.js";
+++import View, { a, span, icon, h4, p, div } from "../View/View.js";
++ import Ref from "./Ref.js";
++ 
++ View.stylesheet(import.meta, "RefView.css");
++@@ -35,6 +35,21 @@ export default class RefView extends View {
++ 			span.c("ref-view-gone", `gone: ${r.why ?? r.path}`);
++ 			return;
++ 		}
+++		// Full: the target has something to say beyond its title (a `text`, or content of its own — a Page-shaped thing), so this
+++		// draws title + content instead of the usual one-row link (ids-and-paths.md §6, "a Ref to a page draws the page").
+++		const text = t.get_one?.("text");
+++		const kids = t.content?.items?.filter?.(i => !i.transient) ?? [];
+++		this.el.classList.toggle("ref-view-full", text != null || kids.length > 0);
+++		if (text == null && !kids.length) return this.link_row(r, t, root);
+++
+++		const href = t.get_one?.("path");
+++		h4.c("ref-view-full-title", () => (href ? a(this.title_of(t)).href(href) : span(this.title_of(t))));
+++		if (text != null) p.c("ref-view-full-text", String(text));
+++		if (kids.length) div.c("ref-view-full-kids", () => kids.forEach(k => p.c("ref-view-full-kid", this.title_of(k) || String(k.get_one?.("text") ?? k.id))));
+++	}
+++
+++	// The usual one-row link: an icon for the target's state, then "where › what".
+++	link_row(r, t, root){
++ 		icon(RefView.STAGE[t.state] ?? "subdirectory_arrow_right").ac("ref-view-state", "is-" + (t.state ?? "item")).attr("title", t.state ?? "");
++ 		if (this.where !== false && r.url && root && root !== t){   // where: false when a heading above already names the file
++ 			a.c("ref-view-where", this.title_of(root)).href(r.url);
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/ref-file/probe.mjs b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/ref-file/probe.mjs
+new file mode 100644
+index 0000000000..6c6dd4c5e3
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/ref-file/probe.mjs
+@@ -0,0 +1,33 @@
++import Browser from "../../../../../../../../../../Server/Browser.mjs";
++import fs from "node:fs";
++
++const BASE = "http://localhost:59081";
++const DIR = "C:/Code/lew42/worktrees/pd-ref-file/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/ref-file";
++const THING = "C:/Code/lew42/worktrees/pd-ref-file/public/live/item-test/thing.jsonl";
++
++const browser = await Browser.browser();
++const page = await browser.newPage();
++const out = {};
++
++await page.goto(BASE + "/live/item-test/", { waitUntil: "networkidle" });
++await page.waitForTimeout(800);
++out.item_card_text = await page.locator(".live-item").first().innerText({ timeout: 5000 }).catch(e => "ERR:" + e.message);
++await page.screenshot({ path: DIR + "/shot-1-before.png", fullPage: true });
++
++// Append a line to thing.jsonl and see it tail live, no reload.
++fs.appendFileSync(THING, JSON.stringify({ text: "Tailed at " + new Date().toISOString() }) + "\n");
++await page.waitForTimeout(2000);
++out.item_card_text_after = await page.locator(".live-item").first().innerText({ timeout: 5000 }).catch(e => "ERR:" + e.message);
++await page.screenshot({ path: DIR + "/shot-2-after-tail.png", fullPage: true });
++
++// The route /live/item-test/thing (no trailing slash) as a LivePage.
++const resp = await page.goto(BASE + "/live/item-test/thing", { waitUntil: "networkidle" }).catch(e => null);
++out.thing_route_status = resp?.status() ?? "no response";
++out.thing_route_url = page.url();
++out.thing_has_live_page_class = await page.locator(".live-page").count();
++out.thing_h1 = await page.locator(".live-page h1").last().innerText().catch(e => "ERR:" + e.message);
++await page.screenshot({ path: DIR + "/shot-3-thing-route.png", fullPage: true });
++
++console.log(JSON.stringify(out, null, 2));
++await page.close();
++await Browser.close();
+diff --git a/public/framework/ai/sessions/files.jsonl b/public/framework/ai/sessions/files.jsonl
+index 0ef9666d5b..1d2c89ce7f 100644
+--- a/public/framework/ai/sessions/files.jsonl
++++ b/public/framework/ai/sessions/files.jsonl
+@@ -30778,3 +30778,4 @@
+ {"file":"session-folders.json","gone":true}
+ {"file":"2020/","gone":true}
+ {"file":"session-twins.json","gone":true}
++{"file":"session-folders.json"}
+diff --git a/public/framework/core/Item/Item.js b/public/framework/core/Item/Item.js
+index 4443730939..d41c95da1c 100644
+--- a/public/framework/core/Item/Item.js
++++ b/public/framework/core/Item/Item.js
+@@ -83,6 +83,15 @@ export class Item extends Events(Object) {
+ 		this.id ??= this.constructor.new_id();
+ 	}
+ 
++	// An item saved in its own file (page.items: `file`/`path`) takes that file's name as its id by default (Page.items' `make` asks;
++	// scoped there so a content card or a Task that merely carries a `path` keeps its own id), with nothing extra to keep in step — `/live/item-test/thing` opens item "thing" because that is both its id and its file's name.
++	default_id(){
++		const { file, path } = this.data ?? {};
++		if (typeof file === "string" && file) return file.replace(/\.jsonl$/i, "");
++		if (typeof path === "string" && path) return path.split("/").filter(Boolean).pop() ?? null;
++		return null;
++	}
++
+ 	assign(...args){ return Object.assign(this, ...args); }
+ 
+ 	// assign() for an object still being built: its fields go straight into data, never through set(). A subclass that
+@@ -523,6 +532,26 @@ export class Item extends Events(Object) {
+ 		return forward;
+ 	}
+ 
++	/* page.items: an item whose data carries `file` and/or `path` keeps its own lines in a file beside the page, instead of
++	   a line in the page's own file (ids-and-paths.md, "page.items"). Resolved against the folder of the LIST THAT HOLDS ME
++	   (`this.parent`, a list member's owner — List.adopt — never `root()`, which climbs past my own page to the whole
++	   page tree's top): `file` alone → `<folder><file>`; `path` alone → `<folder><path>/page.jsonl`; both → `<folder><path>/<file>`.
++	   null when embedded (a line in the page's own file, as before). */
++	file_url(){
++		const { file, path } = this.data ?? {};
++		if (!file && !path) return null;
++		const owner = this.parent, folder = String(owner?.jsonl_url ?? owner?.url ?? owner?.get_one?.("url") ?? "").replace(/[^/]*$/, "");
++		return folder + (path ? `${path}/${file ?? "page.jsonl"}` : file);
++	}
++
++	/** The live object this item's own data is on: itself when embedded, else the shared root `Item.open(file_url())` opens —
++	    one object per url (Store.for), so two pages that list the SAME file share it (never two copies drifting apart). Its
++	    class: the file's own line 1 `type`/`class`, else the class of the page that lists it (`this.parent`'s own class). */
++	load(){
++		const url = this.file_url();
++		return url ? Item.open(url, this.parent?.constructor) : this;
++	}
++
+ 	root(){ let item = this; while (item.parent) item = item.parent; return item; }
+ 
+ 	// Every List property I own, by name — the one seam `find`, `walk` and
+@@ -798,7 +827,7 @@ export class Item extends Events(Object) {
+ 
+ 	// A string is a .jsonl url: one Store per file, opened, the host built from its
+ 	// first line, attached. A Saver object keeps the existing whole-JSON path.
+-	static async open(src){
++	static async open(src, fallback){
+ 		// DEPRECATED (2026-10-28): use `Item.open(url)` (a .jsonl url, one Store per file); an object Saver is the whole-JSON path. Guide: /framework/ext/Saver/readme.md. Remove when: the 24 importing files of ext/Saver are moved to `item.store` or the Saver is renamed as the whole-document store.
+ 		if (typeof src !== "string"){
+ 			const json = await src.load();
+@@ -813,7 +842,7 @@ export class Item extends Events(Object) {
+ 		// reader of the same Store expects every line (Store.use_snapshot).
+ 		const rooting = store.rooting = (this.Store.snapshots ? store.use_snapshot() : Promise.resolve()).then(() => store.open()).then(() => {
+ 			if (store.host) return store.host;   // attached by another reader while this one waited (Task.open_ref)
+-			const Class = this !== Item ? this : store.snapshot ? Item.types.get(store.snapshot.state.type) ?? Item : Item.class_for(store.entries);
++			const Class = this !== Item ? this : store.snapshot ? Item.types.get(store.snapshot.state.type) ?? Item : Item.class_for(store.entries, fallback);
+ 			const { host, rest } = store.snapshot ? { host: new Class(), rest: store.entries } : Class.root_from(store.entries);
+ 			store.entries = rest;
+ 			store.attach(host);   // restores the snapshot first, when there is one, then replays the lines held
+@@ -826,14 +855,14 @@ export class Item extends Events(Object) {
+ 
+ 	// The class a file's root is, from its own lines (Item.open on a url nothing else names): line 1's registered `type` or
+ 	// `class`; a session's record ({"session":…} line 1, or a spawn's {"assign":{session_id, agent}}) is a Session, any other
+-	// {"assign"} record a Task; else a plain Item.
+-	static class_for(entries){
++	// {"assign"} record a Task; else `fallback` (page.items: the class of the page that lists it) or, with none, a plain Item.
++	static class_for(entries, fallback = Item){
+ 		const first = entries[0] ?? {}, a = entries.find(e => e?.assign)?.assign;
+ 		const named = Item.types.get(first.type ?? first.class);
+ 		if (named) return named;
+ 		if (first.session || (a && a.session_id && a.agent)) return Item.types.get("Session") ?? Item.types.get("Task") ?? Item;
+ 		if (a) return Item.types.get("Task") ?? Item;
+-		return Item;
++		return fallback ?? Item;
+ 	}
+ 
+ 	// The root a file's lines open as, and the lines still to replay onto it. An Item is line 1 itself (its fields), the
+diff --git a/public/framework/core/Item/Item.test.mjs b/public/framework/core/Item/Item.test.mjs
+index 1ebf904138..b399767863 100644
+--- a/public/framework/core/Item/Item.test.mjs
++++ b/public/framework/core/Item/Item.test.mjs
+@@ -187,4 +187,53 @@ n++;
+ 	t(Item.foreign(new Item({})) === null, "Item.foreign builds nothing for an ordinary Item");
+ }
+ 
++// page.items: embedded vs file vs path, and dedup (one object per url, Item.open — Ref.test.mjs covers the cross-file read itself).
++{
++	const fs = await import("node:fs");
++	const os = await import("node:os");
++	const path = await import("node:path");
++	const http = await import("node:http");
++	const { default: List } = await import("../List/List.js");
++
++	const DIR = fs.mkdtempSync(path.join(os.tmpdir(), "item-items-test-"));
++	const write = (file, lines) => { fs.mkdirSync(path.dirname(path.join(DIR, file)), { recursive: true }); fs.writeFileSync(path.join(DIR, file), lines.map(l => JSON.stringify(l)).join("\n") + "\n"); };
++	const server = http.createServer((req, res) => {
++		const file = path.join(DIR, decodeURIComponent(new URL(req.url, "http://x").pathname));
++		if (!file.startsWith(DIR) || !fs.existsSync(file) || fs.statSync(file).isDirectory()){ res.writeHead(404); return res.end(); }
++		res.writeHead(200, { "content-type": "application/x-ndjson" });
++		res.end(fs.readFileSync(file));
++	});
++	await new Promise(ok => server.listen(0, "127.0.0.1", ok));
++	const BASE = `http://127.0.0.1:${server.address().port}`;
++
++	write("page-a/thing.jsonl", [{ title: "Thing" }]);
++	write("page-a/sub/page.jsonl", [{ title: "Sub" }]);
++
++	const page = Item.hydrate({ id: "pg", title: "Page", items: [] });
++	page.url = BASE + "/page-a/";
++	const embedded = page.items.add({ title: "Note" });
++	t(embedded.file_url() === null, "page.items: neither file nor path = embedded (no file_url)");
++	t(embedded.load() === embedded, "and load() answers the item itself");
++
++	const byFile = page.items.add({ file: "thing.jsonl" });
++	t(byFile.default_id() === "thing", "default_id(): the file name, minus .jsonl (Page.items uses it as the id; Page.test)");
++	t(byFile.file_url() === BASE + "/page-a/thing.jsonl", "file resolves against the folder of the page that lists it (this.parent), not root()");
++	const loadedA = await byFile.load();
++	t(loadedA.get_one("title") === "Thing", "load() opens that file's root");
++
++	const byPath = page.items.add({ path: "sub" });
++	t(byPath.default_id() === "sub", "path-only: default_id() is the path's last segment");
++	t(byPath.file_url() === BASE + "/page-a/sub/page.jsonl", "path alone means <path>/page.jsonl");
++
++	// Dedup: a second page listing the SAME file gets the SAME live object (Item.open, one Store per url).
++	const page2 = Item.hydrate({ id: "pg2", title: "Page 2", items: [] });
++	page2.url = BASE + "/page-a/";
++	const also = page2.items.add({ file: "thing.jsonl" });
++	const loadedB = await also.load();
++	t(loadedA === loadedB, "two pages that list the same file share one loaded object (dedup)");
++
++	server.close();
++	fs.rmSync(DIR, { recursive: true, force: true });
++}
++
+ console.log(`ok — ${n} assertions passed`);
+diff --git a/public/framework/core/Item/readme.md b/public/framework/core/Item/readme.md
+index aea2cdd3fb..82d7c40c2d 100644
+--- a/public/framework/core/Item/readme.md
++++ b/public/framework/core/Item/readme.md
+@@ -16,6 +16,8 @@
+ 
+ **When to reach for which:** a **List** when something is ordered and needs watching (events are built in — there's no event-less variant any more); an **Item** when it is a thing (an icon, a title, saved); a **Page** when it has a URL.
+ 
++**page.items — an item saved in its own file.** Any list member with `file` and/or `path` keeps its own lines in a file beside the page that lists it instead of a line here: `file_url()` resolves it (against `this.parent`'s own url, never `root()`), `load()` answers the shared live object (`Item.open`, one per url — two pages that list the same file share it), and its id defaults to the file's name. `public/live/readme.md`, "an item in its own file", and `Page.class.js`'s `items` getter.
++
+ ## Architecture
+ 
+ ```js
+diff --git a/public/framework/core/Page/Jsonl.js b/public/framework/core/Page/Jsonl.js
+index ae411ead24..0a4c0aba99 100644
+--- a/public/framework/core/Page/Jsonl.js
++++ b/public/framework/core/Page/Jsonl.js
+@@ -25,8 +25,15 @@ export default class PageJsonl {
+ 	// ════ THE LOADER ═══
+ 	// `url` is the folder; line 1 builds the page, later lines are set(). Streams on localhost.
+ 	// ⚠ Two callers can race for one url: `reader._building` joins them. (doc/watch-out.md)
+-	static async load(host, url){
+-		const reader = host.Reader.for(url + "page.jsonl");
++	static async load(host, url){ return this._load(host, url + "page.jsonl", url); }
++
++	// page.items: an item saved in its own file (`file`/`path`) opens as a full page at an ADDRESS that is not where its
++	// lines live (`/live/item-test/thing/`'s lines sit in the sibling `thing.jsonl`, not a `thing/page.jsonl`) — same loader,
++	// the file url and the page's own address passed apart (LivePage.child(), doc/jsonl.md "page.items").
++	static async load_file(host, file_url, address){ return this._load(host, file_url, address); }
++
++	static async _load(host, file_url, address){
++		const reader = host.Reader.for(file_url);
+ 
+ 		// A page already built for this reader — a SECOND visit gets the SAME live object back.
+ 		if (reader.host) return reader.host;
+@@ -39,10 +46,10 @@ export default class PageJsonl {
+ 			const [first] = reader.entries;
+ 			if (!first || typeof first.file === "string") { reader.close(); return null; }
+ 
+-			const Class = first.class ? await host.log_class(first.class, url) : host;
++			const Class = first.class ? await host.log_class(first.class, address) : host;
+ 			await Item.load_types(reader.entries);   // a type the log names that nobody imported yet (a Task in content) loads first
+ 			const { class: _, ...line } = first;
+-			const page = new Class(line, { url, jsonl_url: reader.url });
++			const page = new Class(line, { url: address, jsonl_url: reader.url });
+ 
+ 			if (!page.has_content()) page.content.fallback(page.log_view);
+ 			reader.attach(page);
+@@ -256,7 +263,7 @@ export default class PageJsonl {
+ 	log_draw(){ (this.page.placed ?? []).forEach(entry => this.page.draw_placed(entry)); }
+ 
+ 	// Where the log's files really are. A page's `url` is its ADDRESS; a card shown at another address (AI 2) keeps its files in its own folder.
+-	log_folder(){ return String(this.page.jsonl_url ?? this.page.url).replace(/page\.jsonl$/, ""); }
++	log_folder(){ return String(this.page.jsonl_url ?? this.page.url).replace(/[^/]+\.jsonl$/, ""); }
+ 
+ 	log_redraw(){ this.page.$log?.empty(() => { this.page.log_draw(); }); }
+ 
+diff --git a/public/framework/core/Page/Page.class.js b/public/framework/core/Page/Page.class.js
+index 4e172d8ad9..4bf6cb393d 100644
+--- a/public/framework/core/Page/Page.class.js
++++ b/public/framework/core/Page/Page.class.js
+@@ -102,6 +102,15 @@ export class Page extends Item {
+ 		return super.set(obj);
+ 	}
+ 
++	// ════ ITEMS — each one embedded (a line here) or saved in its own file (`file`/`path`: core/Item's file_url/load, doc/jsonl.md
++	// "page.items") ═══ No `set()` override needed: `this.items` self-registers by name (List.named), so a generic
++	// `{"items":{"add":…}}}` line already routes there the same way any other named list does (Item.get/set_one).
++	get items(){
++		return this._items ??= Object.assign(new List({ owner: this, name: "items" }), {
++			make(x){ const made = List.prototype.make.call(this, x); if (x?.id == null && made?.default_id) made.id = made.default_id() ?? made.id; return made; },
++		});
++	}
++
+ 	// ════ CONTENT — (doc/content.md) ═══
+ 	get content(){ return this._content ??= new this.constructor.Content({ owner: this, name: "content" }); }
+ 	set content(value){ this.content.fill(value); }
+@@ -135,8 +144,9 @@ export class Page extends Item {
+ 	get(key){ return key === "content" ? this.content : super.get(key); }
+ 
+ 	lists(){
+-		const { _content, ...lists } = super.lists();
++		const { _content, _items, ...lists } = super.lists();
+ 		if (_content?.items.some(item => !item.transient)) lists.content = _content;
++		if (_items?.items.length) lists.items = _items;
+ 		return lists;
+ 	}
+ 
+@@ -239,6 +249,8 @@ export class Page extends Item {
+ 	log_forget(){ return this._helper("Jsonl").log_forget(); }
+ 
+ 	static jsonl(url){ return this.Jsonl.load(this, url); }
++	// page.items: a sibling file's own lines, built as a full page at `address` (not where the file sits — LivePage.child()).
++	static jsonl_file(file_url, address){ return this.Jsonl.load_file(this, file_url, address); }
+ 
+ 	// A folder's own file list: a loaded page's lines, else files.jsonl, else page.jsonl, else null. Memoised per folder. (doc/decisions.md)
+ 	static listing(url, fresh){ return Page.Listing.listing(Page, url, fresh); }
+diff --git a/public/framework/core/Page/Page.test.mjs b/public/framework/core/Page/Page.test.mjs
+index 982e136869..0e8ad7aca7 100644
+--- a/public/framework/core/Page/Page.test.mjs
++++ b/public/framework/core/Page/Page.test.mjs
+@@ -96,4 +96,13 @@ const names = list => [...list].map(x => `${x.constructor.name}:${x.id}`);
+ 	} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
+ }
+ 
++// page.items: a member saved in its own file takes the file's name as its id; an embedded one and a content card with a path keep a fresh id.
++{
++	const page = new Page({ title: "Items" });
++	ok(page.items.add({ file: "thing.jsonl" }).id === "thing", "page.items: {file: \"thing.jsonl\"} gets id \"thing\"");
++	ok(page.items.add({ path: "a/sub" }).id === "sub", "page.items: {path: \"a/sub\"} gets id \"sub\"");
++	ok(page.items.add({ id: "x", file: "y.jsonl" }).id === "x", "a passed id wins");
++	ok(page.content.add({ type: "part-card", path: "/framework/z/" }).id !== "z", "a content card that carries a path keeps its own id");
++}
++
+ console.log(`Page: ${checks} checks passed`);
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework-ai2/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework-ai2/files.jsonl
+index 0a3049368f..0d809b8912 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework-ai2/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework-ai2/files.jsonl
+@@ -52,3 +52,9 @@
+ {"file":"3440.png"}
+ {"file":"layout.json"}
+ {"file":"sheet.png"}
++{"file":"1920.png","gone":true}
++{"file":"3440.png","gone":true}
++{"file":"1280.png","gone":true}
++{"file":"2560.png","gone":true}
++{"file":"layout.json","gone":true}
++{"file":"sheet.png","gone":true}
+diff --git a/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework/files.jsonl b/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework/files.jsonl
+index 773752538b..abfe1d8196 100644
+--- a/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework/files.jsonl
++++ b/public/framework/core/Session/tasks/data-shapes/build/backbone/layout-check/monorepo-localhost-framework/files.jsonl
+@@ -52,3 +52,9 @@
+ {"file":"3440.png"}
+ {"file":"layout.json"}
+ {"file":"sheet.png"}
++{"file":"1280.png","gone":true}
++{"file":"1920.png","gone":true}
++{"file":"2560.png","gone":true}
++{"file":"3440.png","gone":true}
++{"file":"layout.json","gone":true}
++{"file":"sheet.png","gone":true}
+diff --git a/public/framework/core/Sidebar/variants/walkthrough/files.jsonl b/public/framework/core/Sidebar/variants/walkthrough/files.jsonl
+index 0f0d0c00d5..a2742cfb08 100644
+--- a/public/framework/core/Sidebar/variants/walkthrough/files.jsonl
++++ b/public/framework/core/Sidebar/variants/walkthrough/files.jsonl
+@@ -1,2 +1,3 @@
+ {"file":"page.js"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Task/files.jsonl b/public/framework/core/Task/files.jsonl
+index 098d5e48cc..18fe6b7f60 100644
+--- a/public/framework/core/Task/files.jsonl
++++ b/public/framework/core/Task/files.jsonl
+@@ -58,3 +58,4 @@
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
+ {"file":"completion.test.mjs"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Task/process/files.jsonl b/public/framework/core/Task/process/files.jsonl
+index a177265e4d..00d3e95ac8 100644
+--- a/public/framework/core/Task/process/files.jsonl
++++ b/public/framework/core/Task/process/files.jsonl
+@@ -12,3 +12,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/core/Task/tasks/prompt-extends-task/files.jsonl b/public/framework/core/Task/tasks/prompt-extends-task/files.jsonl
+index 657f41c033..5247e8d6a4 100644
+--- a/public/framework/core/Task/tasks/prompt-extends-task/files.jsonl
++++ b/public/framework/core/Task/tasks/prompt-extends-task/files.jsonl
+@@ -20,3 +20,4 @@
+ {"file":"layout-check/"}
+ {"file":"layout-check/","gone":true}
+ {"file":"layout-check/"}
++{"file":"layout-check/","gone":true}
+diff --git a/public/framework/core/Test/tasks/test-system/files.jsonl b/public/framework/core/Test/tasks/test-system/files.jsonl
+index 7fe53714dd..b8872a799b 100644
+--- a/public/framework/core/Test/tasks/test-system/files.jsonl
++++ b/public/framework/core/Test/tasks/test-system/files.jsonl
+@@ -27,3 +27,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/core/files.jsonl b/public/framework/core/files.jsonl
+index fb6116daba..7c88081147 100644
+--- a/public/framework/core/files.jsonl
++++ b/public/framework/core/files.jsonl
+@@ -55,3 +55,4 @@
+ {"file":"Settings/page.js"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/dev/DevBar/files.jsonl b/public/framework/dev/DevBar/files.jsonl
+index 202eb15fe5..ae6a10cc92 100644
+--- a/public/framework/dev/DevBar/files.jsonl
++++ b/public/framework/dev/DevBar/files.jsonl
+@@ -23,3 +23,4 @@
+ {"file":"shots.js"}
+ {"file":"tasks/"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/dev/DevShell/files.jsonl b/public/framework/dev/DevShell/files.jsonl
+index 75aa1a2d74..402c18c6b1 100644
+--- a/public/framework/dev/DevShell/files.jsonl
++++ b/public/framework/dev/DevShell/files.jsonl
+@@ -21,3 +21,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/dev/Socket/files.jsonl b/public/framework/dev/Socket/files.jsonl
+index 504c598042..16ac56499c 100644
+--- a/public/framework/dev/Socket/files.jsonl
++++ b/public/framework/dev/Socket/files.jsonl
+@@ -19,3 +19,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/Chat/doc/proof/shots/files.jsonl b/public/framework/ext/Chat/doc/proof/shots/files.jsonl
+index d1f5635fa7..8406df4a79 100644
+--- a/public/framework/ext/Chat/doc/proof/shots/files.jsonl
++++ b/public/framework/ext/Chat/doc/proof/shots/files.jsonl
+@@ -421,3 +421,28 @@
+ {"file":"run-voice-1920.png"}
+ {"file":"run-voice-400.png"}
+ {"file":"sheet-400.png"}
++{"file":"before-typed-1920.png","gone":true}
++{"file":"before-voice-1920.png","gone":true}
++{"file":"before-typed-400.png","gone":true}
++{"file":"before-voice-400.png","gone":true}
++{"file":"after-typed-1920.png","gone":true}
++{"file":"after-voice-1920.png","gone":true}
++{"file":"after-typed-400.png","gone":true}
++{"file":"after-voice-400.png","gone":true}
++{"file":"after-navigate-1920.png","gone":true}
++{"file":"before-navigate-1920.png","gone":true}
++{"file":"before-navigate-400.png","gone":true}
++{"file":"after-navigate-400.png","gone":true}
++{"file":"sheet-400.png","gone":true}
++{"file":"rerun-navigate-1920.png","gone":true}
++{"file":"rerun-navigate-400.png","gone":true}
++{"file":"rerun-typed-1920.png","gone":true}
++{"file":"rerun-typed-400.png","gone":true}
++{"file":"rerun-voice-1920.png","gone":true}
++{"file":"rerun-voice-400.png","gone":true}
++{"file":"run-typed-1920.png","gone":true}
++{"file":"run-voice-1920.png","gone":true}
++{"file":"run-navigate-1920.png","gone":true}
++{"file":"run-typed-400.png","gone":true}
++{"file":"run-voice-400.png","gone":true}
++{"file":"run-navigate-400.png","gone":true}
+diff --git a/public/framework/ext/Chat/files.jsonl b/public/framework/ext/Chat/files.jsonl
+index 0b9445ec89..45ba47d814 100644
+--- a/public/framework/ext/Chat/files.jsonl
++++ b/public/framework/ext/Chat/files.jsonl
+@@ -66,3 +66,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/Chat/list/files.jsonl b/public/framework/ext/Chat/list/files.jsonl
+index c9e2b8c40a..5c0f3ad13a 100644
+--- a/public/framework/ext/Chat/list/files.jsonl
++++ b/public/framework/ext/Chat/list/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"readme.md"}
+ {"file":"failures.jsonl"}
+ {"file":"ChatList.test.mjs"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/Chat/v2/files.jsonl b/public/framework/ext/Chat/v2/files.jsonl
+index c1f357ef23..ff401801af 100644
+--- a/public/framework/ext/Chat/v2/files.jsonl
++++ b/public/framework/ext/Chat/v2/files.jsonl
+@@ -25,3 +25,4 @@
+ {"file":"report.test.mjs"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/Chat/v2/fixture/files.jsonl b/public/framework/ext/Chat/v2/fixture/files.jsonl
+index 9b502c3689..9d65fc6979 100644
+--- a/public/framework/ext/Chat/v2/fixture/files.jsonl
++++ b/public/framework/ext/Chat/v2/fixture/files.jsonl
+@@ -471,3 +471,5 @@
+ {"file":"live-40084.jsonl","gone":true}
+ {"file":"dbg-27008.jsonl"}
+ {"file":"live-40084.jsonl"}
++{"file":"dbg-27008.jsonl","gone":true}
++{"file":"live-40084.jsonl","gone":true}
+diff --git a/public/framework/ext/Chat/v3/files.jsonl b/public/framework/ext/Chat/v3/files.jsonl
+index 349551903a..c0b03fc1da 100644
+--- a/public/framework/ext/Chat/v3/files.jsonl
++++ b/public/framework/ext/Chat/v3/files.jsonl
+@@ -21,3 +21,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/DataGrid/files.jsonl b/public/framework/ext/DataGrid/files.jsonl
+index 4e141b7a1a..d1ae0fdb79 100644
+--- a/public/framework/ext/DataGrid/files.jsonl
++++ b/public/framework/ext/DataGrid/files.jsonl
+@@ -25,3 +25,4 @@
+ {"file":"screenshots/"}
+ {"file":"screenshots/","gone":true}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/framework/ext/Figma/files.jsonl b/public/framework/ext/Figma/files.jsonl
+index 72e895dee8..73e7ede973 100644
+--- a/public/framework/ext/Figma/files.jsonl
++++ b/public/framework/ext/Figma/files.jsonl
+@@ -55,3 +55,4 @@
+ {"file":"screenshots/"}
+ {"file":"screenshots/","gone":true}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/framework/ext/Inspect/doc/file/files.jsonl b/public/framework/ext/Inspect/doc/file/files.jsonl
+new file mode 100644
+index 0000000000..66cb3b7744
+--- /dev/null
++++ b/public/framework/ext/Inspect/doc/file/files.jsonl
+@@ -0,0 +1,2 @@
++{"file":"DeltaHistory.js.md"}
++{"file":"ItemInspector.js.md"}
+diff --git a/public/framework/ext/Inspect/doc/files.jsonl b/public/framework/ext/Inspect/doc/files.jsonl
+new file mode 100644
+index 0000000000..9201fa0355
+--- /dev/null
++++ b/public/framework/ext/Inspect/doc/files.jsonl
+@@ -0,0 +1 @@
++{"file":"file/"}
+diff --git a/public/framework/ext/JSONL/files.jsonl b/public/framework/ext/JSONL/files.jsonl
+index 8c44dd8852..9117741657 100644
+--- a/public/framework/ext/JSONL/files.jsonl
++++ b/public/framework/ext/JSONL/files.jsonl
+@@ -12,3 +12,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/Mention/files.jsonl b/public/framework/ext/Mention/files.jsonl
+index 803710e4ec..a7f65d3ddf 100644
+--- a/public/framework/ext/Mention/files.jsonl
++++ b/public/framework/ext/Mention/files.jsonl
+@@ -17,3 +17,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/Refine/files.jsonl b/public/framework/ext/Refine/files.jsonl
+index 7a531b1837..7de9cef072 100644
+--- a/public/framework/ext/Refine/files.jsonl
++++ b/public/framework/ext/Refine/files.jsonl
+@@ -83,3 +83,5 @@
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ext/Refine/tasks/asks-to-tasks/files.jsonl b/public/framework/ext/Refine/tasks/asks-to-tasks/files.jsonl
+index 05589be0db..0e656ef951 100644
+--- a/public/framework/ext/Refine/tasks/asks-to-tasks/files.jsonl
++++ b/public/framework/ext/Refine/tasks/asks-to-tasks/files.jsonl
+@@ -19,3 +19,4 @@
+ {"file":"shots/"}
+ {"file":"shots/","gone":true}
+ {"file":"shots/"}
++{"file":"shots/","gone":true}
+diff --git a/public/framework/ext/Session/files.jsonl b/public/framework/ext/Session/files.jsonl
+index 6fa4b193af..1535fc3c12 100644
+--- a/public/framework/ext/Session/files.jsonl
++++ b/public/framework/ext/Session/files.jsonl
+@@ -20,3 +20,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/live/LivePage.js b/public/live/LivePage.js
+index 1980d04c19..2a06803435 100644
+--- a/public/live/LivePage.js
++++ b/public/live/LivePage.js
+@@ -147,6 +147,13 @@ export default class LivePage extends Page {
+ 	}
+ 	async child(name, levels){
+ 		if (!this.children.get(name)){   // not built yet (undefined), or named by a {"file": "x/page.jsonl"} line (null)
++			// page.items first: an item saved in its own file opens as a full page at this address (its lines may sit in a
++			// sibling .jsonl, not a same-named folder) — core/Item's file_url/load, doc/jsonl.md "page.items".
++			const stub = this.items.find(name), url = stub?.file_url?.();
++			if (url){
++				const page = await LivePage.jsonl_file(url, this.url + name + "/");
++				if (page) return this.add(name, page).load_all_children(levels);
++			}
+ 			const kind = this.child_kinds?.get(name) ?? (await Page.listing(this.url).catch(() => null))?.pages.get(name);
+ 			if (kind === "jsonl" && !LivePage.tab_skip.has(this.url + name + "/")){   // the old views keep their own classes
+ 				const page = await LivePage.jsonl(this.url + name + "/");   // LivePage as the host, so log_class above decides
+@@ -222,6 +229,7 @@ export default class LivePage extends Page {
+ 			if (this.settings_of) return void new P.Settings({ page: this, of: this.settings_of, at: this.at });
+ 			if (this.focus) new P.Focus({ page: this, item: this.focus });
+ 			new P.Main({ page: this, list: this.cards });
++			if (!this.focus && !this.screen && !this.settings_of) new P.Items({ page: this });
+ 			new P.Pages({ page: this });
+ 			new P.Foot({ page: this });
+ 		});
+@@ -501,6 +509,30 @@ export default class LivePage extends Page {
+ 		}
+ 	};
+ 
++	// page.items, after the content: each one loaded (embedded, or `Item.open`'d from its own file — core/Item's
++	// file_url/load) and drawn as title + text, live (its own file tails, so a write shows with no reload).
++	static Items = class LiveItemsView extends View {
++		render(){
++			const { page } = this, P = page.constructor, list = page.items, rows = new Map();
++			const draw = () => {
++				this.tc("is-empty", !list.items.length);
++				const seen = new Set(list.items.map(i => i.id));
++				for (const [id, $row] of [...rows]) if (!seen.has(id)){ $row.el.remove(); rows.delete(id); }
++				list.items.forEach(item => {
++					if (rows.has(item.id)) return;
++					let $row; this.append(() => $row = div.c("live-item"));
++					rows.set(item.id, $row);
++					item.load().then(obj => $row.append(() => {
++						new P.Heading({ tag: "h4", item: obj, classes: "live-item-title" });
++						new P.Md({ item: obj, key: "text", classes: "live-item-text" });
++					})).catch(err => $row.append(() => span.c("live-item-error", String(err?.message ?? err))));
++				});
++			};
++			["add", "remove", "move", "order", "clear"].forEach(verb => list.on(verb, draw));
++			draw();
++		}
++	};
++
+ 	// What cannot be tapped draws with no frame: a class with its own View (a checklist, a Task, a button) draws with it;
+ 	// a text or a heading draws its title and text.
+ 	static Block = class LiveBlockView extends View {
+diff --git a/public/live/readme.md b/public/live/readme.md
+index 302f1100c9..3017c9f859 100644
+--- a/public/live/readme.md
++++ b/public/live/readme.md
+@@ -30,6 +30,7 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
+ | a code block | `{"content":{"add":{"type":"live-code","lang":"js","code":"const sum = (a, b) => a + b;"}}}`; `lang` is js, json, css, html or sh (default js), highlighted by `ext/highlight`; optional `title` and one-line `caption`. **Use it for any code in a card. Keep each line of an example under about 40 characters, because that is what fits on a phone, and put each chained call (`.map`, `.filter`, `.reduce`) on its own line.** A file view (settings → a file) can scroll; an example should fit |
+ | a plain element | `{"content":{"add":{"type":"View","content":"Hello world"}}}`: a div with that text (any registered class that is not an Item draws this way; `Item.foreign` in core/Item/Item.js). Demo: [/live/div-test/](/live/div-test/) |
+ | a card for a thing on the site | `{"content":{"add":{"type":"part-card","id":"pg","title":"@Page"}}}`: its icon and name, and a tap opens it (ext/Mention) |
++| an item in its own file | `{"items":{"add":{"file":"thing.jsonl"}}}`: its lines live in `thing.jsonl` beside this page's own, not here. Drawn after the content (title + its text, tailed live) and reachable as a full page at `/live/<folder>/thing` — its id defaults to the file name (core/Item/readme.md, "page.items") |
+ 
+ ## Going into a thing: sub-pages
+ 

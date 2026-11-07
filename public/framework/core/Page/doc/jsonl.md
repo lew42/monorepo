@@ -47,6 +47,14 @@ the method with data. Put verbs on line 2 onwards.
 the folder) and builds its default export, which must extend `Page`. `class` itself is not
 assigned. `Card.jsonl(url)` does the same without the line, because the loader builds `new this`.
 
+## page.items — an item saved in its own file
+
+`{"items":{"add":{"file":"thing.jsonl"}}}` lists an item whose own lines live in another file instead of here. `file` alone is a sibling file; `path` alone is `<path>/page.jsonl`; both is `<path>/<file>` (`Item.file_url()`, resolved against the folder of the page that lists it). Its id defaults to the file name (`thing`), so the page shows it as a card and `<page>/thing/` opens it whole.
+
+- **Opening it whole:** `PageJsonl.load_file(host, file_url, address)` (`Page.jsonl_file`) builds a page from the file's lines but shows it at `address`, because the file (`item-test/thing.jsonl`) is not at the address (`item-test/thing/`). `LivePage.child()` checks `items` first.
+- **Its class:** the file's own line 1 `class`, else the class of the page that lists it, in the browser (`Item.load()`) and in the item tool (`listed_class` in `Servex/agents/page_tools.js`). A loose file nobody lists stays plain `Page`.
+- **Caveat, two live objects:** the card opens the file through `Item.open` (`Store.for`), the full-page route through `Reader.for`. Both tail the same file, so they agree, but they are two objects. Folding `Reader.for` into `Store.for` is the "Tidy up" step on [/live/plan/](/live/plan/); `child()` cannot reuse `stub.load()` until then, because `Item.open` builds a root with no page address.
+
 ## Three steps, separate on purpose
 
 1. **Exists** — `{"file": "x"}`. Recorded, never drawn (see "Who writes the file lines" below).
