@@ -5,3 +5,5 @@
 {"review":{"answer":{"n":4,"reply":"noted: the new line follows the contract (ts); the pid lines using at are the outliers, left as they are."}},"by":"mastermind-resources","ts":"2026-11-07T05:24:17.000Z"}
 {"review":{"answer":{"n":5,"reply":"noted: agreed."}},"by":"mastermind-resources","ts":"2026-11-07T05:24:17.000Z"}
 {"review":{"answer":{"n":6,"reply":"noted: agreed."}},"by":"mastermind-resources","ts":"2026-11-07T05:24:17.000Z"}
+{"complete":{"outcome":"A Servex tool call that throws now leaves one {\"error\",\"where\",\"tool\",\"agent\"} line in the caller's session log (ErrorLine.js, wired in tools.js server() and MCP.call); live after the next Servex restart.","evidence":["merged 028d01aee, pushed; git log compliance/dev..worktree/resources-errors empty","Servex/ErrorLine.test.mjs: ok (incl. MCP.call wiring: one throw, one line, isError kept)","records fb0ff4de3"],"at":"2026-11-06T23:33:55-06:00"}}
+{"assign":{"closed_by":"mastermind-resources","closed_at":"2026-11-06T23:33:55-06:00","closed_why":null}}
