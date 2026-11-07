@@ -23,6 +23,11 @@ check("three tasks, one complete: completion is 1/3 and progress {1,3}", () => {
 
 check("no tasks: completion null (needs review), progress {0,0}", () => { const s = new Session("s"); return s.completion === null && s.progress().total === 0; });
 
+check("a record's {complete:{outcome, evidence}} line closes it as complete (a step's own session, ProcessRunner)", () => {
+	const s = Session.replay([{ session: { id: "s", kind: "agent" } }, { start: {} }, { complete: { outcome: "done", evidence: ["a test"] } }]);
+	return s.state === "complete" && s.get_one("outcome") === "done" && s.completion === null;
+});
+
 check("replay: a tasks.add line adds a Task", () => {
 	const s = Session.replay([{ session: "r1" }, { tasks: { add: { type: "Task", id: "t1", data: { title: "one" } } } }, { tasks: { add: { type: "Task", id: "t2", data: { state: "complete" } } } }]);
 	return s.id === "r1" && s.tasks.length === 2 && s.tasks.find("t1") instanceof Task && s.progress().done === 1;

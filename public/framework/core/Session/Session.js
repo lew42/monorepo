@@ -124,6 +124,8 @@ export default class Session extends Task {
 		 * clears the old why, so a session that came back is not still read as "abandoned" (2026-10-23). */
 		if (delta.stop && typeof delta.stop === "object"){ this.put("state", "stopped"); this.put("why", delta.stop.why ?? null); this.put("stopped_at", delta.stop.at ?? Task.clock); delete delta.stop; }
 		if (delta.start && typeof delta.start === "object"){ this.put("state", "running"); this.put("why", null); this.put("stopped_at", null); delete delta.start; }
+		/* {"complete":{outcome, evidence}} closes the record as done, the way stop closes it as stopped (ProcessRunner.settle_sessions writes it into a step's own session). A bare number stays an old score field. */
+		if (delta.complete && typeof delta.complete === "object" && !Array.isArray(delta.complete)){ const { outcome, evidence } = delta.complete; this.put("state", "complete"); this.put("why", null); this.put("completed_at", Task.clock); if (outcome !== undefined) this.put("outcome", outcome); if (evidence !== undefined) this.put("evidence", [].concat(evidence)); delete delta.complete; }
 		if (typeof delta.task === "string"){   // a reference line: the live child; one with the same id as a nested child replaces it (it moved home)
 			const kid = Task.from_ref(delta.task, delta.as, delta), had = this._tasks?.find(kid.id);   // a Session entry's type and spawn ride on the same line
 			kid._created_at ??= Task.clock;
