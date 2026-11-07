@@ -1,0 +1,183 @@
+diff --git a/Servex/ErrorLine.js b/Servex/ErrorLine.js
+new file mode 100644
+index 000000000..97b81e990
+--- /dev/null
++++ b/Servex/ErrorLine.js
+@@ -0,0 +1,40 @@
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import SpawnLog from "./SpawnLog.js";
++
++/* A CAUGHT ERROR GETS A LINE: `{"error":"<message>","where":"Servex/x.js:12", ...}` in the session log of the agent it happened for,
++ * so `git grep '"error":'` finds it beside the work (contract: public/framework/ai/indexing-past-work.md, sections 5 and 6).
++ * Written where a tool call is caught (agents/tools.js server(), MCP.js call()); with no agent it goes to the Servex `errors` log.
++ * Writing never throws: a broken log line must not turn one error into two. */
++export default class ErrorLine {
++	static ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++	static CUT = 500;
++
++	/* The first stack frame inside the repo (not node_modules, not node:internal), as "repo/relative/file.js:line"; null when there is none. */
++	static where(e, root = this.ROOT){
++		for (const raw of String(e?.stack ?? "").split("\n").slice(1)){
++			const m = raw.match(/\(?((?:file:\/\/\/)?[A-Za-z]:[\\/][^():]*|\/[^():]*):(\d+):\d+\)?\s*$/);
++			if (!m) continue;
++			const file = m[1].startsWith("file:") ? fileURLToPath(m[1]) : m[1];
++			const rel = path.relative(root, file);
++			if (!rel || rel.startsWith("..") || path.isAbsolute(rel) || /node_modules/.test(rel)) continue;
++			return `${rel.split(path.sep).join("/")}:${m[2]}`;
++		}
++		return null;
++	}
++
++	/* The line itself: error first (the contract's fixed first key), then where, then whatever the caller adds (tool, agent). */
++	static of(e, extra = {}){
++		return { error: String(e?.message ?? e).slice(0, this.CUT), where: this.where(e), ...extra };
++	}
++
++	/* Write it: into the agent's session log when `who` has a task dir, else the `errors` log. */
++	static note(agents, who, e, extra = {}){
++		try {
++			const line = this.of(e, { ...extra, ...(who ? { agent: who } : {}) });
++			const dir = who ? SpawnLog.dir_for(agents, who) : null;
++			if (dir) return SpawnLog.note(dir, line);
++			if (SpawnLog.sink) return void SpawnLog.sink.append("errors", line).catch(() => {});
++		} catch { /* never throws */ }
++	}
++}
+diff --git a/Servex/ErrorLine.test.mjs b/Servex/ErrorLine.test.mjs
+new file mode 100644
+index 000000000..004b84a55
+--- /dev/null
++++ b/Servex/ErrorLine.test.mjs
+@@ -0,0 +1,39 @@
++// ErrorLine core test: where() finds the first repo frame, of() puts "error" first, note() lands one line in the agent's session log.
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import ErrorLine from "./ErrorLine.js";
++import SpawnLog from "./SpawnLog.js";
++
++const root = ErrorLine.ROOT;
++const e = new Error("boom");
++e.stack = [
++	"Error: boom",
++	`    at inner (${path.join(root, "node_modules", "x", "i.js")}:3:1)`,
++	"    at node:internal/process/task_queues:95:5",
++	`    at handler (file:///${path.join(root, "Servex", "agents", "tools.js").split(path.sep).join("/")}:612:9)`,
++].join("\n");
++assert.equal(ErrorLine.where(e), "Servex/agents/tools.js:612", "skips node_modules and node:internal, keeps the repo frame");
++assert.equal(ErrorLine.where({ stack: "Error: x\n    at node:internal/a:1:1" }), null, "no repo frame: null");
++
++const line = ErrorLine.of(e, { tool: "item" });
++assert.deepEqual(Object.keys(line), ["error", "where", "tool"], "error is the fixed first key");
++assert.equal(line.error, "boom");
++assert.equal(ErrorLine.of("plain string").error, "plain string", "a thrown string still makes a line");
++
++const dir = fs.mkdtempSync(path.join(os.tmpdir(), "errorline-"));
++fs.writeFileSync(path.join(dir, "session.jsonl"), JSON.stringify({ title: "t", by: "test", ts: new Date().toISOString() }) + "\n");
++const agents = { live: new Map([["minion-x", { task: { dir } }]]) };
++ErrorLine.note(agents, "minion-x", e, { tool: "item" });
++await SpawnLog.flush();
++const last = JSON.parse(fs.readFileSync(path.join(dir, "session.jsonl"), "utf8").trim().split("\n").at(-1));
++assert.equal(last.error, "boom");
++assert.equal(last.where, "Servex/agents/tools.js:612");
++assert.equal(last.agent, "minion-x");
++assert.equal(last.tool, "item");
++assert.equal(last.by, "servex");
++
++assert.doesNotThrow(() => ErrorLine.note(null, null, e), "no agent and no sink: never throws");
++fs.rmSync(dir, { recursive: true, force: true });
++console.log("ErrorLine.test: ok");
+diff --git a/Servex/MCP.js b/Servex/MCP.js
+index 2415b19e3..e5426045d 100644
+--- a/Servex/MCP.js
++++ b/Servex/MCP.js
+@@ -103,6 +103,7 @@ export default class MCP extends Events {
+         try {
+             return this.text(await handler(args, ctx));
+         } catch (e){
++            this.on_error?.(e, name, ctx);   // Servex sets it: an {"error"} line in the caller's session log (Servex/ErrorLine.js)
+             return { content: [{ type: "text", text: String(e.message || e) }], isError: true };
+         }
+     }
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 9fd1d12e3..aff0ee116 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -67,6 +67,7 @@ import { LLAMA_EXE, LLAMA_PORT, LOCAL_PROXY_PORT } from "./ext/local/provider.js
+ import { LocalProxy } from "./ext/local/llama.js";
+ import { local_chat, local_model_slugs } from "./ext/local/chat.js";
+ import DatedFiles from "../Server/DatedFiles.mjs";
++import ErrorLine from "./ErrorLine.js";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const REPO = path.resolve(HERE, "..");
+@@ -144,7 +145,7 @@ export default class Servex extends Events {
+         this.ports.pin("servex", this.dashboard_port);
+ 
+         this.dashboard = new this.constructor.Dashboard({ port: this.dashboard_port, servex: this });
+-        this.mcp = new MCP({ router: this.dashboard.router, instructions: INSTRUCTIONS });
++        this.mcp = new MCP({ router: this.dashboard.router, instructions: INSTRUCTIONS, on_error: (e, tool, ctx) => ErrorLine.note(this.agents, ctx?.caller, e, { tool }) });
+ 
+         /* `guard()` has to be the FIRST thing registered on the router — Express
+          * walks a router's middleware/routes in REGISTRATION order, and a plain SSE
+diff --git a/Servex/agents/tools.js b/Servex/agents/tools.js
+index 006eae4ca..3f6114b7f 100644
+--- a/Servex/agents/tools.js
++++ b/Servex/agents/tools.js
+@@ -9,6 +9,7 @@ import { execFileSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
+ import { agents as singleton } from "./Agents.js";
+ import SpawnLog from "../SpawnLog.js";
++import ErrorLine from "../ErrorLine.js";
+ import { Policy } from "./policy.js";
+ import { ops_tools } from "./ops.js";
+ import { wake_tools } from "./Wakeups.js";
+@@ -610,7 +611,7 @@ export function server(agents = singleton, ctx = { caller: null }, list = tools(
+ 				const out = who ? await SpawnLog.within({ agent: who, session: agents.live?.get(who)?.session_id ?? null, why: t.name, dir: () => SpawnLog.dir_for(agents, who) }, run) : await run();
+ 				return { content: [{ type: "text", text: String(out) }] };
+ 			}
+-			catch (e){ return { content: [{ type: "text", text: String(e.message || e) }], isError: true }; }
++			catch (e){ ErrorLine.note(agents, ctx.caller, e, { tool: t.name }); return { content: [{ type: "text", text: String(e.message || e) }], isError: true }; }   // the agent sees the error; its session log gets an {"error"} line (Servex/ErrorLine.js)
+ 		})) });
+ }
+ 
+diff --git a/Servex/doc/tool-process.md b/Servex/doc/tool-process.md
+index c8fab0181..4986a44db 100644
+--- a/Servex/doc/tool-process.md
++++ b/Servex/doc/tool-process.md
+@@ -10,7 +10,7 @@
+ 
+ ## If a tool throws
+ 
+-`MCP.call()` catches it and returns `{isError: true, text: <message>}`; the in-process `server()` does the same. The agent sees an error result and carries on. An unknown method or tool returns a JSON-RPC error. Nothing ends the session.
++`MCP.call()` catches it and returns `{isError: true, text: <message>}`; the in-process `server()` does the same. Both also write one `{"error":"<message>","where":"file:line","tool","agent"}` line into the calling agent's session log ([ErrorLine.js](../ErrorLine.js); with no caller, into the Servex `errors` log). The agent sees an error result and carries on. An unknown method or tool returns a JSON-RPC error. Nothing ends the session.
+ 
+ ## If something crashes
+ 
+diff --git a/Servex/readme.md b/Servex/readme.md
+index 90b0332c2..349f0dcd6 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -45,6 +45,7 @@ class Servex {
+ | `agents/` | `Agents.js` (`spawn` → `open_task` → SDK `query()`), `tools.js` (the in-process tools incl. `spawn_agent`), `roles.js` (role → its readme in [`roles/`](agents/roles/readme.md), skills and posture), `Dispatcher.js`, `ChatWriter.js` (V1 `{chat}` lines to `session.messages`; tests `ChatWriter.move.test.mjs`, `ChatWriter.order.test.mjs`), `Sessions.js` (a voice session's fast and smart seats; the fast seat is the voice assistant by default, `session-assistant.txt` = `voice`/`fast`/`off`; both have `parent: "sessions"` so their turn-ends reach `Sessions.hire()`, and `nest_agents` in `page_tools.js` files the fast seat's cost under the smart seat of the same `parent_session`, test `seat-cost.test.mjs`), `ChatWriter.js` (mirrors each `{chat}` line `Sessions.write()` makes into the session's real chat list, `session.messages` and `session.sentences`, and, through the item tool, a `{place}` improve as that sentence's cleaned text, in place, and a new-topic `{place}` as one List `move` line; tests `chat-messages.test.mjs`, `ChatWriter.move.test.mjs`: [core/Session/Chat](/framework/core/Session/Chat/readme.md)), `WakePolicy.js` (when a voice session's smart seat is woken; test `WakePolicy.test.mjs`: [wake-policy](/framework/ux/Dictate/doc/wake-policy.md)), `page_tools.js` (item, page_set/page_add/page_call/page_read/page_log/page_note; `item` also answers **queries** with no write, e.g. `item({path, delta:{"summary":{}}})`: [doc/item-tool.md](doc/item-tool.md)), `inbox.js`, `claims.js`, `directory.js` |
+ | `asks/`, `cards/` | the asks ledger (`Asks.js`), cards (`Cards.js`, writes `ai/cards.jsonl`) |
+ | `ext/` | `remote/` (voice-app door), `openrouter/` (non-Anthropic models), `refine/`, `local/`, `recite/` (recite-server, text to speech: [ext/recite/readme.md](ext/recite/readme.md)) |
++| `ErrorLine.js` | a tool call that throws writes `{"error","where":"file:line","tool","agent"}` into the calling agent's session log (test `ErrorLine.test.mjs`; [doc/tool-process.md](doc/tool-process.md)) |
+ | `doc/` | the detail; `proof/` and `*.test.mjs` are checks |
+ 
+ ## On disk
+diff --git a/public/framework/ai/indexing-past-work.md b/public/framework/ai/indexing-past-work.md
+index 06ccd18f4..703d4f8ee 100644
+--- a/public/framework/ai/indexing-past-work.md
++++ b/public/framework/ai/indexing-past-work.md
+@@ -74,7 +74,7 @@ Session logs only grow, so old versions of them add nothing; history is for code
+ | Who started process 1234 | `git grep --untracked -n '"pid":1234' -- 'public/framework/ai/sessions/**'`; how it ended: `"pid_exit":1234`; Servex's own (no agent): `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl` | works since 2026-11-06 21:50 (processes Servex starts; [Servex/doc/processes.md](/Servex/doc/processes.md), "Who started this pid") |
+ | A queued spawn | `"queued":{` in the parent's `session.jsonl`, then `"started":{` | works since 2026-11-06 21:50 |
+ | Which session made a commit | `"commit":"abc123"` | planned (mastermind-session-truth) |
+-| A caught error | `"error":` | planned (mastermind-resources) |
++| A caught error | `"error":` in the agent's `session.jsonl`, with `"where":"file:line"` and `"tool"`; with no agent, the Servex `errors` log in `%LOCALAPPDATA%/lew42/servex/logs/`. Page errors in the browser are `ext/ErrorLog`'s, in `ai/errors/<date>.jsonl` | works for a Servex tool call that throws, from the first Servex restart after 2026-11-06 ([Servex/ErrorLine.js](/Servex/ErrorLine.js)) |
+ 
+ ## 6. The logging contract
+ 
