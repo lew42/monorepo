@@ -1,0 +1,27 @@
+@layer site {
+	/* Mirrors LivePage.css's live-files-* shape: a bordered body (--live-card when inside /live/, else a plain gray
+	   fallback), one row per member with a divider between rows. Used by both ItemInspector and DeltaHistory. */
+	.item-inspector-section + .item-inspector-section { margin-top: var(--live-step, .75rem); }
+	.item-inspector-heading { margin: var(--live-step, .75rem) 0 .3rem; }
+	.item-inspector-list + .item-inspector-list { margin-top: .5rem; }
+	.item-inspector-list-name { display: block; font-size: .85em; font-weight: 600; opacity: .7; margin: 0 0 .2rem .1rem; }
+	.item-inspector-list-body { display: flex; flex-direction: column; background: var(--live-card, light-dark(#fff, #1f1e24)); border-radius: .6rem; padding: .25rem 0; min-width: 0; }
+	.item-inspector-row { display: flex; align-items: center; justify-content: space-between; gap: .6em; padding: .5em .75rem; overflow-wrap: anywhere; }
+	.item-inspector-row + .item-inspector-row { border-top: 1px solid light-dark(#0001, #fff1); }
+	.item-inspector-row a { color: inherit; }
+	.item-inspector-type { flex: none; font-size: .78em; }
+
+	.item-inspector-methods { background: var(--live-card, light-dark(#fff, #1f1e24)); border-radius: .6rem; padding: .4em .75rem; }
+	.item-inspector-methods + .item-inspector-methods { margin-top: .4rem; }
+	.item-inspector-methods > summary { cursor: pointer; font-weight: 600; font-size: .9em; }
+	.item-inspector-chips { display: flex; flex-wrap: wrap; gap: .3em; margin-top: .4em; }
+	.item-inspector-chip { font-size: .78em; font-family: monospace; background: light-dark(#0001, #fff1); border-radius: .4em; padding: .1em .45em; }
+
+	/* DeltaHistory: the slider, then its line log (capped and scrollable so a long page.jsonl doesn't push the rest off screen). */
+	.delta-history-slider { width: 100%; }
+	.delta-history-count { display: block; margin: .2rem 0 .6rem; font-size: .8em; }
+	.delta-history-summary { margin-bottom: .75rem; }
+	.delta-history-list { display: flex; flex-direction: column; max-height: 14rem; overflow-y: auto; background: var(--live-card, light-dark(#fff, #1f1e24)); border-radius: .6rem; padding: .25rem 0; }
+	.delta-history-line { padding: .4em .75rem; font-size: .78em; font-family: monospace; overflow-wrap: anywhere; }
+	.delta-history-line + .delta-history-line { border-top: 1px solid light-dark(#0001, #fff1); }
+}
