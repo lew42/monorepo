@@ -75,6 +75,16 @@ class Session extends Task                       // ../Task/Task.js (Task extend
 - `Agents.agents_under` finds the child for the parent's cost and children. It matches `parent_session` exactly, and older rows by the parent's name within the parent's span.
 - The child shows on the parent's page as the task it carries, with its model, cost and a link to its own session page.
 
+## Asks: the owner's turns (every channel)
+
+Every owner prompt, on every channel, leaves the same line on that session's record, written by code:
+`{"refined":{"at","re":<the turn's at>,"sentences":[{n,text}],"sections":[],"via","by":"code","v":2}}`, `at` local time with ms and offset on every channel.
+- **Writer: `Server/Ask.mjs`** (`Ask.write(text, via, re, put, opts)`: skip, redact, shape and the write, for every channel; `put` is that channel's own door, sync or async). It skips empty text, slash commands and harness turns, withholds anything that looks like a secret, and splits the words with ext/Refine `quick_clean` (no AI). Callers: the VS Code hook (`.claude/hooks/prompt-relay.mjs`, also adds the counted `Prompt` item that is the turn), `Sessions.say` (SDK agents, V1, the phone sheet), `RemoteMCP.record` (Claude-app voice). The browser voice model writes the same line with sections.
+- **Reader: `Session.refine_turn`** (called from `apply_line`). A turn is one open `Prompt` task, id `Session.turn_id(re)` (`Session.turn_id` is the only copy; `Ask` calls it); each `sections` item becomes a child task `<turn>-<item id>` with `cites` ("a1 a2") and `section`. A turn with no sections is one open item. It counts until an agent closes it with an outcome, or `{"<id>":{"no_action":"why"}}`.
+- **Sections for a VS Code turn** come from Echo (`Servex/agents/Echo.js`), which writes a second `refined` line with the same `re`. Echo runs only when `SERVEX_ECHO=on`.
+- A later `refined` line with the same `re` adds its items; ids already filed are kept. Only a line stamped `v: 2` by the writer makes a turn; older `refined` lines make no task (they still fill a turn that exists).
+- Search: `git grep '"sentences":'`. Tests: `node Server/Ask.test.mjs`, `node public/framework/core/Session/Session.test.mjs`, `node Servex/ext/remote/RemoteMCP.test.mjs`.
+
 ## Session entries
 
 A session's `tasks` is the one list of everything to be done: prompts, tasks and child sessions. A child session is an entry in that list, and `children` is a view of those entries, never a second list (session-is-a-task items 31-33).

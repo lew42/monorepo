@@ -1,0 +1,13 @@
+/live/zztabs/ start: Tabs probe | Alpha | Beta  || cards:   || h1/link: Beta
+  parent pick beta off: Tabs probe | Alpha  || cards:   || h1/link: Beta
+  parent pick beta on: Tabs probe | Alpha | Beta  || cards:   || h1/link: Beta
+  beta's own title: Tabs probe | Alpha | Beta Renamed  || cards:   || h1/link: Beta Renamed
+  new folder + file line: Tabs probe | Alpha | Beta | Gamma  || cards:   || h1/link: Beta
+  gamma's own tab:false: Tabs probe | Alpha | Beta  || cards: Gamma  || h1/link: Beta
+/live/zztabs/alpha/ start: Tabs probe | Alpha | Beta  || cards:   || h1/link: 
+  parent pick beta off: Tabs probe | Alpha  || cards:   || h1/link: 
+  parent pick beta on: Tabs probe | Alpha | Beta  || cards:   || h1/link: 
+  beta's own title: Tabs probe | Alpha | Beta Renamed  || cards:   || h1/link: 
+  new folder + file line: Tabs probe | Alpha | Beta | Gamma  || cards:   || h1/link: 
+  gamma's own tab:false: Tabs probe | Alpha | Beta  || cards:   || h1/link: 
+errors: none

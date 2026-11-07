@@ -67,3 +67,7 @@
 {"file":"dropped.json","gone":true}
 {"file":"failures.jsonl","gone":true}
 {"file":"processes.json","gone":true}
+{"file":"done-check.json"}
+{"file":"dropped.json"}
+{"file":"failures.jsonl"}
+{"file":"processes.json"}

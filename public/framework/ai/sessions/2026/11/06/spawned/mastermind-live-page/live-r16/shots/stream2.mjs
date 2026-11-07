@@ -1,0 +1,31 @@
+import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
+import fs from "node:fs";
+const [,, base, root = "C:/Code/lew42/monorepo/public"] = process.argv;
+const W = (f, lines) => { fs.mkdirSync(f.replace(/[^/]+$/, ""), { recursive: true }); fs.writeFileSync(f, lines.map(l => JSON.stringify(l)).join("\n") + "\n"); };
+const A = (f, o) => fs.appendFileSync(f, JSON.stringify({ ts: new Date().toISOString(), by: "probe", ...o }) + "\n");
+// (a) item file
+const ip = root + "/live/zzitem/page.jsonl", it = root + "/live/zzitem/thing.jsonl";
+W(ip, [{ title: "Item probe", class: "/live/LivePage.js" }, { items: { add: { id: "thing", file: "thing.jsonl" } } }]);
+W(it, [{ title: "Thing" }, { content: { add: { id: "h1", type: "part-text", text: "first line" } } }]);
+// (b) tabs
+const tp = root + "/live/zztabs/page.jsonl";
+W(tp, [{ title: "Tabs probe", class: "/framework/core/Page/Page.class.js" }, { navigation: "tabs" }, { tab: { name: "gamma", title: "Gamma" } }]);
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1200, height: 900 } });
+const errs = []; p.on("pageerror", e => errs.push(String(e).slice(0, 300)));
+p.on("console", m => { if (m.type() === "error" || m.type() === "warning") errs.push("console " + m.type() + ": " + m.text().slice(0, 200)); });
+const txt = () => p.evaluate(() => document.querySelector(".active-page")?.innerText.replace(/\s+/g, " ").slice(0, 600));
+await p.goto(base + "/live/zzitem/", { waitUntil: "networkidle" }); await p.waitForTimeout(2500);
+console.log("item start:", await txt());
+A(it, { content: { add: { id: "h2", type: "part-text", text: "SECOND LINE LIVE" } } }); await p.waitForTimeout(2500);
+console.log("item after write has SECOND:", (await txt()).includes("SECOND LINE LIVE"));
+A(it, { title: "Thing renamed" }); await p.waitForTimeout(2500);
+console.log("item after title has renamed:", (await txt()).includes("Thing renamed"));
+await p.goto(base + "/live/zztabs/", { waitUntil: "networkidle" }); await p.waitForTimeout(2500);
+const tabs = () => p.evaluate(() => [...document.querySelectorAll(".active-page .tab-bar a, .active-page [class*=tab] a")].map(a => a.textContent.trim()).filter(Boolean).join(" | "));
+console.log("tabs start:", await tabs());
+A(tp, { tab: { name: "delta", title: "Delta" } }); await p.waitForTimeout(2500);
+console.log("tabs after add:", await tabs());
+A(tp, { tab: { name: "gamma", title: "Gamma Renamed" } }); await p.waitForTimeout(2500);
+console.log("tabs after rename:", await tabs());
+console.log("errors:", errs.join("\n") || "none");
+await b.close();

@@ -126,6 +126,8 @@ export default class Session extends Task {
 		if (delta.start && typeof delta.start === "object"){ this.put("state", "running"); this.put("why", null); this.put("stopped_at", null); delete delta.start; }
 		/* {"complete":{outcome, evidence}} closes the record as done, the way stop closes it as stopped (ProcessRunner.settle_sessions writes it into a step's own session). A bare number stays an old score field. */
 		if (delta.complete && typeof delta.complete === "object" && !Array.isArray(delta.complete)){ const { outcome, evidence } = delta.complete; this.put("state", "complete"); this.put("why", null); this.put("completed_at", Task.clock); if (outcome !== undefined) this.put("outcome", outcome); if (evidence !== undefined) this.put("evidence", [].concat(evidence)); delete delta.complete; }
+		// The owner's turn and its sentences/sections: {"refined":{at,re,sentences,sections,via}} (Session.refine_turn).
+		if (delta.refined && typeof delta.refined === "object" && delta.refined.re){ this.refine_turn(delta.refined); delete delta.refined; }
 		if (typeof delta.task === "string"){   // a reference line: the live child; one with the same id as a nested child replaces it (it moved home)
 			const kid = Task.from_ref(delta.task, delta.as, delta), had = this._tasks?.find(kid.id);   // a Session entry's type and spawn ride on the same line
 			kid._created_at ??= Task.clock;
@@ -166,6 +168,32 @@ export default class Session extends Task {
 		}
 		// DEPRECATED (2026-10-28): use list deltas (`chat.add`, `place.add`, …); an unknown key falls through to `put` and loses its history. Guide: /framework/core/Session/doc/one-replay-plan.md. Remove when: the one-replay plan is built and the history is replayed through a named shim.
 		for (const [k, v] of Object.entries(delta)) if (k !== "class") this.take(k, v);
+		return this;
+	}
+
+	/* THE OWNER'S TURN AS TASKS (the owner, 2026-11-06). A `refined` line, {"refined":{at,re,sentences:[{n,text}],sections,via}}, names its turn by
+	   `re` (the chat line's `at`; for a VS Code prompt, the `at` the hook gave its counted Prompt). The turn is ONE Prompt task, id Session.turn_id(re)
+	   (the hook's content Prompt when it is there, else made here in `tasks`), open until something is filed under it; each section item is a child task
+	   citing sentences (`a<n>`, the paragraph "a" below). A later refined line for the same turn replaces the sentences and adds the items it lacks. Code
+	   writes the first line (Server/Ask.mjs, sentences only), the refiner the sections. A refined line WITHOUT `v: 2` (every line written before 2026-11-06) never makes a turn; it only fills one that already exists. */
+	static turn_id(at){ let h = 5381; for (const c of String(at)) h = ((h * 33) ^ c.codePointAt(0)) >>> 0; return "t" + h.toString(36); }
+	static turn_title(text){ const t = String(text).replace(/\s+/g, " ").trim(); return t.length > 70 ? t.slice(0, 69).trimEnd() + "…" : t; }
+	refine_turn(r){
+		if (!r.re) return this;
+		const id = Session.turn_id(r.re), texts = (r.sentences ?? []).map(s => typeof s === "string" ? s : s?.text).filter(t => typeof t === "string" && t.trim());
+		let turn = this._tasks?.find(id) ?? this._content?.find(id);
+		if (!turn){
+			if (r.v !== 2 || !texts.length) return this;   // only a line the new writer stamped (Server/Ask.mjs) makes a turn: older lines replay untasked
+			const text = texts.join(" ");
+			this.tasks.add({ type: "Prompt", id, text, via: r.via ?? "unknown", title: Session.turn_title(text), requested_at: r.re });
+			turn = this._tasks.find(id);
+		}
+		if (texts.length) turn.paragraphs.replace({ id: "a", text: texts.join(" "), sentences: texts });
+		for (const sec of r.sections ?? []) for (const it of sec.items ?? []){
+			const kid = `${id}-${it.id}`;
+			if (!it.id || !it.text || turn.tasks.find(kid)) continue;
+			turn.tasks.add({ id: kid, title: it.text, cites: (it.cites ?? []).map(n => "a" + n).join(" "), ...(sec.heading ? { section: sec.heading } : {}) });
+		}
 		return this;
 	}
 

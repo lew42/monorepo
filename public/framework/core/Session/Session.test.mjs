@@ -101,6 +101,44 @@ check("session completion (chat-model s7): 5 root tasks, 3 complete, 1 dropped, 
 	return p.done === 3 && p.total === 4 && p.stopped === 1 && s.completion === 0.875;
 });
 
+const T1 = "2026-11-06T10:01:00.000Z", T2 = "2026-11-06T10:02:00.000Z", T3 = "2026-11-06T10:03:00.000Z";
+const TURN_LINES = [
+	{ session: { id: "as1", kind: "voice", at: "2026-11-06T10:00:00Z" } },
+	{ chat: { at: T1, from: { kind: "owner" }, via: "voice", text: "do the thing. then the other." } },   // a chat line alone is not a task (old history)
+	{ refined: { at: T1, re: T1, sentences: [{ n: 1, text: "Do the thing." }, { n: 2, text: "Then the other." }], sections: [], via: "voice", by: "code", v: 2 } },
+	{ refined: { at: T2, re: T2, sentences: [{ n: 1, text: "Build it." }], sections: [], via: "vscode", by: "code", v: 2 } },
+	{ refined: { at: T2, re: T2, sentences: [{ n: 1, text: "Build it." }], sections: [{ id: "sec1", heading: "Build", items: [{ id: "sec1-i1", text: "Build the page", cites: [1] }] }] } },
+];
+const turn = (s, at) => s.tasks.find(Session.turn_id(at));
+check("turn: a refined line makes ONE open Prompt task for its turn, with its sentences as paragraph a and its via", () => {
+	const s = Session.replay(TURN_LINES), t = turn(s, T1);
+	return s.tasks.length === 2 && t.wire() === "Prompt" && t.get_one("via") === "voice" && t.sentences.map(x => x.id + "=" + x.text).join("|") === "a1=Do the thing.|a2=Then the other." && s.get_one("refined") === undefined;
+});
+check("turn: section items become child tasks citing sentences; the same item twice is one", () => {
+	const s = Session.replay([...TURN_LINES, TURN_LINES[4]]), t = turn(s, T2), kids = [...t.tasks];
+	return kids.length === 1 && kids[0].get_one("title") === "Build the page" && kids[0].get_one("cites") === "a1" && kids[0].get_one("section") === "Build" && kids[0].id === Session.turn_id(T2) + "-sec1-i1";
+});
+check("turn: ids are the same on every replay", () => Session.turn_id(T1) === turn(Session.replay(TURN_LINES), T1).id);
+check("turn: a title keeps its words and collapses whitespace (an s is not a space)", () => Session.turn_title("Make  it \t blue, please") === "Make it blue, please" && turn(Session.replay(TURN_LINES), T1).get_one("title") === "Do the thing. Then the other.");
+check("turn: old refined lines (no v: 2) replay as before: no task, nothing filed; they still fill a turn that exists", () => {
+	const old = { refined: { at: T1, re: T1, sentences: [{ n: 1, text: "Do it." }], sections: [{ id: "s", heading: "H", items: [{ id: "s-i", text: "Do", cites: [1] }] }], via: "voice" } };
+	const bare = Session.replay([{ session: { id: "o1", kind: "voice", at: "2026-11-06T10:00:00Z" } }, old]);
+	const made = Session.replay([{ session: { id: "o2", kind: "voice", at: "2026-11-06T10:00:00Z" } }, TURN_LINES[2], old]);
+	return bare.tasks.length === 0 && bare.completion_score() === null && turn(made, T1).tasks.length === 1;
+});
+check("turn: an open turn holds the session below 1 and counts in the tally; no_action settles its score", () => {
+	const s = Session.replay(TURN_LINES.slice(0, 3));
+	const open = s.completion_score() === 0 && s.tally().open === 1 && s.tally().created === 1;
+	s.replay_line({ [Session.turn_id(T1)]: { no_action: "a remark" } });
+	return open && s.completion_score() === 1;
+});
+check("turn: a hook-made content Prompt IS the turn: the refined line fills its sentences and files items under it, no second task", () => {
+	const s = Session.replay([{ session: "h1" }, { content: { add: { type: "Prompt", id: Session.turn_id(T3), text: "ship it", counted: true, via: "vscode" } } },
+		{ refined: { at: T3, re: T3, sentences: [{ n: 1, text: "Ship it." }], sections: [{ id: "sec1", heading: "", items: [{ id: "sec1-i1", text: "Ship", cites: [1] }] }], via: "vscode" } }]);
+	return s.tasks.length === 0 && s.content.length === 1 && s.content.find(Session.turn_id(T3)).tasks.length === 1 && s.content.find(Session.turn_id(T3)).sentences[0].text === "Ship it.";
+});
+check("turn: a refined line with no words and no turn writes nothing; one with no re is left alone", () => Session.replay([{ session: "e1" }, { refined: { re: T1, sentences: [] } }, { refined: { sentences: [{ n: 1, text: "x" }] } }]).tasks.length === 0);
+
 process.exit(results.every(Boolean) ? 0 : 1);
 
 import Day from "./Day.js";

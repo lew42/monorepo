@@ -73,7 +73,7 @@ The `console.warn` above is invisible to anyone not watching devtools — which 
 restart (`Server/doc/watch.md`'s boot-tested swap) is usually back in well under a second, but
 with no sign on screen at all it read as "the page died," not "it's coming back"
 ([`/framework/ai/sessions/2026/10/01/page-holds/page-holds/`](/framework/ai/sessions/2026/10/01/page-holds/page-holds/)). `reconnect()`
-now reports the drop to `Link.js` (2026-11-01: the old 5 s strip flashed through the tunnel and was a second banner beside the Servex one; both wires now feed ONE state and ONE banner at the top, shown only after 8 s down, "Site link down N s: …" with a Reconnect button) and `open()` clears it the instant the
+now reports the drop to `Link.js` (2026-11-01: the old 5 s strip flashed through the tunnel and was a second banner beside the Servex one; both wires now feed ONE state, shown only after 8 s down; since 2026-11-06 that is a small amber dot, hover "Site link down N s: …", press to retry, and the full banner with Reconnect only while a source is `urgent()`, today only the Servex wire while a voice session depends on it: [readme.md](../readme.md)) and `open()` clears it the instant the
 socket is back. It never reloads anything itself; it is purely a notice over whatever is already
 on screen. Gated on `this.ever_connected` so a tab's very first connect attempt, before the dev
 server has even finished starting, never shows it — that is not a restart.
