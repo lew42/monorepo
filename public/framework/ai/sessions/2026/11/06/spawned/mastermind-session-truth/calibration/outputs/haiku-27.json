@@ -1,0 +1,105 @@
+{
+ "model": "claude-haiku-5-5",
+ "usd": 0.0818,
+ "cache_write_tokens": 3007,
+ "output_tokens": 2768,
+ "thinking_tokens": 2196,
+ "result": {
+  "prompt": 27,
+  "asks": [
+   {
+    "kind": "primary",
+    "text": "look into why we have not been completing our sessions",
+    "sentences": [
+     4,
+     5,
+     10
+    ]
+   },
+   {
+    "kind": "secondary",
+    "text": "use the system to figure out what the heck we've been doing",
+    "sentences": [
+     1
+    ]
+   },
+   {
+    "kind": "secondary",
+    "text": "have 100% completion",
+    "sentences": [
+     6
+    ]
+   }
+  ],
+  "questions": [
+   {
+    "text": "Why have we not been completing our sessions?",
+    "sentences": [
+     4,
+     5
+    ]
+   }
+  ],
+  "mentions": [],
+  "signals": {
+   "anger": [],
+   "asked_before": [
+    "that's the whole point that I've told the last session"
+   ],
+   "red_flags": []
+  },
+  "coverage": [
+   {
+    "sentence": 1,
+    "kind": "ask",
+    "task": "past-work-audit"
+   },
+   {
+    "sentence": 2,
+    "kind": "context",
+    "task": "close-with-proof"
+   },
+   {
+    "sentence": 3,
+    "kind": "context",
+    "task": "close-with-proof"
+   },
+   {
+    "sentence": 4,
+    "kind": "ask",
+    "task": "close-with-proof"
+   },
+   {
+    "sentence": 5,
+    "kind": "ask",
+    "task": "close-with-proof"
+   },
+   {
+    "sentence": 6,
+    "kind": "ask",
+    "task": "close-with-proof"
+   },
+   {
+    "sentence": 7,
+    "kind": "context",
+    "task": "close-with-proof"
+   },
+   {
+    "sentence": 8,
+    "kind": "context",
+    "task": "close-with-proof"
+   },
+   {
+    "sentence": 9,
+    "kind": "context",
+    "task": "close-with-proof"
+   },
+   {
+    "sentence": 10,
+    "kind": "ask",
+    "task": "past-work-audit"
+   }
+  ],
+  "uncovered": []
+ }
+}

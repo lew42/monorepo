@@ -1,0 +1,42 @@
+PROMPT #114 (2026-11-06T23:08:29.410Z)
+[1] Claude, your agents broke my page.
+[2] They should be, I don't, they, they should probably be working on work trees so that they don't break the, the main branch.
+[3] I was, I was doing a voice session via the browser, uh, session, and it said page out of date, reload.
+[4] And when I reloaded, it said something like P is not a function, or I, I don't remember what it said, but it's, there's some JavaScript error.
+[5] Anyway, your agents generally for, for larger code fixes should be working on a work tree where they can smoke test it until, and then once it like doesn't throw errors, one, the, then then they can edit live in, in batches.
+[6] They can make quick edits without worrying about breaking anything and, and then uh, you know, smoke test it once they're done.
+[7] And then, you know, and that can all happen very quick, should happen very quickly.
+[8] And then once it's ready, then they commit and uh, you know, They can probably merge it in themselves unless you want to, you know, supervise that.
+[9] Although I, I think generally if they're a master, if yeah, if they're a mastermind, they should be managing their own commits and merges essentially.
+[10] They should be smart enough to do that.
+[11] And so, but the idea there is that they only, you know, merge once it's ready, not merge broken pages that cause my session to crash.
+
+CONTEXT (the owner's two turns before it)
+#112: Yeah, and tell the mastermind that his operating procedure should always say keep readmes up to date. Like after any change to the system, you know, we want to make sure documentation uh, is clear, like and not stale, and you know, and that kind of has to happen per task so that you know, it's not um, you know, well, forgetting to do it at the end. Like if it if it does one you know pass at the end and forgets to update some of the stuff that it did, then, uh, You know, that's not good either. By, by the way, are these agents using the task system properly? Like, ask them if they're using the 
+#113: Yeah, that's all right.
+
+TASKS ALREADY FILED
+- index-past-work [complete]: One doc for finding past work, linked from every readme that needs it — Owner, 11-06: we keep asking for past-work search and can't find things.
+- agents-md [complete]: CLAUDE.md is one import of agents.md; every shared rule lives in agents.md
+- owner-blocks [complete]: A block that needs the owner is a waiting task, asked again every check-in (law 5)
+- live-in-git [complete]: Stop ignoring public/live/ in git
+- completion-page [complete]: /live/completion/: real completion of the 200 costliest sessions
+- restart-servex [complete]: Restart Servex so the item-tool fixes go live
+- capture-sentences [running]: Capture the owner's raw sentences on every channel (VS Code hook, voice, app) — Owner, 11-06: three shapes for the same ask; nothing finds them all.
+- place-sentences [open]: Place every sentence into a task; keep ONE prompt refinement mechanism of the 8
+- handoff-whole [open]: Hand off the task itself with the owner's sentences, never a paraphrase — Owner, 11-06: the telephone game loses meaning.
+- close-with-proof [running]: Close with proof; under 100% makes a waiting task; no-task sessions show no score; daily /live/truth/
+- pid-accounting [running]: Every process logged with a start and an exit; fix the cause of every leak
+- children-link [complete]: Agents spawned from this voice session roll up here, not to the old voice-20261019-live-page — Found 11-06: parent_session is stale, so child costs and tasks never reach today's session.
+- mentions-index [open]: Mentions index: @Page in a prompt tags it; each module lists the prompts that mention it
+- readme-maps [open]: Readmes as system maps with per-module search terms (start: Item/List/Page, sessions, Servex, Dictate family)
+- past-work-audit [open]: Calibrated past-work audit, newest first, starting with the 94 'waiting on you' moments
+- old-lessons [open]: Write down lessons from old systems before retiring them
+- live-streaming [complete]: Verify streaming: a write to thing.jsonl and a tab change both show without reload
+- session-live-view [running]: Session page shows its tasks and plan evolving live (session detail on LivePage features)
+- livepage-into-page [open]: Merge LivePage's header, breadcrumb, gear and settings into the default Page (opt-in first)
+- item-three-verbs [open]: Item tool as get/set/call on Item.open; shrink page_tools.js; cut the 97 tools
+- page-file [waiting]: Raise the Windows page file to 48 GB (insurance; owner only)
+- audit-design [complete]: Write down the past-work audit design (prompt + system audits, calibration, pace gate)
+- transcript-to-pc [complete]: Bring this cloud session's raw transcript to the PC for the first audit calibration — Owner, 11-07: test prompt refinement on this session's verbatim prompts without copying them through tool calls.
+- write-direction [complete]: Write down the owner's 11-07 direction (prompt refinement + tasks; pages live by default; pace bands) and index it

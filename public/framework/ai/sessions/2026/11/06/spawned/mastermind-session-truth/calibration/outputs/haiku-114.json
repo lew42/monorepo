@@ -1,0 +1,151 @@
+{
+ "model": "claude-haiku-5-5",
+ "usd": 1.9004,
+ "cache_write_tokens": 235357,
+ "output_tokens": 762,
+ "thinking_tokens": 0,
+ "result": {
+  "prompt": 114,
+  "asks": [
+   {
+    "kind": "primary",
+    "text": "your agents broke my page... they should be working on work trees so that they don't break the main branch",
+    "sentences": [
+     1,
+     2
+    ]
+   },
+   {
+    "kind": "secondary",
+    "text": "larger code fixes should be working on a work tree where they can smoke test it... then edit live in batches",
+    "sentences": [
+     5,
+     6,
+     7
+    ]
+   },
+   {
+    "kind": "secondary",
+    "text": "once it's ready, they commit and merge it in themselves; masterminds should manage their own commits and merges",
+    "sentences": [
+     8,
+     9,
+     10
+    ]
+   },
+   {
+    "kind": "secondary",
+    "text": "only merge once it's ready, not merge broken pages that crash my session",
+    "sentences": [
+     11
+    ]
+   }
+  ],
+  "questions": [],
+  "mentions": [
+   "Claude",
+   "agents",
+   "work trees",
+   "main branch",
+   "voice session",
+   "browser",
+   "page",
+   "smoke test",
+   "mastermind",
+   "commits",
+   "merges"
+  ],
+  "signals": {
+   "anger": [
+    "your agents broke my page"
+   ],
+   "asked_before": [],
+   "red_flags": [
+    "not merge broken pages that cause my session to crash"
+   ]
+  },
+  "coverage": [
+   {
+    "sentence": 1,
+    "kind": "ask",
+    "task": null
+   },
+   {
+    "sentence": 2,
+    "kind": "ask",
+    "task": null
+   },
+   {
+    "sentence": 3,
+    "kind": "context",
+    "task": null
+   },
+   {
+    "sentence": 4,
+    "kind": "context",
+    "task": null
+   },
+   {
+    "sentence": 5,
+    "kind": "ask",
+    "task": null
+   },
+   {
+    "sentence": 6,
+    "kind": "ask",
+    "task": null
+   },
+   {
+    "sentence": 7,
+    "kind": "ask",
+    "task": null
+   },
+   {
+    "sentence": 8,
+    "kind": "ask",
+    "task": null
+   },
+   {
+    "sentence": 9,
+    "kind": "ask",
+    "task": null
+   },
+   {
+    "sentence": 10,
+    "kind": "context",
+    "task": null
+   },
+   {
+    "sentence": 11,
+    "kind": "ask",
+    "task": null
+   }
+  ],
+  "uncovered": [
+   {
+    "suggest": "task",
+    "title": "Larger code fixes in a work tree: smoke test, batch edits live, then merge only when ready",
+    "sentences": [
+     1,
+     2,
+     5,
+     6,
+     7,
+     8,
+     9,
+     11
+    ]
+   },
+   {
+    "suggest": "note",
+    "title": "Masterminds own their commits and merges; merge only after a clean smoke test, never a page that throws",
+    "sentences": [
+     8,
+     9,
+     10,
+     11
+    ]
+   }
+  ]
+ }
+}

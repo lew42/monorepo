@@ -84,7 +84,7 @@ prompt.task        // the task that covers it
 
 ## Next
 
-1. **Calibrate on one real session:** this cloud session's transcript, now on the PC at `~/.claude/cloud-transcripts/cloud-8849dcc6.jsonl` (temporary git branch `transcripts/cloud-8849dcc6`). Take 3–5 prompts, run Haiku, Sonnet and Opus, compute coverage against the tasks in `ai/sessions/2026/11/06/cloud-voice-app-20261106/`, and have Opus judge.
+1. **Calibrate on one real session:** this cloud session's transcript, now on the PC at `~/.claude/cloud-transcripts/cloud-8849dcc6.jsonl` (temporary git branch `transcripts/cloud-8849dcc6`). Take 3–5 prompts, run Haiku, Sonnet and Opus, compute coverage against the tasks in `ai/sessions/2026/11/06/cloud-voice-app-20261106/`, and have Opus judge. **Done 2026-11-07:** Sonnet 5.5 refines better than Haiku 5.5 and costs less (about $0.03 a prompt), and the record covered 0–31% of the ask sentences in three of the four prompts. Results, and three instruction fixes for the next run: [calibration/results.md](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/calibration/results.md).
 2. **Add `prompts` and coverage to Session,** additively, with the web voice chat as the first live user.
 3. `task.move_to()`, the queue state, and what doesn't count toward completion.
 

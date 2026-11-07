@@ -1,0 +1,140 @@
+{
+ "model": "claude-sonnet-5-5",
+ "usd": 1.8973,
+ "cache_write_tokens": 235335,
+ "output_tokens": 614,
+ "thinking_tokens": 0,
+ "result": {
+  "prompt": 114,
+  "asks": [
+   {
+    "kind": "primary",
+    "text": "agents should work on worktrees and smoke test before merging, so they don't break the main branch / my page",
+    "sentences": [
+     2,
+     5,
+     6,
+     7,
+     11
+    ]
+   },
+   {
+    "kind": "primary",
+    "text": "masterminds manage their own commits and merges, merging only once ready (not broken pages that crash my session)",
+    "sentences": [
+     8,
+     9,
+     10,
+     11
+    ]
+   },
+   {
+    "kind": "secondary",
+    "text": "fix the breakage: voice session said 'page out of date, reload' and after reload a JavaScript error ('P is not a function')",
+    "sentences": [
+     1,
+     3,
+     4
+    ]
+   }
+  ],
+  "questions": [],
+  "mentions": [
+   "Claude",
+   "agents",
+   "work trees",
+   "main branch",
+   "voice session",
+   "browser session",
+   "mastermind",
+   "smoke test"
+  ],
+  "signals": {
+   "anger": [
+    "Claude, your agents broke my page."
+   ],
+   "asked_before": [],
+   "red_flags": []
+  },
+  "coverage": [
+   {
+    "sentence": 1,
+    "kind": "ask",
+    "task": null
+   },
+   {
+    "sentence": 2,
+    "kind": "ask",
+    "task": null
+   },
+   {
+    "sentence": 3,
+    "kind": "context",
+    "task": null
+   },
+   {
+    "sentence": 4,
+    "kind": "ask",
+    "task": null
+   },
+   {
+    "sentence": 5,
+    "kind": "ask",
+    "task": null
+   },
+   {
+    "sentence": 6,
+    "kind": "ask",
+    "task": null
+   },
+   {
+    "sentence": 7,
+    "kind": "context",
+    "task": null
+   },
+   {
+    "sentence": 8,
+    "kind": "ask",
+    "task": null
+   },
+   {
+    "sentence": 9,
+    "kind": "ask",
+    "task": null
+   },
+   {
+    "sentence": 10,
+    "kind": "context",
+    "task": null
+   },
+   {
+    "sentence": 11,
+    "kind": "ask",
+    "task": null
+   }
+  ],
+  "uncovered": [
+   {
+    "suggest": "task",
+    "title": "Agents work in worktrees, smoke test, merge only when ready",
+    "sentences": [
+     2,
+     5,
+     6,
+     8,
+     9,
+     11
+    ]
+   },
+   {
+    "suggest": "task",
+    "title": "Fix the live page error after reload ('P is not a function')",
+    "sentences": [
+     1,
+     3,
+     4
+    ]
+   }
+  ]
+ }
+}

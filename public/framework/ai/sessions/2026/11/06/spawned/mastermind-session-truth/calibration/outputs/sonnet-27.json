@@ -1,0 +1,110 @@
+{
+ "model": "claude-sonnet-5-5",
+ "usd": 1.8967,
+ "cache_write_tokens": 235364,
+ "output_tokens": 573,
+ "thinking_tokens": 0,
+ "result": {
+  "prompt": 27,
+  "asks": [
+   {
+    "kind": "primary",
+    "text": "use the system to figure out what the heck we've been doing — why most sessions aren't complete, why we haven't been completing our sessions",
+    "sentences": [
+     1,
+     4,
+     5,
+     10
+    ]
+   },
+   {
+    "kind": "secondary",
+    "text": "anything under 100% completion is a problem to show",
+    "sentences": [
+     6,
+     7
+    ]
+   }
+  ],
+  "questions": [
+   {
+    "text": "Why have we not been completing our sessions?",
+    "sentences": [
+     4,
+     5
+    ]
+   }
+  ],
+  "mentions": [
+   "system",
+   "sessions",
+   "log what we're doing, when, cost, how long, finished or not",
+   "100% completion"
+  ],
+  "signals": {
+   "anger": [
+    "That's the getting finished part is the problem I think we're failing at."
+   ],
+   "asked_before": [
+    "I've told the last session, I told it, we need to complete, have 100% completion."
+   ],
+   "red_flags": [
+    "the AIs are going to be marking things complete when they're not actually complete",
+    "not really much you can do about that"
+   ]
+  },
+  "coverage": [
+   {
+    "sentence": 1,
+    "kind": "ask",
+    "task": "past-work-audit"
+   },
+   {
+    "sentence": 2,
+    "kind": "context",
+    "task": "close-with-proof"
+   },
+   {
+    "sentence": 3,
+    "kind": "context",
+    "task": "close-with-proof"
+   },
+   {
+    "sentence": 4,
+    "kind": "ask",
+    "task": "past-work-audit"
+   },
+   {
+    "sentence": 5,
+    "kind": "ask",
+    "task": "past-work-audit"
+   },
+   {
+    "sentence": 6,
+    "kind": "context",
+    "task": "close-with-proof"
+   },
+   {
+    "sentence": 7,
+    "kind": "ask",
+    "task": "close-with-proof"
+   },
+   {
+    "sentence": 8,
+    "kind": "context",
+    "task": "close-with-proof"
+   },
+   {
+    "sentence": 9,
+    "kind": "chatter",
+    "task": null
+   },
+   {
+    "sentence": 10,
+    "kind": "ask",
+    "task": "past-work-audit"
+   }
+  ],
+  "uncovered": []
+ }
+}
