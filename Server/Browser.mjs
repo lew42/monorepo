@@ -26,6 +26,7 @@ export default class Browser {
 	static browser_promise = null;   // the one shared Browser for this process, or null once closed
 	static current = null;           // the resolved Browser, for the synchronous `exit` fallback
 	static current_pid = null;       // its real chrome.exe pid (see real_pid), for the same fallback
+	static end_line = null;          // writes this browser's lifecycle end line once, synchronously (the `exit` hook cannot wait for a fetch)
 	static hooked = false;
 
 	static resolve_playwright(){
@@ -90,7 +91,7 @@ export default class Browser {
 		if (this.hooked) return;
 		this.hooked = true;
 		process.once("beforeExit", () => { this.close(); });
-		process.once("exit", () => { try { if (this.current_pid) execSync(`taskkill /PID ${this.current_pid} /T /F`, { windowsHide: true, stdio: "ignore" }); } catch {} });
+		process.once("exit", () => { try { if (this.current && this.current_pid) execSync(`taskkill /PID ${this.current_pid} /T /F`, { windowsHide: true, stdio: "ignore" }); } catch {} this.end_line?.("closed when its script exited"); });
 		process.once("SIGINT", () => { this.close().finally(() => process.exit(130)); });
 	}
 
@@ -119,7 +120,14 @@ export default class Browser {
 			if (pid && process.env.LEW_NO_BROWSER_WATCHDOG !== "1") try {
 				spawn(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), "browser-watchdog.mjs"), String(process.pid), String(pid)], { detached: true, stdio: "ignore", windowsHide: true }).unref();
 			} catch {}
-			b.on("disconnected", () => m.record({ ...base, event: "end", why: "browser closed" }));
+			let ended = false, confirmed = false;   // "disconnected" posts the end line; if the script exits before the post lands, the exit hook writes it synchronously
+			const end = (why, sync) => {
+				if (sync){ if (!confirmed){ confirmed = ended = true; m.record_sync({ ...base, event: "end", why }); } return; }
+				if (ended) return;
+				ended = true; m.record({ ...base, event: "end", why }).then(() => { confirmed = true; });
+			};
+			if (this.current === b) this.end_line = why => end(why, true);
+			b.on("disconnected", () => end("browser closed"));
 		} catch {}
 	}
 }
