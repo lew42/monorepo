@@ -18,4 +18,9 @@ The brief is the spawn prompt from voice-app, line 1 of [session.jsonl](session.
 - **Children link:** [children-link/requirements.md](children-link/requirements.md).
 - **The caution (about 22:57):** small additive steps only. A behavior change is proposed with a dry-run first.
 
-The tasks themselves (t1–t12) are in the session record. Read them with the item tool.
+## Added 2026-11-07 (via voice-app; pace 75%, keep each cheap)
+
+- **t13, shell commits:** a commit voice-app makes through the Servex shell lands on its session record (it has no `CLAUDE_CODE_SESSION_ID`). Small and tested. Branch `worktree/shell-commits`.
+- **t14, calibration:** the first prompt-refinement calibration ([doc/prompt-refinement-and-tasks.md](/framework/ai/doc/prompt-refinement-and-tasks.md), "Next" step 1). 3–5 of the owner's prompts from the cloud transcript `cloud-8849dcc6.jsonl`, Haiku then Sonnet on the same fixed instructions, judged by Opus. For each prompt: the asks, questions, mentions and coverage against the 24 tasks of the voice-app record. Write no tasks into that record; suggestions go on a /live/ sub-page. A transcript reader named for Claude Code transcripts. About $5 in all. Files: [calibration/](calibration/).
+
+The tasks themselves (t1–t14) are in the session record. Read them with the item tool.
