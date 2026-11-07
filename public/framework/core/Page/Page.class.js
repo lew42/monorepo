@@ -105,7 +105,11 @@ export class Page extends Item {
 	// ════ ITEMS — each one embedded (a line here) or saved in its own file (`file`/`path`: core/Item's file_url/load, doc/jsonl.md
 	// "page.items") ═══ No `set()` override needed: `this.items` self-registers by name (List.named), so a generic
 	// `{"items":{"add":…}}}` line already routes there the same way any other named list does (Item.get/set_one).
-	get items(){ return this._items ??= new List({ owner: this, name: "items" }); }
+	get items(){
+		return this._items ??= Object.assign(new List({ owner: this, name: "items" }), {
+			make(x){ const made = List.prototype.make.call(this, x); if (x?.id == null && made?.default_id) made.id = made.default_id() ?? made.id; return made; },
+		});
+	}
 
 	// ════ CONTENT — (doc/content.md) ═══
 	get content(){ return this._content ??= new this.constructor.Content({ owner: this, name: "content" }); }

@@ -80,11 +80,11 @@ export class Item extends Events(Object) {
 		if (this.data !== bag && is_data(this.data)) for (const k in bag) if (!(k in this.data)) this.data[k] = bag[k];   // {title, data} together: keep both
 		// Null-prototype data bag: no collision with built-in names
 		this.data = is_data(this.data) ? this.data : Object.create(null);
-		this.id ??= this.default_id() ?? this.constructor.new_id();
+		this.id ??= this.constructor.new_id();
 	}
 
-	// An item saved in its own file (page.items: `file`/`path`) takes that file's name as its id by default, with nothing
-	// extra to keep in step — `/live/item-test/thing` opens item "thing" because that is both its id and its file's name.
+	// An item saved in its own file (page.items: `file`/`path`) takes that file's name as its id by default (Page.items' `make` asks;
+	// scoped there so a content card or a Task that merely carries a `path` keeps its own id), with nothing extra to keep in step — `/live/item-test/thing` opens item "thing" because that is both its id and its file's name.
 	default_id(){
 		const { file, path } = this.data ?? {};
 		if (typeof file === "string" && file) return file.replace(/\.jsonl$/i, "");

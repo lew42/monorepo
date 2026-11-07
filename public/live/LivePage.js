@@ -498,9 +498,8 @@ export default class LivePage extends Page {
 				for (const [id, $row] of [...rows]) if (!seen.has(id)){ $row.el.remove(); rows.delete(id); }
 				list.items.forEach(item => {
 					if (rows.has(item.id)) return;
-					const $row = div.c("live-item");
+					let $row; this.append(() => $row = div.c("live-item"));
 					rows.set(item.id, $row);
-					this.el.append($row.el);
 					item.load().then(obj => $row.append(() => {
 						new P.Heading({ tag: "h4", item: obj, classes: "live-item-title" });
 						new P.Md({ item: obj, key: "text", classes: "live-item-text" });

@@ -216,13 +216,13 @@ n++;
 	t(embedded.load() === embedded, "and load() answers the item itself");
 
 	const byFile = page.items.add({ file: "thing.jsonl" });
-	t(byFile.id === "thing", "an item's id defaults to its file name, minus .jsonl");
+	t(byFile.default_id() === "thing", "default_id(): the file name, minus .jsonl (Page.items uses it as the id; Page.test)");
 	t(byFile.file_url() === BASE + "/page-a/thing.jsonl", "file resolves against the folder of the page that lists it (this.parent), not root()");
 	const loadedA = await byFile.load();
 	t(loadedA.get_one("title") === "Thing", "load() opens that file's root");
 
 	const byPath = page.items.add({ path: "sub" });
-	t(byPath.id === "sub", "path-only: the id is the path's last segment");
+	t(byPath.default_id() === "sub", "path-only: default_id() is the path's last segment");
 	t(byPath.file_url() === BASE + "/page-a/sub/page.jsonl", "path alone means <path>/page.jsonl");
 
 	// Dedup: a second page listing the SAME file gets the SAME live object (Item.open, one Store per url).
