@@ -6,7 +6,7 @@
 
 Top to bottom: **(1)** one usage line (the existing pace meters); **(2)** the chosen day's sessions grouped by origin, **Voice** (cloud voice agent), **VS Code**, **Scheduled** (plus **Servex**, the agents a task spawned that are not yet under their parent), one row each: plain-words name, when, cost, state, tap to open; **(3)** inside a session: his words, agents spawned nested with costs rolled up, what landed; **(4)** older days: a day list beside the page on desktop, a date picker on the phone.
 Not on it: top tabs, inbox cards, active-task lists (a count and a link only), snippets. The old Inbox is **one** link at the bottom.
-**Slice 1 does 1, 2 and 4.** Part 3 is the existing `/framework/ai/sessions/<id>/` page the row opens; its "his words / nested / landed" layout is the next slice. The class table in section 4 is as built except that `AIDashboard` is a `View` (the root page keeps `page.js`), and `UsageLine` is added.
+**Slice 1 does 1, 2 and 4.** Part 3 is the existing `/framework/ai/sessions/YYYY/MM/DD/<folder>/` page the row opens; its "his words / nested / landed" layout is the next slice. The class table in section 4 is as built except that `AIDashboard` is a `View` (the root page keeps `page.js`), and `UsageLine` is added.
 
 **What you asked (2026-10-19):** open `/framework/ai/` and click through everything the agents did today and yesterday. Group it by session and by where it came from (a cloud voice agent, or a VS Code / phone tab acting as a mastermind), nested: each one spawns sub-masterminds and minions. Compact, mobile first, no top tabs, cost added up the parent chain, nothing unaccounted for. One data store.
 Task and brief: [ai-dashboard task](/framework/ai/sessions/2026/10/19/cloud-voice-live-page/ai-dashboard/task.jsonl) · past work found: [past-work.md](/framework/ai/sessions/2026/10/19/cloud-voice-live-page/ai-dashboard/past-work.md).
@@ -81,7 +81,7 @@ Ranked, left to right (at 400 px the last ones wrap under, the first four never 
 5. **duration** (started → last activity, `2 h 10`)
 6. **asks** and **landed**: `3 asks · 2 landed` (from `index.json`; hidden when 0)
 
-Started time is the row's group heading (a time-of-day rule), not a column. Everything else (model, turns, tokens, files, tags, task lines, the transcript) is one click down, at the session's own URL `/framework/ai/sessions/<id>/`. A row is a link, so reload and back land in the same place.
+Started time is the row's group heading (a time-of-day rule), not a column. Everything else (model, turns, tokens, files, tags, task lines, the transcript) is one click down, at the session's own URL `/framework/ai/sessions/YYYY/MM/DD/<folder>/`. A row is a link, so reload and back land in the same place.
 
 ### Origin rules (one function, computed, never typed)
 

@@ -12,7 +12,7 @@ This is the list to follow. Higher means do it first and never break it for some
 
 ### 2. One store, one route
 - **Asked:** a session is stored once; the same detail view opens however you arrive.
-- **Decided:** the dated store, `ai/sessions/YYYY/MM/DD/<id>/`. Every row opens `/framework/ai/sessions/<id>/`. Old shapes still load through `Session.locate`. Every pattern and its count: [patterns](../data/patterns.md).
+- **Decided:** the dated store, `ai/sessions/YYYY/MM/DD/<id>/`. Every row opens its dated folder. Old shapes still load through `Session.locate`. Every pattern and its count: [patterns](../data/patterns.md).
 - **Lives in:** [layout](../data/layout.md), `Session.js`.
 
 ### 3. The page tells the truth

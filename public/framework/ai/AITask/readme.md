@@ -18,6 +18,7 @@
 - The transcript: streamed from `~/.claude/projects/` on the dev server only; off localhost the Session tab says "unavailable".
 - The day pages: `/framework/ai/` routes (`ai/page.js`) draw a day with `AIDay/` (the `tasks` query source over the session store); `dashboard.js` still serves the rail and log boards.
 - The Report tab (`AICost.report`): it asks Servex's item tool (`POST /api/item`, the `summary` query) for the session's real cost, its child sessions and its task counts, so the page computes and copies no number itself. On a static copy or a worktree preview there is no Servex, and the tab says so in words.
+- `AICost.session_url(id)` is the cost-summary key (one cached `summary` answer per session), never a link; `AICost.session_href(id)` is the link, the session's dated folder once the index has named it.
 - Highlights: an `assign` line carrying `highlight:{icon,title,url}` in a `task.jsonl` puts a task on the front wall ([doc/highlights.md](doc/highlights.md)).
 
 ## Used by

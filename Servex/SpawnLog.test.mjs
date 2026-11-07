@@ -27,6 +27,8 @@ assert.equal(Object.keys(pids(lines)[0])[0], "pid", "pid is the first key");
 assert.equal(pids(lines)[0].pid, child.pid);
 assert.equal(pids(lines)[0].agent, "minion-t"); assert.equal(pids(lines)[0].session, "uuid-1"); assert.equal(pids(lines)[0].why, "shell");
 assert.match(pids(lines)[0].cmd, /^node -e 1/);
+assert.ok(pids(lines)[0].started && !("at" in pids(lines)[0]), "the start line carries `started`, not `at`");
+assert.ok(exits(lines)[0].ended && !("at" in exits(lines)[0]), "the exit line carries `ended`, not `at`");
 assert.equal(exits(lines).length, 1, "one exit line");
 assert.equal(exits(lines)[0].pid_exit, child.pid); assert.equal(exits(lines)[0].code, 0);
 assert.equal(pids(lines).concat(exits(lines)).length, lines.length, "nothing else landed");

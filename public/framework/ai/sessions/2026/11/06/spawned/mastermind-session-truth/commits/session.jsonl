@@ -20,3 +20,4 @@
 {"review":{"at":"2026-11-06T21:51:36-06:00","answer":{"n":6,"reply":"fixed: decision line with the env-var check and hooks choice in commits/session.jsonl; VS Code tab check left to the first live commit"}},"by":"append.mjs","ts":"2026-11-07T03:51:36.321Z"}
 {"review":{"at":"2026-11-06T21:51:36-06:00","answer":{"n":7,"reply":"fixed: one shape {commit:{hash,what,files,branch,worktree}}, which SessionTimelineRows.js:84 reads"}},"by":"append.mjs","ts":"2026-11-07T03:51:36.322Z"}
 {"review":{"at":"2026-11-06T21:51:36-06:00","answer":{"n":8,"reply":"noted"}},"by":"append.mjs","ts":"2026-11-07T03:51:36.323Z"}
+{"stop":{"at":"2026-11-06T22:55:51-06:00","why":"dropped: owner minion-commits-2 is stopped"}}

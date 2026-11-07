@@ -274,8 +274,8 @@ export default class Pool extends Events {
             /* compliance/dev changed a file the slot's own server keeps rewriting (files.jsonl, page.jsonl): own_dirt() called
              * the slot clean, but git will not overwrite it. Stop the server first (it rewrites the file within a second),
              * put the noise back to HEAD, fast-forward, and make a fresh slot: this one's server is gone. */
-            this.kill(slot.watcher_pid, /health-supervisor/i);
-            this.kill(slot.server_pid, this.server_cmd(slot));
+            this.kill(slot.watcher_pid, /health-supervisor/i, slot);
+            this.kill(slot.server_pid, this.server_cmd(slot), slot);
             const generated = (await this.dirt(slot)).filter(d => Pool.generated(d)).map(d => d.file);
             this.aside(slot, generated);
             await this.restore(slot, generated);
@@ -424,8 +424,8 @@ export default class Pool extends Events {
      * and the slot's own branch is moved back to the base. A diff of only appended page.jsonl
      * lines is the server's noise: salvaged anyway, and said so. Returns {branch, what}. */
     async salvage(slot, holder){
-        this.kill(slot.watcher_pid, /health-supervisor/i);
-        this.kill(slot.server_pid, this.server_cmd(slot));
+        this.kill(slot.watcher_pid, /health-supervisor/i, slot);
+        this.kill(slot.server_pid, this.server_cmd(slot), slot);
         const healed = await this.heal_tree(slot);   // a tree deleted wholesale is put back in one call, not walked file by file
         await this.restore(slot, (await this.dirt(slot)).filter(d => Pool.server_log(d.file)).map(d => d.file));   // the server's noise stays out of salvage
         /* Live logs that compliance/dev also tracks (ai/board.jsonl, a task.jsonl) change under every agent: salvage swept
@@ -554,8 +554,8 @@ export default class Pool extends Events {
         this.leaving.push(slot);   // kept on disk until it is really gone, so a restart mid-way finishes it
         this.save();
         return this.chain = this.chain.then(async () => {
-            this.kill(slot.watcher_pid, /health-supervisor/i);
-            this.kill(slot.server_pid, this.server_cmd(slot));
+            this.kill(slot.watcher_pid, /health-supervisor/i, slot);
+            this.kill(slot.server_pid, this.server_cmd(slot), slot);
             const own = await this.own_dirt(slot);
             const ancestor = (await this.git(slot.path, ["merge-base", "--is-ancestor", "HEAD", this.base])).ok || await this.landed(slot);
             if (own.length || !ancestor){
@@ -607,7 +607,7 @@ export default class Pool extends Events {
             const up = await this.answers(slot.url);
             if (slot.state !== "ready" || !this.slots.includes(slot)) continue;   // taken (or gone) during the await: it is someone's now
             if (!up){ this.remove(slot); continue; }
-            if (this.alive(slot.watcher_pid)){ this.kill(slot.watcher_pid, /health-supervisor/i); slot.watcher_pid = null; this.save(); }   // a ready slot holds no browser
+            if (this.alive(slot.watcher_pid)){ this.kill(slot.watcher_pid, /health-supervisor/i, slot); slot.watcher_pid = null; this.save(); }   // a ready slot holds no browser
         }
         if (this.slots.length) this.say(`pool: adopted ${this.slots.map(s => `${s.id} (${s.state})`).join(", ")}`);
     }
@@ -923,13 +923,14 @@ export default class Pool extends Events {
     /* Kill a pid only while it is still the process we started. Windows reuses pids: on 2026-09-29
      * qf-4's recorded watcher pid (25792) had become whisper-server, and a blind taskkill /T would
      * have taken the owner's dictation down. `expect` is matched against its command line. */
-    kill(pid, expect){
+    kill(pid, expect, slot = null){
         if (!pid) return;
         if (expect){
             const cmd = this.cmdline(pid);
             if (!cmd || !expect.test(cmd)) return cmd && this.say(`pool: pid ${pid} is no longer ours (${cmd.slice(0, 80)}) — not killed`);
         }
         try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
+        if (slot?.path) this.servex?.lifecycle?.end_killed?.(slot.path, "reaped: the pool stopped it").catch(() => {});   // a /F kill skips the exit hooks: write the end lines of what died inside the tree
     }
 
     cmdline(pid){

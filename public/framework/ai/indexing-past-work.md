@@ -71,7 +71,7 @@ Session logs only grow, so old versions of them add nothing; history is for code
 | Today's VS Code tabs | `"kind":"vscode-tab"` | works |
 | A task by its title | `"title":"[^"]*word` in `task.jsonl` / `session.jsonl` | works |
 | A finished task | `"complete":{"outcome":` | works |
-| Who started process 1234 | `git grep --untracked -n '"pid":1234' -- 'public/framework/ai/sessions/**'`; how it ended: `"pid_exit":1234`; Servex's own (no agent): `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl` | works since 2026-11-06 21:50 (processes Servex starts; [Servex/doc/processes.md](/Servex/doc/processes.md), "Who started this pid") |
+| Who started process 1234 | `git grep --untracked -n '"pid":1234' -- 'public/framework/ai/sessions/**'`; how it ended: `"pid_exit":1234`; Servex's own (no agent): `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl`. Fields: `started` / `ended` (a line from the 10 s sample also has `"seen":"sample"`, `code: null`). Every start with no end (a leak): `node Servex/leaks.mjs` | works since 2026-11-06 21:50 (processes Servex starts); the processes an agent's claude.exe starts, since the sampler landed ([Servex/doc/processes.md](/Servex/doc/processes.md), "Who started this pid") |
 | A queued spawn | `"queued":{` in the parent's `session.jsonl`, then `"started":{` | works since 2026-11-06 21:50 |
 | Which session made a commit | `"commit":"abc123"` | planned (mastermind-session-truth) |
 | A caught error | `"error":` in the agent's `session.jsonl`, with `"where":"file:line"` and `"tool"`; with no agent, the Servex `errors` log in `%LOCALAPPDATA%/lew42/servex/logs/`. Page errors in the browser are `ext/ErrorLog`'s, in `ai/errors/<date>.jsonl` | works for a Servex tool call that throws, from the first Servex restart after 2026-11-06 ([Servex/ErrorLine.js](/Servex/ErrorLine.js)) |
@@ -80,11 +80,13 @@ Session logs only grow, so old versions of them add nothing; history is for code
 
 One event, one line, **one fixed first key**, plus `by` and `ts`. The same event is always written the same way, whoever writes it.
 
+**A session has one address: its dated folder** (`public/framework/ai/sessions/YYYY/MM/DD/<folder>/`, url `/framework/ai/sessions/YYYY/MM/DD/<folder>/`). Search, link and write there. The bare `/framework/ai/sessions/<uuid>/` url is not an address: it is a browser-only redirect kept for old links, and there is never a folder behind it.
+
 ```js
 { "sentences": [{ "n": 1, "text": "…" }] }
 { "queued": { "agent": "x", "commit_pct": 82 } }
-{ "pid": 1234, "cmd": "…", "why": "…" }
-{ "pid_exit": 1234, "code": 0 }
+{ "pid": 1234, "cmd": "…", "why": "…", "agent": "…", "session": "…", "started": "<stamp>" }
+{ "pid_exit": 1234, "ended": "<stamp>", "code": 0, "signal": null }
 { "commit": "abc123", "files": ["…"] }
 { "error": "…", "where": "file:line" }
 ```
@@ -100,7 +102,7 @@ Similar things live in several places. Each one should point to the others, and 
 | One row per task, agent, card, ask | `Server/doc/ai-index.md` (AIIndex) | |
 | Every task in memory, plain JS queries | `Server/doc/session-index.md` | |
 | Work since 10-20, by area | [doc/built-index.md](doc/built-index.md) | hand-written, 11-01 |
-| Asks vs. outcomes | [doc/asks-outcomes.md](doc/asks-outcomes.md), [doc/audits.md](doc/audits.md) | |
+| Asks vs. outcomes | [doc/asks-outcomes.md](doc/asks-outcomes.md), [doc/audits.md](doc/audits.md) | the next audit's design: [doc/past-work-audit-design.md](doc/past-work-audit-design.md) |
 | How readmes work, what each role reads | [doc/readme-system.md](doc/readme-system.md), [agents.md](agents.md) | **also** `Servex/agents/roles/` (one readme per role). Two homes for agent docs: to be cross-linked, then merged into `framework/ai` |
 
 **Readmes are the first index.** A folder's `readme.md` is short. It names everything directly inside the folder (or links a sub-doc that does) and says how to search its data. When a search was hard, the folder's readme gets the query that worked ([doc/readme-system.md](doc/readme-system.md)).

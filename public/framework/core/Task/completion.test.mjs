@@ -87,4 +87,22 @@ t.eq(ps2.completion_score(), 0, "a task filed under it, not done: still 0");
 ps2.content.find("n").find("fix").complete(done().complete);
 t.eq(ps2.completion_score(), 1, "the task done: the prompt, and so the session, is 1");
 
+// 6. HONEST SCORE (2026-11-06): a session with nothing to score is null ("needs review"), never 0 or 1; a plain leaf task keeps 1/0.
+const empty = Session.replay([{ session: { id: "s6" } }]);
+t.eq(empty.completion_score(), null, "a session with no tasks and no counted prompts has no score");
+t.eq(empty.completion, null, "completion reads the same null");
+t.eq(Task.show(empty.completion), "needs review", "Task.show: null reads \"needs review\"");
+t.eq(Task.show(0.5), "50%", "Task.show: a number reads as a percent");
+t.eq(Task.replay([{ assign: { id: "leaf" } }]).completion_score(), 0, "a plain leaf task keeps 0");
+t.eq(Task.mean([null, null]), null, "mean of only nulls is null");
+t.eq(Task.mean([null, 1, 0]), 0.5, "mean leaves null parts out");
+const mix6 = Session.replay([{ session: { id: "s6b" } },
+	{ tasks: { add: { type: "Session", id: "blank", title: "A child with nothing" } }, ts: at(1) },
+	{ tasks: { add: { type: "Task", id: "k", title: "K" } }, ts: at(2) }, { tasks: { k: done() }, ts: at(3) }]);
+t.eq(mix6.completion_score(), 0.5, "a child session with nothing to score counts 0 while unfinished (it carries work), so the parent is the mean 0.5");
+t.eq(mix6.tally().unscored, 1, "tally.unscored counts the child session with no score");
+const allnull = Session.replay([{ session: { id: "s6c" } }, { tasks: { add: { type: "Session", id: "blank", title: "Nothing" } }, ts: at(1) }]);
+t.eq(allnull.completion_score(), 0, "a parent whose only part is an unfinished child session keeps a number (0), not null");
+t.eq(Session.replay([{ session: { id: "s6d" } }]).completion_score(), null, "a session with no parts at all is null");
+
 t.done();

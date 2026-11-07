@@ -1,0 +1,26 @@
+verdict: fix
+1. [fix] `Servex/leaks.mjs` `pair()` (diff lines 831-839) runs `starts.find` for every line and `starts.find` + `ends.find` for every start, so it is O(n²). The doc measures about 38 sampled starts and 42 ends a minute, which is about 55k starts a day, so within a day or two the report takes minutes to run. Index starts and ends by pid in a Map first.
+2. [fix] A Servex restart drops both `Lineage.known` and SpawnLog's `child.once("exit")` listeners. Any process that dies during the restart gap, and any SpawnLog-started process that outlives the restart (an adopted dev server whose parent is the old Servex, so Lineage finds no ancestor), never gets an end line. Each one will show up as "gone, end missed" forever. Either reload the open starts at boot (for example from `leaks.mjs`'s `pair()`) and end them on the first sample, or name this limit in `Servex/doc/processes.md` "Sampled children" next to the 10 s limit. Right now the doc lists no restart limit.
+3. [fix] `Servex/doc/processes.md` (diff line 782) says that for a detached grandchild with no line, "the leak report below still shows it in the process list". `leaks.mjs` reads only log lines (`read_lines`); it never lists unlogged processes, so that claim is false. Drop the clause or point it at `Lifecycle.js --dry`.
+4. [note] The test's junk start line for pid 101 (`ai/sessions/2026/09/30/2976c23c-…/process-monitor/task.jsonl`, started 1969) will be the "gone" row in every future report. Appending a matching `{"pid_exit":101,"ended":<now>,"code":null,"seen":"sample"}` would close it without rewriting history.
+5. [note] Volume: about 80 lines a minute across 7 agents go into git-tracked `session.jsonl` files, which is about 115k lines a day. The 60/min cap is per agent, so it does not bound the total. Owner's call; worth a line in processes.md.
+6. [note] `Lifecycle.kill()` (diff line 144) fails open: `owners_own(this.procs?.get(pid))` is false when `procs` is unset or lacks the pid, so the guard only works when the table is loaded. `!this.procs?.has(pid) || owners_own(...)` would refuse instead. (A missing pid is most likely already dead.)
+7. [note] `OUR_CHROME`'s `[\\/]lew42[\\/]` arm (Lifecycle.js, diff line 125) matches no profile any code launches; only the test's made-up `lew42\chrome-profile` uses it. Because `resources()` now uses `OUR_CHROME`, this arm widens what the sweep may reap after 30 min. The shared headed Chrome at `%LOCALAPPDATA%\claude-shared-chrome` is not matched, which is correct. Drop the arm unless a real profile lives there.
+8. [note] `Server/Browser.mjs:18`: the exit hook can write a second end line when the async "browser closed" post reached Servex but its `.then` had not run before exit. This is harmless to `open()`, and only cosmetic.
+9. [note] `Servex/Processes.js:449`: the `watch_spin` line picked up an extra tab of indentation.
+10. [note] Outside the fence: `Server/browser-watchdog.mjs`, `Server/doc/browser.md`, `Server/doc/scripts.md` and `Servex/doc/lifecycle.md` were changed. Each is a Browser/Lifecycle close path or its doc, and the change is stated in the task's caveats. Justified.
+11. [note] `node Servex/leaks.mjs` is documented in processes.md and indexing-past-work.md §5. Neither the Servex readme's command block nor `Server/doc/scripts.md` lists it (or `Lineage.js` and the two new tests); one line in the readme's "Where the code is" would index them.
+
+## Requirements
+- 1 "Rename `at` to `started`/`ended`" — yes. SpawnLog.js diff lines 509 and 512; SpawnLog.test asserts it; indexing-past-work.md §6 contract updated; leaks.mjs still reads the old `at`.
+- 2 "Every process, not only the ones Servex starts" — yes. Lineage.js runs as a Map diff inside `Processes.trace()` with no second PowerShell call; `seen:"sample"`, `code:null`; it skips SpawnLog pids; the cap is 60 per owner per minute; measured at about 80 lines a minute in processes.md; the 10 s limit is in the doc. The restart gap is unhandled (finding 2).
+- 3 "leaks.mjs lists every start with no end, three groups; report; fix each real leak's cause" — yes. The report has 0 real live leaks; three causes from the lifecycle log were fixed in Browser.mjs, browser-watchdog.mjs and Lifecycle/Pool `end_killed`, each logged as a `log` line in session.jsonl. The scaling issue is finding 1.
+- 4 "Chrome-pin test" — yes. `Servex/chrome-pin.test.mjs` covers Lifecycle resources, kill and `--stop`, Processes.reap, Relief, Pool.kill, the watchdog and Browser's exit hook against the owner's Chrome, Code and Figma, plus a Playwright chrome.
+- Docs — yes, with one false claim (finding 3).
+- Tests — yes. I re-ran Lineage, leaks, SpawnLog and processes tests in the worktree, and all pass. `node --check` is clean on all 8 touched source files. The landing outcome also reports Gate-loud, closeout and Crumbs passing; I did not re-run those.
+- Class page for Lineage — n/a. It is a Servex-internal class with no page system; its state is the log lines themselves.
+- Can a fresh agent continue from the folder? Yes. requirements.md, report.md, the session.jsonl log lines (one per cause) and the landing outcome with commits are all there.
+
+## Words
+- The report and log lines are plain sentences and name files and numbers — yes.
+- report.md opens with what generated it and what the numbers say — yes.

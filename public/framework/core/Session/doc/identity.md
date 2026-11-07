@@ -44,7 +44,7 @@ The owner: "We don't want two folders for the same thing… the web page at a di
 - `session_dir` takes the oldest folder (above).
 - `node Server/SessionConsolidate.mjs <uuid>` (dry run) and `--apply --manifest <file>` fold every second folder into the first: subfolders move in (a `task` line in `ai/sessions/task-moves.jsonl`), `.jsonl` lines are appended in order (no duplicates, URLs rewritten), originals are copied to `%LOCALAPPDATA%/lew42/servex/moved-aside/<run>/` first (`page.jsonl` is gitignored, so git cannot undo it), a `redirect` line maps the old URL, and links in `.md`/`.js` files are rewritten.
 
-**The URL.** The page is the folder's own path, `/framework/ai/sessions/2026/10/20/session-e00f55c9/`. The uuid URL `/framework/ai/sessions/<uuid>/` only redirects there (the AISession readme says how the router does it).
+**The URL.** The page is the folder's own path, `/framework/ai/sessions/2026/10/20/session-e00f55c9/`. That is the only address; the bare uuid URL is a browser-only redirect kept for old links (the AISession readme says how the router does it).
 
 **The stray `ai/sessions/a56900e3-…/`.** A session whose transcript holds no message (126 bytes; title "Dictation cleanup and outline instructions"). `Session.locate` leaves an old flat folder in place until the session's `first_at` is known, and an empty session never gets one. It now files such a folder by the folder's own date.
 

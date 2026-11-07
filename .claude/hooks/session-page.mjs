@@ -16,11 +16,11 @@ process.stdin.on("data", d => raw += d).on("end", () => {
 		const { session_id: id, cwd } = JSON.parse(raw);
 		if (!id) return;
 		if (!process.env.SERVEX_MCP) record(id, cwd);
-		// The dated folder, never /framework/ai/sessions/<uuid>/ (that url only redirects): one folder per session, ai/sessions/doc/one-folder.md.
+		// The dated folder, the only address: one folder per session, ai/sessions/doc/one-folder.md.
 		const store = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../public/framework/ai/sessions");
 		let dir = null; try { dir = SessionFolders.at(store).record_of(id) ?? DatedFiles.sessions.session_dir(id); } catch {}
 		const url = dir ? "/framework/ai/sessions/" + path.relative(store, dir).split(path.sep).join("/") + "/" : null;
-		console.log(url ? `[Your session is ${id}; its one folder is ${url} (pass it as \`path\` to page_set, page_add, page_call and page_read; /framework/ai/sessions/<uuid>/ is only a redirect, never a folder).]`
+		console.log(url ? `[Your session is ${id}; its one folder is ${url} (pass it as \`path\` to page_set, page_add, page_call and page_read; it is the only address, never make a folder for the bare id).]`
 			: `[Your session is ${id}.]`);
 	} catch {}
 });

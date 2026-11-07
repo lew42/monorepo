@@ -21,7 +21,12 @@ check("three tasks, one complete: completion is 1/3 and progress {1,3}", () => {
 	return p.done === 1 && p.total === 3 && Math.abs(s.completion - 1 / 3) < 1e-9;
 });
 
-check("no tasks: completion 0, progress {0,0}", () => { const s = new Session("s"); return s.completion === 0 && s.progress().total === 0; });
+check("no tasks: completion null (needs review), progress {0,0}", () => { const s = new Session("s"); return s.completion === null && s.progress().total === 0; });
+
+check("a record's {complete:{outcome, evidence}} line closes it as complete (a step's own session, ProcessRunner)", () => {
+	const s = Session.replay([{ session: { id: "s", kind: "agent" } }, { start: {} }, { complete: { outcome: "done", evidence: ["a test"] } }]);
+	return s.state === "complete" && s.get_one("outcome") === "done" && s.completion === null;
+});
 
 check("replay: a tasks.add line adds a Task", () => {
 	const s = Session.replay([{ session: "r1" }, { tasks: { add: { type: "Task", id: "t1", data: { title: "one" } } } }, { tasks: { add: { type: "Task", id: "t2", data: { state: "complete" } } } }]);
@@ -119,7 +124,7 @@ check("turn: old refined lines (no v: 2) replay as before: no task, nothing file
 	const old = { refined: { at: T1, re: T1, sentences: [{ n: 1, text: "Do it." }], sections: [{ id: "s", heading: "H", items: [{ id: "s-i", text: "Do", cites: [1] }] }], via: "voice" } };
 	const bare = Session.replay([{ session: { id: "o1", kind: "voice", at: "2026-11-06T10:00:00Z" } }, old]);
 	const made = Session.replay([{ session: { id: "o2", kind: "voice", at: "2026-11-06T10:00:00Z" } }, TURN_LINES[2], old]);
-	return bare.tasks.length === 0 && bare.completion_score() === 0 && turn(made, T1).tasks.length === 1;
+	return bare.tasks.length === 0 && bare.completion_score() === null && turn(made, T1).tasks.length === 1;
 });
 check("turn: an open turn holds the session below 1 and counts in the tally; no_action settles its score", () => {
 	const s = Session.replay(TURN_LINES.slice(0, 3));

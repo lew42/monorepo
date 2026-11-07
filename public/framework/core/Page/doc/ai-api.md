@@ -74,7 +74,7 @@ A bad line is refused before it is written: a `_` key, a `part-*` type nobody re
 
 ## The live proof
 
-Built 2026-10-12 (`Servex/agents/Subpages.js`, `page_tools.js`, `ai/AISession/AISessionDetail.js`). A headless Chromium on a private worktree server, writing through the real `page_tools`, saw on a session page (`/framework/ai/sessions/<id>/`): a `part-heading` after 39 ms, a `part-text` after 12 ms, a `part-card` and its in-place update after 14 ms, with no reload; a subpage made by `pages.add` opened at `…/<id>/notes/` and survived a reload (about 0.4 s). Probe and screenshots: `ai/sessions/2026/10/12/session-cb7ffa45/page-ai-api/build/` (`probe.mjs`, `session.png`, `notes.png`).
+Built 2026-10-12 (`Servex/agents/Subpages.js`, `page_tools.js`, `ai/AISession/AISessionDetail.js`). A headless Chromium on a private worktree server, writing through the real `page_tools`, saw on a session page (`/framework/ai/sessions/YYYY/MM/DD/<folder>/`): a `part-heading` after 39 ms, a `part-text` after 12 ms, a `part-card` and its in-place update after 14 ms, with no reload; a subpage made by `pages.add` opened at `…/<id>/notes/` and survived a reload (about 0.4 s). Probe and screenshots: `ai/sessions/2026/10/12/session-cb7ffa45/page-ai-api/build/` (`probe.mjs`, `session.png`, `notes.png`).
 
 How the session page draws it: `AISessionDetail.Parts` keeps the `part-*` items of the session's `page.jsonl` and draws them with the same Items and Views a `Page` content list uses, with a "Subpages:" row of links under them; a `{"file":"notes/page.jsonl"}` line adds the link and makes `AISessionDetail.child("notes")` load that folder at the session route.
 

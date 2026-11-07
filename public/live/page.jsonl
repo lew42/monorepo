@@ -207,3 +207,7 @@
 {"file":"zzitem/"}
 {"file":"zzitem/","gone":true}
 {"file":"zztabs/","gone":true}
+{"file":"session-page/"}
+{"file":"session-page/","gone":true}
+{"file":"session-page/page.jsonl"}
+{"content":{"add":{"type":"part-link","id":"link-session-page","path":"./session-page/","title":"Session page: proposal"}},"by":"pages.add","ts":"2026-11-07T05:11:00.919Z"}

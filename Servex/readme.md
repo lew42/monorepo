@@ -25,6 +25,7 @@ class Servex {
   dispatcher: Dispatcher          // agents/Dispatcher.js — routes a prompt to the right agent
   task_loop: TaskLoop             // TaskLoop.js — runs Server/AIIndex.mjs --watch, re-prompts stalled task steps (doc/steps.md)
   dropped:   Dropped              // Dropped.js — run by TaskLoop each tick: open tasks nobody is working, red-flagged sessions, completed asks with no proof (doc/task-loop.md, core/Task/doc/completion.md)
+  OpenItems                       // OpenItems.js (static, no instance) — after any closing line is appended (page_tools write_line, TaskLoop write_line) a record closed under 100% gets one waiting-on-owner task listing what stayed open; the rule is Task#closeout_line (core/Task/doc/completion.md)
   process_runner: ProcessRunner   // ProcessRunner.js — runs a work process's phases in order (public/framework/core/Task/doc/process.md)
   respawn: Respawn                // agents/Respawn.js — the standing system architect gets a fresh session once a day, never mid-task (agents/doc/lifecycle.md)
   heartbeat: Heartbeat            // Heartbeat.js — status check → triage → escalate
@@ -46,6 +47,7 @@ class Servex {
 | `asks/`, `cards/` | the asks ledger (`Asks.js`), cards (`Cards.js`, writes `ai/cards.jsonl`) |
 | `ext/` | `remote/` (voice-app door), `openrouter/` (non-Anthropic models), `refine/`, `local/`, `recite/` (recite-server, text to speech: [ext/recite/readme.md](ext/recite/readme.md)) |
 | `ErrorLine.js` | a tool call that throws writes `{"error","where":"file:line","tool","agent"}` into the calling agent's session log (test `ErrorLine.test.mjs`; [doc/tool-process.md](doc/tool-process.md)) |
+| `Lineage.js`, `leaks.mjs` | start and end lines for processes an agent's claude.exe starts (sampled every 10 s), and the report of every start with no end: [doc/processes.md](doc/processes.md#leaks-a-start-with-no-end) |
 | `doc/` | the detail; `proof/` and `*.test.mjs` are checks |
 
 ## On disk

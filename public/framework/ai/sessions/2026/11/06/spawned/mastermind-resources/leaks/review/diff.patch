@@ -1,0 +1,1005 @@
+diff --git a/Server/Browser.mjs b/Server/Browser.mjs
+index 7ad3a4c82..4351d8d1b 100644
+--- a/Server/Browser.mjs
++++ b/Server/Browser.mjs
+@@ -26,6 +26,7 @@ export default class Browser {
+ 	static browser_promise = null;   // the one shared Browser for this process, or null once closed
+ 	static current = null;           // the resolved Browser, for the synchronous `exit` fallback
+ 	static current_pid = null;       // its real chrome.exe pid (see real_pid), for the same fallback
++	static end_line = null;          // writes this browser's lifecycle end line once, synchronously (the `exit` hook cannot wait for a fetch)
+ 	static hooked = false;
+ 
+ 	static resolve_playwright(){
+@@ -90,7 +91,7 @@ export default class Browser {
+ 		if (this.hooked) return;
+ 		this.hooked = true;
+ 		process.once("beforeExit", () => { this.close(); });
+-		process.once("exit", () => { try { if (this.current_pid) execSync(`taskkill /PID ${this.current_pid} /T /F`, { windowsHide: true, stdio: "ignore" }); } catch {} });
++		process.once("exit", () => { try { if (this.current && this.current_pid) execSync(`taskkill /PID ${this.current_pid} /T /F`, { windowsHide: true, stdio: "ignore" }); } catch {} this.end_line?.("closed when its script exited"); });
+ 		process.once("SIGINT", () => { this.close().finally(() => process.exit(130)); });
+ 	}
+ 
+@@ -119,7 +120,14 @@ export default class Browser {
+ 			if (pid && process.env.LEW_NO_BROWSER_WATCHDOG !== "1") try {
+ 				spawn(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), "browser-watchdog.mjs"), String(process.pid), String(pid)], { detached: true, stdio: "ignore", windowsHide: true }).unref();
+ 			} catch {}
+-			b.on("disconnected", () => m.record({ ...base, event: "end", why: "browser closed" }));
++			let ended = false, confirmed = false;   // "disconnected" posts the end line; if the script exits before the post lands, the exit hook writes it synchronously
++			const end = (why, sync) => {
++				if (sync){ if (!confirmed){ confirmed = ended = true; m.record_sync({ ...base, event: "end", why }); } return; }
++				if (ended) return;
++				ended = true; m.record({ ...base, event: "end", why }).then(() => { confirmed = true; });
++			};
++			if (this.current === b) this.end_line = why => end(why, true);
++			b.on("disconnected", () => end("browser closed"));
+ 		} catch {}
+ 	}
+ }
+diff --git a/Server/browser-watchdog.mjs b/Server/browser-watchdog.mjs
+index f3f2d0887..bc8fed242 100644
+--- a/Server/browser-watchdog.mjs
++++ b/Server/browser-watchdog.mjs
+@@ -2,14 +2,43 @@
+  * Browser.mjs starts one beside every browser it launches. A hard kill (taskkill /F, a crash, a closed terminal) skips every
+  * `exit` hook, so the browser outlived its script (2026-11-04: 30+ orphans); this separate process notices and ends the tree. */
+ import { execFileSync } from "node:child_process";
++import fs from "node:fs";
+ 
+ const [launcher, chrome] = process.argv.slice(2).map(Number);
+ const alive = pid => { try { process.kill(pid, 0); return true; } catch (e) { return e.code === "EPERM"; } };
+ if (!launcher || !chrome) process.exit(0);
+ 
+-const timer = setInterval(() => {
+-	if (!alive(chrome)) process.exit(0);
+-	if (alive(launcher)) return;
+-	try { execFileSync("taskkill", ["/PID", String(chrome), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
++/* The browser's lifecycle end line, unless one is already in the log: a launcher that closed it normally wrote its own; a launcher killed hard wrote nothing,
++ * and without this the sweep would later find the start line "killed without a goodbye". The start line carries the id and path; the log tail has it. */
++async function end_line(why){
++	try {
++		const { place } = await import("../Servex/home.js"), { record_sync } = await import("../Servex/Lifecycle.js");   // loaded only now: a watchdog that never ends a line stays small
++		const f = place("logs", "lifecycle.jsonl"), size = fs.statSync(f).size, fd = fs.openSync(f, "r"), buf = Buffer.alloc(Math.min(size, 1 << 20));
++		fs.readSync(fd, buf, 0, buf.length, size - buf.length); fs.closeSync(fd);
++		const id = `browser:${chrome}`, rows = buf.toString("utf8").split(String.fromCharCode(10)).filter(l => l.includes(`"${id}"`)).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
++		const last = rows.at(-1);
++		if (!last || last.event === "end") return;
++		const { at, ...rest } = last;
++		record_sync({ ...rest, event: "end", why });
++	} catch {}
++}
++
++/* Windows reuses pids: if our chrome died and the number now belongs to the owner's own Chrome, it must not be killed. Only a command line that says Playwright / our profile is ours. */
++async function still_ours(){
++	try {
++		const { OUR_CHROME } = await import("../Servex/Lifecycle.js");
++		const cmd = execFileSync("powershell.exe", ["-NoProfile", "-Command", `(Get-CimInstance Win32_Process -Filter "ProcessId=${chrome}").CommandLine`], { encoding: "utf8", windowsHide: true }).trim();
++		return OUR_CHROME.test(cmd);
++	} catch { return false; }
++}
++
++let busy = false;
++const timer = setInterval(async () => {
++	if (busy) return;
++	busy = true;
++	if (!alive(chrome)){ if (!alive(launcher)) await end_line("gone with its launcher (the watchdog saw both dead)"); process.exit(0); }
++	if (alive(launcher)){ busy = false; return; }
++	if (await still_ours()) try { execFileSync("taskkill", ["/PID", String(chrome), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
++	await end_line("closed by its watchdog: the launching script died");
+ 	process.exit(0);
+ }, 2000);
+diff --git a/Server/doc/browser.md b/Server/doc/browser.md
+index bfbbe4b61..c42cff1e1 100644
+--- a/Server/doc/browser.md
++++ b/Server/doc/browser.md
+@@ -1,6 +1,6 @@
+ # The one browser rule
+ 
+-Every script starts Chromium through [`Server/Browser.mjs`](/Server/Browser.mjs) — never `chromium.launch(` directly — so the channel that opens no window lives in one place. `Browser.mjs` also starts `Server/browser-watchdog.mjs` (detached), which kills that Chromium the moment the launching node process is gone, however it died; `LEW_NO_BROWSER_WATCHDOG=1` turns it off. The full rule set: [Servex/doc/processes.md](/Servex/doc/processes.md). `.claude/hooks/syntax-guard.mjs` and `Server/window-lint.mjs` flag any `.launch(` elsewhere.
++Every script starts Chromium through [`Server/Browser.mjs`](/Server/Browser.mjs) — never `chromium.launch(` directly — so the channel that opens no window lives in one place. `Browser.mjs` also starts `Server/browser-watchdog.mjs` (detached), which kills that Chromium the moment the launching node process is gone, however it died, but only while the pid's command line still says Playwright (`ms-playwright`, `chrome-for-testing` or our `--user-data-dir`), since Windows reuses pids; both the watchdog and `Browser.mjs`'s `exit` hook write the browser's `lifecycle` end line, so no browser start is left open (`Servex/chrome-pin.test.mjs`); `LEW_NO_BROWSER_WATCHDOG=1` turns it off. The full rule set: [Servex/doc/processes.md](/Servex/doc/processes.md). `.claude/hooks/syntax-guard.mjs` and `Server/window-lint.mjs` flag any `.launch(` elsewhere.
+ 
+ A chrome.exe launched this way is already recognisable: `channel: "chromium"` runs the build Playwright caches under `%LOCALAPPDATA%/ms-playwright/...`, never the owner's own Chrome install (2026-10-03 — a `--user-data-dir` tag was tried and dropped; Playwright's `launch()` refuses that flag). `Servex/Lifecycle.js`'s heartbeat sweep reaps one of these that's orphaned (its launching node process is gone) or older than 30 minutes — see `public/framework/ai/sessions/2026/10/03/0df64c47-b244-4a73-babb-16d86535c9b8/playwright-reap/`.
+ 
+diff --git a/Server/doc/scripts.md b/Server/doc/scripts.md
+index 5242e59f8..39e151102 100644
+--- a/Server/doc/scripts.md
++++ b/Server/doc/scripts.md
+@@ -96,7 +96,7 @@ Windows note: `browser.mjs`, `collab.mjs` and `decide.mjs` are the same file as
+ | `Server/junction-guard.mjs` | live | 4307 | 2026-09-29 | JUNCTION GUARD: refuse to delete or reinstall a directory that has a link into the main checkout. | loaded by config in settings.json |
+ | `Server/layout-check.mjs` | tool | 19497 | 2026-09-30 | `node Server/layout-check.mjs <url...> [--widths 1280,1920,2560,3440] [--out dir] [--height 1000] [--bands]` | run by hand for layout review, documented in skills |
+ | `Server/m4a2wav.mjs` | tool | 2065 | 2026-09-28 | m4a2wav.mjs <in.m4a> <out.wav> — decode with headless Chromium's Web Audio (no ffmpeg on this machine), resample to 16 kHz mono, write 16-bit PCM WAV. | Unreferenced but touched 2026-09-28 (<30 days): kept. Haiku said: no references, no mention anywhere |
+-| `Server/browser-watchdog.mjs` | live | - | 2026-11-04 | `node Server/browser-watchdog.mjs <launcher pid> <chrome pid>` - started detached by `Browser.mjs`; kills the Chromium when its launcher is gone. | closes a browser whose script died |
++| `Server/browser-watchdog.mjs` | live | - | 2026-11-04 | `node Server/browser-watchdog.mjs <launcher pid> <chrome pid>` - started detached by `Browser.mjs`; kills the Chromium when its launcher is gone (only if its command line is still Playwright's) and writes its lifecycle end line. | closes a browser whose script died |
+ | `Servex/closeout.test.mjs` | live | - | 2026-11-04 | `node Servex/closeout.test.mjs` - starts a real server, browser and worktree under a task, closes it, and asserts from the process list, `git worktree list` and the disk that nothing is left. | the proof of [processes.md](/Servex/doc/processes.md) |
+ | `Server/merge.mjs` | live | 40881 | 2026-10-13 | `node Server/merge.mjs <worktree dir> [paths...] [--main <dir>] [--skip-smoke] [--dry-run] [--keep-worktree] [--quick [--asked <iso>]]` — the one serialized way to land a worktree; a merged, clean worktree is then closed and removed (git and disk) unless `--keep-worktree`. | heavily used by hooks and skills for worktree landing |
+ | `Server/ModelsNow.mjs` | renamed (b77cda096) | 8388 | 2026-10-13 | ModelsNow.mjs — which agent runs on which model, computed (never recalled). Read-only except --backend / --write. | renamed to its class name; no importers, no alias |
+diff --git a/Servex/Lifecycle.js b/Servex/Lifecycle.js
+index 14ee9b248..d7eee4b95 100644
+--- a/Servex/Lifecycle.js
++++ b/Servex/Lifecycle.js
+@@ -45,6 +45,10 @@ const norm = p => p ? path.resolve(String(p)).replace(/\\/g, "/").toLowerCase()
+ const inside = (p, root) => !!p && !!root && (norm(p) + "/").startsWith(norm(root) + "/");
+ const hours = ms => Math.round(ms / 360000) / 10;
+ const SERVEX = () => `http://127.0.0.1:${process.env.SERVEX_PORT || 8090}`;
++/* A Chrome is OURS only when its command line says so: Playwright's own build (`ms-playwright`, `chrome-for-testing`) or one of our --user-data-dir profiles.
++ * The owner's Chrome, VS Code, Figma and the like are never ours; every path that ends a process asks owners_own() first (chrome-pin.test.mjs). */
++export const OUR_CHROME = /ms-playwright|chrome-for-testing|--user-data-dir=["']?[^\s"']*(?:playwright_chromiumdev_profile|[\\/]lew42[\\/]|closeout-orphan-)/i;
++export const owners_own = p => /^(chrome|msedge|firefox|brave|code|figma|slack|discord|spotify)\.exe$/i.test(p?.name ?? "") && !(/^chrome\.exe$/i.test(p.name) && OUR_CHROME.test(p.cmd ?? ""));
+ export const ONE_PASS = /^(reviewer|clarity|checker|critic|fork)$/;
+ export const DEAD_MS = 2 * 3600 * 1000;
+ 
+@@ -255,7 +259,7 @@ export default class Lifecycle {
+ 		// own Chrome has neither marker, so it is never touched here. Only the top browser process
+ 		// (no `--type=` flag — a renderer/gpu/utility/crashpad child always has one) becomes a row;
+ 		// `add()`'s `claim()` still closes the whole tree underneath it.
+-		const PLAYWRIGHT_CHROME = /ms-playwright|chrome-for-testing/i;
++		const PLAYWRIGHT_CHROME = OUR_CHROME;
+ 		for (const p of procs.values())
+ 			if (p.name === "chrome.exe" && !/--type=/i.test(p.cmd) && !seen.has(p.pid) && PLAYWRIGHT_CHROME.test(p.cmd))
+ 				add({ kind: "browser", id: `chrome:${p.pid}`, pid: p.pid, path: null, owner_task: null, owner_agent: null, born: p.born, logged: false });
+@@ -337,7 +341,7 @@ export default class Lifecycle {
+ 
+ 	/** Stop a process tree by its top pid (the wrapper, so nothing respawns), then any child still alive. */
+ 	kill(r){
+-		for (const pid of [r.pid, r.child].filter(Boolean)) try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
++		for (const pid of [r.pid, r.child].filter(Boolean)) if (!owners_own(this.procs?.get(pid))) try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
+ 		// the script that launched a browser keeps its folder as its working directory, so it would block the worktree's removal;
+ 		// a plain `node script.mjs` is closed with its browser; Servex, an agent (claude), a dev server (server.js / run.js, which opens browsers for its own screenshots) and this process never are
+ 		// never the main checkout's own processes (the dev server's screenshot plugin holds a browser in-process): only a script started inside a worktree or elsewhere
+@@ -352,10 +356,28 @@ export default class Lifecycle {
+ 			body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }), signal: AbortSignal.timeout(20000) }).catch(() => {});
+ 	}
+ 
++	/** After a process tree was stopped with taskkill /F: write the end line of every open server / health / browser start under `dir` whose process is
++	 * gone. A forced kill skips the exit hook of each process inside the tree (run.js, server.js, a health supervisor), so the row that was closed
++	 * got its end line and its siblings kept an open start line until the sweep found them "killed without a goodbye" (2026-11-06, leaks report). */
++	async end_killed(dir, why, { skip_id = null } = {}){
++		const root = norm(dir);
++		if (!root) return 0;
++		let n = 0;
++		for (const e of this.open()){
++			if (!["server", "health", "browser"].includes(e.kind) || !e.pid || e.id === skip_id || !e.path) continue;
++			const p = norm(e.path);
++			if (p !== root && !p.startsWith(root + "/")) continue;
++			try { process.kill(e.pid, 0); continue; } catch (err) { if (err.code === "EPERM") continue; }   // still running: not ours to end
++			const { at, ...rest } = e;
++			await record({ ...rest, event: "end", why }, this.servex?.log); n++;
++		}
++		return n;
++	}
++
+ 	async close(r, why){
+ 		const live = r.kind === "agent" && this.servex?.agents?.live?.get(r.id);
+ 		if (live) { live.reaped_why = `reaped: ${why}`; return this.servex.agents.stop(r.id); }   // agent_ended() writes its end line
+-		if (r.kind === "agent") await this.tool("stop_agent", { id: r.id }); else this.kill(r);
++		if (r.kind === "agent") await this.tool("stop_agent", { id: r.id }); else { this.kill(r); await this.end_killed(r.path, `reaped: ${why}`, { skip_id: r.id }); }
+ 		await record({ kind: r.kind, id: r.id, pid: r.pid, port: r.port, path: r.path, owner_task: r.owner_task ?? null, owner_agent: r.owner_agent ?? null, event: "end", why: `reaped: ${why}` }, this.servex?.log);
+ 	}
+ 
+@@ -476,6 +498,7 @@ if (path.resolve(process.argv[1] || "") === fileURLToPath(import.meta.url)) {
+ 		const pid = Number(argv[argv.indexOf("--stop") + 1]);
+ 		const procs = lc.procs = lc.processes(), p = procs.get(pid);
+ 		if (!p) { console.log(`no process ${pid}`); process.exit(1); }
++		if (owners_own(p)) { console.log(`kept: ${p.name} is the owner's own, not ours`); process.exit(1); }
+ 		const top = lc.wrapper(p), r = { kind: "server", id: `pid:${pid}`, pid: top.pid, child: pid !== top.pid ? pid : null, path: process.cwd() };
+ 		for (const e of lc.open()) if (e.pid === top.pid || e.pid === pid) Object.assign(r, { kind: e.kind, id: e.id, port: e.port, path: e.path, owner_task: e.owner_task });
+ 		if (lc.kept(r)) { console.log(`kept: ${lc.kept(r)}`); process.exit(1); }
+diff --git a/Servex/Lineage.js b/Servex/Lineage.js
+new file mode 100644
+index 000000000..f6d4d7e3a
+--- /dev/null
++++ b/Servex/Lineage.js
+@@ -0,0 +1,76 @@
++import { stamp } from "./home.js";
++import SpawnLog from "./SpawnLog.js";
++
++/* WHO STARTED THIS PID, FOR THE PROCESSES SPAWNLOG CANNOT SEE: a process an agent's own claude.exe starts (the Bash tool's shell, grep, node,
++ * a Playwright browser, a worktree dev server) is not started by Servex, so Crumbs/SpawnLog never see it. Processes.js already holds the whole
++ * process table every 10 s; this class diffs that table against the last one. A process that is new and descends from one of ours gets a start
++ * line, and when it is gone from a later sample it gets an end line. Both carry `"seen":"sample"` and `code: null` (the exit code is unknown).
++ *
++ * Ours = an agent's claude_pid (`owners`), Servex's own pid (`self`), a pid SpawnLog already logged (`SpawnLog.logged`), or a process this class
++ * already logged. The nearest such ancestor names the agent (or none: the `spawns` log) and the `why` ("child of claude.exe" / "child of <why>").
++ * A child that lives under one sample (10 s) is never seen; it cannot leak, so that is fine. No PowerShell call here: it is a Map diff.
++ * Doc: Servex/doc/processes.md, "Who started this pid". */
++export default class Lineage {
++	static CAP = 60;            // start lines per owner (an agent, or Servex) per minute; the rest are only counted, in a {"pid_dropped"} line
++	static MINUTE = 60000;
++	static SKIP = /^conhost\.exe$/i;   // every console process has one; it ends with its process
++
++	constructor({ cap = this.constructor.CAP } = {}){
++		this.cap = cap;
++		this.known = new Map();    // pid -> { born, ctx, why, cmd } for each process this class logged a start line for
++		this.window = new Map();   // owner key -> { at, n, dropped, skipped }
++	}
++
++	/* One sample. procs: Map pid -> {pid, ppid, name, born, cmd}; up(p): the live parent of p or null; owners: Map claude_pid -> {agent, session, dir};
++	 * self: Servex's pid. Returns the writes for the caller to make: [{ ctx, line }], each `ctx` a SpawnLog context. */
++	tick({ procs, up, owners, self, now = Date.now() }){
++		const out = [];
++		for (const [pid, rec] of this.known){
++			if (procs.get(pid)?.born === rec.born) continue;
++			this.known.delete(pid);
++			out.push({ ctx: rec.ctx, line: { pid_exit: pid, ended: stamp(now), code: null, signal: null, seen: "sample" } });
++		}
++		for (const p of procs.values()){
++			if (this.known.has(p.pid) || p.pid === self || owners.has(p.pid) || SpawnLog.logged.has(p.pid) || this.constructor.SKIP.test(p.name ?? "")) continue;
++			const root = this.root(p, up, owners, self);
++			if (!root) continue;
++			const key = root.ctx.agent ?? "servex", w = this.slot(key, now);
++			if (w.n >= this.cap){
++				if (!w.skipped.has(p.pid)){ w.skipped.add(p.pid); w.dropped++; w.ctx = root.ctx; }   // counted once per minute, though it is still new at the next sample
++				continue;
++			}
++			w.n++;
++			const why = root.why;
++			this.known.set(p.pid, { born: p.born, ctx: root.ctx, why });
++			out.push({ ctx: root.ctx, line: { pid: p.pid, cmd: String(p.cmd ?? p.name ?? "").replace(/\s+/g, " ").slice(0, SpawnLog.CUT), why, agent: root.ctx.agent ?? null,
++				session: root.ctx.session ?? null, started: stamp(p.born || now), ppid: p.ppid, seen: "sample" } });
++		}
++		for (const [key, w] of this.window) if (w.dropped > (w.said ?? 0)){
++			w.said = w.dropped;
++			out.push({ ctx: w.ctx ?? { agent: key === "servex" ? null : key }, line: { pid_dropped: w.dropped, agent: key === "servex" ? null : key, cap: this.cap, window_start: stamp(w.at), seen: "sample" } });
++		}
++		return out;
++	}
++
++	/* The nearest ancestor that is ours: { ctx, why }, or null. Walks at most 64 hops and never loops. */
++	root(p, up, owners, self){
++		const seen = new Set();
++		for (let q = up(p), hops = 0; q && hops < 64 && !seen.has(q.pid); q = up(q), hops++){
++			seen.add(q.pid);
++			const o = owners.get(q.pid);
++			if (o) return { ctx: { agent: o.agent, session: o.session ?? null, dir: o.dir }, why: "child of claude.exe" };
++			const log = SpawnLog.logged.get(q.pid);
++			if (log) return { ctx: { agent: log.agent ?? null, session: log.session ?? null, dir: log.dir }, why: `child of ${log.why}` };
++			const k = this.known.get(q.pid);
++			if (k && k.born === q.born) return { ctx: k.ctx, why: k.why };
++			if (q.pid === self) return { ctx: { agent: null }, why: "child of servex" };
++		}
++		return null;
++	}
++
++	slot(key, now){
++		let w = this.window.get(key);
++		if (!w || now - w.at >= this.constructor.MINUTE){ w = { at: now, n: 0, dropped: 0, skipped: new Set() }; this.window.set(key, w); }
++		return w;
++	}
++}
+diff --git a/Servex/Lineage.test.mjs b/Servex/Lineage.test.mjs
+new file mode 100644
+index 000000000..60f846c74
+--- /dev/null
++++ b/Servex/Lineage.test.mjs
+@@ -0,0 +1,86 @@
++/* node Servex/Lineage.test.mjs — a sampled child of an agent's claude.exe gets a start line, then an end line when it is gone; SpawnLog-logged pids are skipped and inherited; the per-minute cap holds. */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++
++const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "lineage-test-"));
++process.env.SERVEX_HOME = path.join(tmp, "home");   // before home.js loads
++const { default: Lineage } = await import("./Lineage.js");
++const { default: SpawnLog } = await import("./SpawnLog.js");
++const { default: Processes } = await import("./Processes.js");
++
++const proc = (pid, ppid, name, cmd = name, born = 1000) => ({ pid, ppid, name, cmd, born });
++const table = (...ps) => new Map(ps.map(p => [p.pid, p]));
++const up = procs => p => { const q = procs.get(p.ppid); return q && q.born <= p.born ? q : null; };
++const owners = new Map([[100, { agent: "minion-t", session: "uuid-1", dir: "/t/dir" }]]);
++const run = (lin, procs, now) => lin.tick({ procs, up: up(procs), owners, self: 50, now });
++const starts = w => w.filter(x => "pid" in x.line), ends = w => w.filter(x => "pid_exit" in x.line);
++
++// 1. a first sample: the agent's bash and its grep get start lines; claude.exe itself, conhost and strangers do not
++const lin = new Lineage();
++let procs = table(proc(50, 1, "node.exe"), proc(100, 50, "claude.exe"), proc(101, 100, "bash.exe", "bash -c sleep 99"), proc(102, 101, "grep.exe", "grep foo"),
++	proc(103, 101, "conhost.exe"), proc(300, 1, "Code.exe"), proc(301, 300, "chrome.exe"));
++let w = run(lin, procs, 1_000_000);
++assert.deepEqual(starts(w).map(x => x.line.pid).sort(), [101, 102], "bash and grep only");
++const bash = starts(w).find(x => x.line.pid === 101).line;
++assert.equal(Object.keys(bash)[0], "pid"); assert.equal(bash.agent, "minion-t"); assert.equal(bash.session, "uuid-1");
++assert.equal(bash.why, "child of claude.exe"); assert.equal(bash.seen, "sample"); assert.ok(bash.started); assert.equal(bash.ppid, 100);
++assert.equal(w[0].ctx.dir, "/t/dir");
++console.log("PASS  new descendants of an agent's claude.exe get start lines; claude.exe, conhost and strangers do not");
++
++// 2. the same sample again writes nothing; a gone process gets one end line with code null
++assert.equal(run(lin, procs, 1_010_000).length, 0, "no second line for a pid already logged");
++procs = table(proc(50, 1, "node.exe"), proc(100, 50, "claude.exe"), proc(300, 1, "Code.exe"), proc(301, 300, "chrome.exe"));
++w = run(lin, procs, 1_020_000);
++assert.deepEqual(ends(w).map(x => x.line.pid_exit).sort(), [101, 102]);
++assert.equal(ends(w)[0].line.code, null); assert.equal(ends(w)[0].line.seen, "sample"); assert.ok(ends(w)[0].line.ended);
++assert.equal(Object.keys(ends(w)[0].line)[0], "pid_exit");
++assert.equal(run(lin, procs, 1_030_000).length, 0, "an end line is written once");
++console.log("PASS  a gone process gets one end line (code null, seen sample)");
++
++// 3. a pid born again under the same number is a new process
++procs = table(proc(50, 1, "node.exe"), proc(100, 50, "claude.exe"), proc(101, 100, "node.exe", "node x.js", 2000));
++assert.equal(starts(run(lin, procs, 1_040_000)).length, 1);
++procs = table(proc(50, 1, "node.exe"), proc(100, 50, "claude.exe"), proc(101, 100, "bash.exe", "other", 3000));
++w = run(lin, procs, 1_050_000);
++assert.equal(ends(w).length, 1, "the old 101 ended"); assert.equal(starts(w).length, 1, "the new 101 started");
++console.log("PASS  pid reuse is told apart by start time");
++
++// 4. a pid SpawnLog logged is skipped, and its children inherit its agent and why; Servex's own children go to no agent
++SpawnLog.logged.set(200, { agent: "minion-t", session: "uuid-1", why: "shell", dir: "/t/dir", ended: null });
++procs = table(proc(50, 1, "node.exe"), proc(100, 50, "claude.exe"), proc(200, 50, "node.exe", "node srv.js"), proc(201, 200, "node.exe", "node child.js"), proc(51, 50, "whisper-server.exe"));
++w = run(new Lineage(), procs, 2_000_000);
++assert.deepEqual(starts(w).map(x => x.line.pid).sort(), [201, 51]);
++assert.equal(starts(w).find(x => x.line.pid === 201).line.why, "child of shell");
++assert.equal(starts(w).find(x => x.line.pid === 201).line.agent, "minion-t");
++assert.equal(starts(w).find(x => x.line.pid === 51).line.agent, null); assert.equal(starts(w).find(x => x.line.pid === 51).line.why, "child of servex");
++console.log("PASS  logged pids are skipped, their children inherit; Servex's own children have no agent");
++
++// 5. the cap: only `cap` start lines per owner per minute, the rest are counted in one pid_dropped line; a new minute starts again
++const capped = new Lineage({ cap: 3 });
++procs = table(proc(50, 1, "node.exe"), proc(100, 50, "claude.exe"), ...[...Array(8).keys()].map(i => proc(500 + i, 100, "sleep.exe")));
++w = run(capped, procs, 3_000_000);
++assert.equal(starts(w).length, 3); assert.equal(w.filter(x => "pid_dropped" in x.line).length, 1); assert.equal(w.at(-1).line.pid_dropped, 5);
++assert.equal(w.at(-1).line.cap, 3);
++w = run(capped, procs, 3_010_000);
++assert.equal(w.length, 0, "same minute: nothing more, nothing repeated");
++w = run(capped, procs, 3_070_000);
++assert.equal(starts(w).length, 3, "a new minute logs the next three");
++console.log("PASS  per-owner per-minute cap, with the dropped count");
++
++// 6. Processes.trace writes through SpawnLog into the agent's session log (and into `spawns` for an agent-less owner)
++const dir = path.join(tmp, "task"); fs.mkdirSync(dir); fs.writeFileSync(path.join(dir, "session.jsonl"), JSON.stringify({ session: { id: "x", at: 1 } }) + "\n");
++const live = new Map([["minion-t", { id: "minion-t", state: "working", claude_pid: 100, session_id: "uuid-1", task: { dir } }]]);
++const pm = new Processes({ servex: { agents: { live, constructor: {} } } });
++pm.procs = table(proc(50, 1, "node.exe"), proc(100, 50, "claude.exe", "claude --resume=aaaaaaaa-0000-0000-0000-000000000000"), proc(101, 100, "bash.exe", "bash"));
++pm.trace(Date.now()); await SpawnLog.flush();
++const log = fs.readFileSync(path.join(dir, "session.jsonl"), "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
++assert.ok(log.some(l => l.pid === 101 && l.agent === "minion-t" && l.seen === "sample" && l.by === "servex"), "the start line is in the agent's session log");
++pm.procs = table(proc(50, 1, "node.exe"), proc(100, 50, "claude.exe"));
++pm.trace(Date.now()); await SpawnLog.flush();
++assert.ok(fs.readFileSync(path.join(dir, "session.jsonl"), "utf8").includes('"pid_exit":101,'), "and its end line");
++console.log("PASS  Processes.trace writes sampled lines into the agent's session log");
++
++fs.rmSync(tmp, { recursive: true, force: true });
++process.exit(0);
+diff --git a/Servex/Pool.js b/Servex/Pool.js
+index 0d879b78a..6ebda2994 100644
+--- a/Servex/Pool.js
++++ b/Servex/Pool.js
+@@ -274,8 +274,8 @@ export default class Pool extends Events {
+             /* compliance/dev changed a file the slot's own server keeps rewriting (files.jsonl, page.jsonl): own_dirt() called
+              * the slot clean, but git will not overwrite it. Stop the server first (it rewrites the file within a second),
+              * put the noise back to HEAD, fast-forward, and make a fresh slot: this one's server is gone. */
+-            this.kill(slot.watcher_pid, /health-supervisor/i);
+-            this.kill(slot.server_pid, this.server_cmd(slot));
++            this.kill(slot.watcher_pid, /health-supervisor/i, slot);
++            this.kill(slot.server_pid, this.server_cmd(slot), slot);
+             const generated = (await this.dirt(slot)).filter(d => Pool.generated(d)).map(d => d.file);
+             this.aside(slot, generated);
+             await this.restore(slot, generated);
+@@ -424,8 +424,8 @@ export default class Pool extends Events {
+      * and the slot's own branch is moved back to the base. A diff of only appended page.jsonl
+      * lines is the server's noise: salvaged anyway, and said so. Returns {branch, what}. */
+     async salvage(slot, holder){
+-        this.kill(slot.watcher_pid, /health-supervisor/i);
+-        this.kill(slot.server_pid, this.server_cmd(slot));
++        this.kill(slot.watcher_pid, /health-supervisor/i, slot);
++        this.kill(slot.server_pid, this.server_cmd(slot), slot);
+         const healed = await this.heal_tree(slot);   // a tree deleted wholesale is put back in one call, not walked file by file
+         await this.restore(slot, (await this.dirt(slot)).filter(d => Pool.server_log(d.file)).map(d => d.file));   // the server's noise stays out of salvage
+         /* Live logs that compliance/dev also tracks (ai/board.jsonl, a task.jsonl) change under every agent: salvage swept
+@@ -554,8 +554,8 @@ export default class Pool extends Events {
+         this.leaving.push(slot);   // kept on disk until it is really gone, so a restart mid-way finishes it
+         this.save();
+         return this.chain = this.chain.then(async () => {
+-            this.kill(slot.watcher_pid, /health-supervisor/i);
+-            this.kill(slot.server_pid, this.server_cmd(slot));
++            this.kill(slot.watcher_pid, /health-supervisor/i, slot);
++            this.kill(slot.server_pid, this.server_cmd(slot), slot);
+             const own = await this.own_dirt(slot);
+             const ancestor = (await this.git(slot.path, ["merge-base", "--is-ancestor", "HEAD", this.base])).ok || await this.landed(slot);
+             if (own.length || !ancestor){
+@@ -607,7 +607,7 @@ export default class Pool extends Events {
+             const up = await this.answers(slot.url);
+             if (slot.state !== "ready" || !this.slots.includes(slot)) continue;   // taken (or gone) during the await: it is someone's now
+             if (!up){ this.remove(slot); continue; }
+-            if (this.alive(slot.watcher_pid)){ this.kill(slot.watcher_pid, /health-supervisor/i); slot.watcher_pid = null; this.save(); }   // a ready slot holds no browser
++            if (this.alive(slot.watcher_pid)){ this.kill(slot.watcher_pid, /health-supervisor/i, slot); slot.watcher_pid = null; this.save(); }   // a ready slot holds no browser
+         }
+         if (this.slots.length) this.say(`pool: adopted ${this.slots.map(s => `${s.id} (${s.state})`).join(", ")}`);
+     }
+@@ -923,13 +923,14 @@ export default class Pool extends Events {
+     /* Kill a pid only while it is still the process we started. Windows reuses pids: on 2026-09-29
+      * qf-4's recorded watcher pid (25792) had become whisper-server, and a blind taskkill /T would
+      * have taken the owner's dictation down. `expect` is matched against its command line. */
+-    kill(pid, expect){
++    kill(pid, expect, slot = null){
+         if (!pid) return;
+         if (expect){
+             const cmd = this.cmdline(pid);
+             if (!cmd || !expect.test(cmd)) return cmd && this.say(`pool: pid ${pid} is no longer ours (${cmd.slice(0, 80)}) — not killed`);
+         }
+         try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
++        if (slot?.path) this.servex?.lifecycle?.end_killed?.(slot.path, "reaped: the pool stopped it").catch(() => {});   // a /F kill skips the exit hooks: write the end lines of what died inside the tree
+     }
+ 
+     cmdline(pid){
+diff --git a/Servex/Processes.js b/Servex/Processes.js
+index 55ec88869..44667545c 100644
+--- a/Servex/Processes.js
++++ b/Servex/Processes.js
+@@ -4,6 +4,8 @@ import path from "path";
+ import { spawn } from "child_process";
+ import Events from "../Server/Events.js";
+ import { stamp, place } from "./home.js";
++import SpawnLog from "./SpawnLog.js";
++import Lineage from "./Lineage.js";
+ 
+ /* THE PROCESS MONITOR — every process on the machine, which of them are OURS,
+  * and which task each of ours works for (process-monitor, 2026-09-30).
+@@ -78,6 +80,8 @@ export default class Processes extends Events {
+ 		this.spin_ms ??= Number(process.env.SERVEX_SPIN_MS) || 5 * 60000;          // an idle agent must burn a core this long
+ 		this.spin_core_pct ??= Number(process.env.SERVEX_SPIN_CORE_PCT) || 50;
+ 		this.spin = new Map();         // agent id -> { pid, since }: idle and over spin_core_pct of a core, since then
++		this.lineage = new Lineage();  // Lineage.js: start and end lines for processes SpawnLog cannot see (SERVEX_LINEAGE=0 turns it off)
++		this.lineage_on ??= process.env.SERVEX_LINEAGE !== "0";
+ 	}
+ 
+ 	start(){
+@@ -140,7 +144,8 @@ export default class Processes extends Events {
+ 		this.history.push(this.point(this.now));
+ 		if (this.history.length > this.keep) this.history.splice(0, this.history.length - this.keep);
+ 		if (this.reaping) this.reap();
+-		try { this.watch_spin(at); } catch (e) { this.error = e.message; }
++			try { this.watch_spin(at); } catch (e) { this.error = e.message; }
++		try { this.trace(at); } catch (e) { this.error = e.message; }
+ 		this.emit("tick", this.now);
+ 	}
+ 
+@@ -158,15 +163,27 @@ export default class Processes extends Events {
+ 		for (const [, ppid, win] of rows) if (ppid !== 1) this.real.set(win, winpid.get(ppid) ?? 0);
+ 	}
+ 
++	/* The live parent of a process, or null. */
++	up(p){
++		if (this.real?.has(p.pid)){ const w = this.real.get(p.pid); return w ? this.procs.get(w) ?? null : null; }
++		const q = this.procs.get(p.ppid); return q && (!q.born || !p.born || q.born <= p.born) ? q : null;
++	}
++
++	/* Start and end lines for the processes under an agent's claude.exe (or Servex) that SpawnLog did not start: Lineage.js diffs this sample
++	 * against the last. The same Map this tick already built; no second query. */
++	trace(at){
++		if (!this.lineage_on || !this.servex) return;
++		const host = this.servex.agents, owners = new Map();
++		for (const a of this.agents()) if (a.pid) owners.set(a.pid, { agent: a.id, session: host?.live?.get(a.id)?.session_id ?? null, dir: SpawnLog.dir_for(host, a.id) });
++		for (const { ctx, line } of this.lineage.tick({ procs: this.procs, up: p => this.up(p), owners, self: process.pid, now: at })) SpawnLog.put(SpawnLog.targets(ctx), line);
++	}
++
+ 	/* ── sorting every process into a group ───────────────────────────── */
+ 
+ 	sort(at){
+ 		const procs = this.procs, kids = new Map(), group = new Map(), groups = new Map();
+ 		// a parent pid only counts if that process was born before the child (Windows reuses pids)
+-		const parent = p => {
+-			if (this.real?.has(p.pid)){ const w = this.real.get(p.pid); return w ? procs.get(w) ?? null : null; }
+-			const q = procs.get(p.ppid); return q && (!q.born || !p.born || q.born <= p.born) ? q : null;
+-		};
++		const parent = p => this.up(p);
+ 		for (const p of procs.values()){ const q = parent(p); if (q) (kids.get(q.pid) ?? kids.set(q.pid, []).get(q.pid)).push(p.pid); }
+ 		const claim = (pid, key) => {
+ 			for (const stack = [pid]; stack.length;){
+diff --git a/Servex/SpawnLog.js b/Servex/SpawnLog.js
+index 04a62ce7b..e4c8b69e9 100644
+--- a/Servex/SpawnLog.js
++++ b/Servex/SpawnLog.js
+@@ -13,6 +13,7 @@ export default class SpawnLog {
+ 	static sink = null;      // Servex's single-writer Log, set in Servex.admission(); without it the `spawns` file is appended directly
+ 	static CUT = 300;
+ 	static QUIET = [/Get-CimInstance Win32_Process/, /^netstat\b/, /\bworktree list\b/, /rev-parse --verify --quiet/];   // no-agent polls (~9 of the ~12 spawns a minute): not worth a line
++	static logged = new Map();   // pid -> { agent, session, why, dir, ended }: what watch() has seen, so Lineage.js (the 10 s sample) skips these pids and inherits their owner; an ended entry is kept two minutes, for a sample that raced the exit
+ 	static chain = null;
+ 	static deps = null;
+ 
+@@ -67,11 +68,14 @@ export default class SpawnLog {
+ 			if (typeof pid !== "number" || typeof child.once !== "function") return;
+ 			const cmd = [args[0], ...(Array.isArray(args[1]) ? args[1] : typeof args[1] === "string" ? [args[1]] : [])].join(" ").replace(/\s+/g, " ");
+ 			const ctx = this.store.getStore() ?? null;
+-			if (!ctx?.agent && this.QUIET.some(q => q.test(cmd))) return;
++			const mine = { agent: ctx?.agent ?? null, session: ctx?.session ?? null, why: ctx?.why ?? `${name}:${path.basename(String(args[0]))}`, dir: ctx?.dir ?? null, ended: null };
++			this.logged.set(pid, mine);
++			if (this.logged.size > 400) for (const [k, v] of this.logged) if (v.ended && Date.now() - v.ended > 120000) this.logged.delete(k);
++			if (!ctx?.agent && this.QUIET.some(q => q.test(cmd))) return void child.once("exit", () => { mine.ended = Date.now(); });
+ 			const where = this.targets(ctx);
+-			const line = { pid, agent: ctx?.agent ?? null, session: ctx?.session ?? null, cmd: cmd.slice(0, this.CUT), why: ctx?.why ?? `${name}:${path.basename(String(args[0]))}`, at: stamp() };
++			const line = { pid, cmd: cmd.slice(0, this.CUT), why: ctx?.why ?? `${name}:${path.basename(String(args[0]))}`, agent: ctx?.agent ?? null, session: ctx?.session ?? null, started: stamp() };
+ 			this.put(where, line);
+-			child.once("exit", (code, signal) => this.put(where, { pid_exit: pid, code, signal: signal ?? null, at: stamp() }));
++			child.once("exit", (code, signal) => { mine.ended = Date.now(); this.put(where, { pid_exit: pid, ended: stamp(), code, signal: signal ?? null }); });
+ 		} catch { /* a log line must never reach the caller */ }
+ 	}
+ 
+diff --git a/Servex/SpawnLog.test.mjs b/Servex/SpawnLog.test.mjs
+index c9ca98b4b..0a0ad2c31 100644
+--- a/Servex/SpawnLog.test.mjs
++++ b/Servex/SpawnLog.test.mjs
+@@ -27,6 +27,8 @@ assert.equal(Object.keys(pids(lines)[0])[0], "pid", "pid is the first key");
+ assert.equal(pids(lines)[0].pid, child.pid);
+ assert.equal(pids(lines)[0].agent, "minion-t"); assert.equal(pids(lines)[0].session, "uuid-1"); assert.equal(pids(lines)[0].why, "shell");
+ assert.match(pids(lines)[0].cmd, /^node -e 1/);
++assert.ok(pids(lines)[0].started && !("at" in pids(lines)[0]), "the start line carries `started`, not `at`");
++assert.ok(exits(lines)[0].ended && !("at" in exits(lines)[0]), "the exit line carries `ended`, not `at`");
+ assert.equal(exits(lines).length, 1, "one exit line");
+ assert.equal(exits(lines)[0].pid_exit, child.pid); assert.equal(exits(lines)[0].code, 0);
+ assert.equal(pids(lines).concat(exits(lines)).length, lines.length, "nothing else landed");
+diff --git a/Servex/chrome-pin.test.mjs b/Servex/chrome-pin.test.mjs
+new file mode 100644
+index 000000000..d0c07b91d
+--- /dev/null
++++ b/Servex/chrome-pin.test.mjs
+@@ -0,0 +1,200 @@
++/* node Servex/chrome-pin.test.mjs — every path that ends a process (Lifecycle: resources / why / kill; Processes.reap; Relief; Pool.kill; the browser
++ * watchdog; Browser.mjs's exit hook) is fed a process list holding the owner's plain Chrome, VS Code and Figma. None of them is ever chosen; a Playwright
++ * chrome (ms-playwright / chrome-for-testing / one of our --user-data-dirs) is. Also: a forced kill of a tree writes the end lines of what died in it.
++ * Everything runs against a scratch SERVEX_HOME and a Servex port nobody listens on, so nothing reaches the real logs. The only processes killed are
++ * harmless `node -e setInterval` children that the test starts itself. */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { spawn, execFileSync } from "node:child_process";
++import { fileURLToPath } from "node:url";
++
++const here = path.dirname(fileURLToPath(import.meta.url));
++const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "chrome-pin-"));
++process.env.SERVEX_HOME = path.join(tmp, "home");   // before home.js loads
++process.env.SERVEX_PORT = "1";                      // record() would otherwise post to the real Servex
++process.env.SERVEX_LINEAGE = "0";
++fs.mkdirSync(path.join(tmp, "home", "logs"), { recursive: true });
++const { default: Lifecycle, OUR_CHROME, owners_own, record } = await import("./Lifecycle.js");
++const { default: Processes } = await import("./Processes.js");
++const { default: Relief } = await import("./Relief.js");
++const { default: Pool } = await import("./Pool.js");
++const lifecycle_log = path.join(tmp, "home", "logs", "lifecycle.jsonl");
++const log_lines = () => fs.existsSync(lifecycle_log) ? fs.readFileSync(lifecycle_log, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l)) : [];
++
++const OWNER = {
++	chrome: { name: "chrome.exe", cmd: '"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --profile-directory="Default"' },
++	chrome_child: { name: "chrome.exe", cmd: '"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --type=renderer --user-data-dir="C:\\Users\\x\\AppData\\Local\\Google\\Chrome\\User Data"' },
++	code: { name: "Code.exe", cmd: '"C:\\Users\\x\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe"' },
++	figma: { name: "Figma.exe", cmd: '"C:\\Users\\x\\AppData\\Local\\Figma\\app-124\\Figma.exe"' },
++};
++const OURS = {
++	playwright: { name: "chrome.exe", cmd: '"C:\\Users\\x\\AppData\\Local\\ms-playwright\\chromium-1181\\chrome-win\\chrome.exe" --headless --remote-debugging-pipe' },
++	testing: { name: "chrome.exe", cmd: '"C:\\Users\\x\\.cache\\chrome-for-testing\\chrome.exe" --headless' },
++	profile: { name: "chrome.exe", cmd: '"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --headless --user-data-dir=C:\\Users\\x\\AppData\\Local\\Temp\\playwright_chromiumdev_profile-AbC123' },
++	headed: { name: "chrome.exe", cmd: '"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --user-data-dir="C:\\Users\\x\\AppData\\Local\\lew42\\chrome-profile"' },
++};
++
++// 1. the one rule
++for (const [k, p] of Object.entries(OWNER)) assert.equal(owners_own(p), true, `${k} is the owner's`);
++for (const [k, p] of Object.entries(OURS)) assert.equal(owners_own(p), false, `${k} is ours`);
++for (const n of ["node.exe", "cmd.exe", "bash.exe", "claude.exe"]) assert.equal(owners_own({ name: n, cmd: "x" }), false, `${n} is not an owner app`);
++assert.equal(owners_own(undefined), false);
++assert.ok(OUR_CHROME.test(OURS.playwright.cmd) && !OUR_CHROME.test(OWNER.chrome.cmd) && !OUR_CHROME.test(OWNER.chrome_child.cmd));
++console.log("PASS  owners_own(): Chrome / Code / Figma are the owner's; Playwright, chrome-for-testing and our profiles are not");
++
++// harmless long-lived processes to stand in for whatever the fake list names
++const dummies = [];
++const dummy = (extra = []) => { const c = spawn(process.execPath, ["-e", "setInterval(()=>{},1e3)", "--", ...extra], { windowsHide: true, stdio: "ignore" }); dummies.push(c); return c; };
++const alive = pid => { try { process.kill(pid, 0); return true; } catch { return false; } };
++const wait = ms => new Promise(r => setTimeout(r, ms));
++const gone = async (pid, ms = 8000) => { for (let t = 0; t < ms; t += 100) { if (!alive(pid)) return true; await wait(100); } return false; };
++const proc = (pid, ppid, p, extra = {}) => ({ pid, ppid, name: p.name, cmd: p.cmd, born: 1000, ports: [], ...extra });
++
++// 2. Lifecycle: which rows exist, and which get a reason to close
++const lc = new Lifecycle({ servex: null });
++lc.agents = async () => [];
++const fake = new Map([
++	[9001, proc(9001, 1, OWNER.chrome)], [9002, proc(9002, 9001, OWNER.chrome_child)], [9003, proc(9003, 1, OWNER.code)], [9004, proc(9004, 1, OWNER.figma)],
++	[9010, proc(9010, 1, OURS.playwright)], [9011, proc(9011, 1, OURS.profile)],
++]);
++lc.processes_async = async () => fake;
++const rows = (await lc.resources()).filter(r => r.kind === "browser");
++assert.deepEqual(rows.map(r => r.pid).sort(), [9010, 9011], "only the two Playwright chromes are rows");
++for (const r of rows) assert.ok(lc.why(r), `chrome ${r.pid} (its launcher is gone) is closable`);
++assert.ok(!(await lc.resources()).some(r => [9001, 9002, 9003, 9004].includes(r.pid) || [9001, 9002, 9003, 9004].includes(r.child)), "no row names the owner's apps");
++console.log("PASS  Lifecycle.resources(): the owner's Chrome, Code and Figma are never rows; both Playwright chromes are, and are closable");
++
++// 2b. a logged browser pid that the owner's Chrome now holds (the number was reused) is not a row
++await record({ kind: "browser", id: "browser:9001", pid: 9001, launcher: 1, path: "C:\\Code\\lew42\\worktrees\\x", event: "start" });
++fs.writeFileSync(lifecycle_log, fs.readFileSync(lifecycle_log, "utf8").replace(/"at":"[^"]*"/, `"at":"${new Date(Date.now() - 3600e3).toISOString()}"`));
++fake.set(9001, proc(9001, 1, OWNER.chrome, { born: Date.now() - 60e3 }));
++assert.ok(!(await lc.resources()).some(r => r.pid === 9001), "a reused pid held by the owner's Chrome is no row");
++console.log("PASS  Lifecycle.resources(): a logged browser pid that the owner's Chrome now holds is not chosen");
++
++// 3. Lifecycle.kill(): handed the owner's pid by mistake it refuses; handed a Playwright one it ends it
++for (const [k, p] of Object.entries(OWNER)) {
++	const d = dummy(); await wait(400);
++	lc.procs = new Map([[d.pid, proc(d.pid, 1, p)]]);
++	lc.kill({ kind: "browser", id: `x:${d.pid}`, pid: d.pid });
++	await wait(800);
++	assert.ok(alive(d.pid), `kill() left ${k} alone`);
++}
++{
++	const d = dummy(); await wait(400);
++	lc.procs = new Map([[d.pid, proc(d.pid, 1, OURS.playwright)]]);
++	lc.kill({ kind: "browser", id: `x:${d.pid}`, pid: d.pid });
++	assert.ok(await gone(d.pid), "kill() ended the Playwright chrome");
++}
++console.log("PASS  Lifecycle.kill(): the owner's apps survive it, a Playwright chrome does not");
++
++// 4. Processes.reap(): only waiters with our command line; never an app, even as an idle orphan
++{
++	const real_kill = process.kill, killed = [];
++	process.kill = pid => { killed.push(pid); };
++	try {
++		const pm = new Processes({ reaping: false, servex: { agents: { live: new Map() } } });
++		const t0 = Date.now() - 3600e3;
++		pm.reaping = true; pm.reap_after_ms = 60000; pm.log = () => {};
++		pm.procs = new Map([
++			[7001, { ...proc(7001, 1, OWNER.chrome), idle_since: t0, mb: 10 }], [7002, { ...proc(7002, 1, OWNER.code), idle_since: t0, mb: 10 }], [7003, { ...proc(7003, 1, OWNER.figma), idle_since: t0, mb: 10 }],
++			[7004, { ...proc(7004, 1, OURS.playwright), idle_since: t0, mb: 10 }],
++			[7005, { pid: 7005, ppid: 1, name: "sleep.exe", cmd: "sleep 999 C:\\Code\\lew42\\x", idle_since: t0, mb: 1 }],
++		]);
++		pm.now = { orphans: [...pm.procs.values()].map(p => ({ pid: p.pid })) };
++		pm.reap();
++		assert.deepEqual(killed, [7005], "reap() chose the sleep.exe waiter only");
++	} finally { process.kill = real_kill; }
++	console.log("PASS  Processes.reap(): Chrome / Code / Figma / a Playwright chrome are never reaped, even listed as idle orphans (only waiters are)");
++}
++
++// 5. Relief.run(): it ends nothing itself; the owner's apps are only named in a note
++{
++	const real_kill = process.kill, killed = [];
++	process.kill = pid => { killed.push(pid); return true; };
++	try {
++		const sv = { lifecycle: { sweep: async () => ({ close: [], gone: [], kept: [] }) }, worktrees: null, agents: { live: new Map() }, log: { append: async () => {} },
++			procmon: { commit_mb: 90, commit_limit_mb: 100, reaped: [], now: { other_top: [{ name: "chrome.exe", mb: 900 }, { name: "Code.exe", mb: 700 }, { name: "Figma.exe", mb: 500 }] } } };
++		const r = new Relief({ servex: sv, settle_ms: 1 });
++		r.note = async () => {};
++		await r.run(90);
++		assert.deepEqual(killed, [], "Relief called no kill");
++		const src = fs.readFileSync(path.join(here, "Relief.js"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
++		assert.ok(!/process\.kill|taskkill|execFileSync|\.kill\(/.test(src), "Relief.js holds no process-ending call");
++	} finally { process.kill = real_kill; }
++	console.log("PASS  Relief: ends nothing itself (no kill call in the file, none made in a run)");
++}
++
++// 6. Pool.kill(expect): the pid is only ended while its command line still matches what the pool started
++{
++	const said = [];
++	const pool = { cmdline: () => OWNER.chrome.cmd, say: m => said.push(m), servex: null };
++	const d = dummy(); await wait(400);
++	Pool.prototype.kill.call(pool, d.pid, /health-supervisor/i);
++	await wait(800);
++	assert.ok(alive(d.pid), "a pid that is now the owner's Chrome is not killed"); assert.match(said[0] ?? "", /no longer ours/);
++	pool.cmdline = () => "node health-supervisor.mjs";
++	Pool.prototype.kill.call(pool, d.pid, /health-supervisor/i);
++	assert.ok(await gone(d.pid), "the pool's own supervisor is");
++	console.log("PASS  Pool.kill(): refuses a pid whose command line is not the pool's; ends the pool's own");
++}
++
++// 7. a forced kill of a tree writes the end lines of the tracked processes that died in it
++{
++	const dir = path.join(tmp, "wt-slot"), outside = path.join(tmp, "elsewhere");
++	const dead = 2_000_000_001, dead2 = 2_000_000_002, dead3 = 2_000_000_003, live = process.pid;
++	const lcx = new Lifecycle({ servex: null });
++	for (const [id, pid, p, kind] of [[`run.js:${dead}`, dead, dir, "server"], [`server.js:${dead2}`, dead2, path.join(dir, "sub"), "server"], [`run.js:${live}`, live, dir, "server"], [`run.js:${dead3}`, dead3, outside, "server"], [`wrapper:${dead}`, dead, dir, "server"]])
++		await record({ kind, id, pid, path: p, event: "start" });
++	const n = await lcx.end_killed(dir, "reaped: test", { skip_id: `wrapper:${dead}` });
++	assert.equal(n, 2, "the two dead ones under the slot");
++	assert.deepEqual(lcx.open().map(e => e.id).filter(id => /^(run|server|wrapper)\.?/.test(id)).sort(), [`run.js:${dead3}`, `run.js:${live}`, `wrapper:${dead}`].sort(), "the running one, the one elsewhere and the skipped row stay open");
++	console.log("PASS  Lifecycle.end_killed(): ends dead tracked processes under the killed path; leaves live, foreign and the row being closed");
++
++	let asked = 0;
++	const pool = { cmdline: () => "node health-supervisor", say() {}, servex: { lifecycle: { end_killed: (p, why) => { asked++; assert.equal(p, dir); assert.match(why, /pool/); return Promise.resolve(1); } } } };
++	Pool.prototype.kill.call(pool, 2_000_000_009, /health-supervisor/i, { path: dir });
++	assert.equal(asked, 1, "Pool.kill() writes the end lines after a kill");
++	console.log("PASS  Pool.kill(pid, expect, slot): asks the lifecycle to end what died in the slot");
++}
++
++// 8. the watchdog: kills only a command line that says Playwright / our profile, and writes the end line
++{
++	const dog = (launcher, chrome) => spawn(process.execPath, [path.join(here, "..", "Server", "browser-watchdog.mjs"), String(launcher), String(chrome)], { windowsHide: true, stdio: "ignore", env: { ...process.env } });
++	const no_launcher = 2_000_000_050;
++	const mine = dummy(["--user-data-dir=C:\\Users\\x\\AppData\\Local\\Temp\\playwright_chromiumdev_profile-ZzZ"]); await wait(400);
++	await record({ kind: "browser", id: `browser:${mine.pid}`, pid: mine.pid, launcher: no_launcher, path: tmp, event: "start" });
++	const innocent = dummy(); await wait(400);   // its command line carries no Playwright marker, as the owner's chrome.exe would not
++	const d1 = dog(no_launcher, innocent.pid), d2 = dog(no_launcher, mine.pid);
++	assert.ok(await gone(mine.pid, 15000), "the watchdog ended the Playwright browser whose launcher is gone");
++	await wait(2500);
++	assert.ok(alive(innocent.pid), "and left the process it could not prove ours");
++	const end = log_lines().find(l => l.id === `browser:${mine.pid}` && l.event === "end");
++	assert.ok(end && /watchdog/.test(end.why), "its end line is written by the watchdog");
++	assert.ok(!log_lines().some(l => l.id === `browser:${innocent.pid}`));
++	for (const d of [d1, d2]) try { d.kill(); } catch {}
++	console.log("PASS  browser-watchdog: kills only a command line that says Playwright / our profile, and writes the end line");
++}
++
++// 9. Browser.mjs: a script that process.exit()s still ends its browser's lifecycle line (needs the global Playwright)
++{
++	let npm_root = ""; try { npm_root = execFileSync("npm", ["root", "-g"], { encoding: "utf8", windowsHide: true, shell: true }).trim(); } catch {}
++	if (!npm_root || !fs.existsSync(path.join(npm_root, "playwright", "index.mjs"))) console.log("SKIP  Browser exit end line: no global Playwright");
++	else {
++		const script = path.join(tmp, "exit-script.mjs");
++		fs.writeFileSync(script, `import Browser from ${JSON.stringify("file:///" + path.join(here, "..", "Server", "Browser.mjs").replace(/\\/g, "/"))};\nconst b = await Browser.browser();\nawait new Promise(r => setTimeout(r, 2500));\nprocess.exit(0);\n`);
++		const home = path.join(tmp, "home2"); fs.mkdirSync(path.join(home, "logs"), { recursive: true });
++		try { execFileSync(process.execPath, [script], { windowsHide: true, timeout: 90000, env: { ...process.env, SERVEX_HOME: home }, stdio: "ignore" }); } catch (e) { console.log("script:", String(e.message).slice(0, 160)); }
++		const f = path.join(home, "logs", "lifecycle.jsonl");
++		const lines = (fs.existsSync(f) ? fs.readFileSync(f, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l)) : []).filter(l => l.kind === "browser");
++		assert.deepEqual(lines.map(l => l.event), ["start", "end"], "one start and one end line, though the script called process.exit()");
++		console.log("PASS  Browser.mjs: process.exit() still writes the browser's end line (" + lines[1].why + ")");
++	}
++}
++
++for (const d of dummies) try { d.kill(); } catch {}
++await wait(300);
++try { fs.rmSync(tmp, { recursive: true, force: true }); } catch {}
++console.log("chrome-pin.test: all checks pass");
++process.exit(0);
+diff --git a/Servex/doc/lifecycle.md b/Servex/doc/lifecycle.md
+index 5bcc45346..2dab2fc92 100644
+--- a/Servex/doc/lifecycle.md
++++ b/Servex/doc/lifecycle.md
+@@ -20,7 +20,9 @@ Every server, health watcher, headless browser, worktree, agent and task writes
+ 
+ **Who owns it** (`owner_task`) comes from the env var `LEW_TASK` when it is set; otherwise from the worktree the process runs in (the task whose log names that worktree, or whose folder has the worktree's name).
+ 
+-A process that is killed hard (`taskkill /F`) cannot write its own end line. The sweep notices the pid is gone and writes it.
++A process that is killed hard (`taskkill /F`) cannot write its own end line. The sweep notices the pid is gone and writes it. Three closers write the lines a hard kill would skip, so the sweep's "found gone" ends stay rare (2026-11-06, `Servex/leaks.mjs` report): `close()` and `Pool.kill()` call `end_killed(dir, why)` after a `taskkill /T /F`, which ends every open server / health / browser start under that path whose pid is dead (a live pid, another path and the row being closed are left alone); `Server/Browser.mjs`'s `exit` hook writes the browser's end line synchronously before `process.exit()` finishes; and `Server/browser-watchdog.mjs` writes it when it closes an orphan browser.
++
++**The owner's own apps are never ended.** `owners_own(p)` is true for Chrome (unless its command line says `ms-playwright`, `chrome-for-testing` or one of our `--user-data-dir`s, `OUR_CHROME`), Edge, Firefox, Code, Figma and the like. `kill()` and `--stop <pid>` refuse them, and the watchdog kills a chrome pid only while its command line still matches `OUR_CHROME` (a reused pid is the owner's). Proof: `Servex/chrome-pin.test.mjs` feeds every ending path a list with the owner's Chrome, Code and Figma.
+ 
+ ## 2. The reaper
+ 
+diff --git a/Servex/doc/processes.md b/Servex/doc/processes.md
+index a185794dd..638b6aa2a 100644
+--- a/Servex/doc/processes.md
++++ b/Servex/doc/processes.md
+@@ -209,22 +209,40 @@ unaffected).
+ Every async child process Servex starts (`spawn`, `exec`, `execFile`, `fork`, plain or promisified) gets a start line the moment it has a pid, and an exit line when it ends. [`Crumbs.js`](../Crumbs.js) hooks `child_process` and calls [`SpawnLog.watch`](../SpawnLog.js); `SpawnLog.js` holds the AsyncLocalStorage that says which agent's tool call (or which agent's own claude.exe) started it. Writes never throw and never slow the caller.
+ 
+ ```json
+-{"pid":12345,"agent":"minion-x","session":"<uuid>","cmd":"git status --short","why":"shell","at":"…","by":"servex"}
+-{"pid_exit":12345,"code":0,"signal":null,"at":"…","by":"servex"}
++{"pid":12345,"cmd":"git status --short","why":"shell","agent":"minion-x","session":"<uuid>","started":"…","by":"servex"}
++{"pid_exit":12345,"ended":"…","code":0,"signal":null,"by":"servex"}
+ ```
+ 
+ `pid` is the first key, so `"pid":12345` finds the start line only and `"pid_exit":12345` the exit. `cmd` is cut at 300 characters; `why` is the tool name (`shell`, `quick_fix`, …) or `claude.exe`, or `spawn:<program>` when there is no tool.
+ 
+ - **Called for an agent:** the line goes to that agent's session log (`session.jsonl`, else `task.jsonl`). A claude.exe also goes to its parent's log, so a mastermind sees its children's pids.
+ - **Called by Servex itself** (no agent): the `spawns` log, `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl`. Four pollers are skipped there by name: the process-table query (`Get-CimInstance Win32_Process`), `netstat`, `git worktree list` and `git rev-parse --verify --quiet`. Measured over 10.6 h on 2026-11-06: 7,724 async spawns, about 12 a minute; those four were about 9 of the 12, so the `spawns` log gets about 3 start lines a minute (plus an exit line each).
+-- **Not logged:** sync spawns (`spawnSync`, `execFileSync`, `execSync`: no live pid to report, and they block for milliseconds); and anything Servex did not start itself.
++- **Not logged by Servex's own hook:** sync spawns (`spawnSync`, `execFileSync`, `execSync`: no live pid to report, and they block for milliseconds); and anything Servex did not start itself, which the 10 s sample below picks up.
++
++### Sampled children (processes an agent's claude.exe starts)
++
++The Bash tool's shell, grep, node, a Playwright browser, a worktree dev server: claude.exe starts these, not Servex. [`Lineage.js`](../Lineage.js) finds them from the process table [`Processes.js`](../Processes.js) already samples every 10 s (`Processes.trace()`, a Map diff; no second PowerShell call). A process that is new since the last sample and descends from one of ours gets a start line; when it is gone from a later sample it gets an end line:
++
++```json
++{"pid":777,"cmd":"bash -c …","why":"child of claude.exe","agent":"minion-x","session":"<uuid>","started":"<process start time>","ppid":123,"seen":"sample","by":"servex"}
++{"pid_exit":777,"ended":"…","code":null,"signal":null,"seen":"sample","by":"servex"}
++```
++
++- **Ours** = an agent's `claude_pid`, Servex's own pid, a pid `SpawnLog` already logged (`SpawnLog.logged`, so each pid gets one start line), or a process Lineage already logged. The nearest such ancestor names the agent (none: the `spawns` log) and the `why`: `child of claude.exe`, `child of <that pid's why>`, or `child of servex`. `conhost.exe` is skipped (one per console process).
++- **First sample after a Servex restart** logs everything already running under an agent (`started` is the process's real start time), so a long-lived leftover has a start line.
++- **10 s limit:** a child that lives under one sample is never seen. It cannot leak, so that is fine. A detached grandchild whose parent exits before the first sample that sees it has no ancestor left to name, so it gets no line either (the leak report below still shows it in the process list when it is a dev-server or orphan group).
++- **End line:** `code` is `null` and `signal` is `null`: a sample cannot know the exit code.
++- **Cap:** at most 60 start lines per owner (an agent, or Servex) per minute (`Lineage.CAP`). The rest are counted once in `{"pid_dropped":N,"agent","cap","window_start","seen":"sample"}`, so a watch loop cannot flood a log. `SERVEX_LINEAGE=0` turns the whole thing off.
++- **Measured** on the live machine (2026-11-06, read-only, three real samples 10 s apart, 7 agents): 3, 4 and 12 new descendants per sample (about 38 start lines a minute, about 42 end lines a minute, so roughly 80 lines a minute across all agents; the busiest single agent reached 9 in one sample, under the cap of 60 a minute). The first sample logged 31 existing ones.
++
++### Leaks: a start with no end
++
++`node Servex/leaks.mjs` (a leak = a start line with no end line) reads every start and end line from the session logs and the `spawns` log and puts each unended start in a group: **gone, end missed** (the pid is not running: a logging bug), **alive, owner done** (its agent is stopped or dormant, or its task has landed: a real leak) or **alive, owner working** (fine). `--write <file>` writes the markdown report. It never kills anything. Run it, then fix the close path that missed the process (`Lifecycle.js`, `closeout`, `Pool.js`, `Server/Browser.mjs`), never the process itself. Tests: `Servex/leaks.test.mjs` (the pairing), `Servex/chrome-pin.test.mjs` (no ending path ever picks the owner's Chrome, Code or Figma; a Playwright chrome is picked; a forced kill writes its end lines).
+ 
+ Finding things: [How to find things](/framework/ai/sessions/#how-to-find-things).
+ 
+ Limits:
+-- The Bash tool's children of a claude.exe (the commands an agent types) are started by claude.exe, not by Servex, so they get no line.
+ - `MCP.call` (the HTTP door) carries no agent, so its spawns land in `spawns`.
+-- ⬜ A PostToolUse hook could write a line for those Bash-tool children too; not built.
+ 
+ The queue is loud in the same way: `Servex.hold()` appends `{"queued":{"agent","reason","commit_pct","page_file_mb"}}` to the parent's session log, and `drain()` appends `{"started":{"agent","waited_s"}}`. `page_file_mb` is null until the process monitor reads the page file. A queue entry restored after a restart writes no second `queued` line. Tests: `Servex/SpawnLog.test.mjs`, `Servex/Gate-loud.test.mjs`.
+ 
+diff --git a/Servex/leaks.mjs b/Servex/leaks.mjs
+new file mode 100644
+index 000000000..ea72fa00d
+--- /dev/null
++++ b/Servex/leaks.mjs
+@@ -0,0 +1,114 @@
++/* node Servex/leaks.mjs [--root <repo>] [--write <file>] [--json]
++ * EVERY START WITH NO END: reads the `{"pid":N}` start lines and `{"pid_exit":N}` end lines from the session logs (`git grep --untracked`,
++ * so a log not yet committed counts) and from the `spawns` Servex log, pairs them, and lists each start that never got an end line in three groups:
++ *   1. gone, end missed     the pid is not running any more (or the number now belongs to a newer process) and nobody wrote its end.
++ *   2. alive, owner done    still running, but its agent is stopped / dormant / closed, or its task has landed. THE LEAKS.
++ *   3. alive, owner working still running and its owner is still at work: normal, only counted.
++ * It only READS: it never kills anything. A real leak is fixed in the close path that missed it (Lifecycle.js, closeout, Pool.js,
++ * Server/Browser.mjs, Relief.js), not from this report. Both field names are read (`at` before 2026-11-06, `started` / `ended` after).
++ * Doc: Servex/doc/processes.md, "Leaks: a start with no end". */
++import fs from "node:fs";
++import path from "node:path";
++import { execFileSync } from "node:child_process";
++import { fileURLToPath } from "node:url";
++import { place } from "./home.js";
++
++const ms = t => { const n = Date.parse(t ?? ""); return Number.isFinite(n) ? n : 0; };
++
++/* lines: [{ file, row }] -> { open: [start rows still without an end], starts, ends }. A start is paired with the first later end of the same pid;
++ * the same line copied into a parent's log (claude.exe) is one line. */
++export function pair(lines){
++	const seen = new Set(), starts = [], ends = [];
++	for (const { file, row } of lines){
++		if ("pid_exit" in row){ const key = `x${row.pid_exit}@${row.ended ?? row.at}`; if (!seen.has(key)){ seen.add(key); ends.push({ pid: row.pid_exit, t: ms(row.ended ?? row.at), file }); } }
++		else if ("pid" in row && typeof row.pid === "number"){ const key = `s${row.pid}@${row.started ?? row.at}`; if (!seen.has(key)){ seen.add(key); starts.push({ ...row, t: ms(row.started ?? row.at), file, files: [file] }); } }
++	}
++	for (const { file, row } of lines) if ("pid" in row && typeof row.pid === "number"){   // remember every log a start was copied to
++		const s = starts.find(x => x.pid === row.pid && x.t === ms(row.started ?? row.at)); if (s && !s.files.includes(file)) s.files.push(file);
++	}
++	starts.sort((a, b) => a.t - b.t);
++	const open = [], spent = new Set();
++	for (const s of starts){
++		const next = starts.find(x => x.pid === s.pid && x.t > s.t)?.t ?? Infinity;   // the same number started again: an end between belongs to the first
++		const e = ends.find((x, i) => !spent.has(i) && x.pid === s.pid && x.t >= s.t && x.t < next);
++		if (e) spent.add(ends.indexOf(e)); else open.push(s);
++	}
++	return { open, starts, ends };
++}
++
++/* open: from pair(); alive: Map pid -> born ms; owner_done(agent, files) -> reason string or null. */
++export function classify(open, alive, owner_done){
++	const gone = [], done = [], working = [];
++	for (const s of open){
++		const born = alive.get(s.pid);
++		if (born == null || born > s.t + 15000){ gone.push(s); continue; }   // not running, or the number is a newer process (started after this line)
++		const why = owner_done(s.agent, s.files);
++		(why ? done : working).push(why ? { ...s, owner_state: why } : s);
++	}
++	return { gone, done, working };
++}
++
++function repo_root(){
++	try { return path.dirname(execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], { cwd: path.dirname(fileURLToPath(import.meta.url)), windowsHide: true }).toString().trim()); }
++	catch { return process.cwd(); }
++}
++
++function read_lines(root){
++	const out = [];
++	try {
++		const text = execFileSync("git", ["grep", "--untracked", "-H", "-I", "-e", '"pid":[0-9]', "-e", '"pid_exit":[0-9]', "--", "*.jsonl"], { cwd: root, windowsHide: true, maxBuffer: 1 << 29 }).toString();
++		for (const l of text.split("\n")){ const i = l.indexOf(":"); if (i < 0) continue; try { out.push({ file: l.slice(0, i), row: JSON.parse(l.slice(i + 1)) }); } catch {} }
++	} catch (e) { if (e.status !== 1) throw e; }   // 1 = no match
++	const spawns = place("logs", "spawns.jsonl");
++	if (fs.existsSync(spawns)) for (const l of fs.readFileSync(spawns, "utf8").split("\n")) { try { const row = JSON.parse(l); if ("pid" in row || "pid_exit" in row) out.push({ file: "spawns", row }); } catch {} }
++	return out;
++}
++
++function live_pids(){
++	const text = execFileSync("powershell.exe", ["-NoProfile", "-Command",
++		"Get-CimInstance Win32_Process | % { '{0} {1}' -f $_.ProcessId, $(if($_.CreationDate){[DateTimeOffset]::new($_.CreationDate).ToUnixTimeMilliseconds()}else{0}) }"], { windowsHide: true, maxBuffer: 1 << 26 }).toString();
++	return new Map(text.split(/\r?\n/).filter(Boolean).map(l => l.split(" ").map(Number)));
++}
++
++function owner_probe(root){
++	let reg = {}; try { const j = JSON.parse(fs.readFileSync(place("registry.json"), "utf8")); reg = j.agents ?? j; } catch {}
++	const landed = new Map();
++	const file_landed = file => {   // the session log's folder has a landed_at line
++		if (file === "spawns") return false;
++		if (!landed.has(file)) { let t = ""; try { t = fs.readFileSync(path.join(root, file), "utf8"); } catch {} landed.set(file, /"landed_at"/.test(t)); }
++		return landed.get(file);
++	};
++	return (agent, files) => {
++		const st = agent ? reg[agent]?.state : null;
++		if (agent && !reg[agent]) return null;   // unknown agent: cannot say it is done
++		if (st === "stopped" || st === "dormant" || st === "closed") return `agent ${agent} is ${st}`;
++		if (agent && files.some(f => f !== "spawns" && file_landed(f))) return `agent ${agent}'s task has landed`;
++		return null;
++	};
++}
++
++function row_text(s){
++	return `| ${s.pid} | ${s.started ?? s.at ?? ""} | ${s.agent ?? "servex"} | ${s.seen ? "sample" : "spawn"} | ${s.why ?? ""} | \`${String(s.cmd ?? "").replace(/[|\`]/g, " ").slice(0, 90)}\` | ${s.owner_state ?? ""} |`;
++}
++
++export function report({ gone, done, working }, total){
++	const table = rows => rows.length ? ["| pid | started | owner | seen | why | cmd | owner state |", "|---|---|---|---|---|---|---|", ...rows.map(row_text)].join("\n") : "_none_";
++	const sorted = rows => [...rows].sort((a, b) => a.t - b.t);
++	return [`# Start lines with no end line`, "",
++		`${total.starts} start lines read (${total.ends} end lines): ${gone.length + done.length + working.length} open. gone, end missed: ${gone.length}. alive, owner done: ${done.length}. alive, owner working: ${working.length}.`, "",
++		`## 1. Gone, end missed (${gone.length})`, "", table(sorted(gone).slice(-60)), gone.length > 60 ? `\n_${gone.length - 60} older ones not shown._` : "", "",
++		`## 2. Alive, owner done: the leaks (${done.length})`, "", table(sorted(done)), "",
++		`## 3. Alive, owner working (${working.length})`, "", table(sorted(working).slice(-30)), working.length > 30 ? `\n_${working.length - 30} older ones not shown._` : "", ""].join("\n");
++}
++
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
++	const arg = n => { const i = process.argv.indexOf(n); return i >= 0 ? process.argv[i + 1] : null; };
++	const root = arg("--root") ?? repo_root();
++	const { open, starts, ends } = pair(read_lines(root));
++	const groups = classify(open, live_pids(), owner_probe(root));
++	if (process.argv.includes("--json")) console.log(JSON.stringify({ starts: starts.length, ends: ends.length, ...Object.fromEntries(Object.entries(groups).map(([k, v]) => [k, v.length])) }));
++	else {
++		const md = report(groups, { starts: starts.length, ends: ends.length });
++		if (arg("--write")) fs.writeFileSync(arg("--write"), md); else console.log(md);
++	}
++}
+diff --git a/Servex/leaks.test.mjs b/Servex/leaks.test.mjs
+new file mode 100644
+index 000000000..79438ea2d
+--- /dev/null
++++ b/Servex/leaks.test.mjs
+@@ -0,0 +1,44 @@
++/* node Servex/leaks.test.mjs — leaks.mjs pairs start lines with end lines and sorts the open ones, on made-up log lines. */
++import assert from "node:assert/strict";
++import { pair, classify, report } from "./leaks.mjs";
++
++const T = s => `2026-11-06T10:${s}.000Z`, ms = s => Date.parse(T(s));
++const L = (file, row) => ({ file, row });
++
++const lines = [
++	L("a.jsonl", { pid: 1, started: T("00:00"), agent: "m1", why: "bash" }),
++	L("a.jsonl", { pid_exit: 1, ended: T("00:30") }),                       // pair: 1 closed
++	L("a.jsonl", { pid: 2, at: T("01:00"), agent: "m1" }),                  // old field name `at`: open
++	L("a.jsonl", { pid: 3, started: T("02:00"), agent: "m2" }),
++	L("parent.jsonl", { pid: 3, started: T("02:00"), agent: "m2" }),        // the same line copied into a parent's log: one start, two files
++	L("a.jsonl", { pid: 4, started: T("03:00") }),
++	L("a.jsonl", { pid_exit: 4, at: T("03:10") }),                          // old end field `at`
++	L("a.jsonl", { pid: 5, started: T("04:00") }),
++	L("a.jsonl", { pid_exit: 5, ended: T("04:10") }),
++	L("a.jsonl", { pid: 5, started: T("05:00") }),                          // the number came back: the second start is open, the first is closed
++	L("a.jsonl", { pid: 6, started: T("06:00") }),
++	L("a.jsonl", { pid_exit: 6, ended: T("05:00") }),                       // an end BEFORE the start belongs to nothing: 6 stays open
++];
++const { open, starts, ends } = pair(lines);
++assert.deepEqual(open.map(s => s.pid).sort(), [2, 3, 5, 6], "open starts");
++assert.equal(starts.length, 7, "the copied line is one start");
++assert.equal(ends.length, 4);
++assert.deepEqual(open.find(s => s.pid === 3).files.sort(), ["a.jsonl", "parent.jsonl"], "every log a start was copied to is remembered");
++assert.equal(open.find(s => s.pid === 5).t, ms("05:00"), "the open pid 5 is the second start");
++console.log("PASS  pair(): started/ended and the older `at`, copies, a reused number, an end before its start");
++
++const alive = new Map([[2, ms("01:00") - 1000], [3, ms("02:00") + 20000], [5, ms("05:00")], [6, ms("06:00")]]);   // pid 3 was born 20 s AFTER its line: a newer process
++const done = (agent) => agent === "m1" ? "agent m1 is stopped" : null;
++const g = classify(open, alive, done);
++assert.deepEqual(g.gone.map(s => s.pid), [3], "a number that now belongs to a newer process is gone");
++assert.deepEqual(g.done.map(s => s.pid).sort(), [2], "alive, owner done");
++assert.deepEqual(g.working.map(s => s.pid).sort(), [5, 6], "alive, owner working");
++assert.equal(g.done[0].owner_state, "agent m1 is stopped");
++assert.deepEqual(classify(open, new Map(), done).gone.length, 4, "nothing alive: all gone");
++console.log("PASS  classify(): gone / alive-owner-done / alive-owner-working");
++
++const md = report(g, { starts: starts.length, ends: ends.length });
++assert.match(md, /## 1\. Gone, end missed \(1\)/); assert.match(md, /## 2\. Alive, owner done: the leaks \(1\)/); assert.match(md, /## 3\. Alive, owner working \(2\)/);
++assert.equal(report({ gone: [], done: [], working: [] }, { starts: 0, ends: 0 }).match(/_none_/g).length, 3);
++console.log("PASS  report(): three sections");
++console.log("leaks.test: all checks pass");
+diff --git a/Servex/processes.test.mjs b/Servex/processes.test.mjs
+index 5daa1b1b8..9ff8d6e81 100644
+--- a/Servex/processes.test.mjs
++++ b/Servex/processes.test.mjs
+@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
+ import fs from "node:fs";
+ import path from "node:path";
+ import Processes, { task_key } from "./Processes.js";
++process.env.SERVEX_LINEAGE = "0";   // its made-up agents name a real task dir; the 10 s lineage sample must not write start lines there
+ import { decide as decide_game } from "./Games.js";
+ 
+ let pass = 0;
+diff --git a/public/framework/ai/indexing-past-work.md b/public/framework/ai/indexing-past-work.md
+index 58e60e67b..28895a0b0 100644
+--- a/public/framework/ai/indexing-past-work.md
++++ b/public/framework/ai/indexing-past-work.md
+@@ -71,7 +71,7 @@ Session logs only grow, so old versions of them add nothing; history is for code
+ | Today's VS Code tabs | `"kind":"vscode-tab"` | works |
+ | A task by its title | `"title":"[^"]*word` in `task.jsonl` / `session.jsonl` | works |
+ | A finished task | `"complete":{"outcome":` | works |
+-| Who started process 1234 | `git grep --untracked -n '"pid":1234' -- 'public/framework/ai/sessions/**'`; how it ended: `"pid_exit":1234`; Servex's own (no agent): `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl` | works since 2026-11-06 21:50 (processes Servex starts; [Servex/doc/processes.md](/Servex/doc/processes.md), "Who started this pid") |
++| Who started process 1234 | `git grep --untracked -n '"pid":1234' -- 'public/framework/ai/sessions/**'`; how it ended: `"pid_exit":1234`; Servex's own (no agent): `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl`. Fields: `started` / `ended` (a line from the 10 s sample also has `"seen":"sample"`, `code: null`). Every start with no end (a leak): `node Servex/leaks.mjs` | works since 2026-11-06 21:50 (processes Servex starts); the processes an agent's claude.exe starts, since the sampler landed ([Servex/doc/processes.md](/Servex/doc/processes.md), "Who started this pid") |
+ | A queued spawn | `"queued":{` in the parent's `session.jsonl`, then `"started":{` | works since 2026-11-06 21:50 |
+ | Which session made a commit | `"commit":"abc123"` | planned (mastermind-session-truth) |
+ | A caught error | `"error":` | planned (mastermind-resources) |
+@@ -83,8 +83,8 @@ One event, one line, **one fixed first key**, plus `by` and `ts`. The same event
+ ```js
+ { "sentences": [{ "n": 1, "text": "…" }] }
+ { "queued": { "agent": "x", "commit_pct": 82 } }
+-{ "pid": 1234, "cmd": "…", "why": "…" }
+-{ "pid_exit": 1234, "code": 0 }
++{ "pid": 1234, "cmd": "…", "why": "…", "agent": "…", "session": "…", "started": "<stamp>" }
++{ "pid_exit": 1234, "ended": "<stamp>", "code": 0, "signal": null }
+ { "commit": "abc123", "files": ["…"] }
+ { "error": "…", "where": "file:line" }
+ ```

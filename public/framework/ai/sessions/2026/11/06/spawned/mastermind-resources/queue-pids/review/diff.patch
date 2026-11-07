@@ -1,0 +1,412 @@
+diff --git a/Servex/Crumbs.js b/Servex/Crumbs.js
+index 2593dda3c..45a49d7ce 100644
+--- a/Servex/Crumbs.js
++++ b/Servex/Crumbs.js
+@@ -4,6 +4,7 @@ import { syncBuiltinESMExports } from "node:module";
+ import { Worker, isMainThread } from "node:worker_threads";
+ import { promisify } from "node:util";
+ import { place } from "./home.js";
++import SpawnLog from "./SpawnLog.js";
+ 
+ /* BREADCRUMBS — the last thing Servex did before a native fast-fail kills it with no stack, no report, no event.
+  *
+@@ -47,9 +48,11 @@ export default class Crumbs {
+ 				const shown = [args[0], Array.isArray(args[1]) ? args[1].join(" ") : typeof args[1] === "string" ? args[1] : ""].join(" ").replace(/\s+/g, " ");
+ 				Crumbs.drop(`${name} len=${shown.length} ${shown.slice(0, 120)}`);
+ 			};
+-			cp[name] = function(...args){ crumb(args); return real.apply(this, args); };
++			const async_child = ["spawn", "exec", "execFile", "fork"].includes(name);   // sync variants have no live pid to report (SpawnLog.js)
++			const mark = (args, out) => { if (async_child) SpawnLog.watch(name, args, out); return out; };
++			cp[name] = function(...args){ crumb(args); return mark(args, real.apply(this, args)); };
+ 			// keep the promisify hook: without it promisify(execFile) resolves a bare string, so `.stdout` is undefined (the empty process list inside Servex, 2026-11-05)
+-			if (real[promisify.custom]) cp[name][promisify.custom] = function(...args){ crumb(args); return real[promisify.custom].apply(this, args); };
++			if (real[promisify.custom]) cp[name][promisify.custom] = function(...args){ crumb(args); return mark(args, real[promisify.custom].apply(this, args)); };
+ 		}
+ 		const watch = fs.watch;
+ 		fs.watch = function(target, ...rest){
+diff --git a/Servex/Gate-loud.test.mjs b/Servex/Gate-loud.test.mjs
+new file mode 100644
+index 000000000..162d6a654
+--- /dev/null
++++ b/Servex/Gate-loud.test.mjs
+@@ -0,0 +1,50 @@
++/* node Servex/Gate-loud.test.mjs — a queued spawn writes ONE `queued` line and, when it starts, ONE `started` line, to its parent's session log; a restored entry writes no second `queued`. Fake Servex, no real spawn. */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { register } from "node:module";
++import { execFileSync } from "node:child_process";
++import { pathToFileURL } from "node:url";
++// a worktree has no Servex/node_modules; resolve a missing package from the main tree's copy (read-only, never linked)
++const common = execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], { cwd: import.meta.dirname, encoding: "utf8", windowsHide: true }).trim();
++const from = pathToFileURL(path.join(common, "..", "Servex", "x.js")).href;
++register("data:text/javascript," + encodeURIComponent(`export async function resolve(s,c,n){ try { return await n(s,c); } catch(e){ if (e.code==='ERR_MODULE_NOT_FOUND' && !/^[.\/]|^node:|^file:/.test(s)) return n(s,{...c,parentURL:${JSON.stringify(from)}}); throw e; } }`));
++const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "gate-loud-test-"));
++process.env.SERVEX_HOME = path.join(tmp, "home");
++const { default: Servex } = await import("./Servex.js");
++const { default: SpawnLog } = await import("./SpawnLog.js");
++
++const dir = path.join(tmp, "parent-task");
++fs.mkdirSync(dir); fs.writeFileSync(path.join(dir, "session.jsonl"), JSON.stringify({ session: { id: "p", at: 1 } }) + "\n");
++const read = () => fs.readFileSync(path.join(dir, "session.jsonl"), "utf8").split("\n").filter(Boolean).slice(1).map(l => JSON.parse(l));
++
++const started = [];
++const fake = {
++	queue: [], log: { append: () => Promise.resolve() }, procmon: { commit_mb: 8200, commit_limit_mb: 10000 },
++	agents: { live: new Map([["mastermind-p", { task: { dir } }]]), name: ({ role, name }) => `${role}-${name}`, spawn_now: spec => (started.push(spec.id), { id: spec.id, send(){} }) },
++	reserve(spec){ return Servex.prototype.reserve.call(this, spec); },
++	save_queue(){}, stale: () => false, next_ready(){ return this.queue.length ? 0 : -1; }, emit(){}, dispatcher: { queue: [] }, pool: null,
++};
++
++Servex.prototype.hold.call(fake, { role: "minion", name: "a", parent: "mastermind-p" }, "commit charge is 82%");
++Servex.prototype.hold.call(fake, { role: "minion", name: "r", parent: "mastermind-p" }, "restored", { restored: true });
++await SpawnLog.flush();
++let lines = read();
++assert.equal(lines.length, 1, "one queued line, none for the restored entry");
++assert.deepEqual(lines[0].queued, { agent: "minion-a", reason: "commit charge is 82%", commit_pct: 82, page_file_mb: null });
++assert.equal(lines[0].by, "servex"); assert.ok(lines[0].ts);
++assert.equal(Object.keys(lines[0])[0], "queued");
++
++fake.queue[0].at = new Date(Date.now() - 42_000).toISOString();
++Servex.prototype.drain.call(fake);
++await SpawnLog.flush();
++lines = read();
++const begun = lines.filter(l => l.started);
++assert.deepEqual(started, ["minion-a", "minion-r"], "both entries started");
++assert.equal(begun.length, 2, "one started line each");
++assert.equal(begun[0].started.agent, "minion-a"); assert.ok(begun[0].started.waited_s >= 42 && begun[0].started.waited_s < 50);
++assert.equal(lines.filter(l => l.queued).length, 1, "still one queued line");
++console.log("Gate-loud: ok");
++fs.rmSync(tmp, { recursive: true, force: true });
++process.exit(0);
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index be9ff87bb..84c4e7856 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -37,6 +37,7 @@ import ReverseProxy from "./ReverseProxy.js";
+ import { launch as launch_gate } from "./gate.mjs";
+ import { place, stamp } from "./home.js";
+ import Stream from "./Stream.js";
++import SpawnLog from "./SpawnLog.js";
+ import { Agents } from "./agents/Agents.js";
+ import Assistant from "./agents/Assistant.js";
+ import Echo from "./agents/Echo.js";
+@@ -1197,6 +1198,7 @@ export default class Servex extends Events {
+             const reason = this.bypass(spec) ? null : this.admit(spec);
+             return reason ? this.hold(spec, reason) : do_spawn(spec);
+         };
++        SpawnLog.sink = this.log;   // no-agent spawns go to the `spawns` log through the single writer
+         this.restore();
+         setTimeout(() => this.drain(), 5000).unref?.();   // restored entries start even with no monitor ticking
+         /* A queued id is addressable: a message is held in its entry, a stop takes it out of the queue. */
+@@ -1302,7 +1304,7 @@ export default class Servex extends Events {
+         return entry.stand_in;
+     }
+ 
+-    hold(spec, reason){
++    hold(spec, reason, { restored = false } = {}){
+         /* The id is fixed NOW, so the caller can wait_for_agent on it (review.mjs
+          * and clarity.mjs treated a queued spawn as a failure, 19:20). */
+         spec.id ??= this.reserve(spec);
+@@ -1310,6 +1312,8 @@ export default class Servex extends Events {
+         this.queue.push(entry);
+         this.log.append("system", { type: "gate", state: "queued", id: spec.id, role: spec.role ?? null, name: spec.name ?? null,
+             reason, position: this.queue.length }).catch(() => {});
++        /* The parent hears it too, in its own session log (Servex/doc/processes.md, "A queued spawn is loud"); a restored entry was told once already. */
++        if (!restored && spec.parent) SpawnLog.note(SpawnLog.dir_for(this.agents, spec.parent), { queued: { agent: spec.id, reason, ...SpawnLog.load(this) } });
+         const note = `Not started: ${reason}. Servex will start it as soon as that clears, under this id; wait_for_agent on it works now. Its parent is woken as usual once it runs.`;
+ 
+         /* `send()` on the stand-in HOLDS the message. Agents.send() wakes a stopped
+@@ -1367,7 +1371,7 @@ export default class Servex extends Events {
+         try { saved = JSON.parse(fs.readFileSync(this.queue_file, "utf8")); } catch { return; }
+         for (const { spec, reason, at, inbox } of saved){
+             if (!spec || this.same_as(spec) || this.stale(spec)) continue;
+-            this.hold(spec, reason ?? "restored after a Servex restart");
++            this.hold(spec, reason ?? "restored after a Servex restart", { restored: true });
+             const entry = this.queue.at(-1);
+             entry.at = at ?? entry.at;
+             entry.inbox.push(...(inbox ?? []));
+@@ -1396,6 +1400,7 @@ export default class Servex extends Events {
+             try {
+                 const agent = this.agents.spawn_now(spec);
+                 this.log.append("system", { type: "gate", state: "started", id: agent.id, queued_at: at, held_messages: inbox.length }).catch(() => {});
++                if (spec.parent) SpawnLog.note(SpawnLog.dir_for(this.agents, spec.parent), { started: { agent: agent.id, waited_s: Math.max(0, Math.round((Date.now() - Date.parse(at)) / 1000)) } });
+                 for (const [text, extra] of inbox) agent.send(text, extra);   // what arrived while it was held
+                 /* NEVER-LOSE-A-WAKE item 3: a `starting` agent the reconcile re-queued (below)
+                  * carries whatever it had not yet delivered as raw, already-wrapped turns — push
+diff --git a/Servex/SpawnLog.js b/Servex/SpawnLog.js
+new file mode 100644
+index 000000000..e874d34db
+--- /dev/null
++++ b/Servex/SpawnLog.js
+@@ -0,0 +1,98 @@
++import fs from "node:fs";
++import path from "node:path";
++import { AsyncLocalStorage } from "node:async_hooks";
++import { place, stamp } from "./home.js";
++
++/* WHO STARTED THIS PID: every child_process spawn Servex makes gets a `{"pid":N,...}` line, and an exit line when it ends.
++ * Crumbs.js calls `SpawnLog.watch()` after each async child_process function. Attribution is an AsyncLocalStorage store
++ * ({agent, session, why, dir, parent_dir}) entered by `SpawnLog.within()` where an agent tool runs (agents/tools.js) and
++ * around the agent's own claude.exe (Agents.spawn_claude). With an agent the line goes to its session log (and its parent's,
++ * for claude.exe); with none, to the Servex log `spawns`. Doc: Servex/doc/processes.md, "Who started this pid". */
++export default class SpawnLog {
++	static store = new AsyncLocalStorage();
++	static sink = null;      // Servex's single-writer Log, set in Servex.admission(); without it the `spawns` file is appended directly
++	static CUT = 300;
++	static QUIET = [/Get-CimInstance Win32_Process/, /^netstat\b/, /\bworktree list\b/, /rev-parse --verify --quiet/];   // no-agent polls (~9 of the ~12 spawns a minute): not worth a line
++	static chain = null;
++	static deps = null;
++
++	static within(ctx, fn){ return this.store.run(ctx, fn); }
++
++	/* A dir given as a function resolves late; relative dirs resolve against Servex's cwd, as open_task does. */
++	static dir_of(dir){
++		try { const d = typeof dir === "function" ? dir() : dir; return d ? path.resolve(d) : null; } catch { return null; }
++	}
++
++	/* The session log of a task dir: its session.jsonl if there is one, else task.jsonl; null when the dir has neither. */
++	static file_of(dir){
++		const d = this.dir_of(dir);
++		return d && this.deps?.SessionRecord.log_file(d) || null;
++	}
++
++	/* The parent agent's task dir: its live task, its registry row, the heartbeat's owner map. */
++	static dir_for(agents, id){
++		try { return agents.live?.get(id)?.task?.dir ?? agents.reg?.().read()[id]?.task_dir ?? agents.task_dir_of?.(id) ?? null; } catch { return null; }
++	}
++
++	/* Run `job(deps)` after LogLine and SessionRecord have loaded (lazily, so a Worker or a bare import costs nothing), in order, never throwing. */
++	static later(job){
++		try {
++			this.deps ??= null;
++			this.chain ??= import("../Server/LogLine.mjs").then(async l => { this.deps = { LogLine: l.default, SessionRecord: (await import("../Server/SessionRecord.mjs")).default }; });
++			return this.chain = this.chain.then(() => job(this.deps)).catch(() => {});
++		} catch { return null; }
++	}
++
++	static flush(){ return this.chain ?? Promise.resolve(); }
++
++	/* One line, whole, into a task dir's session log through the one appender. Used by the spawn gate (Servex.hold/drain) and by watch(). */
++	static note(dir, obj){
++		return this.later(({ LogLine }) => {
++			const file = this.file_of(dir);
++			if (file) LogLine.raw(file, { ...obj, by: "servex", ts: stamp() });
++		});
++	}
++
++	/* The machine's load as the queued line records it; the process monitor has no page-file reading yet, so page_file_mb is null until it grows one. */
++	static load(servex){
++		const p = servex?.procmon, pct = p?.commit_mb && p?.commit_limit_mb ? 100 * p.commit_mb / p.commit_limit_mb : null;
++		return { commit_pct: pct == null ? null : Math.round(pct * 10) / 10, page_file_mb: p?.page_file_mb ?? null };
++	}
++
++	/* Called by Crumbs after spawn/exec/execFile/fork. `result` is the ChildProcess, or (promisified exec/execFile) a promise carrying `.child`.
++	 * Sync variants never get here: they have no live pid to report. */
++	static watch(name, args, result){
++		try {
++			const child = result?.child ?? result, pid = child?.pid;
++			if (typeof pid !== "number" || typeof child.once !== "function") return;
++			const cmd = [args[0], ...(Array.isArray(args[1]) ? args[1] : typeof args[1] === "string" ? [args[1]] : [])].join(" ").replace(/\s+/g, " ");
++			const ctx = this.store.getStore() ?? null;
++			if (!ctx?.agent && this.QUIET.some(q => q.test(cmd))) return;
++			const where = this.targets(ctx);
++			const line = { pid, agent: ctx?.agent ?? null, session: ctx?.session ?? null, cmd: cmd.slice(0, this.CUT), why: ctx?.why ?? `${name}:${path.basename(String(args[0]))}`, at: stamp() };
++			this.put(where, line);
++			child.once("exit", (code, signal) => this.put(where, { pid_exit: pid, code, signal: signal ?? null, at: stamp() }));
++		} catch { /* a log line must never reach the caller */ }
++	}
++
++	/* Where this context's lines go: the agent's own dir (and, for claude.exe, its parent's), or the `spawns` log. */
++	static targets(ctx){
++		if (!ctx?.agent) return null;
++		const dirs = [ctx.dir, ctx.parent_dir].map(d => this.dir_of(d)).filter(Boolean);
++		return dirs.length ? dirs : null;
++	}
++
++	static put(where, line){
++		if (!where) return this.spawns(line);
++		return this.later(({ LogLine }) => {
++			for (const d of new Set(where)){ const file = this.file_of(d); if (file) LogLine.raw(file, { ...line, by: "servex" }); }
++		});
++	}
++
++	static spawns(line){
++		try {
++			if (this.sink) return void this.sink.append("spawns", line).catch(() => {});
++			fs.appendFileSync(place("logs", "spawns.jsonl"), JSON.stringify(line) + "\n");
++		} catch { /* never throws */ }
++	}
++}
+diff --git a/Servex/SpawnLog.test.mjs b/Servex/SpawnLog.test.mjs
+new file mode 100644
+index 000000000..c9ca98b4b
+--- /dev/null
++++ b/Servex/SpawnLog.test.mjs
+@@ -0,0 +1,68 @@
++/* node Servex/SpawnLog.test.mjs — a real child process is logged with its pid under the calling agent (start + exit), in the parent's log too for claude.exe, and with no agent in the `spawns` log. */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { spawn, execFile } from "node:child_process";
++import { promisify } from "node:util";
++
++const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "spawnlog-test-"));
++process.env.SERVEX_HOME = path.join(tmp, "home");   // before home.js loads
++await import("./Crumbs.js");                         // installs the child_process wrappers
++const { default: SpawnLog } = await import("./SpawnLog.js");
++const exec_file = promisify(execFile);   // after Crumbs, so it wraps the patched execFile
++
++const task = path.join(tmp, "agent-task"), parent = path.join(tmp, "parent-task");
++for (const d of [task, parent]){ fs.mkdirSync(d); fs.writeFileSync(path.join(d, "session.jsonl"), JSON.stringify({ session: { id: "x", at: 1 } }) + "\n"); }
++const read = f => fs.existsSync(f) ? fs.readFileSync(f, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l)) : [];
++const run = child => new Promise(done => child.on("exit", () => done()));
++const pids = lines => lines.filter(l => "pid" in l), exits = lines => lines.filter(l => "pid_exit" in l);
++
++// 1. inside an agent's context: a start line and an exit line, pid first, in that agent's log
++const child = SpawnLog.within({ agent: "minion-t", session: "uuid-1", why: "shell", dir: task }, () => spawn("node", ["-e", "1"], { windowsHide: true }));
++await run(child); await SpawnLog.flush();
++let lines = read(path.join(task, "session.jsonl")).slice(1);
++assert.equal(pids(lines).length, 1, "one start line");
++assert.equal(Object.keys(pids(lines)[0])[0], "pid", "pid is the first key");
++assert.equal(pids(lines)[0].pid, child.pid);
++assert.equal(pids(lines)[0].agent, "minion-t"); assert.equal(pids(lines)[0].session, "uuid-1"); assert.equal(pids(lines)[0].why, "shell");
++assert.match(pids(lines)[0].cmd, /^node -e 1/);
++assert.equal(exits(lines).length, 1, "one exit line");
++assert.equal(exits(lines)[0].pid_exit, child.pid); assert.equal(exits(lines)[0].code, 0);
++assert.equal(pids(lines).concat(exits(lines)).length, lines.length, "nothing else landed");
++assert.ok(fs.readFileSync(path.join(task, "session.jsonl"), "utf8").includes(`"pid":${child.pid},`), 'the text is exactly "pid":N');
++assert.ok(fs.readFileSync(path.join(task, "session.jsonl"), "utf8").includes(`"pid_exit":${child.pid},`), 'the exit text is "pid_exit":N');
++console.log("PASS  agent context: start and exit lines in the agent's session log");
++
++// 2. claude.exe: also in the parent's log
++const claude = SpawnLog.within({ agent: "minion-t", why: "claude.exe", dir: () => task, parent_dir: () => parent }, () => spawn("node", ["-e", "1"], { windowsHide: true }));
++await run(claude); await SpawnLog.flush();
++assert.equal(pids(read(path.join(parent, "session.jsonl"))).length, 1, "the parent's log has the claude.exe start line");
++assert.equal(exits(read(path.join(parent, "session.jsonl"))).length, 1, "and its exit line");
++assert.equal(pids(read(path.join(task, "session.jsonl"))).length, 2, "the agent's own log has both children");
++console.log("PASS  claude.exe lines land in the agent's log and its parent's");
++
++// 3. promisified execFile (what Servex's own git/PowerShell calls use) is hooked too, and still resolves {stdout}
++const out = await SpawnLog.within({ agent: "minion-t", why: "execfile", dir: task }, () => exec_file(process.execPath, ["-p", "40+2"], { windowsHide: true }));
++assert.equal(out.stdout.trim(), "42"); await SpawnLog.flush();
++assert.equal(pids(read(path.join(task, "session.jsonl"))).length, 3, "promisified execFile logged");
++console.log("PASS  promisify(execFile) logged and still resolves {stdout}");
++
++// 4. no agent: the `spawns` log; a quiet poll is skipped
++const spawns = path.join(tmp, "home", "logs", "spawns.jsonl");
++const bare = spawn("node", ["-e", "1"], { windowsHide: true }); await run(bare); await SpawnLog.flush();
++const quiet = spawn("node", ["-e", "//Get-CimInstance Win32_Process"], { windowsHide: true }); await run(quiet); await SpawnLog.flush();
++lines = read(spawns);
++assert.equal(pids(lines).length, 1, "the unattributed spawn is in the spawns log, the quiet poll is not");
++assert.equal(pids(lines)[0].pid, bare.pid); assert.equal(pids(lines)[0].agent, null);
++assert.equal(exits(lines)[0].pid_exit, bare.pid);
++console.log("PASS  no agent: spawns log; quiet polls skipped");
++
++// 5. a context with no resolvable task dir falls back to the spawns log and never throws
++const lost = SpawnLog.within({ agent: "ghost", why: "x", dir: () => { throw new Error("boom"); } }, () => spawn("node", ["-e", "1"], { windowsHide: true }));
++await run(lost); await SpawnLog.flush();
++assert.ok(pids(read(spawns)).some(l => l.pid === lost.pid), "no dir: the spawns log");
++console.log("PASS  an agent with no task dir lands in spawns");
++
++fs.rmSync(tmp, { recursive: true, force: true });
++process.exit(0);
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index e52fc836f..8a882b8e0 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -11,6 +11,7 @@ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import Log from "../Log.js";
+ import { stamp, place } from "../home.js";
++import SpawnLog from "../SpawnLog.js";
+ import Registry, { alive } from "./Registry.js";
+ import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder, role_readme_path, alias_path, path_check, path_note } from "./roles.js";
+ import { dir_of } from "./directory.js";
+@@ -1458,7 +1459,10 @@ Agents.Agent = class Agent {
+ 	 * 4 KB stay on the agent as `stderr_tail`, and a spec's own `sdk.stderr`
+ 	 * still hears every chunk. */
+ 	spawn_claude({ command, args, cwd, env, signal }){
+-		const child = spawn(command, args, { cwd, env, signal, stdio: ["pipe", "pipe", "pipe"], windowsHide: true });
++		/* the pid line goes in this agent's own session log and its parent's (Servex/SpawnLog.js) */
++		const child = SpawnLog.within({ agent: this.id, session: this.session_id ?? null, why: "claude.exe",
++			dir: () => this.task?.dir ?? this.host?.task_dir_of?.(this.id), parent_dir: () => this.parent ? SpawnLog.dir_for(this.host, this.parent) : null },
++			() => spawn(command, args, { cwd, env, signal, stdio: ["pipe", "pipe", "pipe"], windowsHide: true }));
+ 		child.on("error", e => this.emit({ type: "process", state: "failed", error: e.message }));
+ 		child.stderr.setEncoding("utf8");
+ 		child.stderr.on("data", d => {
+diff --git a/Servex/agents/tools.js b/Servex/agents/tools.js
+index f2ba37023..006eae4ca 100644
+--- a/Servex/agents/tools.js
++++ b/Servex/agents/tools.js
+@@ -8,6 +8,7 @@ import os from "node:os";
+ import { execFileSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
+ import { agents as singleton } from "./Agents.js";
++import SpawnLog from "../SpawnLog.js";
+ import { Policy } from "./policy.js";
+ import { ops_tools } from "./ops.js";
+ import { wake_tools } from "./Wakeups.js";
+@@ -604,7 +605,11 @@ export function server(agents = singleton, ctx = { caller: null }, list = tools(
+ 		Object.fromEntries(Object.entries(t.inputSchema.properties).map(([k, p]) =>
+ 			[k, (t.inputSchema.required.includes(k) ? zod(p) : zod(p).optional()).describe(p.description ?? k)])),
+ 		async args => {
+-			try { return { content: [{ type: "text", text: String(await t.handler(args, ctx)) }] }; }
++			try {
++				const who = ctx.caller, run = () => t.handler(args, ctx);   // every child process this tool starts is logged under the calling agent (Servex/SpawnLog.js)
++				const out = who ? await SpawnLog.within({ agent: who, session: agents.live?.get(who)?.session_id ?? null, why: t.name, dir: () => SpawnLog.dir_for(agents, who) }, run) : await run();
++				return { content: [{ type: "text", text: String(out) }] };
++			}
+ 			catch (e){ return { content: [{ type: "text", text: String(e.message || e) }], isError: true }; }
+ 		})) });
+ }
+diff --git a/Servex/doc/processes.md b/Servex/doc/processes.md
+index 1f5ba870b..b7bb22f8b 100644
+--- a/Servex/doc/processes.md
++++ b/Servex/doc/processes.md
+@@ -185,6 +185,30 @@ the worktree it watches, so neither stop is ever a guessed pid. One `servex` log
+ servers_stopped`. `SERVEX_WORKTREE_STOP_SERVERS=0` turns this off (the removal flow above is
+ unaffected).
+ 
++## Who started this pid
++
++Every async child process Servex starts (`spawn`, `exec`, `execFile`, `fork`, plain or promisified) gets a start line the moment it has a pid, and an exit line when it ends. [`Crumbs.js`](../Crumbs.js) hooks `child_process` and calls [`SpawnLog.watch`](../SpawnLog.js); `SpawnLog.js` holds the AsyncLocalStorage that says which agent's tool call (or which agent's own claude.exe) started it. Writes never throw and never slow the caller.
++
++```json
++{"pid":12345,"agent":"minion-x","session":"<uuid>","cmd":"git status --short","why":"shell","at":"…","by":"servex"}
++{"pid_exit":12345,"code":0,"signal":null,"at":"…","by":"servex"}
++```
++
++`pid` is the first key, so `"pid":12345` finds the start line only and `"pid_exit":12345` the exit. `cmd` is cut at 300 characters; `why` is the tool name (`shell`, `quick_fix`, …) or `claude.exe`, or `spawn:<program>` when there is no tool.
++
++- **Called for an agent:** the line goes to that agent's session log (`session.jsonl`, else `task.jsonl`). A claude.exe also goes to its parent's log, so a mastermind sees its children's pids.
++- **Called by Servex itself** (no agent): the `spawns` log, `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl`. Four pollers are skipped there by name: the process-table query (`Get-CimInstance Win32_Process`), `netstat`, `git worktree list` and `git rev-parse --verify --quiet`. Measured over 10.6 h on 2026-11-06: 7,724 async spawns, about 12 a minute; those four were about 9 of the 12, so the `spawns` log gets about 3 start lines a minute (plus an exit line each).
++- **Not logged:** sync spawns (`spawnSync`, `execFileSync`, `execSync`: no live pid to report, and they block for milliseconds); and anything Servex did not start itself.
++
++Finding things: [How to find things](/framework/ai/sessions/#how-to-find-things).
++
++Limits:
++- The Bash tool's children of a claude.exe (the commands an agent types) are started by claude.exe, not by Servex, so they get no line.
++- `MCP.call` (the HTTP door) carries no agent, so its spawns land in `spawns`.
++- ⬜ A PostToolUse hook could write a line for those Bash-tool children too; not built.
++
++The queue is loud in the same way: `Servex.hold()` appends `{"queued":{"agent","reason","commit_pct","page_file_mb"}}` to the parent's session log, and `drain()` appends `{"started":{"agent","waited_s"}}`. `page_file_mb` is null until the process monitor reads the page file. A queue entry restored after a restart writes no second `queued` line. Tests: `Servex/SpawnLog.test.mjs`, `Servex/Gate-loud.test.mjs`.
++
+ ## Cost
+ 
+ One long-lived hidden PowerShell: one process query (about 0.2 s of CPU) and Git's `ps -e` every 10 seconds. A command line crosses the pipe only the first time a process is seen.
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 2b05f381b..56b37a3de 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -82,7 +82,7 @@ Run these from the repo root. Each one takes under a second (timed 2026-11-06).
+ | Which session a running process is | PowerShell: `Get-CimInstance Win32_Process -Filter "Name='claude.exe'" \| select ProcessId,CreationDate,CommandLine`. A Servex agent's command line carries `--resume=<session id>`; the folder is `session-<first 8 hex>`. A `claude.exe` under `WindowsApps\Claude_*` is the Claude desktop app, not a session. |
+ | A session's transcript | `~/.claude/projects/C--Code-lew42-monorepo/<session id>.jsonl` |
+ 
+-**Not findable yet:** who started a given process id and why. No log records a spawn's pid today; the planned fix is on [/live/plan/](/live/plan/), "Open questions".
++**Who started a process id, and why:** Servex logs every async child it starts (2026-11-06). `git grep -n '"pid":12345' -- 'public/framework/ai/sessions/**'` finds the start line (agent, command, why) in that agent's `session.jsonl`; `"pid_exit":12345` finds how it ended. A pid started by Servex itself, with no agent, is in `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl`. A queued spawn: `git grep -n '"queued":{' -- 'public/framework/ai/sessions/**'`. What is and is not logged: `Servex/doc/processes.md`, "Who started this pid".
+ 
+ ## Top-level files here (generated; never hand-edit)
+ 

@@ -248,7 +248,7 @@ export class AITask extends Page {
 
 		div.c("ai-checklist-head flex split v-baseline", () => {
 			span.c("ai-group-title muted", "Steps");
-			span.c("muted", pr.done + " of " + pr.total + " done" + (this.task ? " · " + Math.round(this.task.completion * 100) + "%" : ""));
+			span.c("muted", pr.done + " of " + pr.total + " done" + (this.task ? " · " + Task.show(this.task.completion) : ""));
 		});
 		segments(pr);
 		div.c("ai-checklist", () => pr.steps.forEach((s, i) =>

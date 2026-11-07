@@ -52,7 +52,7 @@ const rows = [
 ];
 const md = `# Where session data lives today
 
-Counted by \`node Server/session-patterns.mjs --write\`, not typed. Every row opens in the same detail view, \`/framework/ai/sessions/<id>/\`.
+Counted by \`node Server/session-patterns.mjs --write\`, not typed. Every row opens in the same detail view, \`/framework/ai/sessions/YYYY/MM/DD/<folder>/\`.
 
 | Pattern | Example | Count | How it is read |
 |---|---|---|---|

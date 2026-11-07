@@ -91,14 +91,14 @@ export async function report(ref, { root = SELF_ROOT, rows = null, cost = true }
 		usd = snap?.usd ?? null; tree_usd = snap?.tree_usd ?? null;
 	} catch {}
 	return { ref, id: hit.id, agent: hit.agent, dir: path.relative(root, hit.dir).split(path.sep).join("/"), state: s.state, title: s.get_one?.("title") ?? null,
-		prompts, tasks: { created: tally.created, finished: tally.finished, stopped: tally.stopped, open: tally.open, child_sessions: tally.sessions }, unproven: tally.unproven, children,
-		cost: { usd, tree_usd }, score, formula: FORMULA, top: { parts: top.length, complete: s.score_parts().filter(t => t.state === "complete").length, sum: +top.reduce((a, b) => a + b, 0).toFixed(3) } };
+		prompts, tasks: { created: tally.created, finished: tally.finished, stopped: tally.stopped, open: tally.open, child_sessions: tally.sessions, unscored: tally.unscored }, unproven: tally.unproven, children,
+		cost: { usd, tree_usd }, score, formula: FORMULA, top: { parts: top.length, complete: s.score_parts().filter(t => t.state === "complete").length, sum: +top.filter(n => n !== null).reduce((a, b) => a + b, 0).toFixed(3) } };
 }
 
 /** The lines the CLI prints for one report. */
 export function format_report(r){
 	if (r.error) return r.error;
-	const pct = x => (x * 100).toFixed(1) + "%", t = r.tasks, money = x => x == null ? "n/a" : "$" + x.toFixed(2);
+	const pct = x => x === null ? "needs review" : (x * 100).toFixed(1) + "%", t = r.tasks, money = x => x == null ? "n/a" : "$" + x.toFixed(2);
 	return [
 		`${r.agent ?? r.id}  ${r.id}${r.title ? "  " + r.title : ""}`,
 		`  record     ${r.dir}  (${r.state})`,
@@ -107,7 +107,7 @@ export function format_report(r){
 		`  proof      ${r.unproven} of ${t.finished} finished have no outcome or evidence (Task.proof_problem)`,
 		`  children   ${r.children.registered} registered · ${r.children.linked} linked · ${r.children.unlinked} unlinked · ${r.children.one_pass} one-pass (reviewer/clarity/checker: no record by design)`,
 		`  cost       ${money(r.cost.usd)} own · ${money(r.cost.tree_usd)} with children`,
-		`  SCORE      ${pct(r.score)}   = mean of ${r.top.parts} top-level parts (sum ${r.top.sum}); ${r.top.complete} of them complete = ${pct(r.top.parts ? r.top.complete / r.top.parts : 0)}, the rest count by how far along they are`,
+		`  SCORE      ${pct(r.score)}${r.score === null ? "   (no tasks, no counted prompts and no steps: a missing record is neither done nor undone)" : ""}   = mean of ${r.top.parts} top-level parts (sum ${r.top.sum}); ${r.top.complete} of them complete = ${pct(r.top.parts ? r.top.complete / r.top.parts : 0)}, the rest count by how far along they are`,
 		`  formula    ${r.formula}`,
 		`  not used   finished/created = ${t.finished}/${t.created} = ${pct(t.created ? t.finished / t.created : 0)} counts every nested task flat; the score weights each part by its own completion`
 	].join("\n");

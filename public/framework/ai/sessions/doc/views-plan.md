@@ -33,15 +33,15 @@ Not pages: one hard-coded array in `AISessionsPage.nav_view()` (`ai/AISession/AI
 
 ### The grid
 
-`AISessionsPage` (`ai/AISession/AISessionsPage.js`) draws one `ext/DataGrid` (`make_grid()`, `:168-181`). The date is a query, `?scope=2026-10-20` (`set_scope()`, `:143-153`); the header's range menu (`pick_range`; v/classic keeps the old **today** button) changes the scope, it does not link to today's folder; **show 30 more days** (`:243`) loads older day files. A row links to `/framework/ai/sessions/<id>/` (`:173`).
+`AISessionsPage` (`ai/AISession/AISessionsPage.js`) draws one `ext/DataGrid` (`make_grid()`, `:168-181`). The date is a query, `?scope=2026-10-20` (`set_scope()`, `:143-153`); the header's range menu (`pick_range`; v/classic keeps the old **today** button) changes the scope, it does not link to today's folder; **show 30 more days** (`:243`) loads older day files. A row links to `/framework/ai/sessions/YYYY/MM/DD/<folder>/` (`:173`).
 
 ### Routing of a dated URL, and the columns
 
 `AISessionsPage.route()` (`:628-633`): a 4-digit segment becomes `StoreFolder` (`ai/AISession/StoreFolder.js:95-121`), which walks year, month, day, folder and lists the child folders as plain links. Because `AISessionsPage` calls `this.columns()`, each level opens as a Miller column (`core/Page/Columns.js`). Shots (1920): `/sessions/2026/10/20/` is three ~450 px columns of raw paths ("01/card-threaded-replies/card-threaded-replies"); `/sessions/2026/10/20/session-e00f55c9/` adds a fourth column whose Report tab reads "Cost: not tracked … running". At 3440 the columns do not grow, and the rest of the row is empty.
 
-### The session detail (flat URL)
+### The session detail (its dated folder)
 
-`/framework/ai/sessions/<id>/` is `AISessionDetail` (`ai/AISession/AISessionDetail.js`), opened as a column beside the grid: tabs Conversation, Coverage, Cost, Models and tokens, Related (`:134-141`). The Conversation tab opens on a Raw box with two links (`task.jsonl`, `transcript`) and an empty area whose height is `max(22em, 100dvh - 20em)` (`sessions.css:200`): the stray file box you saw. It shows no tasks.
+`/framework/ai/sessions/YYYY/MM/DD/<folder>/` is `AISessionDetail` (`ai/AISession/AISessionDetail.js`), opened as a column beside the grid: tabs Conversation, Coverage, Cost, Models and tokens, Related (`:134-141`). The Conversation tab opens on a Raw box with two links (`task.jsonl`, `transcript`) and an empty area whose height is `max(22em, 100dvh - 20em)` (`sessions.css:200`): the stray file box you saw. It shows no tasks.
 
 ### The classes
 

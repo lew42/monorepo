@@ -93,7 +93,7 @@ export default class SessionOutlineView extends View {
 		const ask = () => { if (!this.costs.has(url)) AICost.summary(url).then(ans => { if (ans?.summary?.cost) this.costs.set(url, ans.summary.cost); paint(); }); };
 		const d = this.fold(key, "soutline-group card" + (g.state === "stopped" ? " is-dropped" : ""), () => {
 			div.c("soutline-title", () => {
-				a.c("soutline-name", g.name).href(url).on("click", e => e.stopPropagation());
+				a.c("soutline-name", g.name).href(AICost.session_href(id)).on("click", e => e.stopPropagation());
 				small.c("soutline-state", [g.state, snap?.model && AICost.model_name(snap.model)].filter(Boolean).join(" · "));
 			});
 			div.c("soutline-meta", () => { small.c("muted", `${this.when(g.at)}${g.at ? " · " : ""}${this.progress_text(g)}`); $cost = small.c("muted soutline-cost", ""); });
@@ -153,7 +153,7 @@ export default class SessionOutlineView extends View {
 		const row = () => div.c("soutline-row", () => {
 			SessionOutlineView.state_icon(i.state);
 			div.c("soutline-main", () => {
-				if (chat) a.c("soutline-ttl soutline-chat-link", i.title).href(AICost.session_url(this.sid) + "?tab=timeline").on("click", e => e.stopPropagation());
+				if (chat) a.c("soutline-ttl soutline-chat-link", i.title).href(AICost.session_href(this.sid) + "?tab=timeline").on("click", e => e.stopPropagation());
 				else span.c("soutline-ttl", i.title);
 				if (chat) small.c("muted soutline-chat-meta", `${i.record_type} · ${this.when(i.at)}`);
 				this.agent_line(i);
@@ -170,7 +170,7 @@ export default class SessionOutlineView extends View {
 		if (!c) return;
 		small.c("soutline-agent muted", () => {
 			span([snap?.model && AICost.model_name(snap.model), snap?.usd != null && AICost.short(snap.usd), snap?.state ?? i.node?.state].filter(Boolean).join(" · "));
-			a.c("soutline-link", "session →").href(AICost.session_url(c.id ?? c.name)).on("click", e => e.stopPropagation());
+			a.c("soutline-link", "session →").href(AICost.session_href(c.id ?? c.name)).on("click", e => e.stopPropagation());
 		});
 	}
 
@@ -185,7 +185,7 @@ export default class SessionOutlineView extends View {
 			if (commits.length) small.c("muted soutline-commit", "commit " + commits.map(h => String(h).slice(0, 7)).join(" "));
 			const url = get("path") ?? i.node?.url;
 			if (url) a.c("soutline-ref", "Open the task →").href(url);
-			if (i.child) a.c("soutline-ref", "Session that did it →").href(AICost.session_url(i.child.id ?? i.child.name));
+			if (i.child) a.c("soutline-ref", "Session that did it →").href(AICost.session_href(i.child.id ?? i.child.name));
 			if (!outcome && !refs.length && !commits.length) small.c("muted", "No outcome, evidence or commit is recorded on this task.");
 		});
 	}

@@ -1,5 +1,6 @@
 /** DashRow — the one row of the AI dashboard: `{kind, id, title, state, bucket, when, day, who, home, url, line, needs}`.
- *  Plain code, no DOM and no imports, so Server/AIIndex.mjs (cards, asks) and the browser (tasks, sessions) share one mapping. Plan: ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md */
+ *  Plain code, no DOM, and its one import (AISession, for session links) loads in node too, so Server/AIIndex.mjs (cards, asks) and the browser (tasks, sessions) share one mapping. Plan: ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md */
+import AISession from "../AISession/AISession.js";
 export default class DashRow {
 	static KINDS = ["task", "card", "session", "ask"];
 	static CARD_BUCKETS = ["open", "working", "needs", "done", "archived"];
@@ -50,7 +51,7 @@ export default class DashRow {
 	static of_session(s){
 		const when = s.last ?? s.last_landed ?? null;
 		return { kind: "session", id: "session:" + s.id, title: s.title || "Session " + String(s.id).slice(0, 8), state: s.landed === s.tasks ? "complete" : "running",
-			bucket: s.landed === s.tasks ? "landed" : "open", when, day: s.day ?? null, created_day: null, who: s.id, home: null, url: DashRow.AI + "sessions/" + s.id + "/",
+			bucket: s.landed === s.tasks ? "landed" : "open", when, day: s.day ?? null, created_day: null, who: s.id, home: null, url: AISession.page_url(s.id, DashRow.AI + "sessions/" + s.id + "/"),
 			line: `${s.tasks} tasks, ${s.landed} landed`, needs: false };
 	}
 
