@@ -81,6 +81,11 @@ export class App {
 	// that most needs navigation would be the one page without it.
 	error(error){
 		console.error(error);
+		// No routed page means no `.sidebar`, so drawer.css's mobile rule that steps
+		// the fixed ✦ button aside for the sidebar's own toggle never fires here —
+		// this marks the error screen so that CSS can hide it too, the stale duplicate
+		// error-button/requirements.md was filed about.
+		this.$app?.ac("app-error");
 		this.$pages.empty(() => {
 			div.c("page active-page", () => {
 				h1("Page Load Error");
