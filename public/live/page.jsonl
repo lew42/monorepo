@@ -147,6 +147,8 @@
 {"content":{"link-core-page":{"text":null,"title":"@Page"}},"by":"voice-app","ts":"2026-11-06T22:45:08.050Z"}
 {"save":{"name":"nov6-scratch","title":"Nov 6 scratch"},"by":"voice-app","ts":"2026-11-06T22:54:55.850Z"}
 {"file":"plan/page.jsonl"}
+{"file":"next/page.jsonl","gone":true}
+{"file":"design-tmp/","gone":true}
 {"content":{"add":{"id":"link-plan","path":"./plan/","text":"The page system's architecture and decision log.","title":"Plan","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T23:31:39.208Z"}
 {"content":{"add":{"id":"link-design","after":"link-plan","path":"./design/","text":"Method map, storage findings, tabs findings.","title":"Design lab","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T23:40:13.150Z"}
 {"content":{"add":{"id":"link-demos","after":"link-design","path":"./demos/","text":"Tabs, nav, place and columns, one tap-through each.","title":"Demos","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T23:40:14.176Z"}
@@ -165,3 +167,5 @@
 {"content":{"item-tool":{"content":{"add":{"id":"write-mode","code":"// write: one delta = one log line\nitem({\n  path: \"/live/\",\n  delta: {\n    content: {\n      add: {\n        type: \"part-card\",\n        title: \"Item tool\"\n      }\n    }\n  }\n})","lang":"js","title":"Write (set)","type":"live-code"}}}},"by":"voice-app","ts":"2026-11-07T00:20:18.437Z"}
 {"file":"item-test/page.jsonl"}
 {"content":{"add":{"id":"item-test","path":"./item-test/","title":"Item test","type":"part-link"}},"by":"voice-app","ts":"2026-11-07T00:24:15.456Z"}
+{"file":"design-tmp/"}
+{"file":"next/page.jsonl"}

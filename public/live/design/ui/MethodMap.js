@@ -3,6 +3,7 @@ import View, { div, span, button } from "/framework/core/View/View.js";
 import Page from "/framework/core/Page/Page.class.js";
 import LivePage from "/live/LivePage.js";
 import PageUI from "../PageUI.js";
+import { own_methods as method_names } from "/framework/ext/Inspect/ItemInspector.js";
 
 // page.ui.methods — "150 methods in one bag", shown: `mode` is "today" (three flat blocks) or "grouped" (Page's own
 // methods regrouped by the pattern table in core/Page/doc/namespaces.md, "The shape" — a proposal, not built).
@@ -33,12 +34,11 @@ function is_forwarder(fn){
 	return /^(return\s+)?this\.[a-zA-Z_$][\w$]*\(.*\)(\.[a-zA-Z_$][\w$]*\(.*\))*$/.test(body);
 }
 
-// Own, callable method names of a class's own prototype (functions only — a getter is never counted — minus `constructor`).
+// Own, callable method names of a class's own prototype (functions only, a getter never counted, minus `constructor`),
+// each flagged as a forwarder or not. The prototype-chain walk itself is ext/Inspect/ItemInspector.js's own_methods()
+// (law 6: one walk, not two — review 2026-11-06, finding 5), kept here only as this {name, forwarder} shape on top of it.
 function own_methods(Class){
-	return Object.getOwnPropertyNames(Class.prototype)
-		.filter(name => name !== "constructor")
-		.filter(name => typeof Object.getOwnPropertyDescriptor(Class.prototype, name).value === "function")
-		.map(name => ({ name, forwarder: is_forwarder(Class.prototype[name]) }));
+	return method_names(Class).map(name => ({ name, forwarder: is_forwarder(Class.prototype[name]) }));
 }
 
 const group_of = name => GROUPS.find(([, pattern]) => pattern.test(name))?.[0] ?? "page";

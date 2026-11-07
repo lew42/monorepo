@@ -582,6 +582,10 @@ export default class LivePage extends Page {
 			if (of.focus) row("Card", `id ${of.focus.id}, saved inside ${folder}page.jsonl`);
 			else if (of.screen) row("Saved screen", `saved inside ${folder}page.jsonl`);
 			new LivePage.Files({ page, folder, at: "" });
+			h4.c("live-settings-files-title", "What it is made of");
+			div.c("live-settings-inspect").append(import("/framework/ext/Inspect/ItemInspector.js").then(({ default: ItemInspector }) => new ItemInspector({ item: of })));
+			h4.c("live-settings-files-title", "How it got here");
+			div.c("live-settings-inspect").append(import("/framework/ext/Inspect/DeltaHistory.js").then(({ default: DeltaHistory }) => new DeltaHistory({ url: folder, Class: of.constructor })));
 		}
 	};
 

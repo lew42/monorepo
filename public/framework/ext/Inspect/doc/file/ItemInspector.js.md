@@ -1,0 +1,1 @@
+Draws any Item as rows a reader can scan: its type, its id, its own fields (a key that never wraps, a value that does) and its lists, each member one click down. It also lists the methods of the item's class (`own_methods`, which `live/design/ui/MethodMap.js` reuses).
