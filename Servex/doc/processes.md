@@ -140,7 +140,7 @@ The rule is the exported pure `decide({commit_pct, last_run, armed})`. Proof: `n
 
 ## The page file: insurance, not the fix
 
-**Recommendation (agreed with the owner, 2026-11-07):** a 48 GB page file, up from 26 GB. That lifts the commit limit from about 57 GB to about 80 GB. Setting it is the owner's job: System Properties, Advanced, Performance, Virtual memory, then a restart.
+**Option, not a decision:** a 48 GB page file, up from 26 GB. The owner (2026-11-07) agrees it's insurance at best and isn't changing it now; the fix he wants is leak accounting. That lifts the commit limit from about 57 GB to about 80 GB. Setting it is the owner's job: System Properties, Advanced, Performance, Virtual memory, then a restart.
 
 - **What it helps:** short peaks. A burst of spawns, or a big build, gets room instead of failed allocations near 100%.
 - **What it does not help:** leaks. A process that never ends keeps its memory, and a bigger page file only fills more slowly. Paged-out memory is also slow, so the PC drags before it fails.
