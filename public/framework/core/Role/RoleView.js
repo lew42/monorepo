@@ -1,4 +1,5 @@
 import { div, span, a, small } from "/app.js";
+import AISession from "/framework/ai/AISession/AISession.js";
 
 /* Draws one Role: its properties, and the agents now in it. Used by the roles page and by a session's page. */
 export default class RoleView {
@@ -66,7 +67,7 @@ export default class RoleView {
 		div.c("role-live").style({ display: "grid", gap: "0.25em" }).append(() => {
 			small.c("muted", live.length ? `Live now (${live.length}):` : "No agents in this role right now.");
 			for (const ag of live) div.c("flex gap-50 wrap", () => {
-				a.c("", ag.id).attr("href", `/framework/ai/sessions/${ag.session_id ?? ag.id}/`);
+				a.c("", ag.id).attr("href", AISession.page_url(ag.session_id ?? ag.id, `/framework/ai/sessions/${ag.session_id ?? ag.id}/`));
 				small.c("muted", [ag.state ?? "?", RoleView.differs(role, ag), RoleView.usd(ag.cost)].filter(Boolean).join(" · "));
 			});
 		});

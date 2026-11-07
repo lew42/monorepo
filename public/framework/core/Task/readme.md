@@ -140,6 +140,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 - **References in the browser (step 14b):** `Task.from_ref` returns a "loading" stub that opens the child's own `task.jsonl` through the Store and tails it live ("missing" only after a 404); `Task.rank(list)` sorts by recency x weight.
 
 - **Completion, 2026-10-25:** an open task whose owner is not working is flagged as dropped by code, and a deferral is a `wait` with a home and a `decide_by`: [doc/completion.md](doc/completion.md).
+- **Proof and partial completion (options, not built, 2026-11-06):** whether "close with proof" can be trusted, partial scores like 0.5 that average up, and the Plan idea (a Process that waits for approval): [doc/proof-options.md](doc/proof-options.md).
 - **Owner notes, 2026-10-20:** `complete()` the verb, `completion` the number; a module keeps projects (`projects/YYYY/MM/DD/`), a session keeps tasks; the dated breakout as one shared system: [doc/owner-2026-10-20-projects-and-completion.md](doc/owner-2026-10-20-projects-and-completion.md).
 - [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — tasks live in their own list and reach the chat by reference; adopt and own-file rules (decided or leaning; not built).
 - **Task-system check, 2026-11-05:** where an agent's tasks land, completion reads, unlinked children and how rarely tabs file asks: [core/Session readme, findings](../Session/readme.md#does-the-task-system-work-findings-of-2026-11-05).

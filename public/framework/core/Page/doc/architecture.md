@@ -56,9 +56,9 @@ Live demo: [/framework/core/Page/tool/](/framework/core/Page/tool/) (every line 
 - **The tool appends; the page interprets.** The owner offered two options: a blind "append any delta" tool, or routing through a Page method. Both, split by side: the write is a blind, schema-checked append (stamped with `by`, `ts` and missing ids), and the browser's `Page.set()` is the one place a delta means something. No page parsing on the server; `page_read` only summarises.
 - **Tabs are child pages.** A tab has its own url (`…/now/`), its own live content list, and the one tab strip (`ext/tabs`). No second tab system.
 - **A tab line with no strip turns tabs on.** "Add a tab here" must show a tab.
-- **Paths are route paths.** The agent names the page it sees (`/framework/ai/sessions/<id>/`); the tool finds the file, even when none exists yet. A session's file is its own dated folder (`AISession.locate()`).
+- **Paths are route paths.** The agent names the page it sees (`/framework/ai/sessions/YYYY/MM/DD/<folder>/`); the tool finds the file, even when none exists yet. A session's file is its own dated folder (`AISession.locate()`).
 - **A template page takes only the shape of its log** (`Page.overlay()`): words, `tab`, `title`, lines addressed to a tab. Other keys in such a log stay data, because a key can name a Page method (`add`, `move`).
-- **Every agent knows its page.** Servex's first-turn line (`Agents.whoami()`) and, for a VS Code tab, the SessionStart hook `.claude/hooks/session-page.mjs` name `/framework/ai/sessions/<session id>/` (built by mastermind-ai-system: `Servex/agents/doc/own-page.md`). With no path, `page_set` also defaults to the caller's own page.
+- **Every agent knows its page.** Servex's first-turn line (`Agents.whoami()`) and, for a VS Code tab, the SessionStart hook `.claude/hooks/session-page.mjs` name its dated folder (`/framework/ai/sessions/YYYY/MM/DD/<folder>/`) (built by mastermind-ai-system: `Servex/agents/doc/own-page.md`). With no path, `page_set` also defaults to the caller's own page.
 
 ## Log growth (the owner, 18:25): designed, size feedback built
 

@@ -44,7 +44,7 @@ const SURFACES = [
 	{ name: "Card chat", where: "A card's page, Activity tab",
 		file: "/framework/ai/cards/card.js", agent: "whoever is attached to the card, or none", log: "the card's `page.jsonl`", shot: "card-chat-1920.png",
 		says: "A different conversation: the card's own thread, posted with `POST /card/append`, not a voice session." },
-	{ name: "Session page", where: "`/framework/ai/sessions/<id>/`, Conversation tab",
+	{ name: "Session page", where: "`/framework/ai/sessions/YYYY/MM/DD/<folder>/`, Conversation tab",
 		file: "/framework/ai/AISession/AISessionConversation.js", agent: "none (it replays a Claude Code session)", log: "reads the SDK session file; Refine writes the stages", shot: "session-page-1920.png",
 		says: "A read-only view of what you and a Claude Code agent said. Its one action is the Refine button on a prompt." },
 	{ name: "Refine view", where: "`/framework/ext/Refine/`",

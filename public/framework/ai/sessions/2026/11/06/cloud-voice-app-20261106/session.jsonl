@@ -518,3 +518,26 @@
 {"tasks":{"session-live-view":{"tasks":{"add":{"id":"prove-stream","title":"PROBE-SUBTASK: prove a new task shows on this session's page with no reload"}}}},"by":"mastermind-live-page","ts":"2026-11-07T04:47:37.487Z"}
 {"tasks":{"session-live-view":{"tasks":{"prove-stream":{"complete":{"outcome":"Completing this subtask is the probe: the session page's In flight row for its parent should move from 0% without a reload.","evidence":"live-r17/shots (sesslive2.mjs)"}}}}},"by":"mastermind-live-page","ts":"2026-11-07T04:49:13.364Z"}
 {"tasks":{"session-live-view":{"start":{}}},"by":"mastermind-live-page","ts":"2026-11-07T04:50:18.983Z"}
+{"tasks":{"session-live-view":{"tasks":{"add":{"id":"stream-fix","title":"Find why the session page's task list does not move when session.jsonl grows, and fix it"}}}},"by":"mastermind-live-page","ts":"2026-11-07T04:51:21.969Z"}
+{"tasks":{"session-live-view":{"tasks":{"stream-fix":{"now":"The new line reaches the page over the socket; finding where the redraw stops (SessionTasks → InFlightView)."}}}},"by":"mastermind-live-page","ts":"2026-11-07T04:52:21.627Z"}
+{"log":{"at":"2026-11-06T23:00:54-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"tool_call":{"at":"2026-11-07T05:07:36.495Z","tool":"shell","args_hash":"4177188f02b2","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T05:07:40.429Z","tool":"shell","args_hash":"709c0089f869","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T05:08:06.613Z","tool":"shell","args_hash":"e29cedc96f85","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T05:08:15.793Z","tool":"send_to_agent","args_hash":"88e3a64f4327","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T05:08:19.771Z","tool":"send_to_agent","args_hash":"ccf7480a7b79","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T05:08:38.274Z","tool":"write_file","args_hash":"2c86a70e80c4","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T05:08:38.998Z","tool":"shell","args_hash":"36d8dfc97fc7","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T05:08:42.511Z","tool":"edit_file","args_hash":"e9dd055b3f65","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T05:08:44.375Z","tool":"edit_file","args_hash":"0907935ca023","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T05:08:47.342Z","tool":"shell","args_hash":"168a3d67700e","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T05:08:54.247Z","tool":"item","args_hash":"c3f2ef30796d","caller":"voice-app"}}
+{"tasks":{"add":{"type":"Task","id":"audit-design","title":"Write down the past-work audit design (prompt + system audits, calibration, pace gate)"}},"by":"voice-app","ts":"2026-11-07T05:08:54.254Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.audit-design","by":"servex","at":"2026-11-07T05:08:54.255Z"}},"by":"servex","ts":"2026-11-07T05:08:54.255Z"}
+{"tasks":{"add":{"type":"Task","id":"transcript-to-pc","title":"Bring this cloud session's raw transcript to the PC for the first audit calibration","why":"Owner, 11-07: test prompt refinement on this session's verbatim prompts without copying them through tool calls."}},"by":"voice-app","ts":"2026-11-07T05:08:54.256Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.transcript-to-pc","by":"servex","at":"2026-11-07T05:08:54.257Z"}},"by":"servex","ts":"2026-11-07T05:08:54.257Z"}
+{"tasks":{"audit-design":{"complete":{"evidence":["253cbe24f","/framework/ai/doc/past-work-audit-design.md"],"outcome":"ai/doc/past-work-audit-design.md, linked from audits.md and indexing-past-work.md. Not running: calibrate first, and only under 50% pace."}},"children-link":{"log":"Root cause found 11-07: the registry row 'voice-app' has session_id 'voice-20261019-live-page' (set Oct 19); Agents.session_of() reads it for every spawn. Handed to mastermind-session-truth as a small fix."}},"by":"voice-app","ts":"2026-11-07T05:08:54.259Z"}
+{"tool_call":{"at":"2026-11-07T05:09:00.028Z","tool":"item","args_hash":"ab04e4123fe5","caller":"voice-app"}}
+{"tasks":{"transcript-to-pc":{"wait":{"on":"owner"}}},"by":"voice-app","ts":"2026-11-07T05:09:00.034Z"}
+{"tasks":{"session-live-view":{"tasks":{"stream-fix":{"complete":{"outcome":"Found and fixed: JSONL.live()'s 1.5 s fallback dropped the reader on a slow page, so the session page never streamed. Now a task started or closed shows within 1 s.","evidence":"Merged 9782b2db5; ext/JSONL/live.test.mjs; live-r17/shots/before.txt vs after.txt."}}}}},"by":"mastermind-live-page","ts":"2026-11-07T05:12:52.787Z"}
+{"tasks":{"session-live-view":{"outcome":"Study and proposal at /live/session-page/: the session page (AISessionDetail extends Page, its own head and four JSONL readers inside it), /live/ (LivePage) and the voice chat show one session record, so they converge on one live page class with three views (tasks, chat, plan); Page stays store-agnostic (reads go behind Session.open and the item store). Smallest first step built: the live tail, so tasks appear, start and close on the open session page within 1 s (9782b2db5). Next step proposed, not built: SessionPage = LivePage header + tasks checklist, about 40 lines, ~$5.","evidence":"/live/session-page/ (proposal-400.png); merged 9782b2db5; ext/JSONL/live.test.mjs"}},"by":"mastermind-live-page","ts":"2026-11-07T05:13:00.338Z"}

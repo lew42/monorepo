@@ -72,11 +72,11 @@ function resolve_file(url, item = false){
 
 /* ROUTE PATHS (2026-10-09, the page tool): an agent names the page it SEES, and this finds
  * the file behind it, even when none exists yet. Today one family of routes keeps its file
- * somewhere else: a session page, `/framework/ai/sessions/<id>/`, is drawn by a template
+ * somewhere else: a session page (its dated folder; the bare `/framework/ai/sessions/<id>/` form is still accepted here as input only), is drawn by a template
  * (ai/AISession/AISessionDetail.js) and its page.jsonl lives in the session's own dated
  * folder, `sessions/YYYY/MM/DD/<slug>/` (Session.create(), the one creator, makes one for a session that has
  * none). `<id>` is a session uuid or a Servex agent id (its registry row holds the uuid). A
- * deeper path, `/framework/ai/sessions/<id>/notes/`, is a tab built from a line in that same
+ * deeper path, `<session folder>/notes/`, is a tab built from a line in that same
  * file, so its segments go on the front of the target: ["notes", ...target]. Anything else
  * resolves the plain way above. Returns { file, target } or null. */
 const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
@@ -289,7 +289,7 @@ const is_plain = v => !!v && typeof v === "object" && !Array.isArray(v);
 const tool = (name, description, properties, required, handler) =>
 	({ name, description, inputSchema: { type: "object", required, properties }, handler });
 
-const PAGE_PATH = { type: "string", description: "The page's url as the browser shows it, e.g. \"/framework/core/Page/tool/\" or a session's one dated folder \"/framework/ai/sessions/YYYY/MM/DD/<folder>/\" (/framework/ai/sessions/<id>/ also finds it, as a redirect only: no folder is ever made there). Omit it to mean YOUR OWN page, /framework/ai/sessions/<your agent id>/." };
+const PAGE_PATH = { type: "string", description: "The page's url as the browser shows it, e.g. \"/framework/core/Page/tool/\" or a session's one dated folder \"/framework/ai/sessions/YYYY/MM/DD/<folder>/\". Omit it to mean YOUR OWN page (your session's one dated folder)." };
 const TARGET = { type: "array", items: { type: "string" }, description: "The path to the target, as a list of hops — each one a property name (\"content\") or a child's id, never a slash; a hop may be a dotted path (\"tasks.ui.tasks.c3\" is four hops, each level looking up the next with its own get). [] (or omit) targets the PAGE itself. [\"content\"] targets its content list. [\"k2\"] targets the existing item with id \"k2\", wherever it lives. [\"k2\",\"answers\"] walks into k2's own \"answers\" list." };
 
 /* ---------- page_read's COMPUTED state (deliverable 2) ----------
