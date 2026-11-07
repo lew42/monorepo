@@ -39,8 +39,8 @@ git grep --untracked -lEi '"type":"Prompt","text":"[^"]*tools' -- "$S/**"
 | An owner prompt (voice) | `"from":"owner (voice)"` in `session.jsonl`, `"k":"prompt"` in `essence.jsonl` | a different shape for the same event |
 | A task, by its title | `"title":"[^"]*word` in `task.jsonl` / `session.jsonl` | |
 | A finished task | `"complete":{"outcome":` | |
-| Who started process 1234 | `"pid":1234` | **not logged yet** (planned: mastermind-resources) |
-| A queued spawn | `"queued":` | **not logged yet** (planned: mastermind-resources) |
+| Who started process 1234 | `"pid":1234` (start line); `"pid_exit":1234` (how it ended) | `git grep -n '"pid":1234' -- 'public/framework/ai/sessions/**'`; a pid with no agent is in the Servex `spawns` log, `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl` |
+| A queued spawn | `"queued":{` (and `"started":{` when it began) | `git grep -n '"queued":{' -- 'public/framework/ai/sessions/**'`; in the parent's `session.jsonl`, with `commit_pct` and `page_file_mb` |
 | Which session made commit abc123 | `abc123` | only ~240 of 1,321 session logs record any commit |
 
 ## The logging contract (what to aim for)
