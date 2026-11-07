@@ -9,3 +9,5 @@
 {"review":{"at":"2026-11-06T20:44:58-06:00","answer":{"n":5,"reply":"noted: names.md was first written in the main tree and moved into this branch; any gone entry the indexer wrote is cleared when the file lands with the merge."}}}
 {"review":{"at":"2026-11-06T20:44:58-06:00","answer":{"n":6,"reply":"noted: the two rules cover two cases (a block that is itself .bleed, and a block that holds a .bleed view); kept short and side by side."}}}
 {"log":{"at":"2026-11-06T20:44:58-06:00","msg":"Review r15 answered (both passes); merging."}}
+{"complete":{"outcome":"Bigger centred chevron, code edge to edge on a phone (.bleed), href read as path, the Pages list explained, names doc, one-idea-per-card rule.","evidence":["e8a4aed61 on compliance/dev","live-r15/shots/bleed-text.txt"],"at":"2026-11-06T20:47:16-06:00"}}
+{"assign":{"closed_by":"mastermind-live-page","closed_at":"2026-11-06T20:47:16-06:00","closed_why":"landed"}}

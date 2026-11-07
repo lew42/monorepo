@@ -7,3 +7,5 @@
 {"review":{"at":"2026-11-06T20:34:03-06:00","answer":{"n":6,"reply":"noted: the delay shows once a line arrives live; on load there is no fresh write to measure, so the bar says only Voice is driving or Quiet."}}}
 {"review":{"at":"2026-11-06T20:34:03-06:00","answer":{"n":7,"reply":"noted: agreed."}}}
 {"log":{"at":"2026-11-06T20:34:03-06:00","msg":"Review answered; merging live-r14 (scroll lock + layout)."}}
+{"complete":{"outcome":"/live/ is header, one scroll area that follows new cards (dim/lit ↓), and a status bar with a tap-open sheet.","evidence":["335a2e429 on compliance/dev","live-r14/shots/follow.txt"],"at":"2026-11-06T20:39:10-06:00"}}
+{"assign":{"closed_by":"mastermind-live-page","closed_at":"2026-11-06T20:39:10-06:00","closed_why":"landed"}}
