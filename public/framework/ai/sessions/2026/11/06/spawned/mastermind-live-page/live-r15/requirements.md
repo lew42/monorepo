@@ -1,0 +1,13 @@
+# /live/: bigger chevron, code edge to edge, the Pages list explained, ids compared, one idea per card
+
+The owner's remaining tasks on /live/ (relayed by @voice-app, 2026-11-06). Branch: `worktree/live-r15`.
+
+## Asks
+
+- [x] **`y2d5oocs` Link chevron: bigger, vertically centred, not crammed in the corner.** 1.75rem, centred top to bottom at the right, in a 2.5rem padding of its own so text never runs under it ([LivePage.css](/live/LivePage.css), `.live-card-chevron`). Shot: [shots/cards-400.png](shots/cards-400.png).
+- [x] **`tlqy1du4` Full-bleed: code cards span edge to edge on mobile, with a `.bleed` class.** A code card bleeds by itself (`LiveCode.js`); any frameless block takes `{"bleed": true}`. Before, the code block stopped 24 px short of the right edge (its max-width); now it is 0–400 px at 400 px wide, and the 60rem column is unchanged on wide screens. Proof: [shots/bleed.txt](shots/bleed.txt) from [shots/bleed.mjs](shots/bleed.mjs).
+  - **Decision:** negative margins on a phone, not a CSS grid page. The essence (code with room on a phone) needs only the class; a grid would mean redoing every list inside the scroll area. Alternative: a named-line grid (`full` / `content`), worth it if many kinds of block need to bleed.
+- [x] **`q9pppa7q` The Pages list: how it is built; hand-placed cards are left out; remove /live/'s self-link card.** The readme now says it in one paragraph ([live/readme.md](/live/readme.md), "Going into a thing"). The two "Live" cards were voice's cards with `href` instead of `path`, so they pointed at /live/ itself; their data is fixed and `LivePage.path_of` reads `href` too (LivePage.test check 39).
+- [x] **`ox5xlkmz` Ids and slugs: the doc page, and default id = slug of the title.** Doc: [live/doc/names.md](/live/doc/names.md). The default id is minted by the item tool (`stamp_ids`, Servex/agents/page_tools.js), which mastermind-page-design owns, and core's ids-and-paths.md §5 had rejected slugs, so the change is proposed to page-design with a cost, not built here.
+- [x] **`afee9jgl` Card style: one idea per card, visual first.** A rule in step 3 of the readme's "Start here", the part every agent driving /live/ reads first.
+- **Also:** the header and status bar now line up with the column at 1200, 1920 and 3440 px (they sat 24 px in).

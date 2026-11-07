@@ -1,0 +1,8 @@
+== 400 px: [left, right] of each code block
+[[0,400],[0,400]]
+== 1200 px: [left, right] of each code block
+[[120,1080],[120,1080]]
+== 1920 px: [left, right] of each code block
+[[328,1288],[328,1288]]
+== 3440 px: [left, right] of each code block
+[[1088,2048],[1088,2048]]
