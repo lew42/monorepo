@@ -161,11 +161,9 @@ export default class LivePage extends Page {
 
 	// {"tab": {"name": "x", "tab": true}} is a pick (picks_of reads it from the raw lines): the folder x/ stays its own
 	// LivePage. Core's tab() would build a plain Page from a line with a `title` and turn on ext/tabs, which blanked
-	// /live/plan/ (2026-11-07); here the name is only marked as a child to load.
-	tab(obj){
-		const name = obj?.name;
-		if (typeof name === "string" && !this.children.has(name)) this.children.set(name, null);
-	}
+	// /live/plan/ (2026-11-07). Here the line does nothing more: the sub-page is found in the folder (pages_of), and
+	// marking the name as a child made the router fetch page.js and .md for a pick with no folder (ten 404s, 2026-11-07).
+	tab(){}
 
 	// ════ EVERYTHING ON IT HAS A URL ═══
 	// /live/<screen>/ is a saved screen, /live/removed/ what was removed, /live/<id>/ any card on screen opened by itself

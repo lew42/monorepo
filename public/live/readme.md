@@ -17,7 +17,7 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
 
 | To… | delta (path `/live/`, or a sub-page's path) |
 |---|---|
-| a line of text / a heading / a titled block | `{"content":{"add":{"type":"part-text","text":"**markdown**"}}}` · `"type":"part-heading"` · `"type":"part-card","title":"…","text":"…"` |
+| a line of text / a heading / a titled block | `{"content":{"add":{"type":"part-text","text":"**markdown**"}}}` · `"type":"part-heading"` · `"type":"part-card","title":"…","text":"…"` (a card shows its title and its preview, below; its `text` shows on its own page) |
 | edit / remove / clear | `{"content":{"<id>":{"text":"…"}}}` · `{"content":{"remove":"<id>"}}` · `{"content":{"clear":true}}` (both keep the cards: see below) |
 | reorder | `{"content":{"move":{"id":"<id>","after":"<other id>"}}}` · `{"content":{"order":["c","a","b"]}}` |
 | any other class | `{"content":{"add":{"type":"Task","id":"ship","title":"Ship it"}}}`, then its own methods: `{"content":{"ship":{"start":{}}}}`. It draws with its own View. A type no code imported yet loads first (`Item.modules` in core/Item/Item.js; add a line there for a new one) |
@@ -36,13 +36,13 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
 ## Going into a thing: sub-pages
 
 1. **Make the sub-page:** `{"pages":{"add":{"name":"plan","title":"The plan","class":"/live/LivePage.js"}}}`. It gets its own folder and `plan/page.jsonl`, and it is a LivePage too. After the next Servex restart, `class` can be left out: a sub-page inherits it from `/live/` (`Servex/agents/Subpages.js`).
-2. **Put its preview on /live/:** `{"content":{"add":{"type":"part-link","id":"plan","path":"./plan/","title":"The plan","text":"Three steps, one open question."}}}`. This is the card you tap.
+2. **Put its card on /live/:** `{"content":{"add":{"type":"part-link","id":"plan","path":"./plan/","title":"The plan","description":"Three steps, one open question."}}}`. This is the card you tap: its title and that one line (or a `preview` list, see the table above).
 3. **Write its detail:** the same deltas, with path `/live/plan/`. The page opens with a breadcrumb back (Live › plan).
-4. **Edit either one:** the preview with `{"content":{"plan":{"title":"…","text":"…"}}}` on `/live/`; the detail with deltas on `/live/plan/`.
+4. **Edit either one:** the card with `{"content":{"plan":{"title":"…","description":"…"}}}` on `/live/`; the detail with deltas on `/live/plan/`.
 
 A card already on screen can become a sub-page (a link card stays in its place): `{"pages":{"promote":{"id":"<card id>","name":"plan"}}}` ([core/Page/doc/ai-api.md](/framework/core/Page/doc/ai-api.md)).
 
-**Page features from voice** (tabs, columns, place, nav, previews, tried live under [/live/demos/](/live/demos/): tabs works via real sub-pages, columns/nav/place do not draw under LivePage and previews has no delta — one table, the cause for each, and what is still missing): [doc/page-features.md](doc/page-features.md).
+**Page features from voice** (tabs, columns, place, nav, previews, tried live under [/live/demos/](/live/demos/): tabs works via real sub-pages, columns/nav/place do not draw under LivePage; previews are now the `preview` list, in the table above — one table, the cause for each, and what is still missing): [doc/page-features.md](doc/page-features.md).
 
 ## Nothing is lost: removed cards
 
@@ -110,6 +110,7 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
 ## Watch out
 
 - A data key that names a method calls the method: a method called `header()` on LivePage would swallow `{"header":"…"}`. Drawing lives in View classes (`LivePage.Head`, …, each with a `render()`), so the page itself has no method named after a field.
+- A LivePage has its own `preview` List, which hides core Page's `preview(nav)` method on it (so `{"preview": …}` reaches the list). A LivePage subclass must not define a `preview()` method; core code that calls `page.preview(nav)` on a LivePage gets the list, not a card.
 - The header light means only "an agent wrote here in the last 30 s". The old `{"light":…}` and `{"toggle":{}}` are gone; a light you control is a `live-light` card.
 - Agent writes are stamped with the agent's id: the item tool does it. A script posting to `/api/item` sends raw `lines` with its own `by` (`probe.mjs`); a bare delta there is stamped `owner`.
 - On the phone (the tunnel) the page streams and taps save, through `/servex/api/item` behind the site key. A bare LAN address (no key) streams but does not save.

@@ -108,6 +108,8 @@ try {
 	await go({ preview: { add: { type: "part-text", id: "pp1", text: "the page's own preview" } } });
 	ok((await ids("content.pv.preview")).join() === "pv1" && !(await ids("content.pv.content")).length, "a card's preview list, apart from its content");
 	ok((await ids("content.lk.preview")).join() === "lk1", "a link card has a preview list too");
+	await go({ content: { lk: { description: "one line" } } });
+	ok((await read("content.lk")).data.description === "one line", "a link card keeps a description (its preview when the list is empty)");
 	ok((await ids("preview")).join() === "pp1", "the page's own preview list (it hides Page's preview(nav) on a LivePage)");
 	console.log(`LivePage.test: ${n} passed`);
 } finally {
