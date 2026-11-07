@@ -1,5 +1,5 @@
 import Page from "/framework/core/Page/Page.class.js";
-import View, { div, span, a, h1, h4, select, option, icon, code } from "/framework/core/View/View.js";
+import View, { div, span, a, h1, h4, select, option, icon, code, button } from "/framework/core/View/View.js";
 import Item from "/framework/core/Item/Item.js";
 import List from "/framework/core/List/List.js";
 import DefaultView from "/framework/ux/Content/Object/DefaultView.js";
@@ -241,6 +241,7 @@ export default class LivePage extends Page {
 		const agent = line => line?.by && line.by !== "owner" ? Date.parse(line.ts) : NaN;
 		for (const line of this.jsonl_lines ?? []) this.voice_at(agent(line));
 		this.on("line", line => {
+			if (line?.by && line.by !== "owner") this.last_by = line.by;
 			this.voice_at(agent(line));
 			if (Item.source !== "remote" || !line?.ts) return;
 			const ms = Date.now() - Date.parse(line.ts);
@@ -258,6 +259,8 @@ export default class LivePage extends Page {
 		if (!this.$dot) return;
 		const left = (this.last_voice ?? 0) + this.constructor.voice_ms - Date.now(), on = left > 0;
 		LiveLight.paint(this.$dot, { on, color: "#22c55e" }).attr("title", on ? "Voice is driving this screen" : "Voice is quiet");
+		this.$state?.text(on ? "Voice is driving" : "Quiet");
+		this.$who?.text(this.last_voice ? `Last line by ${this.last_by ?? "an agent"} at ${new Date(this.last_voice).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : "No agent has written here yet");
 		clearTimeout(this.voice_off);
 		if (on) this.voice_off = setTimeout(() => this.paint_voice(), left + 50);   // one timer to turn it off, no polling
 	}
@@ -276,22 +279,39 @@ export default class LivePage extends Page {
 		this.view = div.c("page live-page", () => {
 			this.$alerts = div.c("live-alerts");
 			part("header", P.Head);
-			part("subheader", P.Md, { item: this, key: "header", classes: "live-sub" });   // below the sticky header, so the header stays one size
-			if (!this.focus && !this.screen && !this.settings_of) part("text", P.Md, { item: this, key: "text", classes: "live-sub" });   // a page.items file opened whole: its own text
-			new P.Errors({ page: this });
-			if (this.settings_of) return void part("settings", P.Settings, { of: this.settings_of, at: this.at });
-			part("preview", P.Preview, { item: this.focus ?? this });   // the same preview its card shows, as the top of the page
-			if (this.focus) part("card", P.Focus, { item: this.focus });
-			if (!this.focus && !this.screen && !this.settings_of) part("tasks", P.Tasks);
-			part("cards", P.Main, { list: this.cards });
-			if (!this.focus && !this.screen && !this.settings_of) part("items", P.Items, { classes: "live-items" });
-			part("pages", P.Pages);
-			part("footer", P.Foot);
+			// ONE scroll area between the header and the status bar (2026-11-06): it follows new cards while you are at the
+			// bottom and stops when you scroll up (ext/Chat sticky_scroll, the chat's own lock and ↓ button).
+			this.$scroll = div.c("live-scroll", () => this.body(part, P));
+			part("status", P.Status);
 		});
+		this.follow();
 		this.listen();
 		this.paint_voice();
 		Page.views.set(this.view.el, this);
 		return this.view;
+	}
+
+	// Everything that scrolls: the page's sub-line and text, its tasks, its cards, its pages and its footer.
+	body(part, P){
+		part("subheader", P.Md, { item: this, key: "header", classes: "live-sub" });   // below the sticky header, so the header stays one size
+		if (!this.focus && !this.screen && !this.settings_of) part("text", P.Md, { item: this, key: "text", classes: "live-sub" });   // a page.items file opened whole: its own text
+		new P.Errors({ page: this });
+		if (this.settings_of) return void part("settings", P.Settings, { of: this.settings_of, at: this.at });
+		part("preview", P.Preview, { item: this.focus ?? this });   // the same preview its card shows, as the top of the page
+		if (this.focus) part("card", P.Focus, { item: this.focus });
+		if (!this.focus && !this.screen && !this.settings_of) part("tasks", P.Tasks);
+		part("cards", P.Main, { list: this.cards });
+		if (!this.focus && !this.screen && !this.settings_of) part("items", P.Items, { classes: "live-items" });
+		part("pages", P.Pages);
+		part("footer", P.Foot);
+	}
+
+	// The scroll lock: browser only, loaded on demand so node (the item tool replays this class) never imports the chat.
+	follow(){
+		const box = this.$scroll?.el;
+		if (!box || typeof document === "undefined" || this.settings_of || this.at) return;   // settings and a file read from the top
+		import("/framework/ext/Chat/Chat.js").then(({ sticky_scroll }) => { this.scroll = sticky_scroll(box); this.scroll.pin(); })
+			.catch(e => console.warn("LivePage: no scroll lock (" + e.message + ")"));
 	}
 
 	// A link's path ("./plan/" or "plan/") against the url of the page its card was written on: this page, or for a saved
@@ -455,7 +475,6 @@ export default class LivePage extends Page {
 			div.c("live-head-top", () => {
 				new P.Crumbs({ page });
 				if (page.at) page.$raw = a.c("live-raw is-empty", "raw").attr("target", "_blank").attr("title", "The file itself, as text");   // a file's page shows it (LivePage.Files)
-				page.$dot = span.c("live-dot");   // the voice light: small, by the gear, never beside the title (that is the page's own icon)
 				// The gear opens settings; on a settings page (or a file under it) the same spot is an X back to the page.
 				const back = page.settings_of?.url;
 				if (back) a.c("live-gear is-close", () => icon("close")).href(back).attr("aria-label", "Close settings").attr("title", "Back to the page");
@@ -465,7 +484,6 @@ export default class LivePage extends Page {
 				page.$icon = span.c("live-icon", () => P.icon(page, page.icon_name));
 				const $h1 = new P.Heading({ tag: "h1", item: page.focus ?? page, fallback: "Live", classes: "live-title" });
 				P.tabs_of(page).then(({ title }) => title && $h1.fix(title)).catch(() => {});   // a tab keeps its parent's h1: the tab says which one
-				page.$ms = span.c("live-ms");
 				if (page.is_top) select.c("live-version", () => {
 					P.versions.forEach(v => option(v.label).attr("value", v.url));
 				}).attr("aria-label", "Version").on("change", e => { location.href = e.target.value; });
@@ -793,6 +811,35 @@ export default class LivePage extends Page {
 			LivePage.icon(this.page, "description");
 			this.$box.empty().el.append(block.el);
 			this.page.$raw?.href(url + "?raw").tc("is-empty", false);
+		}
+	};
+
+	// THE STATUS BAR, the bottom of the screen (2026-11-06): the voice light, what it means and the delay of the last line.
+	// A tap opens a small sheet above it: who wrote last and when, the delay explained, and the page's settings and removed cards.
+	static Status = class LiveStatusView extends View {
+		render(){
+			const { page } = this;
+			this.ac("live-status");
+			const $sheet = div.c("live-status-sheet", () => {
+				page.$who = div.c("live-status-row");
+				div.c("live-status-row", "The number on the bar is the time from an agent's write to this screen.");
+				div.c("live-status-links", () => {
+					a("Settings").href(page.url + "settings/");
+					if (!page.screen && !page.focus) a("Removed cards").href(page.url + "removed/");
+				});
+			}).attr("hidden", "");
+			const $bar = button.c("live-status-bar", () => {
+				page.$dot = span.c("live-dot");
+				page.$state = span.c("live-status-text");
+				page.$ms = span.c("live-ms");
+				icon("expand_less").ac("live-status-chev");
+			}).attr("type", "button").attr("aria-expanded", "false").attr("aria-label", "Status; tap for details");
+			$bar.on("click", () => {
+				const open = $sheet.el.hidden;
+				$sheet.el.hidden = !open;
+				$bar.attr("aria-expanded", String(open));
+				this.tc("is-open", open);
+			});
 		}
 	};
 
