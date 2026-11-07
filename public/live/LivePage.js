@@ -346,7 +346,7 @@ export default class LivePage extends Page {
 	// else the gear on settings and a folder on a folder's page (a file's page says "description" once it knows).
 	get icon_name(){
 		const own = (this.focus ?? this).get?.("icon");
-		return own ?? (this.settings_of ? (this.at ? "folder" : "settings") : null);
+		return own ?? (this.settings_of ? (this.at ? "folder" : "settings") : this.focus || this.screen ? "article" : "folder");   // a page of its own is a folder; a card or a saved screen, an article
 	}
 	static icon(page, name){
 		const $box = page.$icon;
