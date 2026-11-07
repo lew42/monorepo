@@ -21,8 +21,11 @@ await task.live(() => $box.empty(() => render(task)));
 a caller that never asks keeps fetching. Off localhost `Socket` is `disabled`, and
 `live()` *is* `load()`: the site is statically hosted in production and nothing
 here may depend on a server. The same fallback covers a dev server too old to
-answer — a subscribe that goes unanswered for 1.5s fetches instead, because a
-board that waits forever is worse than a board that stops updating.
+answer — a subscribe that goes unanswered for 1.5s fetches once, because a
+board that waits forever is worse than a board that stops updating. It stays
+subscribed: when the answer comes late (a busy page), the server's lines replace the
+fetched copy (reset, then one read) and the reader streams from there. Before
+2026-11-06 it dropped the reader, so a slow page never streamed again.
 
 ## The offset contract
 
