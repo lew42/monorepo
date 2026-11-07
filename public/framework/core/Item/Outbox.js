@@ -128,17 +128,8 @@ export class Outbox extends Events(Object) {
 	}
 
 	async ping(){
-		const socket = this._socket;
 		if (!this.waiting.length) return;
-		if (socket.connected && socket.ws?.readyState === WebSocket.OPEN){
-			const ws = socket.ws;
-			const silence = Symbol();
-			const reply = await Promise.race([socket.request({ method: "ping", args: [] }), new Promise(r => setTimeout(r, Outbox.heartbeat.wait, silence))]);
-			if (reply === silence && socket.ws === ws && this.waiting.length){
-				console.warn("Outbox: the server stopped answering; opening a new connection.");
-				socket.restart();
-			}
-		}
+		await this._socket.ping(Outbox.heartbeat.wait, "Outbox", () => this.waiting.length > 0);   // restarts a silent socket (dev/Socket/Socket.js)
 		this.beat();
 	}
 

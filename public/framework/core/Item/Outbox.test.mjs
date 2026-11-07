@@ -18,7 +18,7 @@ async function until(fn, ms = 3000){ const end = Date.now() + ms; while (Date.no
 // An outbox on a fake, connected socket. `replies` are the answers to the next appends, in order; a ping is always answered.
 function outbox_with(replies){
 	const sent = [], box = new Outbox();
-	const fake = { connected: true, ws: { readyState: 1 }, on(){}, request: frame => { if (frame.method === "ping") return Promise.resolve({ response: "pong" }); sent.push(frame); return Promise.resolve({ response: replies.shift() }); } };
+	const fake = { connected: true, ws: { readyState: 1 }, on(){}, ping: async () => true, request: frame => { if (frame.method === "ping") return Promise.resolve({ response: "pong" }); sent.push(frame); return Promise.resolve({ response: replies.shift() }); } };
 	Object.assign(box, { _socket: fake, client: "tab.abcd", tab_id: "tab" });
 	return { box, sent };
 }
