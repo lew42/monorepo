@@ -12,6 +12,7 @@ import TunnelKeeper from "./ext/remote/TunnelKeeper.js";
 import Monitor from "./Monitor.js";
 import Processes from "./Processes.js";
 import Games from "./Games.js";
+import Relief from "./Relief.js";
 import Worktrees from "./Worktrees.js";
 import TaskLoop from "./TaskLoop.js";
 import { hooks as page_tool_hooks, serve_item } from "./agents/page_tools.js";
@@ -37,6 +38,7 @@ import ReverseProxy from "./ReverseProxy.js";
 import { launch as launch_gate } from "./gate.mjs";
 import { place, stamp } from "./home.js";
 import Stream from "./Stream.js";
+import SpawnLog from "./SpawnLog.js";
 import { Agents } from "./agents/Agents.js";
 import Assistant from "./agents/Assistant.js";
 import Echo from "./agents/Echo.js";
@@ -274,6 +276,8 @@ export default class Servex extends Events {
          * Games.js says the rule; it reads idle time and RAM off `this.procmon`, so it
          * starts after it, same as Worktrees below. */
         if (!process.env.SERVEX_NO_GAMES) this.games = new this.constructor.Games({ servex: this }).start();
+        /* RELIEF (resources, 2026-11-06): at SERVEX_RELIEF_PCT (70) commit, once per 15 min, sweep + stop finished servers + sleep idle agents. Relief.js, doc/processes.md. */
+        if (!process.env.SERVEX_NO_RELIEF) this.relief = new this.constructor.Relief({ servex: this }).start();
         /* WORKTREE CLEAN-UP (same task): a finished worktree is removed, its branch kept,
          * and Servex forgets its project, port and subdomain. Worktrees.js says when. */
         if (!process.env.SERVEX_NO_WORKTREES) this.worktrees = new this.constructor.Worktrees({ servex: this }).start();
@@ -1197,6 +1201,7 @@ export default class Servex extends Events {
             const reason = this.bypass(spec) ? null : this.admit(spec);
             return reason ? this.hold(spec, reason) : do_spawn(spec);
         };
+        SpawnLog.sink = this.log;   // no-agent spawns go to the `spawns` log through the single writer
         this.restore();
         setTimeout(() => this.drain(), 5000).unref?.();   // restored entries start even with no monitor ticking
         /* A queued id is addressable: a message is held in its entry, a stop takes it out of the queue. */
@@ -1302,7 +1307,7 @@ export default class Servex extends Events {
         return entry.stand_in;
     }
 
-    hold(spec, reason){
+    hold(spec, reason, { restored = false } = {}){
         /* The id is fixed NOW, so the caller can wait_for_agent on it (review.mjs
          * and clarity.mjs treated a queued spawn as a failure, 19:20). */
         spec.id ??= this.reserve(spec);
@@ -1310,6 +1315,8 @@ export default class Servex extends Events {
         this.queue.push(entry);
         this.log.append("system", { type: "gate", state: "queued", id: spec.id, role: spec.role ?? null, name: spec.name ?? null,
             reason, position: this.queue.length }).catch(() => {});
+        /* The parent hears it too, in its own session log (Servex/doc/processes.md, "A queued spawn is loud"); a restored entry was told once already. */
+        if (!restored && spec.parent) SpawnLog.note(SpawnLog.dir_for(this.agents, spec.parent), { queued: { agent: spec.id, reason, ...SpawnLog.load(this) } });
         const note = `Not started: ${reason}. Servex will start it as soon as that clears, under this id; wait_for_agent on it works now. Its parent is woken as usual once it runs.`;
 
         /* `send()` on the stand-in HOLDS the message. Agents.send() wakes a stopped
@@ -1367,7 +1374,7 @@ export default class Servex extends Events {
         try { saved = JSON.parse(fs.readFileSync(this.queue_file, "utf8")); } catch { return; }
         for (const { spec, reason, at, inbox } of saved){
             if (!spec || this.same_as(spec) || this.stale(spec)) continue;
-            this.hold(spec, reason ?? "restored after a Servex restart");
+            this.hold(spec, reason ?? "restored after a Servex restart", { restored: true });
             const entry = this.queue.at(-1);
             entry.at = at ?? entry.at;
             entry.inbox.push(...(inbox ?? []));
@@ -1396,6 +1403,7 @@ export default class Servex extends Events {
             try {
                 const agent = this.agents.spawn_now(spec);
                 this.log.append("system", { type: "gate", state: "started", id: agent.id, queued_at: at, held_messages: inbox.length }).catch(() => {});
+                if (spec.parent) SpawnLog.note(SpawnLog.dir_for(this.agents, spec.parent), { started: { agent: agent.id, waited_s: Math.max(0, Math.round((Date.now() - Date.parse(at)) / 1000)) } });
                 for (const [text, extra] of inbox) agent.send(text, extra);   // what arrived while it was held
                 /* NEVER-LOSE-A-WAKE item 3: a `starting` agent the reconcile re-queued (below)
                  * carries whatever it had not yet delivered as raw, already-wrapped turns — push
@@ -1585,7 +1593,7 @@ export default class Servex extends Events {
             last = Date.now();
             const dry = !!process.env.SERVEX_REAPER_DRY;
             const mine = this.reaping = this.lifecycle.sweep({ dry })
-                .then(r => { this.log.append("servex", { type: "lifecycle-sweep", dry, closed: r.close.length, gone: r.gone.length, kept: r.kept.length }).catch(() => {}); return r; })   // every sweep leaves a line, even an empty one
+                .then(r => { this.log.append("servex", { type: "lifecycle-sweep", dry, closed: r.close.length, gone: r.gone.length, kept: r.kept.length, dormant: r.dormant ?? 0 }).catch(() => {}); return r; })   // every sweep leaves a line, even an empty one
                 .then(({ close, gone }) => (close.length || gone.length) && this.say(`lifecycle${dry ? " (dry)" : ""}: ${dry ? "would close" : "closed"} ${close.map(r => `${r.kind} ${r.id} (${r.why})`).join("; ") || "nothing"}; ${gone.length} dead log line(s) ended`))
                 .catch(e => this.say(`lifecycle: sweep failed: ${e.message || e}`))
                 .finally(() => { if (this.reaping === mine) this.reaping = null; });
@@ -1607,6 +1615,7 @@ export default class Servex extends Events {
             try { this.monitor?.stop(); } catch {}
             try { this.procmon?.stop(); } catch {}
             try { this.games?.stop(); } catch {}
+            try { this.relief?.stop(); } catch {}
             try { this.worktrees?.stop(); } catch {}
             try { this.task_loop?.stop(); } catch {}
             try { this.heartbeat?.stop(); } catch {}
@@ -1791,6 +1800,7 @@ Servex.MCP = MCP;
 Servex.Monitor = Monitor;
 Servex.Processes = Processes;
 Servex.Games = Games;
+Servex.Relief = Relief;
 Servex.Worktrees = Worktrees;
 Servex.TaskLoop = TaskLoop;
 Servex.Heartbeat = Heartbeat;

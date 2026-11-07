@@ -39,6 +39,7 @@ class TestAgents extends Agents {}
 TestAgents.Agent = FakeAgent;
 
 const SLOT = { id: "qf-1", path: path.join(dir, "worktrees", "qf-1"), branch: "worktree/qf-1", url: "http://127.0.0.1:9999/" };
+fs.mkdirSync(path.join(SLOT.path, ".git"), { recursive: true });   // a real checkout: Fixer.gutted() drops a slot with no .git
 
 function fake_pool(){
 	const held = [];

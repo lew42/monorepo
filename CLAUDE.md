@@ -51,7 +51,7 @@ Any agent, Claude or not, starts from the short base in `public/framework/ai/age
 ## Where to look
 
 - **First, every new session:** `public/framework/ai/handover.md` (state of the world, what is open) and `git log --oneline -20` (what landed recently). Query the logs only when you need a detail; never read them whole. (the owner, 2026-10-09)
-- **Past work, any question about what was asked or done:** `public/framework/ai/sessions/doc/finding.md`, one `git grep` over the session logs (rg is not installed). A search that misses or needs a second try gets its working query added there.
+- **Past work, any question about what was asked or done:** `public/framework/ai/indexing-past-work.md`: one `git grep` over the session logs (rg is not installed), the owner's own words per channel, the raw transcripts, git history, and a map of every index we already have. A search that misses or needs a second try gets its working query added there.
 - `readme.md` (root) — setup, branches, deploy
 - `public/framework/readme.md` — THE module index (every module, one line, one link) and the framework's rules; every agent reads it ("Read first", above).
 - `public/framework/ai/` — the task log: open a task before the first edit (`new-task`), log as you go, land it (`finish-task`)

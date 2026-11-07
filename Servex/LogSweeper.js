@@ -67,7 +67,7 @@ export default class LogSweeper {
     stop(){ clearInterval(this.timer); this.timer = null; return this; }
 
     git(args, input){
-        const r = spawnSync("git", args, { cwd: this.root, input, encoding: "utf8", windowsHide: true, maxBuffer: 64 * 1024 * 1024 });
+        const r = spawnSync("git", args, { cwd: this.root, input, env: { ...process.env, SERVEX_COMMIT_BY: "LogSweeper" }, encoding: "utf8", windowsHide: true, maxBuffer: 64 * 1024 * 1024 });
         return { ok: r.status === 0, out: (r.stdout || "").trim(), err: (r.stderr || "").trim() };
     }
 
