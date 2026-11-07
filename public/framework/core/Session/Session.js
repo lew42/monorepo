@@ -124,8 +124,8 @@ export default class Session extends Task {
 		 * clears the old why, so a session that came back is not still read as "abandoned" (2026-10-23). */
 		if (delta.stop && typeof delta.stop === "object"){ this.put("state", "stopped"); this.put("why", delta.stop.why ?? null); this.put("stopped_at", delta.stop.at ?? Task.clock); delete delta.stop; }
 		if (delta.start && typeof delta.start === "object"){ this.put("state", "running"); this.put("why", null); this.put("stopped_at", null); delete delta.start; }
-		// THE ASK: {"ask":{"id","text","via"}}, or flat {"ask":"words","via":"vscode"}: the owner's words as one open Prompt task (Session.ask).
-		if (delta.ask !== undefined){ this.ask(delta.ask, delta.via, by); delete delta.ask; delete delta.via; }
+		// The owner's turn and its sentences/sections: {"refined":{at,re,sentences,sections,via}} (Session.refine_turn).
+		if (delta.refined && typeof delta.refined === "object" && delta.refined.re){ this.refine_turn(delta.refined); delete delta.refined; }
 		if (typeof delta.task === "string"){   // a reference line: the live child; one with the same id as a nested child replaces it (it moved home)
 			const kid = Task.from_ref(delta.task, delta.as, delta), had = this._tasks?.find(kid.id);   // a Session entry's type and spawn ride on the same line
 			kid._created_at ??= Task.clock;
@@ -169,24 +169,29 @@ export default class Session extends Task {
 		return this;
 	}
 
-	/* THE ASK (the owner, 2026-11-06): every owner prompt on every channel is ONE line, {"ask":{"id","text","via"}}, that adds a Prompt to
-	   `tasks`. It is an open task from the moment it exists: it counts in completion_score() and tally() until an agent closes it with an
-	   outcome (`complete`) or marks it {"<id>":{"no_action":"<why>"}}. `via` is the channel ("vscode", "voice", "sdk", "phone", …). The words
-	   are stored once, here. The id comes in the line (a replay must make the same task every time); with none it is made from the words. */
-	static ask_id(text, at){
-		let h = 5381;
-		for (const c of `${at ?? ""}|${text}`) h = ((h * 33) ^ c.codePointAt(0)) >>> 0;
-		return "a" + h.toString(36);
-	}
-	static ask_title(text){ const t = String(text).replace(/\s+/g, " ").trim(); return t.length > 70 ? t.slice(0, 69).trimEnd() + "…" : t; }
-	ask(arg, via, by){
-		const a = typeof arg === "string" ? { text: arg } : arg && typeof arg === "object" ? { ...arg } : {};
-		const text = String(a.text ?? "").trim();
-		if (!text) return this;
-		const id = String(a.id ?? Session.ask_id(text, Task.clock));
-		if (this._tasks?.find(id)) return this;   // the same ask twice is one task
-		const { text: _t, id: _i, via: v, title, ...rest } = a;
-		this.tasks.add({ ...rest, type: "Prompt", id, text, via: v ?? via ?? "unknown", title: title ?? Session.ask_title(text) });
+	/* THE OWNER'S TURN AS TASKS (the owner, 2026-11-06). A `refined` line, {"refined":{at,re,sentences:[{n,text}],sections,via}}, names its turn by
+	   `re` (the chat line's `at`; for a VS Code prompt, the `at` the hook gave its counted Prompt). The turn is ONE Prompt task, id Session.turn_id(re)
+	   (the hook's content Prompt when it is there, else made here in `tasks`), open until something is filed under it; each section item is a child task
+	   citing sentences (`a<n>`, the paragraph "a" below). A later refined line for the same turn replaces the sentences and adds the items it lacks. Code
+	   writes the first line (Server/Ask.mjs, sentences only), the refiner the sections. Old refined lines with sections derive their tasks the same way. */
+	static turn_id(at){ let h = 5381; for (const c of String(at)) h = ((h * 33) ^ c.codePointAt(0)) >>> 0; return "t" + h.toString(36); }
+	static turn_title(text){ const t = String(text).replace(/s+/g, " ").trim(); return t.length > 70 ? t.slice(0, 69).trimEnd() + "…" : t; }
+	refine_turn(r){
+		if (!r.re) return this;
+		const id = Session.turn_id(r.re), texts = (r.sentences ?? []).map(s => typeof s === "string" ? s : s?.text).filter(t => typeof t === "string" && t.trim());
+		let turn = this._tasks?.find(id) ?? this._content?.find(id);
+		if (!turn){
+			if (!texts.length) return this;
+		const text = texts.join(" ");
+			this.tasks.add({ type: "Prompt", id, text, via: r.via ?? "unknown", title: Session.turn_title(text), requested_at: r.re });
+			turn = this._tasks.find(id);
+		}
+		if (texts.length) turn.paragraphs.replace({ id: "a", text: texts.join(" "), sentences: texts });
+		for (const sec of r.sections ?? []) for (const it of sec.items ?? []){
+			const kid = `${id}-${it.id}`;
+			if (!it.id || !it.text || turn.tasks.find(kid)) continue;
+			turn.tasks.add({ id: kid, title: it.text, cites: (it.cites ?? []).map(n => "a" + n).join(" "), ...(sec.heading ? { section: sec.heading } : {}) });
+		}
 		return this;
 	}
 

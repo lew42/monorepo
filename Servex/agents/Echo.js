@@ -1,5 +1,6 @@
 import fs from "fs";
 import { model } from "./tiers.js";
+import Ask from "../../Server/Ask.mjs";
 import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -213,6 +214,7 @@ export default class Echo {
 			try { text += fs.readFileSync(path.join(REPO, "public", page.replace(/^\/+/, ""), file), "utf8") + "\n"; } catch {}
 		}
 		if (!text.trim()) return null;
+		let re = null, found = null;
 		for (const raw of text.split("\n")){
 			if (!raw.trim()) continue;
 			let line;
@@ -224,11 +226,11 @@ export default class Echo {
 			// read `item.text` as undefined and silently returned — no error, no log, nothing: the
 			// hook and the /log/echo route were both fine the whole time. Reads BOTH shapes, same
 			// one-release compat window `page_tools.js`'s own `replay()` already keeps.
-			if (line.at === "content" && line.add?.id === item_id) return line.add;
-			if (line.content?.add?.id === item_id) return line.content.add;
-				if (line.ask?.id === item_id) return { id: item_id, type: "Prompt", text: line.ask.text, ts: line.ts };   // the one ask line (Server/Ask.mjs)
+			if (line.at === "content" && line.add?.id === item_id) found = line.add;
+			if (line.content?.add?.id === item_id) found = line.content.add;
+			if (line.refined?.re && Ask.turn_id(line.refined.re) === item_id) re = line.refined.re;   // the turn's `at`, from the refined line Server/Ask.mjs wrote beside the Prompt
 		}
-		return null;
+		return found ? { ...found, re } : null;
 	}
 
 	/* The in-process door onto `page_tools.js`'s own `page_set` (Servex/MCP.js's `call()`) —
@@ -271,7 +273,7 @@ export default class Echo {
 		const item = this.read_item(evt.page, evt.item_id);
 		this.servex.say(`echo: read_item -> ${item ? "found, text len " + (item.text?.length ?? 0) : "NULL"}`);
 		if (!item?.text) return;
-		this.process(evt.session_id, evt.page, evt.item_id, item.ts, item.text)
+		this.process(evt.session_id, evt.page, evt.item_id, item.ts, item.text, item.re)
 			.catch(e => this.servex.say(`echo could not process a prompt: ${e.message || e}`));
 	}
 
@@ -299,7 +301,7 @@ export default class Echo {
 	/* THE MECHANICAL HALF — never throws into the caller's event handler; a clean()/structure()
 	 * failure (a down model provider, mostly) is logged and the prompt is simply not refined
 	 * this time, same "best-effort, never blocks" posture every hook in this task follows. */
-	async process(session_id, page, item_id, at, text){
+	async process(session_id, page, item_id, at, text, re){
 		// HOTFIX, 2026-10-02 (live, right after the real merge+restart): task-mastermind-prompt-refine
 		// had asked for `deepseek/deepseek-v4.1-flash` pinned here (minion-core's own litmus
 		// timed it at 8s/call against haiku's 123s), and it DID pass minion-core's litmus run --
@@ -350,6 +352,8 @@ export default class Echo {
 		// even though it's computed here, mechanically, well before the model is even sent
 		// anything. `sections`/`coverage` ride on `pending` until then.
 		await this.page_set(page, item_id, { sentences, strikes, misheard, flags, cost: { usd: round4(cost_usd) } }, this.id_for(session_id));
+		// The same sections as the voice model's line, so Session turns each item into a task under the turn (core/Session/Session.js, refine_turn): {refined:{re,sentences,sections}}.
+		if (re) await this.page_set(page, null, { refined: { at: new Date().toISOString(), re, sentences, sections, flags, cost_usd: round4(cost_usd), via: "vscode" } }, this.id_for(session_id), []);
 
 		this.page_of.set(session_id, page);
 		this.pending.set(session_id, { page, item_id, sections, coverage, flags, misheard, strikes, cost_usd });

@@ -18,8 +18,9 @@ import Ask from "../../Server/Ask.mjs";
  *
  * 1. THE OWNER'S OWN interactive session only — never a minion or mastermind's (minion-echo,
  *    2026-10-02, storage redirect: "a session is a page",
- *    public/framework/ai/sessions/2026/09/30/proposal-flow/page-item-design.md). The prompt becomes one
- *    `page_add` item on that session's own public/framework/ai/sessions/YYYY/MM/DD/<folder>/page.jsonl (the one dated folder)
+ *    public/framework/ai/sessions/2026/09/30/proposal-flow/page-item-design.md). The prompt becomes a counted
+ *    Prompt item plus one `{refined:{re,sentences}}` line (its words split by code, secrets withheld: Server/Ask.mjs) on that session's own
+ *    public/framework/ai/sessions/YYYY/MM/DD/<folder>/session.jsonl (the one dated folder)
  *    — never a second, shared daily file (the old .claude/prompts/<date>.jsonl is retired: text
  *    is never stored twice). This is the owner's "my words should be transcribed in real time."
  *
@@ -222,8 +223,8 @@ const run = async () => {
 
 	// 1. THE OWNER'S OWN interactive session only (never a minion or mastermind's — their
 	//    transcripts are archived a different way, the parent task's "Session records" note):
-	//    the prompt becomes one item on that session's own page, public/framework/ai/sessions/
-	//    <session_id>/page.jsonl, via the SAME validated tool a live tab would use (page_add,
+	//    the prompt becomes a counted Prompt item and its sentences (Server/Ask.mjs) on that session's own record,
+	//    public/framework/ai/sessions/<dated folder>/session.jsonl, via the SAME validated tool a live tab would use (page_set,
 	//    Servex/agents/page_tools.js) — never a second file, per the storage redirect above.
 	// A subagent's hand-back or a background notice arrives as a user turn too; it is not the
 	// owner's words, so it is never logged as a Prompt or refined (prompt-relay-skip-agents).
@@ -232,8 +233,8 @@ const run = async () => {
 	let page_url = null, prompt_item_id = null;
 	if (owner_interactive) {
 		page_url = session_page_url(session_id);
-		// ONE ASK LINE on the tab's session record (Server/Ask.mjs): skips slash commands, withholds secrets, writes {"ask":{id,text,via:"vscode"}}.
-		const out = await Ask.write(page_url, prompt, "vscode", (url, delta) => mcp_call("page_set", { path: url, delta }, "owner"));
+		// Server/Ask.mjs: the counted Prompt item (the turn) plus its raw sentences as one {refined:{re,sentences}} line, split by code; skips slash commands, withholds secrets.
+		const out = await Ask.write(page_url, prompt, "vscode", (url, delta) => mcp_call("page_set", { path: url, delta }, "owner"), { turn: true });
 		prompt_item_id = out.ok && out.id ? out.id : null;
 	}
 

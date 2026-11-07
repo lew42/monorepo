@@ -96,31 +96,37 @@ check("session completion (chat-model s7): 5 root tasks, 3 complete, 1 dropped, 
 	return p.done === 3 && p.total === 4 && p.stopped === 1 && s.completion === 0.875;
 });
 
-const ASK_LINES = [
-	{ session: { id: "as1", kind: "vscode-tab", at: "2026-11-06T10:00:00Z" } },
-	{ ask: { id: "q1", text: "do the thing\nplease", via: "vscode" }, by: "owner", ts: "2026-11-06T10:01:00Z" },
-	{ ask: "flat words", via: "voice", by: "owner", ts: "2026-11-06T10:02:00Z" },
-	{ ask: { id: "q1", text: "again", via: "vscode" } },
+const T1 = "2026-11-06T10:01:00.000Z", T2 = "2026-11-06T10:02:00.000Z", T3 = "2026-11-06T10:03:00.000Z";
+const TURN_LINES = [
+	{ session: { id: "as1", kind: "voice", at: "2026-11-06T10:00:00Z" } },
+	{ chat: { at: T1, from: { kind: "owner" }, via: "voice", text: "do the thing. then the other." } },   // a chat line alone is not a task (old history)
+	{ refined: { at: T1, re: T1, sentences: [{ n: 1, text: "Do the thing." }, { n: 2, text: "Then the other." }], sections: [], via: "voice", by: "code" } },
+	{ refined: { at: T2, re: T2, sentences: [{ n: 1, text: "Build it." }], sections: [], via: "vscode", by: "code" } },
+	{ refined: { at: T2, re: T2, sentences: [{ n: 1, text: "Build it." }], sections: [{ id: "sec1", heading: "Build", items: [{ id: "sec1-i1", text: "Build the page", cites: [1] }] }] } },
 ];
-check("ask: nested and flat lines each add one open Prompt task with words, via and a title; the same id twice is one", () => {
-	const s = Session.replay(ASK_LINES), a = s.tasks.find("q1");
-	return s.tasks.length === 2 && a.wire() === "Prompt" && a.get_one("via") === "vscode" && a.get_one("text") === "do the thing\nplease" && a.get_one("title") === "do the thing please"
-		&& [...s.tasks][1].get_one("via") === "voice" && s.get_one("via") === undefined;
+const turn = (s, at) => s.tasks.find(Session.turn_id(at));
+check("turn: a refined line makes ONE open Prompt task for its turn, with its sentences as paragraph a and its via", () => {
+	const s = Session.replay(TURN_LINES), t = turn(s, T1);
+	return s.tasks.length === 2 && t.wire() === "Prompt" && t.get_one("via") === "voice" && t.sentences.map(x => x.id + "=" + x.text).join("|") === "a1=Do the thing.|a2=Then the other." && s.get_one("refined") === undefined;
 });
-check("ask: replays to the same ids every time (a flat line made without an id)", () => [...Session.replay(ASK_LINES).tasks].map(t => t.id).join() === [...Session.replay(ASK_LINES).tasks].map(t => t.id).join());
-check("ask: an open ask holds the session below 1 and counts in tally; no_action settles its score", () => {
-	const s = Session.replay(ASK_LINES);
-	const open = s.completion_score() === 0 && s.tally().open === 2 && s.tally().created === 2;
-	s.replay_line({ q1: { no_action: "answered in chat" } });
-	return open && s.completion_score() === 0.5;
+check("turn: section items become child tasks citing sentences; the same item twice is one", () => {
+	const s = Session.replay([...TURN_LINES, TURN_LINES[4]]), t = turn(s, T2), kids = [...t.tasks];
+	return kids.length === 1 && kids[0].get_one("title") === "Build the page" && kids[0].get_one("cites") === "a1" && kids[0].get_one("section") === "Build" && kids[0].id === Session.turn_id(T2) + "-sec1-i1";
 });
-check("ask: complete with an outcome closes it and the session reads 1 when both are done", () => {
-	const s = Session.replay(ASK_LINES);
-	s.tasks.find("q1").complete(EV); s.tasks.find("q1").put("state", "complete");
-	s.replay_line({ [[...s.tasks][1].id]: { no_action: "remark" } });
-	return s.completion_score() === 1 && s.tally().finished === 1;
+const ASK = (await import("../../../../Server/Ask.mjs")).default;
+check("turn: ids are the same on every replay, and Server/Ask.mjs makes the same one", () => Session.turn_id(T1) === turn(Session.replay(TURN_LINES), T1).id && Session.turn_id(T1) === ASK.turn_id(T1));
+check("turn: an open turn holds the session below 1 and counts in the tally; no_action settles its score", () => {
+	const s = Session.replay(TURN_LINES.slice(0, 3));
+	const open = s.completion_score() === 0 && s.tally().open === 1 && s.tally().created === 1;
+	s.replay_line({ [Session.turn_id(T1)]: { no_action: "a remark" } });
+	return open && s.completion_score() === 1;
 });
-check("ask: an empty ask writes nothing", () => Session.replay([{ session: "e1" }, { ask: { text: "  " } }]).tasks.length === 0);
+check("turn: a hook-made content Prompt IS the turn: the refined line fills its sentences and files items under it, no second task", () => {
+	const s = Session.replay([{ session: "h1" }, { content: { add: { type: "Prompt", id: Session.turn_id(T3), text: "ship it", counted: true, via: "vscode" } } },
+		{ refined: { at: T3, re: T3, sentences: [{ n: 1, text: "Ship it." }], sections: [{ id: "sec1", heading: "", items: [{ id: "sec1-i1", text: "Ship", cites: [1] }] }], via: "vscode" } }]);
+	return s.tasks.length === 0 && s.content.length === 1 && s.content.find(Session.turn_id(T3)).tasks.length === 1 && s.content.find(Session.turn_id(T3)).sentences[0].text === "Ship it.";
+});
+check("turn: a refined line with no words and no turn writes nothing; one with no re is left alone", () => Session.replay([{ session: "e1" }, { refined: { re: T1, sentences: [] } }, { refined: { sentences: [{ n: 1, text: "x" }] } }]).tasks.length === 0);
 
 process.exit(results.every(Boolean) ? 0 : 1);
 
