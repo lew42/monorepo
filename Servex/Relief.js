@@ -9,6 +9,8 @@ import { stamp } from "./home.js";
  * monitor already reaped. Anything still over the line afterwards gets ONE owner_note (a suggestion
  * naming the biggest apps that are not ours). It NEVER ends a process of its own accord and never
  * touches `other`: only Lifecycle, Worktrees and Agent.sleep do the closing, each by its own path.
+ * The note waits until the owner is away (no keyboard or mouse for `note_idle_min`, GetLastInputInfo
+ * through the monitor's `idle_s`): a suggestion to close their own apps never interrupts them (2026-11-07).
  * Doc: Servex/doc/processes.md, "Early relief at 70%". */
 
 export const REARM_PCT = 65;
@@ -29,6 +31,7 @@ export default class Relief extends Events {
 		this.every ??= Number(process.env.SERVEX_RELIEF_EVERY_MS) || 60000;
 		this.every_ms ??= 15 * 60000;
 		this.idle_min ??= Number(process.env.SERVEX_RELIEF_IDLE_MIN) || 10;
+		this.note_idle_min ??= Number(process.env.SERVEX_RELIEF_NOTE_IDLE_MIN) || 10;
 		this.last_run = 0;
 		this.armed = true;
 		this.runs = [];            // the last 20 relief lines, newest last
@@ -128,11 +131,16 @@ export default class Relief extends Events {
 		return out;
 	}
 
-	/* The five biggest apps that are NOT ours, as a suggestion. Never closed from here. */
+	/* The five biggest apps that are NOT ours, as a suggestion, posted only while the owner is away. Never closed from here. */
 	async note(pct){
-		const top = (this.servex?.procmon?.now?.other_top ?? []).slice(0, 5);
+		const now = this.servex?.procmon?.now, top = (now?.other_top ?? []).slice(0, 5);
+		if (!top.length){ this.armed = false; return; }
+		const idle_s = typeof now?.idle_s === "number" ? now.idle_s : null;
+		if (idle_s === null || idle_s < this.note_idle_min * 60){   // in use (or no reading): stay armed, the next run asks again
+			await this.log({ type: "relief-note-held", at: stamp(), commit_pct: pct, idle_s, need_s: this.note_idle_min * 60 });
+			return;
+		}
 		this.armed = false;
-		if (!top.length) return;
 		const list = top.map(t => `${t.name} (${t.mb} MB)`).join(", ");
 		await this.log({ type: "relief-note", at: stamp(), commit_pct: pct, top });
 		return this.servex?.cards?.owner_note?.({

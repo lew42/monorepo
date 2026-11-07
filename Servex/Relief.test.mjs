@@ -39,7 +39,7 @@ function world(pct = 80){
         procmon: {
             commit_mb: pct * 100, commit_limit_mb: 10000,
             reaped: [{ at: new Date(Date.now() - MIN).toISOString(), mb: 40 }],
-            now: { other_top: ["Chrome", "Figma", "Slack", "Teams", "Docker", "Spotify"].map((name, i) => ({ name, n: 3, mb: 3000 - i * 100, cpu: 1 })) },
+            now: { idle_s: 30 * 60, other_top: ["Chrome", "Figma", "Slack", "Teams", "Docker", "Spotify"].map((name, i) => ({ name, n: 3, mb: 3000 - i * 100, cpu: 1 })) },   // the owner has been away 30 minutes
             kill(){ other_proc.kill_called = true; }
         },
         log: { append: async (name, line) => { logged.push({ name, ...line }); } },
@@ -98,6 +98,23 @@ await check("still over the line: ONE note naming the five biggest not-ours apps
     w.sv.procmon.commit_mb = 8000;
     await relief.tick(Date.now() + 40 * MIN);
     assert.equal(w.notes.length, 2, "the next episode may post again");
+});
+
+await check("the owner at the keyboard: the note is held (one held line), stays armed, and posts at a later run once they are away", async () => {
+    const w = world(80);
+    w.sv.procmon.now.idle_s = 60;
+    const relief = new Relief({ servex: w.sv });
+    await relief.tick(Date.now());
+    assert.equal(w.notes.length, 0, "never while they are using the PC");
+    assert.equal(w.logged.filter(l => l.type === "relief-note-held").length, 1);
+    assert.equal(relief.armed, true, "still armed");
+    delete w.sv.procmon.now.idle_s;
+    await relief.tick(Date.now() + 16 * MIN);
+    assert.equal(w.notes.length, 0, "no idle reading counts as not idle");
+    w.sv.procmon.now.idle_s = 15 * 60;
+    await relief.tick(Date.now() + 32 * MIN);
+    assert.equal(w.notes.length, 1, "away 15 minutes: the suggestion is posted");
+    assert.equal(relief.armed, false);
 });
 
 await check("relief that gets the commit under the line posts no note", async () => {

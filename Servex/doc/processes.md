@@ -134,7 +134,18 @@ once a tick.
 
 It then writes one line, `{type: "relief", commit_pct, closed, dormant, reaped, freed_mb_estimate}`. If the commit is still at the line after the run, it posts ONE `owner_note` (kind `risk`) per episode: the five biggest apps that are **not ours** (the monitor's `other`, grouped by exe name), each with its MB, as a suggestion to close. It never ends any of them, and never ends anything itself: only the three owners above close things. The note is re-armed only when the commit falls below 65%. `SERVEX_NO_RELIEF=1` boots without it.
 
+**The note waits until the owner is away** (2026-11-07). It is posted only when there has been no keyboard or mouse input for `SERVEX_RELIEF_NOTE_IDLE_MIN` minutes (default 10; the monitor's `idle_s`, read with GetLastInputInfo). While the owner is using the PC, or when there is no idle reading, the run writes a `relief-note-held` line (`idle_s`, `need_s`), and the note stays armed, so a later run posts it once they are away. The owner's own apps (Chrome, VS Code, Figma and the rest) are only ever a suggestion in a note, never an action.
+
 The rule is the exported pure `decide({commit_pct, last_run, armed})`. Proof: `node Servex/Relief.test.mjs`.
+
+## The page file: insurance, not the fix
+
+**Recommendation (agreed with the owner, 2026-11-07):** a 48 GB page file, up from 26 GB. That lifts the commit limit from about 57 GB to about 80 GB. Setting it is the owner's job: System Properties, Advanced, Performance, Virtual memory, then a restart.
+
+- **What it helps:** short peaks. A burst of spawns, or a big build, gets room instead of failed allocations near 100%.
+- **What it does not help:** leaks. A process that never ends keeps its memory, and a bigger page file only fills more slowly. Paged-out memory is also slow, so the PC drags before it fails.
+- **The real fix is leak accounting.** Every process an agent or Servex starts gets a start line and an exit line ([Who started this pid](#who-started-this-pid), below), and `node Servex/leaks.mjs` lists every start with no end. The relief run at 70% and the spawn gate at 80% act on top of that.
+- **Alternative:** keep 26 GB and lower the gate instead. That is safer for disk space, but it queues work sooner.
 
 ## A spinning idle agent
 
