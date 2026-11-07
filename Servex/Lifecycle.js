@@ -298,6 +298,8 @@ export default class Lifecycle {
 		if (slot && (r.kind === "server" || slot.state === "taken")) return "a pool slot (Pool.js looks after it)";
 		// a dev server the owner's phone link points at, until its branch merges (build F, Servex/doc/worktree-preview.md)
 		if (r.path && r.kind === "server"){ const held = WorktreePreview.held(r.path, main_repo()); if (held) return held; }
+		// ...and any worktree dev server of an unmerged branch, for up to 48 h: landing used to reap it and the merge gate then got ERR_CONNECTION_REFUSED (leaks, 2026-11-07)
+		if (r.path && r.kind === "server" && !(r.born && Date.now() - r.born > 48 * 3600 * 1000)){ const held = WorktreePreview.unmerged(r.path, main_repo()); if (held) return held; }
 		// An unlogged chrome.exe (logged: false, from the Playwright-marker scan above) has no path
 		// to judge by — it skips the "logged or under C:\Code\lew42" guard below entirely and goes
 		// straight to why()'s own orphan/30-minute rule instead.

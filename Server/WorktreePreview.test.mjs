@@ -133,5 +133,12 @@ ok(/waits for its merge/.test(WorktreePreview.held(path.join(wt("A"), "Server"),
 eq(WorktreePreview.held(wt("D"), main), null, "no preview asked: the reaper's normal rules apply");
 eq(WorktreePreview.held(wt("qf-1"), main), null, "a pool slot: Pool.js's rule, not this one");
 
+// ── a landed task must not take down the dev server the merge gate's tests still need (leaks, 2026-11-07: 6 tests ERR_CONNECTION_REFUSED) ──
+ok(/not merged yet/.test(WorktreePreview.unmerged(wt("D"), main) ?? ""), "unmerged(): even with no preview asked, D's server is kept until its branch merges");
+eq(WorktreePreview.unmerged(wt("qf-1"), main), null, "unmerged(): a pool slot is Pool.js's");
+const { default: Lifecycle } = await import("../Servex/Lifecycle.js");
+ok(/not merged yet/.test(new Lifecycle().kept({ kind: "server", id: "server.js:1", pid: 1, path: wt("D") }) ?? ""), "Lifecycle.kept(): the sweep leaves an unmerged branch's dev server alone");
+ok(!/not merged yet/.test(new Lifecycle().kept({ kind: "server", id: "server.js:1", pid: 1, path: wt("D"), born: Date.now() - 49 * 3600 * 1000 }) ?? ""), "Lifecycle.kept(): after 48 h this hold ends");
+
 fs.rmSync(root, { recursive: true, force: true });
 console.log(`WorktreePreview.test: ${checks} checks pass`);

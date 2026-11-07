@@ -66,6 +66,14 @@ export default class WorktreePreview {
 		return `a preview of ${task.key} waits for its merge`;
 	}
 
+	/* Why a dev server inside a worktree must outlive its task's landing, or null: the branch is not merged yet, so the merge gate's
+	 * browser tests (and a reviewer) still need that server. A pool slot (qf-N) is Pool.js's and never held here. */
+	static unmerged(p, main){
+		const wt = String(p ?? "").replace(/\\/g, "/").match(/^(.*\/worktrees\/[^/]+)/i)?.[1];
+		if (!wt || /\/qf-\d+$/i.test(wt) || !fs.existsSync(wt) || WorktreePreview.merged(wt, { main })) return null;
+		return "its branch is not merged yet, and the merge gate's tests need the server";
+	}
+
 	/* The phone link for a ready-to-merge row (Server/ReadyToMerge.mjs): its task asked for a preview and a worktree
 	 * holds the branch. No git here: the row is already known to be unmerged. */
 	static link(task_dir, worktree, opts = {}){
