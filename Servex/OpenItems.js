@@ -11,8 +11,16 @@ import Session from "../public/framework/core/Session/Session.js";
  * replay-after, so a replayed or doubled close, or a line that did not change the state, files nothing, and the deterministic
  * id (open-items, open-items-2 …) means a second filing is only possible once the first one is settled.
  * It is called from the two low-level append functions of Servex (page_tools write_line, TaskLoop write_line): the item tool, the log
- * tool, Unclose, CloseLoop, TaskLoop.close_task and Dropped go through one of them (see "Known gaps" on after_write for the rest). */
+ * tool, Unclose, CloseLoop, TaskLoop.close_task and Dropped go through one of them (see "Known gaps" on after_write for the rest).
+ *
+ * PROPOSED, OFF BY DEFAULT (the owner, 2026-11-06: anything that changes what gets auto-filed is proposed with a dry-run first). Set the
+ * environment variable SERVEX_OPEN_ITEMS=on to switch the filing on; with it unset, after_write() works out what it WOULD file, returns
+ * those ids and writes nothing. To see what the rule would file over the session store before switching it on:
+ *     node Servex/OpenItems.mjs --dry-run [--days 7] [--out <file>]      (counts, 5 examples, the full list in --out) */
 export default class OpenItems {
+	/** The switch: filing happens only with SERVEX_OPEN_ITEMS=on, read at every call. */
+	static get on(){ return process.env.SERVEX_OPEN_ITEMS === "on"; }
+
 	static CLOSING = /"(stop|complete|finish|unclosed|closed_by|landed_at)"\s*:/;
 	static FILES = /(^|[\\/])(session|task)\.jsonl$/;
 
@@ -68,8 +76,15 @@ export default class OpenItems {
 
 	/** Known gaps: writes that bypass both chokepoints and so file nothing: Server/PromptRecords.mjs (fs.appendFileSync), Server/CloseoutWalk.mjs --apply, and RecordWriter.append_once (append.mjs and StaleClose when Servex is down).
 	 *  Cost: one replay per closing line (about 0.4-1.2 s on the 3.7 MB session-e00f55c9 record, measured), a second only when a filing is due.
-	 *  Call right after `line` was appended to `file`. Returns the closeout tasks it filed (their ids), [] for the usual no-op. Never throws: a failure here must not undo the write it follows. */
-	static after_write(file, line){
+	 *  Call right after `line` was appended to `file`. Returns the closeout tasks it filed (their ids; with SERVEX_OPEN_ITEMS unset, the ones it WOULD file, nothing written), [] for the usual no-op. Never throws: a failure here must not undo the write it follows. */
+	static after_write(file, line, { write = this.on } = {}){
+		const plan = this.plan(file, line);
+		if (write) for (const p of plan) fs.appendFileSync(file, JSON.stringify(p.wrapped) + "\n");
+		return plan.map(p => p.id);
+	}
+
+	/** What after_write files for a line just appended to `file`: [{id, wrapped}], nothing written. Never throws. */
+	static plan(file, line){
 		try {
 			if (!this.FILES.test(String(file)) || !this.CLOSING.test(JSON.stringify(line))) return [];
 			const all = this.read_lines(file);
@@ -79,7 +94,7 @@ export default class OpenItems {
 			const due = this.nodes(after).filter(({ node }) => !Task.is_closeout(node) && Task.settled(node) && node.closeout_line(at));
 			if (!due.length) return [];
 			const was = new Map(this.nodes(this.replay(all.slice(0, -1))).map(n => [n.ids.join("/"), n.node]));
-			const filed = [];
+			const plan = [];
 			let lines = all;
 			for (const { node, ids } of due){
 				const old = was.get(ids.join("/"));
@@ -88,11 +103,10 @@ export default class OpenItems {
 				if (!own) continue;
 				const wrapped = this.reach(lines, ids, own);
 				if (!wrapped) continue;
-				fs.appendFileSync(file, JSON.stringify(wrapped) + "\n");
 				lines = [...lines, wrapped];
-				filed.push([...ids, own.tasks.add.id].join("/"));
+				plan.push({ id: [...ids, own.tasks.add.id].join("/"), wrapped });
 			}
-			return filed;
+			return plan;
 		} catch (e){ console.error("OpenItems.after_write:", e.message); return []; }
 	}
 }
