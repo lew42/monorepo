@@ -1,0 +1,5 @@
+{"title":"Item test","class":"/live/LivePage.js"}
+{"file":"thing.jsonl"}
+{"content":{"add":{"id":"problem","text":"`thing.jsonl` exists in this folder, but nothing in `page.jsonl` points at it. No route, no card, so it never loads.","title":"Problem","type":"part-card"}},"by":"voice-app","ts":"2026-11-07T00:30:57.430Z"}
+{"content":{"add":{"id":"solution","code":"// page.jsonl gets one line\n{content:{add:{\n  type: \"Ref\",\n  file: \"thing.jsonl\"\n}}}\n// Ref loads thing.jsonl,\n// draws it, tails it","lang":"js","title":"Solution: a Ref","type":"live-code"}},"by":"voice-app","ts":"2026-11-07T00:30:57.930Z"}
+{"items":{"add":{"file":"thing.jsonl"}},"by":"minion-ref-file","ts":"2026-11-07T00:51:39.191Z"}

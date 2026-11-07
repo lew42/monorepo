@@ -187,4 +187,53 @@ n++;
 	t(Item.foreign(new Item({})) === null, "Item.foreign builds nothing for an ordinary Item");
 }
 
+// page.items: embedded vs file vs path, and dedup (one object per url, Item.open — Ref.test.mjs covers the cross-file read itself).
+{
+	const fs = await import("node:fs");
+	const os = await import("node:os");
+	const path = await import("node:path");
+	const http = await import("node:http");
+	const { default: List } = await import("../List/List.js");
+
+	const DIR = fs.mkdtempSync(path.join(os.tmpdir(), "item-items-test-"));
+	const write = (file, lines) => { fs.mkdirSync(path.dirname(path.join(DIR, file)), { recursive: true }); fs.writeFileSync(path.join(DIR, file), lines.map(l => JSON.stringify(l)).join("\n") + "\n"); };
+	const server = http.createServer((req, res) => {
+		const file = path.join(DIR, decodeURIComponent(new URL(req.url, "http://x").pathname));
+		if (!file.startsWith(DIR) || !fs.existsSync(file) || fs.statSync(file).isDirectory()){ res.writeHead(404); return res.end(); }
+		res.writeHead(200, { "content-type": "application/x-ndjson" });
+		res.end(fs.readFileSync(file));
+	});
+	await new Promise(ok => server.listen(0, "127.0.0.1", ok));
+	const BASE = `http://127.0.0.1:${server.address().port}`;
+
+	write("page-a/thing.jsonl", [{ title: "Thing" }]);
+	write("page-a/sub/page.jsonl", [{ title: "Sub" }]);
+
+	const page = Item.hydrate({ id: "pg", title: "Page", items: [] });
+	page.url = BASE + "/page-a/";
+	const embedded = page.items.add({ title: "Note" });
+	t(embedded.file_url() === null, "page.items: neither file nor path = embedded (no file_url)");
+	t(embedded.load() === embedded, "and load() answers the item itself");
+
+	const byFile = page.items.add({ file: "thing.jsonl" });
+	t(byFile.id === "thing", "an item's id defaults to its file name, minus .jsonl");
+	t(byFile.file_url() === BASE + "/page-a/thing.jsonl", "file resolves against the folder of the page that lists it (this.parent), not root()");
+	const loadedA = await byFile.load();
+	t(loadedA.get_one("title") === "Thing", "load() opens that file's root");
+
+	const byPath = page.items.add({ path: "sub" });
+	t(byPath.id === "sub", "path-only: the id is the path's last segment");
+	t(byPath.file_url() === BASE + "/page-a/sub/page.jsonl", "path alone means <path>/page.jsonl");
+
+	// Dedup: a second page listing the SAME file gets the SAME live object (Item.open, one Store per url).
+	const page2 = Item.hydrate({ id: "pg2", title: "Page 2", items: [] });
+	page2.url = BASE + "/page-a/";
+	const also = page2.items.add({ file: "thing.jsonl" });
+	const loadedB = await also.load();
+	t(loadedA === loadedB, "two pages that list the same file share one loaded object (dedup)");
+
+	server.close();
+	fs.rmSync(DIR, { recursive: true, force: true });
+}
+
 console.log(`ok — ${n} assertions passed`);

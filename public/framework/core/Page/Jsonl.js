@@ -25,8 +25,15 @@ export default class PageJsonl {
 	// ════ THE LOADER ═══
 	// `url` is the folder; line 1 builds the page, later lines are set(). Streams on localhost.
 	// ⚠ Two callers can race for one url: `reader._building` joins them. (doc/watch-out.md)
-	static async load(host, url){
-		const reader = host.Reader.for(url + "page.jsonl");
+	static async load(host, url){ return this._load(host, url + "page.jsonl", url); }
+
+	// page.items: an item saved in its own file (`file`/`path`) opens as a full page at an ADDRESS that is not where its
+	// lines live (`/live/item-test/thing/`'s lines sit in the sibling `thing.jsonl`, not a `thing/page.jsonl`) — same loader,
+	// the file url and the page's own address passed apart (LivePage.child(), doc/jsonl.md "page.items").
+	static async load_file(host, file_url, address){ return this._load(host, file_url, address); }
+
+	static async _load(host, file_url, address){
+		const reader = host.Reader.for(file_url);
 
 		// A page already built for this reader — a SECOND visit gets the SAME live object back.
 		if (reader.host) return reader.host;
@@ -39,10 +46,10 @@ export default class PageJsonl {
 			const [first] = reader.entries;
 			if (!first || typeof first.file === "string") { reader.close(); return null; }
 
-			const Class = first.class ? await host.log_class(first.class, url) : host;
+			const Class = first.class ? await host.log_class(first.class, address) : host;
 			await Item.load_types(reader.entries);   // a type the log names that nobody imported yet (a Task in content) loads first
 			const { class: _, ...line } = first;
-			const page = new Class(line, { url, jsonl_url: reader.url });
+			const page = new Class(line, { url: address, jsonl_url: reader.url });
 
 			if (!page.has_content()) page.content.fallback(page.log_view);
 			reader.attach(page);
@@ -256,7 +263,7 @@ export default class PageJsonl {
 	log_draw(){ (this.page.placed ?? []).forEach(entry => this.page.draw_placed(entry)); }
 
 	// Where the log's files really are. A page's `url` is its ADDRESS; a card shown at another address (AI 2) keeps its files in its own folder.
-	log_folder(){ return String(this.page.jsonl_url ?? this.page.url).replace(/page\.jsonl$/, ""); }
+	log_folder(){ return String(this.page.jsonl_url ?? this.page.url).replace(/[^/]+\.jsonl$/, ""); }
 
 	log_redraw(){ this.page.$log?.empty(() => { this.page.log_draw(); }); }
 

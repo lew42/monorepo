@@ -147,6 +147,13 @@ export default class LivePage extends Page {
 	}
 	async child(name, levels){
 		if (!this.children.get(name)){   // not built yet (undefined), or named by a {"file": "x/page.jsonl"} line (null)
+			// page.items first: an item saved in its own file opens as a full page at this address (its lines may sit in a
+			// sibling .jsonl, not a same-named folder) — core/Item's file_url/load, doc/jsonl.md "page.items".
+			const stub = this.items.find(name), url = stub?.file_url?.();
+			if (url){
+				const page = await LivePage.jsonl_file(url, this.url + name + "/");
+				if (page) return this.add(name, page).load_all_children(levels);
+			}
 			const kind = this.child_kinds?.get(name) ?? (await Page.listing(this.url).catch(() => null))?.pages.get(name);
 			if (kind === "jsonl" && !LivePage.tab_skip.has(this.url + name + "/")){   // the old views keep their own classes
 				const page = await LivePage.jsonl(this.url + name + "/");   // LivePage as the host, so log_class above decides
@@ -223,6 +230,7 @@ export default class LivePage extends Page {
 			if (this.settings_of) return void new P.Settings({ page: this, of: this.settings_of, at: this.at });
 			if (this.focus) new P.Focus({ page: this, item: this.focus });
 			new P.Main({ page: this, list: this.cards });
+			if (!this.focus && !this.screen && !this.settings_of) new P.Items({ page: this });
 			new P.Pages({ page: this });
 			new P.Foot({ page: this });
 		});
@@ -473,6 +481,31 @@ export default class LivePage extends Page {
 				const members = list.items.filter(i => !i.transient);   // a transient item is the page's own code, never a card
 				DefaultView.place(this.el, members, drawn, item => new (card(item) ? P.Card : P.Block)({ page, item }));
 				this.tc("is-empty", !members.length);
+			};
+			["add", "remove", "move", "order", "clear"].forEach(verb => list.on(verb, draw));
+			draw();
+		}
+	};
+
+	// page.items, after the content: each one loaded (embedded, or `Item.open`'d from its own file — core/Item's
+	// file_url/load) and drawn as title + text, live (its own file tails, so a write shows with no reload).
+	static Items = class LiveItemsView extends View {
+		render(){
+			const { page } = this, P = page.constructor, list = page.items, rows = new Map();
+			const draw = () => {
+				this.tc("is-empty", !list.items.length);
+				const seen = new Set(list.items.map(i => i.id));
+				for (const [id, $row] of [...rows]) if (!seen.has(id)){ $row.el.remove(); rows.delete(id); }
+				list.items.forEach(item => {
+					if (rows.has(item.id)) return;
+					const $row = div.c("live-item");
+					rows.set(item.id, $row);
+					this.el.append($row.el);
+					item.load().then(obj => $row.append(() => {
+						new P.Heading({ tag: "h4", item: obj, classes: "live-item-title" });
+						new P.Md({ item: obj, key: "text", classes: "live-item-text" });
+					})).catch(err => $row.append(() => span.c("live-item-error", String(err?.message ?? err))));
+				});
 			};
 			["add", "remove", "move", "order", "clear"].forEach(verb => list.on(verb, draw));
 			draw();

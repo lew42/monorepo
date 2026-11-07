@@ -30,6 +30,7 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
 | a code block | `{"content":{"add":{"type":"live-code","lang":"js","code":"const sum = (a, b) => a + b;"}}}`; `lang` is js, json, css, html or sh (default js), highlighted by `ext/highlight`; optional `title` and one-line `caption`. **Use it for any code in a card. Keep each line of an example under about 40 characters, because that is what fits on a phone, and put each chained call (`.map`, `.filter`, `.reduce`) on its own line.** A file view (settings → a file) can scroll; an example should fit |
 | a plain element | `{"content":{"add":{"type":"View","content":"Hello world"}}}`: a div with that text (any registered class that is not an Item draws this way; `Item.foreign` in core/Item/Item.js). Demo: [/live/div-test/](/live/div-test/) |
 | a card for a thing on the site | `{"content":{"add":{"type":"part-card","id":"pg","title":"@Page"}}}`: its icon and name, and a tap opens it (ext/Mention) |
+| an item in its own file | `{"items":{"add":{"file":"thing.jsonl"}}}`: its lines live in `thing.jsonl` beside this page's own, not here. Drawn after the content (title + its text, tailed live) and reachable as a full page at `/live/<folder>/thing` — its id defaults to the file name (core/Item/readme.md, "page.items") |
 
 ## Going into a thing: sub-pages
 

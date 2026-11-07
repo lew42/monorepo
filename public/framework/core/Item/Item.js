@@ -80,7 +80,16 @@ export class Item extends Events(Object) {
 		if (this.data !== bag && is_data(this.data)) for (const k in bag) if (!(k in this.data)) this.data[k] = bag[k];   // {title, data} together: keep both
 		// Null-prototype data bag: no collision with built-in names
 		this.data = is_data(this.data) ? this.data : Object.create(null);
-		this.id ??= this.constructor.new_id();
+		this.id ??= this.default_id() ?? this.constructor.new_id();
+	}
+
+	// An item saved in its own file (page.items: `file`/`path`) takes that file's name as its id by default, with nothing
+	// extra to keep in step — `/live/item-test/thing` opens item "thing" because that is both its id and its file's name.
+	default_id(){
+		const { file, path } = this.data ?? {};
+		if (typeof file === "string" && file) return file.replace(/\.jsonl$/i, "");
+		if (typeof path === "string" && path) return path.split("/").filter(Boolean).pop() ?? null;
+		return null;
 	}
 
 	assign(...args){ return Object.assign(this, ...args); }
@@ -523,6 +532,26 @@ export class Item extends Events(Object) {
 		return forward;
 	}
 
+	/* page.items: an item whose data carries `file` and/or `path` keeps its own lines in a file beside the page, instead of
+	   a line in the page's own file (ids-and-paths.md, "page.items"). Resolved against the folder of the LIST THAT HOLDS ME
+	   (`this.parent`, a list member's owner — List.adopt — never `root()`, which climbs past my own page to the whole
+	   page tree's top): `file` alone → `<folder><file>`; `path` alone → `<folder><path>/page.jsonl`; both → `<folder><path>/<file>`.
+	   null when embedded (a line in the page's own file, as before). */
+	file_url(){
+		const { file, path } = this.data ?? {};
+		if (!file && !path) return null;
+		const owner = this.parent, folder = String(owner?.jsonl_url ?? owner?.url ?? owner?.get_one?.("url") ?? "").replace(/[^/]*$/, "");
+		return folder + (path ? `${path}/${file ?? "page.jsonl"}` : file);
+	}
+
+	/** The live object this item's own data is on: itself when embedded, else the shared root `Item.open(file_url())` opens —
+	    one object per url (Store.for), so two pages that list the SAME file share it (never two copies drifting apart). Its
+	    class: the file's own line 1 `type`/`class`, else the class of the page that lists it (`this.parent`'s own class). */
+	load(){
+		const url = this.file_url();
+		return url ? Item.open(url, this.parent?.constructor) : this;
+	}
+
 	root(){ let item = this; while (item.parent) item = item.parent; return item; }
 
 	// Every List property I own, by name — the one seam `find`, `walk` and
@@ -798,7 +827,7 @@ export class Item extends Events(Object) {
 
 	// A string is a .jsonl url: one Store per file, opened, the host built from its
 	// first line, attached. A Saver object keeps the existing whole-JSON path.
-	static async open(src){
+	static async open(src, fallback){
 		// DEPRECATED (2026-10-28): use `Item.open(url)` (a .jsonl url, one Store per file); an object Saver is the whole-JSON path. Guide: /framework/ext/Saver/readme.md. Remove when: the 24 importing files of ext/Saver are moved to `item.store` or the Saver is renamed as the whole-document store.
 		if (typeof src !== "string"){
 			const json = await src.load();
@@ -813,7 +842,7 @@ export class Item extends Events(Object) {
 		// reader of the same Store expects every line (Store.use_snapshot).
 		const rooting = store.rooting = (this.Store.snapshots ? store.use_snapshot() : Promise.resolve()).then(() => store.open()).then(() => {
 			if (store.host) return store.host;   // attached by another reader while this one waited (Task.open_ref)
-			const Class = this !== Item ? this : store.snapshot ? Item.types.get(store.snapshot.state.type) ?? Item : Item.class_for(store.entries);
+			const Class = this !== Item ? this : store.snapshot ? Item.types.get(store.snapshot.state.type) ?? Item : Item.class_for(store.entries, fallback);
 			const { host, rest } = store.snapshot ? { host: new Class(), rest: store.entries } : Class.root_from(store.entries);
 			store.entries = rest;
 			store.attach(host);   // restores the snapshot first, when there is one, then replays the lines held
@@ -826,14 +855,14 @@ export class Item extends Events(Object) {
 
 	// The class a file's root is, from its own lines (Item.open on a url nothing else names): line 1's registered `type` or
 	// `class`; a session's record ({"session":…} line 1, or a spawn's {"assign":{session_id, agent}}) is a Session, any other
-	// {"assign"} record a Task; else a plain Item.
-	static class_for(entries){
+	// {"assign"} record a Task; else `fallback` (page.items: the class of the page that lists it) or, with none, a plain Item.
+	static class_for(entries, fallback = Item){
 		const first = entries[0] ?? {}, a = entries.find(e => e?.assign)?.assign;
 		const named = Item.types.get(first.type ?? first.class);
 		if (named) return named;
 		if (first.session || (a && a.session_id && a.agent)) return Item.types.get("Session") ?? Item.types.get("Task") ?? Item;
 		if (a) return Item.types.get("Task") ?? Item;
-		return Item;
+		return fallback ?? Item;
 	}
 
 	// The root a file's lines open as, and the lines still to replay onto it. An Item is line 1 itself (its fields), the
