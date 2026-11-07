@@ -328,8 +328,8 @@ export default class LivePage extends Page {
 	}
 	static tab_skip = new Set(["/live/sessions/", "/live/archive/", "/live/v1/"]);
 	static tab_max = 5;
-	static async pages_of(url, loaded){
-		const listing = await Page.listing(url).catch(() => null);
+	static async pages_of(url, loaded, fresh){
+		const listing = await Page.listing(url, fresh).catch(() => null);
 		const folders = [...listing?.pages.keys() ?? []].map(name => url + name + "/").filter(u => !this.tab_skip.has(u));
 		const plain = cls => !cls || /(^|\/)LivePage\.js$/.test(cls) || /\/core\/Page\/Page\.class\.js$/.test(cls);   // drawn as a LivePage
 		const picks = this.picks_of(loaded?.jsonl_lines);   // the parent's own {"tab": {"name": x, "tab": true}} lines win
@@ -349,13 +349,13 @@ export default class LivePage extends Page {
 	// The tab row for a page: { owner, title, tabs: [{url, title}] }. Its own tabs when it has any, itself first; else, when
 	// it is one of its parent's tabs, the parent's row (the same row, the parent's title). Else no row: a page with its
 	// own tabs elsewhere is reached by a link card, and the breadcrumb takes it back.
-	static async tabs_of(page){
-		const own = page.focus || page.settings_of ? { tabs: [] } : await this.pages_of(page.url, page);
+	static async tabs_of(page, fresh){
+		const own = page.focus || page.settings_of ? { tabs: [] } : await this.pages_of(page.url, page, fresh);
 		if (own.tabs.length) return { owner: page.url, title: null, tabs: [{ url: page.url, title: page.title ?? "Live" }, ...own.tabs] };
 		const up = page.url.replace(/[^/]+\/$/, "");
 		if (page.is_top || page.focus || page.settings_of || !up.startsWith("/live/")) return { owner: null, tabs: [] };
 		const parent = page.parent instanceof LivePage ? page.parent : null;
-		const theirs = await this.pages_of(up, parent);
+		const theirs = await this.pages_of(up, parent, fresh);
 		if (!theirs.tabs.some(t => t.url === page.url)) return { owner: null, tabs: [] };
 		const title = parent?.title ?? await this.title_of(up);
 		return { owner: up, title, tabs: [{ url: up, title }, ...theirs.tabs] };
@@ -460,9 +460,9 @@ export default class LivePage extends Page {
 			$bar.on("scroll", $fade);
 			const seen = new ResizeObserver($fade); seen.observe($bar.el);
 			this.tc("is-empty", true);
-			const draw = () => P.tabs_of(page).then(({ owner, tabs }) => {
+			const draw = fresh => P.tabs_of(page, fresh).then(({ owner, tabs }) => {
 				this.tc("is-empty", tabs.length < 2);
-				if (tabs.length < 2) return;
+				if (tabs.length < 2) return void $bar.empty();
 				$bar.empty(() => tabs.forEach(tab => a.c("tab", tab.title).href(tab.url).ac(tab.url === owner && "tab-default")));
 				mark();
 			}).catch(() => {});
@@ -475,17 +475,17 @@ export default class LivePage extends Page {
 				$fade();
 			};
 			LivePage.on_url(this, mark);
-			const top = page.is_top ? page : page.parent instanceof LivePage ? page.parent : null;
-			// The row lives as long as its page is shown: the first change heard after it left lets go of everything.
-			const picked = line => line?.tab !== undefined && heard();   // a {"tab": …} line changes the row
+			// The row is this page's own tabs or its parent's, so a {"tab": …} or {"file": …} line on either redraws it, from a
+			// fresh folder listing (a tab can be a folder made a moment ago). The row lives as long as its page is shown: the
+			// first change heard after it left lets go of everything.
+			const pages = [page, page.parent instanceof LivePage && page.parent].filter(Boolean);
+			const picked = line => (line?.tab !== undefined || line?.file !== undefined) && heard();
 			const heard = () => queueMicrotask(() => {
-				if (this.el.isConnected) return draw();
+				if (this.el.isConnected) return draw(true);
 				seen.disconnect();
-				["add", "remove"].forEach(verb => top.screens.off?.(verb, heard));
-				top.off?.("line", picked);
+				pages.forEach(p => { ["add", "remove"].forEach(verb => p.screens?.off?.(verb, heard)); p.off?.("line", picked); });
 			});
-			if (top?.screens?.on) ["add", "remove"].forEach(verb => top.screens.on(verb, heard));
-			top?.on?.("line", picked);
+			pages.forEach(p => { ["add", "remove"].forEach(verb => p.screens?.on?.(verb, heard)); p.on?.("line", picked); });
 			draw();
 		}
 	};
@@ -714,14 +714,14 @@ export default class LivePage extends Page {
 					a.c("live-card-go", "›").href(c.url).attr("aria-label", c.title);
 				}));
 			});
-			const draw = () => P.pages_of(page.url, page).then(({ cards, screens }) => {
+			const draw = fresh => P.pages_of(page.url, page, fresh).then(({ cards, screens }) => {
 				this.tc("is-empty", !cards.length && !screens.length).empty(() => { group("Pages", cards); group("Saved screens", screens); });
 			}).catch(() => {});
 			this.tc("is-empty", true);
 			if (page.screen || page.focus || page.settings_of) return;
-			const picked = line => (line?.tab !== undefined || line?.content) && heard();   // a tab choice or a new link card
+			const picked = line => (line?.tab !== undefined || line?.file !== undefined || line?.content) && heard();   // a tab choice, a new sub-page or a new link card
 			const heard = () => queueMicrotask(() => {
-				if (this.el.isConnected) return draw();
+				if (this.el.isConnected) return draw(true);
 				["add", "remove"].forEach(v => page.screens.off?.(v, heard));
 				page.off?.("line", picked);
 			});
