@@ -239,13 +239,16 @@ export class Store {
 			if (this.skip_echo(entry)){ this.remember(entry); this.count++; continue; }
 
 			if (this.host){
+				// Hash the line BEFORE replaying it: a replay may hang live objects on the entry (a `pages.add` line
+				// gets its Page), and a circular entry would make JSON.stringify in hash_line throw mid-batch.
+				const h = Store.hash_line(entry);
 				this.replaying = true;
 				Store.replay_depth++;
 				const was = Store.reading;
 				Store.reading = this.live ? "remote" : "replay";   // Item.source: a line read after the first load came from another writer
 				try { this.host.replay_line(entry); } finally { Store.reading = was; Store.replay_depth--; this.replaying = false; }
 				replayed.push(entry);
-				this.remember(entry);
+				this.remember(entry, h);
 			} else {
 				this.entries.push(entry);
 			}
@@ -281,9 +284,8 @@ export class Store {
 	// Every line this store has actually applied (replayed, or skipped as its own echo — which already happened
 	// once, optimistically, when it was sent): a hash -> how many times seen. Grows for the store's whole life;
 	// never the lines themselves, only their hashes (doc/reset.md "What this costs").
-	remember(entry){
+	remember(entry, h = Store.hash_line(entry)){
 		const applied = this.applied ??= new Map();
-		const h = Store.hash_line(entry);
 		applied.set(h, (applied.get(h) ?? 0) + 1);
 	}
 
