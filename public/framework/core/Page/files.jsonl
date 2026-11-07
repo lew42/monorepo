@@ -129,3 +129,5 @@
 {"file":"layout-check/"}
 {"file":"screenshots/"}
 {"file":"failures.jsonl"}
+{"file":"screenshots/","gone":true}
+{"file":"layout-check/","gone":true}
