@@ -1,4 +1,4 @@
-import { Page, View, div, h2, p, span, table, tr, th, td, md } from "/app.js";
+import { Page, View, div, h2, p, span, table, tr, th, td, ul, li } from "/app.js";
 import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 
 View.stylesheet(import.meta, "truth.css");
@@ -11,18 +11,20 @@ class TruthLog extends JSONL {
 	truth(v){ this.runs.push(v); }
 }
 
-const pct = (n, d) => d ? Math.round(n / d * 100) + "%" : "n/a";
+const n = v => Number(v ?? 0).toLocaleString("en-US");
+const pct = (a, d) => d ? Math.round(a / d * 1000) / 10 + "%" : "n/a";
+const of = (a, d) => `${n(a)} of ${n(d)} (${pct(a, d)})`;
 const ROWS = [
-	["Sessions", b => b.sessions, "every session id the store holds once (SessionFolders.homes)"],
-	["  with a task log", b => b.with_log, "record with assign/log/agent lines (SessionRecord.log_file); a spawned agent's record is found in its nested task folder"],
-	["  tag-only record", b => b.tag_only, "session.jsonl holds only digest tags: no log of the work"],
-	["  transcript only", b => b.transcript_only, "only index.json/cache.jsonl: cost is counted, nothing was recorded"],
-	["  with any task", b => `${b.with_tasks} (${pct(b.with_tasks, b.sessions)})`, "with + without = sessions"],
-	["  no tasks: needs review", b => `${b.no_tasks} (${pct(b.no_tasks, b.sessions)})`, "the work was never recorded"],
-	["  complete (score 1)", b => `${b.complete} of ${b.with_tasks} with tasks (${pct(b.complete, b.with_tasks)})`, "Task.completion_score()"],
-	["Done tasks with no outcome or evidence", b => `${b.unproven} of ${b.done_tasks} (${pct(b.unproven, b.done_tasks)})`, "Task.proof_problem"],
-	["Sessions with no commit line", b => `${b.no_commit} of ${b.sessions} (${pct(b.no_commit, b.sessions)})`, "no \"commit\" line in the session's record or its task logs"],
-	["Owner asks not filed as a task", b => `${b.prompts_unfiled} prompts in ${b.sessions_unfiled} sessions with no task`, "Prompt lines in a session with no tasks"],
+	["Sessions", b => n(b.sessions), "One per session id (SessionFolders.homes), counted once."],
+	["with a work log", b => n(b.with_log), "Its record has assign, log or agent lines."],
+	["with only digest tags", b => n(b.tag_only), "Its session.jsonl holds tags and nothing about the work."],
+	["transcript only", b => n(b.transcript_only), "Only index.json or cache.jsonl: the cost is counted, nothing was recorded."],
+	["with any task", b => of(b.with_tasks, b.sessions), "With any task + with no task = sessions."],
+	["with no task (needs review)", b => of(b.no_tasks, b.sessions), "The work was never filed as a task."],
+	["complete (score 1)", b => of(b.complete, b.with_tasks) + " of those with tasks", "Task.completion_score()."],
+	["done tasks without outcome or evidence", b => of(b.unproven, b.done_tasks), "Task.proof_problem."],
+	["with no commit line", b => of(b.no_commit, b.sessions), "No commit line in the session's record or any task log under it."],
+	["owner prompts in sessions with no task", b => `${n(b.prompts_unfiled)} in ${n(b.sessions_unfiled)} sessions`, "Asks said but never filed."],
 ];
 
 export default new Page({
@@ -37,19 +39,26 @@ export default new Page({
 		const draw = () => $out.empty(() => {
 			const runs = log.runs, last = runs.at(-1);
 			if (!last){ p("No run yet. Run `node Server/Truth.mjs --write`."); return; }
-			const first = runs[0];
-			p(`Baseline (${first.label ?? "first run"}, ${first.at.slice(0, 10)}) was measured before the fixes of the truth job merged; the Baseline column is that run, and the other columns are the newest run (counted daily by Servex). Newest run: ${last.at.replace("T", " ").slice(0, 16)} UTC.`);
-			div.c("truth-twins", () => { span.c("truth-big", String(last.twins + last.flat)); span(` sessions held by two folders (twin folders: ${last.twins}, flat folders: ${last.flat}); must be 0`); });
-			p(`Folders under sessions/YYYY/MM/DD: ${last.folders?.total ?? "?"} in all, of which ${last.folders?.no_session_file ?? "?"} hold no session file at all (${last.folders?.empty ?? "?"} are empty). The twins in the brief (1,410) were folded before ${first.at.slice(0, 10)}; the check has found none since.`);
-			table.c("truth-table", () => {
-				tr(() => { th("What"); th("All sessions"); th("Last 7 days"); th("Baseline, all"); th("Counted by"); });
-				for (const [name, f, note] of ROWS) tr(() => { td(name.trim()); td(String(f(last.all))); td(String(f(last.week))); td(String(f(first.all))); td(note); });
+			const base = runs.findLast(r => /^baseline/.test(r.label ?? "")) ?? runs[0];
+			p(`Counted by code once a day. The baseline is the run of ${base.at.slice(0, 10)}; the newest run is ${last.at.replace("T", " ").slice(0, 16)} UTC.`);
+			div.c("truth-twins", () => { span.c("truth-big", n(last.twins + last.flat)); span(`sessions are held by two folders (${n(last.twins)} twin folders, ${n(last.flat)} flat folders). This must be 0. The 1,410 twins in the first brief were folded before the first run.`); });
+			div.c("truth-body", () => {
+				table.c("truth-table", () => {
+					tr(() => { th("What"); th("All sessions"); th("Last 7 days"); th("Baseline"); });
+					for (const [name, f] of ROWS) tr(() => { td(name); td(f(last.all)); td(f(last.week)); td(f(base.all)); });
+				});
+				div.c("truth-notes", () => {
+					h2("How each row is counted");
+					ul(() => { for (const [name, , note] of ROWS) li(`${name}: ${note}`); });
+					p(`Folders under the day folders: ${n(last.folders?.total)}. ${n(last.folders?.no_session_file)} hold no session file at all (${n(last.folders?.empty)} are empty). They are not sessions and are not in the table.`);
+				});
 			});
 			h2("Trend: sessions with any task");
+			const top = Math.max(...runs.map(r => r.all.with_tasks / Math.max(1, r.all.sessions)));
 			div.c("truth-trend", () => {
-				for (const r of runs) div.c("truth-bar").style(`height:${Math.max(2, r.all.with_tasks / Math.max(1, r.all.sessions) * 100 * 8)}px`).title(`${r.at.slice(0, 10)}: ${pct(r.all.with_tasks, r.all.sessions)}`);
+				for (const r of runs) div.c("truth-bar").style("height", `${Math.max(2, r.all.with_tasks / Math.max(1, r.all.sessions) / top * 100)}%`).attr("title", `${r.at.slice(0, 10)}: ${pct(r.all.with_tasks, r.all.sessions)}`);
 			});
-			p(`${runs.length} run${runs.length > 1 ? "s" : ""}.`);
+			p(`${n(runs.length)} run${runs.length > 1 ? "s" : ""}.`);
 		});
 		log.live(draw).then(draw);
 	},

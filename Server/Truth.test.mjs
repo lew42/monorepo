@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { measure } from "./Truth.mjs";
+import { measure, disagreements } from "./Truth.mjs";
 
 const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "truth-")), STORE = path.join(ROOT, "public/framework/ai/sessions");
 const put = (rel, lines) => { const d = path.join(STORE, rel); fs.mkdirSync(d, { recursive: true }); fs.writeFileSync(path.join(d, "session.jsonl"), lines.map(l => JSON.stringify(l)).join("\n") + "\n"); };
@@ -17,5 +17,8 @@ try {
 	assert.equal(m.all.no_commit, 1, "one session has a commit line");
 	assert.equal(m.week.sessions, 2, "both inside the last 7 days");
 	assert.equal(m.twins, 0);
+	assert.deepEqual(disagreements(m), [], "a real run agrees with itself");
+	assert.equal(disagreements({ ...m, all: { ...m.all, tag_only: m.all.tag_only + 1 } }).length, 1, "parts that do not add up to sessions are refused");
+	assert.ok(!fs.existsSync(path.join(STORE, "session-folders.json")) && !fs.readdirSync(STORE).some(f => /folders.json/.test(f)), "a run writes nothing into the tree it reads");
 	console.log("Truth.test: ok");
 } finally { fs.rmSync(ROOT, { recursive: true, force: true }); }

@@ -3,7 +3,7 @@
 //   node Server/Truth.mjs [--write] [--root <repo>] [--label "baseline ..."]
 // --write appends ONE line to public/live/truth/truth.jsonl (of the repo it runs in). --root reads the sessions of another tree (read-only).
 // Sessions: SessionFolders.homes(); tasks: Task.replay(...).tally() / completion_score() (the same calls Server/session-query.mjs --report uses).
-// Twins: SessionConsolidate.check. Doc: public/live/truth/readme.md
+// Twins: SessionConsolidate.check. Read-only: counts never write into the tree they read (the folder map stays in memory). Doc: public/live/truth/readme.md
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,6 +24,20 @@ export function folder_stats(root){
 	return f;
 }
 
+/** The second numbers: each total must equal the sum of its parts. Returns the failures (empty = all agree). */
+export function disagreements(m){
+	const bad = [];
+	for (const k of ["all", "week"]){ const b = m[k];
+		if (b.with_tasks + b.no_tasks !== b.sessions) bad.push(`${k}: with_tasks ${b.with_tasks} + no_tasks ${b.no_tasks} != sessions ${b.sessions}`);
+		if (b.with_log + b.tag_only + b.transcript_only !== b.sessions) bad.push(`${k}: with_log ${b.with_log} + tag_only ${b.tag_only} + transcript_only ${b.transcript_only} != sessions ${b.sessions}`);
+		if (b.needs_review !== b.no_tasks) bad.push(`${k}: needs_review ${b.needs_review} != no_tasks ${b.no_tasks}`);
+		if (b.complete > b.with_tasks) bad.push(`${k}: complete ${b.complete} > with_tasks ${b.with_tasks}`);
+		if (b.unproven > b.done_tasks) bad.push(`${k}: unproven ${b.unproven} > done_tasks ${b.done_tasks}`);
+	}
+	if (m.week.sessions > m.all.sessions) bad.push("week.sessions > all.sessions");
+	return bad;
+}
+
 /** measure({ root, days }) -> { all, week, twins, flat, ... }. `root` is the repo whose sessions are counted. */
 export async function measure({ root = HERE, days = 7, now = new Date() } = {}){
 	const { default: SessionFolders } = await import("../public/framework/core/Session/SessionFolders.mjs");
@@ -37,6 +51,7 @@ export async function measure({ root = HERE, days = 7, now = new Date() } = {}){
 	Task.session_resolver = u => { const d = path.resolve(pub, String(u ?? "").replace(/^\/+/, "")); return path.basename(SessionRecord.file(d) ?? "") === "session.jsonl"; };
 	const all = empty(), week = empty();
 	try {
+		store.save = () => {}; // read-only: the map is kept in memory for this run, never written (so --root on another tree writes nothing there)
 		store.adopt_nested();
 		for (const { id, dir } of store.homes()){
 			const day = path.relative(store.root, dir).split(path.sep).slice(0, 3).join("/");
@@ -65,8 +80,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 	const argv = process.argv.slice(2), arg = k => { const i = argv.indexOf(k); return i < 0 ? null : argv[i + 1]; };
 	const root = arg("--root") ? path.resolve(arg("--root")) : HERE;
 	const m = await measure({ root }), line = { truth: { at: new Date().toISOString(), ...(arg("--label") ? { label: arg("--label") } : {}), ...m } };
-	// the second numbers that must agree
-	for (const k of ["all", "week"]) if (m[k].with_tasks + m[k].no_tasks !== m[k].sessions) { console.error(`DISAGREE ${k}: with ${m[k].with_tasks} + no ${m[k].no_tasks} != ${m[k].sessions}`); process.exit(2); }
+	const bad = disagreements(m); if (bad.length){ console.error(["DISAGREE (nothing written):", ...bad].join("\n")); process.exit(2); }
 	console.log(JSON.stringify(line));
 	if (process.argv.includes("--write")){
 		const out = path.join(HERE, "public/live/truth/truth.jsonl"); fs.mkdirSync(path.dirname(out), { recursive: true });

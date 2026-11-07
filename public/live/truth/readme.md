@@ -4,5 +4,6 @@ The page draws `truth.jsonl`; each line is one run of `node Server/Truth.mjs --w
 
 - **Writer:** `Server/Truth.mjs` (test `Server/Truth.test.mjs`), run daily by `TaskLoop.truth_daily()` in Servex (needs a Servex restart to start; done today = the last line's `at` is today). By hand: `node Server/Truth.mjs --write [--label "..."] [--root <repo>]`.
 - **Reader:** `page.js` (`TruthLog extends JSONL`, streamed live).
+- The Baseline column is the newest line whose label starts with `baseline` (the first line is kept as written but is superseded). `Server/Truth.mjs` refuses to write a line whose parts do not add up (with_tasks + no_tasks, with_log + tag_only + transcript_only = sessions; needs_review = no_tasks; complete <= with_tasks; unproven <= done_tasks) and counts without writing into the tree it reads. `truth.jsonl` is committed by `Servex/LogSweeper.js` (ALLOW).
 - **Counts use the real classes:** `SessionFolders.homes()`, `Task.replay`/`tally()`/`completion_score()`, as `Server/session-query.mjs --report` does. They differ from a sample of the costliest sessions because they cover every session id, most of which are transcript-only. The first baseline line wrongly counted only records with a log (328 of 11,861); the second line (label "corrected") fixes it.
-- The first line is the baseline, measured before the truth-job fixes merged.
+- The second line is the baseline: the first counted wrongly (328 of 11,861 "with a record") and is kept as written, never edited.
