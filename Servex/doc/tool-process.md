@@ -10,7 +10,7 @@
 
 ## If a tool throws
 
-`MCP.call()` catches it and returns `{isError: true, text: <message>}`; the in-process `server()` does the same. The agent sees an error result and carries on. An unknown method or tool returns a JSON-RPC error. Nothing ends the session.
+`MCP.call()` catches it and returns `{isError: true, text: <message>}`; the in-process `server()` does the same. Both also write one `{"error":"<message>","where":"file:line","tool","agent"}` line into the calling agent's session log ([ErrorLine.js](../ErrorLine.js); with no caller, into the Servex `errors` log). The agent sees an error result and carries on. An unknown method or tool returns a JSON-RPC error. Nothing ends the session.
 
 ## If something crashes
 

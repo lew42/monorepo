@@ -67,6 +67,7 @@ import { LLAMA_EXE, LLAMA_PORT, LOCAL_PROXY_PORT } from "./ext/local/provider.js
 import { LocalProxy } from "./ext/local/llama.js";
 import { local_chat, local_model_slugs } from "./ext/local/chat.js";
 import DatedFiles from "../Server/DatedFiles.mjs";
+import ErrorLine from "./ErrorLine.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
@@ -144,7 +145,7 @@ export default class Servex extends Events {
         this.ports.pin("servex", this.dashboard_port);
 
         this.dashboard = new this.constructor.Dashboard({ port: this.dashboard_port, servex: this });
-        this.mcp = new MCP({ router: this.dashboard.router, instructions: INSTRUCTIONS });
+        this.mcp = new MCP({ router: this.dashboard.router, instructions: INSTRUCTIONS, on_error: (e, tool, ctx) => ErrorLine.note(this.agents, ctx?.caller, e, { tool }) });
 
         /* `guard()` has to be the FIRST thing registered on the router — Express
          * walks a router's middleware/routes in REGISTRATION order, and a plain SSE

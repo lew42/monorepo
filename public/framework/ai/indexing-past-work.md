@@ -74,7 +74,7 @@ Session logs only grow, so old versions of them add nothing; history is for code
 | Who started process 1234 | `git grep --untracked -n '"pid":1234' -- 'public/framework/ai/sessions/**'`; how it ended: `"pid_exit":1234`; Servex's own (no agent): `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl`. Fields: `started` / `ended` (a line from the 10 s sample also has `"seen":"sample"`, `code: null`). Every start with no end (a leak): `node Servex/leaks.mjs` | works since 2026-11-06 21:50 (processes Servex starts); the processes an agent's claude.exe starts, since the sampler landed ([Servex/doc/processes.md](/Servex/doc/processes.md), "Who started this pid") |
 | A queued spawn | `"queued":{` in the parent's `session.jsonl`, then `"started":{` | works since 2026-11-06 21:50 |
 | Which session made a commit | `"commit":"abc123"` | planned (mastermind-session-truth) |
-| A caught error | `"error":` | planned (mastermind-resources) |
+| A caught error | `"error":` in the agent's `session.jsonl`, with `"where":"file:line"` and `"tool"`; with no agent, the Servex `errors` log in `%LOCALAPPDATA%/lew42/servex/logs/`. Page errors in the browser are `ext/ErrorLog`'s, in `ai/errors/<date>.jsonl` | works for a Servex tool call that throws, from the first Servex restart after 2026-11-06 ([Servex/ErrorLine.js](/Servex/ErrorLine.js)) |
 
 ## 6. The logging contract
 
