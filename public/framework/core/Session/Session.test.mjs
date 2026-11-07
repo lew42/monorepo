@@ -130,7 +130,7 @@ check("turn: an open turn holds the session below 1 and counts in the tally; no_
 	const s = Session.replay(TURN_LINES.slice(0, 3));
 	const open = s.completion_score() === 0 && s.tally().open === 1 && s.tally().created === 1;
 	s.replay_line({ [Session.turn_id(T1)]: { no_action: "a remark" } });
-	return open && s.completion_score() === 1;
+	return open && s.completion_score() === 1 && s.tally().open === 0;
 });
 check("turn: a hook-made content Prompt IS the turn: the refined line fills its sentences and files items under it, no second task", () => {
 	const s = Session.replay([{ session: "h1" }, { content: { add: { type: "Prompt", id: Session.turn_id(T3), text: "ship it", counted: true, via: "vscode" } } },
