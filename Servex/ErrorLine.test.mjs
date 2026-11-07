@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import ErrorLine from "./ErrorLine.js";
 import SpawnLog from "./SpawnLog.js";
+import MCP from "./MCP.js";
 
 const root = ErrorLine.ROOT;
 const e = new Error("boom");
@@ -33,6 +34,17 @@ assert.equal(last.where, "Servex/agents/tools.js:612");
 assert.equal(last.agent, "minion-x");
 assert.equal(last.tool, "item");
 assert.equal(last.by, "servex");
+
+// the wiring: a tool that throws behind MCP.call() still returns isError, and leaves exactly one line (on_error as Servex.js sets it)
+const mcp = new MCP({ router: { post(){}, all(){} }, on_error: (err, tool, ctx) => ErrorLine.note(agents, ctx?.caller, err, { tool }) });
+mcp.tool("bad", { handler: () => { throw new Error("bad args"); } });
+const before = fs.readFileSync(path.join(dir, "session.jsonl"), "utf8").trim().split("\n").length;
+const out = await mcp.call("bad", {}, { caller: "minion-x" });
+await SpawnLog.flush();
+const lines = fs.readFileSync(path.join(dir, "session.jsonl"), "utf8").trim().split("\n");
+assert.equal(out.isError, true, "the agent still gets its error result");
+assert.equal(lines.length, before + 1, "one throw, one line");
+assert.equal(JSON.parse(lines.at(-1)).tool, "bad");
 
 assert.doesNotThrow(() => ErrorLine.note(null, null, e), "no agent and no sink: never throws");
 fs.rmSync(dir, { recursive: true, force: true });
