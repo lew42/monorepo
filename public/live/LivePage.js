@@ -44,6 +44,9 @@ export default class LivePage extends Page {
 		super(...args);
 		this.screens ??= new LiveScreens({ owner: this, name: "screens" });   // saved screens (LiveScreen), opened at /live/<name>/
 		this.removed ??= new List({ owner: this, name: "removed" });   // what left content or screens, opened at /live/removed/
+		// What this page's card shows, and the top of the page itself (LivePage.Preview): {"preview": {"add": {…}}}. The own
+		// list hides core Page's preview(nav) method on a LivePage (so `{"preview": …}` reaches the list, not the method).
+		if (!(Object.hasOwn(this, "preview") && this.preview instanceof List)) this.preview = new LiveContent({ owner: this, name: "preview" });
 	}
 
 	// ════ METHODS A DELTA CAN CALL ═══
@@ -266,6 +269,7 @@ export default class LivePage extends Page {
 			part("subheader", P.Md, { item: this, key: "header", classes: "live-sub" });   // below the sticky header, so the header stays one size
 			new P.Errors({ page: this });
 			if (this.settings_of) return void part("settings", P.Settings, { of: this.settings_of, at: this.at });
+			part("preview", P.Preview, { item: this.focus ?? this });   // the same preview its card shows, as the top of the page
 			if (this.focus) part("card", P.Focus, { item: this.focus });
 			part("cards", P.Main, { list: this.cards });
 			part("pages", P.Pages);
@@ -287,7 +291,7 @@ export default class LivePage extends Page {
 	// ════ TITLES AND TABS ═══
 	// What a page says about itself, read from its own file (small): { title, cls, tab, js }. The title is the last `title` in
 	// its page.jsonl, else its page.js's export, else its folder name: one per url per load, so its link card, its tab and
-	// its h1 always agree. `cls` is the class its line 1 names, `tab` a `{"tab": false}` line (never a tab), `js` a page.js page.
+	// its h1 always agree (`description` too: its link card's preview line). `cls` is the class its line 1 names, `tab` a `{"tab": false}` line (never a tab), `js` a page.js page.
 	static metas = new Map();
 	static meta_of(url){
 		return this.metas.get(url) ?? this.metas.set(url, (async () => {
@@ -303,6 +307,7 @@ export default class LivePage extends Page {
 					if (i === 0 && typeof o?.class === "string") meta.cls = o.class;
 					if (typeof o?.tab === "boolean") meta.tab = o.tab;
 					if (typeof o?.icon === "string") meta.icon = o.icon;
+					if (typeof o?.description === "string") meta.description = o.description;
 				} catch {} });
 				return meta;
 			}
@@ -335,7 +340,7 @@ export default class LivePage extends Page {
 		const picks = this.picks_of(loaded?.jsonl_lines);   // the parent's own {"tab": {"name": x, "tab": true}} lines win
 		const rows = await Promise.all(folders.map(async u => {
 			const m = await this.meta_of(u), name = u.slice(url.length, -1);
-			return { url: u, title: m.title, icon: m.icon ?? this.stored.folder, tab: (picks.get(name) ?? m.tab) === true && !m.js && plain(m.cls) };
+			return { url: u, title: m.title, description: m.description, icon: m.icon ?? this.stored.folder, tab: (picks.get(name) ?? m.tab) === true && !m.js && plain(m.cls) };
 		}));
 		const linked = new Set((loaded?.content?.items ?? []).filter(i => i instanceof PageLink).map(i => loaded.link_url(i.get("path"))));
 		const shown = loaded && !loaded.screen && !loaded.focus && !loaded.settings_of;
@@ -385,9 +390,19 @@ export default class LivePage extends Page {
 			this.bind(this.item, this.key, function(t){
 				const has = t != null && t !== "";
 				this.tc("is-empty", !has).empty(() => { if (has) md(String(t), { safe: true }); });
+				LivePage.label_tables(this.el);
 			});
 		}
 	};
+
+	// Every cell of a markdown table names its column (data-label, from the header row), so on a phone the rows can stack
+	// with each value under its name (LivePage.css). A table with no header row is left as it is.
+	static label_tables(el){
+		el?.querySelectorAll?.("table").forEach(table => {
+			const names = [...table.querySelectorAll("thead th")].map(th => th.textContent.trim());
+			if (names.length) table.querySelectorAll("tbody tr").forEach(tr => [...tr.children].forEach((td, i) => td.setAttribute("data-label", names[i] ?? "")));
+		});
+	}
 
 	// A page's icon, the one in its header and on every card that links to it: what the page names itself
 	// ({"icon": "⚡"} or a Material name like "folder"), else where it is stored (LivePage.stored), else the gear on settings.
@@ -540,7 +555,7 @@ export default class LivePage extends Page {
 			const draw = () => {
 				const members = list.items.filter(i => !i.transient);   // a transient item is the page's own code, never a card
 				DefaultView.place(this.el, members, drawn, item => P.safely(page, "card", () => new (card(item) ? P.Card : P.Block)({ page, item, capture: false }), item));   // one card that throws is an error card in its place
-				this.tc("is-empty", !members.length);
+				this.tc("is-empty", !members.length).tc("is-quiet", !!page.focus);
 			};
 			["add", "remove", "move", "order", "clear"].forEach(verb => list.on(verb, draw));
 			draw();
@@ -618,11 +633,52 @@ export default class LivePage extends Page {
 					$title = new P.Heading({ tag: "h4", item, classes: "live-card-title", on_text: go });
 				});
 				if (item instanceof PageLink && own.startsWith("/live/")) P.title_of(own).then(t => $title.fix(t)).catch(() => {});
-				new P.Md({ item, key: "text", classes: "live-card-text" });
+				new P.Preview({ page, item, url: item instanceof PageLink && own.startsWith("/live/") ? own : null });
 				if (!(item instanceof PageLink)) new P.Children({ list: item.content });
 			});
-			this.$go = a.c("live-card-go", "›");
+			this.$go = P.chevron();
 			go();
+		}
+	};
+
+	// The chevron that makes a card one link: the <a> is stretched over the card (its ::after), the › sits in the card's
+	// bottom-right corner, taking no width of its own. `$go.attr("href", url)` sets where it goes.
+	static chevron(){ return a.c("live-card-go", () => span.c("live-card-chevron", "›")); }
+
+	// What a card shows of itself, and the top of its own page: its `preview` list (anything a delta adds there, drawn like
+	// content), else its `description`, else nothing. A link card with neither shows the description its page gives itself.
+	static Preview = class LivePreviewView extends View {
+		render(){
+			const { page, item, url } = this, P = page.constructor, list = item?.preview?.on ? item.preview : null, drawn = new Map();
+			this.ac("live-preview");
+			const $list = div.c("live-preview-list");
+			const $text = new P.Md({ item, key: "description", classes: "live-card-text live-preview-text" });
+			const $theirs = div.c("live-card-text live-preview-text is-empty");
+			let theirs = null;
+			const draw = () => {
+				const members = (list?.items ?? []).filter(i => !i.transient), own = item?.get?.("description");
+				DefaultView.place($list.el, members, drawn, it => P.safely(page, "preview", () => new P.Block({ page, item: it, capture: false }), it));
+				$list.tc("is-empty", !members.length);
+				$text.tc("is-hidden", members.length > 0);
+				$theirs.tc("is-empty", !theirs || members.length > 0 || (own != null && own !== ""));
+			};
+			if (url) P.meta_of(url).then(m => {
+				if (!m.description || !this.el.isConnected) return;
+				theirs = m.description;
+				$theirs.empty(() => md(String(theirs), { safe: true }));
+				P.label_tables($theirs.el);
+				draw();
+			}).catch(() => {});
+			// Kept in step while the card is shown; the first change heard after it left lets go.
+			const verbs = ["add", "remove", "move", "order", "clear"];
+			const heard = () => queueMicrotask(() => {
+				if (this.el.isConnected) return draw();
+				verbs.forEach(verb => list?.off?.(verb, heard));
+				item?.off?.("change", heard);
+			});
+			verbs.forEach(verb => list?.on(verb, heard));
+			item?.on?.("change", heard);
+			draw();
 		}
 	};
 
@@ -709,11 +765,14 @@ export default class LivePage extends Page {
 			const group = (label, list) => list.length && div.c("live-pages-group", () => {
 				h4.c("live-pages-label", label);
 				list.forEach(c => div.c("live-card live-page-card", () => {
-					div.c("live-card-body", () => div.c("live-card-head", () => {
-						span.c("live-icon live-card-icon", () => P.glyph(null, c.icon));
-						h4.c("live-card-title", c.title);
-					}));
-					a.c("live-card-go", "›").href(c.url).attr("aria-label", c.title);
+					div.c("live-card-body", () => {
+						div.c("live-card-head", () => {
+							span.c("live-icon live-card-icon", () => P.glyph(null, c.icon));
+							h4.c("live-card-title", c.title);
+						});
+						if (c.description) div.c("live-preview", () => div.c("live-card-text live-preview-text", () => md(String(c.description), { safe: true })));   // its page's own description
+					});
+					P.chevron().href(c.url).attr("aria-label", c.title);
 				}));
 			});
 			const draw = fresh => P.pages_of(page.url, page, fresh).then(({ cards, screens }) => {

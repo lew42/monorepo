@@ -23,15 +23,23 @@ export default class LiveContent extends PageContent {
 		return this;
 	}
 
+	// Every card gets a `preview` list (what its card shows, LivePage.Preview), a link too; every card but a link also gets
+	// a `content` list (what its own page shows).
 	adopted(made){
 		super.adopted?.(made);
-		if (!made || Array.isArray(made.items) || made instanceof PageLink || made.transient) return;
-		const had = Object.hasOwn(made, "content") ? made.content : null;
-		if (had instanceof LiveContent || (had && had.constructor.name === "LiveScreen")) return;
-		const own = new LiveContent({ owner: made, name: "content" });
-		if (Array.isArray(had?.items)) for (const kid of [...had.items]){ had.release(kid); own.insert(kid); }   // a saved shape's plain list (hydrate) becomes a LiveContent
-		made.content = own;
+		if (!made || Array.isArray(made.items) || made.transient) return;
+		own_list(made, "preview");
+		if (!(made instanceof PageLink)) own_list(made, "content");
 	}
+}
+
+// Give `made` a LiveContent of its own under `name`; a saved shape's plain list (hydrate) becomes one, its members kept.
+function own_list(made, name){
+	const had = Object.hasOwn(made, name) ? made[name] : null;
+	if (had instanceof LiveContent || (had && had.constructor.name === "LiveScreen")) return;
+	const own = new LiveContent({ owner: made, name });
+	if (Array.isArray(had?.items)) for (const kid of [...had.items]){ had.release(kid); own.insert(kid); }
+	made[name] = own;
 }
 
 // A saved screen removed from the list is kept the same way.

@@ -117,17 +117,25 @@
 	.live-card {
 		background: var(--live-card); color: var(--live-ink); border-radius: .6rem; padding: 1rem;
 		box-shadow: 0 1px 2px light-dark(#0002, #0006);
-		display: flex; align-items: center; gap: .75rem; min-width: 0; overflow-wrap: anywhere;
+		display: block; min-width: 0; overflow-wrap: anywhere;
 		position: relative; cursor: pointer; transition: transform .1s, box-shadow .1s;
 	}
 	.live-card:hover { box-shadow: 0 2px 8px light-dark(#0003, #0008); }
 	.live-card:has(.live-card-go:active) { transform: scale(.98); }
 	.live-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--live-step); }
 	/* The whole card is one link: the chevron's ::after covers the card. A mention or a button inside sits above it, so
-	   it is tapped on its own (a link inside a link is not allowed in HTML, so the card is a div). */
-	.live-card-go { flex: none; font-size: 1.6em; line-height: 1; opacity: .4; color: inherit; text-decoration: none; }
+	   it is tapped on its own (a link inside a link is not allowed in HTML, so the card is a div).
+	   The chevron sits in the bottom-right corner, inside the card's padding: it takes no width and adds no row. */
+	.live-card-go { color: inherit; text-decoration: none; }
 	.live-card-go::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
-	.live-card :is(a:not(.live-card-go), button, input, select, label) { position: relative; z-index: 1; }
+	.live-card-chevron { position: absolute; right: .4rem; bottom: .2rem; font-size: 1.1rem; line-height: 1; opacity: .4; pointer-events: none; }
+	.live-card :is(a:not(.live-card-go), button, input, select, label, pre, .live-code-wrap, table) { position: relative; z-index: 1; }   /* tapped, or swiped sideways, on their own */
+	/* A card's preview (LivePage.Preview) starts where its title starts, not under the icon; an "@Page" card has no icon. */
+	.live-preview, .live-preview-list { display: flex; flex-direction: column; gap: var(--live-step); min-width: 0; }
+	:is(.live-preview-list, .live-preview-text).is-empty, .live-preview-text.is-hidden { display: none; }
+	.live-preview:not(:has(> :not(.is-empty, .is-hidden))) { display: none; }
+	.live-card-head:has(> .live-card-icon:not(.is-hidden, .is-empty)) ~ :is(.live-preview, .live-children) { padding-left: 1.75rem; }   /* the icon's 1.25rem plus the head's .5rem gap */
+	.live-main.is-quiet.is-empty::before { content: none; }   /* a card opened as a page: its preview and text are the page */
 	/* A card's buttons: one row inside it, auto widths. */
 	.live-children { display: flex; flex-direction: column; gap: var(--live-step); }
 	.live-buttons { display: flex; flex-wrap: wrap; gap: .6rem; padding-top: .25em; }
@@ -152,7 +160,19 @@
 	:is(.live-card-text, .live-sub, .live-foot-text) > * { margin: 0; }
 	:is(.live-card-text, .live-sub, .live-foot-text) > * + * { margin-top: var(--live-step); }   /* paragraphs, lists, code: one step apart */
 	:is(.live-card-text, .live-sub) :is(ul, ol) { padding-left: 1.2em; }
-	.live-card-text pre { overflow-x: auto; }
+	.live-card-text pre { overflow-x: auto; overscroll-behavior-x: contain; }
+	/* A phone has no width to spare: code runs edge to edge (one padding, the code's own), and a table's rows stack, each
+	   cell under its column's name (LivePage.label_tables writes data-label from the table's header). */
+	@media (max-width: 40rem) {
+		.live-main > .live-block :is(.live-card-text pre, .live-code-wrap) { margin-inline: calc(-1 * var(--live-pad-x)); border-radius: 0; }
+		.live-card :is(.live-card-text pre, .live-code-wrap) { margin-inline: -1rem; border-radius: 0; }
+		.live-page table:has(td[data-label]) { display: block; border: 0; width: 100%; }
+		.live-page table:has(td[data-label]) thead { display: none; }
+		.live-page table:has(td[data-label]) :is(tbody, tr) { display: block; }
+		.live-page table:has(td[data-label]) tr { padding: .5rem 0; border-top: 1px solid light-dark(#0002, #fff2); }
+		.live-page table:has(td[data-label]) td { display: block; border: 0; padding: .1rem 0; text-align: start; }
+		.live-page table:has(td[data-label]) td[data-label]:not([data-label=""])::before { content: attr(data-label); display: block; font-size: .75em; font-weight: 600; opacity: .6; }
+	}
 	.live-block[data-kind="PageHeading"] .live-card-text { font-weight: 700; font-size: 1.3em; }
 	.is-empty:is(.live-card-title, .live-sub, .live-foot-text) { display: none; }
 
