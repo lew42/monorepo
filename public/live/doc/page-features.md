@@ -1,38 +1,60 @@
 # Which Page features voice can actually use
 
 Voice drives a page with one tool, `item({path, delta})` (`core/Page/doc/ai-api.md`). Five features
-the owner asked about, each tried live under [/live/demos/](/live/demos/): once on a **LivePage**
-sub-page (what a voice sub-page actually is) and once on a **plain Page** (`class` set to
-`/framework/core/Page/Page.class.js`), to tell "Page itself is broken" from "LivePage does not draw it".
+the owner asked about were tried live under [/live/demos/](/live/demos/), each **twice**: once on a
+**LivePage** sub-page and once on a **plain Page** (`class` set to `/framework/core/Page/Page.class.js`),
+to tell "Page itself is broken" from "LivePage does not draw it".
+
+**That split is now moot (2026-11-06, tabs round 3).** Since live-page's round 7, every `page.jsonl`
+sub-page under `/live/` is built as a `LivePage` regardless of what `class` its own line 1 names
+(`LivePage.child`, `LivePage.log_class`) — so the "plain Page" demos draw as LivePage too. The two
+columns below now behave the same; the table keeps both links so the old data stays reachable, but
+the "plain Page" titles have been retitled to say what actually shows.
 
 | Feature | Verdict | Delta voice sends | Demo |
 |---|---|---|---|
-| **tabs** | works (plain Page only) | `{"navigation":"tabs"}` on a page with children | [tabs-page](/live/demos/tabs-page/) · broken on LivePage: [tabs](/live/demos/tabs/) |
-| **columns** | works (plain Page only, since eab8988ee) | `{"navigation":"columns"}` | [columns-page](/live/demos/columns-page/) · [columns](/live/demos/columns/) |
-| **place** | works (plain Page, no own content) | `{"place":"note.md"}` | [place-fresh](/live/demos/place-fresh/) · not drawn on a page with its own content: [place-page](/live/demos/place-page/) · broken on LivePage: [place](/live/demos/place/) |
-| **nav** (left rail) | works (plain Page only) | `{"navigation":"rail"}` on a page with children | [nav-page](/live/demos/nav-page/) · broken on LivePage: [nav](/live/demos/nav/) |
+| **tabs** | works — a leaf sub-page (no children of its own) becomes a tab | `{"navigation":"tabs"}` was the old plain-Page delta; on LivePage, tabs come from real sub-page folders | [tabs-page](/live/demos/tabs-page/) · [tabs](/live/demos/tabs/) |
+| **columns** | shows as plain tabs — LivePage has no column layout | `{"navigation":"columns"}` (now a no-op on LivePage) | [columns-page](/live/demos/columns-page/) · [columns](/live/demos/columns/) |
+| **place** | broken — LivePage ignores the place line entirely | `{"place":"note.md"}` | [place-fresh](/live/demos/place-fresh/) · [place-page](/live/demos/place-page/) · [place](/live/demos/place/) |
+| **nav** (left rail) | shows as plain tabs — LivePage has no rail layout | `{"navigation":"rail"}` (now a no-op on LivePage) | [nav-page](/live/demos/nav-page/) · [nav](/live/demos/nav/) |
 | **previews** | broken | none — there is no delta for it | [previews](/live/demos/previews/) |
 
 ## Why, one cause each
 
-- **tabs** — `Frame.js:19-20` reads `page.navigation === "tabs"` and calls `this.tabs()` (from `ext/tabs`), which draws a real clickable strip over a panel. Proven: [tabs-page](/live/demos/tabs-page/) shows "Overview · Alpha · Beta", each a working tab. Since 2026-11-06 a tab draws no title of its own, one Files button covers every tab, and a `tab` line can carry `content` text ([core/Page/doc/jsonl.md](/framework/core/Page/doc/jsonl.md), "The Files button, and pages shown as tabs").
-  - **Broken on LivePage** because `LivePage.js` `render()` builds its own head, cards and foot (`LivePage.Head`, `Main`, `Foot`) and never constructs a `PageFrame` — so `Frame.js` never runs, no matter what `navigation` says. [tabs](/live/demos/tabs/) shows "Nothing on screen yet".
-  - Smallest fix: not worth it — LivePage is one screen, not a page with a navigable child list; tabs belongs on plain Page.
+- **tabs** — works. A LivePage's tab row is its own real sub-pages that have no sub-pages of their
+  own (`LivePage.pages_of`); switching tabs changes `location.pathname` and the breadcrumb (`live-crumb`)
+  redraws to match. [tabs-page](/live/demos/tabs-page/) (now titled "Tabs", not "Tabs (plain Page)" —
+  it stopped being a useful distinction once LivePage.child started lifting every sub-page) and
+  [tabs](/live/demos/tabs/) both show "Tabs · Alpha · Beta", each a real tab. The old `{"navigation":"tabs"}`
+  and `{"tab":{"name":…}}` lines on `tabs-page/page.jsonl` are dead data now — they did something
+  only under the plain-Page `Frame.js` renderer, which LivePage never runs.
 
-- **columns** — `navigation: "columns"` now calls `page.columns()` the first time a render asks (`Page.class.js:665`, commit eab8988ee). Re-tested 2026-11-06 at 1200px: [columns-page](/live/demos/columns-page/) shows a first column listing Alpha and Beta, then empty columns to its right. When this doc was first written, the word did nothing.
-  - **Broken on LivePage** for the same reason as tabs: no `PageFrame`.
+- **columns** — the `navigation: "columns"` word still works on a genuine plain Page elsewhere on the
+  site, but every `/live/` sub-page is forced to LivePage, so `columns-page` and `columns` draw exactly
+  like the tabs demo: a plain tab row over the leaf sub-pages, no side-by-side columns. Retitled both
+  to say so. **What LivePage lacks:** a column layout equivalent; logged for mastermind-live-page.
 
-- **place** — `Jsonl.js`'s fallback `content()` (lines 199-206) calls `draw_folder()` → `log_draw()` → `draw_placed(entry)` for every `page.placed` entry, but only when the page has **no content of its own** (its default content, used by a bare `page.jsonl` page). Proven: [place-fresh](/live/demos/place-fresh/) shows `note.md`'s rendered markdown, plus a red "Not written yet" line for a file that does not exist — both the success and the failure path are real.
-  - **Broken on LivePage** because `LivePage.Main` draws only `this.cards` (the `content` List) — it never calls `draw_folder()`/`log_draw()`, so `page.placed` entries are silently never drawn. [place](/live/demos/place/) shows the content text but not `note.md`.
-  - Smallest fix: have `LivePage.Main` also call the page's `log_draw()` once, so a placed file appears among the live cards.
+- **place** — `Jsonl.js`'s fallback `content()` calls `draw_folder()` → `log_draw()` → `draw_placed(entry)`
+  for every `page.placed` entry, but `LivePage.Main` draws only `this.cards` (the `content` List) — it
+  never calls `log_draw()`, so a placed file's markdown never appears, on any of the three demos.
+  [place-page](/live/demos/place-page/) shows its own content text ("Before the place…") but never
+  `readme.md`; [place](/live/demos/place/) and [place-fresh](/live/demos/place-fresh/) are the same.
+  **What LivePage lacks:** a call to the page's `log_draw()` so a placed file appears among the live
+  cards; logged for mastermind-live-page, not built here (`LivePage.js` is out of this task's fence).
 
-- **nav** (rail) — `Frame.js:14` draws `this.rail("left")` when `navigation === "rail"`: an eyebrow labelled "pages", then one link per child (`rows()`, lines 79-94). Proven: [nav-page](/live/demos/nav-page/) shows "pages / Alpha / Beta" as real `<a>` rows.
-  - **Broken on LivePage** for the same reason as tabs: no `PageFrame` is ever built. [nav](/live/demos/nav/) shows "Nothing on screen yet".
+- **nav** (rail) — same story as columns: `nav-page` and `nav` both draw as plain LivePage tabs, no
+  left rail. **What LivePage lacks:** a rail layout equivalent.
 
-- **previews** — there is no delta for it at all: `Page.callable` (`Page.class.js:42`) lists only `tab` and `place`; `Page.WORDS` (line 175) has no `previews`. `page.previews()`/`.list()` (`Previews.js`) is a method a page's own `content()` must call in real code — nothing in the item tool's vocabulary reaches it.
-  - Calling it directly anyway (`{"previews":{}}`) is **refused**, not silently ignored: every delta is replayed in Node before it is written (`Servex/agents/page_tools.js:905`, `try_line`/`Refused`), and `previews()` builds real DOM (`div.c(…)`), which throws `document is not defined` outside a browser. The write is rejected with `"this line would not replay (document is not defined). Nothing was written."` — proven live against [previews](/live/demos/previews/).
-  - Smallest fix: none makes sense for voice. A preview wall is code the page's author writes once; voice can already get the same result card by card with `part-link` (see `/live/readme.md`, "Going into a thing: sub-pages").
+- **previews** — unchanged from the last round: there is no delta for it at all (`Page.callable` lists
+  only `tab` and `place`); calling `{"previews":{}}` is refused at replay time, not silently ignored.
+  Smallest fix: none makes sense for voice — a preview wall is code a page's author writes once.
 
 ## What this means for voice today
 
-Voice gets a working **rail** or **top tabs** menu only by building a **plain Page** sub-page (`class` explicitly `/framework/core/Page/Page.class.js`), not the LivePage every `/live/` sub-page gets by default. On an ordinary LivePage sub-page, the only features that work from voice are what `ai-api.md` already documents: content cards (`part-text`, `part-card`, `part-heading`, `part-link`) and the LivePage-specific words (`flash`, `alert`, `save`, `restore`).
+Every `/live/` sub-page is a LivePage, full stop — there is no way to opt a sub-page out and get the
+plain-Page renderer's tabs/columns/rail/place words to work on it. The one feature that still works
+the way voice would want is **tabs**, and it works "for free": make the thing you want tabbed a set of
+plain leaf sub-pages (`{"pages":{"add":{…}}}`, `/live/readme.md` "Going into a thing: sub-pages") and
+the tab row and breadcrumb come from LivePage itself. `columns`, `nav` (rail) and `place` need LivePage
+changes outside this task's fence (`public/live/demos/**` only) — each is logged as a finding for
+mastermind-live-page to pick up. `previews` stays as described above: use `part-link` cards instead.
