@@ -27,6 +27,14 @@ ok   /framework/ai/
   noise [dictate] socket: connected
   noise [dictate] whisper: checking…
   noise [dictate] whisper: connected
+ok   /live/design/
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
 ok   /live/
   warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
   warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
@@ -35,7 +43,7 @@ ok   /live/
   noise %cSocket connected. color: green; font-weight: bold;
   noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
   noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-ok   /live/demos/tabs-page/
+ok   /live/design/settings/  (link found on /live/design/)
   warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
   warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
   warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
@@ -43,7 +51,7 @@ ok   /live/demos/tabs-page/
   noise %cSocket connected. color: green; font-weight: bold;
   noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
   noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-ok   /live/item-test/
+ok   /live/design/djglivf6/  (link found on /live/design/)
   warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
   warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
   warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
@@ -51,7 +59,191 @@ ok   /live/item-test/
   noise %cSocket connected. color: green; font-weight: bold;
   noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
   noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-ok   /live/zztabs/alpha/
+ok   /live/design/dy2r7vmj/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/ivibt542/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/es4frggq/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/dw5qc8e6/  (link found on /live/design/)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/rdrt18j9/  (link found on /live/design/)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/hby9w1ot/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/hhefioqd/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/d7bp4rxr/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/zjjvacrt/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/oslevigb/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/p7uk6y1j/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/crzfow1z/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/kqg5bk2n/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/a9j0krmg/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/ml4mmic9/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/jq6b1brk/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/wwpuwtdd/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/nd3r7buc/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/d4axajy8/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/eu2h5ly1/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/kxyzmvly/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/gdedmuqf/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/pthgcloq/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/g3008fi7/  (link found on /live/design/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/design/removed/  (link found on /live/design/)
   warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
   warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
   warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
@@ -115,6 +307,14 @@ ok   /live/div-test/  (link found on /live/)
   noise %cSocket connected. color: green; font-weight: bold;
   noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
   noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+ok   /live/item-test/  (link found on /live/)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
 ok   /live/lab/  (link found on /live/)
   warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
   warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
@@ -131,20 +331,11 @@ ok   /live/next/  (link found on /live/)
   noise %cSocket connected. color: green; font-weight: bold;
   noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
   noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-FAIL /live/design/  (link found on /live/)  1 error
-       layout: text touching its box — ".page.live-page.active-page" 0px from left
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
-  noise %cSocket connected. color: green; font-weight: bold;
-  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
 ok   /live/zztabs/  (link found on /live/)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
   warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
   warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
+  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
   noise %cSocket connected. color: green; font-weight: bold;
   noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
   noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
@@ -229,252 +420,8 @@ ok   /live/v1/  (link found on /live/)
   warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
   warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
   warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
-  warn console warn/log budget exceeded: 152 > 5 (not in console-allow.jsonl)
   noise %cSocket connected. color: green; font-weight: bold;
   noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
   noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/indexing-and-finding-past-work/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/judge-whether-the-two-voice-agents-clean/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/find-lost-past-work-and-mine-old-prompts/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/a-fresh-checkup-mastermind-for-each-voic/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/never-wait-on-the-owner-decide-document/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/where-the-past-work-query-stands/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/ask-does-it-already-exist-before-any-age/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/readme-indexing-as-the-discovery-mechani/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/rename-the-session-log-task-jsonl-to-ses/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/overview-done-needed-and-in-flight/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/overview-of-this-dictation-and-all-asks/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/if-feasible-write-a-script-that-goes-thr/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/treat-session-merging-as-order-and-time/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/have-the-ai-mastermind-and-the-page-mast/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/keep-the-in-flight-list-live-and-separat/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/consider-hiding-or-separating-cost-entri/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/let-sessions-pull-in-references-to-thing/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/build-a-unified-indexed-filterable-templ/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/try-buffering-by-cloning-the-data-grid-c/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/make-the-chat-window-a-live-preview-of-t/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/find-out-whether-refinement-can-be-added/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/fix-the-session-grid-columns-so-the-titl/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/make-the-title-cell-grow-to-fit-a-flag-e/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/take-a-screenshot-of-the-session-grid-to/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/add-insight-into-what-was-spent-and-on-w/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/fix-the-model-label-on-the-night-masterm/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/take-screenshots-of-the-sessions-and-det/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/run-a-performance-audit-of-the-sessions/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/fix-the-detail-page-layout-problems-so-t/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/show-logged-costs-newest-first/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/condense-the-very-granular-logged-costs/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/widen-the-right-sidebar-which-is-about-3/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/give-the-chat-area-its-own-padding-and-b/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/reduce-the-excess-padding-above-the-chat/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/keep-the-split-bar-defaulting-to-50-with/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/fix-the-usage-item-sidebar-so-it-shows-i/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/take-a-screenshot-of-monorepo-localhost/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/use-headless-playwright-to-scroll-the-se/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/decide-whether-the-date-based-view-belon/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/use-the-navigation-rail-for-documentatio/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/skip-re-auditing-tasks-already-audited-r/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/document-every-prompt-and-its-outcome-in/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/design-a-dynamic-index-where-querying-an/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/reduce-how-many-sessions-are-saved/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/find-an-archive-process-for-old-sessions/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/ai-systems-git-context-cost-pages-collec/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/consider-structuring-rules-as-a-weighted/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/decide-whether-rules-become-skills-or-li/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/lean-away-from-skills-toward-a-more-acce/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/audit-session-logs-for-how-often-each-sk/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/consider-a-multi-ai-setup-where-several/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/address-that-a-single-provider-s-models/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/let-the-ai-read-live-streaming-pages-and/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/rail-has-no-outer-padding-each-rail-item/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/keep-the-fast-assistant-on-haiku-under-1/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/let-code-not-ai-memory-close-worktrees-a/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/build-a-pre-programmed-node-loop-that-st/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/only-the-smart-assistant-replies-in-chat/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/the-fast-assistant-speaks-only-when-call/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/clarifying-questions-time-out-then-proce/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/fast-assistant-cleans-each-chunk-punctua/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/fast-assistant-does-not-reply-in-chat-it/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/smart-assistant-does-prompt-refinement-c/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/if-the-owner-does-not-answer-a-question/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/fix-the-inbox-items-so-each-links-to-its/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/remove-the-framework-ai-2026-10-13-date/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/merge-ai-2026-and-ai-sessions-2026-into/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/let-the-owner-browse-past-items-by-entit/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/filter-the-inbox-by-date-to-see-what-hap/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/remove-or-relocate-the-out-of-place-expa/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/use-one-global-assistant-rather-than-per/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/have-a-fast-assistant-transcribe-each-wh/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/send-the-refined-prompt-to-a-mastermind/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/make-the-refinement-loop-screenshot-read/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/have-the-mastermind-read-all-the-images/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/run-parallel-agents-that-each-refine-a-l/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/make-the-task-process-structured-the-ai/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/automate-the-process-so-it-does-not-depe/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/nudge-the-agent-through-every-step-of-th/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/nudge-the-minion-within-a-minute-or-two/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/attach-special-instructions-to-task-type/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/investigate-whether-updates-can-be-buffe/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/bind-data-held-by-sessions-tasks-message/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/build-a-named-system-that-defines-its-ow/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/ai-2-finish-the-retirement-now-nav-entry/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/now-card-topics-as-nested-sub-cards-from/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/proposals-a-proposal-class-review-decide/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/plan-how-each-long-form-video-is-re-cut/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/work-out-how-the-planning-output-moves-i/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/find-out-whether-claude-can-be-linked-in/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/find-generic-images-through-image-search/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/if-images-cannot-be-searched-or-generate/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/develop-a-youtube-content-idea-on-sports/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/develop-a-youtube-content-idea-on-luxury/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/develop-a-youtube-content-idea-on-big-ho/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/develop-a-youtube-content-idea-on-privat/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/work-out-how-to-discover-footage-from-ot/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/email-channels-that-list-an-address-to-r/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/identify-very-foundational-fundamental-l/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/identify-robust-versatile-simple-layouts/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/explore-fixed-height-mobile-dropdowns-an/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/explore-using-darken-and-lighten-togethe/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/run-a-css-audit/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/stop-keeping-v2-and-v3-as-two-divergent/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/find-an-in-between-padding-and-spacing-t/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/before-wrapping-up-clear-the-working-tre/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/add-to-the-mastermind-skill-whenever-a-f/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/decide-whether-the-same-file-change-rule/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/check-whether-a-tree-widget-already-exis/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/apply-the-code-driven-loop-principle-acr/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/port-everything-to-one-single-data-struc/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/carefully-review-the-categorisation-proc/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/review-the-inbox-and-sessions-together-a/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/find-out-which-files-change-during-work/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/back-up-the-whole-monorepo-full-history/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/find-a-sensible-folder-on-the-e-drive-fo/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/check-the-size-of-one-worktree-then-incl/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/reduce-repo-size-by-pruning-stale-worktr/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/review-what-is-saved-and-created-and-pla/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/keep-a-legacy-branch-so-old-work-is-not/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/use-the-right-git-branching-strategy-to/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/move-the-three-worktrees-outside-the-wor/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/check-what-is-committed-to-git-whether-w/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/consider-alternatives-to-committing-thos/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/keep-screenshots-out-of-the-repo/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/make-all-sessions-items-visible-and-clic/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/fix-the-cluttered-sessions-tab-so-it-has/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/make-every-item-visible-and-clickable-in/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/work-out-how-to-make-use-of-the-contents/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/log-the-backup-location-as-a-checkable-a/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/make-the-dashboard-more-compact/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/make-the-mobile-sheet-match-the-desktop/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/repo-size-backup-and-worktree-cleanup/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/prompt-refinement-hand-off-to-a-mastermi/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/steps-and-nudges-make-the-process-struct/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/sessions-page-performance-audit-lag-unde/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/agent-rules-skills-usage-and-the-health/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/ai-folder-cleanup-date-folder-two-year-t/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/session-costs-newest-first-condensed-old/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/inbox-and-sessions-one-data-source-date/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/docs-architecture-md-per-module-the-syst/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/sessions-page-layout-fixes-after-the-vie/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/models-expiry-aware-token-use-and-what-t/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/sessions-store-use-shrink-and-archive-th/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/now-page-topic-sub-cards-from-refined-pr/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/design-vision-loop-screenshot-read-chang/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/youtube-channel-planning-the-owner-s-own/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/ai/tasks/keep-one-singleton-persistent-ai-system/task.jsonl
-  noise JSONL.live(): no answer from the dev server, fetching — /framework/AI/tasks/we-also-need-a-framework-ai-readme-the-i/task.jsonl
-ok   /live/demos/tabs-page/settings/  (link found on /live/demos/tabs-page/)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
-  noise %cSocket connected. color: green; font-weight: bold;
-  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-ok   /live/demos/tabs-page/alpha/  (link found on /live/demos/tabs-page/)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
-  noise %cSocket connected. color: green; font-weight: bold;
-  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-ok   /live/demos/tabs-page/beta/  (link found on /live/demos/tabs-page/)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
-  noise %cSocket connected. color: green; font-weight: bold;
-  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-ok   /live/demos/tabs-page/removed/  (link found on /live/demos/tabs-page/)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
-  noise %cSocket connected. color: green; font-weight: bold;
-  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-ok   /live/item-test/settings/  (link found on /live/item-test/)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
-  noise %cSocket connected. color: green; font-weight: bold;
-  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-ok   /live/item-test/dedup/  (link found on /live/item-test/)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
-  noise %cSocket connected. color: green; font-weight: bold;
-  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-ok   /live/item-test/open-questions/  (link found on /live/item-test/)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
-  noise %cSocket connected. color: green; font-weight: bold;
-  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-ok   /live/item-test/thing/  (link found on /live/item-test/)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
-  noise %cSocket connected. color: green; font-weight: bold;
-  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-ok   /live/item-test/removed/  (link found on /live/item-test/)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
-  noise %cSocket connected. color: green; font-weight: bold;
-  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-ok   /live/zztabs/alpha/settings/  (link found on /live/zztabs/alpha/)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
-  noise %cSocket connected. color: green; font-weight: bold;
-  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-ok   /live/zztabs/beta/  (link found on /live/zztabs/alpha/)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
-  noise %cSocket connected. color: green; font-weight: bold;
-  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-ok   /live/zztabs/alpha/removed/  (link found on /live/zztabs/alpha/)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/page-work.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/page-work.json)
-  warn HTTP 404: http://127.0.0.1:63686/framework/ai/tasks.json
-  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:63686/framework/ai/tasks.json)
-  noise %cSocket connected. color: green; font-weight: bold;
-  noise tabs(): {"text":""} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
-  noise tabs(): {"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})
+  noise Task — wait(): can't wait from "loading"
+  noise Task — complete(): can't complete from "loading"
