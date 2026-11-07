@@ -293,7 +293,7 @@ export default class LivePage extends Page {
 
 	// Everything that scrolls: the page's sub-line and text, its tasks, its cards, its pages and its footer.
 	body(part, P){
-		part("subheader", P.Md, { item: this, key: "header", classes: "live-sub" });   // below the sticky header, so the header stays one size
+		part("subheader", P.Md, { item: this, key: "header", classes: "live-sub" });   // below the header, so the header stays one size
 		if (!this.focus && !this.screen && !this.settings_of) part("text", P.Md, { item: this, key: "text", classes: "live-sub" });   // a page.items file opened whole: its own text
 		new P.Errors({ page: this });
 		if (this.settings_of) return void part("settings", P.Settings, { of: this.settings_of, at: this.at });
@@ -447,7 +447,7 @@ export default class LivePage extends Page {
 	}
 	// The icon a page has when it names none says where it is stored: a small circle for an item inside its parent's
 	// page.jsonl (a card, a saved screen), a file for a loose .jsonl file of its own, a folder for a folder of its own
-	// (folder/page.jsonl). The voice light is a separate dot, by the gear.
+	// (folder/page.jsonl). The voice light is a separate dot, in the status bar.
 	static stored = { item: "circle", file: "description", folder: "folder" };
 	// The icon a page names for itself at a url (its page.jsonl or page.js), or null: a link card shows it, else `stored`.
 	static icon_of(url){
@@ -467,7 +467,7 @@ export default class LivePage extends Page {
 		$box.empty(draw).tc("is-empty", !name);
 	}
 
-	// The header, sticky and under 100 px at any depth: the breadcrumb, the voice light and the settings icon, then the
+	// The header, the top row and under 100 px at any depth: the breadcrumb and the settings icon, then the
 	// page's icon, the title, the last line's delay and (on /live/) the version dropdown, then the tab row.
 	static Head = class LiveHeadView extends View {
 		render(){
