@@ -167,7 +167,7 @@
 	/* A phone has no width to spare: code runs edge to edge (one padding, the code's own), and a table's rows stack, each
 	   cell under its column's name (LivePage.label_tables writes data-label from the table's header). */
 	@media (max-width: 40rem) {
-		.live-main > .live-block :is(.live-card-text pre, .live-code-wrap) { margin-inline: calc(-1 * var(--live-pad-x)); border-radius: 0; }
+		:is(.live-main > .live-block, .live-focus, .live-page > .live-preview) :is(.live-card-text pre, .live-sub pre, .live-code-wrap) { margin-inline: calc(-1 * var(--live-pad-x)); border-radius: 0; }
 		.live-card :is(.live-card-text pre, .live-code-wrap) { margin-inline: -1rem; border-radius: 0; }
 		.live-page table:has(td[data-label]) { display: block; border: 0; width: 100%; }
 		.live-page table:has(td[data-label]) thead { display: none; }
