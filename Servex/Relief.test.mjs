@@ -109,12 +109,15 @@ await check("the owner at the keyboard: the note is held (one held line), stays 
     assert.equal(w.logged.filter(l => l.type === "relief-note-held").length, 1);
     assert.equal(relief.armed, true, "still armed");
     delete w.sv.procmon.now.idle_s;
-    await relief.tick(Date.now() + 16 * MIN);
+    await relief.tick(Date.now() + 1 * MIN);
     assert.equal(w.notes.length, 0, "no idle reading counts as not idle");
-    w.sv.procmon.now.idle_s = 15 * 60;
-    await relief.tick(Date.now() + 32 * MIN);
-    assert.equal(w.notes.length, 1, "away 15 minutes: the suggestion is posted");
+    assert.equal(w.logged.filter(l => l.type === "relief-note-held").length, 1, "one held line per hold, not one a minute");
+    w.sv.procmon.now.idle_s = 11 * 60;
+    await relief.tick(Date.now() + 2 * MIN);
+    assert.equal(w.notes.length, 1, "away 11 minutes: posted on the next 1-minute tick, not the next 15-minute run");
     assert.equal(relief.armed, false);
+    await relief.tick(Date.now() + 3 * MIN);
+    assert.equal(w.notes.length, 1, "posted once");
 });
 
 await check("relief that gets the commit under the line posts no note", async () => {

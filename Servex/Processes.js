@@ -74,7 +74,7 @@ export default class Processes extends Events {
 		this.reaped = [];              // the last 50 reaps, newest last
 		this.cores = os.cpus().length || 1;
 		this.children = {};
-		this.idle_s = null;             // seconds since any keyboard/mouse input (GetLastInputInfo), for Games.js
+		this.idle_s = null;             // seconds since any keyboard/mouse input (GetLastInputInfo), for Games.js and Relief.js's owner note
 		this.commit_mb = null;          // the machine's commit charge (Win32_OperatingSystem: Total - Free virtual memory)
 		this.commit_limit_mb = null;
 		this.spin_ms ??= Number(process.env.SERVEX_SPIN_MS) || 5 * 60000;          // an idle agent must burn a core this long
@@ -118,7 +118,7 @@ export default class Processes extends Events {
 	}
 
 	/* One line from the loop: rows of [pid, ppid, name, mb, cpu_s, born, cmd?].
-	 * `idle_s` (GetLastInputInfo) feeds Games.js's idle rule; `commit_mb` /
+	 * `idle_s` (GetLastInputInfo) feeds Games.js's idle rule and holds Relief.js's owner note; `commit_mb` /
 	 * `commit_limit_mb` (Win32_OperatingSystem's virtual memory) are the
 	 * pagefile-backed charge, which shows pressure free RAM alone hides. */
 	take({ rows = [], self, msys, idle_s, commit_mb, commit_limit_mb }){

@@ -56,7 +56,11 @@ export default class Relief extends Events {
 		const pct = this.commit_pct();
 		const d = decide({ commit_pct: pct, last_run: this.last_run, armed: this.armed, now, threshold: this.threshold, every_ms: this.every_ms });
 		this.armed = d.armed;
-		if (!d.run) return null;
+		if (!d.run){
+			if (this.held && this.armed && pct >= this.threshold) await this.note(pct);   // a held note is asked again every tick (a minute), so a short absence is not missed
+			else if (pct === null || pct < this.threshold) this.held = false;
+			return null;
+		}
 		this.last_run = now;
 		return this.run(pct, now);
 	}
@@ -136,11 +140,12 @@ export default class Relief extends Events {
 		const now = this.servex?.procmon?.now, top = (now?.other_top ?? []).slice(0, 5);
 		if (!top.length){ this.armed = false; return; }
 		const idle_s = typeof now?.idle_s === "number" ? now.idle_s : null;
-		if (idle_s === null || idle_s < this.note_idle_min * 60){   // in use (or no reading): stay armed, the next run asks again
-			await this.log({ type: "relief-note-held", at: stamp(), commit_pct: pct, idle_s, need_s: this.note_idle_min * 60 });
+		if (idle_s === null || idle_s < this.note_idle_min * 60){   // in use (or no reading): stay armed, the next tick asks again
+			if (!this.held) await this.log({ type: "relief-note-held", at: stamp(), commit_pct: pct, idle_s, need_s: this.note_idle_min * 60 });
+			this.held = true;
 			return;
 		}
-		this.armed = false;
+		this.armed = false; this.held = false;
 		const list = top.map(t => `${t.name} (${t.mb} MB)`).join(", ");
 		await this.log({ type: "relief-note", at: stamp(), commit_pct: pct, top });
 		return this.servex?.cards?.owner_note?.({
