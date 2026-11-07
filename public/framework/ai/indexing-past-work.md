@@ -71,8 +71,8 @@ Session logs only grow, so old versions of them add nothing; history is for code
 | Today's VS Code tabs | `"kind":"vscode-tab"` | works |
 | A task by its title | `"title":"[^"]*word` in `task.jsonl` / `session.jsonl` | works |
 | A finished task | `"complete":{"outcome":` | works |
-| Who started process 1234 | `"pid":1234` | planned (mastermind-resources) |
-| A queued spawn | `"queued":` | planned (mastermind-resources) |
+| Who started process 1234 | `git grep --untracked -n '"pid":1234' -- 'public/framework/ai/sessions/**'`; how it ended: `"pid_exit":1234`; Servex's own (no agent): `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl` | works since 2026-11-06 21:50 (processes Servex starts; [Servex/doc/processes.md](/Servex/doc/processes.md), "Who started this pid") |
+| A queued spawn | `"queued":{` in the parent's `session.jsonl`, then `"started":{` | works since 2026-11-06 21:50 |
 | Which session made a commit | `"commit":"abc123"` | planned (mastermind-session-truth) |
 | A caught error | `"error":` | planned (mastermind-resources) |
 
