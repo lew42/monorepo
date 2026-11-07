@@ -144,7 +144,7 @@ export class Task extends Item {
 		const s = this.get_one("state") ?? "idle", st = s === "finished" ? "complete" : s;
 		return st === "complete" && this.reopened() ? "running" : st;
 	}
-	reopened(){ for (const t of this._tasks ?? []) if (OPEN.has(t.state)) return true; return false; }
+	reopened(){ for (const t of this._tasks ?? []) if (OPEN.has(t.state) && !Task.is_closeout(t)) return true; return false; }
 
 	// Warn like `Item`'s own `locate()`/`hydrate()` do: once per distinct message,
 	// never a throw, and the call site still gets `this` back so a no-op chains.
@@ -312,19 +312,21 @@ export class Task extends Item {
 		return this;
 	}
 
-	/* THE ONE SCORE, 0..1 (the owner, 2026-11-02 and 2026-11-04). A plain method: read it here, call it anywhere. In order:
+	/* THE ONE SCORE, 0..1, or null = "no score, needs review" (the owner, 2026-11-02, 11-04 and 11-06). A plain method: read it here, call it anywhere. In order:
 	   1. the owner checked it off (`checked_by`)  -> 1
 	   2. it has parts: its subtasks that are not stopped (any depth; a child SESSION is one), plus the counted owner Prompts in its `content`
-	      (`counts_toward_score`)  -> the mean of each part's OWN score, so it recurses to any depth
+	      (`counts_toward_score`)  -> the mean of each part's OWN score, so it recurses to any depth. A child session with nothing to score of its own counts 1 if complete, else 0 (`part_score`);
+	      only a session with no parts at all is null
 	   3. old `steps`/`step`, or the agent's `data.completion`  -> that
-	   4. otherwise  -> 1 if complete, else 0
+	   4. otherwise  -> a SESSION with no parts at all (no tasks, no child sessions, no counted prompts) is null, never 1 or 0 (a missing record is neither done nor undone work); a plain task is 1 if complete, else 0
 	   One complete task makes its session 1; finishing the deepest task moves every parent above it; an unresolved counted Prompt keeps its session
 	   below 1 with nobody acting. A stopped part is left out of the mean (dropped on purpose). The counts beside it (created, finished, open,
-	   unproven) come from `tally()`. `completion` is this method as a getter, so every page and the item tool show the same number. */
+	   unscored, unproven) come from `tally()`. `completion` is this method as a getter, so every page and the item tool show the same number.
+	   A caller that calculates or prints it must accept null: `Task.show(score)` writes "needs review" or a percent. */
 	completion_score(){
 		if (this.data.checked_by) return 1;
 		const parts = this.score_parts();
-		if (parts.length) return parts.reduce((sum, t) => sum + t.completion_score(), 0) / parts.length;
+		if (parts.length) return Task.mean(parts.map(t => t.part_score()));
 		const steps = this.data.steps;
 		if (Array.isArray(steps) && steps.length){
 			const step = Math.max(1, Math.min(Number(this.data.step) || 1, steps.length));
@@ -332,25 +334,57 @@ export class Task extends Item {
 		}
 		const c = this.data.completion ?? this.data.complete;
 		if (typeof c === "number") return Math.max(0, Math.min(1, c));
+		if (this.is_session) return null;
 		return this.state === "complete" ? 1 : 0;
+	}
+	// What this task adds to its parent's mean: its score, or, for a child session that has nothing to score of its own, 1 if it is complete and 0 if not (it still carries the work it stands for).
+	part_score(){ return this.completion_score() ?? (this.state === "complete" ? 1 : 0); }
+	// The mean of the scores that exist; null when none do.
+	static mean(scores){
+		const have = scores.filter(n => typeof n === "number");
+		return have.length ? have.reduce((a, b) => a + b, 0) / have.length : null;
+	}
+	// A score as text: a percent, or "needs review" for null.
+	static show(score){ return typeof score === "number" ? Math.round(score * 100) + "%" : "needs review"; }
+
+	/* NO SILENT ENDINGS (the owner, 2026-11-06; core/Task/doc/completion.md "Closing under 1"). When a task or session is closed (stopped or complete) with a
+	   score under 1, or no score, what stayed open becomes ONE task waiting on the owner, filed on that same record by code. This is the rule; Servex/OpenItems.js
+	   asks it after every line that closes something and appends the answer. It never counts toward the score, never reopens its parent and never blocks complete(). */
+	static is_closeout(t){ return /^open-items(-\d+)?$/.test(String(t?.id ?? "")); }
+	// The parts of my score that are not 1 yet: [{id, title, state}].
+	open_items(){
+		return this.score_parts().filter(t => t.part_score() !== 1)
+			.map(t => ({ id: t.id, title: String(t.get_one("title") ?? t.get_one("text") ?? t.id).replace(/\s+/g, " ").slice(0, 90), state: t.state }));
+	}
+	/* The line (relative to this task) that files the waiting task, or null: the score is 1; nothing is open (a dropped leaf, or an empty tab, has nothing to list: its "needs review" score is the signal);
+	   or an earlier filing is still unresolved. The id is deterministic, so a replayed or doubled close can never file a second one. */
+	closeout_line(at){
+		if (this.completion_score() === 1) return null;
+		const mine = [...(this._tasks ?? [])].filter(Task.is_closeout);
+		if (mine.some(t => !Task.settled(t))) return null;
+		const items = this.open_items();
+		if (!items.length) return null;
+		const id = mine.length ? `open-items-${mine.length + 1}` : "open-items";
+		const what = `closed at ${Task.show(this.completion_score())} with ${items.length} open: ${items.map(i => `${i.title} (${i.id}, ${i.state})`).join("; ")}`;
+		return { at, tasks: { add: { type: "Task", id, title: `Review what stayed open: ${this.get_one("title") ?? this.id}`, ...(at ? { requested_at: at } : {}) } }, [id]: { wait: { on: "owner", what, at } } };
 	}
 	get completion(){ return this.completion_score(); }
 	// What the score averages: subtasks that are not stopped, then the owner Prompts in `content` that count (Prompt.counts_toward_score).
 	score_parts(){
-		const parts = [...(this._tasks ?? [])].filter(t => t.state !== "stopped");
+		const parts = [...(this._tasks ?? [])].filter(t => t.state !== "stopped" && !Task.is_closeout(t));
 		for (const c of this._content ?? []) if (c.counts_toward_score && c.state !== "stopped") parts.push(c);
 		return parts;
 	}
-	/* The labelled counts beside the score: {created, finished, stopped, open, sessions, unproven, prompts: {counted, unresolved}}. Every task below me,
-	   at any depth; a child session counts as one task and its own tasks count too. `unproven` = finished with no outcome and no evidence
+	/* The labelled counts beside the score: {created, finished, stopped, open, sessions, unscored, unproven, prompts: {counted, unresolved}}. Every task below me,
+	   at any depth; a child session counts as one task and its own tasks count too. `unscored` = child sessions with no score (null). `unproven` = finished with no outcome and no evidence
 	   (Task.proof_problem), whoever asked for it: a task is not done on the agent's word alone. */
 	tally(){
-		const t = { created: 0, finished: 0, stopped: 0, open: 0, sessions: 0, unproven: 0, prompts: { counted: 0, unresolved: 0 } };
+		const t = { created: 0, finished: 0, stopped: 0, open: 0, sessions: 0, unscored: 0, unproven: 0, prompts: { counted: 0, unresolved: 0 } };
 		const walk = node => {
-			for (const c of node._content ?? []) if (c.counts_toward_score){ t.prompts.counted++; if (c.completion_score() < 1 && c.state !== "stopped") t.prompts.unresolved++; }
+			for (const c of node._content ?? []) if (c.counts_toward_score){ t.prompts.counted++; if (c.completion_score() !== 1 && c.state !== "stopped") t.prompts.unresolved++; }
 			for (const k of node._tasks ?? []){
 				t.created++;
-				if (k.is_session) t.sessions++;
+				if (k.is_session){ t.sessions++; if (k.completion_score() === null) t.unscored++; }
 				if (k.state === "complete"){ t.finished++; if (Task.proof_problem(k)) t.unproven++; }
 				else if (k.state === "stopped") t.stopped++;
 				else t.open++;
@@ -448,7 +482,7 @@ export class Task extends Item {
 		const { completion, complete, outcome, evidence, confidence, caveats, auto } = args && typeof args === "object" ? args : {};
 
 		// A recorded finish is a fact during replay (this._rp): a {task: ref} child the worker only filed is not a reason to refuse it. Server/doc/state.md
-		const open = this._rp ? null : [...(this._tasks ?? [])].find(t => !Task.settled(t));
+		const open = this._rp ? null : [...(this._tasks ?? [])].find(t => !Task.settled(t) && !Task.is_closeout(t));
 		if (open) return this.warn(`complete(): "${open.get("title") ?? open.id}" isn't complete yet — complete that first`);
 
 		if (!CAN.complete.has(this.state)) return this.warn(`complete(): can't complete from "${this.state}"`);

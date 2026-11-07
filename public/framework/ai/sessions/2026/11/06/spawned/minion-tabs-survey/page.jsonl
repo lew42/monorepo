@@ -4,3 +4,8 @@
 {"inbox":{"id":"n-rw1awh09","from":"servex-heartbeat","text":"minion-tabs-survey its agent is not running; Servex revived it and asked where it is at.","at":"2026-11-06T20:17:00.056-06:00"}}
 {"inbox":{"id":"n-shk6jbqt","from":"servex-heartbeat","text":"minion-tabs-survey its agent is not running: it was stopped on purpose by in-process at 2026-11-06T20:22:48-06:00; not revived.","at":"2026-11-06T20:33:44.299-06:00"}}
 {"inbox":{"id":"n-tb2j3nzk","from":"servex-task-loop","text":"spawned/minion-tabs-survey is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-11-06T20:56:41.103-06:00"}}
+{"inbox":{"id":"n-v90737e2","from":"servex-heartbeat","text":"minion-tabs-survey its agent is not running: its working directory C:/Code/lew42/worktrees/qf-3 no longer exists; not revived.","at":"2026-11-06T21:51:03.999-06:00"}}
+{"inbox":{"id":"n-vlgbjndi","from":"servex-task-loop","text":"spawned/minion-tabs-survey is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-11-06T22:00:44.767-06:00"}}
+{"inbox":{"id":"n-w5460fyy","from":"servex-heartbeat","text":"minion-tabs-survey its agent is not running; Servex revived it and asked where it is at.","at":"2026-11-06T22:16:02.136-06:00"}}
+{"inbox":{"id":"n-wqwu04tk","from":"servex-heartbeat","text":"minion-tabs-survey its agent is not running: it was stopped on purpose by in-process at 2026-11-06T22:22:07-06:00; not revived.","at":"2026-11-06T22:32:59.064-06:00"}}
+{"inbox":{"id":"n-x12ddvdk","from":"servex-task-loop","text":"spawned/minion-tabs-survey is started but silent: 3 status asks went unanswered. Close it, or keep chasing?","at":"2026-11-06T22:40:52.801-06:00"}}

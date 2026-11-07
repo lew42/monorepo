@@ -141,7 +141,7 @@ export default class AIIndex {
 	static nested(t, out = []){
 		for (const k of t._tasks ?? []){
 			if (!k.data.path && !["complete", "stopped"].includes(k.state))
-				out.push({ id: k.id, title: k.data.title ?? k.id, state: k.state, module: k.data.module ?? null, waiting_on: k.data.waiting_on ?? null, waiting_since: k.data.waiting_since ?? null });
+				out.push({ id: k.id, title: k.data.title ?? k.id, state: k.state, module: k.data.module ?? null, waiting_on: k.data.waiting_on ?? null, waiting_since: k.data.waiting_since ?? null, waiting_what: k.data.waiting_what ?? null });
 			this.nested(k, out);
 		}
 		return out;
@@ -312,7 +312,7 @@ export default class AIIndex {
 		const queued = live.filter(a => a.state === "queued").map(agent_row);
 		const waiting = [...tasks.filter(r => r.bucket === "waiting" && r.waiting_on === "owner")
 			.map(r => ({ id: r.id, title: r.title, waiting_on: "owner", since: r.waiting_since, url: r.url, home: r.home })),
-			...open_nested.filter(n => n.state === "waiting" && n.waiting_on === "owner").map(n => ({ id: n.id, title: n.title, waiting_on: "owner", since: n.waiting_since, url: n.url, home: "session" }))].sort((a, b) => Date.parse(a.since) - Date.parse(b.since));
+			...open_nested.filter(n => n.state === "waiting" && n.waiting_on === "owner").map(n => ({ id: n.id, title: n.title, waiting_on: "owner", what: n.waiting_what ?? null, since: n.waiting_since, url: n.url, home: "session" }))].sort((a, b) => Date.parse(a.since) - Date.parse(b.since));
 		const since = AIIndex.day(now - (AIIndex.DAYS - 1) * 864e5);
 		const landed = tasks.filter(r => r.bucket === "landed" && r.day >= since && r.day <= today).sort((a, b) => Date.parse(b.landed_at) - Date.parse(a.landed_at))
 			.map(r => ({ id: r.id, title: r.title, line: r.line, landed_at: r.landed_at, day: r.day, url: r.url, home: r.home }));

@@ -29,12 +29,12 @@ git grep --untracked -lEi '"title":"[^"]*tools' -- "$S/**"
 
 | Channel | Where the words are | Search |
 |---|---|---|
-| VS Code tab | `Prompt` lines in `session.jsonl`, written by the `UserPromptSubmit` hook (`.claude/hooks/prompt-relay.mjs`) | `'"type":"Prompt","text":"[^"]*word'` |
-| Browser voice (Dictate) | `sentences:[{n,text}]` per turn, plus `sections` (the asks, citing sentence numbers) | `'"sentences":\[[^]]*word'` |
-| Claude app voice | `"from":"owner (voice)"` chat lines; `"k":"prompt"` in `essence.jsonl` | `'owner (voice)[^}]*word'` |
-| SDK agents | never hear the owner directly, only relays ("From Michael: …"), which are lossy | don't treat these as the owner's words |
+| VS Code tab | `{refined:{sentences:[{n,text}],v:2,via:"vscode"}}` on `session.jsonl`, written by the `UserPromptSubmit` hook (`.claude/hooks/prompt-relay.mjs`); the hook's counted `Prompt` line has the raw text too. With `SERVEX_ECHO=on`, Echo adds a second line with `sections` | `'"sentences":\[[^]]*word'` |
+| Browser voice (Dictate) | the same `refined` line, with `sections` (the asks, citing sentence numbers) | `'"sentences":\[[^]]*word'` |
+| Claude app voice | the same `refined` line (`via:"voice"`), written by `RemoteMCP.record`; the `"from":"owner (voice)"` chat line stays | `'"sentences":\[[^]]*word'` |
+| SDK agents, phone sheet | the same `refined` line (`via` of the sheet), written by `Sessions.say`. Relays from other agents ("From Michael: …") are lossy | `'"sentences":\[[^]]*word'` |
 
-**Planned:** one shape for every channel. The VS Code hook also writes `sentences` (one per sentence, raw), so `'"sentences":'` finds the owner's raw words everywhere. Asks are then derived from the sentences (the `sections` model), not retyped by an agent. Owner: mastermind-session-truth.
+**One shape for every channel (2026-11-06):** `{refined:{at,re,sentences,sections,via,by:"code",v:2}}`, written by code through `Server/Ask.mjs` (`Ask.write`), so `git grep '"sentences":'` finds the owner's raw words everywhere. Session derives a Prompt task per turn and a child task per `sections` item. Lines without `v: 2` are older and make no task. Owner: mastermind-session-truth.
 
 ## 3. The raw transcripts (the full story)
 

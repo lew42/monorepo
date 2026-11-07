@@ -3,10 +3,11 @@
 // Headless, Servex stubbed, nothing restarted. Three phases on the session stream:
 //   1. blips: every answer is a 200 whose body ends at once (what the LAN /servex proxy does every 30 s); the browser
 //      reopens it in a second. Pass = the button never shows.
-//   2. down: 502 for 14 s (what the /servex proxy says while Servex restarts; a 502 CLOSES an EventSource for good).
-//      Pass = hidden for the first WIRE_GRACE_MS, then shown with "Servex link down N s: <reason>"; a press asks at once;
-//      ten fast presses open no second wire and throw nothing.
-//   3. up: the stream passes through again. Pass = the button hides by itself, and the log got "lost" and "reconnected".
+//   2. down: 502 (what the /servex proxy says while Servex restarts; a 502 CLOSES an EventSource for good).
+//      Pass = nothing for the first WIRE_GRACE_MS; then, mic off, only the quiet dot (its title "Servex link down N s:
+//      <reason>"), and a press on it asks at once; then a live mic (stubbed through Socket add_busy) shows the banner
+//      with that text instead; a press asks at once; ten fast presses open no second wire and throw nothing.
+//   3. up: the stream passes through again. Pass = banner and dot hide by themselves, and the log got "lost" and "reconnected".
 // Doc: ux/Dictate/doc/debug-tab.md#reconnect, ext/drawer/doc/sheet.md
 import fs from "fs";
 import Browser from "../../../../../Server/Browser.mjs";
@@ -44,11 +45,12 @@ await page.addInitScript(() => {
 		close(){ window.__wires.delete(this); return super.close(); }
 	};
 	let was = false;
-	new MutationObserver(() => { const b = document.querySelector(".dev-link"); const v = !!b && !b.hidden; if (v && !was) window.__shows++; was = v; })
+	new MutationObserver(() => { const b = document.querySelector(".dev-wire"); const v = !!b && !b.hidden; if (v && !was) window.__shows++; was = v; })
 		.observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden"] });
 });
-const shown = () => page.evaluate(() => { const b = document.querySelector(".dev-link"); return !!b && !b.hidden; });   // dev/Socket/Link.js builds the banner only once a source has been down its grace, so no element means not shown
-const label = () => page.evaluate(() => document.querySelector(".dev-link")?.textContent ?? "");
+const shown = () => page.evaluate(() => { const b = document.querySelector(".dev-wire"); return !!b && !b.hidden; });   // the banner; dev/Socket/Link.js builds it only once a source has been down its grace, so no element means not shown
+const dotted = () => page.evaluate(() => { const d = document.querySelector(".dev-wire-dot"); return !!d && d.isConnected && !d.hidden; });
+const label = () => page.evaluate(() => document.querySelector(".dev-wire")?.textContent ?? "");
 const wires = () => page.evaluate(() => window.__wires.size);
 
 await page.goto(base + "/framework/ux/Dictate/", { waitUntil: "domcontentloaded" });
@@ -66,14 +68,26 @@ phase = "down"; hits = 0;
 await page.waitForTimeout(5000);
 check(!await shown(), "down 5 s: still hidden (inside the 8 s grace)");
 await page.waitForTimeout(5000);
+const tip = await page.evaluate(() => document.querySelector(".dev-wire-dot")?.title ?? "");
+const on_rail = await page.evaluate(() => !!document.querySelector(".drawer-rail-ai-icon .dev-wire-dot"));
+check(!await shown() && await dotted() && /Servex link down \d+ s: /.test(tip), `down 10 s, mic off: no banner; the dot ${on_rail ? "on the rail's AI button" : "in the corner"} says “${tip}”`);
+if (dir){ fs.mkdirSync(dir, { recursive: true }); await page.screenshot({ path: dir + "/reconnect-dot.png" }); }
+let before = hits;
+const sheet_was = await page.evaluate(() => !!document.querySelector(".drawer-rail-sheet.on"));
+await page.click(".dev-wire-dot", { timeout: 3000 });
+await page.waitForTimeout(300);
+check(hits > before && sheet_was === await page.evaluate(() => !!document.querySelector(".drawer-rail-sheet.on")), `a press on the dot asks at once (${hits - before} new request) and leaves the sheet as it was`);
+// A live mic (ext/Chat/Mic.js registers the same hook): the voice session now depends on Servex, so the banner.
+await page.evaluate(async () => { window.__busy = true; (await import("/framework/dev/Socket/Socket.js")).default.singleton().add_busy(() => window.__busy); });
+await page.waitForTimeout(1800);   // Link.js re-reads urgent() every second, and the dot press above says "trying now…" for 1.5 s
 const text = await label();
-check(await shown() && /Servex link down \d+ s: .*error.*Reconnect/.test(text), `down 10 s: shown, saying “${text}”`);
-if (dir){ fs.mkdirSync(dir, { recursive: true }); await page.screenshot({ path: dir + "/reconnect-down.png" }); }
-const before = hits, wires_before = await wires();
-await page.click(".dev-link-go");
+check(await shown() && !await dotted() && /Servex link down \d+ s: .*error.*Reconnect/.test(text), `mic live: the banner instead, saying “${text}”`);
+if (dir) await page.screenshot({ path: dir + "/reconnect-down.png" });
+before = hits; const wires_before = await wires();
+await page.click(".dev-wire-go");
 await page.waitForTimeout(300);
 check(hits > before, `a press asks at once (${hits - before} new request), and says “${await label()}”`);
-for (let i = 0; i < 10; i++){ await page.click(".dev-link-go"); await page.waitForTimeout(40); }
+for (let i = 0; i < 10; i++){ await page.click(".dev-wire-go"); await page.waitForTimeout(40); }
 await page.waitForTimeout(300);
 check(await wires() <= Math.max(1, wires_before), `ten fast presses: ${await wires()} live wire(s) open, never two`);
 check(!errors.length, errors.length ? "page errors: " + errors.join(" | ") : "no page errors");
@@ -81,7 +95,7 @@ check(!errors.length, errors.length ? "page errors: " + errors.join(" | ") : "no
 // 3. up
 phase = "up";
 await page.waitForTimeout(9000);   // the next automatic retry is at most 8 s away here
-check(!await shown(), "Servex back: the stream reopened by itself and the button hid");
+check(!await shown() && !await dotted(), "Servex back: the stream reopened by itself; banner and dot hid");
 if (dir) await page.screenshot({ path: dir + "/reconnect-up.png" });
 const kinds = logged.map(s => (s.match(/"kind":"([^"]+)"/) ?? [])[1]).filter(Boolean);
 check(kinds.includes("lost") && kinds.includes("reconnected") && kinds.includes("reconnect pressed"), "log lines written: " + [...new Set(kinds)].join(", "));

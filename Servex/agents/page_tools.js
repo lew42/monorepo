@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import SessionRecord from "../../Server/SessionRecord.mjs";
+import OpenItems from "../OpenItems.js";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import Subpages from "./Subpages.js";
@@ -223,6 +224,10 @@ function write_line(file, line, own_check = false){
 	// Fix 1 (fixes.md: a newline guard before every append; review, chat-model step 1 finding 2): shared with
 	// RecordWriter.append_once and Append.js, so a torn last line never glues onto what this call appends next.
 	fs.appendFileSync(file, RecordWriter.guard_newline(fs, file) + JSON.stringify(line) + "\n");
+	if (OpenItems.after_write(file, line).length){   // a close under 100% filed its waiting task: the cached live root lacks it, so it replays next time
+		const st = Item.Store?.instances?.get("/" + path.relative(PUBLIC, file).split(path.sep).join("/"));
+		if (st) st.host = null;
+	}
 	return size_of(file);
 }
 
@@ -539,7 +544,7 @@ function page_text(root, file, url, format = "markdown"){
 }
 const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/processes/index.js", "core/Task/Task.js", "core/Item/Item.js"], Improvements: ["core/Task/Improvements.js", "core/Task/Task.js", "core/Item/Item.js"] };
 // Fields a Session line may carry: its identity, a title, and its tasks.
-const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class", "place", "summary", "messages", "sentences"];   // "place" and "summary": the voice assistant's lines (one per sentence; one per card of 2+ sentences) (ux/Dictate/doc/voice-assistant.md)
+const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class", "place", "summary", "messages", "sentences", "refined"];   // "place" and "summary": the voice assistant's lines (one per sentence; one per card of 2+ sentences) (ux/Dictate/doc/voice-assistant.md)
 
 // Fields a Task line may carry beyond its getters (plan section 2) and the legacy line keys Task.replay reads.
 const TASK_KEYS = ["id", "now", "title", "description", "state", "expected", "complete", "completion", "priority", "commits", "session", "session_id", "module", "tags", "tasks", "task", "path", "parent", "content", "mode", "waiting_on", "outcome", "why", "steps", "step", "checked_by", "verdict", "brief", "assign", "at", "log", "decision", "review", "note", "by", "ts"];

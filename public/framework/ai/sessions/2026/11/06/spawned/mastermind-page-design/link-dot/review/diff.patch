@@ -1,0 +1,253 @@
+diff --git a/public/framework/dev/Socket/Link.js b/public/framework/dev/Socket/Link.js
+index 0265575c4f..c2dd2935eb 100644
+--- a/public/framework/dev/Socket/Link.js
++++ b/public/framework/dev/Socket/Link.js
+@@ -1,15 +1,21 @@
+-/* THE ONE "is the site's connection down?" state, and its one banner at the top of the page.
++/* THE ONE "is the site's connection down?" state, and how it shows: a quiet dot, or a banner at the top when it matters.
+  * Two wires feed it: the dev socket ("dev", dev/Socket/Socket.js) and the live wire to Servex ("servex", ux/Dictate/chat.js).
+- * A source reports { why, since, retry } while it is down and null when it is back. The banner shows only once a source
+- * has been down GRACE_MS, so a blip (a tunnel reconnect, a sleeping phone) never flashes it. Doc: dev/Socket/readme.md. */
++ * A source reports { why, since, retry, urgent } while it is down and null when it is back. Nothing shows until a source
++ * has been down GRACE_MS, so a blip (a tunnel reconnect, a sleeping phone) never flashes it. Then:
++ *   - a small amber dot on the rail's AI button (or in the top corner when there is no rail); hover says why, a press retries;
++ *   - the full banner with a Reconnect button only while a source's `urgent()` is true (the Servex wire: the mic is live or a
++ *     sentence is still sending, so a voice session depends on it). The owner, 2026-11-06: "a subtle status dot, prominent
++ *     only while a voice session depends on Servex". Doc: dev/Socket/readme.md. */
+ const GRACE_MS = 8000;
+-const sources = new Map();   // name -> { why, since, retry }
+-let banner = null, words = null, check = null, tick = null, trying_until = 0;
++const sources = new Map();   // name -> { why, since, retry, urgent }
++let banner = null, words = null, dot = null, check = null, tick = null, trying_until = 0;
+ 
+-const STYLE = `.dev-link { position: fixed; inset-block-start: 0; inset-inline: 0; z-index: 1000; display: flex; align-items: center; gap: 0.6em; padding: 0.35em 0.75em; font: 0.85rem system-ui, sans-serif; color: #78350f; background: #fef3c7; border-block-end: 1px solid #f59e0b; }
+-.dev-link[hidden] { display: none; }
+-.dev-link-why { flex: 1; min-inline-size: 0; }
+-.dev-link-go { flex: none; font: inherit; font-weight: 600; padding: 0.3em 0.8em; min-block-size: 2rem; color: #fff; background: #1f2937; border: 0; border-radius: 999px; cursor: pointer; }`;
++const STYLE = `.dev-wire { position: fixed; inset-block-start: 0; inset-inline: 0; z-index: 1000; display: flex; align-items: center; gap: 0.6em; padding: 0.35em 0.75em; font: 0.85rem system-ui, sans-serif; color: #78350f; background: #fef3c7; border-block-end: 1px solid #f59e0b; }
++.dev-wire[hidden], .dev-wire-dot[hidden] { display: none; }
++.dev-wire-why { flex: 1; min-inline-size: 0; }
++.dev-wire-go { flex: none; font: inherit; font-weight: 600; padding: 0.3em 0.8em; min-block-size: 2rem; color: #fff; background: #1f2937; border: 0; border-radius: 999px; cursor: pointer; }
++.dev-wire-dot { position: absolute; inset-block-end: -0.1em; inset-inline-start: -0.15em; inline-size: 0.45em; block-size: 0.45em; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 0 2px var(--bg, #fff); cursor: pointer; }
++.dev-wire-dot.dev-wire-corner { position: fixed; inset-block-start: 0.5rem; inset-inline-end: 0.5rem; inset-block-end: auto; inset-inline-start: auto; z-index: 1000; inline-size: 0.6rem; block-size: 0.6rem; }`;
+ 
+ export default class Link {
+ 	static GRACE_MS = GRACE_MS;
+@@ -27,21 +33,37 @@ export default class Link {
+ 		return [...sources].filter(([, s]) => Date.now() - s.since >= GRACE_MS).sort((a, b) => a[1].since - b[1].since);
+ 	}
+ 
++	// Does a down source matter right now? A throwing `urgent` counts as not urgent: the dot still shows.
++	static urgent(due = Link.due()){
++		return due.some(([, s]) => { try { return !!s.urgent?.(); } catch { return false; } });
++	}
++
+ 	static draw(){
+ 		if (typeof document === "undefined") return;
+ 		clearTimeout(check); clearInterval(tick);
+ 		const due = Link.due();
+ 		if (!due.length){
+ 			if (banner) banner.hidden = true;
++			if (dot) dot.hidden = true;
+ 			const next = [...sources.values()].map(s => s.since + GRACE_MS).sort((a, b) => a - b)[0];
+ 			if (next) check = setTimeout(() => Link.draw(), Math.max(0, next - Date.now()) + 20);
+ 			return;
+ 		}
+ 		Link.mount();
+ 		if (!banner) return;
+-		banner.hidden = false;
++		Link.show(due);
++		// Each second: the seconds count, and the look (the mic can open or close while a wire is down).
++		tick = setInterval(() => sources.size ? Link.show(Link.due()) : clearInterval(tick), 1000);
++	}
++
++	// Banner when it matters, dot otherwise. The dot re-mounts if the rail redrew without it.
++	static show(due){
++		if (!due.length) return;
++		const loud = Link.urgent(due);
++		banner.hidden = !loud;
++		if (!loud) Link.place_dot();
++		if (dot) dot.hidden = loud;
+ 		Link.words(due[0]);
+-		tick = setInterval(() => sources.size ? Link.words(Link.due()[0]) : clearInterval(tick), 1000);
+ 	}
+ 
+ 	static words([name, s] = []){
+@@ -49,27 +71,47 @@ export default class Link {
+ 		const text = Date.now() < trying_until ? "trying now…" : `${name === "servex" ? "Servex" : "Site"} link down ${Math.round((Date.now() - s.since) / 1000)} s: ${s.why}`;
+ 		words.textContent = text;
+ 		banner.title = `${text}. It retries by itself; press to try now.`;
++		if (dot) dot.title = banner.title;
+ 	}
+ 
+ 	static mount(){
+ 		if (banner || !document.body) return;
+ 		const style = document.createElement("style");
+-		style.dataset.devLink = "";
++		style.dataset.devWire = "";
+ 		style.textContent = STYLE;
+ 		document.head.append(style);
+ 		banner = document.createElement("div");
+-		banner.className = "dev-link";
++		banner.className = "dev-wire";
+ 		banner.setAttribute("role", "status");
++		banner.hidden = true;
+ 		words = document.createElement("span");
+-		words.className = "dev-link-why";
++		words.className = "dev-wire-why";
+ 		const go = document.createElement("button");
+-		go.type = "button"; go.className = "dev-link-go"; go.textContent = "Reconnect";
++		go.type = "button"; go.className = "dev-wire-go"; go.textContent = "Reconnect";
+ 		go.addEventListener("click", () => Link.retry());
+ 		banner.append(words, go);
+ 		document.body.prepend(banner);
++		dot = document.createElement("span");
++		dot.className = "dev-wire-dot";
++		dot.setAttribute("role", "status");
++		dot.hidden = true;
++		// Inside the rail's AI button: a press retries and does not also open the sheet.
++		dot.addEventListener("click", e => { e.stopPropagation(); e.preventDefault(); Link.retry(); });
++	}
++
++	// On the rail's AI button when the page has one (ext/drawer/Sheet.js) and it can be seen, else the top corner of the page.
++	// "Seen" is a hit test: on a phone the open sheet covers the rail, and a dot under it tells nobody anything.
++	static place_dot(){
++		if (!dot) return;
++		let icon = document.querySelector(".drawer-rail-ai-icon");
++		const r = icon?.getBoundingClientRect();
++		if (icon && !(r.width && document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)?.closest(".drawer-rail-ai"))) icon = null;
++		const home = icon ?? document.body;
++		if (dot.parentNode !== home) home.append(dot);
++		dot.classList.toggle("dev-wire-corner", !icon);
+ 	}
+ 
+-	// The Reconnect button: every down source tries now. A press must never break the page.
++	// Reconnect (the banner's button or the dot): every down source tries now. A press must never break the page.
+ 	static retry(){
+ 		trying_until = Date.now() + 1500;
+ 		for (const s of sources.values()) try { s.retry?.(); } catch (e){ console.error("Link retry:", e); }
+diff --git a/public/framework/dev/Socket/readme.md b/public/framework/dev/Socket/readme.md
+index 2fa2bbd577..12a31db4b1 100644
+--- a/public/framework/dev/Socket/readme.md
++++ b/public/framework/dev/Socket/readme.md
+@@ -28,7 +28,7 @@ new App({ socket: Socket.singleton() });   // public/app.js — the one call sit
+ - `window.$BLOCKRELOAD` never affected `.jsonl` streaming — a real 2026-09-19 bug that LOOKED like it did was `ext/JSONL/live.js` keying its stream registry by whatever url a caller passed (`import.meta.resolve()` returns one WITH an origin; the server's replies never carry one), so the subscribe reply never matched and the reader silently went deaf after one fallback fetch. Fixed in `live.js` and defensively in `Server/plugins/SocketServer/Tail.js`.
+ - Editing `public/index.html` reloads nothing — it is a navigation entry, not a resource entry. Hard-reload by hand. [doc/method/changed.md](./doc/method/changed.md)
+ - An open socket can be dead with no `close` (a phone that slept, a tunnel or proxy that lost one side), and then nothing streams. `alive()` pings while the tab is visible (every 30 s, and at once when it is shown again or back online) and calls `restart()` after 5 s of silence; `ext/JSONL/live.js` resubscribes each stream from its offset. [doc/backoff.md](./doc/backoff.md)
+-- `reconnect()` never reloads the page by itself, only on disconnect — it only retries with backoff. A restart used to look like the page died because nothing said otherwise; `reconnect()` now reports the drop to [`Link.js`](./Link.js) and `open()` clears it. `Link` is the ONE connection state (the dev socket and the live wire to Servex both feed it) and draws the ONE banner at the top of the page with a Reconnect button, only once a wire has been down 8 s. [doc/backoff.md](./doc/backoff.md)
++- `reconnect()` never reloads the page by itself, only on disconnect — it only retries with backoff. A restart used to look like the page died because nothing said otherwise; `reconnect()` now reports the drop to [`Link.js`](./Link.js) and `open()` clears it. `Link` is the ONE connection state (the dev socket and the live wire to Servex both feed it). Once a wire has been down 8 s it shows a small amber dot (on the rail's AI button when that can be seen, else the top corner; hover says why, a press retries). The full banner with a Reconnect button shows only while a source says it is `urgent()`: for the Servex wire, a mic is live or a sentence is still sending, so a voice session depends on it (the owner, 2026-11-06). Proof: `node public/framework/ux/Dictate/test/reconnect.mjs <base-url>`. [doc/backoff.md](./doc/backoff.md)
+ 
+ ## More
+ 
+diff --git a/public/framework/ext/drawer/doc/sheet.md b/public/framework/ext/drawer/doc/sheet.md
+index f70341e4e5..bbd5bc910e 100644
+--- a/public/framework/ext/drawer/doc/sheet.md
++++ b/public/framework/ext/drawer/doc/sheet.md
+@@ -21,7 +21,7 @@ Screenshots of every step: [Mobile bottom rail](/framework/ext/drawer/rail/).
+ 
+ **What it reconnects:** one thing, the chat's live wire to Servex (`Session.stream`, the server-sent events that bring the AI's replies as they are written). Not Whisper, not the mic, not the agent: those have their own rows on the [Debug tab](/framework/ux/Dictate/doc/debug-tab.md).
+ 
+-**When it shows:** only after the wire has been down for 8 s (`WIRE_GRACE_MS` in `ux/Dictate/chat.js`). Before 2026-10-25 it showed on every drop, and the LAN proxy cuts the wire every 30 s and it is back in a second, so it flashed at random (8 times in 8 s in the probe). Since 2026-11-01 it is no longer a line in the sheet: `dev/Socket/Link.js` owns it, the ONE connection state for both the dev socket and this Servex wire, drawn once as a full-width banner at the very top of the page (the sheet's own row and the dev socket's slim strip are gone): "Servex link down 12 s: Servex answered with an error (restarting?) · Reconnect" (or "Site link down …" when the dev socket is the one that dropped), the seconds counting up. One Reconnect press retries every wire that is down.
++**When it shows:** only after the wire has been down for 8 s (`WIRE_GRACE_MS` in `ux/Dictate/chat.js`). Before 2026-10-25 it showed on every drop, and the LAN proxy cuts the wire every 30 s and it is back in a second, so it flashed at random (8 times in 8 s in the probe). Since 2026-11-01 it is no longer a line in the sheet: `dev/Socket/Link.js` owns it, the ONE connection state for both the dev socket and this Servex wire, drawn once as a full-width banner at the very top of the page (the sheet's own row and the dev socket's slim strip are gone): "Servex link down 12 s: Servex answered with an error (restarting?) · Reconnect" (or "Site link down …" when the dev socket is the one that dropped), the seconds counting up. One Reconnect press retries every wire that is down. Since 2026-11-06 that banner shows only while a voice session depends on Servex (a mic is live or a sentence is still sending); otherwise the same state is a small amber dot on the rail's AI button or in the top corner, hover for the words, press to retry ([dev/Socket/Link.js](../../../dev/Socket/Link.js)).
+ 
+ **A press:** reopens the wire at once and says "trying now…". It never throws, does nothing once the chat is gone or the wire is already open, and ignores a second tap within 0.5 s, so there is never a second wire (`stop.reconnect` in `ext/Session/Session.js`). The "crash" after a press was not the button: the probe pressed it in every state with no page error. It shows exactly when Servex restarts, and a Servex restart also brings the dev server back, which reloads the page (or shows "This page is out of date") right after.
+ 
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index fab15a5bb2..f7c394990b 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -6,6 +6,7 @@ import * as Session from "/framework/ext/Session/Session.js";
+ import ChatV2Model from "/framework/ext/Chat/v2/old/ChatV2Model.js";   // V1 still folds tasks with the old model; ChatV2 itself moved on (ChatV2.js, step 2 of views-on-messages.md)
+ import DictateHealth from "./DictateHealth.js";
+ import Link from "/framework/dev/Socket/Link.js";
++import Socket from "/framework/dev/Socket/Socket.js";
+ import Recite from "/framework/audio/Recite/Recite.js";
+ import BargeIn from "/framework/audio/Recite/BargeIn.js";
+ import WhisperLog from "/framework/audio/Whisper/WhisperLog.js";
+@@ -464,7 +465,8 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 			if (DictateHealth.layers.wire.state === "idle" || DictateHealth.layers.wire.why.startsWith("the live wire")) DictateHealth.set("wire", "ok", "the live wire to Servex is open");
+ 		} });
+ 	}
+-	function set_link(next){ link = next; Link.report("servex", next.state === "down" ? { why: next.why, since: next.since, retry: () => stop_stream?.reconnect?.() } : null); for (const fn of on_link) try { fn(link); } catch (e){ console.error("chat on_link:", e); } }
++	// urgent: a voice session depends on Servex now (a mic is live, ext/Chat/Mic.js add_busy, or a sentence is still sending); Link.js then shows the banner, else a dot.
++	function set_link(next){ link = next; Link.report("servex", next.state === "down" ? { why: next.why, since: next.since, retry: () => stop_stream?.reconnect?.(), urgent: () => sending.length > 0 || Socket.singleton().busy() } : null); for (const fn of on_link) try { fn(link); } catch (e){ console.error("chat on_link:", e); } }
+ 
+ 	attach();
+ 	owner.report_nav(target.path, target.card);
+diff --git a/public/framework/ux/Dictate/test/reconnect.mjs b/public/framework/ux/Dictate/test/reconnect.mjs
+index f5b81d73ae..81cef5a2c7 100644
+--- a/public/framework/ux/Dictate/test/reconnect.mjs
++++ b/public/framework/ux/Dictate/test/reconnect.mjs
+@@ -3,10 +3,11 @@
+ // Headless, Servex stubbed, nothing restarted. Three phases on the session stream:
+ //   1. blips: every answer is a 200 whose body ends at once (what the LAN /servex proxy does every 30 s); the browser
+ //      reopens it in a second. Pass = the button never shows.
+-//   2. down: 502 for 14 s (what the /servex proxy says while Servex restarts; a 502 CLOSES an EventSource for good).
+-//      Pass = hidden for the first WIRE_GRACE_MS, then shown with "Servex link down N s: <reason>"; a press asks at once;
+-//      ten fast presses open no second wire and throw nothing.
+-//   3. up: the stream passes through again. Pass = the button hides by itself, and the log got "lost" and "reconnected".
++//   2. down: 502 (what the /servex proxy says while Servex restarts; a 502 CLOSES an EventSource for good).
++//      Pass = nothing for the first WIRE_GRACE_MS; then, mic off, only the quiet dot (its title "Servex link down N s:
++//      <reason>"), and a press on it asks at once; then a live mic (stubbed through Socket add_busy) shows the banner
++//      with that text instead; a press asks at once; ten fast presses open no second wire and throw nothing.
++//   3. up: the stream passes through again. Pass = banner and dot hide by themselves, and the log got "lost" and "reconnected".
+ // Doc: ux/Dictate/doc/debug-tab.md#reconnect, ext/drawer/doc/sheet.md
+ import fs from "fs";
+ import Browser from "../../../../../Server/Browser.mjs";
+@@ -44,11 +45,12 @@ await page.addInitScript(() => {
+ 		close(){ window.__wires.delete(this); return super.close(); }
+ 	};
+ 	let was = false;
+-	new MutationObserver(() => { const b = document.querySelector(".dev-link"); const v = !!b && !b.hidden; if (v && !was) window.__shows++; was = v; })
++	new MutationObserver(() => { const b = document.querySelector(".dev-wire"); const v = !!b && !b.hidden; if (v && !was) window.__shows++; was = v; })
+ 		.observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden"] });
+ });
+-const shown = () => page.evaluate(() => { const b = document.querySelector(".dev-link"); return !!b && !b.hidden; });   // dev/Socket/Link.js builds the banner only once a source has been down its grace, so no element means not shown
+-const label = () => page.evaluate(() => document.querySelector(".dev-link")?.textContent ?? "");
++const shown = () => page.evaluate(() => { const b = document.querySelector(".dev-wire"); return !!b && !b.hidden; });   // the banner; dev/Socket/Link.js builds it only once a source has been down its grace, so no element means not shown
++const dotted = () => page.evaluate(() => { const d = document.querySelector(".dev-wire-dot"); return !!d && d.isConnected && !d.hidden; });
++const label = () => page.evaluate(() => document.querySelector(".dev-wire")?.textContent ?? "");
+ const wires = () => page.evaluate(() => window.__wires.size);
+ 
+ await page.goto(base + "/framework/ux/Dictate/", { waitUntil: "domcontentloaded" });
+@@ -66,14 +68,26 @@ phase = "down"; hits = 0;
+ await page.waitForTimeout(5000);
+ check(!await shown(), "down 5 s: still hidden (inside the 8 s grace)");
+ await page.waitForTimeout(5000);
++const tip = await page.evaluate(() => document.querySelector(".dev-wire-dot")?.title ?? "");
++const on_rail = await page.evaluate(() => !!document.querySelector(".drawer-rail-ai-icon .dev-wire-dot"));
++check(!await shown() && await dotted() && /Servex link down \d+ s: /.test(tip), `down 10 s, mic off: no banner; the dot ${on_rail ? "on the rail's AI button" : "in the corner"} says “${tip}”`);
++if (dir){ fs.mkdirSync(dir, { recursive: true }); await page.screenshot({ path: dir + "/reconnect-dot.png" }); }
++let before = hits;
++const sheet_was = await page.evaluate(() => !!document.querySelector(".drawer-rail-sheet.on"));
++await page.click(".dev-wire-dot", { timeout: 3000 });
++await page.waitForTimeout(300);
++check(hits > before && sheet_was === await page.evaluate(() => !!document.querySelector(".drawer-rail-sheet.on")), `a press on the dot asks at once (${hits - before} new request) and leaves the sheet as it was`);
++// A live mic (ext/Chat/Mic.js registers the same hook): the voice session now depends on Servex, so the banner.
++await page.evaluate(async () => { window.__busy = true; (await import("/framework/dev/Socket/Socket.js")).default.singleton().add_busy(() => window.__busy); });
++await page.waitForTimeout(1800);   // Link.js re-reads urgent() every second, and the dot press above says "trying now…" for 1.5 s
+ const text = await label();
+-check(await shown() && /Servex link down \d+ s: .*error.*Reconnect/.test(text), `down 10 s: shown, saying “${text}”`);
+-if (dir){ fs.mkdirSync(dir, { recursive: true }); await page.screenshot({ path: dir + "/reconnect-down.png" }); }
+-const before = hits, wires_before = await wires();
+-await page.click(".dev-link-go");
++check(await shown() && !await dotted() && /Servex link down \d+ s: .*error.*Reconnect/.test(text), `mic live: the banner instead, saying “${text}”`);
++if (dir) await page.screenshot({ path: dir + "/reconnect-down.png" });
++before = hits; const wires_before = await wires();
++await page.click(".dev-wire-go");
+ await page.waitForTimeout(300);
+ check(hits > before, `a press asks at once (${hits - before} new request), and says “${await label()}”`);
+-for (let i = 0; i < 10; i++){ await page.click(".dev-link-go"); await page.waitForTimeout(40); }
++for (let i = 0; i < 10; i++){ await page.click(".dev-wire-go"); await page.waitForTimeout(40); }
+ await page.waitForTimeout(300);
+ check(await wires() <= Math.max(1, wires_before), `ten fast presses: ${await wires()} live wire(s) open, never two`);
+ check(!errors.length, errors.length ? "page errors: " + errors.join(" | ") : "no page errors");
+@@ -81,7 +95,7 @@ check(!errors.length, errors.length ? "page errors: " + errors.join(" | ") : "no
+ // 3. up
+ phase = "up";
+ await page.waitForTimeout(9000);   // the next automatic retry is at most 8 s away here
+-check(!await shown(), "Servex back: the stream reopened by itself and the button hid");
++check(!await shown() && !await dotted(), "Servex back: the stream reopened by itself; banner and dot hid");
+ if (dir) await page.screenshot({ path: dir + "/reconnect-up.png" });
+ const kinds = logged.map(s => (s.match(/"kind":"([^"]+)"/) ?? [])[1]).filter(Boolean);
+ check(kinds.includes("lost") && kinds.includes("reconnected") && kinds.includes("reconnect pressed"), "log lines written: " + [...new Set(kinds)].join(", "));

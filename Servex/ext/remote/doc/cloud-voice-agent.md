@@ -25,7 +25,7 @@ If you are reading this through `read_file`, you are probably a **cloud voice ag
 
 Code writes these; you never type them.
 
-- `owner_words`: the owner's verbatim words, one line per `cloud_voice_log` call.
+- `owner_words`: the owner's verbatim words, one line per `cloud_voice_log` call. Each is followed by a `refined` line (`via:"voice"`, `by:"code"`, `re` = that line's `at`) with the words split into numbered `sentences`, written by `Server/Ask.mjs`; `git grep '"sentences":'` finds them.
 - `tool_call`: every call you make, with the tool name and a hash of its arguments. A `tool_call` with no `owner_words` line before it is a visible gap: you forgot to log.
 - `spawned`: every `spawn_agent` result, as the agent id and its task dir.
 - `cost`: when you set it.

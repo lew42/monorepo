@@ -110,6 +110,22 @@ check("say() with no selection prefixes nothing", () => {
 	assert.equal(last_sent("fast"), "[on /a/] plain");
 });
 
+check("say() leaves the owner's turn as a v:2 refined line (sentences by code, secret withheld) and skips slash commands", () => {
+	const s = make();
+	const made = s.create({ path: "/a/" });
+	const file = path.join(repo, "public", made.file.replace(/^\//, ""));
+	const at = s.say({ session: made.session, path: "/a/", text: "Make it blue. Then add a border.", via: "text" }).at;
+	s.say({ session: made.session, path: "/a/", text: "my key sk-ant-abcdefghijklmnopqrstuv", via: "text" });
+	s.say({ session: made.session, path: "/a/", text: "/clear", via: "text" });
+	const refined = lines(file).filter(l => l.refined).map(l => l.refined);
+	assert.equal(refined.length, 2, "one refined line per ask; the slash command has none");
+	assert.equal(refined[0].re, at);
+	assert.equal(refined[0].v, 2);
+	assert.equal(refined[0].by, "code");
+	assert.equal(refined[0].sentences.length, 2);
+	assert.ok(!JSON.stringify(refined[1]).includes("sk-ant-") && refined[1].redacted === true);
+});
+
 // ── item 3: a refinement goes to the card/path selected AT THE TIME, not now ───────────
 check("line() attributes a refinement to the ORIGINAL owner line's path and card", () => {
 	const s = make();

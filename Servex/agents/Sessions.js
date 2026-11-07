@@ -15,6 +15,7 @@ import { structure } from "../../public/framework/ext/Refine/structure.js";
 import WakePolicy from "./WakePolicy.js";
 import * as PromptLines from "./PromptLines.js";
 import ChatWriter from "./ChatWriter.js";
+import Ask from "../../Server/Ask.mjs";
 import Session from "../../public/framework/core/Session/Session.js";   // plugins_of() replays a session's own session.jsonl; Servex must not import ux/ files
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -112,10 +113,7 @@ export function worth_refining(line){
 /* Local time with its offset AND milliseconds — `2026-09-29T19:30:12.345-05:00`.
  * The milliseconds matter: a reply's `re` names the owner line it answers by its
  * `at`, so two lines said in the same second must not share one. */
-export const now_ms = () => {
-	const d = new Date(), off = -d.getTimezoneOffset(), pad = n => String(Math.abs(n)).padStart(2, "0");
-	return new Date(d.getTime() + off * 60000).toISOString().slice(0, 23) + (off < 0 ? "-" : "+") + pad(Math.trunc(off / 60)) + ":" + pad(off % 60);
-};
+export const now_ms = () => Ask.now();
 
 /* VOICE SESSIONS (ai/sessions/2026/09/30/voice-sessions/voice-sessions/design.md).
  *
@@ -1302,6 +1300,8 @@ export default class Sessions {
 			...(thread && re ? { re: String(re), thread: true } : {}),
 			...(selection && typeof selection === "object" ? { selection: trim_sel(selection) } : {}) };
 		this.write(s, { chat: line });
+		/* The turn's raw sentences, split by code with secrets withheld (Server/Ask.mjs): the same {refined:{re,sentences}} line the AI refine writes later, so every channel leaves its words as sentences. */
+		Ask.write(text, via, line.at, ask_line => this.write(s, ask_line));
 		/* With the fast seat off, code files the Question the voice assistant used to (one per "?" sentence, the same line shape). */
 		if (this.assistant_of(s) === "off" && /\?["'”’)]*$/.test(String(text).trim())) this.write(s, PromptLines.add_question(prompt, { id: "q-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6), text: String(text).trim() }, "servex"));
 		if (this.single_seat(s)) return this.single_say(s, line, { site, text, selection, floor });

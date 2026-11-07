@@ -1,0 +1,122 @@
+diff --git a/public/live/LivePage.js b/public/live/LivePage.js
+index 4562f2557..82e28de8a 100644
+--- a/public/live/LivePage.js
++++ b/public/live/LivePage.js
+@@ -328,31 +328,55 @@ export default class LivePage extends Page {
+ 	// What a page says about itself, read from its own file (small): { title, cls, tab, js }. The title is the last `title` in
+ 	// its page.jsonl, else its page.js's export, else its folder name: one per url per load, so its link card, its tab and
+ 	// its h1 always agree (`description` too: its link card's preview line). `cls` is the class its line 1 names, `tab` a `{"tab": false}` line (never a tab), `js` a page.js page.
++	// A page.jsonl page's file is streamed, not fetched once: a line written there later ({"tab": true}, a new title)
++	// updates the same meta object and calls every listener (on_meta), so its tab, link card and footer card redraw.
+ 	static metas = new Map();
++	static meta_heard = new Set();
+ 	static meta_of(url){
+ 		return this.metas.get(url) ?? this.metas.set(url, (async () => {
+ 			const name = url.split("/").filter(Boolean).at(-1), meta = { title: name };
+ 			const listing = await Page.listing(url.replace(/[^/]+\/$/, "")).catch(() => null);
+ 			if (!listing){ this.metas.delete(url); return meta; }   // a failed read is not kept: the next ask tries again
+ 			const kind = listing.pages.get(name);   // "jsonl", "js", or not a page
+-			const res = kind === "jsonl" ? await fetch(url + "page.jsonl").catch(() => null) : null;
+-			if (res?.ok){
+-				(await res.text()).split("\n").forEach((line, i) => { try {
+-					const o = JSON.parse(line);
+-					if (typeof o?.title === "string") meta.title = o.title;
+-					if (i === 0 && typeof o?.class === "string") meta.cls = o.class;
+-					if (typeof o?.tab === "boolean") meta.tab = o.tab;
+-					if (typeof o?.icon === "string") meta.icon = o.icon;
+-					if (typeof o?.description === "string") meta.description = o.description;
+-				} catch {} });
+-				return meta;
+-			}
++			if (kind === "jsonl") return this.meta_stream(url, meta);
+ 			const js = kind === "js" ? await import(url + "page.js").catch(() => null) : null;
+ 			const own = js?.default?.icon;
+ 			return { title: js?.default?.title ?? name, js: kind === "js", ...typeof own === "string" && { icon: own } };
+ 		})()).get(url);
+ 	}
++	static up_of(url){ return String(url).replace(/[^/]+\/$/, ""); }
+ 	static title_of(url){ return this.meta_of(url).then(m => m.title); }
++	// Folds url/page.jsonl into meta and keeps it folded: one reader per url for the whole tab (never paused, so a page
++	// left and come back to still has it right). A rewritten file starts over from its folder name.
++	static async meta_stream(url, meta){
++		const [{ JSONL }, { stream }] = await Promise.all([import("/framework/ext/JSONL/JSONL.js"), import("/framework/ext/JSONL/live.js")]);
++		const name = meta.title, jsonl = new JSONL({ url: url + "page.jsonl" });
++		let n = 0, touched = false;
++		jsonl.read = entries => {
++			for (const o of entries){
++				const first = n++ === 0;
++				if (typeof o?.title === "string") meta.title = o.title, touched = true;
++				if (first && typeof o?.class === "string") meta.cls = o.class, touched = true;
++				if (typeof o?.tab === "boolean") meta.tab = o.tab, touched = true;
++				if (typeof o?.icon === "string") meta.icon = o.icon, touched = true;
++				if (typeof o?.description === "string") meta.description = o.description, touched = true;
++			}
++			return jsonl;
++		};
++		jsonl.reset = () => { n = 0; for (const k of Object.keys(meta)) delete meta[k]; meta.title = name; touched = true; return JSONL.prototype.reset.call(jsonl); };
++		await stream(jsonl, () => { if (!touched) return; touched = false; this.meta_heard.forEach(fn => fn(url)); }, { owner: null });
++		touched = false;
++		return meta;
++	}
++	// fn(url) when the page at a url `want(url)` accepts writes a title, icon, description or tab line into its own
++	// file. Lets go the first time it is heard after `view` has left the page.
++	static on_meta(view, want, fn){
++		const heard = url => {
++			if (!view.el.isConnected) return void this.meta_heard.delete(heard);
++			if (want(url)) fn(url);
++		};
++		this.meta_heard.add(heard);
++	}
+ 
+ 	// A page's own pages: { tabs, cards, screens }, each [{url, title, icon}]. A page is EITHER a tab OR a link card, never both.
+ 	// A TAB is a permanent core section of this page, one that becomes familiar: a sub-page says so itself with a
+@@ -535,6 +559,7 @@ export default class LivePage extends Page {
+ 				pages.forEach(p => { ["add", "remove"].forEach(verb => p.screens?.off?.(verb, heard)); p.off?.("line", picked); });
+ 			});
+ 			pages.forEach(p => { ["add", "remove"].forEach(verb => p.screens?.on?.(verb, heard)); p.on?.("line", picked); });
++			P.on_meta(this, u => pages.some(p => P.up_of(u) === p.url) || P.up_of(u) === P.up_of(page.url), () => draw());   // a tab's own {"tab": …} or title line
+ 			draw();
+ 		}
+ 	};
+@@ -690,11 +715,17 @@ export default class LivePage extends Page {
+ 					if (item instanceof PageLink){
+ 						const fallback = P.link_icon(item, own);
+ 						P.glyph($icon, fallback);
+-						if (own.startsWith("/live/")) P.icon_of(own).then(n => P.glyph($icon, n ?? fallback)).catch(() => {});   // the page's own icon wins: the same as its header
+-					} else this.bind(item, "icon", n => P.glyph($icon, n ?? P.stored.item));
++					} else this.bind(item, "icon", n => P.glyph($icon, n ?? P.stored.item));   // a link's: its page's own icon wins below, the same as its header
+ 					$title = new P.Heading({ tag: "h4", item, classes: "live-card-title", on_text: go });
+ 				});
+-				if (item instanceof PageLink && own.startsWith("/live/")) P.title_of(own).then(t => $title.fix(t)).catch(() => {});
++				if (item instanceof PageLink && own.startsWith("/live/")){
++					const theirs = () => {
++						P.title_of(own).then(t => $title.fix(t)).catch(() => {});
++						P.icon_of(own).then(n => P.glyph($icon, n ?? P.link_icon(item, own))).catch(() => {});
++					};
++					theirs();
++					P.on_meta(this, u => u === own, theirs);   // its page renames itself: the card follows
++				}
+ 				new P.Preview({ page, item, url: item instanceof PageLink && own.startsWith("/live/") ? own : null });
+ 				if (!(item instanceof PageLink)) new P.Children({ list: item.content });
+ 			});
+@@ -898,6 +929,7 @@ export default class LivePage extends Page {
+ 			});
+ 			["add", "remove"].forEach(v => page.screens.on?.(v, heard));
+ 			page.on?.("line", picked);
++			P.on_meta(this, u => P.up_of(u) === page.url, () => draw());   // a sub-page renames itself, or says {"tab": true}
+ 			draw();
+ 		}
+ 	};
+diff --git a/public/live/readme.md b/public/live/readme.md
+index e56114775..c6e4f8e57 100644
+--- a/public/live/readme.md
++++ b/public/live/readme.md
+@@ -97,7 +97,7 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
+ 
+ - **Every page under /live/ is a LivePage**, so it has this header: a sub-page whose `page.jsonl` names a plain Page (or no class) is built as a LivePage (`LivePage.child` and `LivePage.log_class`); a LivePage subclass such as DesignPage stays itself. A `page.js` page under /live/ is its own class, so make it extend LivePage.
+ - **The header runs the full width** of the page with its own padding and a bottom border, which is also the tab row's baseline; its text lines up with the column below.
+-- **A page is EITHER a tab OR a link card, never both.** A tab is a permanent core section of its page, one that becomes familiar (Live, Log, Settings), never a post or a temporary page. A new sub-page (`pages.add`) is never a tab: it is a tab only by an explicit opt-in, either the parent's line `{"tab": {"name": "next", "tab": true}}` (the last such line wins, so `"tab": false` takes it back; any other field in it, such as `title`, is ignored: the tab reads the sub-page's own title) or the sub-page's own `{"tab": true}` line, and draws as part of this page (a plain LivePage, not a `page.js` or a DesignPage). Switching tabs keeps the same tab row and the same h1 (the parent's title; the selected tab says which one). Everything else is a **link card** under the content (`LivePage.Pages`, drawn by code, never written into page.jsonl), in two groups, Pages then Saved screens; a page the content already links to (a `part-link` card) is not drawn twice. A tab row needs two tabs, so /live/ today shows none. More than five tabs would be a list, so then every sub-page is a card (`LivePage.tab_max`). /live/sessions/, /live/archive/ and /live/v1/ are neither (`LivePage.tab_skip`); the footer of /live/ links them. The rule is `LivePage.pages_of`. **Both stream:** a `{"tab": …}` or `{"file": …}` line on the page or its parent redraws the tab row and the Pages group at once, from a fresh folder listing, so a tab picked or dropped, or a sub-page just made, shows with no reload.
++- **A page is EITHER a tab OR a link card, never both.** A tab is a permanent core section of its page, one that becomes familiar (Live, Log, Settings), never a post or a temporary page. A new sub-page (`pages.add`) is never a tab: it is a tab only by an explicit opt-in, either the parent's line `{"tab": {"name": "next", "tab": true}}` (the last such line wins, so `"tab": false` takes it back; any other field in it, such as `title`, is ignored: the tab reads the sub-page's own title) or the sub-page's own `{"tab": true}` line, and draws as part of this page (a plain LivePage, not a `page.js` or a DesignPage). Switching tabs keeps the same tab row and the same h1 (the parent's title; the selected tab says which one). Everything else is a **link card** under the content (`LivePage.Pages`, drawn by code, never written into page.jsonl), in two groups, Pages then Saved screens; a page the content already links to (a `part-link` card) is not drawn twice. A tab row needs two tabs, so /live/ today shows none. More than five tabs would be a list, so then every sub-page is a card (`LivePage.tab_max`). /live/sessions/, /live/archive/ and /live/v1/ are neither (`LivePage.tab_skip`); the footer of /live/ links them. The rule is `LivePage.pages_of`. **Both stream:** a `{"tab": …}` or `{"file": …}` line on the page or its parent redraws the tab row and the Pages group at once, from a fresh folder listing, so a tab picked or dropped, or a sub-page just made, shows with no reload. The sub-page's own file streams too (`LivePage.meta_stream`): its own `{"tab": true}` or a new `title`, `icon` or `description` there redraws the tab row, its link card and the Pages group (before 2026-11-06 that needed a reload).
+ - **One title everywhere:** a tab label, a link card's title and the page's own h1 all read the sub-page's own `title` (the last `title` in its `page.jsonl`, else its `page.js`; `LivePage.title_of`). To rename a sub-page, set its title on its own path: `item({path: "/live/demos/", delta: {"title": "Feature demos"}})`. A link card's `title` shows only until the page's own one arrives.
+ - **The breadcrumb is the url** (`location.pathname`, word for word, every step a link): a phone hides the address bar, so this is where the owner reads it. It redraws on every url change, a tab switch included (`LivePage.on_url`), and the tab row lights the tab the url is in.
+ - **Settings** (the gear, `<page>/settings/`): first the class file that draws the page (`LivePage.js`, or `DesignPage.js` on /live/design/), a tap opens its code; then, for a card or a saved screen, which `page.jsonl` it is saved in; then the page's folder, labelled with its path ("/live"), one list top to bottom: folders, then files, `page.jsonl` included (`LivePage.Files`). A folder opens its own list (`/live/settings/doc/`); a file opens its code on its own page, the full width with no line numbers, highlighted by ext/highlight (`/live/settings/LivePage.js/`), and the header's small **raw** link is the file itself. Every settings page is a LivePage whose gear is an **X** back to the page (`/live/settings/` → `/live/`), so the same spot toggles settings; a settings page has no settings of its own. A folder or a saved screen named `settings` wins over it. Below the files: "What it is made of" and "How it got here", [ext/Inspect](/framework/ext/Inspect/readme.md)'s `ItemInspector` (its content, methods, fields) and `DeltaHistory` (a slider replaying the folder's `page.jsonl` in memory), both loaded only once settings opens.

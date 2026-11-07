@@ -200,3 +200,10 @@
 {"tasks":{"y2d5oocs":{"complete":{"outcome":"The link chevron is 1.75rem, centred top to bottom at the right, with room of its own so text never runs under it.","evidence":"e8a4aed61 on compliance/dev; live-r15/shots/cards-400.png"}},"tlqy1du4":{"complete":{"outcome":"Code cards run edge to edge on a phone (0 to 400 px at 400 wide; they stopped 24 px short), and any frameless card can bleed with {\"bleed\": true}; the words keep the column padding.","evidence":"e8a4aed61; live-r15/shots/bleed-text.txt"}},"q9pppa7q":{"complete":{"outcome":"The Pages list is built by code from the sub-folders and saved screens, leaving out any sub-page a card already links to (readme, 'Going into a thing'). The two 'Live' self-link cards were cards with href instead of path: data fixed, and href now works as path.","evidence":"e8a4aed61; /live/readme.md"}},"ox5xlkmz":{"complete":{"outcome":"Default id is now the slug of the title (-2 on a clash), built by page-design in the item tool, live after the next Servex restart; name, id, slug and title compared on one doc page.","evidence":"149a4a5a1, b7627d2f5; /live/doc/names.md"}},"afee9jgl":{"complete":{"outcome":"One idea per card, the picture first, never a wall of bullets: now step 3 of the /live/ readme's Start here, which every agent driving /live/ reads first.","evidence":"e8a4aed61; /live/readme.md"}}},"by":"mastermind-live-page","ts":"2026-11-07T02:47:14.350Z"}
 {"file":"completion/page.jsonl"}
 {"content":{"add":{"type":"part-link","id":"link-completion","path":"./completion/","title":"Completion"}},"by":"pages.add","ts":"2026-11-07T03:19:09.229Z"}
+{"file":"truth/page.js"}
+{"file":"zzitem/page.jsonl"}
+{"file":"zztabs/page.jsonl"}
+{"file":"zztabs/"}
+{"file":"zzitem/"}
+{"file":"zzitem/","gone":true}
+{"file":"zztabs/","gone":true}
