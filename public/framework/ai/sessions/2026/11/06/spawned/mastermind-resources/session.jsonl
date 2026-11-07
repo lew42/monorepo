@@ -327,3 +327,7 @@
 {"pid_exit":25268,"ended":"2026-11-07T00:35:41-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid":22596,"cmd":"","why":"child of claude.exe","agent":"mastermind-resources","session":"20564a34-6016-4174-94fd-eb74492f7954","started":"2026-11-07T00:35:39-06:00","ppid":50476,"seen":"sample","by":"servex"}
 {"pid":4148,"cmd":"","why":"child of claude.exe","agent":"mastermind-resources","session":"20564a34-6016-4174-94fd-eb74492f7954","started":"2026-11-07T00:35:39-06:00","ppid":22596,"seen":"sample","by":"servex"}
+{"commit":{"hash":"e0b097dbabd2503313252838ac70b5e46ec1a472","what":"resources: session log lines","files":["public/framework/ai/sessions/2026/11/06/spawned/mastermind-resources/session.jsonl"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-07T06:35:43.489Z"}
+{"log":{"at":"2026-11-07T00:35:48-06:00","heartbeat":"answered","msg":"I'm idle with nothing running. The change that holds the \"close one of your apps\" note until you've been away is merged (1baa1730e), and the page-file advice is written down in `Servex/doc/processes.m"}}
+{"pid_exit":22596,"ended":"2026-11-07T00:35:51-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":4148,"ended":"2026-11-07T00:35:51-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}

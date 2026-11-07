@@ -2348,3 +2348,6 @@
 {"at":"2026-11-07T05:40:22.202Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/requirements.md","verdict":"queued","kind":"proposal"}
 {"at":"2026-11-07T05:41:23.645Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/requirements.md","verdict":"spawned","to":"clarity-mastermind-session-truth"}
 {"at":"2026-11-06T23:30:00Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/requirements.md","verdict":"clear","what":"Short pointer page, each ask linked to its brief; text-check flags only brief-common.md and review.md, not this target","to":"clarity.md"}
+{"at":"2026-11-07T06:22:50.609Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-07T06:23:51.702Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/requirements.md","verdict":"spawned","to":"clarity-mastermind-session-truth"}
+{"at":"2026-11-07T00:26:00-06:00","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/requirements.md","verdict":"sent","what":"opaque t11/t12 and ids, asks not ticked; rewrite sent","to":"mastermind-session-truth"}

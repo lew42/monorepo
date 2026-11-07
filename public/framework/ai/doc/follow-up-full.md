@@ -1,9 +1,14 @@
 # Follow-up: every task of the last 10 days
 
-889 tasks, flagged first. Summary: [follow-up.md](follow-up.md).
+942 tasks, flagged first. Summary: [follow-up.md](follow-up.md).
 
 | task | group | session | model | started | last log | step | state bucket | outcome | branch | agent | flags |
 |---|---|---|---|---|---|---|---|---|---|---|---|
+| [live-r11](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-r11/) | - | - | - | 11-07 01:37 | 11-07 01:37 | 0/0 | stale | no | - | unknown | quiet |
+| [live-r10](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-r10/) | - | - | - | 11-07 01:17 | 11-07 01:24 | 0/0 | stale | no | - | unknown | quiet |
+| [live-r9](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-r9/) | - | - | - | 11-07 00:35 | 11-07 00:35 | 0/0 | stale | no | - | unknown | quiet |
+| [cloud-voice-app-20261103](/framework/ai/sessions/2026/11/03/cloud-voice-app-20261103/) | - | - | - | 11-03 22:31 | 11-06 05:17 | 0/0 | stale | no | - | unknown | quiet |
+| [session-e9c8d0d3](/framework/ai/sessions/2026/11/03/session-e9c8d0d3/) | - | - | - | 11-03 18:58 | 11-06 05:02 | 0/0 | stale | no | - | unknown | quiet |
 | [v-lzxm297](/framework/ai/sessions/2026/11/02/v-lzxm297/) | - | voice-as | - | 11-02 06:27 | 11-05 05:54 | 0/0 | stale | no | - | unknown | quiet |
 | [v-j32xjjb](/framework/ai/sessions/2026/11/02/v-j32xjjb/) | - | voice-as | - | 11-02 06:24 | 11-05 05:48 | 0/0 | stale | no | - | unknown | quiet |
 | [v-urmyr2k](/framework/ai/sessions/2026/11/02/v-urmyr2k/) | - | voice-as | - | 11-02 08:53 | 11-05 05:16 | 0/0 | stale | no | - | unknown | quiet |
@@ -102,20 +107,69 @@
 | [session-e3fd9043](/framework/ai/sessions/2026/10/31/session-e3fd9043/) | - | - | - | 10-31 01:09 | 11-02 02:52 | 0/0 | stale | no | - | unknown | quiet |
 | [session-cb53aa0e](/framework/ai/sessions/2026/10/24/session-cb53aa0e/) | - | - | - | 11-02 02:43 | 11-02 02:43 | 0/0 | stale | no | - | unknown | quiet |
 | [cloud-voice-app-20261030](/framework/ai/sessions/2026/10/30/cloud-voice-app-20261030/) | - | - | - | 10-30 07:32 | 11-02 02:42 | 0/0 | stale | no | - | unknown | quiet |
-| [vscode-memory](/framework/ai/sessions/2026/11/04/session-5132a480/vscode-memory/) | - | - | - | 11-05 04:22 | 11-06 05:57 | 0/0 | stale | no | - | unknown | ok |
-| [session-c1e2964f](/framework/ai/sessions/2026/11/04/session-c1e2964f/) | - | - | - | 11-05 04:14 | 11-06 05:57 | 0/0 | stale | no | - | unknown | ok |
-| [session-e5c6d679](/framework/ai/sessions/2026/11/04/session-e5c6d679/) | - | - | - | 11-05 04:19 | 11-06 05:57 | 0/0 | stale | no | - | unknown | ok |
-| [cloud-voice-app-20261104](/framework/ai/sessions/2026/11/04/cloud-voice-app-20261104/) | - | - | - | 11-05 03:54 | 11-06 05:52 | 0/0 | stale | no | - | unknown | ok |
-| [session-23b9e579](/framework/ai/sessions/2026/11/04/session-23b9e579/) | - | - | - | 11-05 04:14 | 11-06 05:52 | 0/0 | stale | no | - | unknown | ok |
-| [session-43fdd2cf](/framework/ai/sessions/2026/11/04/session-43fdd2cf/) | - | - | - | 11-05 04:14 | 11-06 05:52 | 0/0 | stale | no | - | unknown | ok |
-| [session-535efe54](/framework/ai/sessions/2026/11/04/session-535efe54/) | - | - | - | 11-05 04:14 | 11-06 05:52 | 0/0 | stale | no | - | unknown | ok |
-| [session-381d6428](/framework/ai/sessions/2026/11/05/session-381d6428/) | - | - | - | 11-05 20:27 | 11-06 05:47 | 0/0 | stale | no | - | unknown | ok |
-| [cloud-voice-app-20261105](/framework/ai/sessions/2026/11/05/cloud-voice-app-20261105/) | - | - | - | 11-05 21:37 | 11-06 05:32 | 0/0 | stale | no | - | unknown | ok |
-| [session-5132a480](/framework/ai/sessions/2026/11/04/session-5132a480/) | - | - | - | 11-05 04:13 | 11-06 05:27 | 0/0 | stale | no | - | unknown | ok |
-| [task-system-check](/framework/ai/sessions/2026/11/04/session-5132a480/task-system-check/) | - | 3895ec7f | sonnet-5-5 | 11-05 04:36 | 11-06 05:22 | 0/0 | stale | yes | - | stopped | ok |
-| [session-697c1014](/framework/ai/sessions/2026/11/04/session-697c1014/) | - | - | - | 11-05 04:46 | 11-06 05:22 | 0/0 | stale | no | - | unknown | ok |
-| [cloud-voice-app-20261103](/framework/ai/sessions/2026/11/03/cloud-voice-app-20261103/) | - | - | - | 11-03 22:31 | 11-06 05:17 | 0/0 | stale | no | - | unknown | ok |
-| [session-e9c8d0d3](/framework/ai/sessions/2026/11/03/session-e9c8d0d3/) | - | - | - | 11-03 18:58 | 11-06 05:02 | 0/0 | stale | no | - | unknown | ok |
+| [mastermind-session-truth](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/) | - | fb0203e4 | opus-5-5 | 11-07 03:32 | 11-07 05:59 | 0/0 | stale | yes | - | dormant | ok |
+| [mastermind-resources](/framework/ai/sessions/2026/11/06/spawned/mastermind-resources/) | - | 20564a34 | opus-5-5 | 11-07 03:18 | 11-07 05:58 | 0/0 | stale | yes | - | dormant | ok |
+| [cloud-voice-app-20261105](/framework/ai/sessions/2026/11/05/cloud-voice-app-20261105/) | - | - | - | 11-05 21:37 | 11-07 05:55 | 0/0 | stale | no | - | unknown | ok |
+| [cloud-voice-app-20261106](/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/) | - | voice-ap | - | 11-06 07:22 | 11-07 05:55 | 0/0 | stale | no | - | unknown | ok |
+| [session-20ad0991](/framework/ai/sessions/2026/11/06/session-20ad0991/) | - | - | - | 11-07 01:27 | 11-07 05:55 | 0/0 | stale | no | - | unknown | ok |
+| [asks](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/asks/) | - | 817a8fc1 | haiku-5-5 | 11-07 03:42 | 11-07 05:40 | 0/0 | landed | yes | - | stopped | ok |
+| [session-67a191a3](/framework/ai/sessions/2026/11/06/session-67a191a3/) | - | - | - | 11-07 04:38 | 11-07 05:40 | 0/0 | stale | no | - | unknown | ok |
+| [session-697c1014](/framework/ai/sessions/2026/11/04/session-697c1014/) | - | - | - | 11-05 04:46 | 11-07 05:35 | 0/0 | stale | no | - | unknown | ok |
+| [children-link](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/children-link/) | - | fdec493b | sonnet-5-5 | 11-07 05:13 | 11-07 05:25 | 0/0 | landed | yes | - | stopped | ok |
+| [errors](/framework/ai/sessions/2026/11/06/spawned/mastermind-resources/errors/) | - | - | - | 11-07 05:24 | 11-07 05:24 | 0/0 | landed | yes | - | unknown | ok |
+| [mastermind-live-page](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/) | - | 67a191a3 | opus-5-5 | 11-06 07:51 | 11-07 05:18 | 0/0 | stopped | yes | - | dormant | ok |
+| [score-endings](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/score-endings/) | - | 8cabd3fc | haiku-5-5 | 11-07 03:42 | 11-07 05:16 | 3/0 | landed | yes | - | stopped | ok |
+| [session-2509f430](/framework/ai/sessions/2026/11/04/session-2509f430/) | - | - | - | 11-07 01:52 | 11-07 05:15 | 0/0 | stale | no | - | unknown | ok |
+| [session-3895ec7f](/framework/ai/sessions/2026/11/04/session-3895ec7f/) | - | - | - | 11-07 01:52 | 11-07 05:15 | 0/0 | stale | no | - | unknown | ok |
+| [vscode-memory](/framework/ai/sessions/2026/11/04/session-5132a480/vscode-memory/) | - | - | - | 11-05 04:22 | 11-07 05:15 | 0/0 | stale | no | - | unknown | ok |
+| [session-c1e2964f](/framework/ai/sessions/2026/11/04/session-c1e2964f/) | - | - | - | 11-05 04:14 | 11-07 05:15 | 0/0 | stale | no | - | unknown | ok |
+| [session-e5c6d679](/framework/ai/sessions/2026/11/04/session-e5c6d679/) | - | - | - | 11-05 04:19 | 11-07 05:15 | 0/0 | stale | no | - | unknown | ok |
+| [leaks](/framework/ai/sessions/2026/11/06/spawned/mastermind-resources/leaks/) | - | d0963b8a | sonnet-5-5 | 11-07 04:00 | 11-07 05:15 | 0/0 | landed | yes | - | stopped | ok |
+| [cloud-voice-app-20261104](/framework/ai/sessions/2026/11/04/cloud-voice-app-20261104/) | - | - | - | 11-05 03:54 | 11-07 05:10 | 0/0 | stale | no | - | unknown | ok |
+| [session-23b9e579](/framework/ai/sessions/2026/11/04/session-23b9e579/) | - | - | - | 11-05 04:14 | 11-07 05:10 | 0/0 | stale | no | - | unknown | ok |
+| [session-43fdd2cf](/framework/ai/sessions/2026/11/04/session-43fdd2cf/) | - | - | - | 11-05 04:14 | 11-07 05:10 | 0/0 | stale | no | - | unknown | ok |
+| [session-5132a480](/framework/ai/sessions/2026/11/04/session-5132a480/) | - | minion-z | - | 11-05 04:13 | 11-07 05:10 | 0/0 | stale | no | - | unknown | ok |
+| [session-535efe54](/framework/ai/sessions/2026/11/04/session-535efe54/) | - | - | - | 11-05 04:14 | 11-07 05:10 | 0/0 | stale | no | - | unknown | ok |
+| [live-r17](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-r17/) | - | - | - | 11-07 05:08 | 11-07 05:08 | 0/0 | landed | yes | - | unknown | ok |
+| [session-381d6428](/framework/ai/sessions/2026/11/05/session-381d6428/) | - | - | - | 11-05 20:27 | 11-07 05:00 | 0/0 | stale | no | - | unknown | ok |
+| [flat-route](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/flat-route/) | - | f85dd84a | sonnet-5-5 | 11-07 04:15 | 11-07 04:50 | 0/0 | landed | yes | - | dormant | ok |
+| [live-r16](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-r16/) | - | - | - | 11-07 04:46 | 11-07 04:46 | 0/0 | landed | yes | - | unknown | ok |
+| [minion-tabs-survey](/framework/ai/sessions/2026/11/06/spawned/minion-tabs-survey/) | - | 00658351 | sonnet-5-5 | 11-07 01:23 | 11-07 04:40 | 0/0 | stopped | yes | - | stopped | ok |
+| [mastermind-page-design](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/) | - | 7caa4528 | opus-5-5 | 11-06 21:43 | 11-07 04:37 | 0/0 | waiting | yes | - | dormant | ok |
+| [link-dot](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/link-dot/) | - | mastermi | - | 11-07 04:20 | 11-07 04:32 | 0/0 | landed | yes | - | unknown | ok |
+| [truth](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/truth/) | - | adfe6985 | haiku-5-5 | 11-07 03:42 | 11-07 04:07 | 0/0 | stopped | yes | - | stopped | ok |
+| [commits](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/commits/) | - | baad29fc | haiku-5-5 | 11-07 03:42 | 11-07 03:51 | 0/0 | stopped | yes | - | stopped | ok |
+| [relief](/framework/ai/sessions/2026/11/06/spawned/mastermind-resources/relief/) | - | 363cebb9 | sonnet-5-5 | 11-07 03:24 | 11-07 03:47 | 99/0 | landed | yes | - | stopped | ok |
+| [zero-footprint-close](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/zero-footprint-close/) | - | b45f6845 | haiku-5-5 | 11-07 03:42 | 11-07 03:45 | 0/0 | landed | yes | - | stopped | ok |
+| [queue-pids](/framework/ai/sessions/2026/11/06/spawned/mastermind-resources/queue-pids/) | - | 4564872b | sonnet-5-5 | 11-07 03:24 | 11-07 03:35 | 0/0 | landed | yes | - | stopped | ok |
+| [one-creator](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/one-creator/) | - | 2937f469 | sonnet-5 | 11-07 02:19 | 11-07 02:50 | 0/0 | landed | yes | - | stopped | ok |
+| [v-yq08i4n](/framework/ai/sessions/2026/11/06/v-yq08i4n/) | - | - | - | 11-06 23:03 | 11-07 02:47 | 0/0 | idle | no | - | unknown | ok |
+| [live-r15](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-r15/) | - | - | - | 11-07 02:43 | 11-07 02:44 | 0/0 | landed | yes | - | unknown | ok |
+| [live-r14](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-r14/) | - | - | - | 11-07 02:34 | 11-07 02:34 | 0/0 | landed | yes | - | unknown | ok |
+| [live-r13](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-r13/) | - | - | - | 11-07 02:23 | 11-07 02:23 | 0/0 | landed | yes | - | unknown | ok |
+| [live-r12](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-r12/) | - | - | - | 11-07 02:02 | 11-07 02:04 | 0/0 | landed | yes | - | unknown | ok |
+| [one-folder](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/one-folder/) | - | mastermi | - | 11-07 01:53 | 11-07 02:02 | 0/0 | landed | yes | - | unknown | ok |
+| [ref-file](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/ref-file/) | - | 5daed15c | sonnet-5 | 11-07 00:32 | 11-07 01:30 | 0/0 | landed | yes | - | stopped | ok |
+| [error-button](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/error-button/) | - | 0fe4ffeb | sonnet-5 | 11-07 01:08 | 11-07 01:20 | 0/0 | landed | yes | - | stopped | ok |
+| [inspector](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/) | - | 1a06a219 | sonnet-5 | 11-06 23:37 | 11-07 00:50 | 0/0 | landed | yes | - | stopped | ok |
+| [tabs-r3](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/tabs-r3/) | - | e127e8ae | sonnet-5 | 11-06 23:45 | 11-07 00:37 | 0/0 | landed | yes | - | stopped | ok |
+| [view-type](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/view-type/) | - | - | - | 11-07 00:28 | 11-07 00:28 | 0/0 | stopped | no | - | unknown | ok |
+| [item-validate](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/item-validate/) | - | 5a65eedc | sonnet-5 | 11-06 23:35 | 11-07 00:13 | 0/0 | stopped | yes | - | stopped | ok |
+| [simplify](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/simplify/) | - | a231760d | sonnet-5 | 11-07 00:01 | 11-07 00:06 | 0/0 | landed | yes | - | dormant | ok |
+| [code-card](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/code-card/) | - | 0cd22cba | sonnet-5 | 11-06 23:35 | 11-07 00:00 | 0/0 | landed | yes | - | stopped | ok |
+| [minion-plugin-system-review](/framework/ai/sessions/2026/11/06/spawned/minion-plugin-system-review/) | - | 17cdd365 | sonnet-5-5 | 11-06 23:33 | 11-06 23:41 | 0/0 | landed | yes | - | dormant | ok |
+| [page-features](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/page-features/) | - | 64693408 | sonnet-5 | 11-06 21:47 | 11-06 23:10 | 1/0 | landed | yes | - | dormant | ok |
+| [mastermind-ai](/framework/ai/sessions/2026/11/06/spawned/mastermind-ai/) | - | cdf0b766 | sonnet-5-5 | 11-06 23:03 | 11-06 23:05 | 0/0 | landed | yes | - | dormant | ok |
+| [minion-tabs-page](/framework/ai/sessions/2026/11/06/session-7caa4528/minion-tabs-page/) | - | d93e9d0a | sonnet-5 | 11-06 22:23 | 11-06 23:03 | 0/0 | landed | yes | - | stopped | ok |
+| [page-ui](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/page-ui/) | - | 3aaf6a2e | sonnet-5 | 11-06 21:54 | 11-06 23:03 | 0/0 | landed | yes | - | dormant | ok |
+| [tabs-page](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/tabs-page/) | - | mastermi | - | 11-06 22:59 | 11-06 23:03 | 0/0 | landed | yes | - | unknown | ok |
+| [storage](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/storage/) | - | 3f3e2fcd | sonnet-5 | 11-06 22:35 | 11-06 22:54 | 0/0 | landed | yes | - | dormant | ok |
+| [past-work](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/storage/past-work/) | - | 6916f29c | haiku-5-5 | 11-06 22:35 | 11-06 22:37 | 0/0 | landed | yes | - | dormant | ok |
+| [mastermind-method-audit](/framework/ai/sessions/2026/11/06/spawned/mastermind-method-audit/) | - | e010db41 | sonnet-5-5 | 11-06 21:34 | 11-06 21:41 | 0/0 | landed | yes | - | dormant | ok |
+| [minion-site-survey](/framework/ai/sessions/2026/11/06/spawned/minion-site-survey/) | - | 21f4ad64 | haiku-5-5 | 11-06 07:04 | 11-06 10:37 | 0/0 | stopped | yes | - | stopped | ok |
+| [item-read](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/item-read/) | - | f9b664ba | sonnet | 11-06 08:21 | 11-06 08:33 | 0/0 | landed | yes | - | dormant | ok |
+| [mastermind-session-map](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-map/) | - | 226d89ae | opus-5-5 | 11-06 07:09 | 11-06 08:26 | 0/0 | stopped | yes | - | dormant | ok |
+| [task-system-check](/framework/ai/sessions/2026/11/04/session-5132a480/task-system-check/) | - | 3895ec7f | sonnet-5-5 | 11-05 04:36 | 11-06 06:22 | 0/0 | stopped | yes | - | stopped | ok |
 | [mastermind-figma-docs](/framework/ai/sessions/2026/11/05/spawned/mastermind-figma-docs/) | - | 47d615ff | sonnet-5-5 | 11-05 21:58 | 11-05 23:11 | 0/0 | stopped | yes | - | dormant | ok |
 | [mastermind-process-cleanup](/framework/ai/sessions/2026/11/04/spawned/mastermind-process-cleanup/) | - | 3b0e08ad | sonnet-5-5 | 11-05 04:05 | 11-05 06:37 | 0/0 | landed | yes | - | dormant | ok |
 | [completion-truth](/framework/ai/sessions/2026/11/04/session-5132a480/completion-truth/) | - | 2509f430 | sonnet-5-5 | 11-05 04:45 | 11-05 06:13 | 0/0 | landed | yes | - | dormant | ok |
@@ -892,7 +946,6 @@
 | [dictation-debug](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/) | - | 3158646c | opus-5-5 | 10-25 06:44 | 10-31 00:02 | 2/5 | waiting | yes | - | dormant | ok |
 | [minion-usage](/framework/ai/sessions/2026/10/29/spawned/minion-usage/) | - | 7c606504 | haiku-5-5 | 10-30 00:25 | 10-30 07:18 | 0/0 | stopped | yes | - | stopped | ok |
 | [mastermind-ai](/framework/ai/sessions/2026/10/28/spawned/mastermind-ai/) | - | fd5441b2 | sonnet-5-5 | 10-29 03:28 | 10-29 03:31 | 0/0 | landed | yes | - | dormant | ok |
-| [mastermind-system-map](/framework/ai/sessions/2026/10/26/spawned/mastermind-system-map/) | - | 264f7d21 | sonnet-5-5 | 10-26 22:48 | 10-28 04:53 | 0/0 | landed | yes | - | dormant | ok |
 
 ## Unworked tasks (open, untouched over 7 days)
 
