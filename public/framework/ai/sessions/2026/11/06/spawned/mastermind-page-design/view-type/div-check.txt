@@ -1,0 +1,16 @@
+/live/div-test/ hello-divs: ["<div>Hello world</div>"] cards: 40
+/live/ hello-divs: [] cards: 40
+/live/lab/is-page/ hello-divs: [] cards: 84
+/framework/core/Page/ hello-divs: [] cards: 9
+errors: 11 [
+  '404 http://127.0.0.1:55989/framework/ai/page-work.json',
+  '404 http://127.0.0.1:55989/framework/ai/tasks.json',
+  '404 http://127.0.0.1:55989/framework/ai/page-work.json',
+  '404 http://127.0.0.1:55989/framework/ai/tasks.json',
+  '404 http://127.0.0.1:55989/framework/ai/page-work.json'
+]
+/live/div-test/ hello-divs: [] cards: 36
+/live/ hello-divs: [] cards: 34
+/live/lab/is-page/ hello-divs: [] cards: 78
+/framework/core/Page/ hello-divs: [] cards: 9
+errors: 0 []

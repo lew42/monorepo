@@ -151,3 +151,12 @@
 {"content":{"add":{"id":"link-design","after":"link-plan","path":"./design/","text":"Method map, storage findings, tabs findings.","title":"Design lab","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T23:40:13.150Z"}
 {"content":{"add":{"id":"link-demos","after":"link-design","path":"./demos/","text":"Tabs, nav, place and columns, one tap-through each.","title":"Demos","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T23:40:14.176Z"}
 {"content":{"add":{"id":"link-lab","after":"link-demos","path":"./lab/","text":"Any class as a card, cards as pages.","title":"Lab","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T23:40:15.009Z"}
+{"file":"improvements.jsonl"}
+{"content":{"remove":"link-design"},"by":"voice-app","ts":"2026-11-06T23:53:29.633Z"}
+{"content":{"remove":"link-demos"},"by":"voice-app","ts":"2026-11-06T23:53:31.975Z"}
+{"content":{"remove":"link-lab"},"by":"voice-app","ts":"2026-11-06T23:53:32.338Z"}
+{"file":"LiveCode.js"}
+{"file":"LiveCode.test.mjs"}
+{"file":"div-test/page.jsonl"}
+{"content":{"add":{"id":"div-test","path":"./div-test/","title":"Div test","type":"part-link"}},"by":"voice-app","ts":"2026-11-07T00:03:35.674Z"}
+{"tab":{"name":"div-test","tab":false},"by":"voice-app","ts":"2026-11-07T00:04:02.225Z"}
