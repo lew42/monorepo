@@ -73,7 +73,7 @@ function resolve_file(url, item = false){
  * the file behind it, even when none exists yet. Today one family of routes keeps its file
  * somewhere else: a session page, `/framework/ai/sessions/<id>/`, is drawn by a template
  * (ai/AISession/AISessionDetail.js) and its page.jsonl lives in the session's own dated
- * folder, `sessions/YYYY/MM/DD/<slug>/` (AISession.locate() makes one for a session that has
+ * folder, `sessions/YYYY/MM/DD/<slug>/` (Session.create(), the one creator, makes one for a session that has
  * none). `<id>` is a session uuid or a Servex agent id (its registry row holds the uuid). A
  * deeper path, `/framework/ai/sessions/<id>/notes/`, is a tab built from a line in that same
  * file, so its segments go on the front of the target: ["notes", ...target]. Anything else
@@ -180,7 +180,9 @@ async function session_file(id){
 		return { why: `no session ${uuid}: it has no folder, no transcript and no Servex agent, so nothing was created. Was the id typed${nearest(uuid, [...AISession.days.keys()]).replace(/^; d/, "? D").replace(/^\.$/, "?")} ${OMIT}` };
 	// The one creator (core/Session/SessionFolders.mjs create): its folder if it has one, else a new one made with line 1 saying whose it is,
 	// so every later writer finds it (never a second folder).
-	const dir = await AISession.create({ id: uuid, name: slug, first: { session: { id: uuid, kind: "agent", agent: name ?? undefined, at: new Date().toISOString() } } });
+	// `first` only for a brand-new folder: an old one holding just a page.jsonl is someone's (maybe a tab's), so it gets no `kind: "agent"` line.
+	const fresh = !folders.of(uuid);
+	const dir = await AISession.create({ id: uuid, name: slug, first: fresh ? { session: { id: uuid, kind: "agent", agent: name ?? undefined, at: new Date().toISOString() } } : null });
 	// The page itself: a folder is a page only with a page.js or page.jsonl, and its first line names whose page it is.
 	const file = path.join(dir, "page.jsonl");
 	if (!fs.existsSync(file)) fs.appendFileSync(file, JSON.stringify({ session: uuid, ts: new Date().toISOString() }) + "\n");

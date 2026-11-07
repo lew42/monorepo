@@ -1133,7 +1133,8 @@ export function open_task(task, { session_id, agent, role, by, model, effort = n
 	// folder nested inside its parent (found by its session id only through that claim, SessionFolders.record_of). A folder that already has
 	// a record gets this assign line appended, like every other assign a task log collects.
 	const first = JSON.parse(line), file = SessionRecord.start_file(dir, first), had = ["session.jsonl", "task.jsonl"].some(n => fs.existsSync(path.join(dir, n)));
-	SessionFolders.at(path.join(process.cwd(), "public/framework/ai/sessions")).create(session_id, { dir, first, file: path.basename(file) });
+	try { SessionFolders.at(path.join(process.cwd(), "public/framework/ai/sessions")).create(session_id, { dir, first, file: path.basename(file) }); }
+	catch (e){ console.warn("session folder create/claim failed for", dir, e); fs.mkdirSync(dir, { recursive: true }); if (!had && !fs.existsSync(file)) fs.appendFileSync(file, line + "\n"); }   // a spawn never fails on the folder map
 	if (had) fs.appendFileSync(file, line + "\n");
 	// A task folder under a session or another task counts as its task: the parent's log gets one {"task":"<url>"} reference (never twice).
 	// A handoff (`task: {from, id}`) is referenced by move_item's own `as` line; a second plain one would replay as a twin child, so link only without a handoff (or when it is refused, below).

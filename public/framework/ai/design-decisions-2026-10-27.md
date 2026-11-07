@@ -60,7 +60,7 @@ Read first: [core/Item/doc/owner-2026-10-21-items-hold-items.md](/framework/core
 
 **Today it is node only; the browser cannot create one.**
 
-- A session folder is made by the SessionStart hook, `TaskDirs`, or a spawn. `Servex/agents/Agents.js:1066` appends line 1 through `SessionRecord.start_file` (`Server/SessionRecord.mjs`); cloud voice sessions are made in `Servex/ext/remote/RemoteMCP.js:179-188`; `Sessions.session_path` (`Servex/agents/Sessions.js:694`) is the one place the path shape lives.
+- (Since 2026-11-06 every one of these makes the folder through one creator, `SessionFolders#create`: [one-folder.md, "The one creator"](sessions/doc/one-folder.md#the-one-creator-2026-11-06).) A session folder is made by the SessionStart hook, `TaskDirs`, or a spawn. `Servex/agents/Agents.js:1066` appends line 1 through `SessionRecord.start_file` (`Server/SessionRecord.mjs`); cloud voice sessions are made in `Servex/ext/remote/RemoteMCP.js:179-188`; `Sessions.session_path` (`Servex/agents/Sessions.js:694`) is the one place the path shape lives.
 - A browser `Item.Store` writes through `POST /api/item` (`Store.js:184-186`, `:200-222`). The tool **refuses a dated session folder that is not on disk** ("a session folder is made only by the SessionStart hook, TaskDirs or a spawn", `Servex/agents/page_tools.js:103`). Off localhost the store writes nothing (`Store.js:174-180`, `:224-227`).
 - The browser can only append to an existing session, and make a folder inside it with `pages.add` / `tasks.add`.
 
