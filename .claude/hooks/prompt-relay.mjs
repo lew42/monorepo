@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import TaskDirs from "../../Server/TaskDirs.mjs";
 import DatedFiles from "../../Server/DatedFiles.mjs";
 import SessionRecord from "../../Server/SessionRecord.mjs";
+import Ask from "../../Server/Ask.mjs";
 
 /* prompt-relay.mjs — the UserPromptSubmit hook (2026-09-19).
  *
@@ -189,21 +190,10 @@ const marker = sid => path.join(os.tmpdir(), `claude-assistant-${String(sid).rep
 const mark_assistant = sid => { try { fs.writeFileSync(marker(sid), ""); } catch {} };
 const is_assistant = sid => { try { return fs.existsSync(marker(sid)); } catch { return false; } };
 
-// A best-effort heuristic, not a scanner: common key/token shapes, checked line by line so a
-// multi-line paste with one bad line still withholds the whole prompt rather than half-logging it.
-const SECRET_PATTERNS = [
-	/-----BEGIN[ A-Z]*PRIVATE KEY-----/,
-	/\b(AKIA|ASIA)[0-9A-Z]{16}\b/, // AWS access key id
-	/\bsk-(ant-|proj-)?[A-Za-z0-9_-]{16,}\b/, // Anthropic / OpenAI style secret keys
-	/\bgh[pousr]_[A-Za-z0-9]{20,}\b/, // GitHub tokens
-	/\bxox[baprs]-[A-Za-z0-9-]{10,}\b/, // Slack tokens
-	/\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/, // JWT
-	/\b(api[_-]?key|secret|token|password|passwd)\b\s*[:=]\s*["']?[A-Za-z0-9_\-/+]{12,}/i, // "key: <blob>"
-];
-const looks_like_secret = text => String(text).split(/\r?\n/).some(line => SECRET_PATTERNS.some(re => re.test(line)));
-const WITHHELD = "[withheld: looked like a secret]";
-
-const is_slash = text => /^\s*\//.test(text);
+// Secret redaction and the slash-command test live in Server/Ask.mjs, the one ask writer.
+const looks_like_secret = text => Ask.looks_like_secret(text);
+const WITHHELD = Ask.WITHHELD;
+const is_slash = text => Ask.is_slash(text);
 
 const stdin = () => new Promise(resolve => {
 	if (process.stdin.isTTY) return resolve("");
@@ -242,8 +232,9 @@ const run = async () => {
 	let page_url = null, prompt_item_id = null;
 	if (owner_interactive) {
 		page_url = session_page_url(session_id);
-		const out = await mcp_call("page_add", { path: page_url, item: { type: "Prompt", text: safe_text, redacted: secret || undefined, counted: true } }, "owner");
-		prompt_item_id = out?.ok ? out.id : null;
+		// ONE ASK LINE on the tab's session record (Server/Ask.mjs): skips slash commands, withholds secrets, writes {"ask":{id,text,via:"vscode"}}.
+		const out = await Ask.write(page_url, prompt, "vscode", (url, delta) => mcp_call("page_set", { path: url, delta }, "owner"));
+		prompt_item_id = out.ok && out.id ? out.id : null;
 	}
 
 	// 1b. Tell Servex where this item landed, never the text itself, so the per-session echo

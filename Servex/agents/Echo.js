@@ -208,8 +208,11 @@ export default class Echo {
 	 * comment). Only the item's own `add` line is read (its text never changes after that),
 	 * never a full page replay — `page` is relative to `public/`, exactly as the hook sent it. */
 	read_item(page, item_id){
-		let text;
-		try { text = fs.readFileSync(path.join(REPO, "public", page.replace(/^\/+/, ""), "page.jsonl"), "utf8"); } catch { return null; }
+		let text = "";
+		for (const file of ["page.jsonl", "session.jsonl"]){   // a session folder keeps the owner's words in session.jsonl
+			try { text += fs.readFileSync(path.join(REPO, "public", page.replace(/^\/+/, ""), file), "utf8") + "\n"; } catch {}
+		}
+		if (!text.trim()) return null;
 		for (const raw of text.split("\n")){
 			if (!raw.trim()) continue;
 			let line;
@@ -223,6 +226,7 @@ export default class Echo {
 			// one-release compat window `page_tools.js`'s own `replay()` already keeps.
 			if (line.at === "content" && line.add?.id === item_id) return line.add;
 			if (line.content?.add?.id === item_id) return line.content.add;
+				if (line.ask?.id === item_id) return { id: item_id, type: "Prompt", text: line.ask.text, ts: line.ts };   // the one ask line (Server/Ask.mjs)
 		}
 		return null;
 	}
