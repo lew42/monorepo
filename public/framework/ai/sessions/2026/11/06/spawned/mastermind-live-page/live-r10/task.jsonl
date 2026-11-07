@@ -9,3 +9,5 @@
 {"review":{"at":"2026-11-06T19:24:58-06:00","answer":{"n":6,"reply":"noted: intended; one line per page and message, the error card still counts every repeat."}}}
 {"review":{"at":"2026-11-06T19:24:58-06:00","answer":{"n":7,"reply":"fixed: ext/ErrorLog/readme.md names LivePage and its /live/failures.jsonl (320ae167a)."}}}
 {"review":{"at":"2026-11-06T19:24:58-06:00","answer":{"n":8,"reply":"noted: previews are part 2 of requirements.md, the next merge from this same task, started right after this one."}}}
+{"complete":{"outcome":"One bad line never blanks a /live/ page: a broken card draws an error box, errors go to failures.jsonl; ov-keep crash fixed; merged","evidence":["fdf4eb003 hotfix and 320ae167a on compliance/dev","review answered in live-r10/task.jsonl"],"at":"2026-11-07T01:50:05-06:00"}}
+{"assign":{"closed_by":"mastermind-live-page","closed_at":"2026-11-07T01:50:05-06:00","closed_why":null}}

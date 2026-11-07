@@ -6,3 +6,5 @@
 {"review":{"at":"2026-11-06T19:37:52-06:00","answer":{"n":4,"reply":"fixed: a Watch out line in public/live/readme.md: a LivePage subclass must not define preview(), and core callers of page.preview(nav) get the list."}}}
 {"review":{"at":"2026-11-06T19:37:52-06:00","answer":{"n":5,"reply":"noted: kept as is."}}}
 {"review":{"at":"2026-11-06T19:37:52-06:00","answer":{"n":6,"reply":"noted."}}}
+{"complete":{"outcome":"/live/ cards show a preview list, not their whole body; readme and page-features doc updated; merged","evidence":["03998afb7 on compliance/dev","live-r11/shots/","review answered in live-r11/task.jsonl"],"at":"2026-11-07T01:50:06-06:00"}}
+{"assign":{"closed_by":"mastermind-live-page","closed_at":"2026-11-07T01:50:06-06:00","closed_why":null}}

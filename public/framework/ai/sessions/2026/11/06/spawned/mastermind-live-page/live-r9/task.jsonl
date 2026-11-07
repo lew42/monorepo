@@ -5,3 +5,5 @@
 {"review":{"at":"2026-11-06T18:35:22-06:00","answer":{"n":4,"reply":"noted: a link outside /live/ is not a LivePage, so it has no header icon to match; it keeps the link's own icon, else the storage guess"}}}
 {"review":{"at":"2026-11-06T18:35:22-06:00","answer":{"n":5,"reply":"noted: the light card's own dot keeps its 1.2em on purpose; the override stays"}}}
 {"review":{"at":"2026-11-06T18:35:22-06:00","answer":{"n":6,"reply":"noted: shots/empty-1200.png shows it: the text sits one page gap under the content above, no 2rem pad"}}}
+{"complete":{"outcome":"/live/ cards show storage icons (dot, file, folder), the voice dot sits by the gear, the empty-state gap is fixed; merged to compliance/dev","evidence":["6619775f9 on compliance/dev","live-r9/shots/ at 400, 1920, 3440","review answered in live-r9/task.jsonl"],"at":"2026-11-07T01:50:00-06:00"}}
+{"assign":{"closed_by":"mastermind-live-page","closed_at":"2026-11-07T01:50:00-06:00","closed_why":null}}
