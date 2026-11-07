@@ -58,6 +58,15 @@ try {
 	marked._own_file = "/m/";
 	marked.set({ title: "M2" });
 	t.eq(lines("parent.jsonl").length, 2, "a child marked _own_file adds its note to the root, then nothing more");
+
+	// 4. a replay that hangs a live object on its line (a pages.add gets its Page) must not stop the batch
+	const seen = [], circ = new Store({ url: "/circ.jsonl" });
+	circ.host = { replay_line(e){ e.self = e; seen.push(e.n); }, emit(){} };
+	let threw = null;
+	try { circ.read([{ n: 1 }, { n: 2 }]); } catch (e){ threw = e.message; }
+	t.eq(threw, null, "a line made circular by its own replay does not throw");
+	t.eq(seen, [1, 2], "the lines after it still replay");
+	t.eq(circ.applied.size, 2, "both lines are remembered for reset recovery");
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
 
 t.done();
