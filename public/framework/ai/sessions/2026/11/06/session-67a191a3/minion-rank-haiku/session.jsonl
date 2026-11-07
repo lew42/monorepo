@@ -55,3 +55,7 @@
 {"pid_exit":46132,"ended":"2026-11-07T03:23:36-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid_exit":27556,"ended":"2026-11-07T03:23:54-06:00","code":0,"signal":null,"by":"servex"}
 {"log":{"at":"2026-11-07T03:29:28-06:00","heartbeat":"deliberate","msg":"minion-rank-haiku its agent is not running: it was stopped on purpose by mastermind-live-page at 2026-11-07T03:23:54-06:00; not revived."}}
+{"log":{"at":"2026-11-07T03:38:27-06:00","msg":"task-loop status ask 1: minion-rank-haiku was stopped on purpose; not woken","ask":1}}
+{"log":{"at":"2026-11-07T03:43:27-06:00","msg":"task-loop status ask 2: minion-rank-haiku was stopped on purpose; not woken","ask":2}}
+{"log":{"at":"2026-11-07T03:48:27-06:00","msg":"task-loop status ask 3: minion-rank-haiku was stopped on purpose; not woken","ask":3}}
+{"log":{"at":"2026-11-07T03:53:27-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
