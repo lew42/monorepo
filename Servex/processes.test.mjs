@@ -5,6 +5,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import Processes, { task_key } from "./Processes.js";
+process.env.SERVEX_LINEAGE = "0";   // its made-up agents name a real task dir; the 10 s lineage sample must not write start lines there
 import { decide as decide_game } from "./Games.js";
 
 let pass = 0;

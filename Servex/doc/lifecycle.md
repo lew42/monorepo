@@ -20,7 +20,9 @@ Every server, health watcher, headless browser, worktree, agent and task writes 
 
 **Who owns it** (`owner_task`) comes from the env var `LEW_TASK` when it is set; otherwise from the worktree the process runs in (the task whose log names that worktree, or whose folder has the worktree's name).
 
-A process that is killed hard (`taskkill /F`) cannot write its own end line. The sweep notices the pid is gone and writes it.
+A process that is killed hard (`taskkill /F`) cannot write its own end line. The sweep notices the pid is gone and writes it. Three closers write the lines a hard kill would skip, so the sweep's "found gone" ends stay rare (2026-11-06, `Servex/leaks.mjs` report): `close()` and `Pool.kill()` call `end_killed(dir, why)` after a `taskkill /T /F`, which ends every open server / health / browser start under that path whose pid is dead (a live pid, another path and the row being closed are left alone); `Server/Browser.mjs`'s `exit` hook writes the browser's end line synchronously before `process.exit()` finishes; and `Server/browser-watchdog.mjs` writes it when it closes an orphan browser.
+
+**The owner's own apps are never ended.** `owners_own(p)` is true for Chrome (unless its command line says `ms-playwright`, `chrome-for-testing` or one of our `--user-data-dir`s, `OUR_CHROME`), Edge, Firefox, Code, Figma and the like. `kill()` and `--stop <pid>` refuse them, and the watchdog kills a chrome pid only while its command line still matches `OUR_CHROME` (a reused pid is the owner's). Proof: `Servex/chrome-pin.test.mjs` feeds every ending path a list with the owner's Chrome, Code and Figma.
 
 ## 2. The reaper
 

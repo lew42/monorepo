@@ -237,7 +237,7 @@ The Bash tool's shell, grep, node, a Playwright browser, a worktree dev server: 
 
 ### Leaks: a start with no end
 
-`node Servex/leaks.mjs` (a leak = a start line with no end line) reads every start and end line from the session logs and the `spawns` log and puts each unended start in a group: **gone, end missed** (the pid is not running: a logging bug), **alive, owner done** (its agent is stopped or dormant, or its task has landed: a real leak) or **alive, owner working** (fine). `--write <file>` writes the markdown report. It never kills anything. Run it, then fix the close path that missed the process (`Lifecycle.js`, `closeout`, `Pool.js`, `Server/Browser.mjs`), never the process itself.
+`node Servex/leaks.mjs` (a leak = a start line with no end line) reads every start and end line from the session logs and the `spawns` log and puts each unended start in a group: **gone, end missed** (the pid is not running: a logging bug), **alive, owner done** (its agent is stopped or dormant, or its task has landed: a real leak) or **alive, owner working** (fine). `--write <file>` writes the markdown report. It never kills anything. Run it, then fix the close path that missed the process (`Lifecycle.js`, `closeout`, `Pool.js`, `Server/Browser.mjs`), never the process itself. Tests: `Servex/leaks.test.mjs` (the pairing), `Servex/chrome-pin.test.mjs` (no ending path ever picks the owner's Chrome, Code or Figma; a Playwright chrome is picked; a forced kill writes its end lines).
 
 Finding things: [How to find things](/framework/ai/sessions/#how-to-find-things).
 

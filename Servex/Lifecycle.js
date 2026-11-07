@@ -45,6 +45,10 @@ const norm = p => p ? path.resolve(String(p)).replace(/\\/g, "/").toLowerCase() 
 const inside = (p, root) => !!p && !!root && (norm(p) + "/").startsWith(norm(root) + "/");
 const hours = ms => Math.round(ms / 360000) / 10;
 const SERVEX = () => `http://127.0.0.1:${process.env.SERVEX_PORT || 8090}`;
+/* A Chrome is OURS only when its command line says so: Playwright's own build (`ms-playwright`, `chrome-for-testing`) or one of our --user-data-dir profiles.
+ * The owner's Chrome, VS Code, Figma and the like are never ours; every path that ends a process asks owners_own() first (chrome-pin.test.mjs). */
+export const OUR_CHROME = /ms-playwright|chrome-for-testing|--user-data-dir=["']?[^\s"']*(?:playwright_chromiumdev_profile|[\\/]lew42[\\/]|closeout-orphan-)/i;
+export const owners_own = p => /^(chrome|msedge|firefox|brave|code|figma|slack|discord|spotify)\.exe$/i.test(p?.name ?? "") && !(/^chrome\.exe$/i.test(p.name) && OUR_CHROME.test(p.cmd ?? ""));
 export const ONE_PASS = /^(reviewer|clarity|checker|critic|fork)$/;
 export const DEAD_MS = 2 * 3600 * 1000;
 
@@ -255,7 +259,7 @@ export default class Lifecycle {
 		// own Chrome has neither marker, so it is never touched here. Only the top browser process
 		// (no `--type=` flag — a renderer/gpu/utility/crashpad child always has one) becomes a row;
 		// `add()`'s `claim()` still closes the whole tree underneath it.
-		const PLAYWRIGHT_CHROME = /ms-playwright|chrome-for-testing/i;
+		const PLAYWRIGHT_CHROME = OUR_CHROME;
 		for (const p of procs.values())
 			if (p.name === "chrome.exe" && !/--type=/i.test(p.cmd) && !seen.has(p.pid) && PLAYWRIGHT_CHROME.test(p.cmd))
 				add({ kind: "browser", id: `chrome:${p.pid}`, pid: p.pid, path: null, owner_task: null, owner_agent: null, born: p.born, logged: false });
@@ -337,7 +341,7 @@ export default class Lifecycle {
 
 	/** Stop a process tree by its top pid (the wrapper, so nothing respawns), then any child still alive. */
 	kill(r){
-		for (const pid of [r.pid, r.child].filter(Boolean)) try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
+		for (const pid of [r.pid, r.child].filter(Boolean)) if (!owners_own(this.procs?.get(pid))) try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
 		// the script that launched a browser keeps its folder as its working directory, so it would block the worktree's removal;
 		// a plain `node script.mjs` is closed with its browser; Servex, an agent (claude), a dev server (server.js / run.js, which opens browsers for its own screenshots) and this process never are
 		// never the main checkout's own processes (the dev server's screenshot plugin holds a browser in-process): only a script started inside a worktree or elsewhere
@@ -352,10 +356,28 @@ export default class Lifecycle {
 			body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }), signal: AbortSignal.timeout(20000) }).catch(() => {});
 	}
 
+	/** After a process tree was stopped with taskkill /F: write the end line of every open server / health / browser start under `dir` whose process is
+	 * gone. A forced kill skips the exit hook of each process inside the tree (run.js, server.js, a health supervisor), so the row that was closed
+	 * got its end line and its siblings kept an open start line until the sweep found them "killed without a goodbye" (2026-11-06, leaks report). */
+	async end_killed(dir, why, { skip_id = null } = {}){
+		const root = norm(dir);
+		if (!root) return 0;
+		let n = 0;
+		for (const e of this.open()){
+			if (!["server", "health", "browser"].includes(e.kind) || !e.pid || e.id === skip_id || !e.path) continue;
+			const p = norm(e.path);
+			if (p !== root && !p.startsWith(root + "/")) continue;
+			try { process.kill(e.pid, 0); continue; } catch (err) { if (err.code === "EPERM") continue; }   // still running: not ours to end
+			const { at, ...rest } = e;
+			await record({ ...rest, event: "end", why }, this.servex?.log); n++;
+		}
+		return n;
+	}
+
 	async close(r, why){
 		const live = r.kind === "agent" && this.servex?.agents?.live?.get(r.id);
 		if (live) { live.reaped_why = `reaped: ${why}`; return this.servex.agents.stop(r.id); }   // agent_ended() writes its end line
-		if (r.kind === "agent") await this.tool("stop_agent", { id: r.id }); else this.kill(r);
+		if (r.kind === "agent") await this.tool("stop_agent", { id: r.id }); else { this.kill(r); await this.end_killed(r.path, `reaped: ${why}`, { skip_id: r.id }); }
 		await record({ kind: r.kind, id: r.id, pid: r.pid, port: r.port, path: r.path, owner_task: r.owner_task ?? null, owner_agent: r.owner_agent ?? null, event: "end", why: `reaped: ${why}` }, this.servex?.log);
 	}
 
@@ -476,6 +498,7 @@ if (path.resolve(process.argv[1] || "") === fileURLToPath(import.meta.url)) {
 		const pid = Number(argv[argv.indexOf("--stop") + 1]);
 		const procs = lc.procs = lc.processes(), p = procs.get(pid);
 		if (!p) { console.log(`no process ${pid}`); process.exit(1); }
+		if (owners_own(p)) { console.log(`kept: ${p.name} is the owner's own, not ours`); process.exit(1); }
 		const top = lc.wrapper(p), r = { kind: "server", id: `pid:${pid}`, pid: top.pid, child: pid !== top.pid ? pid : null, path: process.cwd() };
 		for (const e of lc.open()) if (e.pid === top.pid || e.pid === pid) Object.assign(r, { kind: e.kind, id: e.id, port: e.port, path: e.path, owner_task: e.owner_task });
 		if (lc.kept(r)) { console.log(`kept: ${lc.kept(r)}`); process.exit(1); }
