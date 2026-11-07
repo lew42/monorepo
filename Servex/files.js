@@ -52,11 +52,20 @@ export default class FileTools {
 		return process.platform === "win32" && fs.existsSync(git) ? git : "bash";
 	}
 
-	static run(shell, command, cwd, timeout_ms){
+	/* The caller's session ({id, file}: the tool's ctx.session, set by ext/remote/RemoteMCP.js intercept, never an argument), for the git hooks: a commit made here lands on that record
+	 * (Server/git-hooks/CommitLog.mjs shell_caller). CLAUDE_CODE_SESSION_ID is dropped, or Servex's own (if it has one) would win. */
+	static env_of(session){
+		if (!session?.id || !session?.file) return process.env;
+		const env = { ...process.env, SERVEX_SESSION_ID: session.id, SERVEX_SESSION_RECORD: session.file };
+		delete env.CLAUDE_CODE_SESSION_ID;
+		return env;
+	}
+
+	static run(shell, command, cwd, timeout_ms, session = null){
 		return new Promise(resolve => {
 			const exe = shell === "powershell" ? ["powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", command]]
 				: [FileTools.bash(), ["-c", command]];
-			const child = spawn(exe[0], exe[1], { cwd, windowsHide: true });
+			const child = spawn(exe[0], exe[1], { cwd, windowsHide: true, env: FileTools.env_of(session) });
 			let stdout = "", stderr = "", timed_out = false;
 			const timer = setTimeout(() => { timed_out = true; spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { windowsHide: true }); }, timeout_ms);
 			child.stdout.on("data", d => { if (stdout.length < MAX) stdout += d; });
@@ -71,7 +80,7 @@ export default class FileTools {
 		const P = { type: "string", description: "File path, relative to the root (or absolute)." };
 		const tool = (name, description, properties, required, run) => ({
 			name, description, inputSchema: { type: "object", required, properties: { root: R, ...properties } },
-			handler: async (args = {}) => { try { return json(await run(args)); } catch (e) { return json({ ok: false, why: e.message }); } },
+			handler: async (args = {}, ctx = {}) => { try { return json(await run(args, ctx)); } catch (e) { return json({ ok: false, why: e.message }); } },
 		});
 		return [
 			tool("read_file", "Read a text file (up to 200k chars). Optional offset/limit are line numbers.", { path: P, offset: { type: "number" }, limit: { type: "number" } }, ["path"], a => {
@@ -103,8 +112,8 @@ export default class FileTools {
 				FileTools.walk(base, base, out, FileTools.glob_to_re(a.pattern), 500);
 				return { ok: true, matches: out };
 			}),
-			tool("shell", "Run a command and return stdout, stderr and the exit code. shell is bash (Git Bash, default) or powershell. cwd defaults to the root. Timeout default 60s, max 600s.", { command: { type: "string" }, shell: { type: "string", enum: ["bash", "powershell"] }, cwd: { type: "string", description: "Folder, relative to the root." }, timeout_s: { type: "number" } }, ["command"], a =>
-				FileTools.run(a.shell, a.command, FileTools.abs(a.root, a.cwd), Math.min(a.timeout_s ?? 60, 600) * 1000)),
+			tool("shell", "Run a command and return stdout, stderr and the exit code. shell is bash (Git Bash, default) or powershell. cwd defaults to the root. Timeout default 60s, max 600s.", { command: { type: "string" }, shell: { type: "string", enum: ["bash", "powershell"] }, cwd: { type: "string", description: "Folder, relative to the root." }, timeout_s: { type: "number" } }, ["command"], (a, ctx) =>
+				FileTools.run(a.shell, a.command, FileTools.abs(a.root, a.cwd), Math.min(a.timeout_s ?? 60, 600) * 1000, ctx.session)),
 		];
 	}
 }
