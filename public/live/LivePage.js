@@ -468,7 +468,7 @@ export default class LivePage extends Page {
 	}
 
 	// The header, the top row and under 100 px at any depth: the breadcrumb and the settings icon, then the
-	// page's icon, the title, the last line's delay and (on /live/) the version dropdown, then the tab row.
+	// page's icon, the title and (on /live/) the version dropdown, then the tab row. The voice light and the delay are in LivePage.Status.
 	static Head = class LiveHeadView extends View {
 		render(){
 			const { page } = this, P = page.constructor;
