@@ -50,6 +50,12 @@ export default class SessionStats extends View {
 		}).catch(() => $v.text("—"));
 	}
 
+	/** The session's one score (Task.completion_score, via the item tool's `summary`): a percent, or "needs review" when there is nothing to score. */
+	static score($v, work){
+		const base = work.id ? AICost.session_url(work.id) : work.dir;
+		AICost.summary(base).then(({ summary }) => $v.text(summary ? Task.show(summary.completion) : "—")).catch(() => $v.text("—"));
+	}
+
 	/** The running time into `$run`: the session index's wall and active time, else the Task's banked time. */
 	static running($run, work, root){
 		const own = SessionStats.elapsed(root.ms());   // the Task's banked time, only if the index has no row for this session
@@ -80,6 +86,7 @@ export default class SessionStats extends View {
 					small.c("sov-k", "Running for"); SessionStats.running(strong.c("sov-v", "…"), work, root);
 				});
 				div.c("sov-stat", () => { small.c("sov-k", "Task folders done"); strong.c("sov-v", total ? `${done} of ${total}` : "no task folders"); });
+				div.c("sov-stat", () => { small.c("sov-k", "Score"); SessionStats.score(strong.c("sov-v", "…").attr("title", "The session's one completion score; \"needs review\" means nothing in it can be scored yet"), work); });
 				div.c("sov-stat", () => { small.c("sov-k", "Session tasks done"); SessionStats.tasks(strong.c("sov-v", "…").attr("title", "The session's own tasks (its log), dropped ones left out; Task folders done counts the folders on disk instead"), work); });
 			});
 			if (part.counted.length) div.c("sov-bar", () => TaskView.draw_bar(part.counted.map(n => n.state), 12));

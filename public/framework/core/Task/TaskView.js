@@ -39,7 +39,7 @@ export default class TaskView extends View {
 
 	title(){ return this.task.get("title") ?? this.task.id ?? "?"; }
 	url(){ return this.task.get("url") ?? this.task.get("href") ?? null; }
-	percent(){ return Math.round(this.task.completion * 100) + "%"; }
+	percent(){ return Task.show(this.task.completion); }
 
 	chip(){
 		icon(this.task.get("icon") ?? "task_alt");
