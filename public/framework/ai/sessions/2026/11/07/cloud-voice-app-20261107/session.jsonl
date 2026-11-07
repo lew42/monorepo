@@ -48,3 +48,20 @@
 {"tool_call":{"at":"2026-11-07T06:47:19.299Z","tool":"item","args_hash":"d1ef2a7874d9","caller":"voice-app"}}
 {"note":{"at":"2026-11-07T06:50:39.000Z","by":"mastermind-session-truth","continues":"/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/","text":"This record continues cloud-voice-app-20261106: the same cloud conversation went past local midnight, and the record is keyed by caller and date. That record lists this one as a child session, so completion and children count there."}}
 {"log":{"at":"2026-11-07T00:57:19-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-07T01:02:20-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-07T01:12:18-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"tool_call":{"at":"2026-11-07T07:13:28.496Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T07:13:29.547Z","tool":"shell","args_hash":"c99b33ef3b9d","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T07:13:34.689Z","tool":"shell","args_hash":"2ab72c4d8e4e","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T07:13:38.971Z","tool":"shell","args_hash":"920abb6fa378","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T07:13:50.075Z","tool":"item","args_hash":"a2e4a7fb41ea","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T07:13:52.379Z","tool":"restart_servex","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T07:13:57.581Z","tool":"shell","args_hash":"6a641e31988f","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T07:14:00.720Z","tool":"shell","args_hash":"65cf8b5b7c8b","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T07:14:03.670Z","tool":"shell","args_hash":"07b1a5484e02","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T07:14:14.517Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-07T07:14:24.896Z","tool":"shell","args_hash":"113ccb33475b","caller":"voice-app"}}
+{"log":{"at":"2026-11-07T01:24:10-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-07T01:29:10-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-07T01:34:10-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-07T01:39:10-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}

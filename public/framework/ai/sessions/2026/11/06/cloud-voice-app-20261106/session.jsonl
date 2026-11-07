@@ -562,3 +562,10 @@
 {"task":"/framework/ai/sessions/2026/11/07/cloud-voice-app-20261107/","type":"Session","by":"mastermind-session-truth","ts":"2026-11-07T06:50:27.087Z"}
 {"messages":{"add":{"type":"Ref","url":"/framework/ai/sessions/2026/11/07/cloud-voice-app-20261107/","by":"servex","at":"2026-11-07T06:50:27.088Z"}},"by":"servex","ts":"2026-11-07T06:50:27.088Z"}
 {"log":{"at":"2026-11-07T00:57:19-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-07T01:02:20-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-07T01:12:18-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"tasks":{"midnight-split":{"complete":{"evidence":["bedd31fad (94213e899, 032aefd7b)","856c7df20 link lines","RemoteMCP.test.mjs ok 7","session-truth t15-midnight-split"],"outcome":"Two records linked both ways; only 1 of 18 voice records crossed midnight (this one); fix merged: an untitled cloud call stays on the record in use while calls are under 2 h apart, live after a Servex restart."}}},"by":"voice-app","ts":"2026-11-07T07:13:50.086Z"}
+{"log":{"at":"2026-11-07T01:19:09-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-07T01:24:10-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-07T01:29:10-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-07T01:34:10-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
