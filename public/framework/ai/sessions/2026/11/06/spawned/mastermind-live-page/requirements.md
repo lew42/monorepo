@@ -15,3 +15,9 @@ The asks, relayed by voice-app from the owner (the words are in the voice-app se
 11. Shots at phone width; a report under 80 words.
 12. Every page under /live/ renders as a LivePage (header, breadcrumb, gear), a plain Page class included; the header runs full width with its own padding and a bottom border, compact.
 13. Tabs stay one set across a page's tabs, and the h1 stays the parent's title. Only sub-pages that draw as this page's content are tabs; a page with its own tabs elsewhere is a link card in the content. Few tabs: demos, design, lab and saved screens are link cards. /live/demos/ is titled "Demos".
+14. A thing is either a tab or a link card, never both. Tabs are permanent core sections (Live, Log, Settings), never posts; /live/ keeps only Live, and plan, demos, design, lab, next and saved screens are link cards, organized sensibly.
+15. The header is tighter still.
+16. Settings: no "Data from … (own file)" row (its link downloads on Android); page.jsonl is in the files list and opens in the code view; the list is labelled with its folder path ("/live"), folder names have no trailing slash; the class file that draws the page (LivePage.js) is at the top, linked to its code view.
+17. The code view (/live/settings/LivePage.js/) is a LivePage with breadcrumb and gear (its own settings at …/LivePage.js/settings/); no card and no "Open the raw file" header, a small "raw" link in the sticky header; the code full width, no line numbers.
+18. A short cleanup proposal for LivePage.js (the parts/kinds import, too many comments) in plan.md; no rewrite yet.
+19. Every page names its own icon, shown in the header beside the status dot; folders get a folder icon, settings a gear (/live/plan/, card "Icons and tabs").
