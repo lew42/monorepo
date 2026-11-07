@@ -147,6 +147,7 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
   - ⚠ A child added with the item tool's `tasks.add` that lives only inside its parent's log has no log of its own, so it gets no row of its own; it shows through the parent's replay. A child with its own file (`Task.open_ref`) is indexed like any task.
   - ⚠ A start-up read of old sessions writes no day line on purpose, and a log outside the two stores (sessions, `*/tasks/<slug>/`) is never indexed.
 - Register every subclass (`Item.register(Class, name)`) — `Item.names` is an inverse Map, so an unregistered subclass serializes under its parent's wire name: [doc/decisions.md](./doc/decisions.md).
+- The registry takes a class that is not an Item too: `View` is registered in `Item.js`, so a page line `{"type":"View","content":"Hello world"}` draws a div. It stays a plain Item named `View` in the list (it saves the same line back), and `Item.foreign(item)` builds the View when a page draws it (`PageContent`, `LivePage`). Demo: [/live/div-test/](/live/div-test/).
 - `contains()` excludes self — guard a drop with `target !== this && !this.contains(target)`: [doc/method/contains.md](./doc/method/contains.md).
 - Constructors do no I/O; `Item.open(saver)` is the one async entry: [doc/method/open.md](./doc/method/open.md).
 - Warnings fire once per message — clear `Item.warned` to re-hear them: [doc/decisions.md](./doc/decisions.md).

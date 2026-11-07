@@ -2,6 +2,7 @@ import Store from "./Store.js";
 import Snapshot from "./Snapshot.js";
 import LineKey from "./LineKey.js";
 import { Events } from "../Events/Events.js";
+import View from "../View/View.js";   // registered at the bottom: a page line may be {"type":"View"} (Item.foreign)
 
 const is_data = value => !!value && typeof value === "object" && !Array.isArray(value);
 const is_plain = value => !!value && typeof value === "object" && value.constructor === Object;
@@ -672,7 +673,9 @@ export class Item extends Events(Object) {
 			data[key] = raw[key];
 		}
 
-		const item = new (Class ?? Item)({ id, data, type: Class ? undefined : raw.type });
+		// A registered class that is not an Item (View) stays a plain Item wearing its type; Item.foreign builds it when drawn.
+		const own = Class && Item.is_item_class(Class);
+		const item = new (own ? Class : Item)({ id, data, type: own ? undefined : raw.type });
 
 		for (const key in lists){
 			if (!Item.makeList){ warn(`hydrate(): "${key}" is an array but List.js never loaded — kept as plain data`, "hydrate:nolist"); item.data[key] = lists[key]; continue; }
@@ -690,8 +693,22 @@ export class Item extends Events(Object) {
 	static register(Class, name = Class.name){
 		Item.types.set(name, Class);
 		Item.names.set(Class, name);
-		Class.define_fields();
+		Class.define_fields?.();   // a class that is not an Item (View) has no fields to define
 		return Class;
+	}
+
+	static is_item_class(Class){ return Class === Item || Class?.prototype instanceof Item; }
+
+	/* A member whose registered type is not an Item ({"type":"View","content":"Hello world"}): build that class from the
+	   member's data and return it, or null for an ordinary Item. `content` is appended, not assigned, so a View shows it;
+	   a View's tag defaults to div. Call it inside a View's render, so the new view is captured there. */
+	static foreign(item){
+		const Class = Item.types.get(item?.wire?.());
+		if (!Class || Item.is_item_class(Class)) return null;
+		const { content, ...rest } = item.data ?? {};
+		const made = new Class({ ...rest, id: item.id });
+		if (content != null && typeof made.append === "function") made.append(content);
+		return made;
 	}
 
 	// Replay: ONE path for every Item, in node (`replay(lines)`) and in the browser (Store.read calls
@@ -880,3 +897,4 @@ Item.makeList = null;
 export default Item;
 
 Item.register(Item);
+Item.register(View);   // the one non-Item class registered up front; any other class registers itself where it lives
