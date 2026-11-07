@@ -57,6 +57,30 @@ export default class Socket {
 		// everything, a private LAN peer gets push traffic only, anything else is refused at the upgrade.
 		// A refused socket backs off and says so once. doc/lan.md
 		this.connect();
+		this.watch_alive();
+	}
+
+	// A socket can look open and be dead: a phone that slept, a tunnel or a proxy that lost one side. The browser reports no
+	// close, so nothing streams until a reload (/live/ sat 23 minutes stale, 2026-11-06). While the tab is visible a ping goes
+	// out every ALIVE.every ms, and at once when the tab is shown again or comes back online; no answer in ALIVE.wait ms opens
+	// a new connection, and ext/JSONL/live.js resubscribes each stream from its offset. Any answer counts, a refusal too. doc/backoff.md
+	static ALIVE = { every: 30000, wait: 5000 };
+	watch_alive(){
+		const visible = () => document.visibilityState === "visible";
+		document.addEventListener("visibilitychange", () => visible() && this.alive());
+		addEventListener("online", () => this.alive());
+		addEventListener("pageshow", e => e.persisted && this.alive());
+		setInterval(() => visible() && this.alive(), Socket.ALIVE.every);
+	}
+	async alive(){
+		if (this.disabled || !this.ever_connected || this.checking) return;
+		if (!this.connected){ if (this.retry) this.connect(); return; }   // waiting out a backoff: try now instead
+		const ws = this.ws, silence = Symbol();
+		this.checking = true;
+		try {
+			const reply = await Promise.race([this.request({ method: "ping", args: [] }), new Promise(r => setTimeout(r, Socket.ALIVE.wait, silence))]);
+			if (reply === silence && ws === this.ws){ console.warn("Socket: no answer to a ping; opening a new connection."); this.restart(); }
+		} finally { this.checking = false; }
 	}
 	connect() {
 		if (this.disabled) return;

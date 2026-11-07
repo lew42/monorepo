@@ -697,7 +697,7 @@ export default class LivePage extends Page {
 				$theirs.tc("is-empty", !theirs || members.length > 0 || (own != null && own !== ""));
 			};
 			if (url) P.meta_of(url).then(m => {
-				if (!m.description || !this.el.isConnected) return;
+				if (!m.description) return;   // not isConnected: a cached answer comes back before the card is on the page
 				theirs = m.description;
 				$theirs.empty(() => md(String(theirs), { safe: true }));
 				P.label_tables($theirs.el);

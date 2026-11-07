@@ -49,11 +49,15 @@ export default class Subpages {
 		if (fs.existsSync(dir)) throw new Error(`${name} already exists under ${this.dir}`);
 		const inherited = more.class === undefined ? this.page_class() : undefined;   // a LivePage's sub-page is a LivePage
 		const first = { title: title ?? name, ...(icon ? { icon } : {}), ...(description ? { description } : {}), ...(inherited ? { class: inherited } : {}), ...more };
-		const plan = { action: "add", name, make: rel(dir + "/page.jsonl"), first, link: this.link_plan(kind, name) };
+		// A LivePage parent also gets a link card for it in its content, as data it can move or remove (2026-11-06: voice's
+		// sub-pages of /live/ showed no card). The card shows the sub-page's own title and description (LivePage.Preview).
+		const card = /(^|\/)LivePage\.js$/.test(this.page_class() ?? "") ? { content: { add: { type: "part-link", id: `link-${name}`, path: `./${name}/`, title: first.title } }, by: "pages.add", ts: new Date().toISOString() } : null;
+		const plan = { action: "add", name, make: rel(dir + "/page.jsonl"), first, link: this.link_plan(kind, name), ...(card ? { card } : {}) };
 		if (this.dry) return { ok: true, dry: true, ...plan };
 		fs.mkdirSync(dir, { recursive: true });
 		fs.writeFileSync(path.join(dir, "page.jsonl"), JSON.stringify(first) + "\n");
 		this.append({ file: `${name}/page.jsonl` });
+		if (card) this.append(card);
 		return { ok: true, ...plan };
 	}
 
