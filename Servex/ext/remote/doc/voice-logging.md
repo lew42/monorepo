@@ -21,3 +21,9 @@ The owner's ask (relayed by the voice agent, repeated from before): the Claude-a
 ## Boundaries
 
 Work in a worktree. Do not touch `Servex/agents/Sessions.js`, `ux/Dictate/chat.js`, `Widget.js`, `Widget.css`, `DictationBar.css` or `session-smart.md` (task-mastermind-voice-opus holds them on worktree qf-6); agree the file shape with it by message.
+
+## Whose children these are (2026-11-06)
+
+Every tool call from the voice app runs `RemoteMCP.voice_session(sid)`, which also calls `point_caller(id)`: it sets the `voice-app` registry row's `session_id` to that record's id (`External.register`, which changes nothing else in the row). `Agents.session_of("voice-app")` reads it, so each agent the voice app spawns afterwards gets that record as its `parent_session`. Before this, the row kept the id it was registered with on 2026-10-19 and tonight's children hung under an October session. Test: the "children of the voice app" block in `RemoteMCP.test.mjs`. Needs a Servex restart.
+
+**A second cloud voice session on the same day (current behaviour, written down, not changed).** The record's id comes from the connection's `register_session` title (`cloud-voice-<title>`), else `cloud-voice-app-<YYYYMMDD>`. So two calls on one day that never name themselves share one record, and a titled call gets its own. The registry row holds one id, the one opened by the most recent call, so two live conversations alternating calls would flip it. Proposal (not built): give an untitled connection `cloud-voice-app-<YYYYMMDD>-<n>` from its MCP session id, and key the parent by connection (the spawn's `sid`) instead of the single registry row. Alternative: keep one record per day and make same-day conversations tabs inside it; cheaper, but costs and children of two conversations stay mixed.

@@ -207,7 +207,17 @@ export default class RemoteMCP {
         }
         // The one creator (core/Session/SessionFolders.mjs create); `dir` because a cloud-voice id is not a session uuid. Line 1 only when it has no record.
         if (!fs.existsSync(abs)) DatedFiles.sessions.session_folders().create(id, { dir: path.dirname(abs), first: { session: { id, kind: "cloud-voice-agent", caller: RemoteMCP.CALLER, at: Date.now() } } });
+        this.point_caller(id);
         return { id, file };
+    }
+
+    /* Children the voice app spawns take Agents.session_of("voice-app") as parent_session, so that row must name the record being used now. */
+    point_caller(id){
+        try {
+            const ext = this.servex.external;
+            if (!ext || ext.row(RemoteMCP.CALLER)?.session_id === id) return;
+            ext.register({ id: RemoteMCP.CALLER, session_id: id });
+        } catch (e) { console.error("remote-mcp: point caller:", e.message); }
     }
 
     // the voice agent has no SDK accounting: it may state its own cost by hand, on the row and as a line
