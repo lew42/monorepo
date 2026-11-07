@@ -233,3 +233,10 @@
 {"commit":"dc1526082ea4","by":"append.mjs","ts":"2026-11-07T01:58:36.908Z"}
 {"commit":"6d06f90e1be2","by":"append.mjs","ts":"2026-11-07T02:00:48.678Z"}
 {"log":{"at":"2026-11-07T02:02:41.910Z","msg":"Landed: one folder per session (b19ba1b2e, fold 6d06f90e1: 1,410 twins folded, --check ok) and item-tool read calls queries (44a794481). Both live after the held Servex restart. Filed Store.remember circular-hash crash (live-page report) in core/Item/improvements.jsonl."}}
+{"commit":"b05bf280382c","by":"append.mjs","ts":"2026-11-07T02:02:42.496Z"}
+{"log":{"at":"2026-11-06T20:07:05-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-07T02:07:05.925Z"}
+{"log":{"at":"2026-11-06T20:12:28-06:00","msg":"task-loop status ask 1: asked mastermind-page-design","ask":1}}
+{"log":{"at":"2026-11-06T20:12:36-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-07T02:12:36.896Z"}
+{"log":{"at":"2026-11-06T20:30:00-06:00","msg":"Idle: one-folder fix and item-tool read are merged and pushed; nothing in flight. Waiting on the held Servex restart (voice-app picks the time) and on new asks. Next in my area if idle: Store.remember circular-hash crash (core/Item/improvements, ja6f7nfy), queued not promised."}}
+{"commit":"03743e5170a8","by":"append.mjs","ts":"2026-11-07T02:13:56.727Z"}
+{"log":{"at":"2026-11-06T20:16:55-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-07T02:16:55.245Z"}
