@@ -71,7 +71,7 @@ Session logs only grow, so old versions of them add nothing; history is for code
 | Today's VS Code tabs | `"kind":"vscode-tab"` | works |
 | A task by its title | `"title":"[^"]*word` in `task.jsonl` / `session.jsonl` | works |
 | A finished task | `"complete":{"outcome":` | works |
-| Who started process 1234 | `git grep --untracked -n '"pid":1234' -- 'public/framework/ai/sessions/**'`; how it ended: `"pid_exit":1234`; Servex's own (no agent): `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl` | works since 2026-11-06 21:50 (processes Servex starts; [Servex/doc/processes.md](/Servex/doc/processes.md), "Who started this pid") |
+| Who started process 1234 | `git grep --untracked -n '"pid":1234' -- 'public/framework/ai/sessions/**'`; how it ended: `"pid_exit":1234`; Servex's own (no agent): `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl`. Fields: `started` / `ended` (a line from the 10 s sample also has `"seen":"sample"`, `code: null`). Every start with no end (a leak): `node Servex/leaks.mjs` | works since 2026-11-06 21:50 (processes Servex starts); the processes an agent's claude.exe starts, since the sampler landed ([Servex/doc/processes.md](/Servex/doc/processes.md), "Who started this pid") |
 | A queued spawn | `"queued":{` in the parent's `session.jsonl`, then `"started":{` | works since 2026-11-06 21:50 |
 | Which session made a commit | `"commit":"abc123"` | planned (mastermind-session-truth) |
 | A caught error | `"error":` | planned (mastermind-resources) |
@@ -83,8 +83,8 @@ One event, one line, **one fixed first key**, plus `by` and `ts`. The same event
 ```js
 { "sentences": [{ "n": 1, "text": "…" }] }
 { "queued": { "agent": "x", "commit_pct": 82 } }
-{ "pid": 1234, "cmd": "…", "why": "…" }
-{ "pid_exit": 1234, "code": 0 }
+{ "pid": 1234, "cmd": "…", "why": "…", "agent": "…", "session": "…", "started": "<stamp>" }
+{ "pid_exit": 1234, "ended": "<stamp>", "code": 0, "signal": null }
 { "commit": "abc123", "files": ["…"] }
 { "error": "…", "where": "file:line" }
 ```

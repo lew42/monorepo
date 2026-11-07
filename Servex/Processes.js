@@ -4,6 +4,8 @@ import path from "path";
 import { spawn } from "child_process";
 import Events from "../Server/Events.js";
 import { stamp, place } from "./home.js";
+import SpawnLog from "./SpawnLog.js";
+import Lineage from "./Lineage.js";
 
 /* THE PROCESS MONITOR — every process on the machine, which of them are OURS,
  * and which task each of ours works for (process-monitor, 2026-09-30).
@@ -78,6 +80,8 @@ export default class Processes extends Events {
 		this.spin_ms ??= Number(process.env.SERVEX_SPIN_MS) || 5 * 60000;          // an idle agent must burn a core this long
 		this.spin_core_pct ??= Number(process.env.SERVEX_SPIN_CORE_PCT) || 50;
 		this.spin = new Map();         // agent id -> { pid, since }: idle and over spin_core_pct of a core, since then
+		this.lineage = new Lineage();  // Lineage.js: start and end lines for processes SpawnLog cannot see (SERVEX_LINEAGE=0 turns it off)
+		this.lineage_on ??= process.env.SERVEX_LINEAGE !== "0";
 	}
 
 	start(){
@@ -140,7 +144,8 @@ export default class Processes extends Events {
 		this.history.push(this.point(this.now));
 		if (this.history.length > this.keep) this.history.splice(0, this.history.length - this.keep);
 		if (this.reaping) this.reap();
-		try { this.watch_spin(at); } catch (e) { this.error = e.message; }
+			try { this.watch_spin(at); } catch (e) { this.error = e.message; }
+		try { this.trace(at); } catch (e) { this.error = e.message; }
 		this.emit("tick", this.now);
 	}
 
@@ -158,15 +163,27 @@ export default class Processes extends Events {
 		for (const [, ppid, win] of rows) if (ppid !== 1) this.real.set(win, winpid.get(ppid) ?? 0);
 	}
 
+	/* The live parent of a process, or null. */
+	up(p){
+		if (this.real?.has(p.pid)){ const w = this.real.get(p.pid); return w ? this.procs.get(w) ?? null : null; }
+		const q = this.procs.get(p.ppid); return q && (!q.born || !p.born || q.born <= p.born) ? q : null;
+	}
+
+	/* Start and end lines for the processes under an agent's claude.exe (or Servex) that SpawnLog did not start: Lineage.js diffs this sample
+	 * against the last. The same Map this tick already built; no second query. */
+	trace(at){
+		if (!this.lineage_on || !this.servex) return;
+		const host = this.servex.agents, owners = new Map();
+		for (const a of this.agents()) if (a.pid) owners.set(a.pid, { agent: a.id, session: host?.live?.get(a.id)?.session_id ?? null, dir: SpawnLog.dir_for(host, a.id) });
+		for (const { ctx, line } of this.lineage.tick({ procs: this.procs, up: p => this.up(p), owners, self: process.pid, now: at })) SpawnLog.put(SpawnLog.targets(ctx), line);
+	}
+
 	/* ── sorting every process into a group ───────────────────────────── */
 
 	sort(at){
 		const procs = this.procs, kids = new Map(), group = new Map(), groups = new Map();
 		// a parent pid only counts if that process was born before the child (Windows reuses pids)
-		const parent = p => {
-			if (this.real?.has(p.pid)){ const w = this.real.get(p.pid); return w ? procs.get(w) ?? null : null; }
-			const q = procs.get(p.ppid); return q && (!q.born || !p.born || q.born <= p.born) ? q : null;
-		};
+		const parent = p => this.up(p);
 		for (const p of procs.values()){ const q = parent(p); if (q) (kids.get(q.pid) ?? kids.set(q.pid, []).get(q.pid)).push(p.pid); }
 		const claim = (pid, key) => {
 			for (const stack = [pid]; stack.length;){

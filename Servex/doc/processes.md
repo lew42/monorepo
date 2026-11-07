@@ -209,22 +209,40 @@ unaffected).
 Every async child process Servex starts (`spawn`, `exec`, `execFile`, `fork`, plain or promisified) gets a start line the moment it has a pid, and an exit line when it ends. [`Crumbs.js`](../Crumbs.js) hooks `child_process` and calls [`SpawnLog.watch`](../SpawnLog.js); `SpawnLog.js` holds the AsyncLocalStorage that says which agent's tool call (or which agent's own claude.exe) started it. Writes never throw and never slow the caller.
 
 ```json
-{"pid":12345,"agent":"minion-x","session":"<uuid>","cmd":"git status --short","why":"shell","at":"…","by":"servex"}
-{"pid_exit":12345,"code":0,"signal":null,"at":"…","by":"servex"}
+{"pid":12345,"cmd":"git status --short","why":"shell","agent":"minion-x","session":"<uuid>","started":"…","by":"servex"}
+{"pid_exit":12345,"ended":"…","code":0,"signal":null,"by":"servex"}
 ```
 
 `pid` is the first key, so `"pid":12345` finds the start line only and `"pid_exit":12345` the exit. `cmd` is cut at 300 characters; `why` is the tool name (`shell`, `quick_fix`, …) or `claude.exe`, or `spawn:<program>` when there is no tool.
 
 - **Called for an agent:** the line goes to that agent's session log (`session.jsonl`, else `task.jsonl`). A claude.exe also goes to its parent's log, so a mastermind sees its children's pids.
 - **Called by Servex itself** (no agent): the `spawns` log, `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl`. Four pollers are skipped there by name: the process-table query (`Get-CimInstance Win32_Process`), `netstat`, `git worktree list` and `git rev-parse --verify --quiet`. Measured over 10.6 h on 2026-11-06: 7,724 async spawns, about 12 a minute; those four were about 9 of the 12, so the `spawns` log gets about 3 start lines a minute (plus an exit line each).
-- **Not logged:** sync spawns (`spawnSync`, `execFileSync`, `execSync`: no live pid to report, and they block for milliseconds); and anything Servex did not start itself.
+- **Not logged by Servex's own hook:** sync spawns (`spawnSync`, `execFileSync`, `execSync`: no live pid to report, and they block for milliseconds); and anything Servex did not start itself, which the 10 s sample below picks up.
+
+### Sampled children (processes an agent's claude.exe starts)
+
+The Bash tool's shell, grep, node, a Playwright browser, a worktree dev server: claude.exe starts these, not Servex. [`Lineage.js`](../Lineage.js) finds them from the process table [`Processes.js`](../Processes.js) already samples every 10 s (`Processes.trace()`, a Map diff; no second PowerShell call). A process that is new since the last sample and descends from one of ours gets a start line; when it is gone from a later sample it gets an end line:
+
+```json
+{"pid":777,"cmd":"bash -c …","why":"child of claude.exe","agent":"minion-x","session":"<uuid>","started":"<process start time>","ppid":123,"seen":"sample","by":"servex"}
+{"pid_exit":777,"ended":"…","code":null,"signal":null,"seen":"sample","by":"servex"}
+```
+
+- **Ours** = an agent's `claude_pid`, Servex's own pid, a pid `SpawnLog` already logged (`SpawnLog.logged`, so each pid gets one start line), or a process Lineage already logged. The nearest such ancestor names the agent (none: the `spawns` log) and the `why`: `child of claude.exe`, `child of <that pid's why>`, or `child of servex`. `conhost.exe` is skipped (one per console process).
+- **First sample after a Servex restart** logs everything already running under an agent (`started` is the process's real start time), so a long-lived leftover has a start line.
+- **10 s limit:** a child that lives under one sample is never seen. It cannot leak, so that is fine. A detached grandchild whose parent exits before the first sample that sees it has no ancestor left to name, so it gets no line either (the leak report below still shows it in the process list when it is a dev-server or orphan group).
+- **End line:** `code` is `null` and `signal` is `null`: a sample cannot know the exit code.
+- **Cap:** at most 60 start lines per owner (an agent, or Servex) per minute (`Lineage.CAP`). The rest are counted once in `{"pid_dropped":N,"agent","cap","window_start","seen":"sample"}`, so a watch loop cannot flood a log. `SERVEX_LINEAGE=0` turns the whole thing off.
+- **Measured** on the live machine (2026-11-06, read-only, three real samples 10 s apart, 7 agents): 3, 4 and 12 new descendants per sample (about 38 start lines a minute, about 42 end lines a minute, so roughly 80 lines a minute across all agents; the busiest single agent reached 9 in one sample, under the cap of 60 a minute). The first sample logged 31 existing ones.
+
+### Leaks: a start with no end
+
+`node Servex/leaks.mjs` (a leak = a start line with no end line) reads every start and end line from the session logs and the `spawns` log and puts each unended start in a group: **gone, end missed** (the pid is not running: a logging bug), **alive, owner done** (its agent is stopped or dormant, or its task has landed: a real leak) or **alive, owner working** (fine). `--write <file>` writes the markdown report. It never kills anything. Run it, then fix the close path that missed the process (`Lifecycle.js`, `closeout`, `Pool.js`, `Server/Browser.mjs`), never the process itself.
 
 Finding things: [How to find things](/framework/ai/sessions/#how-to-find-things).
 
 Limits:
-- The Bash tool's children of a claude.exe (the commands an agent types) are started by claude.exe, not by Servex, so they get no line.
 - `MCP.call` (the HTTP door) carries no agent, so its spawns land in `spawns`.
-- ⬜ A PostToolUse hook could write a line for those Bash-tool children too; not built.
 
 The queue is loud in the same way: `Servex.hold()` appends `{"queued":{"agent","reason","commit_pct","page_file_mb"}}` to the parent's session log, and `drain()` appends `{"started":{"agent","waited_s"}}`. `page_file_mb` is null until the process monitor reads the page file. A queue entry restored after a restart writes no second `queued` line. Tests: `Servex/SpawnLog.test.mjs`, `Servex/Gate-loud.test.mjs`.
 

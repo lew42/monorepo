@@ -13,6 +13,7 @@ export default class SpawnLog {
 	static sink = null;      // Servex's single-writer Log, set in Servex.admission(); without it the `spawns` file is appended directly
 	static CUT = 300;
 	static QUIET = [/Get-CimInstance Win32_Process/, /^netstat\b/, /\bworktree list\b/, /rev-parse --verify --quiet/];   // no-agent polls (~9 of the ~12 spawns a minute): not worth a line
+	static logged = new Map();   // pid -> { agent, session, why, dir, ended }: what watch() has seen, so Lineage.js (the 10 s sample) skips these pids and inherits their owner; an ended entry is kept two minutes, for a sample that raced the exit
 	static chain = null;
 	static deps = null;
 
@@ -67,11 +68,14 @@ export default class SpawnLog {
 			if (typeof pid !== "number" || typeof child.once !== "function") return;
 			const cmd = [args[0], ...(Array.isArray(args[1]) ? args[1] : typeof args[1] === "string" ? [args[1]] : [])].join(" ").replace(/\s+/g, " ");
 			const ctx = this.store.getStore() ?? null;
-			if (!ctx?.agent && this.QUIET.some(q => q.test(cmd))) return;
+			const mine = { agent: ctx?.agent ?? null, session: ctx?.session ?? null, why: ctx?.why ?? `${name}:${path.basename(String(args[0]))}`, dir: ctx?.dir ?? null, ended: null };
+			this.logged.set(pid, mine);
+			if (this.logged.size > 400) for (const [k, v] of this.logged) if (v.ended && Date.now() - v.ended > 120000) this.logged.delete(k);
+			if (!ctx?.agent && this.QUIET.some(q => q.test(cmd))) return void child.once("exit", () => { mine.ended = Date.now(); });
 			const where = this.targets(ctx);
-			const line = { pid, agent: ctx?.agent ?? null, session: ctx?.session ?? null, cmd: cmd.slice(0, this.CUT), why: ctx?.why ?? `${name}:${path.basename(String(args[0]))}`, at: stamp() };
+			const line = { pid, cmd: cmd.slice(0, this.CUT), why: ctx?.why ?? `${name}:${path.basename(String(args[0]))}`, agent: ctx?.agent ?? null, session: ctx?.session ?? null, started: stamp() };
 			this.put(where, line);
-			child.once("exit", (code, signal) => this.put(where, { pid_exit: pid, code, signal: signal ?? null, at: stamp() }));
+			child.once("exit", (code, signal) => { mine.ended = Date.now(); this.put(where, { pid_exit: pid, ended: stamp(), code, signal: signal ?? null }); });
 		} catch { /* a log line must never reach the caller */ }
 	}
 
