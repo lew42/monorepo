@@ -19,7 +19,7 @@ what LivePage lacks; the detail is in this doc.
 | **columns** | shows as plain tabs — LivePage has no column layout | `{"navigation":"columns"}` (now a no-op on LivePage) | [columns-page](/live/demos/columns-page/) · [columns](/live/demos/columns/) |
 | **place** | broken — LivePage ignores the place line entirely | `{"place":"note.md"}` | [place-fresh](/live/demos/place-fresh/) · [place-page](/live/demos/place-page/) · [place](/live/demos/place/) |
 | **nav** (left rail) | shows as plain tabs — LivePage has no rail layout | `{"navigation":"rail"}` (now a no-op on LivePage) | [nav-page](/live/demos/nav-page/) · [nav](/live/demos/nav/) |
-| **previews** | broken | none — there is no delta for it | [previews](/live/demos/previews/) |
+| **previews** | works since 2026-11-07 — a card shows its `preview` list | `{"content":{"<card>":{"preview":{"add":{…}}}}}` · `{"preview":{"add":{…}}}` on a page | [previews](/live/demos/previews/) · [/live/plan/](/live/plan/) |
 
 ## Why, one cause each
 
@@ -54,9 +54,7 @@ what LivePage lacks; the detail is in this doc.
   both draw their own `alpha`/`beta` children as a plain tab row, no left rail. Each now carries a
   `part-text` card saying so. **What LivePage lacks:** a rail layout equivalent.
 
-- **previews** — unchanged from the last round: there is no delta for it at all (`Page.callable` lists
-  only `tab` and `place`); calling `{"previews":{}}` is refused at replay time, not silently ignored.
-  Smallest fix: none makes sense for voice — a preview wall is code a page's author writes once.
+- **previews** — built 2026-11-07: every LivePage card and page has a `preview` List (LivePage.Preview); a card on its parent shows title + preview, its own page shows the preview first ([readme](../readme.md), "Showing things"). `{"previews":{}}` (the core wall) is still not a delta.
 
 ## What this means for voice today
 
@@ -66,4 +64,4 @@ the way voice would want is **tabs**, and it works "for free": make the thing yo
 plain leaf sub-pages (`{"pages":{"add":{…}}}`, `/live/readme.md` "Going into a thing: sub-pages") and
 the tab row and breadcrumb come from LivePage itself. `columns`, `nav` (rail) and `place` need LivePage
 changes outside this task's fence (`public/live/demos/**` only) — each is logged as a finding for
-mastermind-live-page to pick up. `previews` stays as described above: use `part-link` cards instead.
+mastermind-live-page to pick up. `previews` now works: give each card a `preview` list.
