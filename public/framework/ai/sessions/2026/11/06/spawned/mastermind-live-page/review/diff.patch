@@ -1,83 +1,395 @@
 diff --git a/public/live/LivePage.css b/public/live/LivePage.css
-index 6c94da0b2..2ac56f6c6 100644
+index 09c88fc45..5fd446dbe 100644
 --- a/public/live/LivePage.css
 +++ b/public/live/LivePage.css
-@@ -13,8 +13,8 @@
- 	}
- 	.live-page {
- 		box-sizing: border-box; width: 100%; min-height: 100dvh;
--		--live-pad: .75rem;
--		padding: var(--live-pad) clamp(.5rem, 3vw, 1.5rem) 5rem;   /* 5rem: clear of the app bar fixed at the bottom of a phone */
-+		--live-pad: .75rem; --live-pad-x: clamp(.5rem, 3vw, 1.5rem);
-+		padding: var(--live-pad) var(--live-pad-x) 5rem;   /* 5rem: clear of the app bar fixed at the bottom of a phone */
- 		display: flex; flex-direction: column; gap: var(--live-gap);
- 		font-size: clamp(1rem, 1.2vw + .75rem, 1.5rem);
- 		/* ONE RHYTHM, two steps: --live-gap between every two things on the page (header, cards, footer),
-@@ -26,11 +26,15 @@
- 	.live-page > :not(.live-alerts) { box-sizing: border-box; width: 100%; max-width: 60rem; margin-inline: auto; }   /* the floor is full width, the column is not */
- 	/* THE HEADER: sticky, one size at every depth and width (rem, not the page's growing em), under 100 px: a tiny
+@@ -28,25 +28,27 @@
  	   breadcrumb with the settings icon, a small title, one row of tabs. Its floor is opaque so cards pass under it. */
--	.live-head {
-+	.live-page > .live-head {
+ 	.live-page > .live-head {
  		position: sticky; top: 0; z-index: 5;
- 		display: flex; flex-direction: column; gap: .15rem;
--		margin-top: calc(-1 * var(--live-pad)); padding: .5rem .25rem .25rem;   /* the floor runs a quarter rem past its text (smoke: text never touches its box); the margin cancels the page's top padding, so it sits flush with the top of the screen when stuck */
-+		/* Full width with its own padding: the margins cancel the page's padding (flush with the top and both sides when
-+		   stuck), the padding puts its text back in line with the column (60rem, centred) below it. */
-+		max-width: none; width: auto; margin: calc(-1 * var(--live-pad)) calc(-1 * var(--live-pad-x)) 0;
-+		padding: .5rem calc(var(--live-pad-x) + max(0px, (100% - 60rem) / 2)) .25rem;
+-		display: flex; flex-direction: column; gap: .15rem;
++		display: flex; flex-direction: column; gap: 0;
+ 		/* Full width with its own padding: the margins cancel the page's padding (flush with the top and both sides when
+ 		   stuck), the padding puts its text back in line with the column (60rem, centred) below it. */
+ 		max-width: none; width: auto; margin: calc(-1 * var(--live-pad)) calc(-1 * var(--live-pad-x)) 0;
+-		padding: .5rem calc(var(--live-pad-x) + max(0px, (100% - 60rem) / 2)) .25rem;
++		padding: .3rem calc(var(--live-pad-x) + max(0px, (100% - 60rem) / 2)) .3rem;
  		background: var(--live-floor);
-+		border-bottom: 1px solid light-dark(#0002, #fff2);
+ 		border-bottom: 1px solid light-dark(#0002, #fff2);
  		font-size: 1rem;
  	}
- 	.live-head-top { display: flex; align-items: center; gap: .5rem; min-height: 1.4rem; }
-@@ -49,6 +53,8 @@
- 
- 	/* The tab row (ext/tabs' strip): smaller than a page's tabs, and a fade on an edge that has more to scroll to. */
- 	.live-tabs { position: relative; font-size: .85rem; }
-+	.live-head:has(.live-tabs:not(.is-empty)) { padding-bottom: 0; }   /* the tabs' underline sits on the header's border, */
-+	.live-tabs > .tab-bar { border-bottom: 0; }                          /* which is their baseline: one line, not two */
+-	.live-head-top { display: flex; align-items: center; gap: .5rem; min-height: 1.4rem; }
++	.live-head-top { display: flex; align-items: center; gap: .6rem; min-height: 1.2rem; }
+ 	.live-crumbs { display: flex; flex-wrap: nowrap; overflow: hidden; align-items: center; gap: .15em .4em; font-size: .72rem; flex: 1; min-width: 0; white-space: nowrap; }
+ 	.live-gear { flex: none; display: inline-flex; color: inherit; opacity: .6; text-decoration: none; }
+ 	.live-gear:hover { opacity: 1; }
+-	.live-gear .icon { font-size: 1.1rem; }
++	.live-gear .icon { font-size: 1rem; }
++	.live-raw { flex: none; font-size: .72rem; color: inherit; opacity: .7; }
++	.live-raw.is-empty { display: none; }
+ 	.live-crumb { color: inherit; opacity: .7; text-decoration: none; }
+ 	.live-crumb[aria-current] { opacity: 1; font-weight: 600; }
+ 	.live-crumb-sep { opacity: .4; }
+-	.live-head-row { display: flex; align-items: center; gap: .6rem; }
+-	.live-title { margin: 0; font-size: 1.15rem; line-height: 1.25; height: 1.25em; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
++	.live-head-row { display: flex; align-items: center; gap: .5rem; }
++	.live-title { margin: 0; font-size: 1.05rem; line-height: 1.25; height: 1.25em; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+ 	.live-ms { font-size: .7em; opacity: .55; font-variant-numeric: tabular-nums; white-space: nowrap; }
+ 	.live-version { flex: none; width: auto; font: inherit; font-size: .75em; color: inherit; background: var(--live-card); border: 1px solid light-dark(#0002, #fff3); border-radius: .4em; padding: .15em .3em; }
+ 	.live-sub, .live-foot-text { opacity: .8; }
+@@ -56,7 +58,7 @@
+ 	.live-head:has(.live-tabs:not(.is-empty)) { padding-bottom: 0; }   /* the tabs' underline sits on the header's border, */
+ 	.live-tabs > .tab-bar { border-bottom: 0; }                          /* which is their baseline: one line, not two */
  	.live-tabs.is-empty { display: none; }
- 	.live-tabs > .tab-bar > .tab { min-height: 2.1em; --tab-pad-x: .7em; }
+-	.live-tabs > .tab-bar > .tab { min-height: 2.1em; --tab-pad-x: .7em; }
++	.live-tabs > .tab-bar > .tab { min-height: 1.9em; --tab-pad-x: .7em; }
  	.live-tabs::before, .live-tabs::after {
+ 		content: ""; position: absolute; top: 0; bottom: 1px; width: 2rem; pointer-events: none; opacity: 0; transition: opacity .15s;
+ 	}
+@@ -70,22 +72,29 @@
+ 	.live-settings-label { min-width: 8rem; font-weight: 600; }
+ 	.live-settings-value { min-width: 0; overflow-wrap: anywhere; }
+ 	.live-settings-value a { color: inherit; }
+-	.live-settings-files-title { margin: var(--live-step) 0 0; }
++	.live-settings-class { background: var(--live-card); border-radius: .6rem; font-weight: 600; }
++	.live-settings-note { margin-left: auto; font-size: .8em; font-weight: 400; opacity: .6; }
+ 	/* LivePage.Files: one list, top to bottom (folders, then files); a file is its text, wrapped to the phone. */
+ 	.live-files { display: flex; flex-direction: column; gap: var(--live-step); }
++	.live-files-title { margin: var(--live-step) 0 0; font-size: .9em; opacity: .7; overflow-wrap: anywhere; text-transform: none; letter-spacing: normal; }
++	.live-files.is-file > .live-files-title { display: none; }
+ 	.live-files-body { display: flex; flex-direction: column; background: var(--live-card); border-radius: .6rem; padding: .25rem 0; min-width: 0; }
+ 	.live-files-row { display: flex; align-items: center; gap: .6em; padding: .55em .75rem; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+ 	.live-files-row + .live-files-row { border-top: 1px solid light-dark(#0001, #fff1); }
+ 	.live-files-row.is-dir { font-weight: 600; }
+ 	.live-files-row .ui-icon, .live-files-row .icon { flex: none; opacity: .6; }
+ 	.live-files-said { padding: .55em .75rem; opacity: .7; }
+-	.live-files-raw { padding: .4em .75rem; color: inherit; font-size: .85em; }
++		/* A file's page: the code alone, the full width, no card and no gutter (a phone needs the width). */
++	.live-files.is-file > .live-files-body { background: none; border-radius: 0; padding: 0; margin-inline: calc(-1 * var(--live-pad-x)); }
+ 	.live-files-body pre { margin: 0; font-size: .78em; overflow-x: hidden; }
++	.live-files.is-file pre { padding: .6rem .5rem; border-radius: 0; }   /* the code keeps its own colours and floor, edge to edge */
+ 	.live-files-body pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+ 	.live-focus { display: flex; flex-direction: column; gap: var(--live-step); }
+ 	.live-focus .live-sub { opacity: 1; }   /* a card opened as a page: its text is the page, not a note under the title */
+ 
+ 	/* The light: a dot, gray when off, green and glowing when on. */
++	.live-icon { flex: none; display: inline-flex; align-items: center; font-size: 1.1rem; line-height: 1; }
++	.live-icon .icon { font-size: inherit; opacity: .75; }
+ 	.live-dot { width: .8em; height: .8em; border-radius: 50%; flex: none; background: light-dark(#c9ccd2, #3a3940); transition: background .15s, box-shadow .15s; }
+ 	.live-dot.is-on { background: var(--live-light, #22c55e); box-shadow: 0 0 .6em var(--live-light, #22c55e); }
+ 
+@@ -156,7 +165,9 @@
+ 	@keyframes live-press { from { transform: scale(.94); filter: brightness(1.2); } to { transform: none; filter: none; } }
+ 
+ 	/* LivePage.Pages: the pages that are somewhere else, a link card each, one gap apart like the content. */
+-	.live-pages { display: flex; flex-direction: column; gap: var(--live-gap); }
++	.live-pages, .live-pages-group { display: flex; flex-direction: column; gap: var(--live-gap); }
++	.live-pages-group { gap: .6rem; }
++	.live-pages-label { margin: 0; font-size: .75em; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; opacity: .55; }
+ 	.live-pages.is-empty { display: none; }
+ 	.live-foot { display: flex; flex-direction: column; gap: var(--live-step); margin-top: auto; font-size: .8em; }
+ 	.live-foot-links { display: flex; gap: 1rem; opacity: .7; }
 diff --git a/public/live/LivePage.js b/public/live/LivePage.js
-index 60e6e99eb..246b13604 100644
+index e51c2be4e..910310211 100644
 --- a/public/live/LivePage.js
 +++ b/public/live/LivePage.js
-@@ -123,6 +123,23 @@ export default class LivePage extends Page {
- 	// ════ EVERYTHING ON IT HAS A URL ═══
- 	// /live/<screen>/ is a saved screen, /live/removed/ what was removed, /live/<id>/ any card on screen opened by itself
- 	// (a Task, a checklist…; also inside a screen: /live/<screen>/<id>/). A sub-page folder wins over all of them.
-+	// Every page under /live/ is a LivePage (its header, breadcrumb and settings): a sub-page whose page.jsonl names a plain
-+	// Page, or no class, is built as a LivePage; a LivePage subclass (DesignPage) stays itself. A page.js page is its own.
-+	static async log_class(module, url){
-+		const Class = await super.log_class(module, url);
-+		return Class === LivePage || Class.prototype instanceof LivePage ? Class : LivePage;
-+	}
-+	async child(name, levels){
-+		if (!this.children.get(name)){   // not built yet (undefined), or named by a {"file": "x/page.jsonl"} line (null)
-+			const kind = this.child_kinds?.get(name) ?? (await Page.listing(this.url).catch(() => null))?.pages.get(name);
-+			if (kind === "jsonl"){
-+				const page = await LivePage.jsonl(this.url + name + "/");   // LivePage as the host, so log_class above decides
-+				if (page) return this.add(name, page).load_all_children(levels);
-+			}
-+		}
-+		return super.child(name, levels);
+@@ -128,8 +128,23 @@ export default class LivePage extends Page {
+ 	// Page, or no class, is built as a LivePage; a LivePage subclass (DesignPage) stays itself. A page.js page is its own.
+ 	static async log_class(module, url){
+ 		const Class = await super.log_class(module, url);
++		if (Class.prototype instanceof LivePage) LivePage.srcs.set(Class, new URL(module, location.origin + url).pathname);
+ 		return Class === LivePage || Class.prototype instanceof LivePage ? Class : LivePage;
+ 	}
++
++	// The file a page class lives in (settings shows it first): LivePage's own, or what a page.jsonl's line 1 named.
++	static srcs = new Map([[LivePage, new URL(import.meta.url).pathname]]);
++	static src_of(Class){
++		for (let C = Class; C && C !== Page; C = Object.getPrototypeOf(C)) if (LivePage.srcs.has(C)) return LivePage.srcs.get(C);
++		return null;
 +	}
 +
++	// The folder this page's data lives in: its own; for a card or a saved screen the page's it is inside; for a
++	// settings page the folder of the page it is the settings of.
++	get folder(){
++		if (this.settings_of) return this.settings_of.folder;
++		return this.focus || this.screen ? (this.parent?.url ?? this.url.replace(/[^/]+\/$/, "")) : this.url;
++	}
+ 	async child(name, levels){
+ 		if (!this.children.get(name)){   // not built yet (undefined), or named by a {"file": "x/page.jsonl"} line (null)
+ 			const kind = this.child_kinds?.get(name) ?? (await Page.listing(this.url).catch(() => null))?.pages.get(name);
+@@ -142,8 +157,12 @@ export default class LivePage extends Page {
+ 	}
+ 
  	route(name){
- 		// Under settings/ every name is a folder or a file of the page's own folder (LivePage.Files).
- 		if (this.settings_of) return new this.constructor({ title: name, url: this.url + name + "/", settings_of: this.settings_of, at: (this.at ?? "") + name + "/" });
+-		// Under settings/ every name is a folder or a file of the page's own folder (LivePage.Files).
+-		if (this.settings_of) return new this.constructor({ title: name, url: this.url + name + "/", settings_of: this.settings_of, at: (this.at ?? "") + name + "/" });
++		// Under settings/ every name is a folder or a file of the page's own folder (LivePage.Files), and settings/ again
++		// is that page's own settings (/live/settings/LivePage.js/settings/).
++		if (this.settings_of){
++			if (name === "settings") return new this.constructor({ title: "Settings", url: this.url + "settings/", settings_of: this });
++			return new this.constructor({ title: name, url: this.url + name + "/", settings_of: this.settings_of, at: (this.at ?? "") + name + "/" });
++		}
+ 		const page = super.route?.(name);
+ 		if (page) return page;
+ 		const url = this.url + name + "/";
+@@ -247,27 +266,37 @@ export default class LivePage extends Page {
+ 	}
+ 	static title_of(url){ return this.meta_of(url).then(m => m.title); }
+ 
+-	// A page's own pages, split in two: { tabs, cards }, each [{url, title}].
+-	// A TAB is a page that draws as this page's content: a plain LivePage folder with no pages of its own. Switching tabs
+-	// keeps the same row and the same h1 (the parent's). A CARD is a page that is somewhere else: a folder with pages of
+-	// its own (its own tabs), a page of another class (DesignPage, a page.js), one that says {"tab": false} (a small app,
+-	// like lab), or a saved screen; it is a link card under the content (LivePage.Pages). More than tab_max tabs are a
+-	// list, not a row: then every page is a card.
++	// A page's own pages: { tabs, cards, screens }, each [{url, title}]. A page is EITHER a tab OR a link card, never both.
++	// A TAB is a permanent core section of this page, one that becomes familiar: a sub-page says so itself with a
++	// {"tab": true} line, and it must draw as this page's content (a plain LivePage, not a page.js or a DesignPage).
++	// Switching tabs keeps the same row and the same h1 (the parent's). Everything else (plans, demos, labs, saved
++	// screens) is a link card under the content (LivePage.Pages), except one the content already links to. More than
++	// tab_max tabs are a list, not a row: then every page is a card.
+ 	// The old version's views (/live/sessions/, /live/archive/, /live/v1/) are neither: the footer of /live/ links them.
++	// The parent's choices, {"tab": {"name": "next", "tab": true}}: name → true or false, the last line winning.
++	static picks_of(lines){
++		const picks = new Map();
++		for (const o of lines ?? []) if (typeof o?.tab?.name === "string" && typeof o.tab.tab === "boolean") picks.set(o.tab.name, o.tab.tab);
++		return picks;
++	}
+ 	static tab_skip = new Set(["/live/sessions/", "/live/archive/", "/live/v1/"]);
+ 	static tab_max = 5;
+ 	static async pages_of(url, loaded){
+ 		const listing = await Page.listing(url).catch(() => null);
+ 		const folders = [...listing?.pages.keys() ?? []].map(name => url + name + "/").filter(u => !this.tab_skip.has(u));
+ 		const plain = cls => !cls || /(^|\/)LivePage\.js$/.test(cls) || /\/core\/Page\/Page\.class\.js$/.test(cls);   // drawn as a LivePage
++		const picks = this.picks_of(loaded?.jsonl_lines);   // the parent's own {"tab": {"name": x, "tab": true}} lines win
+ 		const rows = await Promise.all(folders.map(async u => {
+-			const m = await this.meta_of(u), kids = (await Page.listing(u).catch(() => null))?.pages.size;
+-			return { url: u, title: m.title, leaf: !kids && !m.js && plain(m.cls) && m.tab !== false };
++			const m = await this.meta_of(u), name = u.slice(url.length, -1);
++			return { url: u, title: m.title, tab: (picks.get(name) ?? m.tab) === true && !m.js && plain(m.cls) };
+ 		}));
+-		const screens = loaded && !loaded.screen && !loaded.focus && !loaded.settings_of ? loaded.screens.items.map(s => ({ url: url + s.id + "/", title: s.get("title") ?? s.id })) : [];
+-		let tabs = rows.filter(r => r.leaf), cards = rows.filter(r => !r.leaf);
++		const linked = new Set((loaded?.content?.items ?? []).filter(i => i instanceof PageLink).map(i => loaded.link_url(i.get("path"))));
++		const shown = loaded && !loaded.screen && !loaded.focus && !loaded.settings_of;
++		const screens = shown ? loaded.screens.items.map(s => ({ url: url + s.id + "/", title: s.get("title") ?? s.id })) : [];
++		let tabs = rows.filter(r => r.tab), cards = rows.filter(r => !r.tab);
+ 		if (tabs.length > this.tab_max) [tabs, cards] = [[], rows];
+-		return { tabs, cards: [...cards, ...screens] };
++		const by_title = (x, y) => String(x.title).localeCompare(String(y.title));
++		return { tabs, cards: cards.filter(c => !linked.has(c.url)).sort(by_title), screens: screens.filter(s => !linked.has(s.url)) };
+ 	}
+ 
+ 	// The tab row for a page: { owner, title, tabs: [{url, title}] }. Its own tabs when it has any, itself first; else, when
+@@ -313,6 +342,18 @@ export default class LivePage extends Page {
+ 		}
+ 	};
+ 
++	// A page's icon, before its light: what the page names itself ({"icon": "⚡"} or a Material name like "folder"),
++	// else the gear on settings and a folder on a folder's page (a file's page says "description" once it knows).
++	get icon_name(){
++		const own = (this.focus ?? this).get?.("icon");
++		return own ?? (this.settings_of ? (this.at ? "folder" : "settings") : null);
++	}
++	static icon(page, name){
++		const $box = page.$icon;
++		if (!$box) return void (name && (/^[a-z_]+$/.test(name) ? icon(name) : span(name)));
++		$box.empty(() => name && (/^[a-z_]+$/.test(name) ? icon(name) : span(name))).tc("is-empty", !name);
++	}
++
+ 	// The header, sticky and under 100 px at any depth: the breadcrumb and the settings icon, then the voice light, the
+ 	// title, the last line's delay and (on /live/) the version dropdown, then the tab row.
+ 	static Head = class LiveHeadView extends View {
+@@ -320,9 +361,11 @@ export default class LivePage extends Page {
+ 			const { page } = this, P = page.constructor;
+ 			div.c("live-head-top", () => {
+ 				new P.Crumbs({ page });
+-				if (!page.settings_of) a.c("live-gear", () => icon("settings")).href(page.url + "settings/").attr("aria-label", "Settings: where this page comes from").attr("title", "Where this page comes from");
++				if (page.at) page.$raw = a.c("live-raw is-empty", "raw").attr("target", "_blank").attr("title", "The file itself, as text");   // a file's page shows it (LivePage.Files)
++				a.c("live-gear", () => icon("settings")).href(page.url + "settings/").attr("aria-label", "Settings: where this page comes from").attr("title", "Where this page comes from");
+ 			});
+ 			div.c("live-head-row", () => {
++				page.$icon = span.c("live-icon", () => P.icon(page, page.icon_name));
+ 				page.$dot = span.c("live-dot");
+ 				const $h1 = new P.Heading({ tag: "h1", item: page.focus ?? page, fallback: "Live", classes: "live-title" });
+ 				P.tabs_of(page).then(({ title }) => title && $h1.fix(title)).catch(() => {});   // a tab keeps its parent's h1: the tab says which one
+@@ -366,12 +409,15 @@ export default class LivePage extends Page {
+ 			LivePage.on_url(this, mark);
+ 			const top = page.is_top ? page : page.parent instanceof LivePage ? page.parent : null;
+ 			// The row lives as long as its page is shown: the first change heard after it left lets go of everything.
++			const picked = line => line?.tab !== undefined && heard();   // a {"tab": …} line changes the row
+ 			const heard = () => queueMicrotask(() => {
+ 				if (this.el.isConnected) return draw();
+ 				seen.disconnect();
+ 				["add", "remove"].forEach(verb => top.screens.off?.(verb, heard));
++				top.off?.("line", picked);
+ 			});
+ 			if (top?.screens?.on) ["add", "remove"].forEach(verb => top.screens.on(verb, heard));
++			top?.on?.("line", picked);
+ 			draw();
+ 		}
+ 	};
+@@ -487,28 +533,21 @@ export default class LivePage extends Page {
+ 		}
+ 	};
+ 
+-	// /<page>/settings/: where the page's data comes from (its own page.jsonl, a card inside the parent's, a saved screen,
+-	// a page.js), its class and lines, and its folder's files, one under the other (core/Page's Files list).
++	// /<page>/settings/: first the class file that draws the page (LivePage.js, a tap opens its code), then where a card
++	// or a saved screen sits, then the page's folder: its files, page.jsonl among them (LivePage.Files).
+ 	static Settings = class LiveSettingsView extends View {
+ 		render(){
+-			const { of } = this;
+-			const holder = of.focus || of.screen ? (of.parent?.url ?? of.url.replace(/[^/]+\/$/, "")) : of.url;
+-			if (this.at) return void new LivePage.Files({ page: this.page, folder: holder, at: this.at });   // one folder or file inside it
+-			const row = (label, fill) => div.c("live-settings-row", () => { span.c("live-settings-label", label); div.c("live-settings-value", fill); });
+-			const $from = row("Data from", () => span("…"));
+-			row("Class", () => span(`${of.constructor.name}${of.view ? ", drawn" : ""}`));
+-			if (of.focus) row("Card", () => span(`id ${of.focus.id}, inside ${holder}page.jsonl (an embedded page)`));
+-			else if (of.screen) row("Saved screen", () => span(`inside ${holder}page.jsonl (an embedded page)`));
+-			else row("Lines", () => span(String(of.jsonl_lines?.length ?? "–")));
+-			Page.listing(holder).then(listing => {
+-				const file = listing?.log ?? (listing?.files.includes("page.js") ? "page.js" : null);
+-				$from.el.querySelector(".live-settings-value").replaceChildren();
+-				$from.el.querySelector(".live-settings-value").append(file
+-					? Object.assign(document.createElement("a"), { href: holder + file + "?raw", textContent: holder + file + (of.focus || of.screen ? " (the parent's file)" : " (its own file)") })
+-					: document.createTextNode("no file: this page is made by code"));
+-			}).catch(() => {});
+-			h4.c("live-settings-files-title", "Files here");
+-			new LivePage.Files({ page: this.page, folder: holder, at: this.at ?? "" });
++			const { of, page } = this, folder = page.folder;
++			if (this.at) return void new LivePage.Files({ page, folder, at: this.at });   // one folder or file inside it
++			const src = LivePage.src_of(of.constructor);
++			if (src){
++				const dir = src.replace(/[^/]+$/, ""), name = src.split("/").at(-1);
++				a.c("live-files-row live-settings-class", () => { icon("code"); span(name); span.c("live-settings-note", "draws this page"); }).href(dir + "settings/" + name + "/");
++			}
++			const row = (label, text) => div.c("live-settings-row", () => { span.c("live-settings-label", label); span.c("live-settings-value", text); });
++			if (of.focus) row("Card", `id ${of.focus.id}, saved inside ${folder}page.jsonl`);
++			else if (of.screen) row("Saved screen", `saved inside ${folder}page.jsonl`);
++			new LivePage.Files({ page, folder, at: "" });
+ 		}
+ 	};
+ 
+@@ -522,44 +561,57 @@ export default class LivePage extends Page {
+ 			this.$box = div.c("live-files-body", () => span.c("live-files-said", "Loading…"));
+ 			(async () => {
+ 				const listing = name ? await Page.listing(up).catch(() => null) : null;
+-				if (name && listing?.files.includes(name)) return this.file(path.slice(0, -1));
++				if (name && (listing?.files.includes(name) || listing?.log === name)) return this.file(path.slice(0, -1));
+ 				const here = await Page.listing(path).catch(() => null);
++				this.el.prepend(new View({ tag: "h4", capture: false }).ac("live-files-title").text(path.replace(/\/$/, "")).el);   // the folder's own path, "/live" (after an await: no captured factory)
+ 				this.$box.empty(() => {
+ 					if (!here) return void span.c("live-files-said", `No file list for ${path} (a folder with no page and no files.jsonl).`);
+ 					const dirs = [...new Set([...here.pages.keys(), ...here.dirs.map(d => d.replace(/\/.*$/, ""))])].sort();
+-					const files = [...here.files].sort();
++					const files = [...new Set([...here.files, ...here.log ? [here.log] : []])].sort();   // the log (page.jsonl or files.jsonl) is a file here too
+ 					if (!dirs.length && !files.length) span.c("live-files-said", "Nothing in this folder yet.");
+-					dirs.forEach(d => a.c("live-files-row is-dir", () => { icon("folder"); span(d + "/"); }).href(page.url + d + "/"));
++					dirs.forEach(d => a.c("live-files-row is-dir", () => { icon("folder"); span(d); }).href(page.url + d + "/"));
+ 					files.forEach(f => a.c("live-files-row", () => { icon("description"); span(f); }).href(page.url + f + "/"));
+ 				});
+ 			})().catch(e => this.$box.empty(() => span.c("live-files-said", "Could not read " + path + ": " + e.message)));
+ 		}
+-		// One file's text on its own page: the site's highlighter (ext/highlight, code.file), plus the raw file a tap away.
++		// One file's text on its own page, the full width: the site's highlighter (ext/highlight, code.file), no line numbers
++		// (on a phone the width matters more), and the raw file behind the header's "raw" link.
+ 		async file(url){
+ 			await import("/framework/ext/highlight/highlight.js");   // adds code.file to View's `code`
+-			const block = await code.file(import.meta, url, { lines: true });
+-			this.$box.empty(() => a.c("live-files-raw", "Open the raw file").href(url + "?raw").attr("target", "_blank"));
+-			this.$box.el.append(block.el);
++			const block = await code.file(import.meta, url, { lang: /\.jsonl$/.test(url) ? "json" : undefined });
++			this.ac("is-file");
++			LivePage.icon(this.page, "description");
++			this.$box.empty().el.append(block.el);
++			this.page.$raw?.href(url + "?raw").tc("is-empty", false);
+ 		}
+ 	};
+ 
+ 	// `footer` (a line of text) when set; on /live/ and its sub-pages, the removed cards; on /live/ itself, the old views.
+-	// (Every child page and saved screen is a tab now, in the header.)
+-	// The pages that are somewhere else (LivePage.pages_of): a link card each, under the content. Drawn by code from the
+-	// folder and the saved screens, never written into page.jsonl.
++	// The pages that are somewhere else (LivePage.pages_of): a link card each, under the content, in two groups: this
++	// page's pages, then its saved screens. Drawn by code from the folder and the screens, never written into page.jsonl.
+ 	static Pages = class LivePagesView extends View {
+ 		render(){
+ 			const { page } = this, P = page.constructor;
+-			const draw = () => P.pages_of(page.url, page).then(({ cards }) => {
+-				this.tc("is-empty", !cards.length).empty(() => cards.forEach(c => div.c("live-card live-page-card", () => {
++			const group = (label, list) => list.length && div.c("live-pages-group", () => {
++				h4.c("live-pages-label", label);
++				list.forEach(c => div.c("live-card live-page-card", () => {
+ 					div.c("live-card-body", () => h4.c("live-card-title", c.title));
+ 					a.c("live-card-go", "›").href(c.url).attr("aria-label", c.title);
+-				})));
++				}));
++			});
++			const draw = () => P.pages_of(page.url, page).then(({ cards, screens }) => {
++				this.tc("is-empty", !cards.length && !screens.length).empty(() => { group("Pages", cards); group("Saved screens", screens); });
+ 			}).catch(() => {});
+ 			this.tc("is-empty", true);
+ 			if (page.screen || page.focus || page.settings_of) return;
+-			const heard = () => queueMicrotask(() => this.el.isConnected ? draw() : ["add", "remove"].forEach(v => page.screens.off?.(v, heard)));
++			const picked = line => (line?.tab !== undefined || line?.content) && heard();   // a tab choice or a new link card
++			const heard = () => queueMicrotask(() => {
++				if (this.el.isConnected) return draw();
++				["add", "remove"].forEach(v => page.screens.off?.(v, heard));
++				page.off?.("line", picked);
++			});
+ 			["add", "remove"].forEach(v => page.screens.on?.(v, heard));
++			page.on?.("line", picked);
+ 			draw();
+ 		}
+ 	};
+diff --git a/public/live/LivePage.test.mjs b/public/live/LivePage.test.mjs
+index 736d047d4..930b1b287 100644
+--- a/public/live/LivePage.test.mjs
++++ b/public/live/LivePage.test.mjs
+@@ -71,6 +71,10 @@ try {
+ 	ok((await read("screens.s1.content.c1")).data.title === "Renamed in the screen", "a card inside a saved screen: /<page>/s1/c1/");
+ 	await at("nope/", { title: "x" });
+ 	ok(fs.existsSync(path.join(DIR, "nope", "page.jsonl")), "a segment naming no card keeps the old answer (a new page there)");
++	// 8. A sub-page is never a tab by default: only the parent's {"tab": {"name", "tab"}} line (the last one wins) picks it.
++	const { default: LivePage } = await import("./LivePage.js");   // after run_item: its loader resolves /framework/ imports
++	const picks = LivePage.picks_of([{ tab: { name: "a", tab: true } }, { tab: { name: "b", tab: true } }, { tab: { name: "b", tab: false } }, { title: "x" }]);
++	ok(picks.get("a") === true && picks.get("b") === false && !picks.has("c"), "tab picks: opt-in only, the last line wins");
+ 	console.log(`LivePage.test: ${n} passed`);
+ } finally {
+ 	fs.rmSync(DIR, { recursive: true, force: true });
 diff --git a/public/live/readme.md b/public/live/readme.md
-index 8128aac75..d1fef2e1b 100644
+index b782d5d38..f00a35dd4 100644
 --- a/public/live/readme.md
 +++ b/public/live/readme.md
-@@ -81,6 +81,8 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
+@@ -2,7 +2,7 @@
  
- ## The header: tabs and settings
+ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the phone (with the site key). It is `class LivePage extends Page` ([LivePage.js](LivePage.js)), built from [page.jsonl](page.jsonl): line 1 names the class (`"class":"./LivePage.js"`), and every later line is one `set()`. Voice Claude writes with the Servex `item` tool, `item({path: "/live/", delta})`. The tool appends one line, the dev server streams it, and every open tab applies it with no reload. Measured: 7–17 ms on the PC (`probe.mjs` in the [task folder](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/)), 82 ms over the tunnel.
  
-+- **Every page under /live/ is a LivePage**, so it has this header: a sub-page whose `page.jsonl` names a plain Page (or no class) is built as a LivePage (`LivePage.child` and `LivePage.log_class`); a LivePage subclass such as DesignPage stays itself. A `page.js` page under /live/ is its own class, so make it extend LivePage.
-+- **The header runs the full width** of the page with its own padding and a bottom border, which is also the tab row's baseline; its text lines up with the column below.
- - **Tabs are the one way to move between pages.** A page with sub-pages (folders, then saved screens) shows them as tabs, itself first. A page with none shows its siblings, itself selected; a card opened by itself shows none (the breadcrumb takes it back). The row scrolls sideways and fades at an edge with more. /live/sessions/, /live/archive/ and /live/v1/ are not tabs (`LivePage.tab_skip`); the footer of /live/ links them.
+-**What you see:** a sticky header under 100 px at every depth (a tiny breadcrumb that is the url itself, "live / lab", with a settings icon, a small title with the voice light and a version dropdown on /live/, and one row of tabs), the content, and a footer (removed cards; on /live/ the old views). A **card** (`part-card`, or a `part-link` to a sub-page) is framed and opens a page when tapped; text, headings, checklists, lights and buttons draw with **no frame**. Buttons side by side sit in one row, and a card's own buttons sit inside it. Every title and text is markdown with mentions (`@Page`, `#Task`, `/live/lab/` become icon links), scrubbed so no script runs; a card whose title is only a mention (`"title":"@Page"`) is that thing's card and opens it. Spacing is one rhythm in [LivePage.css](LivePage.css) (`--live-gap` between things, `--live-step` inside one): no card sets its own. Light and dark follow the phone. The old page is kept at [/live/v1/](/live/v1/) ([v1/readme.md](v1/readme.md)).
++**What you see:** a sticky header under 100 px at every depth (a tiny breadcrumb that is the url itself, "live / lab", with a settings icon, the page icon, the voice light and a small title, a version dropdown on /live/, and a row of tabs when the page has core sections), the content, and a footer (removed cards; on /live/ the old views). A **card** (`part-card`, or a `part-link` to a sub-page) is framed and opens a page when tapped; text, headings, checklists, lights and buttons draw with **no frame**. Buttons side by side sit in one row, and a card's own buttons sit inside it. Every title and text is markdown with mentions (`@Page`, `#Task`, `/live/lab/` become icon links), scrubbed so no script runs; a card whose title is only a mention (`"title":"@Page"`) is that thing's card and opens it. Spacing is one rhythm in [LivePage.css](LivePage.css) (`--live-gap` between things, `--live-step` inside one): no card sets its own. Light and dark follow the phone. The old page is kept at [/live/v1/](/live/v1/) ([v1/readme.md](v1/readme.md)).
+ 
+ ## Start here (an agent with only this file)
+ 
+@@ -56,7 +56,7 @@ A button press (or any tap the page saves: a tick, a press) is one line in `page
+ ## Keeping a screen: save, then restore
+ 
+ - `{"save":{"name":"plan-review","title":"Plan review"}}`: keeps every card on screen as a saved screen, then clears /live/. `{"save":"plan-review"}` and `{"save":{}}` (named `screen-N`) work too. Saving under a name that exists replaces it.
+-- The saved screen opens at `/live/plan-review/` and is a tab in the header of /live/.
++- The saved screen opens at `/live/plan-review/` and is a link card under the content of /live/ (Saved screens).
+ - `{"restore":"plan-review"}` puts its cards back on /live/; what was there moves to `removed`.
+ - `{"screens":{"remove":"plan-review"}}` drops a saved screen from the list into `removed`.
+ 
+@@ -84,10 +84,11 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
+ 
+ - **Every page under /live/ is a LivePage**, so it has this header: a sub-page whose `page.jsonl` names a plain Page (or no class) is built as a LivePage (`LivePage.child` and `LivePage.log_class`); a LivePage subclass such as DesignPage stays itself. A `page.js` page under /live/ is its own class, so make it extend LivePage.
+ - **The header runs the full width** of the page with its own padding and a bottom border, which is also the tab row's baseline; its text lines up with the column below.
+-- **Tabs are this page's own content; link cards go elsewhere.** A tab is a sub-page that draws as part of this page: a plain LivePage folder with no pages of its own. Switching tabs keeps the same tab row and the same h1 (the parent's title; the selected tab says which one). Everything else is a **link card** under the content (`LivePage.Pages`, drawn by code, never written into page.jsonl): a sub-page with pages of its own, a page of another class (DesignPage, a `page.js`), a page that says `{"tab": false}` (a small app, like /live/lab/), and every saved screen. More than five tabs would be a list, so then every sub-page is a card (`LivePage.tab_max`). /live/sessions/, /live/archive/ and /live/v1/ are neither (`LivePage.tab_skip`); the footer of /live/ links them. The rule is `LivePage.pages_of`.
++- **A page is EITHER a tab OR a link card, never both.** A tab is a permanent core section of its page, one that becomes familiar (Live, Log, Settings), never a post or a temporary page. A new sub-page (`pages.add`) is never a tab: it is a tab only by an explicit opt-in, either the parent's line `{"tab": {"name": "next", "tab": true}}` (the last such line wins, so `"tab": false` takes it back) or the sub-page's own `{"tab": true}` line, and draws as part of this page (a plain LivePage, not a `page.js` or a DesignPage). Switching tabs keeps the same tab row and the same h1 (the parent's title; the selected tab says which one). Everything else is a **link card** under the content (`LivePage.Pages`, drawn by code, never written into page.jsonl), in two groups, Pages then Saved screens; a page the content already links to (a `part-link` card) is not drawn twice. A tab row needs two tabs, so /live/ today shows none. More than five tabs would be a list, so then every sub-page is a card (`LivePage.tab_max`). /live/sessions/, /live/archive/ and /live/v1/ are neither (`LivePage.tab_skip`); the footer of /live/ links them. The rule is `LivePage.pages_of`.
  - **One title everywhere:** a tab label, a link card's title and the page's own h1 all read the sub-page's own `title` (the last `title` in its `page.jsonl`, else its `page.js`; `LivePage.title_of`). To rename a sub-page, set its title on its own path: `item({path: "/live/demos/", delta: {"title": "Feature demos"}})`. A link card's `title` shows only until the page's own one arrives.
  - **The breadcrumb is the url** (`location.pathname`, word for word, every step a link): a phone hides the address bar, so this is where the owner reads it. It redraws on every url change, a tab switch included (`LivePage.on_url`), and the tab row lights the tab the url is in.
+-- **Settings** (the gear, `<page>/settings/`): where the page's data comes from (its own `page.jsonl`, a card or saved screen inside the parent's `page.jsonl`, or a `page.js`), its class and line count, and the folder's files, one list top to bottom: folders, then files (`LivePage.Files`). A folder opens its own list (`/live/settings/doc/`); a file opens its text on its own page, highlighted by ext/highlight and wrapped to the screen (`/live/settings/LivePage.css/`). A folder or a saved screen named `settings` wins over it.
++- **Settings** (the gear, `<page>/settings/`): first the class file that draws the page (`LivePage.js`, or `DesignPage.js` on /live/design/), a tap opens its code; then, for a card or a saved screen, which `page.jsonl` it is saved in; then the page's folder, labelled with its path ("/live"), one list top to bottom: folders, then files, `page.jsonl` included (`LivePage.Files`). A folder opens its own list (`/live/settings/doc/`); a file opens its code on its own page, the full width with no line numbers, highlighted by ext/highlight (`/live/settings/LivePage.js/`), and the header's small **raw** link is the file itself. Every settings page is a LivePage with its own gear: `/live/settings/LivePage.js/settings/` is that page's settings. A folder or a saved screen named `settings` wins over it.
++- **The icon** before the voice light is the page's own `{"icon": "⚡"}` (an emoji, or a Material name such as `"folder"`), else a gear on settings, a folder on a folder's list, and a page on a file (`LivePage.icon_name`).
+ - **`header`** (`{"header": "text"}`) draws just below the sticky header, so the header keeps one size.
+ 
+ ## Files
