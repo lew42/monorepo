@@ -60,6 +60,8 @@ function resolve_file(url, item = false){
 	if (named) pathname = path.dirname(pathname);
 	const dir = path.resolve(PUBLIC, pathname);
 	if (dir !== PUBLIC && !dir.startsWith(PUBLIC + path.sep)) return null;
+	// One folder per session (ai/sessions/doc/one-folder.md): a flat sessions/<uuid>/ folder is never a write target; the dated folder is.
+	if (FLAT_SESSION.test(path.relative(PUBLIC, dir).split(path.sep).join("/"))) return null;
 	if (named) return path.join(dir, named);
 	// Item tool only: task.jsonl beside a page.jsonl means a TASK folder (the page is its view); then session.jsonl; else the page.
 	// A folder with a task.jsonl and no page.jsonl is a task for EVERY page tool (page_set, page_call, page_log): never a stray page.jsonl beside it.
@@ -79,6 +81,7 @@ function resolve_file(url, item = false){
 const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
 const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "rates", "unread"];   // Task.queries: answered from the record, never written
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const FLAT_SESSION = /^framework\/ai\/sessions\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(\/|$)/;
 
 /* TYPO-PROOF SESSION PATHS (2026-10-24, core/Session/doc/identity.md "A typed id that drifts"): a session folder is made only by the
  * SessionStart hook, TaskDirs or a spawn, never because a path was typed. A session id or agent name this tool cannot find, and a
@@ -89,10 +92,11 @@ const OMIT = "Omit `path` to mean your own page.";
 
 async function resolve(url, target = [], item = false){
 	// No path and no agent id (a VS Code tab): "your own page" has no meaning, and the site's root page is never the answer.
-	if (url == null || url === "") return { why: "no `path` was given and this caller has no Servex agent id, so there is no \"own page\" to write to; nothing was written. A VS Code tab passes its session page: /framework/ai/sessions/<session id>/." };
+	if (url == null || url === "") return { why: "no `path` was given and this caller has no Servex agent id, so there is no \"own page\" to write to; nothing was written. A VS Code tab passes its session folder, the dated path the SessionStart hook printed: /framework/ai/sessions/YYYY/MM/DD/<folder>/." };
 	const hit = SESSION_ROUTE.exec(String(url ?? ""));
 	// A real folder under sessions/ that is not a session (sessions/tasks/<task>/, a task's own home) is a plain path: only a typed name with nothing on disk is refused.
-	const plain = hit && fs.existsSync(path.resolve(PUBLIC, "framework/ai/sessions", hit[1]));
+	// A uuid never counts: a stray flat sessions/<uuid>/ folder must not keep catching writes (one folder per session).
+	const plain = hit && !UUID.test(hit[1]) && fs.existsSync(path.resolve(PUBLIC, "framework/ai/sessions", hit[1]));
 	if (hit && !/^\d{4}$/.test(hit[1])){
 		const file = await session_file(hit[1]);
 		if (file?.why && !plain) return file;
@@ -262,7 +266,7 @@ const is_plain = v => !!v && typeof v === "object" && !Array.isArray(v);
 const tool = (name, description, properties, required, handler) =>
 	({ name, description, inputSchema: { type: "object", required, properties }, handler });
 
-const PAGE_PATH = { type: "string", description: "The page's url as the browser shows it, e.g. \"/framework/core/Page/tool/\" or a session page \"/framework/ai/sessions/<id>/\" (its file is found for you, even if none exists yet). Omit it to mean YOUR OWN page, /framework/ai/sessions/<your agent id>/." };
+const PAGE_PATH = { type: "string", description: "The page's url as the browser shows it, e.g. \"/framework/core/Page/tool/\" or a session's one dated folder \"/framework/ai/sessions/YYYY/MM/DD/<folder>/\" (/framework/ai/sessions/<id>/ also finds it, as a redirect only: no folder is ever made there). Omit it to mean YOUR OWN page, /framework/ai/sessions/<your agent id>/." };
 const TARGET = { type: "array", items: { type: "string" }, description: "The path to the target, as a list of hops — each one a property name (\"content\") or a child's id, never a slash; a hop may be a dotted path (\"tasks.ui.tasks.c3\" is four hops, each level looking up the next with its own get). [] (or omit) targets the PAGE itself. [\"content\"] targets its content list. [\"k2\"] targets the existing item with id \"k2\", wherever it lives. [\"k2\",\"answers\"] walks into k2's own \"answers\" list." };
 
 /* ---------- page_read's COMPUTED state (deliverable 2) ----------

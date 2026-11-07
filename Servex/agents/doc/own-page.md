@@ -11,7 +11,7 @@ Every session's page is **`/framework/ai/sessions/<session_id>/`**, the same fol
 | Servex-spawned agent | first turn, beside `[You are Servex agent <id>.]` | `Agents.whoami(id, session_id)` in `Servex/agents/Agents.js` |
 | VS Code or CLI tab | `SessionStart` hook output goes into context | `.claude/hooks/session-page.mjs` |
 
-Both print: *Your own page is /framework/ai/sessions/<id>/ — pass it as `path` to the page tools.* The tools themselves need no injection: every Servex agent already has `page_set / page_add / page_call / page_read` through its HTTP door (`Agents.door()` → `MCP.js`, `?as=<id>`), and a tab gets them from the same Servex MCP.
+Both print: *Your session is <uuid>; its one folder is /framework/ai/sessions/YYYY/MM/DD/<folder>/ — pass it as `path` to the page tools.* (since 2026-11-06; the url `/framework/ai/sessions/<id>/` only redirects there and is never a folder: [one-folder.md](/framework/ai/sessions/doc/one-folder.md)). The tools themselves need no injection: every Servex agent already has `page_set / page_add / page_call / page_read` through its HTTP door (`Agents.door()` → `MCP.js`, `?as=<id>`), and a tab gets them from the same Servex MCP.
 
 ## Decisions
 - **Inject the path, not a default.** `path` stays required in the tools. Alternative: default to the caller's page from `ctx.caller`; not done because a tab has no `?as=` identity and the explicit path is the same for both.

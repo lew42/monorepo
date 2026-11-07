@@ -12,7 +12,7 @@ What a new file is called, where it goes and what goes in it are the most import
 Say the thing in one plain sentence: what it is, and what a newcomer would call it. For a name the owner will see (a class, a page, a module), brainstorm before you pick: 3–5 cheap agents (Sonnet, low effort), each given the sentence, the neighbours' names and one angle (plain English · what the user sees · what it does · what a rival library calls it · the shortest), 5 names each. **Pick for clarity, not wit:** rule out a name that needs explaining, clashes with a neighbour or a reserved CSS prefix (`new-css-class`), or names how it is built instead of what it is. Log the pick as a `decision` with the runner-up (the `decide` skill, for a name the owner will see).
 
 - A class's folder, file and name are one capitalised word: `ext/JSONL/JSONL.js` holds `class JSONL`.
-- **Folders:** plural when the folder holds many of one kind (`ai/sessions/<id>/`), singular when it is one thing (`ai/system/`, every class folder). Don't rename an existing folder only to fit this.
+- **Folders:** plural when the folder holds many of one kind (`ai/tasks/`), singular when it is one thing (`ai/system/`, every class folder). Don't rename an existing folder only to fit this.
 
 ## 2. Place it
 
