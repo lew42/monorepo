@@ -1,0 +1,11 @@
+{"title":"Tabs (plain Page)","class":"/framework/core/Page/Page.class.js"}
+{"file":"alpha/page.jsonl"}
+{"file":"beta/page.jsonl"}
+{"navigation":"tabs","by":"minion-page-features","ts":"2026-11-06T21:50:29.547Z"}
+{"tab":{"name":"gamma","title":"Gamma"},"by":"voice-app","ts":"2026-11-06T22:19:25.018Z"}
+{"tab":{"name":"delta","title":"Delta"},"by":"voice-app","ts":"2026-11-06T22:21:52.803Z"}
+{"tab":{"name":"epsilon","title":"Epsilon"},"by":"voice-app","ts":"2026-11-06T22:21:53.322Z"}
+{"tab":{"name":"zeta","title":"Zeta"},"by":"voice-app","ts":"2026-11-06T22:21:53.819Z"}
+{"tab":{"name":"eta","title":"Eta"},"by":"voice-app","ts":"2026-11-06T22:21:54.572Z"}
+{"content":{"add":{"id":"hello-michael","tab":"overview","text":"Hello, Michael 👋","type":"part-heading"}},"by":"voice-app","ts":"2026-11-06T22:34:57.381Z"}
+{"file":"ai/"}

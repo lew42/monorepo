@@ -6,6 +6,7 @@ import css from "./hljs/languages/css.min.js";
 import xml from "./hljs/languages/xml.min.js";
 import markdown from "./hljs/languages/markdown.min.js";
 import json from "./hljs/languages/json.min.js";
+import bash from "./hljs/languages/bash.min.js";
 
 View.stylesheet(import.meta, "highlight.css");
 
@@ -25,6 +26,7 @@ hljs.registerLanguage("css", css);
 hljs.registerLanguage("xml", xml);
 hljs.registerLanguage("markdown", markdown);
 hljs.registerLanguage("json", json);
+hljs.registerLanguage("bash", bash);
 
 /* ⚠ Written out, never generated from hljs.listLanguages(): hljs ships a language
    called **c**, which would silently overwrite `code.c()` — the classes variant
@@ -38,6 +40,8 @@ const accessors = {
 	md: "markdown",
 	markdown: "markdown",
 	json: "json",
+	sh: "bash",
+	bash: "bash",
 };
 
 // Mirrors ext/markdown's block_tags on purpose — same question, and they must not
