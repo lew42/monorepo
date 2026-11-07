@@ -1,0 +1,11 @@
+ok   14 stream cuts in 6 s, each back in a second: the button never showed
+ok   down 5 s: still hidden (inside the 8 s grace)
+ok   down 10 s, mic off: no banner; the dot in the corner says “Servex link down 9 s: Servex answered with an error (restarting?). It retries by itself; press to try now.”
+ok   a press on the dot asks at once (1 new request) and leaves the sheet as it was
+ok   mic live: the banner instead, saying “Servex link down 12 s: Servex answered with an error (restarting?)Reconnect”
+ok   a press asks at once (1 new request), and says “trying now…Reconnect”
+ok   ten fast presses: 2 live wire(s) open, never two
+ok   no page errors
+ok   Servex back: the stream reopened by itself; banner and dot hid
+ok   log lines written: lost, reconnected, retry failed, reconnect pressed
+all passed

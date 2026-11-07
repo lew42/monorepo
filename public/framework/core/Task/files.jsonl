@@ -59,3 +59,4 @@
 {"file":"failures.jsonl"}
 {"file":"completion.test.mjs"}
 {"file":"failures.jsonl","gone":true}
+{"file":"failures.jsonl"}
