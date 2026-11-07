@@ -30,3 +30,4 @@
 {"log":{"at":"2026-11-07T01:18:09-06:00","heartbeat":"orphaned","msg":"minion-rank-haiku its agent is not running: its working directory C:/Code/lew42/worktrees/qf-1 no longer exists; not revived."}}
 {"log":{"at":"2026-11-07T01:19:09-06:00","msg":"task-loop status ask 3: could not ask: Agent minion-rank-haiku was not woken: its working directory C:/Code/lew42/worktrees/qf-1 no longer exists.","ask":3}}
 {"log":{"at":"2026-11-07T01:24:10-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"log":{"at":"2026-11-07T02:24:12-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
