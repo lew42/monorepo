@@ -257,16 +257,18 @@ export default class LivePage extends Page {
 					if (typeof o?.title === "string") meta.title = o.title;
 					if (i === 0 && typeof o?.class === "string") meta.cls = o.class;
 					if (typeof o?.tab === "boolean") meta.tab = o.tab;
+					if (typeof o?.icon === "string") meta.icon = o.icon;
 				} catch {} });
 				return meta;
 			}
 			const js = kind === "js" ? await import(url + "page.js").catch(() => null) : null;
-			return { title: js?.default?.title ?? name, js: kind === "js" };
+			const own = js?.default?.icon;
+			return { title: js?.default?.title ?? name, js: kind === "js", ...typeof own === "string" && { icon: own } };
 		})()).get(url);
 	}
 	static title_of(url){ return this.meta_of(url).then(m => m.title); }
 
-	// A page's own pages: { tabs, cards, screens }, each [{url, title}]. A page is EITHER a tab OR a link card, never both.
+	// A page's own pages: { tabs, cards, screens }, each [{url, title, icon}]. A page is EITHER a tab OR a link card, never both.
 	// A TAB is a permanent core section of this page, one that becomes familiar: a sub-page says so itself with a
 	// {"tab": true} line, and it must draw as this page's content (a plain LivePage, not a page.js or a DesignPage).
 	// Switching tabs keeps the same row and the same h1 (the parent's). Everything else (plans, demos, labs, saved
@@ -288,11 +290,11 @@ export default class LivePage extends Page {
 		const picks = this.picks_of(loaded?.jsonl_lines);   // the parent's own {"tab": {"name": x, "tab": true}} lines win
 		const rows = await Promise.all(folders.map(async u => {
 			const m = await this.meta_of(u), name = u.slice(url.length, -1);
-			return { url: u, title: m.title, tab: (picks.get(name) ?? m.tab) === true && !m.js && plain(m.cls) };
+			return { url: u, title: m.title, icon: m.icon ?? this.stored.folder, tab: (picks.get(name) ?? m.tab) === true && !m.js && plain(m.cls) };
 		}));
 		const linked = new Set((loaded?.content?.items ?? []).filter(i => i instanceof PageLink).map(i => loaded.link_url(i.get("path"))));
 		const shown = loaded && !loaded.screen && !loaded.focus && !loaded.settings_of;
-		const screens = shown ? loaded.screens.items.map(s => ({ url: url + s.id + "/", title: s.get("title") ?? s.id })) : [];
+		const screens = shown ? loaded.screens.items.map(s => ({ url: url + s.id + "/", title: s.get("title") ?? s.id, icon: s.get("icon") ?? this.stored.item })) : [];
 		let tabs = rows.filter(r => r.tab), cards = rows.filter(r => !r.tab);
 		if (tabs.length > this.tab_max) [tabs, cards] = [[], rows];
 		const by_title = (x, y) => String(x.title).localeCompare(String(y.title));
@@ -342,31 +344,47 @@ export default class LivePage extends Page {
 		}
 	};
 
-	// A page's icon, before its light: what the page names itself ({"icon": "⚡"} or a Material name like "folder"),
-	// else the gear on settings and a folder on a folder's page (a file's page says "description" once it knows).
+	// A page's icon, the one in its header and on every card that links to it: what the page names itself
+	// ({"icon": "⚡"} or a Material name like "folder"), else where it is stored (LivePage.stored), else the gear on settings.
 	get icon_name(){
 		const own = (this.focus ?? this).get?.("icon");
-		return own ?? (this.settings_of ? (this.at ? "folder" : "settings") : this.focus || this.screen ? "article" : "folder");   // a page of its own is a folder; a card or a saved screen, an article
+		if (own) return own;
+		if (this.settings_of) return this.at ? this.constructor.stored.folder : "settings";
+		return this.constructor.stored[this.focus || this.screen ? "item" : "folder"];
+	}
+	// The icon a page has when it names none says where it is stored: a small circle for an item inside its parent's
+	// page.jsonl (a card, a saved screen), a file for a loose .jsonl file of its own, a folder for a folder of its own
+	// (folder/page.jsonl). The voice light is a separate dot, by the gear.
+	static stored = { item: "circle", file: "description", folder: "folder" };
+	// The icon a page names for itself at a url (its page.jsonl or page.js), or null: a link card shows it, else `stored`.
+	static icon_of(url){
+		if (/\.jsonl\/?$/.test(url)) return Promise.resolve(null);
+		return this.meta_of(url).then(m => m.icon ?? null);
 	}
 	static icon(page, name){
-		const $box = page.$icon;
-		if (!$box) return void (name && (/^[a-z_]+$/.test(name) ? icon(name) : span(name)));
-		$box.empty(() => name && (/^[a-z_]+$/.test(name) ? icon(name) : span(name))).tc("is-empty", !name);
+		if (!page.$icon) return void this.glyph(null, name);
+		this.glyph(page.$icon, name);
+	}
+	// Draw an icon name into $box (or, with no box, where we are): a Material name, else the text itself (an emoji).
+	static glyph($box, name){
+		const draw = () => name && (/^[a-z_]+$/.test(name) ? icon(name).ac(name === this.stored.item && "is-small") : span(name));
+		if (!$box) return void draw();
+		$box.empty(draw).tc("is-empty", !name);
 	}
 
-	// The header, sticky and under 100 px at any depth: the breadcrumb and the settings icon, then the voice light, the
-	// title, the last line's delay and (on /live/) the version dropdown, then the tab row.
+	// The header, sticky and under 100 px at any depth: the breadcrumb, the voice light and the settings icon, then the
+	// page's icon, the title, the last line's delay and (on /live/) the version dropdown, then the tab row.
 	static Head = class LiveHeadView extends View {
 		render(){
 			const { page } = this, P = page.constructor;
 			div.c("live-head-top", () => {
 				new P.Crumbs({ page });
 				if (page.at) page.$raw = a.c("live-raw is-empty", "raw").attr("target", "_blank").attr("title", "The file itself, as text");   // a file's page shows it (LivePage.Files)
+				page.$dot = span.c("live-dot");   // the voice light: small, by the gear, never beside the title (that is the page's own icon)
 				a.c("live-gear", () => icon("settings")).href(page.url + "settings/").attr("aria-label", "Settings: where this page comes from").attr("title", "Where this page comes from");
 			});
 			div.c("live-head-row", () => {
 				page.$icon = span.c("live-icon", () => P.icon(page, page.icon_name));
-				page.$dot = span.c("live-dot");
 				const $h1 = new P.Heading({ tag: "h1", item: page.focus ?? page, fallback: "Live", classes: "live-title" });
 				P.tabs_of(page).then(({ title }) => title && $h1.fix(title)).catch(() => {});   // a tab keeps its parent's h1: the tab says which one
 				page.$ms = span.c("live-ms");
@@ -504,9 +522,17 @@ export default class LivePage extends Page {
 			let $title;
 			const go = () => {
 				this.tc("live-entity", !!$title?.only);
+				$icon?.tc("is-hidden", !!$title?.only);   // "@Page" brings that thing's own icon in its mention
 				this.$go?.attr("href", $title?.only ?? own).attr("aria-label", String(item.get("title") ?? item.id));
 			};
 			this.attr("id", item.id).attr("data-kind", item.constructor.name);
+			// The icon its page's header shows (LivePage.icon_name): a link asks the page, a card is an item stored here.
+			const $icon = span.c("live-icon live-card-icon");
+			if (item instanceof PageLink){
+				const fallback = item.get("icon") ?? (/\.jsonl$/.test(own) ? P.stored.file : P.stored.folder);
+				P.glyph($icon, fallback);
+				if (own.startsWith("/live/")) P.icon_of(own).then(n => P.glyph($icon, n ?? fallback)).catch(() => {});   // the page's own icon wins: the same as its header
+			} else this.bind(item, "icon", n => P.glyph($icon, n ?? P.stored.item));
 			div.c("live-card-body", () => {
 				$title = new P.Heading({ tag: "h4", item, classes: "live-card-title", on_text: go });
 				if (item instanceof PageLink && own.startsWith("/live/")) P.title_of(own).then(t => $title.fix(t)).catch(() => {});
@@ -597,6 +623,7 @@ export default class LivePage extends Page {
 			const group = (label, list) => list.length && div.c("live-pages-group", () => {
 				h4.c("live-pages-label", label);
 				list.forEach(c => div.c("live-card live-page-card", () => {
+					span.c("live-icon live-card-icon", () => P.glyph(null, c.icon));
 					div.c("live-card-body", () => h4.c("live-card-title", c.title));
 					a.c("live-card-go", "›").href(c.url).attr("aria-label", c.title);
 				}));

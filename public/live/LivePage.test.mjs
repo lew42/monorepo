@@ -82,6 +82,11 @@ try {
 	ok(file.at === "LivePage.js/" && file.folder === "/live/p/" && file.url === "/live/p/settings/LivePage.js/", "settings/<file>/: a path inside the folder");
 	ok(set2.settings_of === file && set2.folder === "/live/p/" && set2.url === "/live/p/settings/LivePage.js/settings/", "a settings page has its own settings");
 	ok(page.icon_name === "folder" && LivePage.src_of(LivePage).endsWith("/live/LivePage.js"), "a page with no icon of its own is a folder; LivePage's file is known");
+	// 10. A page with no icon of its own shows where it is stored: an item inside its parent's page.jsonl is a small circle.
+	const card = new LivePage({ title: "C", url: "/live/p/c/", focus: { get: () => undefined } });
+	const named = new LivePage({ title: "N", url: "/live/p/n/", focus: { get: k => k === "icon" ? "⚡" : undefined } });
+	ok(card.icon_name === LivePage.stored.item && named.icon_name === "⚡", "a card opened as a page: a small circle, or its own icon");
+	ok(await LivePage.icon_of("/live/p/x.jsonl") === null && LivePage.stored.file === "description", "a loose .jsonl names no icon: a file is drawn");
 	console.log(`LivePage.test: ${n} passed`);
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });
