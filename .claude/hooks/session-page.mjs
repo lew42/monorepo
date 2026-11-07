@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import DatedFiles from "../../Server/DatedFiles.mjs";
-import SessionRecord from "../../Server/SessionRecord.mjs";
 import SessionFolders from "../../public/framework/core/Session/SessionFolders.mjs";
 import { fileURLToPath } from "node:url";
 
@@ -28,10 +27,7 @@ process.stdin.on("data", d => raw += d).on("end", () => {
 
 function record(id, cwd){
 	try {
-		const dir = DatedFiles.sessions.session_dir(id);
-		if (SessionRecord.file(dir)) return;   // a resume, or a folder that already has its record
-		const first = { session: { id, kind: "vscode-tab", role: "mastermind", cwd, at: new Date().toISOString() } };
-		fs.mkdirSync(dir, { recursive: true });
-		fs.appendFileSync(SessionRecord.start_file(dir, first), JSON.stringify(first) + "\n");
+		// The one creator (SessionFolders#create): the session's home, made, line 1 only when it has no record yet (a resume keeps its own).
+		DatedFiles.sessions.session_folders().create(id, { first: { session: { id, kind: "vscode-tab", role: "mastermind", cwd, at: new Date().toISOString() } } });
 	} catch {}
 }

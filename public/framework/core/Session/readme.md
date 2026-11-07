@@ -33,9 +33,10 @@ class Session extends Task                       // ../Task/Task.js (Task extend
   static day(first_at)      // "YYYY/MM/DD" via Day.path, or null
   static dir_url(id, day?)  // sync: the dated folder, else the old flat <id>/
   static async scan()       // node: fills days/slugs with every session's home, from SessionFolders (a filler; locate never trusts it)
+  static async create({id, name?, parent?, day?, first?})  // node: MAKES the session's folder, the one creator (SessionFolders#create)
   static async locate(id, first_at?, slug?)  // node: the folder to WRITE into, asked of SessionFolders on every call; never makes a second one
 
-// SessionFolders.mjs (node only): the store's ONE finder. at(root).of(id), .home(id, day, name), .all(id), .twins(); static owner(dir)
+// SessionFolders.mjs (node only): the store's ONE finder. at(root).of(id), .home(id, day, name), .create(id, opts), .all(id), .twins(); static owner(dir)
 
 // Day.js: class Day, static of(t) "YYYY-MM-DD", path(t) "YYYY/MM/DD" - the owner's LOCAL day, never UTC
 ```

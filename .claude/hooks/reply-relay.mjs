@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Day from "../../public/framework/core/Session/Day.js";
+import DatedFiles from "../../Server/DatedFiles.mjs";
 
 /* reply-relay.mjs — the Stop hook that logs the owner's side of the chat too (2026-10-02).
  *
@@ -58,18 +59,11 @@ const now = () => {
 	return new Date(d.getTime() + off * 60000).toISOString().slice(0, 19) + (off < 0 ? "-" : "+") + p(Math.trunc(off / 60)) + ":" + p(off % 60);
 };
 
-// STORAGE REDIRECT (minion-echo, 2026-10-02, "a session is a page" — see prompt-relay.mjs's
-// own identical copy of this comment, with the full reasoning): the reply becomes one item on
-// the SAME session page prompt-relay.mjs already writes the prompt onto — public/framework/ai/
-// <YYYY-MM-DD>/sessions/<slug>-<first 8 of the session uuid>/page.jsonl, filed by the day the
-// session STARTED, never a second file. Copied here, not imported — this module's own top
-// comment explains why every small piece here is a hand copy.
-//
-// This hook, unlike prompt-relay.mjs, DOES get `transcript_path` — so on the first reply for a
-// session with no cached marker yet, it reads the transcript's own FIRST line for the real
-// start day, rather than guessing "today" (prompt-relay.mjs's own fallback, used only if ITS
-// hook happens to run first and nothing has cached a day yet).
-const session_marker_file = sid => path.join(os.tmpdir(), `claude-session-page-${String(sid).replace(/[^\w-]/g, "_")}`);
+// The reply becomes one item on the SAME session page prompt-relay.mjs writes the prompt onto ("a session is a page", 2026-10-02).
+// This hook gets `transcript_path`, so a folder it makes first is filed on the transcript's first day, not today.
+// ONE SESSION, ONE FOLDER (2026-11-06): the reply goes into the session's own folder under ai/sessions/YYYY/MM/DD/, made (if it is
+// somehow missing) by the one creator, SessionFolders#create. Until then this built `ai/<day>/session-<id8>/` by hand, outside the
+// sessions store, through a tmp marker whose `os` was never imported, so every Stop threw and no reply landed.
 function transcript_start_day(transcript_path){
 	try {
 		const first = fs.readFileSync(transcript_path, "utf8").split("\n").find(l => l.trim());
@@ -77,18 +71,9 @@ function transcript_start_day(transcript_path){
 	} catch { return null; }
 }
 function session_page_url(session_id, { transcript_path } = {}){
-	const marker = session_marker_file(session_id);
-	let use_day, slug;
-	try {
-		const cached = JSON.parse(fs.readFileSync(marker, "utf8"));
-		if (cached?.day && cached?.slug){ use_day = cached.day; slug = cached.slug; }
-	} catch {}
-	if (!use_day){
-		use_day = transcript_start_day(transcript_path) || now().slice(0, 10);
-		slug = "session";
-		try { fs.writeFileSync(marker, JSON.stringify({ day: use_day, slug })); } catch {}
-	}
-	return `/framework/ai/${use_day.replaceAll("-", "/")}/${slug}-${session_id.slice(0, 8)}/`;
+	const day = (transcript_start_day(transcript_path) || Day.of()).replaceAll("-", "/");   // a folder made here is filed on the day the session began
+	let dir; try { dir = DatedFiles.sessions.session_folders().create(session_id, { day, first: { session: { id: session_id, kind: "vscode-tab", at: new Date().toISOString() } } }); } catch { return null; }
+	return "/" + path.relative(path.join(DatedFiles.ROOT, "public"), dir).split(path.sep).join("/") + "/";
 }
 
 async function mcp_call(name, args, as){
@@ -175,6 +160,7 @@ const run = async () => {
 	const secret = looks_like_secret(text);
 	const safe_text = secret ? WITHHELD : text;
 	const page_url = session_page_url(session_id, { transcript_path });
+	if (!page_url) return;
 	const out = await mcp_call("page_add", { path: page_url, item: { type: "Reply", text: safe_text, redacted: secret || undefined } }, "assistant");
 	const item_id = out?.ok ? out.id : null;
 

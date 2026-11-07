@@ -1118,7 +1118,6 @@ export function open_task(task, { session_id, agent, role, by, model, effort = n
 	const dir = TaskDirs.normalize(path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir), session_id);
 	task.dir = path.relative(process.cwd(), dir).split(path.sep).join("/");
 	if (task.parent_task) task.parent_task = TaskDirs.follow(path.resolve(task.parent_task));
-	fs.mkdirSync(dir, { recursive: true });
 	/* NESTED TASKS: `parent_task` (the parent's task dir, repo-relative, forward
 	 * slashes) and `after` (sibling task dirs this one waits for) — the tree
 	 * ai/AITask/tree.js draws. */
@@ -1130,9 +1129,13 @@ export function open_task(task, { session_id, agent, role, by, model, effort = n
 	const line = JSON.stringify({ assign: strip({ session_id, agent, role, card: task.card, brief: task.brief, title: task.title,
 		model, effort: effort ?? undefined, role_readme: role_readme ?? undefined, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
 	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
-	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
-	// A record folder nested inside its parent (not a direct child of a day) is found by its session id only through a claim (SessionFolders.record_of).
-	if (session_id) try { SessionFolders.at(path.join(process.cwd(), "public/framework/ai/sessions")).claim(session_id, dir); } catch (e){ console.warn("session folder claim failed for", dir, e); }
+	// The one creator (core/Session/SessionFolders.mjs create) makes the folder, writes line 1 when it has no record yet, and claims a record
+	// folder nested inside its parent (found by its session id only through that claim, SessionFolders.record_of). A folder that already has
+	// a record gets this assign line appended, like every other assign a task log collects.
+	const first = JSON.parse(line), file = SessionRecord.start_file(dir, first), had = ["session.jsonl", "task.jsonl"].some(n => fs.existsSync(path.join(dir, n)));
+	try { SessionFolders.at(path.join(process.cwd(), "public/framework/ai/sessions")).create(session_id, { dir, first, file: path.basename(file) }); }
+	catch (e){ console.warn("session folder create/claim failed for", dir, e); fs.mkdirSync(dir, { recursive: true }); if (!had && !fs.existsSync(file)) fs.appendFileSync(file, line + "\n"); }   // a spawn never fails on the folder map
+	if (had) fs.appendFileSync(file, line + "\n");
 	// A task folder under a session or another task counts as its task: the parent's log gets one {"task":"<url>"} reference (never twice).
 	// A handoff (`task: {from, id}`) is referenced by move_item's own `as` line; a second plain one would replay as a twin child, so link only without a handoff (or when it is refused, below).
 	/* THE SESSION ENTRY (core/Session/readme.md, "Session entries"): the reference is {"task":url,"type":"Session","spawn":{…}}, nested under

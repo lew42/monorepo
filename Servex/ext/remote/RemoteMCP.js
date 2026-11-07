@@ -204,10 +204,8 @@ export default class RemoteMCP {
             store.map[id] = { id, home, file, kind: "cloud-voice-agent", caller: RemoteMCP.CALLER, at, cost: null, visited: [], fast: null, smart: null, backing: { fast: null, smart: null } };
             store.save?.();
         }
-        if (!fs.existsSync(abs)){
-            fs.mkdirSync(path.dirname(abs), { recursive: true });
-            fs.appendFileSync(abs, JSON.stringify({ session: { id, kind: "cloud-voice-agent", caller: RemoteMCP.CALLER, at: Date.now() } }) + "\n");
-        }
+        // The one creator (core/Session/SessionFolders.mjs create); `dir` because a cloud-voice id is not a session uuid. Line 1 only when it has no record.
+        if (!fs.existsSync(abs)) DatedFiles.sessions.session_folders().create(id, { dir: path.dirname(abs), first: { session: { id, kind: "cloud-voice-agent", caller: RemoteMCP.CALLER, at: Date.now() } } });
         return { id, file };
     }
 

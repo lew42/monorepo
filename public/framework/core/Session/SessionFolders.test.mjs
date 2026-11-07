@@ -61,5 +61,18 @@ try {
 	assert.equal(fresh().record_of(G), null, "an unclaimed nested folder is not found by id");
 	assert.equal(fresh().adopt_nested(), 1, "adopt_nested() claims the record folders below session folders");
 	assert.equal(fresh().record_of(G), old, "and record_of() then finds it");
-	console.log("SessionFolders: 25 checks pass");
+
+	// create(): the one creator. Made with line 1, found by the next writer whatever name it asks for, never a second folder.
+	const C = "c1c1c1c1-0008-4a19-9b01-000000000008", line1 = { session: { id: C, kind: "vscode-tab" } };
+	const made = fresh().create(C, { day: "2026/11/06", name: "minion-x-c1c1c1c1", first: line1 });
+	assert.equal(made, path.join(ROOT, "2026/11/06/minion-x-c1c1c1c1"), "create() makes the named folder on the day asked");
+	assert.deepEqual(JSON.parse(fs.readFileSync(path.join(made, "session.jsonl"), "utf8")), line1, "with `first` as line 1 of session.jsonl");
+	assert.equal(fresh().create(C, { day: "2026/11/07", first: { session: { id: C, kind: "other" } } }), made, "a second creator asking another day and no name gets the same folder");
+	assert.equal(fs.readFileSync(path.join(made, "session.jsonl"), "utf8").split("\n").filter(Boolean).length, 1, "and writes no second line 1");
+	assert.deepEqual(fresh().twins(), [], "no twin");
+	const N = "c2c2c2c2-0009-4a19-9b01-000000000009", nest = fresh().create(N, { parent: C, name: "minion-y", first: { assign: { session_id: N, agent: "minion-y" } }, file: "task.jsonl" });
+	assert.equal(nest, path.join(made, "minion-y"), "`parent` nests the folder in that session's folder");
+	assert.equal(fresh().record_of(N), nest, "and claims it, so record_of() finds it");
+	assert.throws(() => fresh().create("v-voice01"), /not a session uuid/, "a non-uuid id with no `dir` is refused");
+	console.log("SessionFolders: 33 checks pass");
 } finally { fs.rmSync(ROOT, { recursive: true, force: true }); }

@@ -9,6 +9,7 @@
 //   .twins()                       [{id, home, others}] for every id held by more than one folder
 //   .record_of(id)                 the folder that holds the session's RECORD (session.jsonl / task.jsonl): a spawned agent's record sits inside its parent's folder
 //                                  (claimed with .claim), else of(id). The day-level folder of(id) is still where the indexer writes index.json
+//   .create(id, {day, name, dir, first, file})  THE one creator: home() (or `dir`), made, line 1 written if it has no record, nested dirs claimed
 //   .claim(id, dir)                register a record folder nested below a day's folder (Agents.open_task does, .adopt_nested() backfills)
 //   SessionFolders.owner(dir)      the id a folder says it holds (the claim rule below), or null
 //
@@ -16,6 +17,7 @@
 // so a session whose folder was a slug got a second one; the others cached a folder and wrote into it after it had moved, making it again.
 import fs from "node:fs";
 import path from "node:path";
+import Day from "./Day.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/, ID8 = /^session-([0-9a-f]{8})$/;
 const mtime = p => { try { return fs.statSync(p).mtimeMs; } catch { return 0; } };
@@ -172,6 +174,26 @@ export default class SessionFolders {
 		const dd = path.isAbsolute(day) ? day : path.join(this.root, ...String(day).split("/")), short = path.join(dd, "session-" + id.slice(0, 8));
 		if (name) return path.join(dd, name);
 		return fs.existsSync(short) ? path.join(dd, id) : short;   // of() found nothing, so an existing session-<id8> belongs to another id
+	}
+
+	/** THE ONE CREATOR (2026-11-06): make the session's folder and give it its first line; every writer that may be first calls this (directly,
+	 *  or through Session.create). The folder is home(id, day, name): the one it already has, else a new one on `day` (default today, the owner's
+	 *  local day). `dir` instead names the folder outright: a spawned agent's record nested inside its parent's folder (claimed here, so
+	 *  record_of finds it), or a voice session whose id is not a uuid. `parent` (a session id) is the short way to say "nested in that
+	 *  session's record folder, named `name`". `first` (a line object) is appended to `file` only when the folder has no record yet (no
+	 *  session.jsonl or task.jsonl), so a resume never gets a second line 1. Returns the folder (absolute). */
+	create(id, { day = null, name = null, dir = null, parent = null, first = null, file = "session.jsonl" } = {}){
+		if (!dir && parent){
+			const up = this.record_of(parent);
+			if (!up) throw new Error(`SessionFolders.create: parent session ${parent} has no folder`);
+			dir = path.join(up, name ?? id);
+		}
+		if (!dir && !UUID.test(id ?? "")) throw new Error(`SessionFolders.create: "${id}" is not a session uuid; pass \`dir\` for a session named otherwise`);
+		const at = dir ? path.resolve(dir) : this.home(id, day ?? Day.path(Date.now()), name);
+		fs.mkdirSync(at, { recursive: true });
+		if (first && !["session.jsonl", "task.jsonl"].some(f => fs.existsSync(path.join(at, f)))) fs.appendFileSync(path.join(at, file), JSON.stringify(first) + "\n");
+		if (dir && UUID.test(id ?? "")) this.claim(id, at);   // refuses a folder directly under a day (that one of() finds by itself)
+		return at;
 	}
 
 	/** Every id held by more than one folder: [{id, home, others}], absolute paths, the home as all() picks it. */

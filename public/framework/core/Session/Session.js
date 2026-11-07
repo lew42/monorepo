@@ -195,6 +195,14 @@ export default class Session extends Task {
 		if (name !== id) this.slugs.set(id, name); else this.slugs.delete(id);
 	}
 
+	// Node, async: MAKE the session's folder, the one creator (SessionFolders#create, which says what each option means): its home, made,
+	// with `first` as line 1 when it has no record yet. Returns the folder's absolute path. Session.create({id, name, parent, first}).
+	static async create({ id, ...opts } = {}){
+		const store = await this.folders(), at = store.create(id, opts);
+		this.remember(id, at, store.root);
+		return at;
+	}
+
 	// Node, async: the folder to WRITE into. Where the session lives now (SessionFolders, checked on disk every call), else an old flat
 	// uuid folder (moved into its day), else a new folder named `slug` (default session-<id8>) under the day of first_at, else today.
 	static async locate(id, first_at, slug){
