@@ -1,0 +1,76 @@
+diff --git a/Servex/ext/remote/RemoteMCP.js b/Servex/ext/remote/RemoteMCP.js
+index 86bd03204..b1de08f8d 100644
+--- a/Servex/ext/remote/RemoteMCP.js
++++ b/Servex/ext/remote/RemoteMCP.js
+@@ -207,9 +207,19 @@ export default class RemoteMCP {
+         }
+         // The one creator (core/Session/SessionFolders.mjs create); `dir` because a cloud-voice id is not a session uuid. Line 1 only when it has no record.
+         if (!fs.existsSync(abs)) DatedFiles.sessions.session_folders().create(id, { dir: path.dirname(abs), first: { session: { id, kind: "cloud-voice-agent", caller: RemoteMCP.CALLER, at: Date.now() } } });
++        this.point_caller(id);
+         return { id, file };
+     }
+ 
++    /* Children the voice app spawns take Agents.session_of("voice-app") as parent_session, so that row must name the record being used now. */
++    point_caller(id){
++        try {
++            const ext = this.servex.external;
++            if (!ext || ext.row(RemoteMCP.CALLER)?.session_id === id) return;
++            ext.register({ id: RemoteMCP.CALLER, session_id: id });
++        } catch (e) { console.error("remote-mcp: point caller:", e.message); }
++    }
++
+     // the voice agent has no SDK accounting: it may state its own cost by hand, on the row and as a line
+     set_cost(v, usd){
+         const n = Number(usd);
+diff --git a/Servex/ext/remote/RemoteMCP.test.mjs b/Servex/ext/remote/RemoteMCP.test.mjs
+index 2775297dc..20cbd8955 100644
+--- a/Servex/ext/remote/RemoteMCP.test.mjs
++++ b/Servex/ext/remote/RemoteMCP.test.mjs
+@@ -169,6 +169,22 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
+     const add = n => fs.appendFileSync(ext.file("voice-app"), Array.from({ length: n }, (_, i) => JSON.stringify({ text: "m" + i })).join("\n") + "\n");
+     const up = async args => JSON.parse((await call("updates", args))[0].text);
+     assert.equal((await up({})).count, 0, "nothing new: empty");
++    // children of the voice app hang under today's cloud voice record: opening it points voice-app's registry session_id at it
++    {
++        rows["voice-app"] = { id: "voice-app", kind: "external", state: "external", session_id: "voice-20261019-live-page", keep: "me" };
++        const session_of = id => ext.reg().read()[id]?.session_id ?? null;   // Agents.session_of's registry branch (Agents.js:66); importing Agents needs the SDK package
++        assert.equal(session_of("voice-app"), "voice-20261019-live-page", "before: the stale October id");
++        const sid = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
++        await rpc({ id: 9, method: "tools/call", params: { name: "whoami_test", arguments: {} } }, sid);
++        const today = session_of("voice-app");
++        assert.match(today, /^cloud-voice-app-[0-9]{8}$/, "a dated cloud-voice id, not the October one");
++        assert.ok(servex.sessions.map[today], "and it is a row in the Sessions store");
++        assert.equal(session_of("voice-app"), today, "after: session_of(voice-app) is today's record");
++        assert.equal(rows["voice-app"].keep, "me", "nothing else in the row changes");
++        const child = { parent: "voice-app" };
++        if (child.parent && child.parent_session === undefined) child.parent_session = session_of(child.parent);
++        assert.equal(child.parent_session, today, "a child spawned after gets that parent_session (Agents.register's rule)");
++    }
+     assert.ok(ext.has("voice-app"), "the caller is registered so follow can address it");
+     add(3);
+     assert.equal((await call("whoami_test", {})).at(-1).text, "3 new updates for you: call updates.", "hint when behind");
+diff --git a/Servex/ext/remote/doc/voice-logging.md b/Servex/ext/remote/doc/voice-logging.md
+index 6f3c1ad1c..766b9400f 100644
+--- a/Servex/ext/remote/doc/voice-logging.md
++++ b/Servex/ext/remote/doc/voice-logging.md
+@@ -21,3 +21,9 @@ The owner's ask (relayed by the voice agent, repeated from before): the Claude-a
+ ## Boundaries
+ 
+ Work in a worktree. Do not touch `Servex/agents/Sessions.js`, `ux/Dictate/chat.js`, `Widget.js`, `Widget.css`, `DictationBar.css` or `session-smart.md` (task-mastermind-voice-opus holds them on worktree qf-6); agree the file shape with it by message.
++
++## Whose children these are (2026-11-06)
++
++Every tool call from the voice app runs `RemoteMCP.voice_session(sid)`, which also calls `point_caller(id)`: it sets the `voice-app` registry row's `session_id` to that record's id (`External.register`, which changes nothing else in the row). `Agents.session_of("voice-app")` reads it, so each agent the voice app spawns afterwards gets that record as its `parent_session`. Before this, the row kept the id it was registered with on 2026-10-19 and tonight's children hung under an October session. Test: the "children of the voice app" block in `RemoteMCP.test.mjs`. Needs a Servex restart.
++
++**A second cloud voice session on the same day (current behaviour, written down, not changed).** The record's id comes from the connection's `register_session` title (`cloud-voice-<title>`), else `cloud-voice-app-<YYYYMMDD>`. So two calls on one day that never name themselves share one record, and a titled call gets its own. The registry row holds one id, the one opened by the most recent call, so two live conversations alternating calls would flip it. Proposal (not built): give an untitled connection `cloud-voice-app-<YYYYMMDD>-<n>` from its MCP session id, and key the parent by connection (the spawn's `sid`) instead of the single registry row. Alternative: keep one record per day and make same-day conversations tabs inside it; cheaper, but costs and children of two conversations stay mixed.
+diff --git a/Servex/ext/remote/readme.md b/Servex/ext/remote/readme.md
+index 0567c5a51..a61397e70 100644
+--- a/Servex/ext/remote/readme.md
++++ b/Servex/ext/remote/readme.md
+@@ -7,5 +7,5 @@
+ - The voice path end to end: [voice-bridge.md](../../../public/framework/ux/Dictate/doc/voice-bridge.md)
+ - Catch-up: what changed since the voice agent's last call, piggybacked on every tool result (built: the `updates` tool): [doc/catch-up.md](doc/catch-up.md)
+ - **Cloud voice agent guide** (what it is, session naming, logging, tasks, caveats; the one line the server instructions point to): [doc/cloud-voice-agent.md](doc/cloud-voice-agent.md)
+-- Every voice prompt logged verbatim by code (built: the cloud-only `cloud_voice_log` tool, cloud `register_session`): [doc/voice-logging.md](doc/voice-logging.md)
++- Every voice prompt logged verbatim by code (built: the cloud-only `cloud_voice_log` tool, cloud `register_session`): [doc/voice-logging.md](doc/voice-logging.md); the voice app's children are parented to the record it opens (`point_caller`)
+ - File and shell tools (`read_file`, `write_file`, `edit_file`, `list_dir`, `glob`, `shell`) and the generic `call` door: [doc/remote-tools.md](doc/remote-tools.md)

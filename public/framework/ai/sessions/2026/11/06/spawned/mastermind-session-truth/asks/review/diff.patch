@@ -1,0 +1,584 @@
+diff --git a/.claude/hooks/prompt-relay.mjs b/.claude/hooks/prompt-relay.mjs
+index eb099571e..16a7e8d23 100644
+--- a/.claude/hooks/prompt-relay.mjs
++++ b/.claude/hooks/prompt-relay.mjs
+@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
+ import TaskDirs from "../../Server/TaskDirs.mjs";
+ import DatedFiles from "../../Server/DatedFiles.mjs";
+ import SessionRecord from "../../Server/SessionRecord.mjs";
++import Ask from "../../Server/Ask.mjs";
+ 
+ /* prompt-relay.mjs — the UserPromptSubmit hook (2026-09-19).
+  *
+@@ -17,8 +18,9 @@ import SessionRecord from "../../Server/SessionRecord.mjs";
+  *
+  * 1. THE OWNER'S OWN interactive session only — never a minion or mastermind's (minion-echo,
+  *    2026-10-02, storage redirect: "a session is a page",
+- *    public/framework/ai/sessions/2026/09/30/proposal-flow/page-item-design.md). The prompt becomes one
+- *    `page_add` item on that session's own public/framework/ai/sessions/YYYY/MM/DD/<folder>/page.jsonl (the one dated folder)
++ *    public/framework/ai/sessions/2026/09/30/proposal-flow/page-item-design.md). The prompt becomes a counted
++ *    Prompt item plus one `{refined:{re,sentences}}` line (its words split by code, secrets withheld: Server/Ask.mjs) on that session's own
++ *    public/framework/ai/sessions/YYYY/MM/DD/<folder>/session.jsonl (the one dated folder)
+  *    — never a second, shared daily file (the old .claude/prompts/<date>.jsonl is retired: text
+  *    is never stored twice). This is the owner's "my words should be transcribed in real time."
+  *
+@@ -189,21 +191,10 @@ const marker = sid => path.join(os.tmpdir(), `claude-assistant-${String(sid).rep
+ const mark_assistant = sid => { try { fs.writeFileSync(marker(sid), ""); } catch {} };
+ const is_assistant = sid => { try { return fs.existsSync(marker(sid)); } catch { return false; } };
+ 
+-// A best-effort heuristic, not a scanner: common key/token shapes, checked line by line so a
+-// multi-line paste with one bad line still withholds the whole prompt rather than half-logging it.
+-const SECRET_PATTERNS = [
+-	/-----BEGIN[ A-Z]*PRIVATE KEY-----/,
+-	/\b(AKIA|ASIA)[0-9A-Z]{16}\b/, // AWS access key id
+-	/\bsk-(ant-|proj-)?[A-Za-z0-9_-]{16,}\b/, // Anthropic / OpenAI style secret keys
+-	/\bgh[pousr]_[A-Za-z0-9]{20,}\b/, // GitHub tokens
+-	/\bxox[baprs]-[A-Za-z0-9-]{10,}\b/, // Slack tokens
+-	/\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/, // JWT
+-	/\b(api[_-]?key|secret|token|password|passwd)\b\s*[:=]\s*["']?[A-Za-z0-9_\-/+]{12,}/i, // "key: <blob>"
+-];
+-const looks_like_secret = text => String(text).split(/\r?\n/).some(line => SECRET_PATTERNS.some(re => re.test(line)));
+-const WITHHELD = "[withheld: looked like a secret]";
+-
+-const is_slash = text => /^\s*\//.test(text);
++// Secret redaction and the slash-command test live in Server/Ask.mjs, the one ask writer.
++const looks_like_secret = text => Ask.looks_like_secret(text);
++const WITHHELD = Ask.WITHHELD;
++const is_slash = text => Ask.is_slash(text);
+ 
+ const stdin = () => new Promise(resolve => {
+ 	if (process.stdin.isTTY) return resolve("");
+@@ -232,8 +223,8 @@ const run = async () => {
+ 
+ 	// 1. THE OWNER'S OWN interactive session only (never a minion or mastermind's — their
+ 	//    transcripts are archived a different way, the parent task's "Session records" note):
+-	//    the prompt becomes one item on that session's own page, public/framework/ai/sessions/
+-	//    <session_id>/page.jsonl, via the SAME validated tool a live tab would use (page_add,
++	//    the prompt becomes a counted Prompt item and its sentences (Server/Ask.mjs) on that session's own record,
++	//    public/framework/ai/sessions/<dated folder>/session.jsonl, via the SAME validated tool a live tab would use (page_set,
+ 	//    Servex/agents/page_tools.js) — never a second file, per the storage redirect above.
+ 	// A subagent's hand-back or a background notice arrives as a user turn too; it is not the
+ 	// owner's words, so it is never logged as a Prompt or refined (prompt-relay-skip-agents).
+@@ -242,8 +233,9 @@ const run = async () => {
+ 	let page_url = null, prompt_item_id = null;
+ 	if (owner_interactive) {
+ 		page_url = session_page_url(session_id);
+-		const out = await mcp_call("page_add", { path: page_url, item: { type: "Prompt", text: safe_text, redacted: secret || undefined, counted: true } }, "owner");
+-		prompt_item_id = out?.ok ? out.id : null;
++		// Server/Ask.mjs: the counted Prompt item (the turn) plus its raw sentences as one {refined:{re,sentences}} line, split by code; skips slash commands, withholds secrets.
++		const out = await Ask.write(page_url, prompt, "vscode", (url, delta) => mcp_call("page_set", { path: url, delta }, "owner"), { turn: true });
++		prompt_item_id = out.ok && out.id ? out.id : null;
+ 	}
+ 
+ 	// 1b. Tell Servex where this item landed, never the text itself, so the per-session echo
+diff --git a/Server/Ask.mjs b/Server/Ask.mjs
+new file mode 100644
+index 000000000..d3eb55962
+--- /dev/null
++++ b/Server/Ask.mjs
+@@ -0,0 +1,73 @@
++// THE ONE WRITER OF AN OWNER TURN'S RAW SENTENCES (the owner, 2026-11-06). Every owner prompt, on any channel, leaves
++//   {"refined":{"at","re":<the turn's at>,"sentences":[{n,text}],"sections":[],"via","by":"code"}}
++// on that session's record: the same line the voice model writes, here split by CODE (ext/Refine quick_clean, no AI) with secrets withheld,
++// so `git grep '"sentences":'` finds the owner's words on every channel. A later AI refine writes a second `refined` line with the same `re`
++// and `sections`. Session.apply_line turns the turn into one open Prompt task and each section item into a child task (core/Session/Session.js).
++// Channels call Ask.write(); `send(url, delta)` is the item tool (the hook posts it to Servex over MCP; Servex code calls it in-process).
++// Doc: core/Session/readme.md, "Asks".
++import { quick_clean } from "../public/framework/ext/Refine/engine.js";
++
++export default class Ask {
++	// Common key and token shapes, checked line by line so one bad line withholds the whole prompt (moved here from the hook).
++	static SECRET_PATTERNS = [
++		/-----BEGIN[ A-Z]*PRIVATE KEY-----/,
++		/\b(AKIA|ASIA)[0-9A-Z]{16}\b/,
++		/\bsk-(ant-|proj-)?[A-Za-z0-9_-]{16,}\b/,
++		/\bgh[pousr]_[A-Za-z0-9]{20,}\b/,
++		/\bxox[baprs]-[A-Za-z0-9-]{10,}\b/,
++		/\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/,
++		/\b(api[_-]?key|secret|token|password|passwd)\b\s*[:=]\s*["']?[A-Za-z0-9_\-/+]{12,}/i,
++	];
++	static WITHHELD = "[withheld: looked like a secret]";
++	// A subagent's hand-back, a background notice, a message from another agent: user turns that are not the owner's words.
++	static HARNESS = /^<(agent-message|task-notification|system-reminder)\b/;
++
++	static looks_like_secret(text){ return String(text).split(/\r?\n/).some(line => Ask.SECRET_PATTERNS.some(re => re.test(line))); }
++	static is_slash(text){ return /^\s*\//.test(text); }
++
++	/** Why this text is not an ask (a string), or null when it is. */
++	static skip(text){
++		const t = String(text ?? "").trim();
++		if (!t) return "empty";
++		if (Ask.HARNESS.test(t)) return "harness turn";
++		if (Ask.is_slash(t)) return "slash command";
++		return null;
++	}
++
++	/** The words as they are stored: a secret becomes WITHHELD. {text, redacted}. */
++	static redact(text){
++		const secret = !!String(text ?? "").trim() && Ask.looks_like_secret(text);
++		return { text: secret ? Ask.WITHHELD : String(text ?? ""), redacted: secret };
++	}
++
++	/** The id of a turn's Prompt task, from the turn's `at`; the same on every replay (Session.turn_id is this same hash). */
++	static turn_id(at){ let h = 5381; for (const c of String(at)) h = ((h * 33) ^ c.codePointAt(0)) >>> 0; return "t" + h.toString(36); }
++
++	/** The owner's words as numbered sentences, by code: secrets withheld first, then the shared mechanical split. [{n,text}] */
++	static split(text){
++		const { text: safe } = Ask.redact(text);
++		const rows = quick_clean(safe);
++		return rows.length ? rows : (safe.trim() ? [{ n: 1, text: safe.trim() }] : []);
++	}
++
++	/** The refined line for one turn: {refined:{at,re,sentences,sections:[],via,by:"code",redacted?}}. The item tool stamps `by` and `ts` on the line. */
++	static refined(text, via, re, at = new Date().toISOString()){
++		const { redacted } = Ask.redact(text);
++		return { refined: { at, re, sentences: Ask.split(text), sections: [], via, by: "code", ...(redacted ? { redacted: true } : {}) } };
++	}
++
++	/** Files one turn's sentences on the session record at `url`. `turn` (VS Code, which has no chat line): also adds the counted Prompt
++	 *  item that IS the turn, id Ask.turn_id(re). {ok, id, re} when written, {ok:true, skipped} when it is not an ask, {ok:false, why} when refused. */
++	static async write(url, text, via, send, { re = new Date().toISOString(), turn = false } = {}){
++		const skipped = Ask.skip(text);
++		if (skipped) return { ok: true, skipped };
++		const id = Ask.turn_id(re), { text: safe, redacted } = Ask.redact(text);
++		const deltas = [...(turn ? [{ content: { add: { type: "Prompt", id, text: safe, via, counted: true, ...(redacted ? { redacted: true } : {}) } } }] : []), Ask.refined(text, via, re)];
++		for (const delta of deltas){
++			let out = await send(url, delta);
++			if (typeof out === "string") try { out = JSON.parse(out); } catch { out = null; }
++			if (!out || out.ok === false) return { ok: false, why: out?.why ?? "the item tool did not answer" };
++		}
++		return { ok: true, id, re, redacted };
++	}
++}
+diff --git a/Server/Ask.test.mjs b/Server/Ask.test.mjs
+new file mode 100644
+index 000000000..dc5dac888
+--- /dev/null
++++ b/Server/Ask.test.mjs
+@@ -0,0 +1,53 @@
++// The one ask writer: each channel leaves the owner's turn as {refined:{re,sentences}} on the right session record. `node Server/Ask.test.mjs`.
++// A scratch session folder is used and removed; nothing is posted to a real log.
++import assert from "node:assert";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import Ask from "./Ask.mjs";
++import { page_tools } from "../Servex/agents/page_tools.js";
++import Session from "../public/framework/core/Session/Session.js";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++const SLUG = ".ask-test-" + process.pid;
++const DIR = path.join(ROOT, "public/framework/ai/sessions/2026/10/22", SLUG), REC = path.join(DIR, "session.jsonl"), URL = `/framework/ai/sessions/2026/10/22/${SLUG}/`;
++const read = f => fs.existsSync(f) ? fs.readFileSync(f, "utf8").trim().split("\n").filter(Boolean).map(l => JSON.parse(l)) : [];
++let n = 0;
++const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok", m); };
++
++ok(Ask.skip("") === "empty" && Ask.skip("/clear") === "slash command" && Ask.skip("<task-notification>x</task-notification>") === "harness turn" && Ask.skip("<agent-message>hi") === "harness turn" && Ask.skip("build it") === null, "skips empty, slash commands and harness turns; passes the owner's words");
++const secret = Ask.refined("my key sk-ant-abcdefghijklmnopqrstuv", "vscode", "2026-11-06T10:00:00Z");
++ok(secret.refined.redacted === true && !JSON.stringify(secret).includes("sk-ant-") && Ask.refined("plain words here", "voice", "x").refined.redacted === undefined, "a secret is withheld and flagged; plain words are not");
++const r = Ask.refined("Make it blue. Then add a border.", "vscode", "2026-11-06T10:00:00Z").refined;
++ok(r.by === "code" && r.re === "2026-11-06T10:00:00Z" && r.sections.length === 0 && r.sentences.length === 2 && r.sentences[0].n === 1 && r.sentences[1].n === 2, "the refined line: sentences numbered from 1 by code, no sections yet");
++ok(Ask.turn_id("a") === Ask.turn_id("a") && Ask.turn_id("a") !== Ask.turn_id("b"), "turn ids are stable");
++
++fs.mkdirSync(DIR, { recursive: true });
++fs.writeFileSync(REC, JSON.stringify({ session: { id: "00000000-0000-4000-8000-0000000000aa", kind: "vscode-tab", at: "2026-10-22T20:00:00Z" } }) + "\n");
++try {
++	const page_set = page_tools().find(t => t.name === "page_set").handler;
++	const send = (url, delta) => page_set({ path: url, delta }, { caller: "owner" });
++
++	// hook-style (VS Code has no chat line): the counted Prompt plus the refined line
++	const hook = await Ask.write(URL, "Make it blue. Then add a border.", "vscode", send, { turn: true, re: "2026-10-22T20:01:00Z" });
++	ok(hook.ok && hook.id === Ask.turn_id("2026-10-22T20:01:00Z"), "vscode: written, the turn id comes from `re`");
++	// voice-style: a refined line only (the chat/owner_words line is the turn elsewhere)
++	const voice = await Ask.write(URL, "Please rename the page.", "voice", send, { re: "2026-10-22T20:02:00Z" });
++	ok(voice.ok, "voice: written");
++	const skipped = await Ask.write(URL, "/clear", "vscode", send, { turn: true });
++	ok(skipped.skipped === "slash command", "a slash command writes nothing");
++
++	const lines = read(REC);
++	ok(lines.filter(l => l.refined?.sentences).length === 2 && lines.filter(l => l.refined).every(l => l.by === "owner" && l.ts), "the refined lines are on the session record, stamped by the item tool");
++	ok(!fs.existsSync(path.join(DIR, "page.jsonl")) || read(path.join(DIR, "page.jsonl")).every(l => !l.refined), "nothing on a page.jsonl");
++
++	// the reader: one open Prompt per turn, the hook's content Prompt IS its turn (no second task)
++	const s = Session.replay(lines);
++	ok(s.tally().open === 1 && [...s.tasks][0].id === voice.id && s.tally().prompts.unresolved === 1 && s.completion_score() < 1, "replay: the voice turn is one open Prompt task; the hook's content Prompt is its own counted turn (no second task)");
++	s.replay_line({ [hook.id]: { no_action: "a remark" } });
++	s.replay_line({ [voice.id]: { no_action: "a remark" } });
++	ok(s.tally().prompts.unresolved === 0 && s.completion_score() === 1, "no_action settles a turn");
++	console.log(`${n} passed`);
++} finally {
++	fs.rmSync(DIR, { recursive: true, force: true });
++}
+diff --git a/Servex/agents/Echo.js b/Servex/agents/Echo.js
+index 0f63b3596..626daacb5 100644
+--- a/Servex/agents/Echo.js
++++ b/Servex/agents/Echo.js
+@@ -1,5 +1,6 @@
+ import fs from "fs";
+ import { model } from "./tiers.js";
++import Ask from "../../Server/Ask.mjs";
+ import os from "os";
+ import path from "path";
+ import { fileURLToPath } from "url";
+@@ -208,8 +209,12 @@ export default class Echo {
+ 	 * comment). Only the item's own `add` line is read (its text never changes after that),
+ 	 * never a full page replay — `page` is relative to `public/`, exactly as the hook sent it. */
+ 	read_item(page, item_id){
+-		let text;
+-		try { text = fs.readFileSync(path.join(REPO, "public", page.replace(/^\/+/, ""), "page.jsonl"), "utf8"); } catch { return null; }
++		let text = "";
++		for (const file of ["page.jsonl", "session.jsonl"]){   // a session folder keeps the owner's words in session.jsonl
++			try { text += fs.readFileSync(path.join(REPO, "public", page.replace(/^\/+/, ""), file), "utf8") + "\n"; } catch {}
++		}
++		if (!text.trim()) return null;
++		let re = null, found = null;
+ 		for (const raw of text.split("\n")){
+ 			if (!raw.trim()) continue;
+ 			let line;
+@@ -221,10 +226,11 @@ export default class Echo {
+ 			// read `item.text` as undefined and silently returned — no error, no log, nothing: the
+ 			// hook and the /log/echo route were both fine the whole time. Reads BOTH shapes, same
+ 			// one-release compat window `page_tools.js`'s own `replay()` already keeps.
+-			if (line.at === "content" && line.add?.id === item_id) return line.add;
+-			if (line.content?.add?.id === item_id) return line.content.add;
++			if (line.at === "content" && line.add?.id === item_id) found = line.add;
++			if (line.content?.add?.id === item_id) found = line.content.add;
++			if (line.refined?.re && Ask.turn_id(line.refined.re) === item_id) re = line.refined.re;   // the turn's `at`, from the refined line Server/Ask.mjs wrote beside the Prompt
+ 		}
+-		return null;
++		return found ? { ...found, re } : null;
+ 	}
+ 
+ 	/* The in-process door onto `page_tools.js`'s own `page_set` (Servex/MCP.js's `call()`) —
+@@ -267,7 +273,7 @@ export default class Echo {
+ 		const item = this.read_item(evt.page, evt.item_id);
+ 		this.servex.say(`echo: read_item -> ${item ? "found, text len " + (item.text?.length ?? 0) : "NULL"}`);
+ 		if (!item?.text) return;
+-		this.process(evt.session_id, evt.page, evt.item_id, item.ts, item.text)
++		this.process(evt.session_id, evt.page, evt.item_id, item.ts, item.text, item.re)
+ 			.catch(e => this.servex.say(`echo could not process a prompt: ${e.message || e}`));
+ 	}
+ 
+@@ -295,7 +301,7 @@ export default class Echo {
+ 	/* THE MECHANICAL HALF — never throws into the caller's event handler; a clean()/structure()
+ 	 * failure (a down model provider, mostly) is logged and the prompt is simply not refined
+ 	 * this time, same "best-effort, never blocks" posture every hook in this task follows. */
+-	async process(session_id, page, item_id, at, text){
++	async process(session_id, page, item_id, at, text, re){
+ 		// HOTFIX, 2026-10-02 (live, right after the real merge+restart): task-mastermind-prompt-refine
+ 		// had asked for `deepseek/deepseek-v4.1-flash` pinned here (minion-core's own litmus
+ 		// timed it at 8s/call against haiku's 123s), and it DID pass minion-core's litmus run --
+@@ -346,6 +352,8 @@ export default class Echo {
+ 		// even though it's computed here, mechanically, well before the model is even sent
+ 		// anything. `sections`/`coverage` ride on `pending` until then.
+ 		await this.page_set(page, item_id, { sentences, strikes, misheard, flags, cost: { usd: round4(cost_usd) } }, this.id_for(session_id));
++		// The same sections as the voice model's line, so Session turns each item into a task under the turn (core/Session/Session.js, refine_turn): {refined:{re,sentences,sections}}.
++		if (re) await this.page_set(page, null, { refined: { at: new Date().toISOString(), re, sentences, sections, flags, cost_usd: round4(cost_usd), via: "vscode" } }, this.id_for(session_id), []);
+ 
+ 		this.page_of.set(session_id, page);
+ 		this.pending.set(session_id, { page, item_id, sections, coverage, flags, misheard, strikes, cost_usd });
+diff --git a/Servex/agents/Sessions.js b/Servex/agents/Sessions.js
+index 74de08980..be0c69212 100644
+--- a/Servex/agents/Sessions.js
++++ b/Servex/agents/Sessions.js
+@@ -15,6 +15,7 @@ import { structure } from "../../public/framework/ext/Refine/structure.js";
+ import WakePolicy from "./WakePolicy.js";
+ import * as PromptLines from "./PromptLines.js";
+ import ChatWriter from "./ChatWriter.js";
++import Ask from "../../Server/Ask.mjs";
+ import Session from "../../public/framework/core/Session/Session.js";   // plugins_of() replays a session's own session.jsonl; Servex must not import ux/ files
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+@@ -1302,6 +1303,8 @@ export default class Sessions {
+ 			...(thread && re ? { re: String(re), thread: true } : {}),
+ 			...(selection && typeof selection === "object" ? { selection: trim_sel(selection) } : {}) };
+ 		this.write(s, { chat: line });
++		/* The turn's raw sentences, split by code with secrets withheld (Server/Ask.mjs): the same {refined:{re,sentences}} line the AI refine writes later, so every channel leaves its words as sentences. */
++		this.write(s, Ask.refined(text, via, line.at, now_ms()));
+ 		/* With the fast seat off, code files the Question the voice assistant used to (one per "?" sentence, the same line shape). */
+ 		if (this.assistant_of(s) === "off" && /\?["'”’)]*$/.test(String(text).trim())) this.write(s, PromptLines.add_question(prompt, { id: "q-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6), text: String(text).trim() }, "servex"));
+ 		if (this.single_seat(s)) return this.single_say(s, line, { site, text, selection, floor });
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index e9e749851..b9f1346f7 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -539,7 +539,7 @@ function page_text(root, file, url, format = "markdown"){
+ }
+ const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/processes/index.js", "core/Task/Task.js", "core/Item/Item.js"], Improvements: ["core/Task/Improvements.js", "core/Task/Task.js", "core/Item/Item.js"] };
+ // Fields a Session line may carry: its identity, a title, and its tasks.
+-const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class", "place", "summary", "messages", "sentences"];   // "place" and "summary": the voice assistant's lines (one per sentence; one per card of 2+ sentences) (ux/Dictate/doc/voice-assistant.md)
++const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class", "place", "summary", "messages", "sentences", "refined"];   // "place" and "summary": the voice assistant's lines (one per sentence; one per card of 2+ sentences) (ux/Dictate/doc/voice-assistant.md)
+ 
+ // Fields a Task line may carry beyond its getters (plan section 2) and the legacy line keys Task.replay reads.
+ const TASK_KEYS = ["id", "now", "title", "description", "state", "expected", "complete", "completion", "priority", "commits", "session", "session_id", "module", "tags", "tasks", "task", "path", "parent", "content", "mode", "waiting_on", "outcome", "why", "steps", "step", "checked_by", "verdict", "brief", "assign", "at", "log", "decision", "review", "note", "by", "ts"];
+diff --git a/Servex/ext/remote/RemoteMCP.js b/Servex/ext/remote/RemoteMCP.js
+index d3b3c3f85..224f95b63 100644
+--- a/Servex/ext/remote/RemoteMCP.js
++++ b/Servex/ext/remote/RemoteMCP.js
+@@ -5,6 +5,7 @@ import crypto from "crypto";
+ import express from "express";
+ import TaskDirs from "../../../Server/TaskDirs.mjs";
+ import DatedFiles from "../../../Server/DatedFiles.mjs";
++import Ask from "../../../Server/Ask.mjs";
+ 
+ /* The remote MCP endpoint (POST /mcp/remote), behind a bearer token. It serves the SAME tool registry every local Claude
+  * session gets (`servex.mcp`, read live, never copied) plus `ask_mastermind` on top; calls run as caller "voice-app".
+@@ -248,6 +249,8 @@ export default class RemoteMCP {
+         const text = words?.trim();
+         try {
+             if (text) fs.appendFileSync(abs, JSON.stringify({ owner_words: { at, words: text, caller: RemoteMCP.CALLER } }) + "\n");
++            // the same words as numbered sentences, split by code with secrets withheld (Server/Ask.mjs): the line the voice model writes, `re` = the words line's `at`
++            if (text && !Ask.skip(text)) fs.appendFileSync(abs, JSON.stringify(Ask.refined(text, "voice", at, at)) + "\n");
+             const hash = crypto.createHash("sha256").update(JSON.stringify(call.args ?? {})).digest("hex").slice(0, 12);
+             fs.appendFileSync(abs, JSON.stringify({ tool_call: { at, tool, args_hash: hash, caller: RemoteMCP.CALLER } }) + "\n");
+         } catch (e) { console.error("remote-mcp: voice log write failed:", e.message); }
+diff --git a/Servex/ext/remote/RemoteMCP.test.mjs b/Servex/ext/remote/RemoteMCP.test.mjs
+index 133c34649..2775297dc 100644
+--- a/Servex/ext/remote/RemoteMCP.test.mjs
++++ b/Servex/ext/remote/RemoteMCP.test.mjs
+@@ -146,6 +146,10 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
+     assert.ok(lines.some(l => l.spawned?.agent === "mastermind-x" && l.spawned.task_dir), "a spawn is logged with agent id and task dir"); assert.equal(lines[0].session.caller, "voice-app");
+     const words = lines.filter(l => l.owner_words).map(l => l.owner_words.words);
+     assert.deepEqual(words, ["make it blue, please", "via the tool, twice"], "words filed verbatim, one line per call");
++    const turns = lines.filter(l => l.refined);
++    assert.equal(turns.length, 2, "each words line leaves ONE refined line of raw sentences (Server/Ask.mjs), the voice-app channel");
++    assert.ok(turns.every((t, i) => t.refined.re === lines.filter(l => l.owner_words)[i].owner_words.at && t.refined.via === "voice" && t.refined.by === "code" && t.refined.sentences[0].n === 1 && Array.isArray(t.refined.sections)), "re = the words line at; via voice; sentences numbered from 1");
++    assert.equal(turns[0].refined.sentences.map(x => x.text).join(" "), "Make it blue, please.", "split by code");
+     assert.equal(lines.find(l => l.cost).cost.usd, 1.5, "cost line");
+     const other = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
+     const dflt = JSON.parse((await rpc({ id: 9, method: "tools/call", params: { name: "register_session", arguments: {} } }, other)).json.result.content[0].text);
+diff --git a/Servex/ext/remote/doc/cloud-voice-agent.md b/Servex/ext/remote/doc/cloud-voice-agent.md
+index 9326be958..1fa25b9c1 100644
+--- a/Servex/ext/remote/doc/cloud-voice-agent.md
++++ b/Servex/ext/remote/doc/cloud-voice-agent.md
+@@ -25,7 +25,7 @@ If you are reading this through `read_file`, you are probably a **cloud voice ag
+ 
+ Code writes these; you never type them.
+ 
+-- `owner_words`: the owner's verbatim words, one line per `cloud_voice_log` call.
++- `owner_words`: the owner's verbatim words, one line per `cloud_voice_log` call. Each is followed by a `refined` line (`via:"voice"`, `by:"code"`, `re` = that line's `at`) with the words split into numbered `sentences`, written by `Server/Ask.mjs`; `git grep '"sentences":'` finds them.
+ - `tool_call`: every call you make, with the tool name and a hash of its arguments. A `tool_call` with no `owner_words` line before it is a visible gap: you forgot to log.
+ - `spawned`: every `spawn_agent` result, as the agent id and its task dir.
+ - `cost`: when you set it.
+diff --git a/public/framework/ai/indexing-past-work.md b/public/framework/ai/indexing-past-work.md
+new file mode 100644
+index 000000000..9f3052dd0
+--- /dev/null
++++ b/public/framework/ai/indexing-past-work.md
+@@ -0,0 +1,106 @@
++# Indexing past work: how we find what was asked, done and decided
++
++The owner asks "didn't I ask for this?" often, and the answer has to come from the files, never from memory. This page is the one place that says how to find anything we've worked on, and what has to be logged for that to work. (Moved here from `ai/sessions/doc/finding.md`, 2026-11-06.)
++
++**Rules.**
++- The session logs are the source of truth ([ai/readme.md](readme.md)).
++- A search that misses or takes more than one try gets its working query added here.
++- A search that can't work, because the event was never logged, adds that event to "The logging contract" and files a task to start logging it.
++
++## 1. Search the session logs with `git grep`
++
++Logs live in `public/framework/ai/sessions/YYYY/MM/DD/<session folder>/*.jsonl`. **The folder path is the date and the session. A line's first key is what happened.**
++
++`rg` is **not installed** on the owner's shells. `git grep` is built in, takes regex, and skips `node_modules`. Timed 2026-11-06 over every session file: about 0.1 s for an exact key, about 2.5 s for a regex over all of `ai/`.
++
++```sh
++S=public/framework/ai/sessions
++# 1. count first
++git grep --untracked -c '"queued":' -- "$S/**"
++# 2. too many? narrow by day
++git grep --untracked -l '"queued":' -- "$S/2026/11/06/**"
++# 3. words: regex anchored on a key
++git grep --untracked -lEi '"title":"[^"]*tools' -- "$S/**"
++```
++
++`--untracked` goes **before** the pattern. Use `git grep -n` to get the line number, then read only that line.
++
++## 2. The owner's own words
++
++| Channel | Where the words are | Search |
++|---|---|---|
++| VS Code tab | `{"refined":{"re","sentences":[{n,text}],"by":"code","via":"vscode"}}` per prompt, beside the counted `Prompt` item, written by the `UserPromptSubmit` hook (`.claude/hooks/prompt-relay.mjs`) through `Server/Ask.mjs` | `'"sentences":[[^]]*word'` |
++| Browser voice (Dictate) | the same `refined` line, `sentences` (raw, per sentence) and `sections` (the asks, citing sentence numbers); the AI refine adds the sections | `'"sentences":[[^]]*word'` |
++| Claude app voice | the same `refined` line (`via:"voice"`, `by:"code"`) beside each `owner_words` line, written by `Servex/ext/remote/RemoteMCP.js` | `'"sentences":[[^]]*word'` |
++| SDK agents, phone sheet | the same `refined` line (`by:"code"`) after each owner chat line, written by `Sessions.say`; the "From …" relays to agents stay lossy | `'"sentences":[[^]]*word'` |
++
++One shape, one writer (`Server/Ask.mjs`, doc: [core/Session/readme.md](../core/Session/readme.md), "Asks"). Sentences are split by code (ext/Refine `quick_clean`, no AI) and a line that looks like a secret is withheld. `Session.refine_turn` turns each turn into one open `Prompt` task and each `sections` item into a child task citing its sentences, so a turn counts until an agent closes it with an outcome or `no_action` with a why. A turn the refiner has not run on stays one open item. For VS Code turns the refiner is Echo (`Servex/agents/Echo.js`), which runs only when `SERVEX_ECHO=on` (off by default, cost).
++
++## 3. The raw transcripts (the full story)
++
++`~/.claude/projects/C--Code-lew42-monorepo/<session id>.jsonl` holds every prompt, reply, tool call and cost. That's 9,523 files and 9.5 GB, flat, with no date folders. **Filter by modified time first**, then grep only those files. Timed 2026-11-06: 577 files changed in 7 days, listed in 0.6 s; the grep took 7.7 s.
++
++```sh
++P=~/.claude/projects/C--Code-lew42-monorepo
++find $P -name '*.jsonl' -mtime -7 -print0 \
++ | xargs -0 grep -l '"type":"user".\{0,400\}footprint'
++```
++
++`"type":"user"` lines also carry tool results, so treat hits as candidates. **Planned:** archive older transcripts compressed, never delete them; they're the record of every ask.
++
++## 4. Git history: what changed, when and why
++
++```sh
++# every commit to one file (follows renames)
++git log --follow --oneline -- Servex/agents/page_tools.js
++# commits that ADDED or REMOVED a string
++git log -S'live_root' --oneline
++# commits whose diff matches a regex
++git log -G'tool(\"page_' --oneline
++# a string in an old version of the repo
++git grep 'live_root' <commit> -- Servex/
++```
++
++Session logs only grow, so old versions of them add nothing; history is for code and docs. **Gap:** only about 1 in 10 commits names its session today. Planned: every commit logs `{"commit":…}` to its session (mastermind-session-truth).
++
++## 5. What each event looks like
++
++| To find | Search for | Status |
++|---|---|---|
++| An agent's session | `"agent":"<id>"` in `session.jsonl` | works |
++| Today's VS Code tabs | `"kind":"vscode-tab"` | works |
++| A task by its title | `"title":"[^"]*word` in `task.jsonl` / `session.jsonl` | works |
++| A finished task | `"complete":{"outcome":` | works |
++| Who started process 1234 | `git grep --untracked -n '"pid":1234' -- 'public/framework/ai/sessions/**'`; how it ended: `"pid_exit":1234`; Servex's own (no agent): `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl` | works since 2026-11-06 21:50 (processes Servex starts; [Servex/doc/processes.md](/Servex/doc/processes.md), "Who started this pid") |
++| A queued spawn | `"queued":{` in the parent's `session.jsonl`, then `"started":{` | works since 2026-11-06 21:50 |
++| Which session made a commit | `"commit":"abc123"` | planned (mastermind-session-truth) |
++| A caught error | `"error":` | planned (mastermind-resources) |
++
++## 6. The logging contract
++
++One event, one line, **one fixed first key**, plus `by` and `ts`. The same event is always written the same way, whoever writes it.
++
++```js
++{ "sentences": [{ "n": 1, "text": "…" }] }
++{ "queued": { "agent": "x", "commit_pct": 82 } }
++{ "pid": 1234, "cmd": "…", "why": "…" }
++{ "pid_exit": 1234, "code": 0 }
++{ "commit": "abc123", "files": ["…"] }
++{ "error": "…", "where": "file:line" }
++```
++
++## 7. What already exists (the map)
++
++Similar things live in several places. Each one should point to the others, and some should be merged.
++
++| What | Where | Note |
++|---|---|---|
++| Search past work before building | `Server/PastWork.mjs`, the `past-work` skill (`.claude/skills/past-work/`) | writes `past-work.md` per spawn; exact words only; its index (`ai/past-work-index.md`) is stale since 10-14 |
++| Find sessions by tag, system, cost or day; one session's completion | `Server/session-query.mjs` ([record-spec.md](sessions/doc/data/record-spec.md), "Asking about past sessions") | completion calls `session.completion_score()` |
++| One row per task, agent, card, ask | `Server/doc/ai-index.md` (AIIndex) | |
++| Every task in memory, plain JS queries | `Server/doc/session-index.md` | |
++| Work since 10-20, by area | [doc/built-index.md](doc/built-index.md) | hand-written, 11-01 |
++| Asks vs. outcomes | [doc/asks-outcomes.md](doc/asks-outcomes.md), [doc/audits.md](doc/audits.md) | |
++| How readmes work, what each role reads | [doc/readme-system.md](doc/readme-system.md), [agents.md](agents.md) | **also** `Servex/agents/roles/` (one readme per role). Two homes for agent docs: to be cross-linked, then merged into `framework/ai` |
++
++**Readmes are the first index.** A folder's `readme.md` is short. It names everything directly inside the folder (or links a sub-doc that does) and says how to search its data. When a search was hard, the folder's readme gets the query that worked ([doc/readme-system.md](doc/readme-system.md)).
+diff --git a/public/framework/core/Session/Session.js b/public/framework/core/Session/Session.js
+index 09301117d..e1124a8e5 100644
+--- a/public/framework/core/Session/Session.js
++++ b/public/framework/core/Session/Session.js
+@@ -124,6 +124,8 @@ export default class Session extends Task {
+ 		 * clears the old why, so a session that came back is not still read as "abandoned" (2026-10-23). */
+ 		if (delta.stop && typeof delta.stop === "object"){ this.put("state", "stopped"); this.put("why", delta.stop.why ?? null); this.put("stopped_at", delta.stop.at ?? Task.clock); delete delta.stop; }
+ 		if (delta.start && typeof delta.start === "object"){ this.put("state", "running"); this.put("why", null); this.put("stopped_at", null); delete delta.start; }
++		// The owner's turn and its sentences/sections: {"refined":{at,re,sentences,sections,via}} (Session.refine_turn).
++		if (delta.refined && typeof delta.refined === "object" && delta.refined.re){ this.refine_turn(delta.refined); delete delta.refined; }
+ 		if (typeof delta.task === "string"){   // a reference line: the live child; one with the same id as a nested child replaces it (it moved home)
+ 			const kid = Task.from_ref(delta.task, delta.as, delta), had = this._tasks?.find(kid.id);   // a Session entry's type and spawn ride on the same line
+ 			kid._created_at ??= Task.clock;
+@@ -167,6 +169,32 @@ export default class Session extends Task {
+ 		return this;
+ 	}
+ 
++	/* THE OWNER'S TURN AS TASKS (the owner, 2026-11-06). A `refined` line, {"refined":{at,re,sentences:[{n,text}],sections,via}}, names its turn by
++	   `re` (the chat line's `at`; for a VS Code prompt, the `at` the hook gave its counted Prompt). The turn is ONE Prompt task, id Session.turn_id(re)
++	   (the hook's content Prompt when it is there, else made here in `tasks`), open until something is filed under it; each section item is a child task
++	   citing sentences (`a<n>`, the paragraph "a" below). A later refined line for the same turn replaces the sentences and adds the items it lacks. Code
++	   writes the first line (Server/Ask.mjs, sentences only), the refiner the sections. Old refined lines with sections derive their tasks the same way. */
++	static turn_id(at){ let h = 5381; for (const c of String(at)) h = ((h * 33) ^ c.codePointAt(0)) >>> 0; return "t" + h.toString(36); }
++	static turn_title(text){ const t = String(text).replace(/s+/g, " ").trim(); return t.length > 70 ? t.slice(0, 69).trimEnd() + "…" : t; }
++	refine_turn(r){
++		if (!r.re) return this;
++		const id = Session.turn_id(r.re), texts = (r.sentences ?? []).map(s => typeof s === "string" ? s : s?.text).filter(t => typeof t === "string" && t.trim());
++		let turn = this._tasks?.find(id) ?? this._content?.find(id);
++		if (!turn){
++			if (!texts.length) return this;
++		const text = texts.join(" ");
++			this.tasks.add({ type: "Prompt", id, text, via: r.via ?? "unknown", title: Session.turn_title(text), requested_at: r.re });
++			turn = this._tasks.find(id);
++		}
++		if (texts.length) turn.paragraphs.replace({ id: "a", text: texts.join(" "), sentences: texts });
++		for (const sec of r.sections ?? []) for (const it of sec.items ?? []){
++			const kid = `${id}-${it.id}`;
++			if (!it.id || !it.text || turn.tasks.find(kid)) continue;
++			turn.tasks.add({ id: kid, title: it.text, cites: (it.cites ?? []).map(n => "a" + n).join(" "), ...(sec.heading ? { section: sec.heading } : {}) });
++		}
++		return this;
++	}
++
+ 	// The folder every session of this kind lives under. Override in the subclass.
+ 	static root_url(){ return new URL("../../ai/sessions/", import.meta.url); }
+ 
+diff --git a/public/framework/core/Session/Session.test.mjs b/public/framework/core/Session/Session.test.mjs
+index c9391c931..eb21a3630 100644
+--- a/public/framework/core/Session/Session.test.mjs
++++ b/public/framework/core/Session/Session.test.mjs
+@@ -96,6 +96,38 @@ check("session completion (chat-model s7): 5 root tasks, 3 complete, 1 dropped,
+ 	return p.done === 3 && p.total === 4 && p.stopped === 1 && s.completion === 0.875;
+ });
+ 
++const T1 = "2026-11-06T10:01:00.000Z", T2 = "2026-11-06T10:02:00.000Z", T3 = "2026-11-06T10:03:00.000Z";
++const TURN_LINES = [
++	{ session: { id: "as1", kind: "voice", at: "2026-11-06T10:00:00Z" } },
++	{ chat: { at: T1, from: { kind: "owner" }, via: "voice", text: "do the thing. then the other." } },   // a chat line alone is not a task (old history)
++	{ refined: { at: T1, re: T1, sentences: [{ n: 1, text: "Do the thing." }, { n: 2, text: "Then the other." }], sections: [], via: "voice", by: "code" } },
++	{ refined: { at: T2, re: T2, sentences: [{ n: 1, text: "Build it." }], sections: [], via: "vscode", by: "code" } },
++	{ refined: { at: T2, re: T2, sentences: [{ n: 1, text: "Build it." }], sections: [{ id: "sec1", heading: "Build", items: [{ id: "sec1-i1", text: "Build the page", cites: [1] }] }] } },
++];
++const turn = (s, at) => s.tasks.find(Session.turn_id(at));
++check("turn: a refined line makes ONE open Prompt task for its turn, with its sentences as paragraph a and its via", () => {
++	const s = Session.replay(TURN_LINES), t = turn(s, T1);
++	return s.tasks.length === 2 && t.wire() === "Prompt" && t.get_one("via") === "voice" && t.sentences.map(x => x.id + "=" + x.text).join("|") === "a1=Do the thing.|a2=Then the other." && s.get_one("refined") === undefined;
++});
++check("turn: section items become child tasks citing sentences; the same item twice is one", () => {
++	const s = Session.replay([...TURN_LINES, TURN_LINES[4]]), t = turn(s, T2), kids = [...t.tasks];
++	return kids.length === 1 && kids[0].get_one("title") === "Build the page" && kids[0].get_one("cites") === "a1" && kids[0].get_one("section") === "Build" && kids[0].id === Session.turn_id(T2) + "-sec1-i1";
++});
++const ASK = (await import("../../../../Server/Ask.mjs")).default;
++check("turn: ids are the same on every replay, and Server/Ask.mjs makes the same one", () => Session.turn_id(T1) === turn(Session.replay(TURN_LINES), T1).id && Session.turn_id(T1) === ASK.turn_id(T1));
++check("turn: an open turn holds the session below 1 and counts in the tally; no_action settles its score", () => {
++	const s = Session.replay(TURN_LINES.slice(0, 3));
++	const open = s.completion_score() === 0 && s.tally().open === 1 && s.tally().created === 1;
++	s.replay_line({ [Session.turn_id(T1)]: { no_action: "a remark" } });
++	return open && s.completion_score() === 1;
++});
++check("turn: a hook-made content Prompt IS the turn: the refined line fills its sentences and files items under it, no second task", () => {
++	const s = Session.replay([{ session: "h1" }, { content: { add: { type: "Prompt", id: Session.turn_id(T3), text: "ship it", counted: true, via: "vscode" } } },
++		{ refined: { at: T3, re: T3, sentences: [{ n: 1, text: "Ship it." }], sections: [{ id: "sec1", heading: "", items: [{ id: "sec1-i1", text: "Ship", cites: [1] }] }], via: "vscode" } }]);
++	return s.tasks.length === 0 && s.content.length === 1 && s.content.find(Session.turn_id(T3)).tasks.length === 1 && s.content.find(Session.turn_id(T3)).sentences[0].text === "Ship it.";
++});
++check("turn: a refined line with no words and no turn writes nothing; one with no re is left alone", () => Session.replay([{ session: "e1" }, { refined: { re: T1, sentences: [] } }, { refined: { sentences: [{ n: 1, text: "x" }] } }]).tasks.length === 0);
++
+ process.exit(results.every(Boolean) ? 0 : 1);
+ 
+ import Day from "./Day.js";
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index 39c32918d..98c96551e 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -75,6 +75,16 @@ class Session extends Task                       // ../Task/Task.js (Task extend
+ - `Agents.agents_under` finds the child for the parent's cost and children. It matches `parent_session` exactly, and older rows by the parent's name within the parent's span.
+ - The child shows on the parent's page as the task it carries, with its model, cost and a link to its own session page.
+ 
++## Asks: the owner's turns (every channel)
++
++Every owner prompt, on every channel, leaves the same line on that session's record, written by code:
++`{"refined":{"at","re":<the turn's at>,"sentences":[{n,text}],"sections":[],"via","by":"code"}}`.
++- **Writer: `Server/Ask.mjs`** (`Ask.write`, `Ask.refined`). It skips empty text, slash commands and harness turns, withholds anything that looks like a secret, and splits the words with ext/Refine `quick_clean` (no AI). Callers: the VS Code hook (`.claude/hooks/prompt-relay.mjs`, also adds the counted `Prompt` item that is the turn), `Sessions.say` (SDK agents, V1, the phone sheet), `RemoteMCP.record` (Claude-app voice). The browser voice model writes the same line with sections.
++- **Reader: `Session.refine_turn`** (called from `apply_line`). A turn is one open `Prompt` task, id `Session.turn_id(re)` (the same hash as `Ask.turn_id`); each `sections` item becomes a child task `<turn>-<item id>` with `cites` ("a1 a2") and `section`. A turn with no sections is one open item. It counts until an agent closes it with an outcome, or `{"<id>":{"no_action":"why"}}`.
++- **Sections for a VS Code turn** come from Echo (`Servex/agents/Echo.js`), which writes a second `refined` line with the same `re`. Echo runs only when `SERVEX_ECHO=on`.
++- A later `refined` line with the same `re` adds its items; ids already filed are kept. Old lines replay as before.
++- Search: `git grep '"sentences":'`. Tests: `node Server/Ask.test.mjs`, `node public/framework/core/Session/Session.test.mjs`, `node Servex/ext/remote/RemoteMCP.test.mjs`.
++
+ ## Session entries
+ 
+ A session's `tasks` is the one list of everything to be done: prompts, tasks and child sessions. A child session is an entry in that list, and `children` is a view of those entries, never a second list (session-is-a-task items 31-33).

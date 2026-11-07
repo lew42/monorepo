@@ -1,0 +1,664 @@
+diff --git a/.claude/hooks/session-page.mjs b/.claude/hooks/session-page.mjs
+index 80b2336295..8f1e38d7ed 100644
+--- a/.claude/hooks/session-page.mjs
++++ b/.claude/hooks/session-page.mjs
+@@ -16,11 +16,11 @@ process.stdin.on("data", d => raw += d).on("end", () => {
+ 		const { session_id: id, cwd } = JSON.parse(raw);
+ 		if (!id) return;
+ 		if (!process.env.SERVEX_MCP) record(id, cwd);
+-		// The dated folder, never /framework/ai/sessions/<uuid>/ (that url only redirects): one folder per session, ai/sessions/doc/one-folder.md.
++		// The dated folder, the only address: one folder per session, ai/sessions/doc/one-folder.md.
+ 		const store = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../public/framework/ai/sessions");
+ 		let dir = null; try { dir = SessionFolders.at(store).record_of(id) ?? DatedFiles.sessions.session_dir(id); } catch {}
+ 		const url = dir ? "/framework/ai/sessions/" + path.relative(store, dir).split(path.sep).join("/") + "/" : null;
+-		console.log(url ? `[Your session is ${id}; its one folder is ${url} (pass it as \`path\` to page_set, page_add, page_call and page_read; /framework/ai/sessions/<uuid>/ is only a redirect, never a folder).]`
++		console.log(url ? `[Your session is ${id}; its one folder is ${url} (pass it as \`path\` to page_set, page_add, page_call and page_read; it is the only address, never make a folder for the bare id).]`
+ 			: `[Your session is ${id}.]`);
+ 	} catch {}
+ });
+diff --git a/Server/session-patterns.mjs b/Server/session-patterns.mjs
+index 43af4bc087..b359155cff 100644
+--- a/Server/session-patterns.mjs
++++ b/Server/session-patterns.mjs
+@@ -52,7 +52,7 @@ const rows = [
+ ];
+ const md = `# Where session data lives today
+ 
+-Counted by \`node Server/session-patterns.mjs --write\`, not typed. Every row opens in the same detail view, \`/framework/ai/sessions/<id>/\`.
++Counted by \`node Server/session-patterns.mjs --write\`, not typed. Every row opens in the same detail view, \`/framework/ai/sessions/YYYY/MM/DD/<folder>/\`.
+ 
+ | Pattern | Example | Count | How it is read |
+ |---|---|---|---|
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 8a882b8e04..e2495dd090 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -224,7 +224,7 @@ export class Agents {
+ 			if (!guard.ok) throw new Error(`openrouter spawn refused: ${guard.reason}`);
+ 		}
+ 		/* Minted here for every fresh spawn (the constructor would mint the same thing later), so
+-		 * the first-turn line can tell the agent its own page, /framework/ai/sessions/<session_id>/. */
++		 * the first-turn line can tell the agent its own page, its dated folder. */
+ 		const session_id = !again ? (spec.session_id ?? randomUUID()) : spec.session_id;
+ 		/* EVERY SPAWN HAS A TASK DIR (2026-10-18): a bare spawn gets one here, `task: false` opts out (default_task below). */
+ 		if ((spec.task === undefined || (spec.task && !spec.task.dir)) && !again){ const task = this.default_task(spec, id); if (task) spec = { ...spec, task: { ...task, ...(spec.task || {}) } }; }   // a handoff `task: {from, id}` with no dir lands in the default folder
+@@ -338,13 +338,13 @@ export class Agents {
+ 			? `[Your session is ${session_id}; ${Agents.folder_line(session_id)}]\n` : "");
+ 	}
+ 
+-	/* Where an agent's session lives, in one sentence: its dated folder, never /framework/ai/sessions/<uuid>/ (that url only
++	/* Where an agent's session lives, in one sentence: its dated folder, the only address (the bare-uuid url only
+ 	 * redirects; ai/sessions/doc/one-folder.md). The SessionStart hook (.claude/hooks/session-page.mjs) prints the same. */
+ 	static folder_line(session_id){
+ 		const store = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../public/framework/ai/sessions");
+ 		let dir = null; try { dir = SessionFolders.at(store).record_of(session_id) ?? DatedFiles.sessions.session_dir(session_id); } catch {}
+ 		const url = dir ? "/framework/ai/sessions/" + path.relative(store, dir).split(path.sep).join("/") + "/" : null;
+-		return url ? `its one folder is ${url} (pass it as \`path\` to page_set, page_add, page_call and page_read; /framework/ai/sessions/<uuid>/ is only a redirect, never a folder).`
++		return url ? `its one folder is ${url} (pass it as \`path\` to page_set, page_add, page_call and page_read; it is the only address, never make a folder for the bare id).`
+ 			: "omit `path` in the page tools to mean your own page.";
+ 	}
+ 
+diff --git a/Servex/agents/doc/own-page.md b/Servex/agents/doc/own-page.md
+index 4a07749ae7..49c0dfc506 100644
+--- a/Servex/agents/doc/own-page.md
++++ b/Servex/agents/doc/own-page.md
+@@ -3,7 +3,7 @@
+ Asked by the owner in VS Code tab 7efd07d5 (brief: `public/framework/core/Page/doc/page-tool-2026-10-09.md`, gap 3). Partner: `mastermind-page-system`.
+ 
+ ## The rule
+-Every session's page is **`/framework/ai/sessions/<session_id>/`**, the same folder `.claude/hooks/prompt-relay.mjs` already writes an owner tab's `page.jsonl` into. One convention for a Servex agent and a VS Code tab, keyed on the Claude session id (it exists at spawn, and a resume keeps it).
++Every session's page is its one dated folder, **`/framework/ai/sessions/YYYY/MM/DD/<folder>/`**, the same folder `.claude/hooks/prompt-relay.mjs` already writes an owner tab's `page.jsonl` into. One convention for a Servex agent and a VS Code tab, keyed on the Claude session id (it exists at spawn, and a resume keeps it).
+ 
+ ## Two doors, one line of text
+ | Who | Where the line comes from | Class / file |
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index e9e7498514..957f0b6d25 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -71,11 +71,11 @@ function resolve_file(url, item = false){
+ 
+ /* ROUTE PATHS (2026-10-09, the page tool): an agent names the page it SEES, and this finds
+  * the file behind it, even when none exists yet. Today one family of routes keeps its file
+- * somewhere else: a session page, `/framework/ai/sessions/<id>/`, is drawn by a template
++ * somewhere else: a session page (its dated folder; the bare `/framework/ai/sessions/<id>/` form is still accepted here as input only), is drawn by a template
+  * (ai/AISession/AISessionDetail.js) and its page.jsonl lives in the session's own dated
+  * folder, `sessions/YYYY/MM/DD/<slug>/` (Session.create(), the one creator, makes one for a session that has
+  * none). `<id>` is a session uuid or a Servex agent id (its registry row holds the uuid). A
+- * deeper path, `/framework/ai/sessions/<id>/notes/`, is a tab built from a line in that same
++ * deeper path, `<session folder>/notes/`, is a tab built from a line in that same
+  * file, so its segments go on the front of the target: ["notes", ...target]. Anything else
+  * resolves the plain way above. Returns { file, target } or null. */
+ const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
+@@ -284,7 +284,7 @@ const is_plain = v => !!v && typeof v === "object" && !Array.isArray(v);
+ const tool = (name, description, properties, required, handler) =>
+ 	({ name, description, inputSchema: { type: "object", required, properties }, handler });
+ 
+-const PAGE_PATH = { type: "string", description: "The page's url as the browser shows it, e.g. \"/framework/core/Page/tool/\" or a session's one dated folder \"/framework/ai/sessions/YYYY/MM/DD/<folder>/\" (/framework/ai/sessions/<id>/ also finds it, as a redirect only: no folder is ever made there). Omit it to mean YOUR OWN page, /framework/ai/sessions/<your agent id>/." };
++const PAGE_PATH = { type: "string", description: "The page's url as the browser shows it, e.g. \"/framework/core/Page/tool/\" or a session's one dated folder \"/framework/ai/sessions/YYYY/MM/DD/<folder>/\". Omit it to mean YOUR OWN page (your session's one dated folder)." };
+ const TARGET = { type: "array", items: { type: "string" }, description: "The path to the target, as a list of hops — each one a property name (\"content\") or a child's id, never a slash; a hop may be a dotted path (\"tasks.ui.tasks.c3\" is four hops, each level looking up the next with its own get). [] (or omit) targets the PAGE itself. [\"content\"] targets its content list. [\"k2\"] targets the existing item with id \"k2\", wherever it lives. [\"k2\",\"answers\"] walks into k2's own \"answers\" list." };
+ 
+ /* ---------- page_read's COMPUTED state (deliverable 2) ----------
+diff --git a/Servex/ext/refine/RefineCall.js b/Servex/ext/refine/RefineCall.js
+index 24fde4b916..5f718f3f77 100644
+--- a/Servex/ext/refine/RefineCall.js
++++ b/Servex/ext/refine/RefineCall.js
+@@ -6,7 +6,7 @@ import { session_backend } from "../../agents/Sessions.js";
+  * class RefineCall — ONE model call as its OWN NEW session (never resumed), with the lean
+  * options `agents/tidy.js` uses (no tools, no MCP, no skills: a ~800-token prefix instead of ~50k,
+  * which is the difference between $0.01 and $0.18 per call). The session is persisted, so it has a
+- * page at `/framework/ai/sessions/<session_id>/`, and the call reports what it cost.
++ * page at its dated folder (`/framework/ai/sessions/YYYY/MM/DD/<folder>/`), and the call reports what it cost.
+  *
+  *   const r = await RefineCall.run(prompt, { model, system });
+  *   RefineCall.run(prompt, { model, system, cwd: os.tmpdir() })   // cwd outside the repo: no auto-memory in the prefix (33x cheaper)
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 1ca4bc575e..8a9cdc5f06 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -38,7 +38,7 @@ import SessionPopover from "./SessionPopover.js";
+ import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
+ 
+ // One session's own page, opened at its dated folder /framework/ai/sessions/YYYY/MM/DD/<folder>/ (StoreFolder.child builds it with `segs`);
+-// /framework/ai/sessions/<id>/ redirects there, and is the page only for a session with no folder yet. `home` is the Sessions page it hangs under.
++// the bare-uuid url (/framework/ai/sessions/<uuid>/, kept only for old links) redirects there, and is the page only for a session with no folder yet. `home` is the Sessions page it hangs under.
+ // The loaders are statics. Each degrades to null when its file is missing, and a missing piece just does not draw.
+ export default class AISessionDetail extends Page {
+ 
+diff --git a/public/framework/ai/AISession/AISessionsPage.js b/public/framework/ai/AISession/AISessionsPage.js
+index a33756201e..8f66237245 100644
+--- a/public/framework/ai/AISession/AISessionsPage.js
++++ b/public/framework/ai/AISession/AISessionsPage.js
+@@ -749,7 +749,7 @@ export default class AISessionsPage extends Page {
+ 		return super.child(name, levels);
+ 	}
+ 
+-	/** `/framework/ai/sessions/<id>/` is one session's page; `doc` and `readme` are this page's own docs. */
++	/** `/framework/ai/sessions/YYYY/MM/DD/<folder>/` is one session's page; `doc` and `readme` are this page's own docs. */
+ 	route(id){
+ 		if (id.includes(".")) return;   // a stray asset request, not a session id
+ 		if (id === "doc" || id === "readme") return this.docs_page(id);
+diff --git a/public/framework/ai/AISession/SessionOutlineView.js b/public/framework/ai/AISession/SessionOutlineView.js
+index 877c09f605..38103eae24 100644
+--- a/public/framework/ai/AISession/SessionOutlineView.js
++++ b/public/framework/ai/AISession/SessionOutlineView.js
+@@ -93,7 +93,7 @@ export default class SessionOutlineView extends View {
+ 		const ask = () => { if (!this.costs.has(url)) AICost.summary(url).then(ans => { if (ans?.summary?.cost) this.costs.set(url, ans.summary.cost); paint(); }); };
+ 		const d = this.fold(key, "soutline-group card" + (g.state === "stopped" ? " is-dropped" : ""), () => {
+ 			div.c("soutline-title", () => {
+-				a.c("soutline-name", g.name).href(url).on("click", e => e.stopPropagation());
++				a.c("soutline-name", g.name).href(AICost.session_href(id)).on("click", e => e.stopPropagation());
+ 				small.c("soutline-state", [g.state, snap?.model && AICost.model_name(snap.model)].filter(Boolean).join(" · "));
+ 			});
+ 			div.c("soutline-meta", () => { small.c("muted", `${this.when(g.at)}${g.at ? " · " : ""}${this.progress_text(g)}`); $cost = small.c("muted soutline-cost", ""); });
+@@ -153,7 +153,7 @@ export default class SessionOutlineView extends View {
+ 		const row = () => div.c("soutline-row", () => {
+ 			SessionOutlineView.state_icon(i.state);
+ 			div.c("soutline-main", () => {
+-				if (chat) a.c("soutline-ttl soutline-chat-link", i.title).href(AICost.session_url(this.sid) + "?tab=timeline").on("click", e => e.stopPropagation());
++				if (chat) a.c("soutline-ttl soutline-chat-link", i.title).href(AICost.session_href(this.sid) + "?tab=timeline").on("click", e => e.stopPropagation());
+ 				else span.c("soutline-ttl", i.title);
+ 				if (chat) small.c("muted soutline-chat-meta", `${i.record_type} · ${this.when(i.at)}`);
+ 				this.agent_line(i);
+@@ -170,7 +170,7 @@ export default class SessionOutlineView extends View {
+ 		if (!c) return;
+ 		small.c("soutline-agent muted", () => {
+ 			span([snap?.model && AICost.model_name(snap.model), snap?.usd != null && AICost.short(snap.usd), snap?.state ?? i.node?.state].filter(Boolean).join(" · "));
+-			a.c("soutline-link", "session →").href(AICost.session_url(c.id ?? c.name)).on("click", e => e.stopPropagation());
++			a.c("soutline-link", "session →").href(AICost.session_href(c.id ?? c.name)).on("click", e => e.stopPropagation());
+ 		});
+ 	}
+ 
+@@ -185,7 +185,7 @@ export default class SessionOutlineView extends View {
+ 			if (commits.length) small.c("muted soutline-commit", "commit " + commits.map(h => String(h).slice(0, 7)).join(" "));
+ 			const url = get("path") ?? i.node?.url;
+ 			if (url) a.c("soutline-ref", "Open the task →").href(url);
+-			if (i.child) a.c("soutline-ref", "Session that did it →").href(AICost.session_url(i.child.id ?? i.child.name));
++			if (i.child) a.c("soutline-ref", "Session that did it →").href(AICost.session_href(i.child.id ?? i.child.name));
+ 			if (!outcome && !refs.length && !commits.length) small.c("muted", "No outcome, evidence or commit is recorded on this task.");
+ 		});
+ 	}
+diff --git a/public/framework/ai/AISession/SessionTasksGrid.js b/public/framework/ai/AISession/SessionTasksGrid.js
+index 24845aa77b..b492c717a0 100644
+--- a/public/framework/ai/AISession/SessionTasksGrid.js
++++ b/public/framework/ai/AISession/SessionTasksGrid.js
+@@ -46,7 +46,7 @@ export default class SessionTasksGrid extends View {
+ 				{ key: "title", label: "Task", width: "1fr", min: "12rem", format: (v, r) => () => a.c("stg-title", v).href(r.url ?? "#") },
+ 				{ key: "day", label: "Day", width: "8rem", min: "6.5rem" },
+ 				{ key: "kind", label: "Kind", width: "8rem", min: "6rem" },
+-				{ key: "owner", label: "Session", width: "11rem", format: (v, r) => () => r.owner ? a.c("stg-owner", r.node.snap?.title ?? r.node.agent ?? r.owner.slice(0, 8)).href(AICost.session_url(r.owner)) : span.c("muted", "this session") },
++				{ key: "owner", label: "Session", width: "11rem", format: (v, r) => () => r.owner ? a.c("stg-owner", r.node.snap?.title ?? r.node.agent ?? r.owner.slice(0, 8)).href(AICost.session_href(r.owner)) : span.c("muted", "this session") },
+ 				{ key: "cost", label: "Cost", type: "number", width: "6rem", format: v => v == null ? "" : "$" + v.toFixed(2) },
+ 			],
+ 			rows: [], filters: false, row_height: null, page_size: 100, prefs_id: "session-tasks",
+diff --git a/public/framework/ai/AISession/SessionTimeline.js b/public/framework/ai/AISession/SessionTimeline.js
+index 1a58492d25..881851b813 100644
+--- a/public/framework/ai/AISession/SessionTimeline.js
++++ b/public/framework/ai/AISession/SessionTimeline.js
+@@ -107,7 +107,7 @@ export default class SessionTimeline extends View {
+ 					span.c("stl-text", r.children?.length ? r.text + ":" : r.text);
+ 					(r.children ?? []).forEach((id, i) => {
+ 						const c = this.kid(id);
+-						a.c("stl-link", c?.snap?.title ?? c?.snap?.agent ?? c?.name ?? String(id).slice(0, 36)).href(AICost.session_url(c?.id ?? id));
++						a.c("stl-link", c?.snap?.title ?? c?.snap?.agent ?? c?.name ?? String(id).slice(0, 36)).href(AICost.session_href(c?.id ?? id));
+ 						if (i < r.children.length - 1) span(",");
+ 						if (r.children.length === 1 && c?.snap) this.kid_meta(c, id, small.c("stl-meta muted", ""));
+ 					});
+diff --git a/public/framework/ai/AISession/StoreFolder.js b/public/framework/ai/AISession/StoreFolder.js
+index 86893689e4..07e8a3a9fc 100644
+--- a/public/framework/ai/AISession/StoreFolder.js
++++ b/public/framework/ai/AISession/StoreFolder.js
+@@ -7,7 +7,7 @@ import AISession from "./AISession.js";
+ 
+ /* One folder of the sessions store, routed by its own path: /framework/ai/sessions/2026/10/12/<session>/<task>/.
+    Tasks live here since 2026-10-12 (ai/doc/task-folders.md). A session's own folder (YYYY/MM/DD/<folder>/) draws AISessionDetail (child() below): it is the session's one
+-   url, and /framework/ai/sessions/<id>/ redirects to it (AISessionsPage.route).
++   url, and the bare-uuid url (kept only for old links) redirects to it (AISessionsPage.route).
+    A year lists its months, a month its days and a day its sessions (StoreFolder.sessions); a folder with a task.jsonl opens as a task (AITask); a folder with its own
+    page.js is left to Page.child()'s probe; any other folder (a session's) lists its tasks and links the session page. */
+ export default class StoreFolder extends Page {
+diff --git a/public/framework/ai/AISession/readme.md b/public/framework/ai/AISession/readme.md
+index f3abe9f74d..695501e071 100644
+--- a/public/framework/ai/AISession/readme.md
++++ b/public/framework/ai/AISession/readme.md
+@@ -7,7 +7,7 @@
+ - `new AISessionsPage({ meta, classic: true })` draws the old all-controls-in-rows layout (`sessions/v/classic/`); its `data_url` getter strips a trailing `v/classic/` so every data file and row link still points at the real list.
+ - A rail card (`AISessionView` with `card: true`) shows four things: title, the one cost line, "N child sessions · M in all" and state. The rail lists root sessions only: `AISessionsPage.roots_for_cards` hides a row whose parent is in the list, and switching Table/Rail re-applies the grid.
+ - `AISessionDetail.js` · `AISessionConversation.js` · `AISessionCoverage.js` · `AISessionTrace.js` — a session's own page and its tabs. A clicked row opens that session's full page in place of the list (previews plus full detail views: [design/navigation](/framework/design/navigation/readme.md)); the sessions page no longer calls `columns()`. A named agent's url (`/framework/ai/sessions/<name>/`, a `reviewer-*` or `minion-*` row) resolves the name to its session through Servex's live agent list (`AISessionDetail.agent_row`), and every load asks the folder listing first, so the page never asks for a file that is not there.
+-- The session page's tab row is **Overview · Timeline · Chat · Tasks · More ▾**; Tasks is a grid of the session's tasks (`SessionTasksGrid` on ext/DataGrid, newest first) with Filters ▾ (state · day · kind; kind is derived, the records have none) and a Nested chip that shows the old nested `SessionWork` view with Approve; More ▾ (a `SessionPopover`, drawn once at build) holds Board, Coverage, Cost, Models and tokens, Related, Task queue → and Full screen, and shows as on when one of them is open. Under 600 px the stats bar is one line (cost · state · running) that a tap opens. Coverage reads the same prompt tail as the Timeline (`SessionTimeline.Tail`), not a second fetch. `?tab=work` opens Tasks and `?tab=conversation` opens Chat. The Chat tab has four chips at its top, **Chat** (the transcript, stages and tasks, the default), **Chat V1.2** (V1's bubbles drawn from `session.messages` with a send cursor, [`ext/Chat/v1-2`](/framework/ext/Chat/v1-2/); `?chat_view=v1-2`), **Chat v3** (a rough draft: a plain view over the same `tasks` list, [`ext/Chat/v3`](/framework/ext/Chat/v3/); `?chat_view=v3`) and **Chat v2** (the session's Prompts drawn from `session.jsonl` by [`ext/Chat/v2`](/framework/ext/Chat/v2/), mounted lazily on first pick); `?chat_view=v2` keeps the pick on reload (`?chat=` is the DevBar assistant's). Above the tabs sits the sticky stats bar (`SessionStats.js`: cost, model, running for, **Task folders done** X of Y (the folder tree), **Session tasks done** "N of M tasks done" (`SessionStats.tasks()`: the session's own root tasks from the item tool's `summary.progress`, dropped not counted, a dash when Servex does not answer), the one segmented bar); it reads the tree `SessionWork` loads, so one load serves the bar, the Overview and the Tasks tab. **A session's cost is one line from one function, `AICost.cost_line`: "$282 this tab · $1035 with children"** ("this session" when it is not a VS Code tab). The Cost tile, the Sessions list's Cost cell and its rail card all draw it. The own figure is the summary's `cost.own.usd` (before it arrives, the day snapshot's `usd`); "with children" is `summary.cost.total`, which the item tool computes (`AICost.summary(AICost.session_url(id))`, one cached answer per session for every surface), never `SessionWork`'s own sum. The list never asks for every row: it shows an answer already here, else a small "with children …" button that asks for that one row. Clicking the Cost tile opens the Cost tab, whose first block lists every child session behind the total (`AICost.draw_session`). **The Overview tab is `SessionOutlineView.js` (+ `SessionOutline.css`, prefix `soutline-`), drawn from `SessionOutline.js`, which has no DOM and is tested by `node SessionOutline.test.mjs`.** It groups the session's work by child session: one box per child (name linking to that child's own page, state, model, an `AICost` cost line, "N of M done") holding the tasks whose folder is the child's or below it, then "This session's own work", sub-grouped by the prompt that asked for it (`SessionOutline.source(session)` is the one place that join lives) with "Other work" for the rest (today "Other work" still includes Prompt/Question chat records, each shown by its own words — a Prompt's cleaned paragraph, a Question's text, read by `constructor.name` since `type` is consumed picking the class — as a link to the Timeline tab, where that record has its own row; not counting them as tasks at all is open, held pending the owner's sign-off: [sessions/2026/10/25/session-5644835c/mastermind-session-page-tasks/requirements.md](../sessions/2026/10/25/session-5644835c/mastermind-session-page-tasks/requirements.md)). The children are the union, de-duplicated by session id, of the `sessions` lines of `session.jsonl`, the tree nodes that carry `session`, the day snapshot's `links.children`, and the snapshots whose `parent` is this session's agent; groups are ranked by cost × 0.5^(age days ÷ 2) plus recency, with a Cost/Newest toggle. A task is one full-width row (open, running, done and dropped icons; the child session's model, cost and state; subtasks folded in), and a done task opens its proof in place. The rows are the Overview's own markup (`SessionOutlineView.item`), not `TaskView`: they carry no start/pause/stop buttons (those live on `TaskView` rows in the Tasks tab), and a folder-only task has no `Task` object for `TaskView` to draw. `SessionTasks` hands it each replay through `on_session`, and the view redraws live. `SessionFeed.js` (+ `SessionFeed.css`, prefix `sfeed-`) is the older flat list and is no longer wired in. `SessionOverview.js` draws the Board tab's four cards side by side (Open, Project, Done, Dropped), with the phone's classes (`MobileRow`, `MobileTaskRow`, `mob-` CSS); `SessionTaskRow.js` is the phone's task row that opens the task's full page and shows its cost. Their styles, and the full-screen mode with two floating buttons (`AISessionDetail.full_screen`, `?full`), are `SessionOverview.css` (prefix `sov-`).
++- The session page's tab row is **Overview · Timeline · Chat · Tasks · More ▾**; Tasks is a grid of the session's tasks (`SessionTasksGrid` on ext/DataGrid, newest first) with Filters ▾ (state · day · kind; kind is derived, the records have none) and a Nested chip that shows the old nested `SessionWork` view with Approve; More ▾ (a `SessionPopover`, drawn once at build) holds Board, Coverage, Cost, Models and tokens, Related, Task queue → and Full screen, and shows as on when one of them is open. Under 600 px the stats bar is one line (cost · state · running) that a tap opens. Coverage reads the same prompt tail as the Timeline (`SessionTimeline.Tail`), not a second fetch. `?tab=work` opens Tasks and `?tab=conversation` opens Chat. The Chat tab has four chips at its top, **Chat** (the transcript, stages and tasks, the default), **Chat V1.2** (V1's bubbles drawn from `session.messages` with a send cursor, [`ext/Chat/v1-2`](/framework/ext/Chat/v1-2/); `?chat_view=v1-2`), **Chat v3** (a rough draft: a plain view over the same `tasks` list, [`ext/Chat/v3`](/framework/ext/Chat/v3/); `?chat_view=v3`) and **Chat v2** (the session's Prompts drawn from `session.jsonl` by [`ext/Chat/v2`](/framework/ext/Chat/v2/), mounted lazily on first pick); `?chat_view=v2` keeps the pick on reload (`?chat=` is the DevBar assistant's). Above the tabs sits the sticky stats bar (`SessionStats.js`: cost, model, running for, **Task folders done** X of Y (the folder tree), **Session tasks done** "N of M tasks done" (`SessionStats.tasks()`: the session's own root tasks from the item tool's `summary.progress`, dropped not counted, a dash when Servex does not answer), the one segmented bar); it reads the tree `SessionWork` loads, so one load serves the bar, the Overview and the Tasks tab. **A session's cost is one line from one function, `AICost.cost_line`: "$282 this tab · $1035 with children"** ("this session" when it is not a VS Code tab). The Cost tile, the Sessions list's Cost cell and its rail card all draw it. The own figure is the summary's `cost.own.usd` (before it arrives, the day snapshot's `usd`); "with children" is `summary.cost.total`, which the item tool computes (`AICost.summary(AICost.session_url(id))`, one cached answer per session for every surface; `session_url` is only that cost-summary key and is never a link: a link to a session is `AICost.session_href(id)`, its dated folder), never `SessionWork`'s own sum. The list never asks for every row: it shows an answer already here, else a small "with children …" button that asks for that one row. Clicking the Cost tile opens the Cost tab, whose first block lists every child session behind the total (`AICost.draw_session`). **The Overview tab is `SessionOutlineView.js` (+ `SessionOutline.css`, prefix `soutline-`), drawn from `SessionOutline.js`, which has no DOM and is tested by `node SessionOutline.test.mjs`.** It groups the session's work by child session: one box per child (name linking to that child's own page, state, model, an `AICost` cost line, "N of M done") holding the tasks whose folder is the child's or below it, then "This session's own work", sub-grouped by the prompt that asked for it (`SessionOutline.source(session)` is the one place that join lives) with "Other work" for the rest (today "Other work" still includes Prompt/Question chat records, each shown by its own words — a Prompt's cleaned paragraph, a Question's text, read by `constructor.name` since `type` is consumed picking the class — as a link to the Timeline tab, where that record has its own row; not counting them as tasks at all is open, held pending the owner's sign-off: [sessions/2026/10/25/session-5644835c/mastermind-session-page-tasks/requirements.md](../sessions/2026/10/25/session-5644835c/mastermind-session-page-tasks/requirements.md)). The children are the union, de-duplicated by session id, of the `sessions` lines of `session.jsonl`, the tree nodes that carry `session`, the day snapshot's `links.children`, and the snapshots whose `parent` is this session's agent; groups are ranked by cost × 0.5^(age days ÷ 2) plus recency, with a Cost/Newest toggle. A task is one full-width row (open, running, done and dropped icons; the child session's model, cost and state; subtasks folded in), and a done task opens its proof in place. The rows are the Overview's own markup (`SessionOutlineView.item`), not `TaskView`: they carry no start/pause/stop buttons (those live on `TaskView` rows in the Tasks tab), and a folder-only task has no `Task` object for `TaskView` to draw. `SessionTasks` hands it each replay through `on_session`, and the view redraws live. `SessionFeed.js` (+ `SessionFeed.css`, prefix `sfeed-`) is the older flat list and is no longer wired in. `SessionOverview.js` draws the Board tab's four cards side by side (Open, Project, Done, Dropped), with the phone's classes (`MobileRow`, `MobileTaskRow`, `mob-` CSS); `SessionTaskRow.js` is the phone's task row that opens the task's full page and shows its cost. Their styles, and the full-screen mode with two floating buttons (`AISessionDetail.full_screen`, `?full`), are `SessionOverview.css` (prefix `sov-`).
+ - **The Timeline tab** (`?tab=timeline`) is `SessionTimeline.js` (+ `SessionTimeline.css`, prefix `stl-`): everything the session recorded in time order, newest at the bottom, the list opening scrolled to the bottom. One compact row per event (time, icon, one or two lines): each line of `session.jsonl` is one row (task added and done, child session started, note, decision, review, commit, session start and stop, log and tag lines), each prompt of `prompts.jsonl` is one row (its subject, the raw words one click down), and each child session that has landed adds one (name linked with `AICost.session_url`, its state, model and `AICost.cost_line`, never summed here). The rows are built with no DOM by `SessionTimelineRows.js`, tested by `node SessionTimeline.test.mjs` (rows drawn = record lines + distinct prompts + landed children, counted by hand on a fixture; the page shows the same number as `data-total`). It fetches nothing of its own for the record: `AISessionDetail` feeds it `SessionTasks`' replay (`on_session(session, lines)`), the Overview's child list (`SessionOutlineView`'s `on_draw`) and its own prompt tail (`SessionTimeline.Tail`, a `JSONL` that follows `prompts.jsonl`), so new lines appear without a reload. **Filters ▾** is a checkbox per kind in the same popover the Sessions list header uses (`SessionPopover.open(anchor, content, cls)`, which wraps `ux/Popover` and the `sessions-pop` skin); log, tag and `plumbing` (a voice session's `place`/`sent`/`quiet` bookkeeping and a prompt's word-by-word text updates) are off until ticked — `chat` (the owner and assistant, by text) is on by default. The count line says how many are hidden when some are ("965 of 2704 events — 1739 hidden by Filters ▾"). With no record the tab shows the prompts alone, or one plain sentence.
+ - `SessionWork.js` (+ `.css`) — the **Tasks** tab (the old Work view; its `SessionWork.split(root)` also feeds the stats bar and the Overview): its work nested by task folder (`sessions/doc/variants/SessionTree.js` over `ai/index.json`), own and rolled cost, tasks complete of created, open tasks, the Today ▾ pill (`ux/Filter/TimeFilter`), Approve. `Approvals.js` writes `{"approve":{"at","by":"owner"}}` to the session's own `session.jsonl` plus a pointer in that day's `day.jsonl` (the line the tab streams); `Review.js` is the leak rule and its numbers (finished 1 h, over $0.50, over a day old).
+ - `AISessionLive.js` · `AISessionFollow.js` · `AISessionResume.js` · `AISessionFlags.js` — live tail, follow, resume, flags.
+diff --git a/public/framework/ai/AITask/AICost.js b/public/framework/ai/AITask/AICost.js
+index e049d4a94a..052f5cacdb 100644
+--- a/public/framework/ai/AITask/AICost.js
++++ b/public/framework/ai/AITask/AICost.js
+@@ -1,4 +1,5 @@
+ import { div, span, a, small, table, thead, tbody, tr, th, td } from "../../core/View/View.js";
++import AISession from "../AISession/AISession.js";
+ 
+ export default class AICost {
+ 	/* What a task cost, in dollars — the `cost_usd` a task's log carries once
+@@ -157,7 +158,7 @@ export default class AICost {
+ 	static STALE_MS = 30000;
+ 	static asking = new Map();   // folder url -> the answer's promise while it is on its way, so two surfaces asking at once send one request
+ 
+-	/** The summary answer for one folder (or `/framework/ai/sessions/<uuid>/`): the cached one while fresh, else one new ask. */
++	/** The summary answer for one folder (or `/framework/ai/sessions/YYYY/MM/DD/<folder>/`): the cached one while fresh, else one new ask. */
+ 	static summary(base){
+ 		const hit = AICost.known.get(base);
+ 		if (hit && Date.now() - hit.at <= AICost.STALE_MS) return Promise.resolve(hit.answer);
+@@ -168,6 +169,9 @@ export default class AICost {
+ 	/** A session's summary url by its id: the list and the session page both ask by it, so they share one cached answer. */
+ 	static session_url = id => "/framework/ai/sessions/" + id + "/";
+ 
++	/** The link to a session's page: its one dated folder once the index has named it. `session_url` is only the cost-summary key, never a link. */
++	static session_href = id => AISession.page_url(id, AICost.session_url(id));
++
+ 	/** The answer already here for a session, or null: a list row shows it without asking. */
+ 	static known_cost = base => { const hit = AICost.known.get(base); return hit && Date.now() - hit.at <= AICost.STALE_MS ? hit.answer?.summary?.cost ?? null : null; };
+ 
+diff --git a/public/framework/ai/AITask/readme.md b/public/framework/ai/AITask/readme.md
+index ff75c5bc6f..def92d203b 100644
+--- a/public/framework/ai/AITask/readme.md
++++ b/public/framework/ai/AITask/readme.md
+@@ -18,6 +18,7 @@
+ - The transcript: streamed from `~/.claude/projects/` on the dev server only; off localhost the Session tab says "unavailable".
+ - The day pages: `/framework/ai/` routes (`ai/page.js`) draw a day with `AIDay/` (the `tasks` query source over the session store); `dashboard.js` still serves the rail and log boards.
+ - The Report tab (`AICost.report`): it asks Servex's item tool (`POST /api/item`, the `summary` query) for the session's real cost, its child sessions and its task counts, so the page computes and copies no number itself. On a static copy or a worktree preview there is no Servex, and the tab says so in words.
++- `AICost.session_url(id)` is the cost-summary key (one cached `summary` answer per session), never a link; `AICost.session_href(id)` is the link, the session's dated folder once the index has named it.
+ - Highlights: an `assign` line carrying `highlight:{icon,title,url}` in a `task.jsonl` puts a task on the front wall ([doc/highlights.md](doc/highlights.md)).
+ 
+ ## Used by
+diff --git a/public/framework/ai/agents.md b/public/framework/ai/agents.md
+index c011bd3da1..e71bd70bf2 100644
+--- a/public/framework/ai/agents.md
++++ b/public/framework/ai/agents.md
+@@ -21,7 +21,7 @@ This is the short base for any agent on this repo (a mastermind or a worker, Cla
+ 
+ ## ⚠ One folder per session (the owner, asked many times; 2026-11-06)
+ 
+-A session has exactly ONE folder: `public/framework/ai/sessions/YYYY/MM/DD/<folder>/`, the day it began. The url `/framework/ai/sessions/<uuid>/` only redirects there; never create, name or write a folder `sessions/<uuid>/`. Your session's folder is printed at start ("Your session is …; its one folder is …"). In code, find it with `SessionFolders.at(store).of(id)` (its own folder) or `.record_of(id)` (where its record sits, nested for a spawned agent) ([core/Session/SessionFolders.mjs](../core/Session/SessionFolders.mjs)), never by building a path; make it with `.create(id, {first})` (or `Session.create({id, name, parent, first})`), the one creator. A check fails loudly on a flat folder: `node Server/SessionConsolidate.mjs --check`. Details: [sessions/doc/one-folder.md](sessions/doc/one-folder.md).
++A session has exactly ONE folder: `public/framework/ai/sessions/YYYY/MM/DD/<folder>/`, the day it began. The dated folder is the only address (a bare-uuid url is a browser-only redirect for old links); never create, name or write a folder `sessions/<uuid>/`. Your session's folder is printed at start ("Your session is …; its one folder is …"). In code, find it with `SessionFolders.at(store).of(id)` (its own folder) or `.record_of(id)` (where its record sits, nested for a spawned agent) ([core/Session/SessionFolders.mjs](../core/Session/SessionFolders.mjs)), never by building a path; make it with `.create(id, {first})` (or `Session.create({id, name, parent, first})`), the one creator. A check fails loudly on a flat folder: `node Server/SessionConsolidate.mjs --check`. Details: [sessions/doc/one-folder.md](sessions/doc/one-folder.md).
+ 
+ ## Probable direction: agents in the dev server (the owner, 2026-11-06; not built)
+ 
+diff --git a/public/framework/ai/doc/ai-dashboard-plan.md b/public/framework/ai/doc/ai-dashboard-plan.md
+index e805c9a558..fab48ae4d6 100644
+--- a/public/framework/ai/doc/ai-dashboard-plan.md
++++ b/public/framework/ai/doc/ai-dashboard-plan.md
+@@ -6,7 +6,7 @@
+ 
+ Top to bottom: **(1)** one usage line (the existing pace meters); **(2)** the chosen day's sessions grouped by origin, **Voice** (cloud voice agent), **VS Code**, **Scheduled** (plus **Servex**, the agents a task spawned that are not yet under their parent), one row each: plain-words name, when, cost, state, tap to open; **(3)** inside a session: his words, agents spawned nested with costs rolled up, what landed; **(4)** older days: a day list beside the page on desktop, a date picker on the phone.
+ Not on it: top tabs, inbox cards, active-task lists (a count and a link only), snippets. The old Inbox is **one** link at the bottom.
+-**Slice 1 does 1, 2 and 4.** Part 3 is the existing `/framework/ai/sessions/<id>/` page the row opens; its "his words / nested / landed" layout is the next slice. The class table in section 4 is as built except that `AIDashboard` is a `View` (the root page keeps `page.js`), and `UsageLine` is added.
++**Slice 1 does 1, 2 and 4.** Part 3 is the existing `/framework/ai/sessions/YYYY/MM/DD/<folder>/` page the row opens; its "his words / nested / landed" layout is the next slice. The class table in section 4 is as built except that `AIDashboard` is a `View` (the root page keeps `page.js`), and `UsageLine` is added.
+ 
+ **What you asked (2026-10-19):** open `/framework/ai/` and click through everything the agents did today and yesterday. Group it by session and by where it came from (a cloud voice agent, or a VS Code / phone tab acting as a mastermind), nested: each one spawns sub-masterminds and minions. Compact, mobile first, no top tabs, cost added up the parent chain, nothing unaccounted for. One data store.
+ Task and brief: [ai-dashboard task](/framework/ai/sessions/2026/10/19/cloud-voice-live-page/ai-dashboard/task.jsonl) · past work found: [past-work.md](/framework/ai/sessions/2026/10/19/cloud-voice-live-page/ai-dashboard/past-work.md).
+@@ -81,7 +81,7 @@ Ranked, left to right (at 400 px the last ones wrap under, the first four never
+ 5. **duration** (started → last activity, `2 h 10`)
+ 6. **asks** and **landed**: `3 asks · 2 landed` (from `index.json`; hidden when 0)
+ 
+-Started time is the row's group heading (a time-of-day rule), not a column. Everything else (model, turns, tokens, files, tags, task lines, the transcript) is one click down, at the session's own URL `/framework/ai/sessions/<id>/`. A row is a link, so reload and back land in the same place.
++Started time is the row's group heading (a time-of-day rule), not a column. Everything else (model, turns, tokens, files, tags, task lines, the transcript) is one click down, at the session's own URL `/framework/ai/sessions/YYYY/MM/DD/<folder>/`. A row is a link, so reload and back land in the same place.
+ 
+ ### Origin rules (one function, computed, never typed)
+ 
+diff --git a/public/framework/ai/indexing-past-work.md b/public/framework/ai/indexing-past-work.md
+index 58e60e67bf..2da09f7eb8 100644
+--- a/public/framework/ai/indexing-past-work.md
++++ b/public/framework/ai/indexing-past-work.md
+@@ -80,6 +80,8 @@ Session logs only grow, so old versions of them add nothing; history is for code
+ 
+ One event, one line, **one fixed first key**, plus `by` and `ts`. The same event is always written the same way, whoever writes it.
+ 
++**A session has one address: its dated folder** (`public/framework/ai/sessions/YYYY/MM/DD/<folder>/`, url `/framework/ai/sessions/YYYY/MM/DD/<folder>/`). Search, link and write there. The bare `/framework/ai/sessions/<uuid>/` url is not an address: it is a browser-only redirect kept for old links, and there is never a folder behind it.
++
+ ```js
+ { "sentences": [{ "n": 1, "text": "…" }] }
+ { "queued": { "agent": "x", "commit_pct": 82 } }
+diff --git a/public/framework/ai/rail/DashRow.js b/public/framework/ai/rail/DashRow.js
+index 002338ace3..a94f4fd4fe 100644
+--- a/public/framework/ai/rail/DashRow.js
++++ b/public/framework/ai/rail/DashRow.js
+@@ -1,5 +1,6 @@
+ /** DashRow — the one row of the AI dashboard: `{kind, id, title, state, bucket, when, day, who, home, url, line, needs}`.
+- *  Plain code, no DOM and no imports, so Server/AIIndex.mjs (cards, asks) and the browser (tasks, sessions) share one mapping. Plan: ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md */
++ *  Plain code, no DOM, and its one import (AISession, for session links) loads in node too, so Server/AIIndex.mjs (cards, asks) and the browser (tasks, sessions) share one mapping. Plan: ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/one-dashboard/plan.md */
++import AISession from "../AISession/AISession.js";
+ export default class DashRow {
+ 	static KINDS = ["task", "card", "session", "ask"];
+ 	static CARD_BUCKETS = ["open", "working", "needs", "done", "archived"];
+@@ -50,7 +51,7 @@ export default class DashRow {
+ 	static of_session(s){
+ 		const when = s.last ?? s.last_landed ?? null;
+ 		return { kind: "session", id: "session:" + s.id, title: s.title || "Session " + String(s.id).slice(0, 8), state: s.landed === s.tasks ? "complete" : "running",
+-			bucket: s.landed === s.tasks ? "landed" : "open", when, day: s.day ?? null, created_day: null, who: s.id, home: null, url: DashRow.AI + "sessions/" + s.id + "/",
++			bucket: s.landed === s.tasks ? "landed" : "open", when, day: s.day ?? null, created_day: null, who: s.id, home: null, url: AISession.page_url(s.id, DashRow.AI + "sessions/" + s.id + "/"),
+ 			line: `${s.tasks} tasks, ${s.landed} landed`, needs: false };
+ 	}
+ 
+diff --git a/public/framework/ai/sessions/doc/asks/asks.md b/public/framework/ai/sessions/doc/asks/asks.md
+index 0296ab1393..5497dd8b51 100644
+--- a/public/framework/ai/sessions/doc/asks/asks.md
++++ b/public/framework/ai/sessions/doc/asks/asks.md
+@@ -12,7 +12,7 @@ This is the list to follow. Higher means do it first and never break it for some
+ 
+ ### 2. One store, one route
+ - **Asked:** a session is stored once; the same detail view opens however you arrive.
+-- **Decided:** the dated store, `ai/sessions/YYYY/MM/DD/<id>/`. Every row opens `/framework/ai/sessions/<id>/`. Old shapes still load through `Session.locate`. Every pattern and its count: [patterns](../data/patterns.md).
++- **Decided:** the dated store, `ai/sessions/YYYY/MM/DD/<id>/`. Every row opens its dated folder. Old shapes still load through `Session.locate`. Every pattern and its count: [patterns](../data/patterns.md).
+ - **Lives in:** [layout](../data/layout.md), `Session.js`.
+ 
+ ### 3. The page tells the truth
+diff --git a/public/framework/ai/sessions/doc/data/layout.md b/public/framework/ai/sessions/doc/data/layout.md
+index 700b4af1a5..d2bc8de11d 100644
+--- a/public/framework/ai/sessions/doc/data/layout.md
++++ b/public/framework/ai/sessions/doc/data/layout.md
+@@ -19,7 +19,7 @@ The day is the day of the session's first message (`first_at`, UTC). The index,
+ 1. **One folder per session.** Nothing about a session is stored in a second place. Older shapes are only read, never written.
+ 2. **Only code writes the path.** `Session.locate(id, first_at)` (node) decides it and moves an older folder in. `Session.dir_url(id)` (browser) reads the day from the index. Nobody builds the path by hand.
+ 3. **The listing is never written.** The dev server does not create a `files.jsonl` inside a session folder (`Server/plugins/PageFiles.js`), and `.gitignore` keeps the computed files out of git, so thousands of folders cannot dirty the tree.
+-4. **One route.** Every row opens `/framework/ai/sessions/<id>/`, whichever shape the data is stored in.
++4. **One route.** Every row opens `/framework/ai/sessions/YYYY/MM/DD/<folder>/`, whichever shape the data is stored in.
+ 
+ ### Old paths still load
+ 
+diff --git a/public/framework/ai/sessions/doc/data/patterns.md b/public/framework/ai/sessions/doc/data/patterns.md
+index d92f43c748..b8dd159433 100644
+--- a/public/framework/ai/sessions/doc/data/patterns.md
++++ b/public/framework/ai/sessions/doc/data/patterns.md
+@@ -1,6 +1,6 @@
+ # Where session data lives today
+ 
+-Counted by `node Server/session-patterns.mjs --write`, not typed. Every row opens in the same detail view, `/framework/ai/sessions/<id>/`.
++Counted by `node Server/session-patterns.mjs --write`, not typed. Every row opens in the same detail view, `/framework/ai/sessions/YYYY/MM/DD/<folder>/`.
+ 
+ | Pattern | Example | Count | How it is read |
+ |---|---|---|---|
+diff --git a/public/framework/ai/sessions/doc/ui/views.md b/public/framework/ai/sessions/doc/ui/views.md
+index d21df5500f..63f2be1de7 100644
+--- a/public/framework/ai/sessions/doc/ui/views.md
++++ b/public/framework/ai/sessions/doc/ui/views.md
+@@ -25,7 +25,7 @@ Dictated in VS Code tab 7efd07d5. Design input for the page mastermind; generali
+ <!-- merged from session-cards.md (original kept in archive/) -->
+ ## Cards the AI posts to a session page
+ 
+-A session page (`/framework/ai/sessions/<id>/`) shows the live conversation drawn by `ext/Chat`. A card the AI posts appears in that conversation, at its time, as it arrives.
++A session page (`/framework/ai/sessions/YYYY/MM/DD/<folder>/`) shows the live conversation drawn by `ext/Chat`. A card the AI posts appears in that conversation, at its time, as it arrives.
+ 
+ **Design choice.** A session already has its own folder with a `page.jsonl`, written by the `page_add` tool. So a card is one `page_add` call on that page, not a new store (a separate `cards.jsonl` was rejected: a second card system, law 6):
+ 
+@@ -48,7 +48,7 @@ Every page under the Sessions tab is a class that extends `Page`. `page.js` only
+ | URL | Template | What it shows |
+ |---|---|---|
+ | `/framework/ai/sessions/` | [`AISessionsPage`](../AISessionsPage.js) | The in-flight strip, the grid, the list of every session |
+-| `/framework/ai/sessions/<id>/` | [`AISessionDetail`](../AISessionDetail.js) | One session: cost, model, tokens, trace. Opens in the right-hand half. |
++| `/framework/ai/sessions/YYYY/MM/DD/<folder>/` | [`AISessionDetail`](../AISessionDetail.js) | One session: cost, model, tokens, trace. Opens in the right-hand half. |
+ | `/framework/ai/sessions/doc/` | `AISessionsPage.docs_page()` | The priority list |
+ | `/framework/ai/sessions/readme/` | `AISessionsPage.docs_page()` | This module's readme |
+ 
+diff --git a/public/framework/ai/sessions/doc/views-plan.md b/public/framework/ai/sessions/doc/views-plan.md
+index 2c5fb418a4..0765dd3174 100644
+--- a/public/framework/ai/sessions/doc/views-plan.md
++++ b/public/framework/ai/sessions/doc/views-plan.md
+@@ -33,15 +33,15 @@ Not pages: one hard-coded array in `AISessionsPage.nav_view()` (`ai/AISession/AI
+ 
+ ### The grid
+ 
+-`AISessionsPage` (`ai/AISession/AISessionsPage.js`) draws one `ext/DataGrid` (`make_grid()`, `:168-181`). The date is a query, `?scope=2026-10-20` (`set_scope()`, `:143-153`); the header's range menu (`pick_range`; v/classic keeps the old **today** button) changes the scope, it does not link to today's folder; **show 30 more days** (`:243`) loads older day files. A row links to `/framework/ai/sessions/<id>/` (`:173`).
++`AISessionsPage` (`ai/AISession/AISessionsPage.js`) draws one `ext/DataGrid` (`make_grid()`, `:168-181`). The date is a query, `?scope=2026-10-20` (`set_scope()`, `:143-153`); the header's range menu (`pick_range`; v/classic keeps the old **today** button) changes the scope, it does not link to today's folder; **show 30 more days** (`:243`) loads older day files. A row links to `/framework/ai/sessions/YYYY/MM/DD/<folder>/` (`:173`).
+ 
+ ### Routing of a dated URL, and the columns
+ 
+ `AISessionsPage.route()` (`:628-633`): a 4-digit segment becomes `StoreFolder` (`ai/AISession/StoreFolder.js:95-121`), which walks year, month, day, folder and lists the child folders as plain links. Because `AISessionsPage` calls `this.columns()`, each level opens as a Miller column (`core/Page/Columns.js`). Shots (1920): `/sessions/2026/10/20/` is three ~450 px columns of raw paths ("01/card-threaded-replies/card-threaded-replies"); `/sessions/2026/10/20/session-e00f55c9/` adds a fourth column whose Report tab reads "Cost: not tracked … running". At 3440 the columns do not grow, and the rest of the row is empty.
+ 
+-### The session detail (flat URL)
++### The session detail (its dated folder)
+ 
+-`/framework/ai/sessions/<id>/` is `AISessionDetail` (`ai/AISession/AISessionDetail.js`), opened as a column beside the grid: tabs Conversation, Coverage, Cost, Models and tokens, Related (`:134-141`). The Conversation tab opens on a Raw box with two links (`task.jsonl`, `transcript`) and an empty area whose height is `max(22em, 100dvh - 20em)` (`sessions.css:200`): the stray file box you saw. It shows no tasks.
++`/framework/ai/sessions/YYYY/MM/DD/<folder>/` is `AISessionDetail` (`ai/AISession/AISessionDetail.js`), opened as a column beside the grid: tabs Conversation, Coverage, Cost, Models and tokens, Related (`:134-141`). The Conversation tab opens on a Raw box with two links (`task.jsonl`, `transcript`) and an empty area whose height is `max(22em, 100dvh - 20em)` (`sessions.css:200`): the stray file box you saw. It shows no tasks.
+ 
+ ### The classes
+ 
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 8f5c0dd502..14b3cf45a9 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -2,7 +2,7 @@
+ 
+ A **session** is one run of Claude on this machine: a VS Code tab, a CLI run, a Servex agent, or a cloud voice call. This module is two things: the **folders** that hold each session's data, and the **page** (`/framework/ai/sessions/`) that lists them newest first and opens one. It is *not* the voice-session of [ext/Session](/framework/ext/Session/) (one ✦ press), and it never touches that class's `/api/sessions` route.
+ 
+-> ⚠ **One session, one folder, always dated:** `sessions/YYYY/MM/DD/<folder>/`. `/framework/ai/sessions/<uuid>/` is a redirect url, never a folder. Every writer finds the folder through `SessionFolders` (below); `node Server/SessionConsolidate.mjs --check` fails on a flat `sessions/<uuid>/` folder or a session held twice, `Server/SessionConsolidate.test.mjs` fails on a flat one, and Servex posts a risk note every day while either exists. [doc/one-folder.md](doc/one-folder.md).
++> ⚠ **One session, one folder, always dated:** `sessions/YYYY/MM/DD/<folder>/`. The dated folder is the only address; a bare `/framework/ai/sessions/<uuid>/` is a browser-only redirect kept for old links, never a folder. Every writer finds the folder through `SessionFolders` (below); `node Server/SessionConsolidate.mjs --check` fails on a flat `sessions/<uuid>/` folder or a session held twice, `Server/SessionConsolidate.test.mjs` fails on a flat one, and Servex posts a risk note every day while either exists. [doc/one-folder.md](doc/one-folder.md).
+ 
+ ## On disk
+ 
+diff --git a/public/framework/core/Page/PageInbox.js b/public/framework/core/Page/PageInbox.js
+index a4192c85b3..9115ee040e 100644
+--- a/public/framework/core/Page/PageInbox.js
++++ b/public/framework/core/Page/PageInbox.js
+@@ -1,5 +1,6 @@
+ import { JSONL } from "../../ext/JSONL/JSONL.js";
+ import { View, div, span, small, button, a, p } from "../View/View.js";
++import AISession from "/framework/ai/AISession/AISession.js";
+ 
+ View.stylesheet(import.meta, "PageInbox.css");
+ 
+@@ -108,7 +109,7 @@ export default class PageInbox {
+ 		live.forEach(n => div.c("page-inbox-row flex v").ac(fresh.includes(n) && "page-inbox-new").append(() => {
+ 			div.c("page-inbox-meta flex v-center", () => {
+ 				if (fresh.includes(n)) span.c("page-inbox-dot").attr("title", "new").attr("aria-label", "new");
+-				a.c("page-inbox-from", n.from === "owner" ? "you" : n.from).href(`/framework/ai/sessions/${n.from}/`).attr("title", `${n.from}'s session`);
++				a.c("page-inbox-from", n.from === "owner" ? "you" : n.from).href(AISession.page_url(n.from, `/framework/ai/sessions/${n.from}/`)).attr("title", `${n.from}'s session`);
+ 				small.c("page-inbox-age muted", n.at ? new Date(n.at).toLocaleString() : "");
+ 				button.c("page-inbox-archive", "Archive").attr("type", "button").click(() => this.mark([n.id], "archived"));
+ 			});
+diff --git a/public/framework/core/Page/doc/ai-api.md b/public/framework/core/Page/doc/ai-api.md
+index c16660a3aa..a3ad4e2a82 100644
+--- a/public/framework/core/Page/doc/ai-api.md
++++ b/public/framework/core/Page/doc/ai-api.md
+@@ -74,7 +74,7 @@ A bad line is refused before it is written: a `_` key, a `part-*` type nobody re
+ 
+ ## The live proof
+ 
+-Built 2026-10-12 (`Servex/agents/Subpages.js`, `page_tools.js`, `ai/AISession/AISessionDetail.js`). A headless Chromium on a private worktree server, writing through the real `page_tools`, saw on a session page (`/framework/ai/sessions/<id>/`): a `part-heading` after 39 ms, a `part-text` after 12 ms, a `part-card` and its in-place update after 14 ms, with no reload; a subpage made by `pages.add` opened at `…/<id>/notes/` and survived a reload (about 0.4 s). Probe and screenshots: `ai/sessions/2026/10/12/session-cb7ffa45/page-ai-api/build/` (`probe.mjs`, `session.png`, `notes.png`).
++Built 2026-10-12 (`Servex/agents/Subpages.js`, `page_tools.js`, `ai/AISession/AISessionDetail.js`). A headless Chromium on a private worktree server, writing through the real `page_tools`, saw on a session page (`/framework/ai/sessions/YYYY/MM/DD/<folder>/`): a `part-heading` after 39 ms, a `part-text` after 12 ms, a `part-card` and its in-place update after 14 ms, with no reload; a subpage made by `pages.add` opened at `…/<id>/notes/` and survived a reload (about 0.4 s). Probe and screenshots: `ai/sessions/2026/10/12/session-cb7ffa45/page-ai-api/build/` (`probe.mjs`, `session.png`, `notes.png`).
+ 
+ How the session page draws it: `AISessionDetail.Parts` keeps the `part-*` items of the session's `page.jsonl` and draws them with the same Items and Views a `Page` content list uses, with a "Subpages:" row of links under them; a `{"file":"notes/page.jsonl"}` line adds the link and makes `AISessionDetail.child("notes")` load that folder at the session route.
+ 
+diff --git a/public/framework/core/Page/doc/architecture.md b/public/framework/core/Page/doc/architecture.md
+index 8071e25a54..0dbabfed65 100644
+--- a/public/framework/core/Page/doc/architecture.md
++++ b/public/framework/core/Page/doc/architecture.md
+@@ -56,9 +56,9 @@ Live demo: [/framework/core/Page/tool/](/framework/core/Page/tool/) (every line
+ - **The tool appends; the page interprets.** The owner offered two options: a blind "append any delta" tool, or routing through a Page method. Both, split by side: the write is a blind, schema-checked append (stamped with `by`, `ts` and missing ids), and the browser's `Page.set()` is the one place a delta means something. No page parsing on the server; `page_read` only summarises.
+ - **Tabs are child pages.** A tab has its own url (`…/now/`), its own live content list, and the one tab strip (`ext/tabs`). No second tab system.
+ - **A tab line with no strip turns tabs on.** "Add a tab here" must show a tab.
+-- **Paths are route paths.** The agent names the page it sees (`/framework/ai/sessions/<id>/`); the tool finds the file, even when none exists yet. A session's file is its own dated folder (`AISession.locate()`).
++- **Paths are route paths.** The agent names the page it sees (`/framework/ai/sessions/YYYY/MM/DD/<folder>/`); the tool finds the file, even when none exists yet. A session's file is its own dated folder (`AISession.locate()`).
+ - **A template page takes only the shape of its log** (`Page.overlay()`): words, `tab`, `title`, lines addressed to a tab. Other keys in such a log stay data, because a key can name a Page method (`add`, `move`).
+-- **Every agent knows its page.** Servex's first-turn line (`Agents.whoami()`) and, for a VS Code tab, the SessionStart hook `.claude/hooks/session-page.mjs` name `/framework/ai/sessions/<session id>/` (built by mastermind-ai-system: `Servex/agents/doc/own-page.md`). With no path, `page_set` also defaults to the caller's own page.
++- **Every agent knows its page.** Servex's first-turn line (`Agents.whoami()`) and, for a VS Code tab, the SessionStart hook `.claude/hooks/session-page.mjs` name its dated folder (`/framework/ai/sessions/YYYY/MM/DD/<folder>/`) (built by mastermind-ai-system: `Servex/agents/doc/own-page.md`). With no path, `page_set` also defaults to the caller's own page.
+ 
+ ## Log growth (the owner, 18:25): designed, size feedback built
+ 
+diff --git a/public/framework/core/Role/RoleView.js b/public/framework/core/Role/RoleView.js
+index f64d57ddf5..aef83d0032 100644
+--- a/public/framework/core/Role/RoleView.js
++++ b/public/framework/core/Role/RoleView.js
+@@ -1,4 +1,5 @@
+ import { div, span, a, small } from "/app.js";
++import AISession from "/framework/ai/AISession/AISession.js";
+ 
+ /* Draws one Role: its properties, and the agents now in it. Used by the roles page and by a session's page. */
+ export default class RoleView {
+@@ -66,7 +67,7 @@ export default class RoleView {
+ 		div.c("role-live").style({ display: "grid", gap: "0.25em" }).append(() => {
+ 			small.c("muted", live.length ? `Live now (${live.length}):` : "No agents in this role right now.");
+ 			for (const ag of live) div.c("flex gap-50 wrap", () => {
+-				a.c("", ag.id).attr("href", `/framework/ai/sessions/${ag.session_id ?? ag.id}/`);
++				a.c("", ag.id).attr("href", AISession.page_url(ag.session_id ?? ag.id, `/framework/ai/sessions/${ag.session_id ?? ag.id}/`));
+ 				small.c("muted", [ag.state ?? "?", RoleView.differs(role, ag), RoleView.usd(ag.cost)].filter(Boolean).join(" · "));
+ 			});
+ 		});
+diff --git a/public/framework/core/Session/doc/identity.md b/public/framework/core/Session/doc/identity.md
+index d6825ce7a2..8754e99b41 100644
+--- a/public/framework/core/Session/doc/identity.md
++++ b/public/framework/core/Session/doc/identity.md
+@@ -44,7 +44,7 @@ The owner: "We don't want two folders for the same thing… the web page at a di
+ - `session_dir` takes the oldest folder (above).
+ - `node Server/SessionConsolidate.mjs <uuid>` (dry run) and `--apply --manifest <file>` fold every second folder into the first: subfolders move in (a `task` line in `ai/sessions/task-moves.jsonl`), `.jsonl` lines are appended in order (no duplicates, URLs rewritten), originals are copied to `%LOCALAPPDATA%/lew42/servex/moved-aside/<run>/` first (`page.jsonl` is gitignored, so git cannot undo it), a `redirect` line maps the old URL, and links in `.md`/`.js` files are rewritten.
+ 
+-**The URL.** The page is the folder's own path, `/framework/ai/sessions/2026/10/20/session-e00f55c9/`. The uuid URL `/framework/ai/sessions/<uuid>/` only redirects there (the AISession readme says how the router does it).
++**The URL.** The page is the folder's own path, `/framework/ai/sessions/2026/10/20/session-e00f55c9/`. That is the only address; the bare uuid URL is a browser-only redirect kept for old links (the AISession readme says how the router does it).
+ 
+ **The stray `ai/sessions/a56900e3-…/`.** A session whose transcript holds no message (126 bytes; title "Dictation cleanup and outline instructions"). `Session.locate` leaves an old flat folder in place until the session's `first_at` is known, and an empty session never gets one. It now files such a folder by the folder's own date.
+ 
+diff --git a/public/framework/core/Session/doc/prompt-tasks.md b/public/framework/core/Session/doc/prompt-tasks.md
+index 8456062d2a..b400d5a6bf 100644
+--- a/public/framework/core/Session/doc/prompt-tasks.md
++++ b/public/framework/core/Session/doc/prompt-tasks.md
+@@ -1,6 +1,6 @@
+ # Owner prompts become tasks on the session page
+ 
+-**What it does.** When you type a prompt in a VS Code tab, each piece of work in it shows up a few seconds later as an **open task** (idle, waiting on nobody) on that session's page (`/framework/ai/sessions/<id>/`, Conversation tab). Questions and plain statements are not tasks: they stay on the prompt's refined card (the Coverage tab). The owner asked for it on 2026-10-22: "owner prompts become tasks on the session page in real time".
++**What it does.** When you type a prompt in a VS Code tab, each piece of work in it shows up a few seconds later as an **open task** (idle, waiting on nobody) on that session's page (`/framework/ai/sessions/YYYY/MM/DD/<folder>/`, Conversation tab). Questions and plain statements are not tasks: they stay on the prompt's refined card (the Coverage tab). The owner asked for it on 2026-10-22: "owner prompts become tasks on the session page in real time".
+ 
+ ![Two proposed tasks on a session page at 1200 px](shots/session-tasks-1200.png) · [at 400 px](shots/session-tasks-400.png)
+ 
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index 39c32918d9..c0b62a95ef 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -106,7 +106,7 @@ A session's `tasks` is the one list of everything to be done: prompts, tasks and
+   - Cost: own $293.26, children $862.31, total $1155.57, the same before and after (nothing counted twice).
+ 
+ **References.**
+-- A session is named by its **session id**: its page is `/framework/ai/sessions/<id>/`, and a child names its parent by `parent_session`.
++- A session is named by its **session id**: its page is `/framework/ai/sessions/YYYY/MM/DD/<folder>/`, and a child names its parent by `parent_session`.
+ - A task is named by its **path**: `{"task": "<folder url>"}`.
+ - `Session.locate(id)` turns an id into its folder, by asking `SessionFolders` (`SessionFolders.mjs`, node only): the store's one finder, checked on disk every call ([one-folder.md](/framework/ai/sessions/doc/one-folder.md)).
+ 
+@@ -137,7 +137,7 @@ A session's `tasks` is the one list of everything to be done: prompts, tasks and
+ 
+ **Recompute only what changed.** A child record's parsed lines are kept by file and reused while the file keeps the same size and modified time (`lines_of` in `page_tools.js`, used by the node resolver). So a read re-reads and re-parses only the child files that changed. Every replay still builds fresh task objects from those lines, because a kept object would have the parent's lines addressed to it (`{"<child id>":{…}}`) applied again on each re-replay; the parent's totals (progress, completion, counts) are added up on every read from the children it holds. Time to answer `{"summary":{}}` on session-e00f55c9 (101 child records) right after one child file changed, measured back to back in the same conditions: about 140-285 ms without the cache, 76-99 ms with it. Keeping whole child objects measured 12-20 ms when the machine was quiet, but was dropped for the double-apply bug; it could return if a parent line that addresses a child evicted that child's entry. The cache holds at most 4000 files. Test: `node Servex/agents/ref-cache.test.mjs` (it builds a scratch tree in the OS temp folder: `SERVEX_PUBLIC` points the item tool's `public/` at it).
+ 
+-**Completion at once, for any session.** `item({path: "/framework/ai/sessions/<uuid>/", delta: {"completion": {}}})`, or the dated folder's url, answers `{ok: true, answer: {completion: {...}}}`: the tally of its tasks' current states (`Task.tally`: done, total, stopped, finished without proof) and the one number, `Task.completion_score()`. It only reads and writes nothing. It works for a past session too, as long as its folder holds a record; a folder with no record is refused. The same number is printed by `node Server/session-query.mjs --report <agent id | session id | folder name>` (also `--recent N`, `--root <repo>`), with prompts, tasks created/finished/stopped/open, finishes without proof, unlinked children and cost. On session-e00f55c9 (2026-11-04): 64.8%.
++**Completion at once, for any session.** `item({path: "/framework/ai/sessions/YYYY/MM/DD/<folder>/", delta: {"completion": {}}})`, answers `{ok: true, answer: {completion: {...}}}`: the tally of its tasks' current states (`Task.tally`: done, total, stopped, finished without proof) and the one number, `Task.completion_score()`. It only reads and writes nothing. It works for a past session too, as long as its folder holds a record; a folder with no record is refused. The same number is printed by `node Server/session-query.mjs --report <agent id | session id | folder name>` (also `--recent N`, `--root <repo>`), with prompts, tasks created/finished/stopped/open, finishes without proof, unlinked children and cost. On session-e00f55c9 (2026-11-04): 64.8%.
+ 
+ **The one formula** (`Task.completion_score`, [Task readme](../Task/readme.md)): a task scores 1 if the owner checked it; otherwise the mean of its parts' scores, recursing to any depth; a task with no parts scores 1 if complete, else 0. Parts are its subtasks that are not stopped, each child session (nested in this session's folder, one part each) and each counted owner prompt. Why this one, when e00f55c9 showed three numbers: 299 of 527 top-level parts complete is 56.7% because a half-finished part counts 0; 299 of 599 is 49.9% because it also counts stopped parts; finished/created (571/1196, 47.7%) counts every nested task flat. The mean credits partial progress and leaves dropped work out, and a parent can only reach 1 when everything under it does.
+ 
+@@ -174,7 +174,7 @@ Test: `node Servex/agents/session-state.test.mjs`.
+ 
+ Proved with two throwaway Haiku children, the item tool on real folders, and scripts over the store (`public/framework/ai/sessions/2026/11/04/session-5132a480/task-system-check/report.md`).
+ 
+-- **Where a no-`path` item call lands.** `own_page()` in `Servex/agents/page_tools.js`: a spawned agent that has a task folder writes its `session.jsonl` (so its tasks count in its completion and the parent's tree); an agent with no task folder gets `/framework/ai/sessions/<id>/`, which makes a stray `session-<id8>/` holding only `page.jsonl` (a page, not a record: `tasks: 0`, `kind` wrongly `vscode-tab`); a VS Code tab (no agent id) is refused with the reason, never the site's root `public/page.jsonl` (fixed 2026-11-05; tests in `page_tools.test.mjs`). A tab passes its session url as `path`.
++- **Where a no-`path` item call lands.** `own_page()` in `Servex/agents/page_tools.js`: a spawned agent that has a task folder writes its `session.jsonl` (so its tasks count in its completion and the parent's tree); an agent with no task folder gets `/framework/ai/sessions/YYYY/MM/DD/<folder>/`, which makes a stray `session-<id8>/` holding only `page.jsonl` (a page, not a record: `tasks: 0`, `kind` wrongly `vscode-tab`); a VS Code tab (no agent id) is refused with the reason, never the site's root `public/page.jsonl` (fixed 2026-11-05; tests in `page_tools.test.mjs`). A tab passes its session url as `path`.
+ - **Completion reads.** A finished spawned session with no tasks reads `completion: 1` (state `complete`). A session with tasks reads the mean of its tasks' own completions, not done/total: `mastermind-voice-system` is 27 of 44 done, 5 stopped, and reads 0.614, not 27/39. Both are by design, but the page should say which it shows.
+ - **Unlinked children are not shrinking.** `e00f55c9`: `counts.children` = `{entries: 288, unlinked: 345}` (the handover's 170 of 186 was an older, smaller count). An unlinked child is a registry row with no entry on its parent's record; run `node Server/ChildLinks.mjs --entries --names e00f55c9` to see the plan.
+ - **Asks filed as tasks.** Over the last 7 days, of 170 tab session folders with prompts (8,367 user turns in their `cache.jsonl`, which overcounts), 3 filed any task (9 tasks). Of the 62 tabs that have owner `Prompt` lines in `session.jsonl` (67 prompts), 1 filed any. The law "file each ask" is almost never followed by tabs.
+diff --git a/public/framework/ext/Chat/Composer.js b/public/framework/ext/Chat/Composer.js
+index 4e26c99104..3c01b4e48c 100644
+--- a/public/framework/ext/Chat/Composer.js
++++ b/public/framework/ext/Chat/Composer.js
+@@ -23,7 +23,7 @@ export function composer({
+ 	                    // `Dictate` reads `remembered_device()` on its own, which a caller's own device PICKER (not built here — this
+ 	                    // composer has no UI for choosing a mic) writes to through `remember_device()`, `ux/Dictate/Dictate.js`.
+ 	session,           // this mount's own session id (a string, or a function read fresh) — forwarded to `ComposerMic`'s live-refine
+-	                    // calls (`Mic.js`'s `refine_tick`/`refine_final`) so the outline lands under `/framework/ai/sessions/<id>/`
++	                    // calls (`Mic.js`'s `refine_tick`/`refine_final`) so the outline lands under `/framework/ai/sessions/YYYY/MM/DD/<folder>/`
+ 	                    // same as every other stage (`contract.md`). Unset is fine — the live call just has no session to attach to.
+ 	per_sentence,      // true: every finished sentence leaves the box at once while the next is still being transcribed (`ComposerMic.sentences_per_send`, Mic.js); unset follows the gear setting
+ 	on_refine_live,    // (answer) => … — forwarded straight to `ComposerMic`'s own `on_refine_live`: the live `/api/refine/live`
+diff --git a/public/framework/ext/Refine/PromptView.js b/public/framework/ext/Refine/PromptView.js
+index 200e6365ce..a31c214b15 100644
+--- a/public/framework/ext/Refine/PromptView.js
++++ b/public/framework/ext/Refine/PromptView.js
+@@ -1,4 +1,5 @@
+ import PromptRun from "./PromptRun.js";
++import AISession from "/framework/ai/AISession/AISession.js";
+ import { View, div, span, p, h4, button, a } from "../../core/View/View.js";
+ 
+ View.stylesheet(import.meta, "Prompt.css");
+@@ -93,12 +94,12 @@ PromptRun.View = class extends View {
+ 			}));
+ 			if (prompt.session) p.c("refine-what", () => {
+ 				span("Kept in the session log as raw, clean, outline and notes: ");
+-				a("open the session").href("/framework/ai/sessions/" + prompt.session + "/").ac("refine-class-key");
++				a("open the session").href(AISession.page_url(prompt.session, "/framework/ai/sessions/" + prompt.session + "/")).ac("refine-class-key");
+ 			});
+ 			h4.c("refine-prompt-h", () => span("Model runs"));
+ 			p.c("refine-what", "Each run is its own session: click one to see exactly what was asked.");
+ 			prompt.runs.forEach(r => div.c("refine-run", () => {
+-				r.session_id ? a(r.stage).href(`/framework/ai/sessions/${r.session_id}/`) : span(r.stage);
++				r.session_id ? a(r.stage).href(AISession.page_url(r.session_id, `/framework/ai/sessions/${r.session_id}/`)) : span(r.stage);
+ 				span.c("refine-s-scores", `${r.model} · ${secs(r.duration_ms)} · $${r.cost_usd}`);
+ 			}));
+ 		});
+diff --git a/public/framework/ext/Refine/doc/refine-v3-2026-10-09.md b/public/framework/ext/Refine/doc/refine-v3-2026-10-09.md
+index cd3dd2e2a3..356e2d90fc 100644
+--- a/public/framework/ext/Refine/doc/refine-v3-2026-10-09.md
++++ b/public/framework/ext/Refine/doc/refine-v3-2026-10-09.md
+@@ -8,7 +8,7 @@ Brief: `ai/sessions/2026/10/09/session-89570e67/refine-v3/requirements.md`. The
+ |---|---|---|
+ | Cleaned text visible | after the whole refine, about 64 s | `quick_clean()` in `engine.js`, no model, about 0.3 ms per chunk or keystroke |
+ | Refine (clean, outline, clarity) | one slow call chain, about 64 s | clean first, then outline and clarity in parallel: about 8 to 9 s on Sonnet 5.5 |
+-| Each model call | hidden | its own NEW session (`Servex/ext/refine/RefineCall.js`, Agent SDK, no tools or skills, thinking off, effort low), listed with model, time, cost and a link to `/framework/ai/sessions/<id>/` |
++| Each model call | hidden | its own NEW session (`Servex/ext/refine/RefineCall.js`, Agent SDK, no tools or skills, thinking off, effort low), listed with model, time, cost and a link to `/framework/ai/sessions/YYYY/MM/DD/<folder>/` |
+ | Cost per refine | n/a | about $0.003 to $0.0075 per call when the prompt cache is warm; a cold cache made parallel same-model calls about $0.07 each (one cold run cost $0.57) |
+ 
+ ## Haiku 5.5 vs Sonnet 5.5, low effort, thinking off
+diff --git a/public/framework/ext/Refine/readme.md b/public/framework/ext/Refine/readme.md
+index 03cbd8b6a4..25fa3d85b8 100644
+--- a/public/framework/ext/Refine/readme.md
++++ b/public/framework/ext/Refine/readme.md
+@@ -73,7 +73,7 @@ today, so paste is the stand-in; see the page's own doc comment (`try/page.js`)
+ - [Session log](/framework/ext/Refine/md/doc/session-log-2026-10-10/) — each prompt kept as raw, clean, refined and notes in the session's `prompts.jsonl` (`doc/session-log-2026-10-10.md`)
+ - [Tag notes](/framework/ext/Refine/md/doc/tag-notes-2026-10-12/) — a tagged prompt leaves a note on the module page its tag names, through the one Inbox (`Servex/ext/refine/TagRouter.js`, `doc/tag-notes-2026-10-12.md`)
+ - [Refine style](/framework/ext/Refine/md/doc/refine-style-2026-10-12/) — the one shared rule fragment (`RefineStyle.js`) every refine prompt uses, so refined prompts read as short, iconned, ordered overviews (`doc/refine-style-2026-10-12.md`)
+-- [Voice stages on the session page](/framework/ext/Refine/stages/readme.md) — raw, clean, structure, refined and cards drawn live on `/framework/ai/sessions/<id>/` as you speak or type (`stages/readme.md`, `stages/doc/voice-to-page.md`); try it on a phone: [`ux/Dictate/doc/try-it.md`](/framework/ux/Dictate/doc/try-it/)
++- [Voice stages on the session page](/framework/ext/Refine/stages/readme.md) — raw, clean, structure, refined and cards drawn live on `/framework/ai/sessions/YYYY/MM/DD/<folder>/` as you speak or type (`stages/readme.md`, `stages/doc/voice-to-page.md`); try it on a phone: [`ux/Dictate/doc/try-it.md`](/framework/ux/Dictate/doc/try-it/)
+ - [Echo](../../../../Servex/doc/echo.md) — the running pipeline that uses this engine on every prompt you type in VS Code: triggers, output, cost, and the gaps against the vision (`Servex/doc/echo.md`)
+ - [Saved-run ladder](/framework/ext/Refine/ladder/) (was the page's Overview before the live demo took over) — run C live by default (the longest of the four runs, and the one with a dropped sentence AND a thin citation on its very first screen — `runs/sample` alone has neither); `?run=` picks any other run, including the small hand-built fixture
+ - `doc/vision-2026-10-08.md` — the owner's intended pipeline (raw → clean → refined cards, every sentence accounted, context cards); check the built state against it
+diff --git a/public/framework/ux/Dictate/doc/asks.md b/public/framework/ux/Dictate/doc/asks.md
+index 9ff5d8b5da..dd6b0e69a1 100644
+--- a/public/framework/ux/Dictate/doc/asks.md
++++ b/public/framework/ux/Dictate/doc/asks.md
+@@ -89,7 +89,7 @@ Walk through it yourself: [try-it.md](try-it.md).
+ 
+ **Phone sheet vs desktop sidebar.** One already: the chat itself (`ux/Dictate/chat.js`: `chat()`, one global session, the mic, `new_session_button`); both surfaces mount it. Two today: the container. The phone's `DrawerRailSheetChat` (`ext/drawer/rail.js`) has a drag handle and the states closed / open / full, but "full" is only a taller sheet with link buttons (New session, Dictation, Settings, Open full AI) that close it and open the desktop `DrawerTabs` (`ext/drawer/tabs.js`: ai, dictation, settings, element). Smallest change: in the "full" state mount `DrawerTabs` (its AI tab already is the chat) inside the sheet instead of closing it for the link buttons. Not built here: it edits `ext/drawer/`, outside this module's fence, and needs 400/1200/1920/3440 checks. The brief is [next.md](next.md).
+ 
+-**New session:** yes. The "New session" button (`new_session_button` in `chat.js`, shown in the sheet's links row) calls `reset()`: it forgets the saved session; the next message starts a fresh one through `Session.start`, so it lands as a normal session page at `/framework/ai/sessions/<id>/`, and the old one stays resumable ("Pick up where you left off?"). Nothing to fix.
++**New session:** yes. The "New session" button (`new_session_button` in `chat.js`, shown in the sheet's links row) calls `reset()`: it forgets the saved session; the next message starts a fresh one through `Session.start`, so it lands as a normal session page at its dated folder (`/framework/ai/sessions/YYYY/MM/DD/<folder>/`), and the old one stays resumable ("Pick up where you left off?"). Nothing to fix.
+ 
+ ## 2026-10-13 (later) — bubble order, and how dictate / chat / refine nest
+ 
+diff --git a/public/framework/ux/Dictate/doc/try-it.md b/public/framework/ux/Dictate/doc/try-it.md
+index e6a53225dc..dc2cbcaf4f 100644
+--- a/public/framework/ux/Dictate/doc/try-it.md
++++ b/public/framework/ux/Dictate/doc/try-it.md
+@@ -8,7 +8,7 @@ You talk (or type); five stages appear live on a page, one under another. That p
+ 2. Press the mic and speak, or just type in the box.
+    - On plain `http://10.0.0.135:3104` the browser hides the mic (see [`https-lan.md`](https-lan.md)); use the https address above. Typing, or the phone keyboard's own dictation button, fills the same box and works the same.
+ 3. Tap **Refine**.
+-4. Tap **Watch it on the session page →** (under the box). That page, `/framework/ai/sessions/<id>/`, shows the stages as they land:
++4. Tap **Watch it on the session page →** (under the box). That page, `/framework/ai/sessions/YYYY/MM/DD/<folder>/`, shows the stages as they land:
+    - **Raw** words: while you speak or type, until you tap Refine (about every 150 ms).
+    - **Clean** sentences: together with Raw (code does the cleaning, so there is no wait).
+    - **Structure**, **Refined prompt** (with a Copy button) and **Cards**: about 7 to 15 seconds after Refine (the model's speed; measured 6.6 s on the phone walk, 6.7 s on the desktop walk). They arrive together.
+diff --git a/public/framework/ux/Dictate/surfaces/page.js b/public/framework/ux/Dictate/surfaces/page.js
+index a0fcfb6eb8..c3b9770ca5 100644
+--- a/public/framework/ux/Dictate/surfaces/page.js
++++ b/public/framework/ux/Dictate/surfaces/page.js
+@@ -44,7 +44,7 @@ const SURFACES = [
+ 	{ name: "Card chat", where: "A card's page, Activity tab",
+ 		file: "/framework/ai/cards/card.js", agent: "whoever is attached to the card, or none", log: "the card's `page.jsonl`", shot: "card-chat-1920.png",
+ 		says: "A different conversation: the card's own thread, posted with `POST /card/append`, not a voice session." },
+-	{ name: "Session page", where: "`/framework/ai/sessions/<id>/`, Conversation tab",
++	{ name: "Session page", where: "`/framework/ai/sessions/YYYY/MM/DD/<folder>/`, Conversation tab",
+ 		file: "/framework/ai/AISession/AISessionConversation.js", agent: "none (it replays a Claude Code session)", log: "reads the SDK session file; Refine writes the stages", shot: "session-page-1920.png",
+ 		says: "A read-only view of what you and a Claude Code agent said. Its one action is the Refine button on a prompt." },
+ 	{ name: "Refine view", where: "`/framework/ext/Refine/`",

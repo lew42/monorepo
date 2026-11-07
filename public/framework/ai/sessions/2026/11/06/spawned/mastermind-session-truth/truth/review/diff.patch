@@ -1,0 +1,280 @@
+diff --git a/Server/SessionConsolidate.test.mjs b/Server/SessionConsolidate.test.mjs
+index cc9f9ace8..cc41fb446 100644
+--- a/Server/SessionConsolidate.test.mjs
++++ b/Server/SessionConsolidate.test.mjs
+@@ -21,6 +21,12 @@ try {
+ 	assert.equal(r.ok, false, "a flat sessions/<uuid>/ folder fails the check");
+ 	assert.deepEqual(r.flat, [ID]);
+ 
++	fs.rmSync(path.join(STORE, ID), { recursive: true });
++	put("2026/11/04/" + ID, { session: { id: ID } });   // the same session held by a second dated folder: a twin
++	r = await SessionConsolidate.check(ROOT);
++	assert.equal(r.ok, false, "a twin fails the check (the CLI exits 1 on this)");
++	assert.equal(r.count, 1);
++
+ 	// The real store: no flat session folder may exist. If this fails, fold it into its dated folder (doc above).
+ 	const real = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), "..");
+ 	assert.deepEqual(SessionConsolidate.flat(real), [], "flat session folders in public/framework/ai/sessions/");
+diff --git a/Server/Truth.mjs b/Server/Truth.mjs
+new file mode 100644
+index 000000000..ddd297fad
+--- /dev/null
++++ b/Server/Truth.mjs
+@@ -0,0 +1,76 @@
++#!/usr/bin/env node
++// Server/Truth.mjs — the truth numbers: how true is the session/task record? No AI; every number comes from the real classes.
++//   node Server/Truth.mjs [--write] [--root <repo>] [--label "baseline ..."]
++// --write appends ONE line to public/live/truth/truth.jsonl (of the repo it runs in). --root reads the sessions of another tree (read-only).
++// Sessions: SessionFolders.homes(); tasks: Task.replay(...).tally() / completion_score() (the same calls Server/session-query.mjs --report uses).
++// Twins: SessionConsolidate.check. Doc: public/live/truth/readme.md
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++const HERE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++const read_lines = f => { try { return fs.readFileSync(f, "utf8").split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); } catch { return []; } };
++const record_files = (d, depth = 0) => { let out = []; let es; try { es = fs.readdirSync(d, { withFileTypes: true }); } catch { return out; } for (const e of es){ if (e.isFile() && (e.name === "session.jsonl" || e.name === "task.jsonl")) out.push(path.join(d, e.name)); else if (e.isDirectory() && depth < 4) out = out.concat(record_files(path.join(d, e.name), depth + 1)); } return out; };
++const empty = () => ({ sessions: 0, with_log: 0, tag_only: 0, transcript_only: 0, with_tasks: 0, no_tasks: 0, complete: 0, needs_review: 0, done_tasks: 0, unproven: 0, no_commit: 0, prompts: 0, prompts_unfiled: 0, sessions_unfiled: 0 });
++
++/** Every date-level folder (sessions/YYYY/MM/DD/<folder>/): how many, and how many hold no session file at all (no record, no index.json/cache.jsonl) or nothing. */
++export function folder_stats(root){
++	const f = { total: 0, no_session_file: 0, empty: 0 }, dirs = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name); } catch { return []; } };
++	for (const y of dirs(root)) if (/^\d{4}$/.test(y)) for (const m of dirs(path.join(root, y))) if (/^\d\d$/.test(m)) for (const d of dirs(path.join(root, y, m))) if (/^\d\d$/.test(d)) for (const n of dirs(path.join(root, y, m, d))){
++		const names = fs.readdirSync(path.join(root, y, m, d, n)); f.total++;
++		if (!names.length) f.empty++;
++		if (!names.some(x => /^(session\.jsonl|task\.jsonl|index\.json|cache\.jsonl)$/.test(x))) f.no_session_file++;
++	}
++	return f;
++}
++
++/** measure({ root, days }) -> { all, week, twins, flat, ... }. `root` is the repo whose sessions are counted. */
++export async function measure({ root = HERE, days = 7, now = new Date() } = {}){
++	const { default: SessionFolders } = await import("../public/framework/core/Session/SessionFolders.mjs");
++	const { default: SessionRecord } = await import("./SessionRecord.mjs");
++	const { default: Task } = await import("../public/framework/core/Task/Task.js");
++	const { default: Session } = await import("../public/framework/core/Session/Session.js");
++	const store = SessionFolders.at(path.join(root, "public/framework/ai/sessions")), pub = path.join(root, "public");
++	const cut = new Date(now.getTime() - days * 864e5), cut_day = [cut.getFullYear(), String(cut.getMonth() + 1).padStart(2, "0"), String(cut.getDate()).padStart(2, "0")].join("/");
++	const keep = [Task.resolver, Task.session_resolver, console.warn]; console.warn = () => {};
++	Task.resolver = u => { const d = path.resolve(pub, String(u).replace(/^\/+/, "")), ls = read_lines(SessionRecord.log_file(d) ?? path.join(d, "task.jsonl")); return ls.length ? ls : null; };
++	Task.session_resolver = u => { const d = path.resolve(pub, String(u ?? "").replace(/^\/+/, "")); return path.basename(SessionRecord.file(d) ?? "") === "session.jsonl"; };
++	const all = empty(), week = empty();
++	try {
++		store.adopt_nested();
++		for (const { id, dir } of store.homes()){
++			const day = path.relative(store.root, dir).split(path.sep).slice(0, 3).join("/");
++			const rdir = store.record_of(id) ?? dir, file = SessionRecord.log_file(rdir), lines = file ? read_lines(file) : [], has_file = !!SessionRecord.file(rdir);
++			let tally = null, score = 0;
++			if (lines.length){ try { const s = (lines[0]?.session ? Session : Task).replay(lines); tally = s.tally(); score = s.completion_score(); } catch {} }
++			const has_tasks = !!tally && tally.created > 0;
++			const said = lines.filter(l => l.type === "Prompt" || l.content?.add?.type === "Prompt" || l.tasks?.add?.type === "Prompt").length;
++			const committed = lines.some(l => l.commit) || [...new Set([rdir, dir])].flatMap(d => record_files(d)).some(f => /"commit":/.test(fs.readFileSync(f, "utf8")));
++			const bins = day >= cut_day ? [all, week] : [all];
++			for (const b of bins){
++				b.sessions++; if (lines.length) b.with_log++; else if (has_file) b.tag_only++; else b.transcript_only++;
++				if (has_tasks){ b.with_tasks++; if (score === 1) b.complete++; b.done_tasks += tally.finished; b.unproven += tally.unproven; }
++				else { b.no_tasks++; b.needs_review++; if (said){ b.prompts_unfiled += said; b.sessions_unfiled++; } }
++				b.prompts += said;
++				if (!committed) b.no_commit++;
++			}
++		}
++	} finally { [Task.resolver, Task.session_resolver, console.warn] = keep; }
++	const { default: SessionConsolidate } = await import("./SessionConsolidate.mjs");
++	const c = await SessionConsolidate.check(root), twins = c.count, flat = c.flat.length;
++	return { all, week, twins, flat, folders: folder_stats(store.root) };
++}
++
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
++	const argv = process.argv.slice(2), arg = k => { const i = argv.indexOf(k); return i < 0 ? null : argv[i + 1]; };
++	const root = arg("--root") ? path.resolve(arg("--root")) : HERE;
++	const m = await measure({ root }), line = { truth: { at: new Date().toISOString(), ...(arg("--label") ? { label: arg("--label") } : {}), ...m } };
++	// the second numbers that must agree
++	for (const k of ["all", "week"]) if (m[k].with_tasks + m[k].no_tasks !== m[k].sessions) { console.error(`DISAGREE ${k}: with ${m[k].with_tasks} + no ${m[k].no_tasks} != ${m[k].sessions}`); process.exit(2); }
++	console.log(JSON.stringify(line));
++	if (process.argv.includes("--write")){
++		const out = path.join(HERE, "public/live/truth/truth.jsonl"); fs.mkdirSync(path.dirname(out), { recursive: true });
++		fs.appendFileSync(out, JSON.stringify(line) + "\n");
++	}
++	process.exit(0);
++}
+diff --git a/Server/Truth.test.mjs b/Server/Truth.test.mjs
+new file mode 100644
+index 000000000..8e19a5731
+--- /dev/null
++++ b/Server/Truth.test.mjs
+@@ -0,0 +1,21 @@
++// Truth's counts on a scratch store: with-tasks + no-tasks = sessions, and a two-folder session shows as a twin. `node Server/Truth.test.mjs`
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { measure } from "./Truth.mjs";
++
++const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "truth-")), STORE = path.join(ROOT, "public/framework/ai/sessions");
++const put = (rel, lines) => { const d = path.join(STORE, rel); fs.mkdirSync(d, { recursive: true }); fs.writeFileSync(path.join(d, "session.jsonl"), lines.map(l => JSON.stringify(l)).join("\n") + "\n"); };
++const A = "a0a0a0a0-0001-4a19-9b01-000000000001", B = "b0b0b0b0-0002-4a19-9b01-000000000002";
++try {
++	put("2026/01/01/session-a0a0a0a0", [{ session: { id: A } }, { commit: "abc", files: [] }]);
++	put("2026/01/01/session-b0b0b0b0", [{ session: { id: B } }]);
++	const m = await measure({ root: ROOT, now: new Date(2026, 0, 2) });
++	assert.equal(m.all.sessions, 2, "two sessions");
++	assert.equal(m.all.with_tasks + m.all.no_tasks, m.all.sessions, "with + without = total");
++	assert.equal(m.all.no_commit, 1, "one session has a commit line");
++	assert.equal(m.week.sessions, 2, "both inside the last 7 days");
++	assert.equal(m.twins, 0);
++	console.log("Truth.test: ok");
++} finally { fs.rmSync(ROOT, { recursive: true, force: true }); }
+diff --git a/Servex/TaskLoop.js b/Servex/TaskLoop.js
+index 9c6500ff9..9e48db626 100644
+--- a/Servex/TaskLoop.js
++++ b/Servex/TaskLoop.js
+@@ -91,6 +91,7 @@ export default class TaskLoop {
+             try { spawn(process.execPath, [path.join(this.root, "Server", "worktree-sweep.mjs")], { detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}
+             this.follow_up_daily();
+             this.twins_daily();
++            this.truth_daily();
+             this.handover_daily();
+             this.undone_asks_daily();
+             await this.read_inboxes(this.servex.agents.registry_list(), this.clock()).catch(e => this.servex.say?.(`task-loop: inbox sweep failed: ${e.message || e}`));
+@@ -173,6 +174,19 @@ export default class TaskLoop {
+         });
+     }
+ 
++    /* truth-daily, 2026-11-07: once per local day, node Server/Truth.mjs --write appends one line of truth numbers (sessions with tasks, unproven done tasks, twins...) to public/live/truth/truth.jsonl, drawn at /live/truth/.
++     * "Done today" = the last line's `at` is today (local), so a restart never repeats it. Doc: public/live/truth/readme.md */
++    truth_daily(){
++        const file = path.join(this.root, "public", "live", "truth", "truth.jsonl");
++        let at = 0; try { at = Date.parse(JSON.parse(fs.readFileSync(file, "utf8").trim().split("\n").pop()).truth.at); } catch {}
++        if (this.date_id(new Date(at)) === this.date_id(new Date()) || this.truth_busy) return;
++        this.truth_busy = true;
++        execFile(process.execPath, [path.join(this.root, "Server", "Truth.mjs"), "--write"], { cwd: this.root, windowsHide: true, timeout: 300000 }, err => {
++            this.truth_busy = false;
++            if (err) this.servex?.log?.append("servex", { type: "task-loop-error", error: "truth: " + String(err.message || err) }).catch(() => {});
++        });
++    }
++
+     /* handover-daily, 2026-10-17: once per UTC day, run Server/HandoverNow.mjs --write so the NOW block at the top of handover.md stays computed.
+      * "Done today" = the date in the block's own "computed <date>" stamp (the file is hand-edited too, so its mtime says nothing); a restart never repeats it.
+      * LogSweeper (ALLOW) commits handover.md. Doc: Servex/doc/task-loop.md */
+diff --git a/Servex/doc/task-loop.md b/Servex/doc/task-loop.md
+index 22a92ca02..2dc1472fc 100644
+--- a/Servex/doc/task-loop.md
++++ b/Servex/doc/task-loop.md
+@@ -106,6 +106,6 @@ what a real run would do without stopping anything.
+ 
+ **Done (2026-10-17): `TaskLoop.handover_daily()`** sits beside `follow_up_daily()` in the same tick. Once per UTC day (the date in the NOW block's own `## NOW (computed <date>` stamp in `handover.md` is not today; the file's mtime would not do, since people edit it too) it runs `node Server/HandoverNow.mjs --write`, which rewrites only the computed block. `LogSweeper.ALLOW` commits `handover.md` on its next sweep. A failure is logged as `task-loop-error`. Test: `node Servex/TaskLoop-handover.test.mjs`.
+ 
+-**Done (2026-11-01): `TaskLoop.twins_daily()`** sits beside them. Once per local day (the mtime of `ai/sessions/session-twins.json` is not today) it runs `node Server/SessionConsolidate.mjs --check --write --json`: is any session held by two folders? It keeps the list in `session-twins.json` (gitignored) and, when an id is new since the last run, posts one `owner_note` risk (a writer went around `SessionFolders`). The first run counts none as new and posts one "twin check started" note with the count. A failure is logged as `task-loop-error`. Servex must restart to pick it up. Page: [one folder per session](/framework/ai/sessions/doc/one-folder.md).
++**Done (2026-11-01): `TaskLoop.twins_daily()`** sits beside them. Once per local day (the mtime of `ai/sessions/session-twins.json` is not today) it runs `node Server/SessionConsolidate.mjs --check --write --json`: is any session held by two folders? It keeps the list in `session-twins.json` (gitignored) and, when an id is new since the last run, posts one `owner_note` risk (a writer went around `SessionFolders`). The first run counts none as new and posts one "twin check started" note with the count. A failure is logged as `task-loop-error`. Servex must restart to pick it up. Page: [one folder per session](/framework/ai/sessions/doc/one-folder.md). **`TaskLoop.truth_daily()`** runs beside it: once per local day it runs `node Server/Truth.mjs --write`, which appends one line of session-record truth numbers to `public/live/truth/truth.jsonl` ([/live/truth/](/live/truth/readme.md)).
+ 
+ **Done (2026-10-17): `TaskLoop.undone_asks_daily()`** sits beside them. Once per UTC day (the `generated_at` in `ai/asks/undone.json` is not today) it runs `node Server/UndoneAsks.mjs --json`; `LogSweeper.ALLOW` commits `undone.json`. Page: [undone asks](/framework/ai/asks/undone/). `needs_restart`: Servex must restart to pick it up.
+diff --git a/public/framework/ai/sessions/doc/one-folder.md b/public/framework/ai/sessions/doc/one-folder.md
+index 2ac9a8224..3da41a0d4 100644
+--- a/public/framework/ai/sessions/doc/one-folder.md
++++ b/public/framework/ai/sessions/doc/one-folder.md
+@@ -71,5 +71,6 @@ Callers: the SessionStart hook (`session-page.mjs`), the prompt and reply hooks
+ - **Check:** `node Server/SessionConsolidate.mjs --check` exits 1 and lists any session held by two folders, and any flat `sessions/<uuid>/` folder (`SessionConsolidate.flat()`; added 2026-11-06, because the twin finder only walks day folders and missed one). Servex runs it once a day (`TaskLoop.twins_daily`, `--write` keeps the list in `sessions/session-twins.json`) and posts a risk note **every day while any twin or flat folder exists**, not only when one is new (changed 2026-11-06: 1,410 old twins had sat silent for a week). `Server/SessionConsolidate.test.mjs` fails on a flat folder in the real store. `DatedFiles.sessions.check()` reports `twins` too.
+ - **The flat-folder writer (found 2026-11-06):** the page tool treated an existing `sessions/<uuid>/` folder as a plain path, so once one existed (`239b0bd4…`, a minion's page lines on 2026-11-03) every later write went there. Now `resolve_file()` in `Servex/agents/page_tools.js` refuses any flat uuid folder, and a session route never counts as plain. The SessionStart hook and Servex's whoami used to say "Your own page is /framework/ai/sessions/<uuid>/", which agents read as a folder; both now print the dated folder (`Agents.folder_line`).
+ - **Fold:** `node Server/SessionConsolidate.mjs --all` (dry run), then `--all --apply --manifest <file.json>`. Task folders move into the home; `index.json` and `cache.jsonl` keep the fresher copy; other logs are appended without duplicates; every original is copied to `%LOCALAPPDATA%/lew42/servex/moved-aside/<run>/` first; a `redirect` line in `task-moves.jsonl` keeps old URLs working.
++- **The count is on the truth page:** `Server/Truth.mjs` records `twins` and `flat` daily at [/live/truth/](/live/truth/readme.md). `--check` exits 1 while either is above 0 (tested in `SessionConsolidate.test.mjs`).
+ - **Today (2026-11-01):** 1,408 sessions are held twice, nearly all left from the 2026-10-09 rename (a uuid folder holding a stale `cache.jsonl` beside the slug). All 1,408 can be folded. Proved on a copy of their folders: 0 twins after, 1,408 session ids before and after, **0 of 16,445 lines lost** (15,019 found again, 1,412 older cache summaries and 13 older index snapshots where a fresher copy stays, 1 repeated line-1 marker): [fold-proof.json](/framework/ai/sessions/2026/10/20/session-e00f55c9/session-twins-fix/fold-proof.json).
+ - **Run the fold only after** this code is live in Servex and the dev server (`node Servex/sustain.mjs --restart`, then the dev server's restart), so no old process still holds a folder map.
+diff --git a/public/live/truth/page.js b/public/live/truth/page.js
+new file mode 100644
+index 000000000..9e7a4bb5d
+--- /dev/null
++++ b/public/live/truth/page.js
+@@ -0,0 +1,56 @@
++import { Page, View, div, h2, p, span, table, tr, th, td, md } from "/app.js";
++import { JSONL } from "/framework/ext/JSONL/JSONL.js";
++
++View.stylesheet(import.meta, "truth.css");
++
++/* /live/truth/: how true is the session record? One run of `node Server/Truth.mjs --write` appends one line to truth.jsonl; this page streams it.
++ * Every figure is a count over the real classes (Task.tally, SessionFolders); nothing here counts. Doc: readme.md beside this file. */
++class TruthLog extends JSONL {
++	static verbs = [...JSONL.verbs, "truth"];
++	runs = [];
++	truth(v){ this.runs.push(v); }
++}
++
++const pct = (n, d) => d ? Math.round(n / d * 100) + "%" : "n/a";
++const ROWS = [
++	["Sessions", b => b.sessions, "every session id the store holds once (SessionFolders.homes)"],
++	["  with a task log", b => b.with_log, "record with assign/log/agent lines (SessionRecord.log_file); a spawned agent's record is found in its nested task folder"],
++	["  tag-only record", b => b.tag_only, "session.jsonl holds only digest tags: no log of the work"],
++	["  transcript only", b => b.transcript_only, "only index.json/cache.jsonl: cost is counted, nothing was recorded"],
++	["  with any task", b => `${b.with_tasks} (${pct(b.with_tasks, b.sessions)})`, "with + without = sessions"],
++	["  no tasks: needs review", b => `${b.no_tasks} (${pct(b.no_tasks, b.sessions)})`, "the work was never recorded"],
++	["  complete (score 1)", b => `${b.complete} of ${b.with_tasks} with tasks (${pct(b.complete, b.with_tasks)})`, "Task.completion_score()"],
++	["Done tasks with no outcome or evidence", b => `${b.unproven} of ${b.done_tasks} (${pct(b.unproven, b.done_tasks)})`, "Task.proof_problem"],
++	["Sessions with no commit line", b => `${b.no_commit} of ${b.sessions} (${pct(b.no_commit, b.sessions)})`, "no \"commit\" line in the session's record or its task logs"],
++	["Owner asks not filed as a task", b => `${b.prompts_unfiled} prompts in ${b.sessions_unfiled} sessions with no task`, "Prompt lines in a session with no tasks"],
++];
++
++export default new Page({
++	meta: import.meta,
++	title: "Truth",
++	description: "How true the session and task record is, counted by code each day.",
++	icon: "fact_check",
++
++	content(){
++		const log = new TruthLog({ url: import.meta.resolve("./truth.jsonl") });
++		const $out = div.c("truth");
++		const draw = () => $out.empty(() => {
++			const runs = log.runs, last = runs.at(-1);
++			if (!last){ p("No run yet. Run `node Server/Truth.mjs --write`."); return; }
++			const first = runs[0];
++			p(`Baseline (${first.label ?? "first run"}, ${first.at.slice(0, 10)}) was measured before the fixes of the truth job merged; the Baseline column is that run, and the other columns are the newest run (counted daily by Servex). Newest run: ${last.at.replace("T", " ").slice(0, 16)} UTC.`);
++			div.c("truth-twins", () => { span.c("truth-big", String(last.twins + last.flat)); span(` sessions held by two folders (twin folders: ${last.twins}, flat folders: ${last.flat}); must be 0`); });
++			p(`Folders under sessions/YYYY/MM/DD: ${last.folders?.total ?? "?"} in all, of which ${last.folders?.no_session_file ?? "?"} hold no session file at all (${last.folders?.empty ?? "?"} are empty). The twins in the brief (1,410) were folded before ${first.at.slice(0, 10)}; the check has found none since.`);
++			table.c("truth-table", () => {
++				tr(() => { th("What"); th("All sessions"); th("Last 7 days"); th("Baseline, all"); th("Counted by"); });
++				for (const [name, f, note] of ROWS) tr(() => { td(name.trim()); td(String(f(last.all))); td(String(f(last.week))); td(String(f(first.all))); td(note); });
++			});
++			h2("Trend: sessions with any task");
++			div.c("truth-trend", () => {
++				for (const r of runs) div.c("truth-bar").style(`height:${Math.max(2, r.all.with_tasks / Math.max(1, r.all.sessions) * 100 * 8)}px`).title(`${r.at.slice(0, 10)}: ${pct(r.all.with_tasks, r.all.sessions)}`);
++			});
++			p(`${runs.length} run${runs.length > 1 ? "s" : ""}.`);
++		});
++		log.live(draw).then(draw);
++	},
++});
+diff --git a/public/live/truth/readme.md b/public/live/truth/readme.md
+new file mode 100644
+index 000000000..c758a7251
+--- /dev/null
++++ b/public/live/truth/readme.md
+@@ -0,0 +1,8 @@
++# /live/truth/ — how true the session record is, counted by code
++
++The page draws `truth.jsonl`; each line is one run of `node Server/Truth.mjs --write` (one object: `{"truth":{at, label?, all, week, twins, flat}}`). `all` and `week` (last 7 local days by the session's folder day) each hold: `sessions` (one per session id, `SessionFolders.homes`), `with_log` (record with assign/log/agent lines), `tag_only` (a session.jsonl holding only digest tags), `transcript_only` (only index.json/cache.jsonl; with_log + tag_only + transcript_only = sessions), `with_tasks`, `no_tasks` (= needs review; `with_tasks + no_tasks = sessions`, the script refuses to write if not), `complete` (score 1, of those with tasks), `done_tasks`, `unproven` (`Task.proof_problem`), `no_commit` (no `commit` line in the session's record or any task log under it), `prompts_unfiled` / `sessions_unfiled` (owner `Prompt` lines in sessions with no task). `twins` and `flat` come from `SessionConsolidate.check`; `folders` ({total, no_session_file, empty}) counts every date-level folder, including those that hold no session at all, and is not part of the denominator. The 1,410 twins in the first brief were folded before the first run; the check has found none since.
++
++- **Writer:** `Server/Truth.mjs` (test `Server/Truth.test.mjs`), run daily by `TaskLoop.truth_daily()` in Servex (needs a Servex restart to start; done today = the last line's `at` is today). By hand: `node Server/Truth.mjs --write [--label "..."] [--root <repo>]`.
++- **Reader:** `page.js` (`TruthLog extends JSONL`, streamed live).
++- **Counts use the real classes:** `SessionFolders.homes()`, `Task.replay`/`tally()`/`completion_score()`, as `Server/session-query.mjs --report` does. They differ from a sample of the costliest sessions because they cover every session id, most of which are transcript-only. The first baseline line wrongly counted only records with a log (328 of 11,861); the second line (label "corrected") fixes it.
++- The first line is the baseline, measured before the truth-job fixes merged.
+diff --git a/public/live/truth/truth.css b/public/live/truth/truth.css
+new file mode 100644
+index 000000000..12a6e7dfd
+--- /dev/null
++++ b/public/live/truth/truth.css
+@@ -0,0 +1,9 @@
++@layer base, theme, site, util;
++@layer site {
++	.truth { display: grid; gap: 1em; padding: 1em; max-width: 90em; }
++	.truth-table { border-collapse: collapse; width: 100%; }
++	.truth-table th, .truth-table td { text-align: left; padding: .4em .8em; border-bottom: 1px solid #8884; }
++	.truth-big { font-size: 3em; font-weight: 700; margin-right: .3em; }
++	.truth-trend { display: flex; align-items: flex-end; gap: 3px; height: 9em; }
++	.truth-bar { width: 1.2em; background: #4a8; }
++}
+diff --git a/public/live/truth/truth.jsonl b/public/live/truth/truth.jsonl
+new file mode 100644
+index 000000000..37aac07be
+--- /dev/null
++++ b/public/live/truth/truth.jsonl
+@@ -0,0 +1,2 @@
++{"truth":{"at":"2026-11-07T03:44:56.181Z","label":"baseline, before the truth-job fixes merge","all":{"sessions":11861,"with_record":328,"with_tasks":103,"no_tasks":11758,"complete":90,"needs_review":11758,"done_tasks":803,"unproven":373,"no_commit":11837,"prompts":538,"prompts_unfiled":200,"sessions_unfiled":200},"week":{"sessions":709,"with_record":82,"with_tasks":5,"no_tasks":704,"complete":1,"needs_review":704,"done_tasks":43,"unproven":24,"no_commit":702,"prompts":82,"prompts_unfiled":61,"sessions_unfiled":61},"twins":0,"flat":0}}
++{"truth":{"at":"2026-11-07T03:49:16.070Z","label":"baseline, corrected: sessions = session ids (SessionFolders.homes), tag-only records counted as records; first line counted folders wrongly (328 of 11,861)","all":{"sessions":11862,"with_log":647,"tag_only":552,"transcript_only":10663,"with_tasks":91,"no_tasks":11771,"complete":64,"needs_review":11771,"done_tasks":857,"unproven":371,"no_commit":11711,"prompts":538,"prompts_unfiled":200,"sessions_unfiled":200},"week":{"sessions":710,"with_log":181,"tag_only":0,"transcript_only":529,"with_tasks":19,"no_tasks":691,"complete":6,"needs_review":691,"done_tasks":115,"unproven":46,"no_commit":628,"prompts":82,"prompts_unfiled":61,"sessions_unfiled":61},"twins":0,"flat":0,"folders":{"total":12991,"no_session_file":191,"empty":2}}}

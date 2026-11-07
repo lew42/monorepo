@@ -1,0 +1,192 @@
+diff --git a/.githooks/commit-msg b/.githooks/commit-msg
+new file mode 100755
+index 000000000..d82eedc79
+--- /dev/null
++++ b/.githooks/commit-msg
+@@ -0,0 +1,3 @@
++#!/bin/sh
++node "$(dirname "$0")/../Server/CommitLog.mjs" trailer "$1" || true
++exit 0
+diff --git a/.githooks/post-commit b/.githooks/post-commit
+new file mode 100755
+index 000000000..448e3c893
+--- /dev/null
++++ b/.githooks/post-commit
+@@ -0,0 +1,3 @@
++#!/bin/sh
++node "$(dirname "$0")/../Server/CommitLog.mjs" log || true
++exit 0
+diff --git a/Server/CommitLog.mjs b/Server/CommitLog.mjs
+new file mode 100644
+index 000000000..41e2b8bd8
+--- /dev/null
++++ b/Server/CommitLog.mjs
+@@ -0,0 +1,80 @@
++// CommitLog — git hooks (.githooks/) call this so a commit is recorded in the session that made it.
++//   node Server/CommitLog.mjs trailer <commit-msg file>   adds "Session: <uuid>" to the message (commit-msg hook)
++//   node Server/CommitLog.mjs log                         appends {"commit","files","branch","worktree"} to the session's record (post-commit hook)
++// Never throws, never blocks: exit 0 always, killed after LIMIT ms. An unknown session writes one line to
++// public/framework/ai/sessions/failures.jsonl and nothing else. Doc: Server/doc/commit-log.md
++import fs from "node:fs";
++import path from "node:path";
++import { execFileSync } from "node:child_process";
++import SessionFolders from "../public/framework/core/Session/SessionFolders.mjs";
++import SessionRecord from "./SessionRecord.mjs";
++import RecordWriter from "../public/framework/core/Item/RecordWriter.js";
++
++export default class CommitLog {
++	static LIMIT = 8000;
++	static FILES = 200;
++	static UUID = SessionFolders.UUID;
++
++	static git(args, cwd){ return execFileSync("git", args, { cwd, encoding: "utf8", windowsHide: true, timeout: 4000 }).trim(); }
++
++	/** The main checkout (where Servex and the session store live): the parent of the shared .git dir. COMMITLOG_ROOT overrides it (tests). */
++	static main_root(cwd){
++		if (process.env.COMMITLOG_ROOT) return path.resolve(process.env.COMMITLOG_ROOT);
++		return path.dirname(path.resolve(cwd, this.git(["rev-parse", "--git-common-dir"], cwd)));
++	}
++
++	/** The session id of the committing agent: CLAUDE_CODE_SESSION_ID, else the .worktrees.json row whose path is this worktree and names a session. */
++	static session_id(top, root){
++		const env = process.env.CLAUDE_CODE_SESSION_ID;
++		if (this.UUID.test(env ?? "")) return env;
++		try {
++			const rows = Object.values(JSON.parse(fs.readFileSync(path.join(root, ".worktrees.json"), "utf8")));
++			const row = rows.find(r => r.path && path.resolve(r.path).toLowerCase() === path.resolve(top).toLowerCase());
++			if (this.UUID.test(row?.session ?? "")) return row.session;
++		} catch {}
++		return null;
++	}
++
++	static record_file(root, id){
++		const dir = SessionFolders.at(path.join(root, SessionRecord.STORE)).record_of(id);
++		return dir ? SessionRecord.log_file(dir) : null;
++	}
++
++	static fail(root, why, extra = {}){
++		try {
++			const f = path.join(root, "public/framework/ai/sessions/failures.jsonl");
++			fs.mkdirSync(path.dirname(f), { recursive: true });
++			fs.appendFileSync(f, JSON.stringify({ failure: { at: new Date().toISOString(), module: "CommitLog", why, ...extra } }) + "\n");
++		} catch {}
++	}
++
++	static async trailer(msgfile){
++		const cwd = process.cwd(), root = this.main_root(cwd), id = this.session_id(this.git(["rev-parse", "--show-toplevel"], cwd), root);
++		if (!id) return this.fail(root, "no session for this commit (CLAUDE_CODE_SESSION_ID unset, worktree not in .worktrees.json): no Session trailer", { cwd });
++		this.git(["interpret-trailers", "--in-place", "--if-exists", "doNothing", "--trailer", `Session: ${id}`, path.resolve(msgfile)], cwd);
++	}
++
++	static async log(){
++		const cwd = process.cwd(), top = this.git(["rev-parse", "--show-toplevel"], cwd), root = this.main_root(cwd);
++		const hash = this.git(["rev-parse", "HEAD"], cwd);
++		const msg = this.git(["log", "-1", "--format=%B"], cwd), tr = /^Session: ([0-9a-f-]{36})$/m.exec(msg)?.[1];
++		const id = this.UUID.test(tr ?? "") ? tr : this.session_id(top, root);
++		if (!id) return this.fail(root, "commit not recorded: no session (CLAUDE_CODE_SESSION_ID unset, worktree not in .worktrees.json)", { commit: hash, worktree: top });
++		const file = this.record_file(root, id);
++		if (!file) return this.fail(root, "commit not recorded: the session has no record folder", { commit: hash, session: id });
++		const all = this.git(["diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "-m", "--first-parent", "HEAD"], cwd).split("\n").filter(Boolean);
++		const line = { commit: hash, files: all.slice(0, this.FILES), branch: this.git(["rev-parse", "--abbrev-ref", "HEAD"], cwd), worktree: top };
++		if (all.length > this.FILES) line.files_total = all.length;
++		await RecordWriter.write(file, [line], { by: "git-hook", timeout: 3000 });
++	}
++
++	static async main([cmd, arg]){
++		const timer = setTimeout(() => process.exit(0), this.LIMIT); timer.unref?.();
++		try { if (cmd === "trailer") await this.trailer(arg); else if (cmd === "log") await this.log(); }
++		catch (e){ try { this.fail(this.main_root(process.cwd()), `CommitLog ${cmd}: ${e.message}`.slice(0, 300)); } catch {} }
++		process.exit(0);
++	}
++}
++
++
++if (process.argv[1]?.endsWith("CommitLog.mjs")) CommitLog.main(process.argv.slice(2));
+\ No newline at end of file
+diff --git a/Server/CommitLog.test.mjs b/Server/CommitLog.test.mjs
+new file mode 100644
+index 000000000..744bc8d24
+--- /dev/null
++++ b/Server/CommitLog.test.mjs
+@@ -0,0 +1,38 @@
++// A commit made with CLAUDE_CODE_SESSION_ID set lands one line in that session's record and carries a Session trailer;
++// with no session: no line, one failure line, and the commit still succeeds. Run: node Server/CommitLog.test.mjs
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { execFileSync } from "node:child_process";
++import Test from "../public/framework/core/Test/Test.js";
++
++const hooks = path.resolve(import.meta.dirname, "../.githooks"), id = "11111111-2222-4333-8444-555555555555";
++const root = fs.mkdtempSync(path.join(os.tmpdir(), "commitlog-"));
++const rec = path.join(root, "public/framework/ai/sessions/2026/11/06/session-11111111/session.jsonl");
++fs.mkdirSync(path.dirname(rec), { recursive: true });
++fs.writeFileSync(rec, JSON.stringify({ session: { id, kind: "vscode-tab", at: "2026-11-06T00:00:00Z" } }) + "\n");
++const env = { ...process.env, COMMITLOG_ROOT: root, RECORD_ENTRY: "http://127.0.0.1:1/api/item" };
++delete env.CLAUDE_CODE_SESSION_ID;
++const git = (args, e) => execFileSync("git", args, { cwd: root, env: e, encoding: "utf8", windowsHide: true }).trim();
++git(["init", "-q"], env); git(["config", "user.email", "t@t"], env); git(["config", "user.name", "t"], env); git(["config", "core.hooksPath", hooks], env);
++const lines = () => fs.readFileSync(rec, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
++const failures = path.join(root, "public/framework/ai/sessions/failures.jsonl");
++
++const t = new Test("a commit is logged to its session and carries a Session trailer");
++fs.writeFileSync(path.join(root, "a.txt"), "a");
++git(["add", "a.txt"], env);
++git(["commit", "-q", "-m", "first"], { ...env, CLAUDE_CODE_SESSION_ID: id });
++const c = lines().find(l => l.commit);
++t.eq(c?.commit, git(["rev-parse", "HEAD"], env), "the line holds the commit hash");
++t.eq(c?.files, ["a.txt"], "and the files it changed");
++t.ok(/^Session: 11111111-2222-4333-8444-555555555555$/m.test(git(["log", "-1", "--format=%B"], env)), "the message has the Session trailer");
++
++fs.writeFileSync(path.join(root, "b.txt"), "b");
++git(["add", "b.txt"], env);
++const n = lines().length;
++git(["commit", "-q", "-m", "second"], env);
++t.eq(lines().length, n, "no session: no line written");
++t.ok(fs.readFileSync(failures, "utf8").split("\n").filter(Boolean).length >= 1, "no session: a failure line");
++t.eq(git(["log", "-1", "--format=%s"], env), "second", "no session: the commit still succeeded");
++fs.rmSync(root, { recursive: true, force: true });
++t.done();
+diff --git a/Server/doc/commit-log.md b/Server/doc/commit-log.md
+new file mode 100644
+index 000000000..a6e437d96
+--- /dev/null
++++ b/Server/doc/commit-log.md
+@@ -0,0 +1,16 @@
++# CommitLog — every commit is recorded in the session that made it
++
++**What:** two versioned git hooks in `.githooks/` call `Server/CommitLog.mjs`.
++
++- `commit-msg` adds a `Session: <uuid>` trailer to the message.
++- `post-commit` appends `{"commit":"<full hash>","files":[…],"branch":"…","worktree":"…"}` to that session's record (`session.jsonl`, or `task.jsonl` in an old folder). Over 200 files, `files` is cut and `files_total` says how many.
++
++**Which session:** `CLAUDE_CODE_SESSION_ID` (set in a Servex agent's and a VS Code tab's shell). Else a `session` field on the worktree's row in `.worktrees.json` (none writes it yet). Else nothing is guessed: one line goes to `public/framework/ai/sessions/failures.jsonl` (`{"failure":{at,module:"CommitLog",why,…}}`) and the commit goes on.
++
++**Where it lands:** always the MAIN checkout's store, found from `git rev-parse --git-common-dir`, so a commit in a worktree writes the record Servex reads. The folder comes from `SessionFolders.record_of(id)` and the file from `SessionRecord.log_file(dir)` (the same file `SpawnLog.file_of` uses for pid lines). The write is `RecordWriter.write`: posted to Servex, the one writer, and appended once (newline-safe) only if Servex is down.
++
++**Never blocks:** the hooks end `|| true; exit 0`, and the script exits 0 after 8 seconds at most. The line dirties the record file; the next commit carries it (no loop, the hook does not commit).
++
++**Switch it on (once per clone, repo-local, shared by every worktree):** `git config core.hooksPath .githooks`. Relative, so each worktree runs its own checked-out hooks. A branch without `.githooks/` runs none. Never use `--global`.
++
++**Test:** `node Server/CommitLog.test.mjs` (a scratch repo; `COMMITLOG_ROOT` points the store there, `RECORD_ENTRY` at a dead port forces the file append).
+diff --git a/Server/readme.md b/Server/readme.md
+index 26458ecf2..e895f78b3 100644
+--- a/Server/readme.md
++++ b/Server/readme.md
+@@ -44,6 +44,7 @@ The owner-facing server also starts `whisper-server` for dictation on its own 
+ - `Server/on-landing.mjs` — runs on the first `landed_at`: text-check, layout-check, padding-check, `doc-check.mjs` ([`doc/on-landing.md`](./doc/on-landing.md)); `Server/owner-check.mjs` is its last check. The ledger hook refuses a `landed_at` with no `outcome`.
+ - `node Server/ReadyToMerge.mjs [--json]` — the branches agents marked `ready:` (not yet in compliance/dev), with review phrase and worktree; Servex serves it to the Merge button on [`/framework/ai/merge/`](/framework/ai/merge/) ([`ai/merge/readme.md`](../public/framework/ai/merge/readme.md)).
+ - `Server/dev-branch.mjs` — the one place the PC's dev branch is named (`DEV_BRANCH`); every script and class imports it. `Server/DevPublish.mjs` — what `merge.mjs` does after a landing: fetch, bring `origin/<dev>` in, push (one retry), and publish to `main` through a pull request only if `Server/publish.json` says `{"main": true}` (off). `node Server/rename-dev-branch.mjs` — dry-run manifest of the branch rename, `--apply` does it ([`git.md`](../public/framework/doc/git.md#merge-mjs-and-github-built-2026-11-03)).
++- `.githooks/` + `Server/CommitLog.mjs` — git hooks that put a `Session:` trailer on every commit and log the commit in its session's record; on with `git config core.hooksPath .githooks` ([`doc/commit-log.md`](./doc/commit-log.md)).
+ - `node Server/review.mjs <taskdir> [<worktree>]` — a fresh agent says pass or fix before `merge.mjs` takes a branch; run on `compliance/dev` it reviews the task record's worktree or refuses, never a false pass ([`doc/review.md`](./doc/review.md)).
+ - `node Server/Audit.mjs <taskdir...>` — computes the consensus of several task audits; no AI writes it from memory.
+ - `Server/AskEach.mjs` `askOnce()` — one cheap Q&A turn, optionally on OpenRouter; ⚠ the SDK mis-prices an OpenRouter turn.
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/commits/plan.md b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/commits/plan.md
+new file mode 100644
+index 000000000..920c1cc2a
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/commits/plan.md
+@@ -0,0 +1,3 @@
++# Plan
++
++Current: no hooks, no core.hooksPath; commits reach a session only when an agent logs them. Change: .githooks/commit-msg + post-commit call Server/CommitLog.mjs (session from CLAUDE_CODE_SESSION_ID, store via SessionFolders.record_of + SessionRecord.log_file in the main checkout, write via RecordWriter.write). Test: Server/CommitLog.test.mjs. Doc: Server/doc/commit-log.md.

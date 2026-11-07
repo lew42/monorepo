@@ -1,0 +1,77 @@
+diff --git a/public/framework/core/Session/Session.test.mjs b/public/framework/core/Session/Session.test.mjs
+index f8b5b4a1d..0ddbbda68 100644
+--- a/public/framework/core/Session/Session.test.mjs
++++ b/public/framework/core/Session/Session.test.mjs
+@@ -130,7 +130,7 @@ check("turn: an open turn holds the session below 1 and counts in the tally; no_
+ 	const s = Session.replay(TURN_LINES.slice(0, 3));
+ 	const open = s.completion_score() === 0 && s.tally().open === 1 && s.tally().created === 1;
+ 	s.replay_line({ [Session.turn_id(T1)]: { no_action: "a remark" } });
+-	return open && s.completion_score() === 1;
++	return open && s.completion_score() === 1 && s.tally().open === 0;
+ });
+ check("turn: a hook-made content Prompt IS the turn: the refined line fills its sentences and files items under it, no second task", () => {
+ 	const s = Session.replay([{ session: "h1" }, { content: { add: { type: "Prompt", id: Session.turn_id(T3), text: "ship it", counted: true, via: "vscode" } } },
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index c95ffe217..fe2c5b202 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -36,7 +36,7 @@ class Session extends Task                       // ../Task/Task.js (Task extend
+   static async create({id, name?, parent?, day?, first?})  // node: MAKES the session's folder, the one creator (SessionFolders#create)
+   static async locate(id, first_at?, slug?)  // node: the folder to WRITE into, asked of SessionFolders on every call; never makes a second one
+ 
+-// SessionFolders.mjs (node only): the store's ONE finder. at(root).of(id), .home(id, day, name), .create(id, opts), .all(id), .twins(); static owner(dir)
++// SessionFolders.mjs (node only): the store's ONE finder. at(root).of(id), .home(id, day, name), .create(id, opts), .all(id), .twins(), .url(id) (the session page url: the dated folder, the bare-uuid redirect only when no folder exists yet); static owner(dir), static url_in(repo, id) (what a node writer puts in a note or card)
+ 
+ // Day.js: class Day, static of(t) "YYYY-MM-DD", path(t) "YYYY/MM/DD" - the owner's LOCAL day, never UTC
+ ```
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index 2c0dbeddd..6cb179d6d 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -387,6 +387,7 @@ export class Task extends Item {
+ 				if (k.is_session){ t.sessions++; if (k.completion_score() === null) t.unscored++; }
+ 				if (k.state === "complete"){ t.finished++; if (Task.proof_problem(k)) t.unproven++; }
+ 				else if (k.state === "stopped") t.stopped++;
++				else if (k.no_action) t.finished++;   // a turn marked {no_action: why} is settled (it scores 1), so it is not open
+ 				else t.open++;
+ 				walk(k);
+ 			}
+diff --git a/public/framework/core/Task/completion.test.mjs b/public/framework/core/Task/completion.test.mjs
+index 027ea0dc6..0f8ac99a8 100644
+--- a/public/framework/core/Task/completion.test.mjs
++++ b/public/framework/core/Task/completion.test.mjs
+@@ -78,6 +78,8 @@ t.eq(ps.tally().prompts.unresolved, 0, "tally: none unresolved");
+ // 4b. The same resolution as a log line: {"<prompt id>":{"no_action":"why"}}.
+ const viaLine = Session.replay([{ session: { id: "s4b" } }, { content: { add: { type: "Prompt", id: "q1", text: "what is x?", counted: true } }, ts: at(1) }, { q1: { no_action: "answered in chat" }, ts: at(2) }]);
+ t.eq(viaLine.completion_score(), 1, "a {no_action} line on the prompt resolves it");
++const turnTask = Session.replay([{ session: { id: "s4c" } }, { tasks: { add: { type: "Prompt", id: "p4c", text: "a remark", counted: true } }, ts: at(1) }, { p4c: { no_action: "a remark" }, ts: at(2) }]);
++t.eq(turnTask.tally().open, 0, "tally(): a Prompt task marked no_action is settled, not open");
+ 
+ // 5. Resolving a counted Prompt by filing a task under it: the score follows that task.
+ const ps2 = Session.replay([{ session: { id: "s5" } }, { content: { add: { type: "Prompt", id: "n", text: "fix it", counted: true } }, ts: at(1) }]);
+diff --git a/public/framework/core/Task/doc/completion.md b/public/framework/core/Task/doc/completion.md
+index 451cae8c4..dc6406a97 100644
+--- a/public/framework/core/Task/doc/completion.md
++++ b/public/framework/core/Task/doc/completion.md
+@@ -62,6 +62,6 @@ No new code. Prompt's `completion` is computed from its parts and Question inher
+ 
+ **No score is not 0 and not 1.** A session with nothing to score (no tasks, no child sessions, no counted prompts) reads `completion_score() === null`, shown as "needs review" by `Task.show`. A plain leaf task keeps 1 (complete) or 0. A parent's mean counts a child session with nothing to score of its own as 1 if complete and 0 if not (`part_score`), so a session whose children carry the work keeps its number; only a session with no parts at all is null; `tally().unscored` counts them. The session page's Score stat, the dashboard rows and `Server/session-query.mjs --report` all show it through `Task.show`.
+ 
+-**Closing under 100% files one waiting task. PROPOSED and OFF BY DEFAULT (the owner, 2026-11-06: a change to what gets auto-filed is proposed with a dry run first).** The filing happens only when the environment variable `SERVEX_OPEN_ITEMS=on` is set; unset, `OpenItems.after_write` works out what it would file, returns it and writes nothing. To see what it would file over the session store: `node Servex/OpenItems.mjs --dry-run [--days 7] [--out <file>]` (counts of settled records scored under 1 or not at all, how many tasks it would file, five examples; the full list goes to `--out`, default the OS temp folder). The rule itself (`Task#closeout_line`) is unchanged. `Task#closeout_line` builds it (a task `open-items`, or `open-items-2` once the first is settled, waiting on the owner, listing each open item's title, id and state). `Servex/OpenItems.js` appends it right after any closing line, by comparing the replay before and after, so a doubled close or a replay files nothing; a close with nothing open (an empty tab) files nothing, since its score already reads "needs review". The closeout task is left out of the score and the open-child check. `list_waiting` shows these tasks beside the card needs. Tests: `completion.test.mjs`, `Servex/OpenItems.test.mjs`.
++**Closing under 100% files one waiting task. PROPOSED and OFF BY DEFAULT (the owner, 2026-11-06: a change to what gets auto-filed is proposed with a dry run first).** The filing happens only when the environment variable `SERVEX_OPEN_ITEMS=on` is set; unset, `OpenItems.after_write` works out what it would file, returns it and writes nothing. To see what it would file over the session store: `node Servex/OpenItems.mjs --dry-run [--days 7] [--out <file>]` (counts of settled records scored under 1 or not at all, how many tasks it would file, five examples; the full list goes to `--out`, default the OS temp folder). `Task#closeout_line` builds the task (a task `open-items`, or `open-items-2` once the first is settled, waiting on the owner, listing each open item's title, id and state). When the switch is on, `Servex/OpenItems.js` appends it right after any closing line, by comparing the replay before and after, so a doubled close or a replay files nothing; a close with nothing open (an empty tab) files nothing, since its score already reads "needs review". The closeout task is left out of the score and the open-child check. `list_waiting` shows these tasks beside the card needs. Tests: `completion.test.mjs`, `Servex/OpenItems.test.mjs`.
+ 
+-**Known gaps in the closing rule.** It runs from the two append functions of Servex (`page_tools.js write_line`, `TaskLoop.js write_line`). Writers that append straight to a record do not pass through it and file nothing: `Server/PromptRecords.mjs`, `Server/CloseoutWalk.mjs --apply` (its `stop` lines), and `RecordWriter.append_once` (what `append.mjs` and StaleClose use when Servex is down). Cost: a closing line replays its record once (about 0.5-0.7 s on the 3.7 MB `session-e00f55c9` record, measured; a few ms on a normal one), and a second time only when a filing is due.
++**Known gaps in the closing rule.** It runs from the two append functions of Servex (`page_tools.js write_line`, `TaskLoop.js write_line`). Writers that append straight to a record do not pass through it and file nothing: `Server/PromptRecords.mjs`, `Server/CloseoutWalk.mjs --apply` (its `stop` lines), and `RecordWriter.append_once` (what `append.mjs` and StaleClose use when Servex is down). Cost: a closing line replays its record once (about 0.4-1.2 s on the 3.7 MB `session-e00f55c9` record, measured; a few ms on a normal one), and a second time only when a filing is due.
+diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
+index 82966ed33..231cb61d5 100644
+--- a/public/framework/core/Task/readme.md
++++ b/public/framework/core/Task/readme.md
+@@ -109,7 +109,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
+   `TaskJSONL`, and `ai/AITask/nested.js`'s `TaskTree`.
+ - **Fields** (getters that read data, never stored numbers): `expected`, `module`, `session` (`session ?? session_id`), `priority` (latest `{priority:{score,why,by}}` line or `null`), `commits` (short hashes from `{"commit":"…"}` lines, no duplicates; `commit(hash)` appends one). Replay reads both lines without leaving the legacy mapping. `sessions` ([{id, task}], node appends it), `source` (voice-app | vscode | dictate | servex:<id>; an old `/` doc path reads as `doc`) and `cost` (USD, computed from the agents on this task via `Task.cost_resolver`, wired in `Servex/agents/Agents.js`).
+ - **`completion_score()`** (0 to 1, the one number; `completion` is its alias; 2026-11-04): score = 1 if `checked_by`; else the mean of the scores of its parts (subtasks not stopped, child sessions, counted owner prompts, to any depth); a plain task with no parts is 1 if complete else 0, but a **session** with nothing to score is `null` ("needs review": no tasks means the work was never recorded, not that it was done). A parent's mean counts a child session that has nothing to score of its own as 1 if complete and 0 if not (`part_score`), so a session whose child sessions carry the work keeps its number; `Task.mean` itself leaves nulls out, and all-null is null; `Task.show(score)` is the one place that turns a score into "62%" or "needs review", so every caller handles null through it. `tally()` counts created/finished/stopped/open, `unscored` (sessions that read null) and `proof_problem` finishes. Printed for any session by `node Server/session-query.mjs --report <id>`; why this formula and not finished/created: [Session readme](../Session/readme.md#the-one-formula). Test: `node completion.test.mjs`.
+-- **No silent endings** (`closeout_line(at)`, `open_items()`, `Task.is_closeout`): when a session or task is closed under a score of 1, one task waiting on the owner (`{"wait":{"on":"owner","what":…}}`, id `open-items`, then `open-items-2`) is filed that lists the open items by id, title and state. The rule is `Task#closeout_line`; `Servex/OpenItems.js` calls it after any closing line (stop, complete, finish, unclosed, closed_by, landed_at) reaches a record, from the two append chokepoints (`page_tools.js write_line`, `TaskLoop.js write_line`). It compares the replay before and after the line, so a repeat or replayed close files nothing, and it files nothing when there is nothing open to list. Closeout tasks are left out of the score, `reopened()` and the `complete()` open-child check, so the waiting task never reopens the record it was filed on. `list_waiting` (`Servex/cards/Cards.js`) lists owner-waiting tasks from `ai/index.json` next to card needs. Known gaps (writes that bypass both chokepoints and file nothing): `Server/PromptRecords.mjs`, `Server/CloseoutWalk.mjs --apply`, and `RecordWriter.append_once` (append.mjs and StaleClose when Servex is down). Tests: `node Servex/OpenItems.test.mjs`. PROPOSED, off by default: it files only with SERVEX_OPEN_ITEMS=on; dry run: node Servex/OpenItems.mjs --dry-run (doc/completion.md).
++- **No silent endings** (`closeout_line(at)`, `open_items()`, `Task.is_closeout`): when a session or task is closed under a score of 1, one task waiting on the owner (`{"wait":{"on":"owner","what":…}}`, id `open-items`, then `open-items-2`) is filed that lists the open items by id, title and state. The rule is `Task#closeout_line`; `Servex/OpenItems.js` calls it after any closing line (stop, complete, finish, unclosed, closed_by, landed_at) reaches a record, from the two append chokepoints (`page_tools.js write_line`, `TaskLoop.js write_line`). It compares the replay before and after the line, so a repeat or replayed close files nothing, and it files nothing when there is nothing open to list. Closeout tasks are left out of the score, `reopened()` and the `complete()` open-child check, so the waiting task never reopens the record it was filed on. `list_waiting` (`Servex/cards/Cards.js`) lists owner-waiting tasks from `ai/index.json` next to card needs. Known gaps (writes that bypass both chokepoints and file nothing): `Server/PromptRecords.mjs`, `Server/CloseoutWalk.mjs --apply`, and `RecordWriter.append_once` (append.mjs and StaleClose when Servex is down). Tests: `node Servex/OpenItems.test.mjs`. PROPOSED, off by default: it files only with SERVEX_OPEN_ITEMS=on; dry run: `node Servex/OpenItems.mjs --dry-run` ([doc/completion.md](doc/completion.md)).
+ - **`completion`** is `completion_score()`'s alias; `checked_by` (`check({by})`, final) is 1, and a half-done subtask counts 0.5, so a complete parent with open children reads below 1 unless `checked_by` is set (`Prompt` follows the same rule).
+ 
+ ## More
