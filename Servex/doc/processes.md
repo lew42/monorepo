@@ -123,6 +123,23 @@ pagefile. Free RAM alone can look fine while the pagefile is almost full; commit
 number that actually explains thrashing. Read by the same PowerShell loop as everything else,
 once a tick.
 
+## Early relief at 70%
+
+[`Relief.js`](../Relief.js) acts before the machine runs out of memory: Global's spawn gate only slows new work at `SERVEX_COMMIT_HIGH_PCT` (80), and Windows starts failing allocations near 100. Once a minute it reads `commit_mb / commit_limit_mb` from the monitor. When that is at or above `SERVEX_RELIEF_PCT` (default 70), and the last run was 15 or more minutes ago, it runs, in this order (each step is a `relief-step` line on the `processes` log):
+
+1. `Lifecycle.sweep()`: close what landed or dead tasks still own.
+2. Stop the dev servers of finished worktrees, through `Worktrees.stop_idle` (the same call the worktree tick makes; nothing copied).
+3. Put idle agents to sleep with their own `sleep` method (`SERVEX_RELIEF_IDLE_MIN`, default 10 minutes idle). Never the front desk, the voice seats (`session-fast`, `session-smart`), the standing fixer, an agent whose `dormant_after` is `"session"`, a parent with a child still working, or anything that is not `idle`. The owner's own tabs are not agents, so they are never in the list.
+4. Count what the monitor already reaped as orphans (`procmon.reaped`).
+
+It then writes one line, `{type: "relief", commit_pct, closed, dormant, reaped, freed_mb_estimate}`. If the commit is still at the line after the run, it posts ONE `owner_note` (kind `risk`) per episode: the five biggest apps that are **not ours** (the monitor's `other`, grouped by exe name), each with its MB, as a suggestion to close. It never ends any of them, and never ends anything itself: only the three owners above close things. The note is re-armed only when the commit falls below 65%. `SERVEX_NO_RELIEF=1` boots without it.
+
+The rule is the exported pure `decide({commit_pct, last_run, armed})`. Proof: `node Servex/Relief.test.mjs`.
+
+## A spinning idle agent
+
+An agent whose state is `idle` should cost nothing, yet one was measured burning a core. The monitor (`Processes.watch_spin`) watches every real agent: idle and over `SERVEX_SPIN_CORE_PCT` (default 50) percent of one core for `SERVEX_SPIN_MS` (default 5 minutes) in a row, with the same pid throughout, makes it dormant (`Agent.sleep("spinning")`; its session stays and the next message wakes it) and writes `{type: "spinning-idle", id, pid, cpu, minutes, action}` on the `processes` log. A `working` agent never counts. `SERVEX_SPIN_DORMANT=0` only logs. The owner's own tabs are not agents and are never touched. Proof: `node Servex/processes.test.mjs`.
+
 ## Running means a real process
 
 Servex starts every agent's claude.exe itself (`Agents.spawn_claude`, through the SDK's `spawnClaudeCodeProcess`), so it knows the PID from the first moment:
