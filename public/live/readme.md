@@ -39,7 +39,7 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
 
 A card already on screen can become a sub-page (a link card stays in its place): `{"pages":{"promote":{"id":"<card id>","name":"plan"}}}` ([core/Page/doc/ai-api.md](/framework/core/Page/doc/ai-api.md)).
 
-**Page features from voice** (tabs, columns, place, nav, previews — which ones actually draw, and why): [doc/page-features.md](doc/page-features.md).
+**Page features from voice** (tabs, columns, place, nav, previews, tried live under [/live/demos/](/live/demos/): tabs works via real sub-pages, columns/nav/place do not draw under LivePage and previews has no delta — one table, the cause for each, and what is still missing): [doc/page-features.md](doc/page-features.md).
 
 ## Nothing is lost: removed cards
 

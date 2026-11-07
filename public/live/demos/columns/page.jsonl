@@ -2,3 +2,5 @@
 {"file":"alpha/page.jsonl"}
 {"navigation":"columns","by":"minion-page-features","ts":"2026-11-06T21:52:29.134Z"}
 {"title":"Columns (shows as plain tabs — LivePage has no column layout)","by":"minion-tabs-r3","ts":"2026-11-06T23:52:30.727Z"}
+{"title":"Columns","by":"minion-tabs-r3","ts":"2026-11-07T00:12:34.294Z"}
+{"content":{"add":{"type":"part-text","id":"gap-note","text":"This would show two side-by-side columns (Alpha). LivePage has no column layout today: it only draws its own content list, so the navigation word does nothing here — this page draws as plain tabs instead."}},"by":"minion-tabs-r3","ts":"2026-11-07T00:12:34.296Z"}
