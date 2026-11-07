@@ -185,6 +185,30 @@ the worktree it watches, so neither stop is ever a guessed pid. One `servex` log
 servers_stopped`. `SERVEX_WORKTREE_STOP_SERVERS=0` turns this off (the removal flow above is
 unaffected).
 
+## Who started this pid
+
+Every async child process Servex starts (`spawn`, `exec`, `execFile`, `fork`, plain or promisified) gets a start line the moment it has a pid, and an exit line when it ends. [`Crumbs.js`](../Crumbs.js) hooks `child_process` and calls [`SpawnLog.watch`](../SpawnLog.js); `SpawnLog.js` holds the AsyncLocalStorage that says which agent's tool call (or which agent's own claude.exe) started it. Writes never throw and never slow the caller.
+
+```json
+{"pid":12345,"agent":"minion-x","session":"<uuid>","cmd":"git status --short","why":"shell","at":"…","by":"servex"}
+{"pid_exit":12345,"code":0,"signal":null,"at":"…","by":"servex"}
+```
+
+`pid` is the first key, so `"pid":12345` finds the start line only and `"pid_exit":12345` the exit. `cmd` is cut at 300 characters; `why` is the tool name (`shell`, `quick_fix`, …) or `claude.exe`, or `spawn:<program>` when there is no tool.
+
+- **Called for an agent:** the line goes to that agent's session log (`session.jsonl`, else `task.jsonl`). A claude.exe also goes to its parent's log, so a mastermind sees its children's pids.
+- **Called by Servex itself** (no agent): the `spawns` log, `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl`. Four pollers are skipped there by name: the process-table query (`Get-CimInstance Win32_Process`), `netstat`, `git worktree list` and `git rev-parse --verify --quiet`. Measured over 10.6 h on 2026-11-06: 7,724 async spawns, about 12 a minute; those four were about 9 of the 12, so the `spawns` log gets about 3 start lines a minute (plus an exit line each).
+- **Not logged:** sync spawns (`spawnSync`, `execFileSync`, `execSync`: no live pid to report, and they block for milliseconds); and anything Servex did not start itself.
+
+Finding things: [How to find things](/framework/ai/sessions/#how-to-find-things).
+
+Limits:
+- The Bash tool's children of a claude.exe (the commands an agent types) are started by claude.exe, not by Servex, so they get no line.
+- `MCP.call` (the HTTP door) carries no agent, so its spawns land in `spawns`.
+- ⬜ A PostToolUse hook could write a line for those Bash-tool children too; not built.
+
+The queue is loud in the same way: `Servex.hold()` appends `{"queued":{"agent","reason","commit_pct","page_file_mb"}}` to the parent's session log, and `drain()` appends `{"started":{"agent","waited_s"}}`. `page_file_mb` is null until the process monitor reads the page file. A queue entry restored after a restart writes no second `queued` line. Tests: `Servex/SpawnLog.test.mjs`, `Servex/Gate-loud.test.mjs`.
+
 ## Cost
 
 One long-lived hidden PowerShell: one process query (about 0.2 s of CPU) and Git's `ps -e` every 10 seconds. A command line crosses the pipe only the first time a process is seen.
