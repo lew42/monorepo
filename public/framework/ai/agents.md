@@ -23,6 +23,10 @@ This is the short base for any agent on this repo (a mastermind or a worker, Cla
 
 A session has exactly ONE folder: `public/framework/ai/sessions/YYYY/MM/DD/<folder>/`, the day it began. The url `/framework/ai/sessions/<uuid>/` only redirects there; never create, name or write a folder `sessions/<uuid>/`. Your session's folder is printed at start ("Your session is …; its one folder is …"). In code, find it with `SessionFolders.at(store).of(id)` (its own folder) or `.record_of(id)` (where its record sits, nested for a spawned agent) ([core/Session/SessionFolders.mjs](../core/Session/SessionFolders.mjs)), never by building a path; make it with `.create(id, {first})` (or `Session.create({id, name, parent, first})`), the one creator. A check fails loudly on a flat folder: `node Server/SessionConsolidate.mjs --check`. Details: [sessions/doc/one-folder.md](sessions/doc/one-folder.md).
 
+## Probable direction: agents in the dev server (the owner, 2026-11-06; not built)
+
+SDK agents would run inside each project's dev server, not in Servex. That gives one item cache shared by the browser, the agents and MCP. Servex would shrink to a manager, and each project would get its own scoped MCP and `spawn_agent`. Tradeoffs, open questions and the alternative: [Servex/readme.md](../../../Servex/readme.md#probable-direction-agents-run-in-the-projects-dev-server-the-owner-2026-11-06-not-built). Until it is built, nothing changes: agents still run in Servex.
+
 ## Explaining to the owner
 
 - **Show an API as JavaScript or pseudocode** (`page.tabs.add({name: "today"})`), not as a JSON delta, unless the owner asks what the delta looks like. Say which object the call operates on (`page`, `page.items`, a card). (the owner, 2026-11-06)

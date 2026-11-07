@@ -59,6 +59,22 @@ A planned restart and a crash both bring every working or idle agent back: `Serv
 
 The local `servex` MCP and the remote door share one tool registry; the remote adds `ask_mastermind`, `call` and `cloud_voice_log` ([MCP](/framework/ai/doc/agents/mcp.md)); every tool, grouped, with a compacted set: [doc/tools-map.md](doc/tools-map.md); what each role loads: [agent-context](/framework/ai/doc/agent-context.md). A task folder is opened by `open_task` here; counted by `Server/AIIndex.mjs` ([ai/tasks](/framework/ai/tasks/)).
 
+## Probable direction: agents run in the project's dev server (the owner, 2026-11-06; not built)
+
+Today Servex runs every SDK agent, and the dev server serves the site. Each one loads its own copy of the same items, so the same item lives in memory twice. The direction:
+
+- **Agents run in the project's dev server.** That one process holds one item cache. The browser (over the socket), the agents (as local tools) and MCP all share the same live instances, with no twin copies.
+- **Servex becomes a manager:** it starts and stops servers, and watches health and usage.
+- **Each project gets its own MCP:** the item tool plus a few scoped essentials. `spawn_agent` moves into each project.
+- **One save path.** Today the browser saves through Servex's `POST /api/item`. When that fails, it falls back to a raw append over the dev socket that skips validation ([core/Item/Store.js](../public/framework/core/Item/Store.js), the `warned_no_servex` line). The owner dislikes having two paths. With agents in the dev server, its socket becomes the one validated entry point.
+
+**Tradeoffs and open questions**
+- **Gain:** one cache means no stale copies and no twin writers. A change an agent makes is the instance the page already shows.
+- **Cost:** 20 projects means 20 MCPs. Which client connects to which one? Who routes a cross-project ask?
+- **Risk:** a crashed dev server takes its agents down with it. Today Servex revives agents on its own ([Crash and revive](#crash-and-revive)); that job would move, or stay in the manager.
+- **Scoping:** a project MCP carries no open shell. Permissions are checked server side on every request, not trusted from the client.
+- **Alternative:** keep agents in Servex and make Servex the only item cache, with the dev server reading through it. That keeps one supervisor, but every page read crosses two processes.
+
 ## More
 
 [doc/architecture.md](doc/architecture.md) · [doc/sdk.md](doc/sdk.md) (how an agent is started) · [doc/lifecycle.md](doc/lifecycle.md) · [doc/dormant.md](doc/dormant.md) · [doc/processes.md](doc/processes.md) (closing a task leaves nothing running) · [doc/pool.md](doc/pool.md) · [doc/worktree-preview.md](doc/worktree-preview.md) (a worktree waiting for review, on your phone) · [doc/steps.md](doc/steps.md) · [doc/task-loop.md](doc/task-loop.md) · [doc/landing.md](doc/landing.md) · [doc/skills.md](doc/skills.md) · [doc/module-inbox.md](doc/module-inbox.md) · [doc/restart.md](doc/restart.md) (surviving a reboot) · [ext/remote/readme.md](ext/remote/readme.md) · [../Server/doc/scripts.md](../Server/doc/scripts.md) · the old readme with its dated notes: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md) and [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md).
