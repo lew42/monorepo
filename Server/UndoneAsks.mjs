@@ -140,7 +140,7 @@ export default class UndoneAsks {
 		return [...this.index.records().values()].map(r => ({
 			kind: "refined", session: r.session, line: Number(String(r.prompt_ref).split("#")[1]), at: said.get(`${r.session}|${String(r.prompt_ref).split("#")[1]}|${r.id}`) ?? r.at, text_full: r.ask, text: UndoneAsks.first_sentence(r.ask),
 			module: this.index.module_of(r.module), status: r.status, inbox: r.status === "inboxed" ? r.inbox : null, done: r.status === "done" ? `refined record says done${r.done_by ? ": " + r.done_by : ""}` : null,
-			source: AskIndex.link(r.session, Number(String(r.prompt_ref).split("#")[1])),
+			source: AskIndex.link(r.session, Number(String(r.prompt_ref).split("#")[1]), this.root),
 		}));
 	}
 

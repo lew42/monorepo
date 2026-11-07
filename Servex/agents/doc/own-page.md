@@ -3,7 +3,7 @@
 Asked by the owner in VS Code tab 7efd07d5 (brief: `public/framework/core/Page/doc/page-tool-2026-10-09.md`, gap 3). Partner: `mastermind-page-system`.
 
 ## The rule
-Every session's page is **`/framework/ai/sessions/<session_id>/`**, the same folder `.claude/hooks/prompt-relay.mjs` already writes an owner tab's `page.jsonl` into. One convention for a Servex agent and a VS Code tab, keyed on the Claude session id (it exists at spawn, and a resume keeps it).
+Every session has ONE page, its dated folder **`/framework/ai/sessions/YYYY/MM/DD/<folder>/`**. The flat url `/framework/ai/sessions/<session_id>/` only redirects there; it is a way to look a session up, never a folder, and a node writer never puts it into a note or card: it asks `SessionFolders.url_in(repo, id)` (`core/Session/SessionFolders.mjs`) for the real url. One convention for a Servex agent and a VS Code tab, keyed on the Claude session id (it exists at spawn, and a resume keeps it).
 
 ## Two doors, one line of text
 | Who | Where the line comes from | Class / file |

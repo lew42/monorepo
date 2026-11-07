@@ -7,6 +7,7 @@
 //   .home(id, day, name)           of(id), else where a new one goes: <day>/<name or session-<id8>> (the full uuid when another id holds session-<id8>). Not made.
 //   .all(id)                       every folder that holds the id, the home first (more than one is a twin)
 //   .twins()                       [{id, home, others}] for every id held by more than one folder
+//   .url(id) / SessionFolders.url_in(repo, id)   the folder's site url (flat redirect url when there is no folder): what a node writer links to
 //   .record_of(id)                 the folder that holds the session's RECORD (session.jsonl / task.jsonl): a spawned agent's record sits inside its parent's folder
 //                                  (claimed with .claim), else of(id). The day-level folder of(id) is still where the indexer writes index.json
 //   .create(id, {day, name, dir, first, file})  THE one creator: home() (or `dir`), made, line 1 written if it has no record, nested dirs claimed
@@ -165,6 +166,18 @@ export default class SessionFolders {
 		if (!UUID.test(id ?? "")) return null;
 		const known = this.days.size ? this.listed(id).length : 0, found = known ? this.found(id) : [];
 		return (found.length && found.length === known ? found : this.refresh().found(id))[0] ?? null;
+	}
+
+	/** The site url of the session's folder, "/framework/ai/sessions/YYYY/MM/DD/<folder>/", or null when it has none (or the store is not under a public/). A node writer that puts a
+	 *  session link into a note, card or page uses this (via url_in), never `/framework/ai/sessions/<id>/`, which only redirects. */
+	url(id){
+		const dir = this.of(id), m = dir && String(dir).replace(/\\/g, "/").match(/\/public\/(.+?)\/?$/);
+		return m ? "/" + m[1] + "/" : null;
+	}
+
+	/** url(id) for the sessions store of the repo at `repo`; the redirecting flat url when the id has no folder yet (a link made before its folder exists still opens). */
+	static url_in(repo, id){
+		return this.at(path.join(repo, "public/framework/ai/sessions")).url(id) ?? `/framework/ai/sessions/${id}/`;
 	}
 
 	/** of(id), else where a new folder goes on `day` ("YYYY/MM/DD" or an absolute day folder): `name` if given, else session-<id8>, else (when

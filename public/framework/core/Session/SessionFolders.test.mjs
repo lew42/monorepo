@@ -74,5 +74,14 @@ try {
 	assert.equal(nest, path.join(made, "minion-y"), "`parent` nests the folder in that session's folder");
 	assert.equal(fresh().record_of(N), nest, "and claims it, so record_of() finds it");
 	assert.throws(() => fresh().create("v-voice01"), /not a session uuid/, "a non-uuid id with no `dir` is refused");
-	console.log("SessionFolders: 33 checks pass");
+	// url / url_in: the dated site url of the folder; the flat redirect url only when the id has no folder yet.
+	const REPO = fs.mkdtempSync(path.join(os.tmpdir(), "session-url-")), store = path.join(REPO, "public/framework/ai/sessions"), U = "d3d3d3d3-0010-4a19-9b01-000000000010";
+	try {
+		fs.mkdirSync(path.join(store, "2026/11/06/a-slug"), { recursive: true });
+		fs.writeFileSync(path.join(store, "2026/11/06/a-slug/session.jsonl"), JSON.stringify({ session: { id: U } }) + "\n");
+		assert.equal(SessionFolders.url_in(REPO, U), "/framework/ai/sessions/2026/11/06/a-slug/", "url_in() is the folder's dated site url, slug name and all");
+		assert.equal(SessionFolders.url_in(REPO, B), "/framework/ai/sessions/" + B + "/", "an id with no folder yet gets the flat redirect url");
+		assert.equal(SessionFolders.at(store).url(B), null, "and url() itself says null");
+	} finally { SessionFolders.stores.delete(path.resolve(store)); fs.rmSync(REPO, { recursive: true, force: true }); }
+	console.log("SessionFolders: 36 checks pass");
 } finally { fs.rmSync(ROOT, { recursive: true, force: true }); }

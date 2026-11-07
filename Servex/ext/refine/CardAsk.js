@@ -8,6 +8,12 @@
  * Status `queued`: nobody owes a turn yet (`Servex/asks/stalled.js`), so Servex never marks it stalled; the owner or a
  * mastermind picks it up from the board card (its Approve / Improve buttons).
  */
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import SessionFolders from "../../../public/framework/core/Session/SessionFolders.mjs";
+
+const HERE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
+
 export default class CardAsk {
 
 	constructor({ cards, asks } = {}){
@@ -36,7 +42,7 @@ export default class CardAsk {
 		const id = CardAsk.id({ session, prompt, index });
 		const known = (await this.asks.read())[id];
 		if (known) return { ok: true, id, fresh: false, card: known.card ?? null, card_url: known.card ? this.cards.url(known.card) : null };
-		const source = `/framework/ai/sessions/${session}/`;
+		const source = SessionFolders.url_in(HERE, session);
 		const made = await this.cards.create({ parent: "today", title, type: "request", by: "refine", tags: ["ask", "voice"] });
 		if (!made.ok) return made;
 		const text = [`From a spoken prompt (${source}, prompt ${prompt}, card ${index + 1}, sentences ${cites.map(n => "S" + n).join(" ") || "none cited"}):`, ...items.slice(0, 20).map(t => "- " + String(t).slice(0, 300))].join("\n");

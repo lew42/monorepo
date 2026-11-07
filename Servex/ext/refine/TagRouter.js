@@ -1,5 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+import SessionFolders from "../../../public/framework/core/Session/SessionFolders.mjs";
 
 /**
  * class TagRouter — sends a refined prompt's tags to the pages they name (the owner, 2026-10-12: "when a
@@ -16,6 +18,8 @@ import path from "node:path";
  * prompt (session + sentence numbers) and never a copy of the text. One note per tag per prompt: a re-run of the
  * same prompt finds its own note and adds nothing.
  */
+const HERE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
+
 export default class TagRouter {
 
 	constructor({ inbox, repo = inbox?.repo } = {}){
@@ -60,7 +64,7 @@ export default class TagRouter {
 	/** The note text: a link to the source prompt, sentence numbers (1-based, as the page shows them), the tag. */
 	text({ session, prompt, tag, indexes }){
 		const s = [...new Set(indexes)].sort((a, b) => a - b).map(i => "S" + (i + 1)).join(", ");
-		return `A refined prompt tagged ${tag}: /framework/ai/sessions/${session}/ (prompt ${prompt}, sentences ${s}).`;
+		return `A refined prompt tagged ${tag}: ${SessionFolders.url_in(this.repo ?? HERE, session)} (prompt ${prompt}, sentences ${s}).`;
 	}
 
 	has_note(page, prompt){
