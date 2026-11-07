@@ -368,10 +368,20 @@ export default class Cards {
 	 * disagree with what Servex answers here. Ranked: blocker, then decision/question, then fyi;
 	 * newest within each group. */
 	async waiting(){
-		const RANK = { blocker: 0, decision: 1, question: 1, fyi: 2 };
+		const RANK = { blocker: 0, decision: 1, question: 1, task: 1, fyi: 2 };
 		const cards = (await this.list({ view: "all" })).filter(c => c.status !== "done" && c.status !== "archived");
 		const rows = await Promise.all(cards.map(async c => NeedsRule.card_needs(c.id, await this.read(c.id), c)));
+		rows.push(this.task_waiting());
 		return rows.flat().sort((x, y) => (RANK[x.kind] ?? 3) - (RANK[y.kind] ?? 3) || Date.parse(y.at ?? 0) - Date.parse(x.at ?? 0));
+	}
+
+	/* Tasks waiting on the owner, from the task index (ai/index.json, written by Server/AIIndex.mjs): a session or task closed under 100% files
+	 * one ("Review what stayed open", core/Task closeout_line), and CLAUDE.md law 5 says a block like that shows here. Same row shape as a card
+	 * need, `kind: "task"` (ranked with the decisions). No index yet is no rows. */
+	task_waiting(){
+		let index;
+		try { index = JSON.parse(fs.readFileSync(path.join(this.root, "index.json"), "utf8")); } catch { return []; }
+		return (index.waiting ?? []).map(w => ({ kind: "task", id: w.id, title: w.title, ask: w.what ?? w.title, at: w.since ?? null, url: w.url ?? null, home: w.home ?? null }));
 	}
 
 	/* A new owner prompt, with what the caller left out filled in. `text` is the

@@ -354,20 +354,17 @@ export class Task extends Item {
 		return this.score_parts().filter(t => t.completion_score() !== 1)
 			.map(t => ({ id: t.id, title: String(t.get_one("title") ?? t.get_one("text") ?? t.id).replace(/\s+/g, " ").slice(0, 90), state: t.state }));
 	}
-	/* The line (relative to this task) that files the waiting task, or null: score is 1; nothing is open and the score is a number (a dropped leaf has nothing to list);
+	/* The line (relative to this task) that files the waiting task, or null: the score is 1; nothing is open (a dropped leaf, or an empty tab, has nothing to list: its "needs review" score is the signal);
 	   or an earlier filing is still unresolved. The id is deterministic, so a replayed or doubled close can never file a second one. */
 	closeout_line(at){
-		const score = this.completion_score();
-		if (score === 1) return null;
-		const mine = (this._tasks ?? []).filter(Task.is_closeout);
+		if (this.completion_score() === 1) return null;
+		const mine = [...(this._tasks ?? [])].filter(Task.is_closeout);
 		if (mine.some(t => !Task.settled(t))) return null;
 		const items = this.open_items();
-		if (!items.length && score !== null) return null;
+		if (!items.length) return null;
 		const id = mine.length ? `open-items-${mine.length + 1}` : "open-items";
-		const what = items.length
-			? `closed at ${Task.show(score)} with ${items.length} open: ${items.map(i => `${i.title} (${i.id}, ${i.state})`).join("; ")}`
-			: "closed with no tasks and no score: check whether it did anything";
-		return { id, at, tasks: { add: { type: "Task", id, title: `Review what stayed open: ${this.get_one("title") ?? this.id}`, ...(at ? { requested_at: at } : {}) } }, [id]: { wait: { on: "owner", what, at } } };
+		const what = `closed at ${Task.show(this.completion_score())} with ${items.length} open: ${items.map(i => `${i.title} (${i.id}, ${i.state})`).join("; ")}`;
+		return { at, tasks: { add: { type: "Task", id, title: `Review what stayed open: ${this.get_one("title") ?? this.id}`, ...(at ? { requested_at: at } : {}) } }, [id]: { wait: { on: "owner", what, at } } };
 	}
 	get completion(){ return this.completion_score(); }
 	// What the score averages: subtasks that are not stopped, then the owner Prompts in `content` that count (Prompt.counts_toward_score).
