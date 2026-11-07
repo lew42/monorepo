@@ -71,6 +71,17 @@ try {
 	ok((await read("screens.s1.content.c1")).data.title === "Renamed in the screen", "a card inside a saved screen: /<page>/s1/c1/");
 	await at("nope/", { title: "x" });
 	ok(fs.existsSync(path.join(DIR, "nope", "page.jsonl")), "a segment naming no card keeps the old answer (a new page there)");
+	// 8. A sub-page is never a tab by default: only the parent's {"tab": {"name", "tab"}} line (the last one wins) picks it.
+	const { default: LivePage } = await import("./LivePage.js");   // after run_item: its loader resolves /framework/ imports
+	const picks = LivePage.picks_of([{ tab: { name: "a", tab: true } }, { tab: { name: "b", tab: true } }, { tab: { name: "b", tab: false } }, { title: "x" }]);
+	ok(picks.get("a") === true && picks.get("b") === false && !picks.has("c"), "tab picks: opt-in only, the last line wins");
+	// 9. Settings routes: <page>/settings/, a file under it, and that file page's own settings; each knows the page's folder.
+	const page = new LivePage({ title: "P", url: "/live/p/" });
+	const set = page.route("settings"), file = set.route("LivePage.js"), set2 = file.route("settings");
+	ok(set.settings_of === page && set.folder === "/live/p/" && set.icon_name === "settings", "settings/: the page's settings, its folder, a gear");
+	ok(file.at === "LivePage.js/" && file.folder === "/live/p/" && file.url === "/live/p/settings/LivePage.js/", "settings/<file>/: a path inside the folder");
+	ok(set2.settings_of === file && set2.folder === "/live/p/" && set2.url === "/live/p/settings/LivePage.js/settings/", "a settings page has its own settings");
+	ok(page.icon_name === "folder" && LivePage.src_of(LivePage).endsWith("/live/LivePage.js"), "a page with no icon of its own is a folder; LivePage's file is known");
 	console.log(`LivePage.test: ${n} passed`);
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });
