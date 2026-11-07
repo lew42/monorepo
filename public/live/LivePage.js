@@ -121,6 +121,20 @@ export default class LivePage extends Page {
 	// True while a line is being replayed (opening the page), false for a line another writer just saved.
 	replaying(){ return Item.source === "replay"; }
 
+	// One bad line never blanks the page: it is skipped and logged, and the page draws the rest.
+	replay_line(line){
+		try { return super.replay_line(line); }
+		catch (error){ console.error(`LivePage ${this.url ?? ""}: a line could not be applied and was skipped —`, line, error); }
+	}
+
+	// {"tab": {"name": "x", "tab": true}} is a pick (picks_of reads it from the raw lines): the folder x/ stays its own
+	// LivePage. Core's tab() would build a plain Page from a line with a `title` and turn on ext/tabs, which blanked
+	// /live/plan/ (2026-11-07); here the name is only marked as a child to load.
+	tab(obj){
+		const name = obj?.name;
+		if (typeof name === "string" && !this.children.has(name)) this.children.set(name, null);
+	}
+
 	// ════ EVERYTHING ON IT HAS A URL ═══
 	// /live/<screen>/ is a saved screen, /live/removed/ what was removed, /live/<id>/ any card on screen opened by itself
 	// (a Task, a checklist…; also inside a screen: /live/<screen>/<id>/). A sub-page folder wins over all of them.

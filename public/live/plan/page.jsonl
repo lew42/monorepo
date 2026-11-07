@@ -22,3 +22,40 @@
 {"content":{"add":{"id":"oq-slash","after":"oq-route","type":"part-card","title":"3. A trailing slash means \"draw it\"","text":"Today there are three patterns: `/settings/LivePage.js/` (code drawn as a page), `/md/...` (markdown drawn), and possibly `/x/thing.jsonl/`.\n\n```\n/x/readme.md     the raw file\n/x/readme.md/    drawn as a page\n/x/thing.jsonl/  the item, drawn\n```\n\n- **A. One rule: a file name + slash = its drawn view.** ➕ one rule for every file type, and the raw file keeps its own url (static hosting still works). ➖ the `/settings/` and `/md/` urls change, so the old ones need redirects.\n- **B. A prefix per viewer** (`/md/`, `/settings/`, `/code/`). ➕ says which viewer. ➖ one more prefix per file type: today's mess.\n- **C. A query** (`?view`, `?raw`). ➕ nothing new to route. ➖ ugly to share and to read on a phone.\n\n**Leaning A**, with the old urls redirected."}},"by":"mastermind-page-design","ts":"2026-11-07T00:51:47.850Z"}
 {"content":{"add":{"id":"oq-id-url","after":"oq-slash","type":"part-card","title":"4. Ids use _, urls use -","text":"In JS an id should read `page.some_thing`; in a url, `some-thing` looks right.\n\n- **A. Map them: `_` in the id, `-` in the url.** The router reads both spellings. ➕ each place looks native. ➖ an id that already has a `-` can't come back out: so ids never contain `-` (the id is cleaned when it is made).\n- **B. Underscores everywhere**, urls included. ➕ nothing to map. ➖ the url looks odd, and a link's underline hides `_`.\n- **C. Hyphens everywhere**, so JS writes `page.get(\"some-thing\")`. ➕ one spelling. ➖ no `page.some_thing` dot access.\n\n**Leaning A.**"}},"by":"mastermind-page-design","ts":"2026-11-07T00:51:50.951Z"}
 {"content":{"add":{"id":"oq-default-id","after":"oq-id-url","type":"part-card","title":"5. Where an id comes from, and spaces","text":"The order, first match wins: the id you pass, else the file name (`thing.jsonl` → `thing`), else the title, else a random one. The build in progress already uses the file name.\n\nA title has spaces (\"My Thing\"). Three ways to turn it into an id:\n\n- **A. Clean it:** `my_thing` (lowercase, a space becomes `_`), url `my-thing`. Taken? `my_thing_2`. ➕ clean ids and urls; the id stays put when the title changes. ➖ the id no longer reads exactly like the title.\n- **B. Keep the spaces:** id `My Thing`, url `My%20Thing`. ➕ it is exactly the title. ➖ the url is ugly, and `page.My Thing` is not valid JS.\n- **C. Spaces in the id, `-` in the url.** ➕ a nice url. ➖ a space and a `_` both turn into `-`, so the url can't be mapped back to the id.\n\n**Leaning A.** A line may still say `#My Thing`; it is cleaned the same way before the lookup. A random id is used only when there is no title, or when `_2` would look wrong."}},"by":"mastermind-page-design","ts":"2026-11-07T00:51:55.585Z"}
+{"content":{"remove":"ov-head"},"by":"voice-app","ts":"2026-11-07T01:00:58.111Z"}
+{"title":"Page plan","by":"voice-app","ts":"2026-11-07T01:00:58.544Z"}
+{"file":"today/page.jsonl"}
+{"file":"questions/page.jsonl"}
+{"description":"Where the page system is going, and the next steps.","content":{"add":{"id":"fut-shape","after":null,"type":"part-card","title":"The target: any Item can have a page","text":"Data is Items; a url opens any Item as a page.\n\n```\nItem      data, saved as lines\n └ List   page.items, page.content\nPage      an Item + a url\n```\n\n- **A player is an Item, not a Page.** Opening its url draws a page around it.\n- **Each item is saved where it fits:** a line in page.jsonl, its own file, or its own folder. One live copy per file.\n- **One url reaches any item:** `/live/x/thing`.\n- **One library of generic parts**, made live only where a page needs it."}},"by":"mastermind-page-design","ts":"2026-11-07T01:04:17.330Z"}
+{"content":{"add":{"id":"fut-next","after":"fut-shape","type":"part-card","title":"Next steps, in order","text":"Five small merges, cheapest first.\n\n1. **page.items lands** (in review now): an item in its own file, drawn and tailed live, opened at `/live/item-test/thing`.\n2. **Tidy up:** move `TaskState.js` to core/Task, delete the old `parts/` alias files. *About 45 min.*\n3. **One import:** a `core/core.js` entry file. *About 20 min.*\n4. **Generic parts:** the Live\\* cards become plain parts; a type name is its class name (`LiveCode`, not `live-code`).\n5. **Decide the five questions below**, then build the one url scheme."}},"by":"mastermind-page-design","ts":"2026-11-07T01:04:19.831Z"}
+{"content":{"add":{"id":"fut-questions","after":"fut-next","type":"part-card","title":"Five open questions","text":"Not decided yet; each one leans one way. [In full, with pros and cons](/live/plan/questions/).\n\n1. **Item vs Page:** any Item can be opened as a page.\n2. **One url:** short, searched in order: folder, then file, then the page's items.\n3. **Trailing slash:** a file name + `/` draws it (`readme.md/`).\n4. **Ids and urls:** `_` in ids, `-` in urls.\n5. **Default id:** passed id, else file name, else the title as `my_thing`."}},"by":"mastermind-page-design","ts":"2026-11-07T01:04:21.879Z"}
+{"content":{"remove":["ov-keep","ov-cut","ov-icons","ov-audit"]},"by":"mastermind-page-design","ts":"2026-11-07T01:04:24.007Z"}
+{"content":{"remove":["ov-plan","ov-names","ov-items","oq-head","oq-item-page","oq-route","oq-slash","oq-id-url","oq-default-id"]},"by":"mastermind-page-design","ts":"2026-11-07T01:04:26.146Z"}
+{"content":{"remove":["h0xklxte","hzhel343","ma0gv60o","tsyquen2","gjg92r7u","ug9dvvwq","wbswuioz","wevozpfy","uo62b2ho","zejstwwb","q0j3386j"]},"by":"mastermind-page-design","ts":"2026-11-07T01:04:27.395Z"}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"ov-keep"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"ov-cut"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"ov-icons"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"ov-audit"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"ov-plan"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"ov-names"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"ov-items"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"oq-head"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"oq-item-page"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"oq-route"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"oq-slash"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"oq-id-url"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"oq-default-id"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"h0xklxte"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"hzhel343"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"ma0gv60o"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"tsyquen2"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"gjg92r7u"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"ug9dvvwq"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"wbswuioz"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"wevozpfy"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"uo62b2ho"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"zejstwwb"}}
+{"ts":"2026-11-06T19:04:35-06:00","content":{"remove":"q0j3386j"}}
+{"tab":{"name":"today","tab":true,"title":"Today"},"by":"voice-app","ts":"2026-11-07T01:05:05.431Z"}
+{"tab":{"name":"questions","tab":true,"title":"Questions"},"by":"voice-app","ts":"2026-11-07T01:05:05.904Z"}
+{"file":"ai/"}
