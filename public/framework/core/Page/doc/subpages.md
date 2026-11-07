@@ -11,7 +11,7 @@ A subpage is made by **appending a line to its parent's `page.jsonl`**. No agent
 | made by | `page_set` with `tab` | `page_set({pages:{add:{name,title,icon,description}}})` or `create_page` |
 | use it for | a view of this page | a page that stands on its own, with its own url and files |
 
-Both are allowed. `pages.add` is variant (b): `Servex/agents/Subpages.js` makes the folder and its `page.jsonl` (line 1 = labels), then appends the `file` line to the parent's `page.jsonl`, creating that file if the parent only has a `page.js` (such as `/live/`). `rename` writes a `gone` line for the old name and a `file` line for the new one; `remove` moves the folder to `_removed/<name>-<time>/` and writes `gone`. Nothing is deleted.
+Both are allowed. `pages.add` is variant (b): `Servex/agents/Subpages.js` makes the folder and its `page.jsonl` (line 1 = labels), then appends the `file` line to the parent's `page.jsonl`, creating that file if the parent only has a `page.js` (such as `/live/`). A parent whose line 1 names a LivePage class also gets a link card for it, `{"content":{"add":{"type":"part-link","id":"link-<name>","path":"./<name>/","title":…}}}`, and the child inherits that class. `rename` writes a `gone` line for the old name and a `file` line for the new one; `remove` moves the folder to `_removed/<name>-<time>/` and writes `gone`. Nothing is deleted.
 
 ## Does a `page.js` parent route a child named only in its `page.jsonl`?
 

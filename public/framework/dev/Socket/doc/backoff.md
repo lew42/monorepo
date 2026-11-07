@@ -77,3 +77,7 @@ now reports the drop to `Link.js` (2026-11-01: the old 5 s strip flashed through
 socket is back. It never reloads anything itself; it is purely a notice over whatever is already
 on screen. Gated on `this.ever_connected` so a tab's very first connect attempt, before the dev
 server has even finished starting, never shows it — that is not a restart.
+
+## The dead-but-open socket (2026-11-06)
+
+A `close` only comes when the browser knows the connection ended. A phone that slept, or a tunnel or proxy that lost one side, can leave the socket looking open while nothing arrives: /live/ sat 23 minutes stale until a reload. The server's 25 s protocol ping does not help here, because the browser answers it without telling the page. So `alive()` (Socket.js) sends an app-level `ping` while the tab is visible, every `ALIVE.every` (30 s) and at once on `visibilitychange` to visible, `online` and a `pageshow` from the back-forward cache. No answer within `ALIVE.wait` (5 s) calls `restart()`; `open()` then lets `ext/JSONL/live.js` resubscribe every stream from its offset, so the missed lines arrive. Any answer counts as alive, a `refused` reply from a LAN peer included. While a backoff timer is waiting, a wake connects at once instead. It is a liveness check, not polling: no data rides it. Proof: a headless probe made the socket swallow every frame, fired `visibilitychange`, and the missed line drew 5 s later.

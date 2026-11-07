@@ -36,9 +36,11 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
 ## Going into a thing: sub-pages
 
 1. **Make the sub-page:** `{"pages":{"add":{"name":"plan","title":"The plan","class":"/live/LivePage.js"}}}`. It gets its own folder and `plan/page.jsonl`, and it is a LivePage too. After the next Servex restart, `class` can be left out: a sub-page inherits it from `/live/` (`Servex/agents/Subpages.js`).
-2. **Put its card on /live/:** `{"content":{"add":{"type":"part-link","id":"plan","path":"./plan/","title":"The plan","description":"Three steps, one open question."}}}`. This is the card you tap: its title and that one line (or a `preview` list, see the table above).
+2. **Its card on /live/ is made for you:** `pages.add` on a LivePage also writes a link card, `{"content":{"add":{"type":"part-link","id":"link-plan","path":"./plan/","title":"The plan"}}}` (`Subpages.add`; live after the next Servex restart, until then add it yourself). The card shows the sub-page's own `description`; give the card a `description` or a `preview` list to say something else there (see the table above). Don't add a second card for it.
 3. **Write its detail:** the same deltas, with path `/live/plan/`. The page opens with a breadcrumb back (Live › plan).
-4. **Edit either one:** the card with `{"content":{"plan":{"title":"…","description":"…"}}}` on `/live/`; the detail with deltas on `/live/plan/`.
+4. **Edit either one:** the card with `{"content":{"link-plan":{"title":"…","description":"…"}}}` on `/live/`; the detail with deltas on `/live/plan/`.
+
+The screen stays live by itself: a dev socket that goes quiet (a phone that slept, a dropped tunnel) is pinged and reopened, and each stream picks up from where it stopped ([dev/Socket, Watch out](/framework/dev/Socket/readme.md)).
 
 A card already on screen can become a sub-page (a link card stays in its place): `{"pages":{"promote":{"id":"<card id>","name":"plan"}}}` ([core/Page/doc/ai-api.md](/framework/core/Page/doc/ai-api.md)).
 

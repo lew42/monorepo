@@ -57,6 +57,38 @@ export default class Socket {
 		// everything, a private LAN peer gets push traffic only, anything else is refused at the upgrade.
 		// A refused socket backs off and says so once. doc/lan.md
 		this.connect();
+		this.watch_alive();
+	}
+
+	// A socket can look open and be dead: a phone that slept, a tunnel or a proxy that lost one side. The browser reports no
+	// close, so nothing streams until a reload (/live/ sat 23 minutes stale, 2026-11-06). While the tab is visible a ping goes
+	// out every ALIVE.every ms, and at once when the tab is shown again or comes back online; no answer in ALIVE.wait ms opens
+	// a new connection, and ext/JSONL/live.js resubscribes each stream from its offset. Any answer counts, a refusal too. doc/backoff.md
+	static ALIVE = { every: 30000, wait: 5000 };
+	watch_alive(){
+		const visible = () => document.visibilityState === "visible";
+		document.addEventListener("visibilitychange", () => visible() && this.alive());
+		globalThis.addEventListener?.("online", () => this.alive());   // ?.: core/Item/transport.tab.mjs runs this in node, with no window events
+		globalThis.addEventListener?.("pageshow", e => e.persisted && this.alive());
+		setInterval(() => visible() && this.alive(), Socket.ALIVE.every);
+	}
+	async alive(){
+		if (this.disabled || !this.ever_connected || this.checking) return;
+		if (!this.connected){ if (this.retry) this.connect(); return; }   // waiting out a backoff: try now instead
+		this.checking = true;
+		try { await this.ping(Socket.ALIVE.wait, "Socket"); } finally { this.checking = false; }
+	}
+	// One ping: no answer in `wait` ms on the same open connection, and `still()` holds, restarts it. Resolves false then.
+	// The one heartbeat check: alive() above and core/Item/Outbox.js (while lines wait on an ack) both call it.
+	async ping(wait, who, still = () => true){
+		const ws = this.ws;
+		if (!this.connected || ws?.readyState !== WebSocket.OPEN) return true;
+		const silence = Symbol();
+		const reply = await Promise.race([this.request({ method: "ping", args: [] }), new Promise(r => setTimeout(r, wait, silence))]);
+		if (reply !== silence || ws !== this.ws || !still()) return true;
+		console.warn(`${who}: no answer to a ping; opening a new connection.`);
+		this.restart();
+		return false;
 	}
 	connect() {
 		if (this.disabled) return;
@@ -75,7 +107,7 @@ export default class Socket {
 	}
 
 	// Throw the current connection away and open a new one now. For a socket that looks open but is dead (a half-open connection:
-	// the browser has no close to report). core/Item/Outbox.js calls it when its ping gets no answer.
+	// the browser has no close to report). `ping()` calls it when a ping gets no answer (from `alive()` or core/Item/Outbox.js).
 	restart() {
 		if (this.disabled) return;
 		const old = this.ws;
