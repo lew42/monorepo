@@ -156,6 +156,11 @@
 	.live-block[data-kind="PageHeading"] .live-card-text { font-weight: 700; font-size: 1.3em; }
 	.is-empty:is(.live-card-title, .live-sub, .live-foot-text) { display: none; }
 
+	/* What broke (LivePage.safely, LivePage.Errors): one small line, never a blank page. */
+	:is(.live-broken, .live-errors) { display: flex; align-items: center; gap: .5rem; font-size: .8rem; line-height: 1.35; padding: .5rem .75rem; border-radius: .5rem; background: light-dark(#fdecec, #3a1d1f); color: light-dark(#8a1c1c, #f3b4b4); overflow-wrap: anywhere; }
+	:is(.live-broken, .live-errors) .icon { font-size: 1.1em; flex: none; }
+	.live-errors.is-empty { display: none; }
+
 	/* The content types (LiveLight.js, LiveChecklist.js, LiveButton.js): each draws in a frameless block. */
 	.live-light-card { display: flex; align-items: center; gap: .6rem; }
 	.live-light-card .live-dot { width: 1.2em; height: 1.2em; }
