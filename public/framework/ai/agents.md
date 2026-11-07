@@ -16,6 +16,7 @@ This is the short base for any agent on this repo (a mastermind or a worker, Cla
 - Keep working; never wait on the owner. Files are the only memory: if it is not committed, it did not happen.
 - One of everything: use or extend what exists. Compute, don't recall: numbers come from a script.
 - Name and home a new thing first; document its structure as you build it; index everything you create.
+- **Readmes are the index.** Each lists everything directly inside its folder (or links a sub-doc that does). When a lookup is hard, write the search recipe into the nearest readme once you've solved it (example: [sessions, "How to find things"](sessions/readme.md#how-to-find-things)). Long form: [doc/rules.md](../doc/rules.md), "Readmes are the cheap index". (the owner, 2026-11-06)
 - **Every class gets one lean core test** (`X.test.mjs` beside it): make one instance, exercise the top ~50% of what it does, assert after each call, stay well under 1 s. Add it when you build or first change a class that has none; don't over-test. How, and what earns more: [core/Test](../core/Test/readme.md).
 
 ## Explaining to the owner

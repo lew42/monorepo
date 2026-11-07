@@ -82,6 +82,17 @@ export default class DesignPage extends LivePage {
 		}
 	};
 
+	// A design card's text IS its content (a note, a code block), so with no preview and no description the
+	// card shows its text, as before live-r11 (where a LivePage card shows only its preview). Alternative: a
+	// preview line per card, which would copy each text.
+	static Preview = class DesignPreviewView extends LivePage.Preview {
+		render(){
+			super.render();
+			const { page, item } = this, P = page.constructor;
+			if (!item?.preview?.items?.length && !item?.get?.("description")) new P.Md({ item, key: "text", classes: "live-card-text" });
+		}
+	};
+
 	static Block = class DesignBlockView extends LivePage.Block {
 		render(){ super.render(); this.page.constructor.tag(this); }
 	};

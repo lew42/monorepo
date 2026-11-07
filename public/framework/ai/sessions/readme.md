@@ -68,6 +68,20 @@ A session folder is one of three kinds:
 - **Tasks**: `Server/State.mjs` folds every task log into `ai/state.json`.
 - **For an agent**: `item({path: <session url>})` answers a session's own cost, its child sessions nested with their costs, task counts and the biggest tasks, all computed on read: [core/Session/readme.md](/framework/core/Session/readme.md), "What item() answers for a session".
 
+## How to find things
+
+Run these from the repo root. Each one takes under a second (timed 2026-11-06). `S=public/framework/ai/sessions`.
+
+| To find | Run |
+|---|---|
+| Today's VS Code tabs | `rg -l '"kind":"vscode-tab"' $S/2026/11/06 -g session.jsonl` (the SessionStart hook writes this line 1) |
+| An agent's folder, by its id | `rg -l '"agent":"mastermind-page-design"' $S -g session.jsonl` |
+| A task, by words in its title | `rg -l -i '"title":"[^"]*worktree' $S -g task.jsonl` |
+| Which session a running process is | PowerShell: `Get-CimInstance Win32_Process -Filter "Name='claude.exe'" \| select ProcessId,CreationDate,CommandLine`. A Servex agent's command line carries `--resume=<session id>`; the folder is `session-<first 8 hex>`. A `claude.exe` under `WindowsApps\Claude_*` is the Claude desktop app, not a session. |
+| A session's transcript | `~/.claude/projects/C--Code-lew42-monorepo/<session id>.jsonl` |
+
+**Not findable yet:** who started a given process id and why. No log records a spawn's pid today; the planned fix is on [/live/plan/](/live/plan/), "Open questions".
+
 ## Top-level files here (generated; never hand-edit)
 
 `session-index.json`, `session-tree.json`, `sessions.json` (`Server/session-summary.mjs`) · `session-buckets.json` (`Server/session-buckets.mjs`) · `session-flags.json` (`Server/session-flags.mjs`) · `spend-tree.json` (`Server/spend-tree.mjs`) · `session-links.jsonl`, `session-entries.jsonl` (`Server/ChildLinks.mjs`'s backfill manifests, written by `--apply` and `--entries --apply`: one line for every child reference or Session entry it appended, so a backfill can be audited and undone; [core/Session/readme.md](/framework/core/Session/readme.md), "Session entries") · `*-moves.jsonl`, `task-manifest.json` (move ledgers, so a move can be undone) · `settings.jsonl` (the page's saved view) · `page.js`, `system.js` (the page and its `ReadmeSystem`).

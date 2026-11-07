@@ -213,3 +213,12 @@
 {"commit":"ccbe131c3dfe","by":"append.mjs","ts":"2026-11-07T01:29:04.310Z"}
 {"commit":"7f1a5f981883","by":"append.mjs","ts":"2026-11-07T01:31:29.153Z"}
 {"log":{"at":"2026-11-07T01:31:44.890Z","msg":"ref-file landed (2f5fee31d) and closed, left empty; page.items live on /live/item-test/; agents.md + Function back-burner committed (ccbe131c3); live-page and voice-app told. Idle: navigate tool stays queued, not built."}}
+{"commit":"7229dcdb13e4","by":"append.mjs","ts":"2026-11-07T01:31:45.253Z"}
+{"log":{"at":"2026-11-06T19:37:27-06:00","msg":"task-loop status ask 1: asked mastermind-page-design","ask":1}}
+{"log":{"at":"2026-11-06T19:37:31-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-07T01:37:31.529Z"}
+{"log":{"at":"2026-11-07T01:37:41.256Z","msg":"page.items done. live-page warns live-r11 cards show preview not text; checking /live/design/ cards that need a preview line."}}
+{"log":{"at":"2026-11-07T01:38:01.543Z","msg":"Decision: /live/design/ cards keep their text (DesignCardView draws text after r11 merges); alternative was adding ~40 preview lines that copy the text. Generalizing preview to core Page: not now. Waiting on live-page to say r11 is merged."}}
+{"action":{"at":"2026-11-06T19:39:24-06:00","did":"edit","files":["public/framework/ai/sessions/readme.md"]},"by":"ledger","ts":"2026-11-07T01:39:24.323Z"}
+{"action":{"at":"2026-11-06T19:39:26-06:00","did":"edit","files":["public/framework/doc/rules.md"]},"by":"ledger","ts":"2026-11-07T01:39:26.977Z"}
+{"action":{"at":"2026-11-06T19:41:13-06:00","did":"edit","files":["public/live/design/DesignPage.js"]},"by":"ledger","ts":"2026-11-07T01:41:13.055Z"}
+{"log":{"at":"2026-11-07T01:41:43.362Z","msg":"voice-app ask: (1) no VS Code Claude session holds a process; pid 6736 (1.4 GB tree) is the Claude desktop app (WindowsApps, parent sihost, started 11/5 16:46). Only VS Code tab today: session-20ad0991, no transcript, no process. Searches 37-290 ms. (2) sessions readme \"How to find things\" + agents.md and rules.md rule. (3) process-log plan on /live/plan/ open questions. Worktrees: pd-tabs-r3 and pd-item-validate removed, qf-3 returned to the pool; error-button and closeout-test left (not mine). /live/design/ cards show text again after r11 (DesignPreviewView): 25 of 37 cards, no console errors."}}
