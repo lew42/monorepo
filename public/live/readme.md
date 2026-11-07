@@ -109,7 +109,7 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
 - [LivePage.js](LivePage.js): the page, its methods, and how it draws: View classes in the house style (core/View), as static parts a subclass can swap: `Head`, `Crumbs`, `Tabs`, `Settings`, `Files`, `Pages` (the link cards), `Focus`, `Main`, `Card`, `Block`, `Children` (a card's buttons), `Heading` and `Md` (markdown with mentions, `{ safe: true }`), `Foot`. Each takes `{page, item}` (or `{page, list}`); its CSS class comes from its name (`LiveCardView` draws `.live-card`). [DesignPage](design/DesignPage.js) extends `Card` and `Block`, so keep those names and args. [LivePage.css](LivePage.css): the floor, blocks and cards, light and dark.
 - [LiveLight.js](LiveLight.js), [LiveChecklist.js](LiveChecklist.js), [LiveButton.js](LiveButton.js), [LiveScreen.js](LiveScreen.js), [LiveCode.js](LiveCode.js): one type each, `class … extends Item`, registered as `live-light`, `live-checklist`, `live-button`, `live-screen`, `live-code`.
 - [page.jsonl](page.jsonl): the log. Write it only through the item tool (or the page tools), never by hand.
-- [sessions/](sessions/) and [archive/](archive/): the old views of past screens, which read v1's log. [doc/](doc/): v1's notes.
+- [sessions/](sessions/) and [archive/](archive/): the old views of past screens, which read v1's log. [doc/](doc/): the topic docs ([names.md](doc/names.md): name, id, slug and title compared; [page-features.md](doc/page-features.md)) and v1's notes.
 
 **A new method:** add it to `LivePage.js` (see `flash`), reload /live/, and send `{"<name>": <argument>}`. A button can run it too. An effect starts with `if (this.replaying()) return;`, so reopening the page does not run it again for every old line.
 
