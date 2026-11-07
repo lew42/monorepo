@@ -36,8 +36,11 @@ export default class CommitLog {
 	}
 
 	static record_file(root, id){
-		const dir = SessionFolders.at(path.join(root, SessionRecord.STORE)).record_of(id);
-		return dir ? SessionRecord.log_file(dir) : null;
+		const store = SessionFolders.at(path.join(root, SessionRecord.STORE));
+		let dir = store.record_of(id), file = dir && SessionRecord.log_file(dir);
+		// a spawned agent's record nobody claimed yet (its day folder holds only a cache): one pass finds it, as Server/session-query.mjs does (~1.5 s)
+		if (!file){ store.adopt_nested(); dir = store.record_of(id); file = dir && SessionRecord.log_file(dir); }
+		return file || null;
 	}
 
 	static fail(root, why, extra = {}){
