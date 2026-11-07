@@ -352,21 +352,19 @@ export default class LivePage extends Page {
 		const [{ JSONL }, { stream }] = await Promise.all([import("/framework/ext/JSONL/JSONL.js"), import("/framework/ext/JSONL/live.js")]);
 		const name = meta.title, jsonl = new JSONL({ url: url + "page.jsonl" });
 		let n = 0, touched = false;
-		jsonl.read = entries => {
-			for (const o of entries){
-				const first = n++ === 0;
-				if (typeof o?.title === "string") meta.title = o.title, touched = true;
-				if (first && typeof o?.class === "string") meta.cls = o.class, touched = true;
-				if (typeof o?.tab === "boolean") meta.tab = o.tab, touched = true;
-				if (typeof o?.icon === "string") meta.icon = o.icon, touched = true;
-				if (typeof o?.description === "string") meta.description = o.description, touched = true;
-			}
-			return jsonl;
-		};
+		jsonl.read = entries => { for (const o of entries) if (this.meta_fold(meta, o, n++ === 0)) touched = true; return jsonl; };
 		jsonl.reset = () => { n = 0; for (const k of Object.keys(meta)) delete meta[k]; meta.title = name; touched = true; return JSONL.prototype.reset.call(jsonl); };
 		await stream(jsonl, () => { if (!touched) return; touched = false; this.meta_heard.forEach(fn => fn(url)); }, { owner: null });
 		touched = false;
 		return meta;
+	}
+	// One line of a page's own file into its meta: true when it said something a tab or a card shows.
+	static meta_fold(meta, o, first){
+		let touched = false;
+		for (const k of ["title", "icon", "description"]) if (typeof o?.[k] === "string") meta[k] = o[k], touched = true;
+		if (typeof o?.tab === "boolean") meta.tab = o.tab, touched = true;
+		if (first && typeof o?.class === "string") meta.cls = o.class, touched = true;
+		return touched;
 	}
 	// fn(url) when the page at a url `want(url)` accepts writes a title, icon, description or tab line into its own
 	// file. Lets go the first time it is heard after `view` has left the page.

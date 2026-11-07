@@ -123,6 +123,18 @@ try {
 	tp.replay_line({ tasks: { x: { complete: { outcome: "o", evidence: "e" } } } });
 	ok(tp.tasks.find("x").state === "complete" && heard > 0, "a task's state change reaches the page (the checklist redraws its count)");
 	ok(LivePage.path_of({ get: k => ({ href: "/live/tabs/" })[k] }) === "/live/tabs/" && LivePage.path_of({ get: k => ({ path: "./a/", href: "/b/" })[k] }) === "./a/", "a link card's target: path, else href");
+	// 14. A sub-page's own file, folded and streamed (meta_stream): a tab or title line there redraws its tab and cards.
+	const meta = { title: "beta" };
+	ok(LivePage.meta_fold(meta, { class: "/live/LivePage.js" }, true) && meta.cls === "/live/LivePage.js", "line 1's class is kept");
+	ok(!LivePage.meta_fold(meta, { content: { add: { type: "part-text" } } }, false), "a card line says nothing a tab shows (no redraw)");
+	ok(LivePage.meta_fold(meta, { tab: true }, false) && meta.tab === true && LivePage.meta_fold(meta, { title: "Beta" }, false) && meta.title === "Beta", "its own {tab: true} and a new title fold in");
+	const view = { el: { isConnected: true } }, got = [];
+	LivePage.on_meta(view, u => u === "/live/x/beta/", u => got.push(u));
+	LivePage.meta_heard.forEach(fn => fn("/live/x/alpha/")); LivePage.meta_heard.forEach(fn => fn("/live/x/beta/"));
+	ok(got.join() === "/live/x/beta/", "on_meta calls back only for the urls the view shows");
+	view.el.isConnected = false; const before = LivePage.meta_heard.size;
+	LivePage.meta_heard.forEach(fn => fn("/live/x/beta/"));
+	ok(got.length === 1 && LivePage.meta_heard.size === before - 1, "a view that left lets go the next time it is heard");
 	console.log(`LivePage.test: ${n} passed`);
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });
