@@ -1,0 +1,102 @@
+diff --git a/Servex/Relief.js b/Servex/Relief.js
+index f5ab482db..d8913e191 100644
+--- a/Servex/Relief.js
++++ b/Servex/Relief.js
+@@ -9,6 +9,8 @@ import { stamp } from "./home.js";
+  * monitor already reaped. Anything still over the line afterwards gets ONE owner_note (a suggestion
+  * naming the biggest apps that are not ours). It NEVER ends a process of its own accord and never
+  * touches `other`: only Lifecycle, Worktrees and Agent.sleep do the closing, each by its own path.
++ * The note waits until the owner is away (no keyboard or mouse for `note_idle_min`, GetLastInputInfo
++ * through the monitor's `idle_s`): a suggestion to close their own apps never interrupts them (2026-11-07).
+  * Doc: Servex/doc/processes.md, "Early relief at 70%". */
+ 
+ export const REARM_PCT = 65;
+@@ -29,6 +31,7 @@ export default class Relief extends Events {
+ 		this.every ??= Number(process.env.SERVEX_RELIEF_EVERY_MS) || 60000;
+ 		this.every_ms ??= 15 * 60000;
+ 		this.idle_min ??= Number(process.env.SERVEX_RELIEF_IDLE_MIN) || 10;
++		this.note_idle_min ??= Number(process.env.SERVEX_RELIEF_NOTE_IDLE_MIN) || 10;
+ 		this.last_run = 0;
+ 		this.armed = true;
+ 		this.runs = [];            // the last 20 relief lines, newest last
+@@ -128,11 +131,16 @@ export default class Relief extends Events {
+ 		return out;
+ 	}
+ 
+-	/* The five biggest apps that are NOT ours, as a suggestion. Never closed from here. */
++	/* The five biggest apps that are NOT ours, as a suggestion, posted only while the owner is away. Never closed from here. */
+ 	async note(pct){
+-		const top = (this.servex?.procmon?.now?.other_top ?? []).slice(0, 5);
++		const now = this.servex?.procmon?.now, top = (now?.other_top ?? []).slice(0, 5);
++		if (!top.length){ this.armed = false; return; }
++		const idle_s = typeof now?.idle_s === "number" ? now.idle_s : null;
++		if (idle_s === null || idle_s < this.note_idle_min * 60){   // in use (or no reading): stay armed, the next run asks again
++			await this.log({ type: "relief-note-held", at: stamp(), commit_pct: pct, idle_s, need_s: this.note_idle_min * 60 });
++			return;
++		}
+ 		this.armed = false;
+-		if (!top.length) return;
+ 		const list = top.map(t => `${t.name} (${t.mb} MB)`).join(", ");
+ 		await this.log({ type: "relief-note", at: stamp(), commit_pct: pct, top });
+ 		return this.servex?.cards?.owner_note?.({
+diff --git a/Servex/Relief.test.mjs b/Servex/Relief.test.mjs
+index 3c1a9d306..d417087f0 100644
+--- a/Servex/Relief.test.mjs
++++ b/Servex/Relief.test.mjs
+@@ -39,7 +39,7 @@ function world(pct = 80){
+         procmon: {
+             commit_mb: pct * 100, commit_limit_mb: 10000,
+             reaped: [{ at: new Date(Date.now() - MIN).toISOString(), mb: 40 }],
+-            now: { other_top: ["Chrome", "Figma", "Slack", "Teams", "Docker", "Spotify"].map((name, i) => ({ name, n: 3, mb: 3000 - i * 100, cpu: 1 })) },
++            now: { idle_s: 30 * 60, other_top: ["Chrome", "Figma", "Slack", "Teams", "Docker", "Spotify"].map((name, i) => ({ name, n: 3, mb: 3000 - i * 100, cpu: 1 })) },   // the owner has been away 30 minutes
+             kill(){ other_proc.kill_called = true; }
+         },
+         log: { append: async (name, line) => { logged.push({ name, ...line }); } },
+@@ -100,6 +100,23 @@ await check("still over the line: ONE note naming the five biggest not-ours apps
+     assert.equal(w.notes.length, 2, "the next episode may post again");
+ });
+ 
++await check("the owner at the keyboard: the note is held (one held line), stays armed, and posts at a later run once they are away", async () => {
++    const w = world(80);
++    w.sv.procmon.now.idle_s = 60;
++    const relief = new Relief({ servex: w.sv });
++    await relief.tick(Date.now());
++    assert.equal(w.notes.length, 0, "never while they are using the PC");
++    assert.equal(w.logged.filter(l => l.type === "relief-note-held").length, 1);
++    assert.equal(relief.armed, true, "still armed");
++    delete w.sv.procmon.now.idle_s;
++    await relief.tick(Date.now() + 16 * MIN);
++    assert.equal(w.notes.length, 0, "no idle reading counts as not idle");
++    w.sv.procmon.now.idle_s = 15 * 60;
++    await relief.tick(Date.now() + 32 * MIN);
++    assert.equal(w.notes.length, 1, "away 15 minutes: the suggestion is posted");
++    assert.equal(relief.armed, false);
++});
++
+ await check("relief that gets the commit under the line posts no note", async () => {
+     const w = world(80);
+     w.sv.lifecycle.sweep = async () => { w.sv.procmon.commit_mb = 5000; return { close: [], gone: [], kept: [] }; };
+diff --git a/Servex/doc/processes.md b/Servex/doc/processes.md
+index 21b60ce49..a6efcad66 100644
+--- a/Servex/doc/processes.md
++++ b/Servex/doc/processes.md
+@@ -134,8 +134,19 @@ once a tick.
+ 
+ It then writes one line, `{type: "relief", commit_pct, closed, dormant, reaped, freed_mb_estimate}`. If the commit is still at the line after the run, it posts ONE `owner_note` (kind `risk`) per episode: the five biggest apps that are **not ours** (the monitor's `other`, grouped by exe name), each with its MB, as a suggestion to close. It never ends any of them, and never ends anything itself: only the three owners above close things. The note is re-armed only when the commit falls below 65%. `SERVEX_NO_RELIEF=1` boots without it.
+ 
++**The note waits until the owner is away** (2026-11-07). It is posted only when there has been no keyboard or mouse input for `SERVEX_RELIEF_NOTE_IDLE_MIN` minutes (default 10; the monitor's `idle_s`, read with GetLastInputInfo). While the owner is using the PC, or when there is no idle reading, the run writes a `relief-note-held` line (`idle_s`, `need_s`), and the note stays armed, so a later run posts it once they are away. The owner's own apps (Chrome, VS Code, Figma and the rest) are only ever a suggestion in a note, never an action.
++
+ The rule is the exported pure `decide({commit_pct, last_run, armed})`. Proof: `node Servex/Relief.test.mjs`.
+ 
++## The page file: insurance, not the fix
++
++**Recommendation (agreed with the owner, 2026-11-07):** a 48 GB page file, up from 26 GB. That lifts the commit limit from about 57 GB to about 80 GB. Setting it is the owner's job: System Properties, Advanced, Performance, Virtual memory, then a restart.
++
++- **What it helps:** short peaks. A burst of spawns, or a big build, gets room instead of failed allocations near 100%.
++- **What it does not help:** leaks. A process that never ends keeps its memory, and a bigger page file only fills more slowly. Paged-out memory is also slow, so the PC drags before it fails.
++- **The real fix is leak accounting.** Every process an agent or Servex starts gets a start line and an exit line ([Who started this pid](#who-started-this-pid), below), and `node Servex/leaks.mjs` lists every start with no end. The relief run at 70% and the spawn gate at 80% act on top of that.
++- **Alternative:** keep 26 GB and lower the gate instead. That is safer for disk space, but it queues work sooner.
++
+ ## A spinning idle agent
+ 
+ An agent whose state is `idle` should cost nothing, yet one was measured burning a core. The monitor (`Processes.watch_spin`) watches every real agent: idle and over `SERVEX_SPIN_CORE_PCT` (default 50) percent of one core for `SERVEX_SPIN_MS` (default 5 minutes) in a row, with the same pid throughout, makes it dormant (`Agent.sleep("spinning")`; its session stays and the next message wakes it) and writes `{type: "spinning-idle", id, pid, cpu, minutes, action}` on the `processes` log. A `working` agent never counts. `SERVEX_SPIN_DORMANT=0` only logs. The owner's own tabs are not agents and are never touched. Proof: `node Servex/processes.test.mjs`.
