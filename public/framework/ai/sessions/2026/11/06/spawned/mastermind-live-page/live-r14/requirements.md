@@ -8,7 +8,7 @@ The owner's tasks on /live/ (relayed by @voice-app, 2026-11-06): `czuky0s1` "Scr
 - [x] **The scroll area follows new cards at the bottom, and stops when you scroll up.** Not a port: it is the chat's own lock, `sticky_scroll()` in [ext/Chat/Chat.js](/framework/ext/Chat/Chat.js), which chat v3, the ✦ sheet and the Dictate thread already use. LivePage loads it in the browser only (`follow()`), so node never imports the chat.
 - [x] **A dim ↓ that lights on a new item, and relocks at the bottom.** Added to `sticky_scroll()` itself (`has-new`), so every chat gets the same button.
 - [x] **The status dot moves to the bottom bar; a tap expands a sheet.** The bar shows the voice light, "Voice is driving" or "Quiet", and the delay of the last line. The sheet shows who wrote last and when, what the number means, and links to settings and removed cards (`LivePage.Status`).
-- **Proof:** [shots/follow.txt](shots/follow.txt), from [shots/follow.mjs](shots/follow.mjs), at 400, 1200, 1920 and 3440 px: starts at the bottom, follows a new card, scroll up gives a dim ↓, a new card lights it, a tap goes down and follows again, and the sheet opens. Shots: `shots/follow-<width>-{start,lit,sheet}.png`.
+- **Proof:** [shots/follow.txt](shots/follow.txt), from [shots/follow.mjs](shots/follow.mjs), at 400, 1200, 1920 and 3440 px: starts at the bottom, follows a new card, scroll up gives a dim ↓, a new card lights it, a tap goes down and follows again, and the sheet opens. Shots: `shots/follow-<width>-{start,lit,sheet}.png`. The two 404s at the end of each run are `/framework/ai/page-work.json` and `/framework/ai/tasks.json`: generated files the main tree has and a worktree does not; the same two show on any worktree page, before this change too.
 
 ## Decisions
 
