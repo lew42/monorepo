@@ -78,6 +78,8 @@ t.eq(ps.tally().prompts.unresolved, 0, "tally: none unresolved");
 // 4b. The same resolution as a log line: {"<prompt id>":{"no_action":"why"}}.
 const viaLine = Session.replay([{ session: { id: "s4b" } }, { content: { add: { type: "Prompt", id: "q1", text: "what is x?", counted: true } }, ts: at(1) }, { q1: { no_action: "answered in chat" }, ts: at(2) }]);
 t.eq(viaLine.completion_score(), 1, "a {no_action} line on the prompt resolves it");
+const turnTask = Session.replay([{ session: { id: "s4c" } }, { tasks: { add: { type: "Prompt", id: "p4c", text: "a remark", counted: true } }, ts: at(1) }, { p4c: { no_action: "a remark" }, ts: at(2) }]);
+t.eq(turnTask.tally().open, 0, "tally(): a Prompt task marked no_action is settled, not open");
 
 // 5. Resolving a counted Prompt by filing a task under it: the score follows that task.
 const ps2 = Session.replay([{ session: { id: "s5" } }, { content: { add: { type: "Prompt", id: "n", text: "fix it", counted: true } }, ts: at(1) }]);

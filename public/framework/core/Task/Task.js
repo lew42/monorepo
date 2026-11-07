@@ -387,6 +387,7 @@ export class Task extends Item {
 				if (k.is_session){ t.sessions++; if (k.completion_score() === null) t.unscored++; }
 				if (k.state === "complete"){ t.finished++; if (Task.proof_problem(k)) t.unproven++; }
 				else if (k.state === "stopped") t.stopped++;
+				else if (k.no_action) t.finished++;   // a turn marked {no_action: why} is settled (it scores 1), so it is not open
 				else t.open++;
 				walk(k);
 			}
