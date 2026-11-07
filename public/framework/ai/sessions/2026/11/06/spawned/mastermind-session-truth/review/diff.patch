@@ -1,77 +1,150 @@
-diff --git a/public/framework/core/Session/Session.test.mjs b/public/framework/core/Session/Session.test.mjs
-index f8b5b4a1d..0ddbbda68 100644
---- a/public/framework/core/Session/Session.test.mjs
-+++ b/public/framework/core/Session/Session.test.mjs
-@@ -130,7 +130,7 @@ check("turn: an open turn holds the session below 1 and counts in the tally; no_
- 	const s = Session.replay(TURN_LINES.slice(0, 3));
- 	const open = s.completion_score() === 0 && s.tally().open === 1 && s.tally().created === 1;
- 	s.replay_line({ [Session.turn_id(T1)]: { no_action: "a remark" } });
--	return open && s.completion_score() === 1;
-+	return open && s.completion_score() === 1 && s.tally().open === 0;
- });
- check("turn: a hook-made content Prompt IS the turn: the refined line fills its sentences and files items under it, no second task", () => {
- 	const s = Session.replay([{ session: "h1" }, { content: { add: { type: "Prompt", id: Session.turn_id(T3), text: "ship it", counted: true, via: "vscode" } } },
-diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
-index c95ffe217..fe2c5b202 100644
---- a/public/framework/core/Session/readme.md
-+++ b/public/framework/core/Session/readme.md
-@@ -36,7 +36,7 @@ class Session extends Task                       // ../Task/Task.js (Task extend
-   static async create({id, name?, parent?, day?, first?})  // node: MAKES the session's folder, the one creator (SessionFolders#create)
-   static async locate(id, first_at?, slug?)  // node: the folder to WRITE into, asked of SessionFolders on every call; never makes a second one
+diff --git a/Server/ClaudeCodeTranscript.mjs b/Server/ClaudeCodeTranscript.mjs
+new file mode 100644
+index 000000000..65439a151
+--- /dev/null
++++ b/Server/ClaudeCodeTranscript.mjs
+@@ -0,0 +1,49 @@
++// ClaudeCodeTranscript: reads ONE raw Claude Code / Agent SDK transcript file (~/.claude/projects/<project>/<session-id>.jsonl, or a cloud
++// session's copy in ~/.claude/cloud-transcripts/) and gives the owner's own turns, in order. No LLM calls, nothing written.
++// Not our session logs (those are session.jsonl, read by core/Session); the batch condenser for many transcripts is Server/Transcripts.mjs.
++// owner_text is THE owner-prompt filter: Server/RefineQueue.mjs and Server/PromptAudit.mjs reach it as RefineQueue.owner_text.
++//   node Server/ClaudeCodeTranscript.mjs <file> [--from N] [--to N] [--json]     (N is the turn number this prints)
++// Doc: Server/doc/transcripts.md
++import fs from "node:fs";
++import { fileURLToPath } from "node:url";
++import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
++
++export default class ClaudeCodeTranscript {
++	constructor(file){
++		this.file = file;
++		// one entry per line of the file (null for a blank or broken line), so an index is the file's own line number, 0-based
++		this.lines = fs.readFileSync(file, "utf8").split("\n").map(l => { try { return l ? JSON.parse(l) : null; } catch { return null; } });
++	}
++
++	/** One user line -> the owner's words, or null when it is not the owner speaking: a tool result, a meta line (a skill, a reminder),
++	 *  a task notification, a slash command, an agent relay or brief ("[from: ", "[You are "), a compaction summary, an interruption note. */
++	static owner_text(l){
++		if (l?.type !== "user" || l.isMeta || l.isSidechain || l.turnOrigin === "task_notification") return null;
++		const c = l.message?.content;
++		if (Array.isArray(c) && c.some(b => b?.type === "tool_result")) return null;
++		const t = typeof c === "string" ? c : Array.isArray(c) ? c.filter(b => b?.type === "text").map(b => b.text).join("\n") : "";
++		const text = RefinedCard.strip(t);
++		if (!text || /^<(command-|local-command|task-notification)/.test(text) || /^(Caveat:|\[from: |\[You are |This session is being continued|\[Request interrupted)/.test(text)) return null;
++		return text;
++	}
++
++	/** [{n, at, line, text}]: every owner turn, numbered from 1 in file order; `line` is its 0-based line in the file (RefineQueue's key). */
++	owner_turns(){
++		let n = 0;
++		return this.lines.flatMap((l, line) => { const text = ClaudeCodeTranscript.owner_text(l); return text ? [{ n: ++n, at: l.timestamp ?? null, line, text }] : []; });
++	}
++
++	/** The turn's sentences: RefinedCard.sentences, so a cite [3] means the same sentence here and on a refined card. */
++	static sentences(text){ return RefinedCard.sentences(text); }
++
++	static main(argv){
++		const file = argv[0], arg = k => { const i = argv.indexOf(k); return i < 0 ? null : argv[i + 1]; };
++		if (!file) { console.error("usage: node Server/ClaudeCodeTranscript.mjs <file> [--from N] [--to N] [--json]"); process.exit(1); }
++		const from = Number(arg("--from") ?? 1), to = Number(arg("--to") ?? Infinity);
++		const turns = new ClaudeCodeTranscript(file).owner_turns().filter(t => t.n >= from && t.n <= to);
++		if (argv.includes("--json")) console.log(JSON.stringify(turns, null, 1));
++		else for (const t of turns) console.log(`#${t.n} ${t.at} (line ${t.line})\n${t.text}\n`);
++	}
++}
++
++if (process.argv[1] && fileURLToPath(import.meta.url) === fs.realpathSync(process.argv[1])) ClaudeCodeTranscript.main(process.argv.slice(2));
+diff --git a/Server/ClaudeCodeTranscript.test.mjs b/Server/ClaudeCodeTranscript.test.mjs
+new file mode 100644
+index 000000000..cc3132419
+--- /dev/null
++++ b/Server/ClaudeCodeTranscript.test.mjs
+@@ -0,0 +1,30 @@
++// node Server/ClaudeCodeTranscript.test.mjs: one scratch transcript, the owner's turns come out and nothing else does.
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import Test from "../public/framework/core/Test/Test.js";
++import ClaudeCodeTranscript from "./ClaudeCodeTranscript.mjs";
++
++const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "cct-")), "t.jsonl");
++const user = (content, extra = {}) => JSON.stringify({ type: "user", timestamp: "2026-11-06T07:00:00Z", message: { role: "user", content }, ...extra });
++fs.writeFileSync(file, [
++	user("Hey Claude. Can you spawn a mastermind?"),
++	user([{ type: "text", text: "Spoken words." }, { type: "text", text: "Second block." }]),
++	user([{ type: "tool_result", content: "ok" }]),
++	user("skill text", { isMeta: true }),
++	user("<task-notification>done</task-notification>", { turnOrigin: "task_notification" }),
++	user("[from: voice-app] a relayed brief"),
++	user("This session is being continued from a previous conversation."),
++	JSON.stringify({ type: "assistant", message: { content: [{ type: "text", text: "Sure." }] } }),
++	"not json",
++].join("\n") + "\n");
++
++const t = new Test("ClaudeCodeTranscript: owner turns only");
++const turns = new ClaudeCodeTranscript(file).owner_turns();
++t.eq(turns.length, 2, "two owner turns: no tool result, meta line, notification, relay, compaction summary or assistant");
++t.eq(turns[1].text, "Spoken words.\nSecond block.", "text blocks are joined");
++t.eq(turns[0].n, 1, "numbered from 1");
++t.eq(turns[1].line, 1, "and keyed by the line it sits on");
++t.eq(ClaudeCodeTranscript.sentences(turns[0].text), ["Hey Claude.", "Can you spawn a mastermind?"], "sentences split on end marks");
++fs.rmSync(path.dirname(file), { recursive: true, force: true });
++t.done();
+diff --git a/Server/RefineQueue.mjs b/Server/RefineQueue.mjs
+index 26f54d14b..1748f8bb3 100644
+--- a/Server/RefineQueue.mjs
++++ b/Server/RefineQueue.mjs
+@@ -25,6 +25,7 @@ import { spawnSync } from "node:child_process";
+ import { fileURLToPath, pathToFileURL } from "node:url";
+ import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
+ import AskIndex from "./AskIndex.mjs";
++import ClaudeCodeTranscript from "./ClaudeCodeTranscript.mjs";
+ import SessionFolders from "../public/framework/core/Session/SessionFolders.mjs";
+ import SessionRecord from "./SessionRecord.mjs";
  
--// SessionFolders.mjs (node only): the store's ONE finder. at(root).of(id), .home(id, day, name), .create(id, opts), .all(id), .twins(); static owner(dir)
-+// SessionFolders.mjs (node only): the store's ONE finder. at(root).of(id), .home(id, day, name), .create(id, opts), .all(id), .twins(), .url(id) (the session page url: the dated folder, the bare-uuid redirect only when no folder exists yet); static owner(dir), static url_in(repo, id) (what a node writer puts in a note or card)
+@@ -53,16 +54,8 @@ export default class RefineQueue {
+ 			: path.join(os.homedir(), ".claude", "projects", RefineQueue.main_root().replace(/[^a-zA-Z0-9]/g, "-"));
+ 	}
  
- // Day.js: class Day, static of(t) "YYYY-MM-DD", path(t) "YYYY/MM/DD" - the owner's LOCAL day, never UTC
+-	/** One user line → the owner's words, or null when it is not an owner prompt. */
+-	static owner_text(l){
+-		if (l?.type !== "user" || l.isMeta || l.isSidechain || l.turnOrigin === "task_notification") return null;
+-		const c = l.message?.content;
+-		if (Array.isArray(c) && c.some(b => b?.type === "tool_result")) return null;
+-		const t = typeof c === "string" ? c : Array.isArray(c) ? c.filter(b => b?.type === "text").map(b => b.text).join("\n") : "";
+-		const text = RefinedCard.strip(t);
+-		if (!text || /^<(command-|local-command|task-notification)/.test(text) || /^(Caveat:|\[from: |\[You are |This session is being continued)/.test(text)) return null;
+-		return text;
+-	}
++	/** One user line → the owner's words, or null when it is not an owner prompt. The filter itself lives in ClaudeCodeTranscript (the transcript reader). */
++	static owner_text(l){ return ClaudeCodeTranscript.owner_text(l); }
+ 
+ 	/** Every owner prompt in the VS Code transcripts touched since `since` (ms), newest first: { session, line, uuid, at, text }. */
+ 	static find({ since }){
+diff --git a/Server/doc/transcripts.md b/Server/doc/transcripts.md
+index ab9fa8b94..985a02fcb 100644
+--- a/Server/doc/transcripts.md
++++ b/Server/doc/transcripts.md
+@@ -23,4 +23,11 @@ node Server/Transcripts.mjs --grep "dedup|duplicate" [--all]
  ```
-diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
-index 2c0dbeddd..6cb179d6d 100644
---- a/public/framework/core/Task/Task.js
-+++ b/public/framework/core/Task/Task.js
-@@ -387,6 +387,7 @@ export class Task extends Item {
- 				if (k.is_session){ t.sessions++; if (k.completion_score() === null) t.unscored++; }
- 				if (k.state === "complete"){ t.finished++; if (Task.proof_problem(k)) t.unproven++; }
- 				else if (k.state === "stopped") t.stopped++;
-+				else if (k.no_action) t.finished++;   // a turn marked {no_action: why} is settled (it scores 1), so it is not open
- 				else t.open++;
- 				walk(k);
- 			}
-diff --git a/public/framework/core/Task/completion.test.mjs b/public/framework/core/Task/completion.test.mjs
-index 027ea0dc6..0f8ac99a8 100644
---- a/public/framework/core/Task/completion.test.mjs
-+++ b/public/framework/core/Task/completion.test.mjs
-@@ -78,6 +78,8 @@ t.eq(ps.tally().prompts.unresolved, 0, "tally: none unresolved");
- // 4b. The same resolution as a log line: {"<prompt id>":{"no_action":"why"}}.
- const viaLine = Session.replay([{ session: { id: "s4b" } }, { content: { add: { type: "Prompt", id: "q1", text: "what is x?", counted: true } }, ts: at(1) }, { q1: { no_action: "answered in chat" }, ts: at(2) }]);
- t.eq(viaLine.completion_score(), 1, "a {no_action} line on the prompt resolves it");
-+const turnTask = Session.replay([{ session: { id: "s4c" } }, { tasks: { add: { type: "Prompt", id: "p4c", text: "a remark", counted: true } }, ts: at(1) }, { p4c: { no_action: "a remark" }, ts: at(2) }]);
-+t.eq(turnTask.tally().open, 0, "tally(): a Prompt task marked no_action is settled, not open");
+ Default: last 2 days (by file time), newest first, only sessions with a task folder. `--dry-run` prints raw KB -> essence KB and totals without writing. `--grep` searches the owner's prompts in the essence files already written ("didn't I ask for this before?"); `--all` includes agent briefs. It only sees days that were run, so widen `--since` first.
  
- // 5. Resolving a counted Prompt by filing a task under it: the score follows that task.
- const ps2 = Session.replay([{ session: { id: "s5" } }, { content: { add: { type: "Prompt", id: "n", text: "fix it", counted: true } }, ts: at(1) }]);
-diff --git a/public/framework/core/Task/doc/completion.md b/public/framework/core/Task/doc/completion.md
-index 451cae8c4..dc6406a97 100644
---- a/public/framework/core/Task/doc/completion.md
-+++ b/public/framework/core/Task/doc/completion.md
-@@ -62,6 +62,6 @@ No new code. Prompt's `completion` is computed from its parts and Question inher
- 
- **No score is not 0 and not 1.** A session with nothing to score (no tasks, no child sessions, no counted prompts) reads `completion_score() === null`, shown as "needs review" by `Task.show`. A plain leaf task keeps 1 (complete) or 0. A parent's mean counts a child session with nothing to score of its own as 1 if complete and 0 if not (`part_score`), so a session whose children carry the work keeps its number; only a session with no parts at all is null; `tally().unscored` counts them. The session page's Score stat, the dashboard rows and `Server/session-query.mjs --report` all show it through `Task.show`.
- 
--**Closing under 100% files one waiting task. PROPOSED and OFF BY DEFAULT (the owner, 2026-11-06: a change to what gets auto-filed is proposed with a dry run first).** The filing happens only when the environment variable `SERVEX_OPEN_ITEMS=on` is set; unset, `OpenItems.after_write` works out what it would file, returns it and writes nothing. To see what it would file over the session store: `node Servex/OpenItems.mjs --dry-run [--days 7] [--out <file>]` (counts of settled records scored under 1 or not at all, how many tasks it would file, five examples; the full list goes to `--out`, default the OS temp folder). The rule itself (`Task#closeout_line`) is unchanged. `Task#closeout_line` builds it (a task `open-items`, or `open-items-2` once the first is settled, waiting on the owner, listing each open item's title, id and state). `Servex/OpenItems.js` appends it right after any closing line, by comparing the replay before and after, so a doubled close or a replay files nothing; a close with nothing open (an empty tab) files nothing, since its score already reads "needs review". The closeout task is left out of the score and the open-child check. `list_waiting` shows these tasks beside the card needs. Tests: `completion.test.mjs`, `Servex/OpenItems.test.mjs`.
-+**Closing under 100% files one waiting task. PROPOSED and OFF BY DEFAULT (the owner, 2026-11-06: a change to what gets auto-filed is proposed with a dry run first).** The filing happens only when the environment variable `SERVEX_OPEN_ITEMS=on` is set; unset, `OpenItems.after_write` works out what it would file, returns it and writes nothing. To see what it would file over the session store: `node Servex/OpenItems.mjs --dry-run [--days 7] [--out <file>]` (counts of settled records scored under 1 or not at all, how many tasks it would file, five examples; the full list goes to `--out`, default the OS temp folder). `Task#closeout_line` builds the task (a task `open-items`, or `open-items-2` once the first is settled, waiting on the owner, listing each open item's title, id and state). When the switch is on, `Servex/OpenItems.js` appends it right after any closing line, by comparing the replay before and after, so a doubled close or a replay files nothing; a close with nothing open (an empty tab) files nothing, since its score already reads "needs review". The closeout task is left out of the score and the open-child check. `list_waiting` shows these tasks beside the card needs. Tests: `completion.test.mjs`, `Servex/OpenItems.test.mjs`.
- 
--**Known gaps in the closing rule.** It runs from the two append functions of Servex (`page_tools.js write_line`, `TaskLoop.js write_line`). Writers that append straight to a record do not pass through it and file nothing: `Server/PromptRecords.mjs`, `Server/CloseoutWalk.mjs --apply` (its `stop` lines), and `RecordWriter.append_once` (what `append.mjs` and StaleClose use when Servex is down). Cost: a closing line replays its record once (about 0.5-0.7 s on the 3.7 MB `session-e00f55c9` record, measured; a few ms on a normal one), and a second time only when a filing is due.
-+**Known gaps in the closing rule.** It runs from the two append functions of Servex (`page_tools.js write_line`, `TaskLoop.js write_line`). Writers that append straight to a record do not pass through it and file nothing: `Server/PromptRecords.mjs`, `Server/CloseoutWalk.mjs --apply` (its `stop` lines), and `RecordWriter.append_once` (what `append.mjs` and StaleClose use when Servex is down). Cost: a closing line replays its record once (about 0.4-1.2 s on the 3.7 MB `session-e00f55c9` record, measured; a few ms on a normal one), and a second time only when a filing is due.
-diff --git a/public/framework/core/Task/readme.md b/public/framework/core/Task/readme.md
-index 82966ed33..231cb61d5 100644
---- a/public/framework/core/Task/readme.md
-+++ b/public/framework/core/Task/readme.md
-@@ -109,7 +109,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
-   `TaskJSONL`, and `ai/AITask/nested.js`'s `TaskTree`.
- - **Fields** (getters that read data, never stored numbers): `expected`, `module`, `session` (`session ?? session_id`), `priority` (latest `{priority:{score,why,by}}` line or `null`), `commits` (short hashes from `{"commit":"…"}` lines, no duplicates; `commit(hash)` appends one). Replay reads both lines without leaving the legacy mapping. `sessions` ([{id, task}], node appends it), `source` (voice-app | vscode | dictate | servex:<id>; an old `/` doc path reads as `doc`) and `cost` (USD, computed from the agents on this task via `Task.cost_resolver`, wired in `Servex/agents/Agents.js`).
- - **`completion_score()`** (0 to 1, the one number; `completion` is its alias; 2026-11-04): score = 1 if `checked_by`; else the mean of the scores of its parts (subtasks not stopped, child sessions, counted owner prompts, to any depth); a plain task with no parts is 1 if complete else 0, but a **session** with nothing to score is `null` ("needs review": no tasks means the work was never recorded, not that it was done). A parent's mean counts a child session that has nothing to score of its own as 1 if complete and 0 if not (`part_score`), so a session whose child sessions carry the work keeps its number; `Task.mean` itself leaves nulls out, and all-null is null; `Task.show(score)` is the one place that turns a score into "62%" or "needs review", so every caller handles null through it. `tally()` counts created/finished/stopped/open, `unscored` (sessions that read null) and `proof_problem` finishes. Printed for any session by `node Server/session-query.mjs --report <id>`; why this formula and not finished/created: [Session readme](../Session/readme.md#the-one-formula). Test: `node completion.test.mjs`.
--- **No silent endings** (`closeout_line(at)`, `open_items()`, `Task.is_closeout`): when a session or task is closed under a score of 1, one task waiting on the owner (`{"wait":{"on":"owner","what":…}}`, id `open-items`, then `open-items-2`) is filed that lists the open items by id, title and state. The rule is `Task#closeout_line`; `Servex/OpenItems.js` calls it after any closing line (stop, complete, finish, unclosed, closed_by, landed_at) reaches a record, from the two append chokepoints (`page_tools.js write_line`, `TaskLoop.js write_line`). It compares the replay before and after the line, so a repeat or replayed close files nothing, and it files nothing when there is nothing open to list. Closeout tasks are left out of the score, `reopened()` and the `complete()` open-child check, so the waiting task never reopens the record it was filed on. `list_waiting` (`Servex/cards/Cards.js`) lists owner-waiting tasks from `ai/index.json` next to card needs. Known gaps (writes that bypass both chokepoints and file nothing): `Server/PromptRecords.mjs`, `Server/CloseoutWalk.mjs --apply`, and `RecordWriter.append_once` (append.mjs and StaleClose when Servex is down). Tests: `node Servex/OpenItems.test.mjs`. PROPOSED, off by default: it files only with SERVEX_OPEN_ITEMS=on; dry run: node Servex/OpenItems.mjs --dry-run (doc/completion.md).
-+- **No silent endings** (`closeout_line(at)`, `open_items()`, `Task.is_closeout`): when a session or task is closed under a score of 1, one task waiting on the owner (`{"wait":{"on":"owner","what":…}}`, id `open-items`, then `open-items-2`) is filed that lists the open items by id, title and state. The rule is `Task#closeout_line`; `Servex/OpenItems.js` calls it after any closing line (stop, complete, finish, unclosed, closed_by, landed_at) reaches a record, from the two append chokepoints (`page_tools.js write_line`, `TaskLoop.js write_line`). It compares the replay before and after the line, so a repeat or replayed close files nothing, and it files nothing when there is nothing open to list. Closeout tasks are left out of the score, `reopened()` and the `complete()` open-child check, so the waiting task never reopens the record it was filed on. `list_waiting` (`Servex/cards/Cards.js`) lists owner-waiting tasks from `ai/index.json` next to card needs. Known gaps (writes that bypass both chokepoints and file nothing): `Server/PromptRecords.mjs`, `Server/CloseoutWalk.mjs --apply`, and `RecordWriter.append_once` (append.mjs and StaleClose when Servex is down). Tests: `node Servex/OpenItems.test.mjs`. PROPOSED, off by default: it files only with SERVEX_OPEN_ITEMS=on; dry run: `node Servex/OpenItems.mjs --dry-run` ([doc/completion.md](doc/completion.md)).
- - **`completion`** is `completion_score()`'s alias; `checked_by` (`check({by})`, final) is 1, and a half-done subtask counts 0.5, so a complete parent with open children reads below 1 unless `checked_by` is set (`Prompt` follows the same rule).
- 
- ## More
++## One transcript, the owner's turns: `ClaudeCodeTranscript`
++[`ClaudeCodeTranscript.mjs`](../ClaudeCodeTranscript.mjs) reads ONE Claude Code / SDK transcript file (a local one, or a cloud session's copy in `~/.claude/cloud-transcripts/`) and returns the owner's own turns: `{n, at, line, text}`, where `n` counts owner turns from 1 and `line` is the 0-based line in the file (the key [RefineQueue](../../public/framework/ext/Refine/doc/refine-queue.md) uses). `ClaudeCodeTranscript.owner_text(line)` is the one owner-prompt filter: it drops tool results, meta lines, task notifications, slash commands, agent relays and briefs, and compaction summaries, and `RefineQueue.owner_text` and `PromptAudit` call it. `ClaudeCodeTranscript.sentences(text)` is `RefinedCard.sentences`, so a sentence number means the same thing on a refined card. Nothing is written. First used by the prompt-refinement calibration ([doc/prompt-refinement-and-tasks.md](../../public/framework/ai/doc/prompt-refinement-and-tasks.md)).
++```
++node Server/ClaudeCodeTranscript.mjs <file> [--from N] [--to N] [--json]
++```
++Turns are in file order; a resumed cloud session can put an older turn after a newer one, so read `at` when order matters.
++
+ Related: [`session-index.md`](./session-index.md) (task records in memory).
+diff --git a/Server/readme.md b/Server/readme.md
+index 472503225..e0ab77b75 100644
+--- a/Server/readme.md
++++ b/Server/readme.md
+@@ -51,6 +51,7 @@ The owner-facing server also starts `whisper-server` for dictation on its own 
+ - `Server/Council.mjs` — Feedback Council collector and runner; off switch `COUNCIL=off`.
+ - `node Server/ReadmeOrphans.mjs` — lists every directory with a readme that the readme above it never names (the readme chain cannot reach it); the page-nav twin is `OrphanCheck.mjs`.
+ - `node Server/SessionIdentity.mjs <session uuid>` — read-only: which transcripts, folders, cost lines and child agents belong to one session; TrackingCheck's check 6 runs it; test `SessionIdentity.test.mjs` ([core/Session/doc/identity.md](../public/framework/core/Session/doc/identity.md)).
++- `node Server/ClaudeCodeTranscript.mjs <file> [--from N] [--to N] [--json]` — the owner's own turns from ONE Claude Code / SDK transcript file (local or a cloud copy), numbered; writes nothing; test `ClaudeCodeTranscript.test.mjs` ([doc/transcripts.md](./doc/transcripts.md)).
+ - `node Server/SessionConsolidate.mjs <session uuid> | --all | --check [--write] [--json]`, plus `[--apply --manifest <file>]` — one session, one folder: folds a session's second folders into one home (the oldest day, then the folder holding most), with a dry run, a manifest and a moved-aside copy; `--all` folds every session held twice, `--check` reports twins (run daily by `Servex/TaskLoop.js`). `session-dir-clash.test.mjs` tests the folder lookup (`DatedFiles.session_dir`), `session-twins.test.mjs` the twin check and the finder. `Servex/agents/turn-costs.test.mjs` tests a session's own turns.
+ - `node Server/Truth.mjs [--write] [--root <repo>] [--label ...]` — the truth numbers: how true the session and task record is (sessions by id, with a work log / tags only / transcript only, with tasks, complete, done tasks without proof, no commit line, unfiled asks, twins). Counts with the real classes, writes nothing into the tree it reads, refuses to write a line whose parts do not add up to their totals; `--write` appends one line to `public/live/truth/truth.jsonl`, which [/live/truth/](/live/truth/) draws (run daily by `Servex/TaskLoop.js`, `truth_daily`). `Truth.test.mjs` tests it.
+ - `node Server/DoneCheck.mjs [--dry|--list]` — Haiku check of completed owner asks, "marked done, not done" ([completion](../public/framework/core/Task/doc/completion.md)).
