@@ -9,3 +9,7 @@
 {"read_upto":8,"at":"2026-11-06T19:22:22-06:00","by":"servex-task-loop"}
 {"at":"2026-11-07T01:29:28-06:00","from":"mastermind-rank-sonnet","kind":"done","text":"`mastermind-rank-sonnet` is now closed too — `left: []`. Both tasks tied to the rank-sonnet.tsv deliverable are complete."}
 {"read_upto":10,"at":"2026-11-07T01:34:08-06:00","by":"servex-task-loop"}
+{"at":"2026-11-07T03:14:37-06:00","from":"minion-rank-haiku","kind":"done","text":"Task is complete and closed. File `rank-haiku.tsv` written to main tree folder with all 196 methods ranked (86 core, 57 secondary, 53 move-out). No further work needed."}
+{"read_upto":12,"at":"2026-11-07T03:18:23-06:00","by":"servex-task-loop"}
+{"at":"2026-11-07T03:23:45-06:00","from":"minion-rank-haiku","kind":"done","text":"Done. Task completion logged: rank-haiku.tsv written with method rankings (86 core, 57 secondary, 53 move-out from 196 total)."}
+{"read_upto":14,"at":"2026-11-07T03:28:23-06:00","by":"servex-task-loop"}
