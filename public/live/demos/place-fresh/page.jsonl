@@ -3,3 +3,6 @@
 {"file":"note.md"}
 {"place":"note.md","by":"minion-page-features","ts":"2026-11-06T21:51:26.858Z"}
 {"file":"readme.md"}
+{"title":"Place, fresh (LivePage ignores the place line — file content never shows)","by":"minion-tabs-r3","ts":"2026-11-06T23:52:30.727Z"}
+{"title":"Place, fresh","by":"minion-tabs-r3","ts":"2026-11-07T00:12:34.295Z"}
+{"content":{"add":{"type":"part-text","id":"gap-note","text":"This page has no content of its own, so on a plain Page the place line would show readme.md and note.md inline. LivePage never draws placed files: its Main view draws only its own content list, never the page.placed entries a place line adds."}},"by":"minion-tabs-r3","ts":"2026-11-07T00:12:34.297Z"}

@@ -102,6 +102,7 @@ all of it: [`core/Page/settings/`](/framework/core/Page/settings/).
 - **One button per screen.** Under `navigation: "tabs"`, only the parent draws it. It opens the folder of the tab on screen if that tab has its own `page.jsonl` (Alpha), and otherwise the parent's (a tab made by a `tab` line, like Gamma). Code: `Jsonl.js files_button()`, `active_jsonl_page()`; `Page.class.js has_files_button()`.
 - **A page shown as a tab draws no title of its own.** The tab label already names it (`Page.class.js in_tabs_frame()`).
 - **The "Files · N" link** is not drawn where the button is.
+- **Under `/live/`, there is no Files button at all.** Every page there is a `LivePage` ([live/readme.md](/live/readme.md)), which shows a page's files as one list on its own gear-icon settings page (`<page>/settings/`, `LivePage.Files`) instead of this button.
 
 **What decides a tab's content today** (the question of how voice should control it):
 

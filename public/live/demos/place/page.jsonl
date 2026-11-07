@@ -2,3 +2,6 @@
 {"content":{"add":{"id":"hcc1neiu","type":"part-text","text":"This is a LivePage. The place line below should show note.md if LivePage drew placed files."}},"by":"minion-page-features","ts":"2026-11-06T21:52:27.084Z"}
 {"file":"note.md"}
 {"place":"note.md","by":"minion-page-features","ts":"2026-11-06T21:52:32.557Z"}
+{"title":"Place (LivePage ignores the place line — file content never shows)","by":"minion-tabs-r3","ts":"2026-11-06T23:52:30.727Z"}
+{"title":"Place","by":"minion-tabs-r3","ts":"2026-11-07T00:12:34.295Z"}
+{"content":{"add":{"type":"part-text","id":"gap-note","text":"The place line below should show note.md’s rendered text. LivePage never draws placed files: its Main view draws only its own content list, never the page.placed entries a place line adds."}},"by":"minion-tabs-r3","ts":"2026-11-07T00:12:34.297Z"}
