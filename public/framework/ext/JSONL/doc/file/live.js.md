@@ -41,9 +41,12 @@ built anything to redraw.
 
 A dev server predating `Tail.js` accepts `rpc:subscribe` and answers nothing at
 all, which would park the dashboard on an unresolved promise forever. The timer
-unregisters the stream, warns once, and falls back to `load()`. It is a fallback
-for a version skew, not for a slow file — the server answers a subscribe
-synchronously from disk.
+warns once and shows the file by one fetch (`fallback()`), but the stream STAYS
+registered: a busy page's main thread can hear the server's answer long after 1.5s
+(a session page, 2026-11-06), and when it comes the server's lines replace the
+fetched copy (`reset()`, then one read; the `fetched` flag) and the reader streams
+from there. Until 2026-11-06 the timer unregistered the stream, so a slow page never
+streamed again. `stream.WAIT` holds the 1.5s (a test sets it lower).
 
 ## `drop()` — the only thing that ever unsubscribes
 

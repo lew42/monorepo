@@ -106,8 +106,9 @@ origin. Keyed by the raw string a caller happened to pass, an `import.meta.resol
 entry in `streams` never matched the server's bare-path reply: `each()` found nothing, so
 `jsonl()`/`jsonl_reset()` silently did nothing for that reader, forever. The only thing that
 ever showed a value was `stream()`'s own 1.5s timeout falling back to a ONE-TIME `fetch()` —
-which ALSO deletes the reader from `streams` at that same moment, so it never hears another
-append until the next full page load creates a brand-new subscribe. That reads exactly like
+which (until 2026-11-06) ALSO deleted the reader from `streams` at that same moment, so it never
+heard another append until the next full page load created a brand-new subscribe. (The fallback
+now keeps the reader: see "Opt-in, with fetch as the floor".) That reads exactly like
 "needs a reload to update," and was mistaken for a `window.$BLOCKRELOAD` bug in an owner report
 (2026-09-19) before a live probe of the working pattern — a bare pathname, with Block on —
 proved delivery has nothing to do with Block at all.

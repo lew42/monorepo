@@ -23,7 +23,8 @@ Off localhost there is no socket, so this **is** `load()` — one fetch, no
 subscription, `changed` never called. That is not a degraded mode, it is the
 production path: the site is statically hosted and nothing on it may depend on the
 dev server. The same fallback catches a server that answers a subscribe with
-nothing within 1.5s.
+nothing within 1.5s: one fetch, and the instance stays subscribed, so a late answer
+replaces the fetched copy and later lines still stream.
 
 `changed` is optional. `live()` with no callback still streams — the instance
 stays current for whoever reads it next — which is how a caller that redraws on

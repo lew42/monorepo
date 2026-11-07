@@ -5,8 +5,8 @@ import Socket from "/framework/dev/Socket/Socket.js";
    the registry holds a Set of subscriptions per url-path. */
 const streams = new Map();
 
-// A dev server predating Tail.js answers a subscribe with nothing at all.
-const WAIT = 1500;
+// A dev server predating Tail.js answers a subscribe with nothing at all; a busy page hears it late. The wait is
+// stream.WAIT (1.5 s, below stream()), so a test can shorten it.
 
 const each = (path, fn) => streams.get(path)?.forEach(fn);
 
@@ -137,19 +137,20 @@ export function stream(jsonl, changed, { owner } = {}){
 		if (owner !== null) adopt(jsonl, owner);
 		const k = key(jsonl.url);
 
-		// ⚠ No answer in WAIT: show the file by one fetch, but STAY subscribed. A busy page (a 9 s session page, 2026-11-06)
+		// ⚠ No answer in stream.WAIT: show the file by one fetch, but STAY subscribed. A busy page (a 9 s session page, 2026-11-06)
 		// hears the answer late; dropping the reader here meant it never streamed again, so every change needed a reload.
 		s.timer = setTimeout(() => {
 			s.first = null;
 			console.warn("JSONL.live(): no answer from the dev server yet; fetching once, still subscribed —", jsonl.url);
 			fallback(s).then(resolve);
-		}, WAIT);
+		}, stream.WAIT);
 
 		if (!streams.has(k)) streams.set(k, new Set());
 		streams.get(k).add(s);
 		subscribe(s);
 	});
 }
+stream.WAIT = 1500;
 
 /* The timed-out first read: `load()`'s fetch, skipped when the socket answered while it was in flight (its lines are
    already in, and reading the fetch too would apply them twice). `fetched` marks a copy the late answer replaces. */
