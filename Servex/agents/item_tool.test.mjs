@@ -118,9 +118,9 @@ try {
 		ok(list_lines().filter(l => l.id === "tasks").length === 1 && list_lines().length === 3, "second child: no second line 1, one more reference");
 
 		r = await add({ tasks: { add: { title: "Plain job", module: "nomod" } } });
-		ok(r.ok && !fs.existsSync(path.join(DIR, "plain-job")) && !fs.existsSync(path.join(MODS, "nomod")) && lines().at(-1).tasks.add.id === r.ids[0] && /^[a-z][a-z0-9]{7}$/.test(r.ids[0]), "no module folder: the subtask nests in the parent's file, no folder, module folder not created; its id is 8 random characters, not the title slug");
+		ok(r.ok && !fs.existsSync(path.join(DIR, "plain-job")) && !fs.existsSync(path.join(MODS, "nomod")) && lines().at(-1).tasks.add.id === r.ids[0] && r.ids[0] === "plain-job", "no module folder: the subtask nests in the parent's file, no folder, module folder not created; its id is the slug of its title (2026-11-06)");
 		const n_before = lines().length;
-		const plain_id = lines().at(-1).tasks.add.id;
+		const plain_id = "plain-job";   // the slug id made above
 		r = await add({ tasks: { add: { title: "Plain job again", id: plain_id } } });
 		ok(r.ok === false && r.why.includes(plain_id) && lines().length === n_before, "a repeated explicit subtask id is refused and writes nothing");
 		r = await add({ tasks: { add: { title: "plain  JOB" } } });
@@ -142,6 +142,20 @@ try {
 		fs.appendFileSync(FILE, JSON.stringify({ task: "/framework/ai/sessions/2026/10/16/no-such-" + process.pid + "/" }) + "\n");
 		r = await call("item", { path: URL });
 		ok(r.ok && r.state.tasks.some(t => t.state === "missing"), "a missing child file is a stub, no throw");
+		{
+			// Default id = slug of the title: -2 on a clash among siblings, a field name is suffixed, no title keeps the random id, an explicit id is kept.
+			const t1 = await add({ tasks: { add: { title: "Plain job!" } } });
+			ok(t1.ok && t1.ids[0] === "plain-job-2", "a title whose slug a sibling already has gets -2");
+			const t2 = await add({ tasks: { add: { title: "Tasks" } } });
+			ok(t2.ok && t2.ids[0] === "tasks-2", "a slug that is a field name (tasks) is suffixed, so a dotted path never reads the field");
+			const t3 = await add({ tasks: { add: { description: "no title" } } });
+			ok(t3.ok && /^[a-z][a-z0-9]{7}$/.test(t3.ids[0]), "no title: the short random id, as before");
+			const t4 = await add({ tasks: { add: { title: "Named one", id: "keep-me" } } });
+			ok(t4.ok && t4.ids[0] === "keep-me", "an explicit id is kept");
+			const c1 = await add({ content: { add: { type: "part-card", title: "Hello card" } } });
+			const c2 = await add({ content: { add: { type: "part-card", title: "Hello card" } } });
+			ok(c1.ok && c2.ok && c1.ids[0] === "hello-card" && c2.ids[0] === "hello-card-2", "a content card: the slug of its title, -2 for the second (siblings come from the live content list)");
+		}
 	} finally { fs.rmSync(MODS, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 
 		// ---- step 16: caller's own log, module from the path, rules ----
