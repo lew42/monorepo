@@ -5,6 +5,7 @@ import crypto from "crypto";
 import express from "express";
 import TaskDirs from "../../../Server/TaskDirs.mjs";
 import DatedFiles from "../../../Server/DatedFiles.mjs";
+import Ask from "../../../Server/Ask.mjs";
 
 /* The remote MCP endpoint (POST /mcp/remote), behind a bearer token. It serves the SAME tool registry every local Claude
  * session gets (`servex.mcp`, read live, never copied) plus `ask_mastermind` on top; calls run as caller "voice-app".
@@ -248,6 +249,8 @@ export default class RemoteMCP {
         const text = words?.trim();
         try {
             if (text) fs.appendFileSync(abs, JSON.stringify({ owner_words: { at, words: text, caller: RemoteMCP.CALLER } }) + "\n");
+            // the same words as numbered sentences, split by code with secrets withheld (Server/Ask.mjs): the line the voice model writes, `re` = the words line's `at`
+            if (text) Ask.write(text, "voice", at, line => fs.appendFileSync(abs, JSON.stringify(line) + "\n"));
             const hash = crypto.createHash("sha256").update(JSON.stringify(call.args ?? {})).digest("hex").slice(0, 12);
             fs.appendFileSync(abs, JSON.stringify({ tool_call: { at, tool, args_hash: hash, caller: RemoteMCP.CALLER } }) + "\n");
         } catch (e) { console.error("remote-mcp: voice log write failed:", e.message); }
