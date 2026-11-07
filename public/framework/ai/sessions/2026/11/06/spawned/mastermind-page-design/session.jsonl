@@ -262,3 +262,7 @@
 {"log":{"at":"2026-11-06T21:21:40-06:00","msg":"task-loop status ask 1: asked mastermind-page-design","ask":1}}
 {"log":{"at":"2026-11-06T21:21:44-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-07T03:21:44.006Z"}
 {"log":{"at":"2026-11-06T21:18:00-06:00","msg":"Idle. Nothing is in flight. Everything asked today has landed and been pushed, the probable-direction doc last (0e0f56dc9). Waiting on new asks and on the held Servex restart (voice-app picks the time). No wake-up set."}}
+{"log":{"at":"2026-11-06T21:25:51-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-07T03:25:51.018Z"}
+{"log":{"at":"2026-11-06T21:31:40-06:00","msg":"task-loop status ask 1: asked mastermind-page-design","ask":1}}
+{"log":{"at":"2026-11-06T21:31:44-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-07T03:31:44.642Z"}
+{"wait":{"on":"owner","what":"Idle: everything asked has landed. Waiting on new asks and the held Servex restart (voice-app picks the time; it turns on slug ids, the one creator in page_tools/open_task/RemoteMCP, and the item-tool read queries)."},"by":"mastermind-page-design","ts":"2026-11-07T03:31:51.707Z"}
