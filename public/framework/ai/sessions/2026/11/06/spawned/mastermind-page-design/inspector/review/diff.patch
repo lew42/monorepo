@@ -1,0 +1,292 @@
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof.md b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof.md
+new file mode 100644
+index 000000000..70662d009
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof.md
+@@ -0,0 +1,17 @@
++# Proof
++
++| Check | Result |
++|---|---|
++| `node --check` on all 4 new/touched JS files | clean |
++| `node public/framework/ext/Inspect/Inspect.test.mjs` | pass, 0.13s (card count 0→1→2→3 as N goes 1→4) |
++| `/live/plan/settings/` at 400 | [proof/plan-settings-400.png](proof/plan-settings-400.png) — Inside (11 content cards + 1 sub-page), Methods, Fields, slider |
++| `/live/plan/settings/` at 1200 | [proof/plan-settings-1200.png](proof/plan-settings-1200.png) |
++| `/live/design/settings/` at 400 | [proof/design-settings-400.png](proof/design-settings-400.png) |
++| `/live/design/settings/` at 1200 | [proof/design-settings-1200.png](proof/design-settings-1200.png) |
++| Slider at line 1 vs line N (headless, `/live/plan/settings/`) | line 1 → "Nothing listed yet."; line 14 (all) → "content: 11", matching the live page's 11 cards |
++| `node Server/smoke.mjs . /live/plan/settings/ /live/design/settings/ --base http://localhost:62990` | exit 0, no console errors (only pre-existing unrelated 404s: `page-work.json`, `tasks.json`) |
++
++Commits in worktree `pd-inspect` (branch `worktree/pd-inspect`):
++- `6be47d60c` — ItemInspector.js, DeltaHistory.js, Inspect.test.mjs, LivePage.Settings wiring
++- `64e86958f` — ext/Inspect/readme.md, public/live/readme.md line
++- `095696cb7` — merge of origin/compliance/dev (live-page's round 7/8, no conflicts; Settings wiring survived)
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-1200.png b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-1200.png
+new file mode 100644
+index 000000000..5de3a203b
+Binary files /dev/null and b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-1200.png differ
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-400.png b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-400.png
+new file mode 100644
+index 000000000..1ba1a32d0
+Binary files /dev/null and b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-400.png differ
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-1200.png b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-1200.png
+new file mode 100644
+index 000000000..c07933424
+Binary files /dev/null and b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-1200.png differ
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-400.png b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-400.png
+new file mode 100644
+index 000000000..669e712d7
+Binary files /dev/null and b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-400.png differ
+diff --git a/public/framework/ext/Inspect/DeltaHistory.js b/public/framework/ext/Inspect/DeltaHistory.js
+new file mode 100644
+index 000000000..dd56ea34c
+--- /dev/null
++++ b/public/framework/ext/Inspect/DeltaHistory.js
+@@ -0,0 +1,53 @@
++import Item from "/framework/core/Item/Item.js";
++import Page from "/framework/core/Page/Page.class.js";
++import View, { div, h4, span, input } from "/framework/core/View/View.js";
++
++// One delta line, shown short: its number, who made it, when, and the delta itself truncated.
++function line_label(n, line){
++	const who = line.by ?? "?", ts = line.ts ? new Date(line.ts).toLocaleString() : "";
++	const body = JSON.stringify(line);
++	return `${n}. ${who}${ts ? " · " + ts : ""} — ${body.length > 90 ? body.slice(0, 87) + "…" : body}`;
++}
++
++// A quick, read-only replay of a folder's page.jsonl: given {url} (the folder, e.g. `/live/plan/`), it loads the raw
++// lines and lets a slider (1..N) rebuild the object from only the first N of them — every move replays in memory
++// (Item.class_for + Class.replay), nothing is ever written back. Below the slider: title, its cards in order, sub-pages.
++export default class DeltaHistory extends View {
++	render(){
++		const { url } = this;
++		this.$box = div.c("delta-history-body", () => span.c("muted", "Loading…"));
++		this.load(url);
++	}
++
++	async load(url){
++		const store = new Item.Store({ url: url + "page.jsonl" });
++		await store.load();
++		const lines = store.entries;
++		this.lines = lines;
++		this.Class = Item.class_for(lines) !== Item ? Item.class_for(lines) : Page;
++		this.$box.empty(() => {
++			if (!store.loaded || !lines.length){ span.c("muted", "No page.jsonl lines here."); return; }
++			this.n = lines.length;
++			this.$slider = input.c("delta-history-slider")
++				.attr("type", "range").attr("min", "1").attr("max", String(lines.length)).attr("value", String(lines.length))
++				.on("input", () => this.show(+this.$slider.el.value));
++			this.$count = span.c("delta-history-count muted");
++			this.$list = div.c("delta-history-list");
++			this.$summary = div.c("delta-history-summary");
++			lines.forEach((line, i) => div.c("delta-history-line muted", line_label(i + 1, line)));
++			this.show(lines.length);
++		});
++	}
++
++	// Replays lines[0..n) through this.Class fresh, in memory, and shows the result.
++	show(n){
++		this.$count.text(`line ${n} of ${this.n}`);
++		const host = this.Class.replay(this.lines.slice(0, n));
++		this.$summary.empty(() => {
++			h4(String(host.title ?? host.id ?? "(untitled)"));
++			const list = host.lists ? host.lists() : {};
++			Object.entries(list).forEach(([name, l]) => l.length && span.c("delta-history-stat muted", `${name}: ${l.length}`));
++			if (!Object.values(list).some(l => l.length)) span.c("muted", "Nothing listed yet.");
++		});
++	}
++}
+diff --git a/public/framework/ext/Inspect/Inspect.test.mjs b/public/framework/ext/Inspect/Inspect.test.mjs
+new file mode 100644
+index 000000000..e369af4b9
+--- /dev/null
++++ b/public/framework/ext/Inspect/Inspect.test.mjs
+@@ -0,0 +1,34 @@
++// node public/framework/ext/Inspect/Inspect.test.mjs
++// Replays the first N lines of a small fixture page.jsonl and checks the card count grows with N,
++// exactly the slider in DeltaHistory.js (no DOM here — Page.replay alone, in memory, nothing written).
++import assert from "node:assert/strict";
++import path from "node:path";
++import { register } from "node:module";
++import { fileURLToPath, pathToFileURL } from "node:url";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const ROOT = path.resolve(HERE, "..", "..", "..", "..");
++register(pathToFileURL(path.join(ROOT, "Servex", "agents", "site-hooks.mjs")).href);   // site-absolute imports ("/framework/…") map to public/
++
++const { default: Item } = await import("/framework/core/Item/Item.js");
++const { default: Page } = await import("/framework/core/Page/Page.class.js");
++await import("/framework/core/Page/parts/kinds.js");   // registers part-text etc. with Item
++
++const lines = [
++	{ id: "fixture", title: "Fixture page" },
++	{ content: { add: { id: "c1", type: "part-text", text: "one" } } },
++	{ content: { add: { id: "c2", type: "part-text", text: "two" } } },
++	{ content: { add: { id: "c3", type: "part-text", text: "three" } } },
++];
++
++// class_for finds nothing registered on this fixture (no "type"/"assign"/"session" on line 1), so it falls to
++// plain Item — DeltaHistory defaults to Page in that case, which is what we assert here too.
++assert.equal(Item.class_for(lines), Item);
++
++for (const [n, want] of [[1, 0], [2, 1], [3, 2], [4, 3]]){
++	const host = Page.replay(lines.slice(0, n));
++	assert.equal(host.title, "Fixture page", `line ${n}: title survives from line 1`);
++	assert.equal(host.content.length, want, `line ${n}: ${want} card(s)`);
++}
++
++console.log("Inspect.test: all assertions pass (replay grows the card count 0→1→2→3 as the slider moves 1→4)");
+diff --git a/public/framework/ext/Inspect/ItemInspector.js b/public/framework/ext/Inspect/ItemInspector.js
+new file mode 100644
+index 000000000..d7864b780
+--- /dev/null
++++ b/public/framework/ext/Inspect/ItemInspector.js
+@@ -0,0 +1,83 @@
++import Item from "/framework/core/Item/Item.js";
++import View, { div, h4, span, a, details, summary } from "/framework/core/View/View.js";
++
++// Own, callable method names of a class's own prototype (functions only, minus `constructor`).
++// Same walk as live/design/ui/MethodMap.js's own_methods(); kept here too rather than importing
++// it, since MethodMap lives under /live/ and this module must work for any Item, not just Page.
++function own_methods(Class){
++	return Object.getOwnPropertyNames(Class.prototype)
++		.filter(name => name !== "constructor")
++		.filter(name => typeof Object.getOwnPropertyDescriptor(Class.prototype, name).value === "function");
++}
++
++// The chain from `Class` up to (and including) Item, each with its OWN methods only.
++function method_chain(Class){
++	const chain = [];
++	for (let C = Class; C && C.prototype; C = Object.getPrototypeOf(C)){
++		chain.push([C, own_methods(C)]);
++		if (C === Item) break;
++	}
++	return chain;
++}
++
++// A value short enough to show on one line.
++function short(value){
++	if (value === undefined) return "undefined";
++	if (value === null) return "null";
++	if (typeof value === "string") return value.length > 80 ? JSON.stringify(value.slice(0, 77) + "…") : JSON.stringify(value);
++	if (Array.isArray(value)) return `[${value.length}]`;
++	if (typeof value === "object") return "{…}";
++	return String(value);
++}
++
++// What one Item is made of: given {item}, three sections — Inside (its own lists, each member a
++// row with id/type/title, linked where the member has a url), Methods (own class first, then each
++// parent up to Item, collapsed), Fields (its saved data keys, short). Read-only; nothing is written.
++export default class ItemInspector extends View {
++	render(){
++		const { item } = this;
++		div.c("item-inspector-section", () => {
++			h4("Inside");
++			const lists = item.lists ? item.lists() : {};
++			const names = Object.keys(lists);
++			if (!names.length) span.c("muted", "Nothing listed.");
++			names.forEach(name => {
++				const list = lists[name];
++				if (!list.length) return;
++				div.c("item-inspector-list", () => {
++					span.c("item-inspector-list-name", `${name} (${list.length})`);
++					list.items.forEach(kid => {
++						const url = kid.url ?? (typeof item.link_url === "function" && kid.get?.("path") ? item.link_url(kid.get("path")) : null);
++						const title = kid.title ?? kid.get?.("title");
++						const label = kid.id + (title ? ` — ${title}` : "");
++						div.c("item-inspector-row", () => {
++							url ? a(label).href(url) : span(label);
++							span.c("item-inspector-type muted", kid.constructor?.name ?? "?");
++						});
++					});
++				});
++			});
++		});
++		div.c("item-inspector-section", () => {
++			h4("Methods");
++			method_chain(item.constructor).forEach(([Class, methods], i) => {
++				if (!methods.length) return;
++				const $d = details.c("item-inspector-methods", () => {
++					summary(`${Class.name} (${methods.length})`);
++					div.c("item-inspector-chips", () => methods.sort().forEach(name => span.c("item-inspector-chip", name)));
++				});
++				if (i === 0) $d.attr("open", "");
++			});
++		});
++		div.c("item-inspector-section", () => {
++			h4("Fields");
++			const data = item.data ?? {};
++			const keys = Object.keys(data);
++			if (!keys.length) span.c("muted", "No saved fields.");
++			keys.forEach(key => div.c("item-inspector-row", () => {
++				span.c("item-inspector-id", key);
++				span.c("item-inspector-value muted", short(data[key]));
++			}));
++		});
++	}
++}
+diff --git a/public/framework/ext/Inspect/readme.md b/public/framework/ext/Inspect/readme.md
+new file mode 100644
+index 000000000..97a84b6c8
+--- /dev/null
++++ b/public/framework/ext/Inspect/readme.md
+@@ -0,0 +1,31 @@
++# Inspect — see what any page or card is made of, and how it got there
++
++Two read-only Views, opt-in from a page's own `settings/` tab. Neither ever writes.
++
++## Files
++
++- [ItemInspector.js](ItemInspector.js) — given `{item}`, three sections: **Inside** (every list the item owns — `content`, `pages`, …, via `item.lists()` — one row per member: id, type, title, linked where it has a url), **Methods** (own class first, then each parent up to `Item`, collapsed `<details>`, one chip per method name), **Fields** (`item.data`'s own keys, short values).
++- [DeltaHistory.js](DeltaHistory.js) — given `{url}` (a folder with its own `page.jsonl`), loads the raw lines (`new Item.Store({url}).load()`, no host attached, so nothing replays onto a live object) and a slider from 1 to N: moving it reruns `Class.replay(lines.slice(0, n))` *in memory* and shows the result's title and list counts. `Class` is whatever `Item.class_for(lines)` finds registered on line 1, or `Page` when nothing is.
++- [Inspect.test.mjs](Inspect.test.mjs) — a four-line fixture page.jsonl, replayed at N = 1..4, asserting the card count grows 0→1→2→3; under 1 s.
++
++## Use
++
++```js
++import ItemInspector from "/framework/ext/Inspect/ItemInspector.js";
++import DeltaHistory from "/framework/ext/Inspect/DeltaHistory.js";
++new ItemInspector({ item: somePage });
++new DeltaHistory({ url: somePage.url });   // somePage.url ends in "/", its page.jsonl lives there
++```
++
++Wired into `LivePage.Settings` (`public/live/LivePage.js`): after the Files list, two more `h4`s, "What it is made of" and "How it got here", each loading its module with a dynamic `import()` so `/live/` pays nothing for Inspect until a settings tab opens.
++
++## Watch out
++
++- `ItemInspector` reuses the same prototype-chain walk as [`live/design/ui/MethodMap.js`](/live/design/ui/MethodMap.js)'s `own_methods()`, written again rather than imported — `MethodMap` lives under `/live/`, and Inspect works for any Item core/Page/ext might open on, not only Page.
++- `DeltaHistory` never attaches a host to its `Item.Store`, so the file's lines land in `store.entries` instead of replaying onto anything live — the only way to read a log's raw lines without disturbing whatever already has it open.
++
++## More
++
++- [core/Item/Item.js](/framework/core/Item/Item.js) — `Item.replay`, `Item.class_for`, `item.lists()`
++- [core/Item/replay/](/framework/core/Item/replay/) — the older replay lab (button-press tapes, not a slider)
++- [public/live/readme.md](/live/readme.md) — the settings tab this plugs into
+diff --git a/public/live/LivePage.js b/public/live/LivePage.js
+index 57b10d4b5..085eb6414 100644
+--- a/public/live/LivePage.js
++++ b/public/live/LivePage.js
+@@ -508,6 +508,10 @@ export default class LivePage extends Page {
+ 			}).catch(() => {});
+ 			h4.c("live-settings-files-title", "Files here");
+ 			new LivePage.Files({ page: this.page, folder: holder, at: this.at ?? "" });
++			h4.c("live-settings-files-title", "What it is made of");
++			div.c("live-settings-inspect").append(import("/framework/ext/Inspect/ItemInspector.js").then(({ default: ItemInspector }) => new ItemInspector({ item: of })));
++			h4.c("live-settings-files-title", "How it got here");
++			div.c("live-settings-inspect").append(import("/framework/ext/Inspect/DeltaHistory.js").then(({ default: DeltaHistory }) => new DeltaHistory({ url: holder })));
+ 		}
+ 	};
+ 
+diff --git a/public/live/readme.md b/public/live/readme.md
+index 497dd3b48..6b2d5f591 100644
+--- a/public/live/readme.md
++++ b/public/live/readme.md
+@@ -86,7 +86,7 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
+ - **Tabs are this page's own content; link cards go elsewhere.** A tab is a sub-page that draws as part of this page: a plain LivePage folder with no pages of its own. Switching tabs keeps the same tab row and the same h1 (the parent's title; the selected tab says which one). Everything else is a **link card** under the content (`LivePage.Pages`, drawn by code, never written into page.jsonl): a sub-page with pages of its own, a page of another class (DesignPage, a `page.js`), a page that says `{"tab": false}` (a small app, like /live/lab/), and every saved screen. More than five tabs would be a list, so then every sub-page is a card (`LivePage.tab_max`). /live/sessions/, /live/archive/ and /live/v1/ are neither (`LivePage.tab_skip`); the footer of /live/ links them. The rule is `LivePage.pages_of`.
+ - **One title everywhere:** a tab label, a link card's title and the page's own h1 all read the sub-page's own `title` (the last `title` in its `page.jsonl`, else its `page.js`; `LivePage.title_of`). To rename a sub-page, set its title on its own path: `item({path: "/live/demos/", delta: {"title": "Feature demos"}})`. A link card's `title` shows only until the page's own one arrives.
+ - **The breadcrumb is the url** (`location.pathname`, word for word, every step a link): a phone hides the address bar, so this is where the owner reads it. It redraws on every url change, a tab switch included (`LivePage.on_url`), and the tab row lights the tab the url is in.
+-- **Settings** (the gear, `<page>/settings/`): where the page's data comes from (its own `page.jsonl`, a card or saved screen inside the parent's `page.jsonl`, or a `page.js`), its class and line count, and the folder's files, one list top to bottom: folders, then files (`LivePage.Files`). A folder opens its own list (`/live/settings/doc/`); a file opens its text on its own page, highlighted by ext/highlight and wrapped to the screen (`/live/settings/LivePage.css/`). A folder or a saved screen named `settings` wins over it.
++- **Settings** (the gear, `<page>/settings/`): where the page's data comes from (its own `page.jsonl`, a card or saved screen inside the parent's `page.jsonl`, or a `page.js`), its class and line count, and the folder's files, one list top to bottom: folders, then files (`LivePage.Files`). A folder opens its own list (`/live/settings/doc/`); a file opens its text on its own page, highlighted by ext/highlight and wrapped to the screen (`/live/settings/LivePage.css/`). A folder or a saved screen named `settings` wins over it. Below that: "What it is made of" and "How it got here" — [ext/Inspect](/framework/ext/Inspect/readme.md)'s `ItemInspector` (its content, methods, fields) and `DeltaHistory` (a slider replaying the folder's `page.jsonl` in memory), both loaded only once settings opens.
+ - **`header`** (`{"header": "text"}`) draws just below the sticky header, so the header keeps one size.
+ 
+ ## Files

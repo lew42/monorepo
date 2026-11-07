@@ -17,3 +17,5 @@
 {"content":{"add":{"id":"j1jdxp9s","type":"part-text","text":"Same five, tried again on a **LivePage** sub-page (the default class under `/live/`): [tabs](./tabs/) · [columns](./columns/) · [place](./place/) · [nav](./nav/) — all four show \"Nothing on screen yet\", because LivePage's own `render()` never builds the parts (`Frame.js`, `draw_folder()`) that make them work. Detail: [doc/page-features.md](/live/doc/page-features.md)."}},"by":"minion-page-features","ts":"2026-11-06T21:52:53.986Z"}
 {"prjrjsft":{"title":"Columns — works (plain Page)"},"by":"mastermind-page-design","ts":"2026-11-06T23:10:29.441Z"}
 {"title":"Demos","by":"mastermind-live-page","ts":"2026-11-06T23:43:46.511Z"}
+{"file":"code-card/page.jsonl"}
+{"content":{"add":{"id":"codecard1","type":"part-link","path":"./code-card/","title":"Code card — js, json and css, highlighted"}},"ts":"2026-11-06T23:30:00.000Z","by":"minion-code-card"}
