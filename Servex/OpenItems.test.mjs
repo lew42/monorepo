@@ -79,6 +79,20 @@ t.eq(nested(f7).length, 1, "item tool: a second stop files no second one");
 r7 = await run_item({ path: url7 }, { caller: "t-open-items" });
 t.ok(JSON.stringify(r7.state).includes("Review what stayed open"), "item tool: the next read shows the waiting task (the cached root was refreshed)");
 
+// 8. TaskLoop.close_task (and Dropped, which writes through the same write_line): closing a task record with one open and one done task files exactly one.
+const { default: TaskLoop } = await import("./TaskLoop.js");
+const loop = new TaskLoop({ root: sess, servex: { lifecycle: { closeout: async () => ({ ok: true, closed: [], left: [] }) } }, quiet_min: 9999 });
+const f8 = make("session-gggg7777", [{ assign: { now: "x", agent: "minion-y", role: "minion", requested_at: at(0) }, id: "gggg7777", title: "Close me" },
+	{ tasks: { add: { type: "Task", id: "open8", title: "Still open 8" } }, ts: at(1) },
+	{ tasks: { add: { type: "Task", id: "done8", title: "Finished 8" } }, ts: at(2) }, { tasks: { done8: done }, ts: at(3) }]);
+fs.renameSync(f8, path.join(path.dirname(f8), "task.jsonl"));
+const r8 = await loop.close_task({ dir: "2026/11/06/session-gggg7777", by: "t-open-items", why: "dropped" });
+t.ok(r8.ok, "close_task takes the dir");
+const rec8 = OpenItems.replay(lines_of(path.join(path.dirname(f8), "task.jsonl")));
+t.eq([...rec8._tasks].filter(x => Task.is_closeout(x)).length, 1, "close_task: one open + one done files exactly one open-items");
+await loop.close_task({ dir: "2026/11/06/session-gggg7777", by: "t-open-items", why: "again" });
+t.eq([...OpenItems.replay(lines_of(path.join(path.dirname(f8), "task.jsonl")))._tasks].filter(x => Task.is_closeout(x)).length, 1, "close_task: a second close files no second one");
+
 t.done();
 fs.rmSync(tmp, { recursive: true, force: true });
 process.exit(t.failures.length ? 1 : 0);

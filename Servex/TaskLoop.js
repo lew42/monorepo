@@ -524,7 +524,7 @@ export default class TaskLoop {
      * same moment can never tear a line, same reason Cards.js and Log.js each
      * keep one queue per file. */
     write_line(file, obj){
-        const next = (this.queues.get(file) ?? Promise.resolve()).then(() => fs.promises.appendFile(file, JSON.stringify(obj) + "\n"));
+        const next = (this.queues.get(file) ?? Promise.resolve()).then(async () => { await fs.promises.appendFile(file, JSON.stringify(obj) + "\n"); OpenItems.after_write(file, obj); });
         this.queues.set(file, next.catch(() => {}));
         return next;
     }

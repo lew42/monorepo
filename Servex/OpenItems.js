@@ -10,8 +10,8 @@ import Session from "../public/framework/core/Session/Session.js";
  * closeout_line() is appended too: ONE task waiting on the owner that lists what stayed open. The check is replay-before vs
  * replay-after, so a replayed or doubled close, or a line that did not change the state, files nothing, and the deterministic
  * id (open-items, open-items-2 …) means a second filing is only possible once the first one is settled.
- * It is called from the two low-level append functions of Servex (page_tools write_line, TaskLoop write_line): every closing path
- * (item tool, append.mjs, the log tool, StaleClose, Unclose, PromptRecords, CloseLoop, TaskLoop.close_task, Dropped) goes through one of them. */
+ * It is called from the two low-level append functions of Servex (page_tools write_line, TaskLoop write_line): the item tool, the log
+ * tool, Unclose, CloseLoop, TaskLoop.close_task and Dropped go through one of them (see "Known gaps" on after_write for the rest). */
 export default class OpenItems {
 	static CLOSING = /"(stop|complete|finish|unclosed|closed_by|landed_at)"\s*:/;
 	static FILES = /(^|[\\/])(session|task)\.jsonl$/;
@@ -66,21 +66,25 @@ export default class OpenItems {
 		return null;
 	}
 
-	/** Call right after `line` was appended to `file`. Returns the closeout tasks it filed (their ids), [] for the usual no-op. Never throws: a failure here must not undo the write it follows. */
+	/** Known gaps: writes that bypass both chokepoints and so file nothing: Server/PromptRecords.mjs (fs.appendFileSync), Server/CloseoutWalk.mjs --apply, and RecordWriter.append_once (append.mjs and StaleClose when Servex is down).
+	 *  Cost: one replay per closing line (about 0.4-1.2 s on the 3.7 MB session-e00f55c9 record, measured), a second only when a filing is due.
+	 *  Call right after `line` was appended to `file`. Returns the closeout tasks it filed (their ids), [] for the usual no-op. Never throws: a failure here must not undo the write it follows. */
 	static after_write(file, line){
 		try {
 			if (!this.FILES.test(String(file)) || !this.CLOSING.test(JSON.stringify(line))) return [];
 			const all = this.read_lines(file);
 			if (!all.length) return [];
-			const before = this.replay(all.slice(0, -1)), after = this.replay(all);
-			const was = new Map(this.nodes(before).map(n => [n.ids.join("/"), n.node]));
+			const after = this.replay(all);
+			const at = line.at ?? line.ts ?? new Date().toISOString();
+			const due = this.nodes(after).filter(({ node }) => !Task.is_closeout(node) && Task.settled(node) && node.closeout_line(at));
+			if (!due.length) return [];
+			const was = new Map(this.nodes(this.replay(all.slice(0, -1))).map(n => [n.ids.join("/"), n.node]));
 			const filed = [];
 			let lines = all;
-			for (const { node, ids } of this.nodes(after)){
-				if (Task.is_closeout(node) || !Task.settled(node)) continue;
+			for (const { node, ids } of due){
 				const old = was.get(ids.join("/"));
 				if (old && Task.settled(old)) continue;
-				const own = node.closeout_line(line.at ?? line.ts ?? new Date().toISOString());
+				const own = node.closeout_line(at);
 				if (!own) continue;
 				const wrapped = this.reach(lines, ids, own);
 				if (!wrapped) continue;
