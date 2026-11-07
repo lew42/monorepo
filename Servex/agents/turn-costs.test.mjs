@@ -9,7 +9,7 @@ const A = "aaaaaaaa-0000-4000-8000-000000000001", B = "bbbbbbbb-0000-4000-8000-0
 const L = o => JSON.stringify({ at: "2026-10-24T20:00:00-05:00", agent: "x", ...o });
 const log = [
 	L({ type: "process", state: "started", pid: 1 }),
-	L({ type: "agent_msg", from: "host", text: `[You are Servex agent x.]\n[Your own page is /framework/ai/sessions/${A}/ — pass it as \`path\`…]` }),
+	L({ type: "agent_msg", from: "host", text: `[You are Servex agent x.]\n[Your session is ${A}; its one folder is /framework/ai/sessions/2026/10/24/session-aaaaaaaa/ (…)]` }),   // the wording since 2026-11-06; the older "Your own page is …/<uuid>/" still parses
 	L({ type: "result", turn_cost: 1, sdk_total: 1 }),
 	L({ type: "result", turn_cost: 2, sdk_total: 3 }),
 	L({ type: "agent_msg", from: "someone", text: `see /framework/ai/sessions/${C}/ — Your own page is /framework/ai/sessions/${C}/` }),   // quoted by another agent: not a marker

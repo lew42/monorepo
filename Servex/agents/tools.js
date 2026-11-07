@@ -269,7 +269,7 @@ function session_tools(agents){
 				return JSON.stringify(r ? await run_audit(args.session, r.session) : { error: "no transcript found for " + args.session });
 			}),
 		tool("log_session",
-			"Append ONE stamped line to a Claude session's own record (`sessions/<id>/session.jsonl`, tracked, append-only). `line` is"
+			"Append ONE stamped line to a Claude session's own record (`sessions/YYYY/MM/DD/<folder>/session.jsonl`, its one dated folder; tracked, append-only). `line` is"
 			+ " exactly one of: {tag:'name'}, {note:'text'}, {alert:'text', level:'info|warn|error'}, {weight:0-10}, {closed:true|false},"
 			+ " {question:'text', options:[..]}, {links:[{path,label}]} (1 to 3 core links). Refused with the reason if the shape is wrong."
 			+ " Shapes: /framework/ai/sessions/doc/data/record-spec.md. Use it to tag or flag a session you audited; never to rewrite one.",

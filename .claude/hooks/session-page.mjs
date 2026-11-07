@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import DatedFiles from "../../Server/DatedFiles.mjs";
 import SessionRecord from "../../Server/SessionRecord.mjs";
+import SessionFolders from "../../public/framework/core/Session/SessionFolders.mjs";
+import { fileURLToPath } from "node:url";
 
 /* session-page.mjs — the SessionStart hook: tells a VS Code / CLI tab its own page, and gives
  * the tab's store folder its session.jsonl (line 1 only, once).
@@ -14,8 +16,13 @@ process.stdin.on("data", d => raw += d).on("end", () => {
 	try {
 		const { session_id: id, cwd } = JSON.parse(raw);
 		if (!id) return;
-		console.log(`[Your own page is /framework/ai/sessions/${id}/ — pass it as \`path\` to page_set, page_add, page_call and page_read to change what the owner sees there.]`);
 		if (!process.env.SERVEX_MCP) record(id, cwd);
+		// The dated folder, never /framework/ai/sessions/<uuid>/ (that url only redirects): one folder per session, ai/sessions/doc/one-folder.md.
+		const store = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../public/framework/ai/sessions");
+		let dir = null; try { dir = SessionFolders.at(store).record_of(id) ?? DatedFiles.sessions.session_dir(id); } catch {}
+		const url = dir ? "/framework/ai/sessions/" + path.relative(store, dir).split(path.sep).join("/") + "/" : null;
+		console.log(url ? `[Your session is ${id}; its one folder is ${url} (pass it as \`path\` to page_set, page_add, page_call and page_read; /framework/ai/sessions/<uuid>/ is only a redirect, never a folder).]`
+			: `[Your session is ${id}.]`);
 	} catch {}
 });
 

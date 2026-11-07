@@ -183,6 +183,12 @@ export default class SessionConsolidate {
 		return { run, folded: done.length, held: held.map(h => ({ session: h.session, why: h.held })), relinked, groups: done };
 	}
 
+	/** Every folder directly under sessions/ named for a session uuid. Never allowed: a session's one folder is dated (YYYY/MM/DD/<folder>/). */
+	static flat(repo = REPO){
+		let names = []; try { names = fs.readdirSync(path.join(repo, STORE), { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name); } catch {}
+		return names.filter(n => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(n));
+	}
+
 	/** The twin check: every session held twice now, and the ids not in the last list (sessions/session-twins.json, kept with `write`).
 	 *  With no last list yet (`first`), nothing counts as new: the twins found then are the ones from before the check existed. */
 	static async check(repo = REPO, { write = false } = {}){
@@ -191,8 +197,10 @@ export default class SessionConsolidate {
 		let last = null; try { last = JSON.parse(fs.readFileSync(file, "utf8")).ids ?? []; } catch {}
 		const first = last === null, was = new Set(last ?? []), ids = twins.map(t => t.id), fresh = first ? [] : twins.filter(t => !was.has(t.id));
 		const rel = p => slash(path.relative(path.join(repo, STORE), p));
-		if (write) fs.writeFileSync(file, JSON.stringify({ at: new Date().toISOString(), count: ids.length, ids }) + "\n");
-		return { ok: !ids.length, first, count: ids.length, new: fresh.length, examples: fresh.concat(twins).slice(0, 5).map(t => ({ id: t.id, home: rel(t.home), others: t.others.map(rel) })) };
+		// A flat sessions/<uuid>/ folder is a second place too, even with no dated twin yet: the store's one shape is YYYY/MM/DD/<folder>/.
+		const flat = SessionConsolidate.flat(repo);
+		if (write) fs.writeFileSync(file, JSON.stringify({ at: new Date().toISOString(), count: ids.length, ids, flat }) + "\n");
+		return { ok: !ids.length && !flat.length, first, count: ids.length, new: fresh.length, flat, examples: fresh.concat(twins).slice(0, 5).map(t => ({ id: t.id, home: rel(t.home), others: t.others.map(rel) })) };
 	}
 }
 
@@ -210,7 +218,7 @@ if (process.argv[1] && path.resolve(process.argv[1]).endsWith(path.join("Server"
 	if (flag("--check")){
 		const r = await SessionConsolidate.check(REPO, { write: flag("--write") });
 		if (flag("--json")) console.log(JSON.stringify(r));
-		else console.log(r.ok ? "ok: every session has one folder" : `${r.count} sessions are held by more than one folder (${r.first ? "the first check: none counted as new" : r.new + " new since the last check"}). Fold them: node Server/SessionConsolidate.mjs --all, then --all --apply --manifest <file.json>\n` + r.examples.map(e => `  ${e.id}  ${e.home}  +  ${e.others.join(", ")}`).join("\n"));
+		else console.log(r.ok ? "ok: every session has one folder" : (r.flat.length ? `FAIL: ${r.flat.length} flat sessions/<uuid>/ folder(s); a writer went around SessionFolders: ${r.flat.join(", ")}\n` : "") + `${r.count} sessions are held by more than one folder (${r.first ? "the first check: none counted as new" : r.new + " new since the last check"}). Fold them: node Server/SessionConsolidate.mjs --all, then --all --apply --manifest <file.json>\n` + r.examples.map(e => `  ${e.id}  ${e.home}  +  ${e.others.join(", ")}`).join("\n"));
 		process.exit(r.ok ? 0 : 1);
 	}
 	if (flag("--all")){

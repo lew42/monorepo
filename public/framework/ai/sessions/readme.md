@@ -2,6 +2,8 @@
 
 A **session** is one run of Claude on this machine: a VS Code tab, a CLI run, a Servex agent, or a cloud voice call. This module is two things: the **folders** that hold each session's data, and the **page** (`/framework/ai/sessions/`) that lists them newest first and opens one. It is *not* the voice-session of [ext/Session](/framework/ext/Session/) (one ✦ press), and it never touches that class's `/api/sessions` route.
 
+> ⚠ **One session, one folder, always dated:** `sessions/YYYY/MM/DD/<folder>/`. `/framework/ai/sessions/<uuid>/` is a redirect url, never a folder. Every writer finds the folder through `SessionFolders` (below); `node Server/SessionConsolidate.mjs --check` fails on a flat `sessions/<uuid>/` folder or a session held twice, `Server/SessionConsolidate.test.mjs` fails on a flat one, and Servex posts a risk note every day while either exists. [doc/one-folder.md](doc/one-folder.md).
+
 ## On disk
 
 Everything lives under `public/framework/ai/sessions/YYYY/MM/DD/`:

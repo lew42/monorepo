@@ -19,6 +19,10 @@ This is the short base for any agent on this repo (a mastermind or a worker, Cla
 - **Readmes are the index.** Each lists everything directly inside its folder (or links a sub-doc that does). When a lookup is hard, write the search recipe into the nearest readme once you've solved it (example: [sessions, "How to find things"](sessions/readme.md#how-to-find-things)). Long form: [doc/rules.md](../doc/rules.md), "Readmes are the cheap index". (the owner, 2026-11-06)
 - **Every class gets one lean core test** (`X.test.mjs` beside it): make one instance, exercise the top ~50% of what it does, assert after each call, stay well under 1 s. Add it when you build or first change a class that has none; don't over-test. How, and what earns more: [core/Test](../core/Test/readme.md).
 
+## ⚠ One folder per session (the owner, asked many times; 2026-11-06)
+
+A session has exactly ONE folder: `public/framework/ai/sessions/YYYY/MM/DD/<folder>/`, the day it began. The url `/framework/ai/sessions/<uuid>/` only redirects there; never create, name or write a folder `sessions/<uuid>/`. Your session's folder is printed at start ("Your session is …; its one folder is …"). In code, find it with `SessionFolders.at(store).of(id)` ([core/Session/SessionFolders.mjs](../core/Session/SessionFolders.mjs)), never by building a path. A check fails loudly on a flat folder: `node Server/SessionConsolidate.mjs --check`. Details: [sessions/doc/one-folder.md](sessions/doc/one-folder.md).
+
 ## Explaining to the owner
 
 - **Show an API as JavaScript or pseudocode** (`page.tabs.add({name: "today"})`), not as a JSON delta, unless the owner asks what the delta looks like. Say which object the call operates on (`page`, `page.items`, a card). (the owner, 2026-11-06)
