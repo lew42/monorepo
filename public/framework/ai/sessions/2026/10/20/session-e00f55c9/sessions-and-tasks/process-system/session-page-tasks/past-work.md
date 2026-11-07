@@ -33,7 +33,7 @@
 - 2026/10/15 [Live post review](/framework/ai/sessions/2026/10/15/session-4a77ddf9/) — kind/agent model/sonnet mod/ai/sessions task/live-post page/live-cards · $0.23
 - 2026/10/17 [Voice mastermind Opus session](/framework/ai/sessions/2026/10/17/session-0368b7c5/) — kind/owner model/opus mod/ai/sessions task/voice-opus servex/voice · $20.90
 - 2026/10/16 [Owner check: voice session 2026-10-16 items](/framework/ai/sessions/2026/10/16/session-4a4fea68/) — kind/agent model/sonnet mod/ai/sessions task/owner-words.md framework/sessions · $0.27
-- 2026/10/16 [Voice session 2026-10-16](/framework/ai/sessions/2026/10/16/session-24f68eac/) — kind/owner model/opus mod/ai/sessions task/voice-20261016 servex/voice · $18.12
+- 2026/10/16 [Voice session 2026-10-16](/framework/ai/sessions/2026/10/16/voice-20261016/) — kind/owner model/opus mod/ai/sessions task/voice-20261016 servex/voice · $18.12
 - 2026/10/16 [Past-work task mastermind](/framework/ai/sessions/2026/10/16/session-1fe7009b/) — kind/owner model/sonnet mod/ai/sessions mod/core/page mod/ai/aisession task/past-work · $11.04
 - 2026/10/15 [Clarity live post](/framework/ai/sessions/2026/10/15/session-e9ea50e3/) — kind/agent model/sonnet work/read-only task/live-post page/live-cards · $0.14
 

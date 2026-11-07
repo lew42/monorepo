@@ -30,7 +30,7 @@
 - [Owner notes, 2026-10-16 (night): the task system read top-d…](/framework/core/Task/doc/owner-2026-10-16-top-down.md) — Third note of the day; read owner-2026-10-16-task-system.md and owner-2026-10-16-composition.md first. Where the owner said "I'm not sure",…
 
 ## Sessions tagged with these words
-- 2026/10/15 [Voice session 2026-10-15](/framework/ai/sessions/2026/10/15/session-dc8f60e1/) — kind/owner model/opus mod/ai/sessions task/voice-20261015 servex/remote-tools · $16.67
+- 2026/10/15 [Voice session 2026-10-15](/framework/ai/sessions/2026/10/15/voice-20261015/) — kind/owner model/opus mod/ai/sessions task/voice-20261015 servex/remote-tools · $16.67
 - 2026/10/15 [Clarity voice session](/framework/ai/sessions/2026/10/15/session-cbce90d6/) — kind/agent model/sonnet work/read-only task/voice-20261015. framework/ai · $0.23
 - 2026/10/15 [Standing rules for domain masterminds](/framework/ai/sessions/2026/10/15/session-7e1f2802/) — kind/owner model/sonnet work/read-only task/standing-rules framework/sessions · $0.57
 - 2026/10/15 [Clarity remote tools](/framework/ai/sessions/2026/10/15/session-6c354292/) — kind/agent model/sonnet work/read-only task/remote-tools framework/digest · $0.15

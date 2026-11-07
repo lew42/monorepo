@@ -32,8 +32,8 @@
 - 2026/10/15 [Voice mastermind 2026-10-15](/framework/ai/sessions/2026/10/15/session-ec7470e9/) — kind/owner model/opus work/read-only task/voice-20261015 servex/voice · $4.27
 - 2026/10/15 [Clarity voice session](/framework/ai/sessions/2026/10/15/session-cbce90d6/) — kind/agent model/sonnet work/read-only task/voice-20261015. framework/ai · $0.23
 - 2026/10/16 [Voice mastermind](/framework/ai/sessions/2026/10/16/session-6a73099d/) — kind/owner model/sonnet work/read-only task/voice-today · $2.79
-- 2026/10/16 [Voice session 2026-10-16](/framework/ai/sessions/2026/10/16/session-24f68eac/) — kind/owner model/opus mod/ai/sessions task/voice-20261016 servex/voice · $18.12
-- 2026/10/15 [Voice session 2026-10-15](/framework/ai/sessions/2026/10/15/session-dc8f60e1/) — kind/owner model/opus mod/ai/sessions task/voice-20261015 servex/remote-tools · $16.67
+- 2026/10/16 [Voice session 2026-10-16](/framework/ai/sessions/2026/10/16/voice-20261016/) — kind/owner model/opus mod/ai/sessions task/voice-20261016 servex/voice · $18.12
+- 2026/10/15 [Voice session 2026-10-15](/framework/ai/sessions/2026/10/15/voice-20261015/) — kind/owner model/opus mod/ai/sessions task/voice-20261015 servex/remote-tools · $16.67
 - 2026/10/15 [Class map page system](/framework/ai/sessions/2026/10/15/session-c6902aa6/) — kind/agent model/sonnet work/read-only task/page-system docs/classes · $0.14
 
 ## Owner asks

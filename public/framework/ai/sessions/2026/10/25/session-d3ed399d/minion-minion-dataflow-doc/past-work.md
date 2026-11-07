@@ -30,7 +30,7 @@
 - 2026/10/13 [Skills review](/framework/ai/sessions/2026/10/13/session-b2112dfe/) — kind/owner model/opus mod/.claude/skills/mastermind mod/ai/doc mod/.claude/skills/minion task/mastermind-repo-slim · $11.16
 - 2026/10/16 [Inbox labels](/framework/ai/sessions/2026/10/16/session-e91fc031/) — kind/owner model/sonnet mod/core/page mod/servex mod/.claude/skills/mastermind task/inbox-labels · $1.45
 - 2026/10/16 [Owner check: voice session 2026-10-16 items](/framework/ai/sessions/2026/10/16/session-4a4fea68/) — kind/agent model/sonnet mod/ai/sessions task/owner-words.md framework/sessions · $0.27
-- 2026/10/16 [Voice session 2026-10-16](/framework/ai/sessions/2026/10/16/session-24f68eac/) — kind/owner model/opus mod/ai/sessions task/voice-20261016 servex/voice · $18.12
+- 2026/10/16 [Voice session 2026-10-16](/framework/ai/sessions/2026/10/16/voice-20261016/) — kind/owner model/opus mod/ai/sessions task/voice-20261016 servex/voice · $18.12
 - 2026/10/16 [Past-work task mastermind](/framework/ai/sessions/2026/10/16/session-1fe7009b/) — kind/owner model/sonnet mod/ai/sessions mod/core/page mod/ai/aisession task/past-work · $11.04
 
 ## Owner asks

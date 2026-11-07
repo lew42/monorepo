@@ -32,7 +32,7 @@
 ## Sessions tagged with these words
 - 2026/10/20 [Ultracode](/framework/ai/sessions/2026/10/20/session-730e8a7b/) — kind/owner mod/ai/sessions mod/.claude/skills/voice-mastermind framework/digest · $646.14
 - 2026/10/15 [Clarity voice mastermind](/framework/ai/sessions/2026/10/15/session-e1a13a37/) — kind/agent model/sonnet mod/ai/sessions task/mastermind-repo-slim framework/ai · $0.25
-- 2026/10/15 [Voice session 2026-10-15](/framework/ai/sessions/2026/10/15/session-dc8f60e1/) — kind/owner model/opus mod/ai/sessions task/voice-20261015 servex/remote-tools · $16.67
+- 2026/10/15 [Voice session 2026-10-15](/framework/ai/sessions/2026/10/15/voice-20261015/) — kind/owner model/opus mod/ai/sessions task/voice-20261015 servex/remote-tools · $16.67
 - 2026/10/15 [Clarity voice session](/framework/ai/sessions/2026/10/15/session-cbce90d6/) — kind/agent model/sonnet work/read-only task/voice-20261015. framework/ai · $0.23
 - 2026/10/15 [AI systems documentation audit](/framework/ai/sessions/2026/10/15/session-8a643cb8/) — kind/owner model/opus mod/ai/sessions task/ai-systems framework/ai · $7.41
 - 2026/10/15 [System map](/framework/ai/sessions/2026/10/15/session-582b5047/) — kind/owner model/opus mod/ai/sessions task/system-map framework/ai · $4.67

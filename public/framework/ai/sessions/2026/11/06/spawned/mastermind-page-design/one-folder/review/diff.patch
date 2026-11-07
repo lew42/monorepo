@@ -1,0 +1,299 @@
+diff --git a/.claude/hooks/session-page.mjs b/.claude/hooks/session-page.mjs
+index 656b1c24a8..2c9d586249 100644
+--- a/.claude/hooks/session-page.mjs
++++ b/.claude/hooks/session-page.mjs
+@@ -2,6 +2,8 @@ import fs from "node:fs";
+ import path from "node:path";
+ import DatedFiles from "../../Server/DatedFiles.mjs";
+ import SessionRecord from "../../Server/SessionRecord.mjs";
++import SessionFolders from "../../public/framework/core/Session/SessionFolders.mjs";
++import { fileURLToPath } from "node:url";
+ 
+ /* session-page.mjs — the SessionStart hook: tells a VS Code / CLI tab its own page, and gives
+  * the tab's store folder its session.jsonl (line 1 only, once).
+@@ -14,8 +16,13 @@ process.stdin.on("data", d => raw += d).on("end", () => {
+ 	try {
+ 		const { session_id: id, cwd } = JSON.parse(raw);
+ 		if (!id) return;
+-		console.log(`[Your own page is /framework/ai/sessions/${id}/ — pass it as \`path\` to page_set, page_add, page_call and page_read to change what the owner sees there.]`);
+ 		if (!process.env.SERVEX_MCP) record(id, cwd);
++		// The dated folder, never /framework/ai/sessions/<uuid>/ (that url only redirects): one folder per session, ai/sessions/doc/one-folder.md.
++		const store = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../public/framework/ai/sessions");
++		let dir = null; try { dir = SessionFolders.at(store).record_of(id) ?? DatedFiles.sessions.session_dir(id); } catch {}
++		const url = dir ? "/framework/ai/sessions/" + path.relative(store, dir).split(path.sep).join("/") + "/" : null;
++		console.log(url ? `[Your session is ${id}; its one folder is ${url} (pass it as \`path\` to page_set, page_add, page_call and page_read; /framework/ai/sessions/<uuid>/ is only a redirect, never a folder).]`
++			: `[Your session is ${id}.]`);
+ 	} catch {}
+ });
+ 
+diff --git a/.claude/skills/make/SKILL.md b/.claude/skills/make/SKILL.md
+index 85c91d72bd..510c115e8a 100644
+--- a/.claude/skills/make/SKILL.md
++++ b/.claude/skills/make/SKILL.md
+@@ -12,7 +12,7 @@ What a new file is called, where it goes and what goes in it are the most import
+ Say the thing in one plain sentence: what it is, and what a newcomer would call it. For a name the owner will see (a class, a page, a module), brainstorm before you pick: 3–5 cheap agents (Sonnet, low effort), each given the sentence, the neighbours' names and one angle (plain English · what the user sees · what it does · what a rival library calls it · the shortest), 5 names each. **Pick for clarity, not wit:** rule out a name that needs explaining, clashes with a neighbour or a reserved CSS prefix (`new-css-class`), or names how it is built instead of what it is. Log the pick as a `decision` with the runner-up (the `decide` skill, for a name the owner will see).
+ 
+ - A class's folder, file and name are one capitalised word: `ext/JSONL/JSONL.js` holds `class JSONL`.
+-- **Folders:** plural when the folder holds many of one kind (`ai/sessions/<id>/`), singular when it is one thing (`ai/system/`, every class folder). Don't rename an existing folder only to fit this.
++- **Folders:** plural when the folder holds many of one kind (`ai/tasks/`), singular when it is one thing (`ai/system/`, every class folder). Don't rename an existing folder only to fit this.
+ 
+ ## 2. Place it
+ 
+diff --git a/Server/SessionConsolidate.mjs b/Server/SessionConsolidate.mjs
+index 104330494f..f629a9f93a 100644
+--- a/Server/SessionConsolidate.mjs
++++ b/Server/SessionConsolidate.mjs
+@@ -183,6 +183,12 @@ export default class SessionConsolidate {
+ 		return { run, folded: done.length, held: held.map(h => ({ session: h.session, why: h.held })), relinked, groups: done };
+ 	}
+ 
++	/** Every folder directly under sessions/ named for a session uuid. Never allowed: a session's one folder is dated (YYYY/MM/DD/<folder>/). */
++	static flat(repo = REPO){
++		let names = []; try { names = fs.readdirSync(path.join(repo, STORE), { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name); } catch {}
++		return names.filter(n => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(n));
++	}
++
+ 	/** The twin check: every session held twice now, and the ids not in the last list (sessions/session-twins.json, kept with `write`).
+ 	 *  With no last list yet (`first`), nothing counts as new: the twins found then are the ones from before the check existed. */
+ 	static async check(repo = REPO, { write = false } = {}){
+@@ -191,8 +197,10 @@ export default class SessionConsolidate {
+ 		let last = null; try { last = JSON.parse(fs.readFileSync(file, "utf8")).ids ?? []; } catch {}
+ 		const first = last === null, was = new Set(last ?? []), ids = twins.map(t => t.id), fresh = first ? [] : twins.filter(t => !was.has(t.id));
+ 		const rel = p => slash(path.relative(path.join(repo, STORE), p));
+-		if (write) fs.writeFileSync(file, JSON.stringify({ at: new Date().toISOString(), count: ids.length, ids }) + "\n");
+-		return { ok: !ids.length, first, count: ids.length, new: fresh.length, examples: fresh.concat(twins).slice(0, 5).map(t => ({ id: t.id, home: rel(t.home), others: t.others.map(rel) })) };
++		// A flat sessions/<uuid>/ folder is a second place too, even with no dated twin yet: the store's one shape is YYYY/MM/DD/<folder>/.
++		const flat = SessionConsolidate.flat(repo);
++		if (write) fs.writeFileSync(file, JSON.stringify({ at: new Date().toISOString(), count: ids.length, ids, flat }) + "\n");
++		return { ok: !ids.length && !flat.length, first, count: ids.length, new: fresh.length, flat, examples: fresh.concat(twins).slice(0, 5).map(t => ({ id: t.id, home: rel(t.home), others: t.others.map(rel) })) };
+ 	}
+ }
+ 
+@@ -210,7 +218,7 @@ if (process.argv[1] && path.resolve(process.argv[1]).endsWith(path.join("Server"
+ 	if (flag("--check")){
+ 		const r = await SessionConsolidate.check(REPO, { write: flag("--write") });
+ 		if (flag("--json")) console.log(JSON.stringify(r));
+-		else console.log(r.ok ? "ok: every session has one folder" : `${r.count} sessions are held by more than one folder (${r.first ? "the first check: none counted as new" : r.new + " new since the last check"}). Fold them: node Server/SessionConsolidate.mjs --all, then --all --apply --manifest <file.json>\n` + r.examples.map(e => `  ${e.id}  ${e.home}  +  ${e.others.join(", ")}`).join("\n"));
++		else console.log(r.ok ? "ok: every session has one folder" : (r.flat.length ? `FAIL: ${r.flat.length} flat sessions/<uuid>/ folder(s); a writer went around SessionFolders: ${r.flat.join(", ")}\n` : "") + `${r.count} sessions are held by more than one folder (${r.first ? "the first check: none counted as new" : r.new + " new since the last check"}). Fold them: node Server/SessionConsolidate.mjs --all, then --all --apply --manifest <file.json>\n` + r.examples.map(e => `  ${e.id}  ${e.home}  +  ${e.others.join(", ")}`).join("\n"));
+ 		process.exit(r.ok ? 0 : 1);
+ 	}
+ 	if (flag("--all")){
+diff --git a/Server/SessionConsolidate.test.mjs b/Server/SessionConsolidate.test.mjs
+new file mode 100644
+index 0000000000..cc9f9ace85
+--- /dev/null
++++ b/Server/SessionConsolidate.test.mjs
+@@ -0,0 +1,28 @@
++// SessionConsolidate's check: one scratch store, then the real one. A flat sessions/<uuid>/ folder fails it, loudly.
++// `node Server/SessionConsolidate.test.mjs`. Doc: public/framework/ai/sessions/doc/one-folder.md.
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import SessionConsolidate from "./SessionConsolidate.mjs";
++
++const ID = "c0c0c0c0-0003-4a19-9b01-000000000003";
++const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "session-consolidate-")), STORE = path.join(ROOT, "public/framework/ai/sessions");
++const put = (rel, obj) => { const d = path.join(STORE, rel); fs.mkdirSync(d, { recursive: true }); fs.writeFileSync(path.join(d, "session.jsonl"), JSON.stringify(obj) + "\n"); };
++try {
++	put("2026/11/03/session-c0c0c0c0", { session: { id: ID } });
++	fs.mkdirSync(path.join(STORE, "tasks"), { recursive: true });   // a plain folder at the root is fine
++	let r = await SessionConsolidate.check(ROOT);
++	assert.equal(r.ok, true, "one dated folder: ok");
++	assert.deepEqual(r.flat, []);
++
++	fs.mkdirSync(path.join(STORE, ID));   // a writer went around SessionFolders
++	r = await SessionConsolidate.check(ROOT);
++	assert.equal(r.ok, false, "a flat sessions/<uuid>/ folder fails the check");
++	assert.deepEqual(r.flat, [ID]);
++
++	// The real store: no flat session folder may exist. If this fails, fold it into its dated folder (doc above).
++	const real = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), "..");
++	assert.deepEqual(SessionConsolidate.flat(real), [], "flat session folders in public/framework/ai/sessions/");
++	console.log("SessionConsolidate.test: ok");
++} finally { fs.rmSync(ROOT, { recursive: true, force: true }); }
+diff --git a/Servex/TaskLoop.js b/Servex/TaskLoop.js
+index 0d83d8fcb9..9c6500ff95 100644
+--- a/Servex/TaskLoop.js
++++ b/Servex/TaskLoop.js
+@@ -168,7 +168,8 @@ export default class TaskLoop {
+             let r = null; try { r = JSON.parse(String(out).trim().split("\n").pop()); } catch {}
+             if (!r) return this.servex?.log?.append("servex", { type: "task-loop-error", error: "twins: " + String(err?.message || err || "no answer") }).catch(() => {});
+             if (r.first && r.count) this.servex?.cards?.owner_note?.({ title: `Twin check started: ${r.count} sessions have two folders`, text: `The daily check found ${r.count} sessions held by more than one folder, left from before the one finder (2026-11-01). From tomorrow it reports only new ones. Fold these: node Server/SessionConsolidate.mjs --all --apply --manifest <file>.`, kind: "risk", links: ["/framework/ai/sessions/doc/one-folder.md"], by: "task-loop" })?.catch?.(() => {});
+-            else if (r.new) this.servex?.cards?.owner_note?.({ title: `${r.new} sessions got a second folder`, text: `${r.count} sessions are held by more than one folder, ${r.new} new since the last check (e.g. ${r.examples[0]?.others?.[0] ?? "?"}). A writer went around SessionFolders; fold them with node Server/SessionConsolidate.mjs --all --apply --manifest <file>.`, kind: "risk", links: ["/framework/ai/sessions/doc/one-folder.md"], by: "task-loop" })?.catch?.(() => {});
++            // Loud every day while ANY twin or flat folder exists, not only new ones: 1,410 old twins sat silent for a week (2026-11-06).
++            else if (r.count || r.flat?.length) this.servex?.cards?.owner_note?.({ title: r.flat?.length ? `${r.flat.length} flat session folder(s) in sessions/` : `${r.count} sessions still have two folders`, text: `${r.flat?.length ? "Flat (a writer went around SessionFolders): " + r.flat.join(", ") + ". " : ""}${r.count} sessions are held by more than one folder${r.new ? `, ${r.new} new since the last check (e.g. ${r.examples[0]?.others?.[0] ?? "?"})` : ""}. Fold them: node Server/SessionConsolidate.mjs --all --apply --manifest <file>.`, kind: "risk", links: ["/framework/ai/sessions/doc/one-folder.md"], by: "task-loop" })?.catch?.(() => {});
+         });
+     }
+ 
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index f04213e940..77ce793111 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -334,7 +334,17 @@ export class Agents {
+ 	 * `parent` to spawn_agent — nothing else tells it. One line, first turn only. */
+ 	whoami(id, session_id){
+ 		return `[You are Servex agent ${id}.]\n` + (session_id
+-			? `[Your own page is /framework/ai/sessions/${session_id}/ — pass it as \`path\` to page_set, page_add, page_call and page_read to change what the owner sees there.]\n` : "");
++			? `[Your session is ${session_id}; ${Agents.folder_line(session_id)}]\n` : "");
++	}
++
++	/* Where an agent's session lives, in one sentence: its dated folder, never /framework/ai/sessions/<uuid>/ (that url only
++	 * redirects; ai/sessions/doc/one-folder.md). The SessionStart hook (.claude/hooks/session-page.mjs) prints the same. */
++	static folder_line(session_id){
++		const store = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../public/framework/ai/sessions");
++		let dir = null; try { dir = SessionFolders.at(store).record_of(session_id) ?? DatedFiles.sessions.session_dir(session_id); } catch {}
++		const url = dir ? "/framework/ai/sessions/" + path.relative(store, dir).split(path.sep).join("/") + "/" : null;
++		return url ? `its one folder is ${url} (pass it as \`path\` to page_set, page_add, page_call and page_read; /framework/ai/sessions/<uuid>/ is only a redirect, never a folder).`
++			: "omit `path` in the page tools to mean your own page.";
+ 	}
+ 
+ 	/* FORK_SELF — a copy of a session, asked ONE question in the background.
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 1fcbe1f395..44ec6cef48 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -60,6 +60,8 @@ function resolve_file(url, item = false){
+ 	if (named) pathname = path.dirname(pathname);
+ 	const dir = path.resolve(PUBLIC, pathname);
+ 	if (dir !== PUBLIC && !dir.startsWith(PUBLIC + path.sep)) return null;
++	// One folder per session (ai/sessions/doc/one-folder.md): a flat sessions/<uuid>/ folder is never a write target; the dated folder is.
++	if (FLAT_SESSION.test(path.relative(PUBLIC, dir).split(path.sep).join("/"))) return null;
+ 	if (named) return path.join(dir, named);
+ 	// Item tool only: task.jsonl beside a page.jsonl means a TASK folder (the page is its view); then session.jsonl; else the page.
+ 	// A folder with a task.jsonl and no page.jsonl is a task for EVERY page tool (page_set, page_call, page_log): never a stray page.jsonl beside it.
+@@ -79,6 +81,7 @@ function resolve_file(url, item = false){
+ const SESSION_ROUTE = /^\/?framework\/ai\/sessions\/([^/]+)\/(.*)$/;
+ const SESSION_QUERIES = ["progress", "cost", "total_cost", "duration", "children", "summary", "completion", "rates", "unread"];   // Task.queries: answered from the record, never written
+ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
++const FLAT_SESSION = /^framework\/ai\/sessions\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(\/|$)/;
+ 
+ /* TYPO-PROOF SESSION PATHS (2026-10-24, core/Session/doc/identity.md "A typed id that drifts"): a session folder is made only by the
+  * SessionStart hook, TaskDirs or a spawn, never because a path was typed. A session id or agent name this tool cannot find, and a
+@@ -89,10 +92,11 @@ const OMIT = "Omit `path` to mean your own page.";
+ 
+ async function resolve(url, target = [], item = false){
+ 	// No path and no agent id (a VS Code tab): "your own page" has no meaning, and the site's root page is never the answer.
+-	if (url == null || url === "") return { why: "no `path` was given and this caller has no Servex agent id, so there is no \"own page\" to write to; nothing was written. A VS Code tab passes its session page: /framework/ai/sessions/<session id>/." };
++	if (url == null || url === "") return { why: "no `path` was given and this caller has no Servex agent id, so there is no \"own page\" to write to; nothing was written. A VS Code tab passes its session folder, the dated path the SessionStart hook printed: /framework/ai/sessions/YYYY/MM/DD/<folder>/." };
+ 	const hit = SESSION_ROUTE.exec(String(url ?? ""));
+ 	// A real folder under sessions/ that is not a session (sessions/tasks/<task>/, a task's own home) is a plain path: only a typed name with nothing on disk is refused.
+-	const plain = hit && fs.existsSync(path.resolve(PUBLIC, "framework/ai/sessions", hit[1]));
++	// A uuid never counts: a stray flat sessions/<uuid>/ folder must not keep catching writes (one folder per session).
++	const plain = hit && !UUID.test(hit[1]) && fs.existsSync(path.resolve(PUBLIC, "framework/ai/sessions", hit[1]));
+ 	if (hit && !/^\d{4}$/.test(hit[1])){
+ 		const file = await session_file(hit[1]);
+ 		if (file?.why && !plain) return file;
+@@ -262,7 +266,7 @@ const is_plain = v => !!v && typeof v === "object" && !Array.isArray(v);
+ const tool = (name, description, properties, required, handler) =>
+ 	({ name, description, inputSchema: { type: "object", required, properties }, handler });
+ 
+-const PAGE_PATH = { type: "string", description: "The page's url as the browser shows it, e.g. \"/framework/core/Page/tool/\" or a session page \"/framework/ai/sessions/<id>/\" (its file is found for you, even if none exists yet). Omit it to mean YOUR OWN page, /framework/ai/sessions/<your agent id>/." };
++const PAGE_PATH = { type: "string", description: "The page's url as the browser shows it, e.g. \"/framework/core/Page/tool/\" or a session's one dated folder \"/framework/ai/sessions/YYYY/MM/DD/<folder>/\" (/framework/ai/sessions/<id>/ also finds it, as a redirect only: no folder is ever made there). Omit it to mean YOUR OWN page, /framework/ai/sessions/<your agent id>/." };
+ const TARGET = { type: "array", items: { type: "string" }, description: "The path to the target, as a list of hops — each one a property name (\"content\") or a child's id, never a slash; a hop may be a dotted path (\"tasks.ui.tasks.c3\" is four hops, each level looking up the next with its own get). [] (or omit) targets the PAGE itself. [\"content\"] targets its content list. [\"k2\"] targets the existing item with id \"k2\", wherever it lives. [\"k2\",\"answers\"] walks into k2's own \"answers\" list." };
+ 
+ /* ---------- page_read's COMPUTED state (deliverable 2) ----------
+diff --git a/Servex/agents/tools.js b/Servex/agents/tools.js
+index fc786971ed..f2ba370239 100644
+--- a/Servex/agents/tools.js
++++ b/Servex/agents/tools.js
+@@ -269,7 +269,7 @@ function session_tools(agents){
+ 				return JSON.stringify(r ? await run_audit(args.session, r.session) : { error: "no transcript found for " + args.session });
+ 			}),
+ 		tool("log_session",
+-			"Append ONE stamped line to a Claude session's own record (`sessions/<id>/session.jsonl`, tracked, append-only). `line` is"
++			"Append ONE stamped line to a Claude session's own record (`sessions/YYYY/MM/DD/<folder>/session.jsonl`, its one dated folder; tracked, append-only). `line` is"
+ 			+ " exactly one of: {tag:'name'}, {note:'text'}, {alert:'text', level:'info|warn|error'}, {weight:0-10}, {closed:true|false},"
+ 			+ " {question:'text', options:[..]}, {links:[{path,label}]} (1 to 3 core links). Refused with the reason if the shape is wrong."
+ 			+ " Shapes: /framework/ai/sessions/doc/data/record-spec.md. Use it to tag or flag a session you audited; never to rewrite one.",
+diff --git a/Servex/agents/turn-costs.js b/Servex/agents/turn-costs.js
+index 3b8b0ff9f6..6d06e5ee12 100644
+--- a/Servex/agents/turn-costs.js
++++ b/Servex/agents/turn-costs.js
+@@ -15,12 +15,13 @@
+  * Agent.began() writes when the CLI announces a new session ("session <uuid> · <model> · …"; the only marker a spawn with its own system
+  * brief, like assistant-fast, gets). null before any marker. */
+ const BEGAN = /^session ([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}) · /;
+-const WHOAMI = "Your own page is /framework/ai/sessions/", WHOAMI_ID = /Your own page is \/framework\/ai\/sessions\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\//;
++// Two wordings: "Your session is <uuid>;" (2026-11-06, the dated folder follows) and the older "Your own page is /framework/ai/sessions/<uuid>/".
++const WHOAMI = /Your session is [0-9a-f-]{36};|Your own page is \/framework\/ai\/sessions\//, WHOAMI_ID = /(?:Your session is |Your own page is \/framework\/ai\/sessions\/)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})[;/]/;
+ export function turn_costs(text, { openrouter = false } = {}){
+ 	const turns = [];
+ 	let proc = 0, last = 0, session = null;
+ 	for (const line of String(text).split("\n")){
+-		const whoami = line.includes(WHOAMI), began = line.includes('"type":"transcript","text":"session ');
++		const whoami = WHOAMI.test(line), began = line.includes('"type":"transcript","text":"session ');
+ 		if (!line.includes('"turn_cost"') && !line.includes('"state":"started"') && !line.includes('"type":"renew"') && !whoami && !began) continue;
+ 		let j; try { j = JSON.parse(line); } catch { continue; }
+ 		if (whoami && j.type === "agent_msg" && j.from === "host"){ session = String(j.text ?? "").match(WHOAMI_ID)?.[1] ?? session; continue; }
+diff --git a/Servex/agents/turn-costs.test.mjs b/Servex/agents/turn-costs.test.mjs
+index c7f1c31db6..61e23c4062 100644
+--- a/Servex/agents/turn-costs.test.mjs
++++ b/Servex/agents/turn-costs.test.mjs
+@@ -9,7 +9,7 @@ const A = "aaaaaaaa-0000-4000-8000-000000000001", B = "bbbbbbbb-0000-4000-8000-0
+ const L = o => JSON.stringify({ at: "2026-10-24T20:00:00-05:00", agent: "x", ...o });
+ const log = [
+ 	L({ type: "process", state: "started", pid: 1 }),
+-	L({ type: "agent_msg", from: "host", text: `[You are Servex agent x.]\n[Your own page is /framework/ai/sessions/${A}/ — pass it as \`path\`…]` }),
++	L({ type: "agent_msg", from: "host", text: `[You are Servex agent x.]\n[Your session is ${A}; its one folder is /framework/ai/sessions/2026/10/24/session-aaaaaaaa/ (…)]` }),   // the wording since 2026-11-06; the older "Your own page is …/<uuid>/" still parses
+ 	L({ type: "result", turn_cost: 1, sdk_total: 1 }),
+ 	L({ type: "result", turn_cost: 2, sdk_total: 3 }),
+ 	L({ type: "agent_msg", from: "someone", text: `see /framework/ai/sessions/${C}/ — Your own page is /framework/ai/sessions/${C}/` }),   // quoted by another agent: not a marker
+diff --git a/public/framework/ai/agents.md b/public/framework/ai/agents.md
+index 33b5130b21..2c0fe3198a 100644
+--- a/public/framework/ai/agents.md
++++ b/public/framework/ai/agents.md
+@@ -19,6 +19,10 @@ This is the short base for any agent on this repo (a mastermind or a worker, Cla
+ - **Readmes are the index.** Each lists everything directly inside its folder (or links a sub-doc that does). When a lookup is hard, write the search recipe into the nearest readme once you've solved it (example: [sessions, "How to find things"](sessions/readme.md#how-to-find-things)). Long form: [doc/rules.md](../doc/rules.md), "Readmes are the cheap index". (the owner, 2026-11-06)
+ - **Every class gets one lean core test** (`X.test.mjs` beside it): make one instance, exercise the top ~50% of what it does, assert after each call, stay well under 1 s. Add it when you build or first change a class that has none; don't over-test. How, and what earns more: [core/Test](../core/Test/readme.md).
+ 
++## ⚠ One folder per session (the owner, asked many times; 2026-11-06)
++
++A session has exactly ONE folder: `public/framework/ai/sessions/YYYY/MM/DD/<folder>/`, the day it began. The url `/framework/ai/sessions/<uuid>/` only redirects there; never create, name or write a folder `sessions/<uuid>/`. Your session's folder is printed at start ("Your session is …; its one folder is …"). In code, find it with `SessionFolders.at(store).of(id)` ([core/Session/SessionFolders.mjs](../core/Session/SessionFolders.mjs)), never by building a path. A check fails loudly on a flat folder: `node Server/SessionConsolidate.mjs --check`. Details: [sessions/doc/one-folder.md](sessions/doc/one-folder.md).
++
+ ## Explaining to the owner
+ 
+ - **Show an API as JavaScript or pseudocode** (`page.tabs.add({name: "today"})`), not as a JSON delta, unless the owner asks what the delta looks like. Say which object the call operates on (`page`, `page.items`, a card). (the owner, 2026-11-06)
+diff --git a/public/framework/ai/sessions/2026/11/03/session-239b0bd4/page.jsonl b/public/framework/ai/sessions/2026/11/03/session-239b0bd4/page.jsonl
+new file mode 100644
+index 0000000000..1ecb76c04a
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/03/session-239b0bd4/page.jsonl
+@@ -0,0 +1,2 @@
++{"log":{"msg":"Researched: Plugin system built 2026-11-02. Dictate/Recite integration planned but paused for Plugin merge. Writing report."},"by":"minion-past-work-plugin","ts":"2026-11-03T18:39:50.977Z"}
++{"finish":{"outcome":"Answered: Plugin system built 2026-11-02 at core/Plugin/. UI: live toggle + config panel. Dictate integration planned but paused on worktree/dictate-plugins; Recite BargeIn ready to plug. See report above."},"by":"minion-past-work-plugin","ts":"2026-11-03T18:40:12.490Z"}
+diff --git a/public/framework/ai/sessions/239b0bd4-68fd-4b96-9f0a-3807901571f2/page.jsonl b/public/framework/ai/sessions/239b0bd4-68fd-4b96-9f0a-3807901571f2/page.jsonl
+deleted file mode 100644
+index 1ecb76c04a..0000000000
+--- a/public/framework/ai/sessions/239b0bd4-68fd-4b96-9f0a-3807901571f2/page.jsonl
++++ /dev/null
+@@ -1,2 +0,0 @@
+-{"log":{"msg":"Researched: Plugin system built 2026-11-02. Dictate/Recite integration planned but paused for Plugin merge. Writing report."},"by":"minion-past-work-plugin","ts":"2026-11-03T18:39:50.977Z"}
+-{"finish":{"outcome":"Answered: Plugin system built 2026-11-02 at core/Plugin/. UI: live toggle + config panel. Dictate integration planned but paused on worktree/dictate-plugins; Recite BargeIn ready to plug. See report above."},"by":"minion-past-work-plugin","ts":"2026-11-03T18:40:12.490Z"}
+diff --git a/public/framework/ai/sessions/doc/one-folder.md b/public/framework/ai/sessions/doc/one-folder.md
+index 38866d5234..5f2926333b 100644
+--- a/public/framework/ai/sessions/doc/one-folder.md
++++ b/public/framework/ai/sessions/doc/one-folder.md
+@@ -51,7 +51,8 @@ Code: [`core/Session/SessionFolders.mjs`](/framework/core/Session/SessionFolders
+ 
+ ## The twin check, and the fold
+ 
+-- **Check:** `node Server/SessionConsolidate.mjs --check` exits 1 and lists any session held by two folders. Servex runs it once a day (`TaskLoop.twins_daily`, `--write` keeps the list in `sessions/session-twins.json`) and posts one risk note when an id is new since the last run: a new twin means a writer went around the finder. The first run has no list to compare with, so it counts none as new and posts one "twin check started" note with the count. `DatedFiles.sessions.check()` reports `twins` too.
++- **Check:** `node Server/SessionConsolidate.mjs --check` exits 1 and lists any session held by two folders, and any flat `sessions/<uuid>/` folder (`SessionConsolidate.flat()`; added 2026-11-06, because the twin finder only walks day folders and missed one). Servex runs it once a day (`TaskLoop.twins_daily`, `--write` keeps the list in `sessions/session-twins.json`) and posts a risk note **every day while any twin or flat folder exists**, not only when one is new (changed 2026-11-06: 1,410 old twins had sat silent for a week). `Server/SessionConsolidate.test.mjs` fails on a flat folder in the real store. `DatedFiles.sessions.check()` reports `twins` too.
++- **The flat-folder writer (found 2026-11-06):** the page tool treated an existing `sessions/<uuid>/` folder as a plain path, so once one existed (`239b0bd4…`, a minion's page lines on 2026-11-03) every later write went there. Now `resolve_file()` in `Servex/agents/page_tools.js` refuses any flat uuid folder, and a session route never counts as plain. The SessionStart hook and Servex's whoami used to say "Your own page is /framework/ai/sessions/<uuid>/", which agents read as a folder; both now print the dated folder (`Agents.folder_line`).
+ - **Fold:** `node Server/SessionConsolidate.mjs --all` (dry run), then `--all --apply --manifest <file.json>`. Task folders move into the home; `index.json` and `cache.jsonl` keep the fresher copy; other logs are appended without duplicates; every original is copied to `%LOCALAPPDATA%/lew42/servex/moved-aside/<run>/` first; a `redirect` line in `task-moves.jsonl` keeps old URLs working.
+ - **Today (2026-11-01):** 1,408 sessions are held twice, nearly all left from the 2026-10-09 rename (a uuid folder holding a stale `cache.jsonl` beside the slug). All 1,408 can be folded. Proved on a copy of their folders: 0 twins after, 1,408 session ids before and after, **0 of 16,445 lines lost** (15,019 found again, 1,412 older cache summaries and 13 older index snapshots where a fresher copy stays, 1 repeated line-1 marker): [fold-proof.json](/framework/ai/sessions/2026/10/20/session-e00f55c9/session-twins-fix/fold-proof.json).
+ - **Run the fold only after** this code is live in Servex and the dev server (`node Servex/sustain.mjs --restart`, then the dev server's restart), so no old process still holds a folder map.
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 0e3e7f0fd4..2b05f381be 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -2,6 +2,8 @@
+ 
+ A **session** is one run of Claude on this machine: a VS Code tab, a CLI run, a Servex agent, or a cloud voice call. This module is two things: the **folders** that hold each session's data, and the **page** (`/framework/ai/sessions/`) that lists them newest first and opens one. It is *not* the voice-session of [ext/Session](/framework/ext/Session/) (one ✦ press), and it never touches that class's `/api/sessions` route.
+ 
++> ⚠ **One session, one folder, always dated:** `sessions/YYYY/MM/DD/<folder>/`. `/framework/ai/sessions/<uuid>/` is a redirect url, never a folder. Every writer finds the folder through `SessionFolders` (below); `node Server/SessionConsolidate.mjs --check` fails on a flat `sessions/<uuid>/` folder or a session held twice, `Server/SessionConsolidate.test.mjs` fails on a flat one, and Servex posts a risk note every day while either exists. [doc/one-folder.md](doc/one-folder.md).
++
+ ## On disk
+ 
+ Everything lives under `public/framework/ai/sessions/YYYY/MM/DD/`:

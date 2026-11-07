@@ -27,8 +27,8 @@
 
 ## Sessions tagged with these words
 - 2026/10/17 [Voice mastermind Opus session](/framework/ai/sessions/2026/10/17/session-0368b7c5/) — kind/owner model/opus mod/ai/sessions task/voice-opus servex/voice · $20.90
-- 2026/10/16 [Voice session 2026-10-16](/framework/ai/sessions/2026/10/16/session-24f68eac/) — kind/owner model/opus mod/ai/sessions task/voice-20261016 servex/voice · $18.12
-- 2026/10/15 [Voice session 2026-10-15](/framework/ai/sessions/2026/10/15/session-dc8f60e1/) — kind/owner model/opus mod/ai/sessions task/voice-20261015 servex/remote-tools · $16.67
+- 2026/10/16 [Voice session 2026-10-16](/framework/ai/sessions/2026/10/16/voice-20261016/) — kind/owner model/opus mod/ai/sessions task/voice-20261016 servex/voice · $18.12
+- 2026/10/15 [Voice session 2026-10-15](/framework/ai/sessions/2026/10/15/voice-20261015/) — kind/owner model/opus mod/ai/sessions task/voice-20261015 servex/remote-tools · $16.67
 - 2026/10/15 [Voice component refine and audit](/framework/ai/sessions/2026/10/15/session-9afd8738/) — kind/agent model/opus mod/ai/sessions task/refine-audit framework/refine · $0.88
 - 2026/10/15 [Refine-audit review](/framework/ai/sessions/2026/10/15/session-96266d4e/) — kind/agent model/opus mod/ai/sessions task/refine-audit framework/refine · $0.91
 - 2026/10/15 [Voice refine audit review](/framework/ai/sessions/2026/10/15/session-8e081544/) — kind/agent model/opus mod/ai/sessions task/refine-audit framework/refine · $0.79
