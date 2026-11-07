@@ -12,6 +12,7 @@ import TunnelKeeper from "./ext/remote/TunnelKeeper.js";
 import Monitor from "./Monitor.js";
 import Processes from "./Processes.js";
 import Games from "./Games.js";
+import Relief from "./Relief.js";
 import Worktrees from "./Worktrees.js";
 import TaskLoop from "./TaskLoop.js";
 import { hooks as page_tool_hooks, serve_item } from "./agents/page_tools.js";
@@ -275,6 +276,8 @@ export default class Servex extends Events {
          * Games.js says the rule; it reads idle time and RAM off `this.procmon`, so it
          * starts after it, same as Worktrees below. */
         if (!process.env.SERVEX_NO_GAMES) this.games = new this.constructor.Games({ servex: this }).start();
+        /* RELIEF (resources, 2026-11-06): at SERVEX_RELIEF_PCT (70) commit, once per 15 min, sweep + stop finished servers + sleep idle agents. Relief.js, doc/processes.md. */
+        if (!process.env.SERVEX_NO_RELIEF) this.relief = new this.constructor.Relief({ servex: this }).start();
         /* WORKTREE CLEAN-UP (same task): a finished worktree is removed, its branch kept,
          * and Servex forgets its project, port and subdomain. Worktrees.js says when. */
         if (!process.env.SERVEX_NO_WORKTREES) this.worktrees = new this.constructor.Worktrees({ servex: this }).start();
@@ -1590,7 +1593,7 @@ export default class Servex extends Events {
             last = Date.now();
             const dry = !!process.env.SERVEX_REAPER_DRY;
             const mine = this.reaping = this.lifecycle.sweep({ dry })
-                .then(r => { this.log.append("servex", { type: "lifecycle-sweep", dry, closed: r.close.length, gone: r.gone.length, kept: r.kept.length }).catch(() => {}); return r; })   // every sweep leaves a line, even an empty one
+                .then(r => { this.log.append("servex", { type: "lifecycle-sweep", dry, closed: r.close.length, gone: r.gone.length, kept: r.kept.length, dormant: r.dormant ?? 0 }).catch(() => {}); return r; })   // every sweep leaves a line, even an empty one
                 .then(({ close, gone }) => (close.length || gone.length) && this.say(`lifecycle${dry ? " (dry)" : ""}: ${dry ? "would close" : "closed"} ${close.map(r => `${r.kind} ${r.id} (${r.why})`).join("; ") || "nothing"}; ${gone.length} dead log line(s) ended`))
                 .catch(e => this.say(`lifecycle: sweep failed: ${e.message || e}`))
                 .finally(() => { if (this.reaping === mine) this.reaping = null; });
@@ -1612,6 +1615,7 @@ export default class Servex extends Events {
             try { this.monitor?.stop(); } catch {}
             try { this.procmon?.stop(); } catch {}
             try { this.games?.stop(); } catch {}
+            try { this.relief?.stop(); } catch {}
             try { this.worktrees?.stop(); } catch {}
             try { this.task_loop?.stop(); } catch {}
             try { this.heartbeat?.stop(); } catch {}
@@ -1796,6 +1800,7 @@ Servex.MCP = MCP;
 Servex.Monitor = Monitor;
 Servex.Processes = Processes;
 Servex.Games = Games;
+Servex.Relief = Relief;
 Servex.Worktrees = Worktrees;
 Servex.TaskLoop = TaskLoop;
 Servex.Heartbeat = Heartbeat;

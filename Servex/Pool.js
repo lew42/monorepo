@@ -56,7 +56,8 @@ export default class Pool extends Events {
     }
 
     start(){
-        this.started = this.adopt().then(() => this.sweep()).catch(e => this.say(`pool: start failed: ${e.message}`));
+        this.adopting = true;
+        this.started = this.adopt().finally(() => { this.adopting = false; }).then(() => this.sweep()).catch(e => this.say(`pool: start failed: ${e.message}`));
         this.timer = setInterval(() => this.sweep().catch(e => this.say(`pool: sweep failed: ${e.message}`)), 10 * 60 * 1000);
         this.timer.unref();
         return this;
@@ -131,7 +132,7 @@ export default class Pool extends Events {
             if (!ff.ok){
                 slot.state = "bad";
                 this.say(`pool: ${slot.id} would not fast-forward to ${this.base} — dropped: ${ff.out}`, { id: slot.id });
-                this.remove(slot);
+                this.remove(slot, { force: true });
                 continue;
             }
             this.say(`pool: ${slot.id} taken by ${slot.taken_by}`, { id: slot.id, taken_by: slot.taken_by });
@@ -153,6 +154,7 @@ export default class Pool extends Events {
      * slot is ready right now, so a caller (a minion with no worktree yet) is never blocked
      * waiting for one. */
     take_sync(caller){
+        if (this.adopting) return null;   // adopt() is still checking inherited slots; taking one now raced its remove() (qf-1 15:43, qf-2 20:17, 2026-11-06). Doc: doc/pool.md
         const slot = this.slots.find(s => s.state === "ready");
         if (!slot) return null;
         Object.assign(slot, { state: "taken", taken_by: caller || "unknown", taken_at: stamp(), idle_since: null });
@@ -161,7 +163,7 @@ export default class Pool extends Events {
         catch (e){
             slot.state = "bad";
             this.say(`pool: ${slot.id} would not fast-forward to ${this.base} (sync take) — dropped`, { id: slot.id });
-            this.remove(slot);
+            this.remove(slot, { force: true });
             return null;
         }
         try { this.servex?.lifecycle?.took(slot, slot.taken_by); } catch {}
@@ -260,7 +262,7 @@ export default class Pool extends Events {
             // reachable on landed/<slot>-<date>, because worktree-down deletes the slot's own branch.
             const sha = (await this.git(slot.path, ["rev-parse", "--short", "HEAD"])).out;
             await this.git(slot.path, ["branch", "-f", `landed/${id}-${stamp().slice(0, 10)}-${sha}`, "HEAD"]);
-            this.remove(slot);
+            this.remove(slot, { force: true });
             this.top_up();
             this.say(`pool: ${id} returned; its branch was applied, not merged, so it is removed and a fresh one made`, { id });
             return this.list();
@@ -279,7 +281,7 @@ export default class Pool extends Events {
             await this.restore(slot, generated);
             ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
             if (ff.ok){
-                this.remove(slot);
+                this.remove(slot, { force: true });
                 this.top_up();
                 this.say(`pool: ${id} returned; its server's log files blocked the fast-forward, so it is removed and a fresh one made`, { id });
                 return this.list();
@@ -542,7 +544,11 @@ export default class Pool extends Events {
      * forgotten, and left on disk for a person to look at. Its server is stopped
      * FIRST, so the baseline files (see `dirt()`) can be put back to HEAD
      * without the server writing them again, and worktree-down finds it clean. */
-    remove(slot){
+    remove(slot, { force = false } = {}){
+        if (!force){
+            const why = this.in_use(slot);
+            if (why){ this.say(`pool: ${slot.id} NOT removed — ${why}`, { id: slot.id }); return this.chain; }
+        }
         this.page_unwatch(slot);
         this.forget(slot);
         this.leaving.push(slot);   // kept on disk until it is really gone, so a restart mid-way finishes it
@@ -572,6 +578,16 @@ export default class Pool extends Events {
           .finally(() => { this.leaving = this.leaving.filter(s => s !== slot); this.save(); });
     }
 
+    /* Why a slot must not be removed right now, or null: taken, held, or an agent works in its folder. `force` callers (take, take_sync, give_back) hold the slot themselves. */
+    in_use(slot){
+        if (slot.state === "taken") return `taken by ${slot.taken_by ?? "?"}`;
+        if (slot.held_by) return `held by ${slot.held_by}`;
+        const base = slash(path.resolve(slot.path)).toLowerCase();
+        const worker = this.holders().find(r => ["idle", "working", "queued", "starting"].includes(r.state) && r.cwd
+            && (c => c === base || c.startsWith(base + "/"))(slash(path.resolve(String(r.cwd))).toLowerCase()));
+        return worker ? `${worker.id} (${worker.state}) works in it` : null;
+    }
+
     forget(slot){
         this.slots = this.slots.filter(s => s !== slot);
         this.save();
@@ -583,11 +599,14 @@ export default class Pool extends Events {
      * dropped; a ready one whose server stopped answering is replaced; a watcher
      * that died is started again; one half-made or half-removed when Servex died is removed. */
     async adopt(){
-        for (const slot of this.leaving.splice(0)) if (fs.existsSync(slot.path)) this.remove(slot);
+        for (const slot of this.leaving.splice(0)) if (fs.existsSync(slot.path)) this.remove(slot, { force: true });   // removal already decided before the restart
         for (const slot of [...this.slots]){
             if (!fs.existsSync(slot.path)){ this.forget(slot); continue; }
             if (slot.state === "taken"){ this.page_watch(slot); continue; }
-            if (slot.state !== "ready" || !(await this.answers(slot.url))){ this.remove(slot); continue; }
+            if (slot.state !== "ready"){ this.remove(slot); continue; }
+            const up = await this.answers(slot.url);
+            if (slot.state !== "ready" || !this.slots.includes(slot)) continue;   // taken (or gone) during the await: it is someone's now
+            if (!up){ this.remove(slot); continue; }
             if (this.alive(slot.watcher_pid)){ this.kill(slot.watcher_pid, /health-supervisor/i); slot.watcher_pid = null; this.save(); }   // a ready slot holds no browser
         }
         if (this.slots.length) this.say(`pool: adopted ${this.slots.map(s => `${s.id} (${s.state})`).join(", ")}`);
