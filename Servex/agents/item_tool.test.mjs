@@ -450,6 +450,28 @@ try {
 		} finally { fs.rmSync(LDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 	}
 
+	// Review follow-up (page-design, 2026-11-07): bad_list_delta must agree with List.is_verb (List.js), not a hardcoded
+	// five, so a LivePage card's own content — a LiveContent (public/live/LiveContent.js, a List subclass that
+	// overrides `remove`/`clear`) — still takes its own verbs, a nested card's own content (every card is a page), and
+	// the `after` modifier real /live/ lines use beside `add`.
+	{
+		const VDIR = DIR + "-live-verbs", VURL = URL.replace(/\/$/, "-live-verbs/");
+		fs.mkdirSync(VDIR, { recursive: true });
+		fs.writeFileSync(path.join(VDIR, "page.jsonl"), JSON.stringify({ class: "/live/LivePage.js", title: "Live verbs" }) + "\n");
+		try {
+			let r = await call("item", { path: VURL, delta: { content: { add: { id: "card1", type: "part-card", title: "C1", text: "x" } } } });
+			ok(r.ok, "add a card on a LivePage");
+			r = await call("item", { path: VURL, delta: { content: { add: { id: "card2", type: "part-text", text: "y" }, after: "card1" } } });
+			ok(r.ok, "`after` beside `add` (real /live/ shape, public/live/lab/page.jsonl) still works");
+			r = await call("item", { path: VURL, delta: { content: { card1: { content: { add: { id: "nested1", type: "part-text", text: "deep" } } } } } });
+			ok(r.ok, "a nested card's OWN content (every card is a page) still takes an add");
+			r = await call("item", { path: VURL, delta: { content: { card1: { content: { remove: "nested1" } } } } });
+			ok(r.ok, "LiveContent's own remove() override, called on a nested card's content, still works");
+			r = await call("item", { path: VURL, delta: { content: { clear: true } } });
+			ok(r.ok, "LiveContent's own clear() override still works (it keeps what it clears, in `removed`, but the line itself must not be refused)");
+		} finally { fs.rmSync(VDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
+	}
+
 	// A mistaken {"pages":{…}} (a card id colliding with the reserved "pages" verb) used to be swallowed silently:
 	// none of its keys matched add/rename/remove/promote, so apply_pages did nothing, `done` stayed empty, and
 	// run_item_now read that as "nothing left to write" and skipped the append — ok:true, line:null, no why

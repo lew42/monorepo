@@ -1306,22 +1306,27 @@ async function page_refusal(at, delta){
 	return why ? { ok: false, why: `${why}. Nothing was written.` } : null;
 }
 
-const LIST_VERB_SET = new Set(["add", "remove", "move", "order", "clear", "set"]);
-/* A key reached inside a List (`content`, `pages`, …) must be one of its own verbs OR an existing member's id — never an
+/* A key reached inside a List (`content`, `pages`, …) must be one of ITS OWN verbs OR an existing member's id — never an
  * arbitrary field (review, mastermind-page-design, 2026-11-06): `{"content":{"text":"x"}}` names no verb and no card "text";
  * `{"content":{"nope":{"text":"x"}}}` names no card "nope". Both used to write a line that did nothing on a real replay:
  * Item/List's own apply() is deliberately forgiving (an unrecognised key is just stored as a plain FIELD ON THE LIST ITSELF,
  * never a warn or a throw — the "replay never crashes" rule page_refusal's own comment relies on), so `try_line` never
- * caught it either. Checked against the LIVE node (after `page_refusal`'s structural, class-only pass), so an existing card
- * id answers true even though bad_page_delta alone cannot know it. Walks into an Item's own List fields the same way
+ * caught it either. "A verb" is `List.is_verb(list, key)` (List.js), never a hardcoded five here: a LivePage card's own
+ * content is a LiveContent (public/live/LiveContent.js, a List subclass with its own `remove`/`clear` overrides), so this
+ * must agree with `List.js`'s own `set_one` about what counts as that list's verb, not just the base five (page-design
+ * review, 2026-11-07). Checked against the LIVE node (after `page_refusal`'s structural, class-only pass), so an existing
+ * card id answers true even though bad_page_delta alone cannot know it. Walks into an Item's own List fields the same way
  * (`node.get(key)`); a plain data key on an Item (not a List) is left alone — Page already allows arbitrary fields there. */
 function bad_list_delta(node, delta, trail = ""){
 	if (!is_plain(delta)) return null;
 	if (node instanceof List){
 		for (const [key, value] of Object.entries(delta)){
-			if (LIST_VERB_SET.has(key)) continue;
+			// `after` can ride BESIDE `add` at this same level, not only nested inside it (List.add: "`after` can arrive
+			// two ways: the live two-argument form… or `is_plain(x) ? x.after : undefined`"; real usage, public/live/lab/
+			// page.jsonl line 15), and its value is a position (an id, or null for "first"), never itself a card to find.
+			if (List.is_verb(node, key) || key === "after") continue;
 			const member = node.find?.(key);
-			if (member === undefined) return `"${trail}${key}" is not a list verb (${[...LIST_VERB_SET].join(", ")}) and not an existing card in this list`;
+			if (member === undefined) return `"${trail}${key}" is not a list verb (${Object.keys(node.constructor.callable ?? { add: 1, remove: 1, move: 1, order: 1, clear: 1, set: 1 }).join(", ")}) and not an existing card in this list`;
 			const why = bad_list_delta(member, value, `${trail}${key}.`);
 			if (why) return why;
 		}
