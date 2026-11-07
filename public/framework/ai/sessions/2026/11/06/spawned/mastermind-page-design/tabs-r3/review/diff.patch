@@ -1,0 +1,211 @@
+diff --git a/public/framework/core/Page/doc/jsonl.md b/public/framework/core/Page/doc/jsonl.md
+index c6b753b88..a549ccf74 100644
+--- a/public/framework/core/Page/doc/jsonl.md
++++ b/public/framework/core/Page/doc/jsonl.md
+@@ -102,6 +102,7 @@ all of it: [`core/Page/settings/`](/framework/core/Page/settings/).
+ - **One button per screen.** Under `navigation: "tabs"`, only the parent draws it. It opens the folder of the tab on screen if that tab has its own `page.jsonl` (Alpha), and otherwise the parent's (a tab made by a `tab` line, like Gamma). Code: `Jsonl.js files_button()`, `active_jsonl_page()`; `Page.class.js has_files_button()`.
+ - **A page shown as a tab draws no title of its own.** The tab label already names it (`Page.class.js in_tabs_frame()`).
+ - **The "Files · N" link** is not drawn where the button is.
++- **Under `/live/`, there is no Files button at all.** Every page there is a `LivePage` ([live/readme.md](/live/readme.md)), which shows a page's files as one list on its own gear-icon settings page (`<page>/settings/`, `LivePage.Files`) instead of this button.
+ 
+ **What decides a tab's content today** (the question of how voice should control it):
+ 
+diff --git a/public/live/demos/columns-page/page.jsonl b/public/live/demos/columns-page/page.jsonl
+index d6a552f89..ef5040d44 100644
+--- a/public/live/demos/columns-page/page.jsonl
++++ b/public/live/demos/columns-page/page.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"alpha/page.jsonl"}
+ {"file":"beta/page.jsonl"}
+ {"navigation":"columns","by":"minion-page-features","ts":"2026-11-06T21:50:31.499Z"}
++{"title":"Columns (shows as plain tabs — LivePage has no column layout)","by":"minion-tabs-r3","ts":"2026-11-06T23:52:30.727Z"}
+diff --git a/public/live/demos/columns/page.jsonl b/public/live/demos/columns/page.jsonl
+index 1e88595a6..7cfc85190 100644
+--- a/public/live/demos/columns/page.jsonl
++++ b/public/live/demos/columns/page.jsonl
+@@ -1,3 +1,4 @@
+ {"title":"Columns","class":"/live/LivePage.js"}
+ {"file":"alpha/page.jsonl"}
+ {"navigation":"columns","by":"minion-page-features","ts":"2026-11-06T21:52:29.134Z"}
++{"title":"Columns (shows as plain tabs — LivePage has no column layout)","by":"minion-tabs-r3","ts":"2026-11-06T23:52:30.727Z"}
+diff --git a/public/live/demos/nav-page/page.jsonl b/public/live/demos/nav-page/page.jsonl
+index bcf17217e..8b6e625a2 100644
+--- a/public/live/demos/nav-page/page.jsonl
++++ b/public/live/demos/nav-page/page.jsonl
+@@ -2,3 +2,4 @@
+ {"file":"alpha/page.jsonl"}
+ {"file":"beta/page.jsonl"}
+ {"navigation":"rail","by":"minion-page-features","ts":"2026-11-06T21:50:33.447Z"}
++{"title":"Nav rail (shows as plain tabs — LivePage has no rail layout)","by":"minion-tabs-r3","ts":"2026-11-06T23:52:30.727Z"}
+diff --git a/public/live/demos/nav/page.jsonl b/public/live/demos/nav/page.jsonl
+index 0017d3394..56664d95f 100644
+--- a/public/live/demos/nav/page.jsonl
++++ b/public/live/demos/nav/page.jsonl
+@@ -1,3 +1,4 @@
+ {"title":"Nav","class":"/live/LivePage.js"}
+ {"file":"alpha/page.jsonl"}
+ {"navigation":"rail","by":"minion-page-features","ts":"2026-11-06T21:52:27.882Z"}
++{"title":"Nav (shows as plain tabs — LivePage has no rail layout)","by":"minion-tabs-r3","ts":"2026-11-06T23:52:30.727Z"}
+diff --git a/public/live/demos/place-fresh/page.jsonl b/public/live/demos/place-fresh/page.jsonl
+index 2f7335e87..15c27f99e 100644
+--- a/public/live/demos/place-fresh/page.jsonl
++++ b/public/live/demos/place-fresh/page.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"note.md"}
+ {"place":"note.md","by":"minion-page-features","ts":"2026-11-06T21:51:26.858Z"}
+ {"file":"readme.md"}
++{"title":"Place, fresh (LivePage ignores the place line — file content never shows)","by":"minion-tabs-r3","ts":"2026-11-06T23:52:30.727Z"}
+diff --git a/public/live/demos/place-page/page.jsonl b/public/live/demos/place-page/page.jsonl
+index bc4b31e9a..ba39e965c 100644
+--- a/public/live/demos/place-page/page.jsonl
++++ b/public/live/demos/place-page/page.jsonl
+@@ -1,3 +1,4 @@
+ {"title":"Place (plain Page)","class":"/framework/core/Page/Page.class.js"}
+ {"content":{"add":{"id":"ppa9yebm","type":"part-text","text":"Before the place: this text is normal content."}},"by":"minion-page-features","ts":"2026-11-06T21:50:34.448Z"}
+ {"place":"readme.md","by":"minion-page-features","ts":"2026-11-06T21:50:34.949Z"}
++{"title":"Place (LivePage ignores the place line — file content never shows)","by":"minion-tabs-r3","ts":"2026-11-06T23:52:30.727Z"}
+diff --git a/public/live/demos/place/page.jsonl b/public/live/demos/place/page.jsonl
+index 0fc6e5764..8688c8967 100644
+--- a/public/live/demos/place/page.jsonl
++++ b/public/live/demos/place/page.jsonl
+@@ -2,3 +2,4 @@
+ {"content":{"add":{"id":"hcc1neiu","type":"part-text","text":"This is a LivePage. The place line below should show note.md if LivePage drew placed files."}},"by":"minion-page-features","ts":"2026-11-06T21:52:27.084Z"}
+ {"file":"note.md"}
+ {"place":"note.md","by":"minion-page-features","ts":"2026-11-06T21:52:32.557Z"}
++{"title":"Place (LivePage ignores the place line — file content never shows)","by":"minion-tabs-r3","ts":"2026-11-06T23:52:30.727Z"}
+diff --git a/public/live/demos/tabs-page/alpha/page.jsonl b/public/live/demos/tabs-page/alpha/page.jsonl
+index cdc217659..5b493466a 100644
+--- a/public/live/demos/tabs-page/alpha/page.jsonl
++++ b/public/live/demos/tabs-page/alpha/page.jsonl
+@@ -1 +1,31 @@
+ {"title":"Alpha","class":"/framework/core/Page/Page.class.js"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 1 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.974Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 2 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 3 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 4 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 5 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 6 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 7 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 8 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 9 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 10 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 11 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 12 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 13 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 14 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 15 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 16 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 17 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 18 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 19 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 20 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 21 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 22 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 23 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 24 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 25 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 26 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 27 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 28 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 29 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
++{"content":{"add":{"type":"part-text","text":"Alpha scroll line 30 of 30 — enough content to make this tab scroll."}},"by":"minion-tabs-r3","ts":"2026-11-06T23:52:23.975Z"}
+diff --git a/public/live/demos/tabs-page/page.jsonl b/public/live/demos/tabs-page/page.jsonl
+index 3062402f3..43a616ec1 100644
+--- a/public/live/demos/tabs-page/page.jsonl
++++ b/public/live/demos/tabs-page/page.jsonl
+@@ -9,3 +9,5 @@
+ {"tab":{"name":"eta","title":"Eta"},"by":"voice-app","ts":"2026-11-06T22:21:54.572Z"}
+ {"content":{"add":{"id":"hello-michael","tab":"overview","text":"Hello, Michael 👋","type":"part-heading"}},"by":"voice-app","ts":"2026-11-06T22:34:57.381Z"}
+ {"file":"ai/"}
++{"file":"ai/","gone":true}
++{"title":"Tabs","by":"minion-tabs-r3","ts":"2026-11-06T23:52:30.726Z"}
+diff --git a/public/live/doc/page-features.md b/public/live/doc/page-features.md
+index 8604b6dda..8ed514566 100644
+--- a/public/live/doc/page-features.md
++++ b/public/live/doc/page-features.md
+@@ -1,38 +1,60 @@
+ # Which Page features voice can actually use
+ 
+ Voice drives a page with one tool, `item({path, delta})` (`core/Page/doc/ai-api.md`). Five features
+-the owner asked about, each tried live under [/live/demos/](/live/demos/): once on a **LivePage**
+-sub-page (what a voice sub-page actually is) and once on a **plain Page** (`class` set to
+-`/framework/core/Page/Page.class.js`), to tell "Page itself is broken" from "LivePage does not draw it".
++the owner asked about were tried live under [/live/demos/](/live/demos/), each **twice**: once on a
++**LivePage** sub-page and once on a **plain Page** (`class` set to `/framework/core/Page/Page.class.js`),
++to tell "Page itself is broken" from "LivePage does not draw it".
++
++**That split is now moot (2026-11-06, tabs round 3).** Since live-page's round 7, every `page.jsonl`
++sub-page under `/live/` is built as a `LivePage` regardless of what `class` its own line 1 names
++(`LivePage.child`, `LivePage.log_class`) — so the "plain Page" demos draw as LivePage too. The two
++columns below now behave the same; the table keeps both links so the old data stays reachable, but
++the "plain Page" titles have been retitled to say what actually shows.
+ 
+ | Feature | Verdict | Delta voice sends | Demo |
+ |---|---|---|---|
+-| **tabs** | works (plain Page only) | `{"navigation":"tabs"}` on a page with children | [tabs-page](/live/demos/tabs-page/) · broken on LivePage: [tabs](/live/demos/tabs/) |
+-| **columns** | works (plain Page only, since eab8988ee) | `{"navigation":"columns"}` | [columns-page](/live/demos/columns-page/) · [columns](/live/demos/columns/) |
+-| **place** | works (plain Page, no own content) | `{"place":"note.md"}` | [place-fresh](/live/demos/place-fresh/) · not drawn on a page with its own content: [place-page](/live/demos/place-page/) · broken on LivePage: [place](/live/demos/place/) |
+-| **nav** (left rail) | works (plain Page only) | `{"navigation":"rail"}` on a page with children | [nav-page](/live/demos/nav-page/) · broken on LivePage: [nav](/live/demos/nav/) |
++| **tabs** | works — a leaf sub-page (no children of its own) becomes a tab | `{"navigation":"tabs"}` was the old plain-Page delta; on LivePage, tabs come from real sub-page folders | [tabs-page](/live/demos/tabs-page/) · [tabs](/live/demos/tabs/) |
++| **columns** | shows as plain tabs — LivePage has no column layout | `{"navigation":"columns"}` (now a no-op on LivePage) | [columns-page](/live/demos/columns-page/) · [columns](/live/demos/columns/) |
++| **place** | broken — LivePage ignores the place line entirely | `{"place":"note.md"}` | [place-fresh](/live/demos/place-fresh/) · [place-page](/live/demos/place-page/) · [place](/live/demos/place/) |
++| **nav** (left rail) | shows as plain tabs — LivePage has no rail layout | `{"navigation":"rail"}` (now a no-op on LivePage) | [nav-page](/live/demos/nav-page/) · [nav](/live/demos/nav/) |
+ | **previews** | broken | none — there is no delta for it | [previews](/live/demos/previews/) |
+ 
+ ## Why, one cause each
+ 
+-- **tabs** — `Frame.js:19-20` reads `page.navigation === "tabs"` and calls `this.tabs()` (from `ext/tabs`), which draws a real clickable strip over a panel. Proven: [tabs-page](/live/demos/tabs-page/) shows "Overview · Alpha · Beta", each a working tab. Since 2026-11-06 a tab draws no title of its own, one Files button covers every tab, and a `tab` line can carry `content` text ([core/Page/doc/jsonl.md](/framework/core/Page/doc/jsonl.md), "The Files button, and pages shown as tabs").
+-  - **Broken on LivePage** because `LivePage.js` `render()` builds its own head, cards and foot (`LivePage.Head`, `Main`, `Foot`) and never constructs a `PageFrame` — so `Frame.js` never runs, no matter what `navigation` says. [tabs](/live/demos/tabs/) shows "Nothing on screen yet".
+-  - Smallest fix: not worth it — LivePage is one screen, not a page with a navigable child list; tabs belongs on plain Page.
+-
+-- **columns** — `navigation: "columns"` now calls `page.columns()` the first time a render asks (`Page.class.js:665`, commit eab8988ee). Re-tested 2026-11-06 at 1200px: [columns-page](/live/demos/columns-page/) shows a first column listing Alpha and Beta, then empty columns to its right. When this doc was first written, the word did nothing.
+-  - **Broken on LivePage** for the same reason as tabs: no `PageFrame`.
+-
+-- **place** — `Jsonl.js`'s fallback `content()` (lines 199-206) calls `draw_folder()` → `log_draw()` → `draw_placed(entry)` for every `page.placed` entry, but only when the page has **no content of its own** (its default content, used by a bare `page.jsonl` page). Proven: [place-fresh](/live/demos/place-fresh/) shows `note.md`'s rendered markdown, plus a red "Not written yet" line for a file that does not exist — both the success and the failure path are real.
+-  - **Broken on LivePage** because `LivePage.Main` draws only `this.cards` (the `content` List) — it never calls `draw_folder()`/`log_draw()`, so `page.placed` entries are silently never drawn. [place](/live/demos/place/) shows the content text but not `note.md`.
+-  - Smallest fix: have `LivePage.Main` also call the page's `log_draw()` once, so a placed file appears among the live cards.
+-
+-- **nav** (rail) — `Frame.js:14` draws `this.rail("left")` when `navigation === "rail"`: an eyebrow labelled "pages", then one link per child (`rows()`, lines 79-94). Proven: [nav-page](/live/demos/nav-page/) shows "pages / Alpha / Beta" as real `<a>` rows.
+-  - **Broken on LivePage** for the same reason as tabs: no `PageFrame` is ever built. [nav](/live/demos/nav/) shows "Nothing on screen yet".
+-
+-- **previews** — there is no delta for it at all: `Page.callable` (`Page.class.js:42`) lists only `tab` and `place`; `Page.WORDS` (line 175) has no `previews`. `page.previews()`/`.list()` (`Previews.js`) is a method a page's own `content()` must call in real code — nothing in the item tool's vocabulary reaches it.
+-  - Calling it directly anyway (`{"previews":{}}`) is **refused**, not silently ignored: every delta is replayed in Node before it is written (`Servex/agents/page_tools.js:905`, `try_line`/`Refused`), and `previews()` builds real DOM (`div.c(…)`), which throws `document is not defined` outside a browser. The write is rejected with `"this line would not replay (document is not defined). Nothing was written."` — proven live against [previews](/live/demos/previews/).
+-  - Smallest fix: none makes sense for voice. A preview wall is code the page's author writes once; voice can already get the same result card by card with `part-link` (see `/live/readme.md`, "Going into a thing: sub-pages").
++- **tabs** — works. A LivePage's tab row is its own real sub-pages that have no sub-pages of their
++  own (`LivePage.pages_of`); switching tabs changes `location.pathname` and the breadcrumb (`live-crumb`)
++  redraws to match. [tabs-page](/live/demos/tabs-page/) (now titled "Tabs", not "Tabs (plain Page)" —
++  it stopped being a useful distinction once LivePage.child started lifting every sub-page) and
++  [tabs](/live/demos/tabs/) both show "Tabs · Alpha · Beta", each a real tab. The old `{"navigation":"tabs"}`
++  and `{"tab":{"name":…}}` lines on `tabs-page/page.jsonl` are dead data now — they did something
++  only under the plain-Page `Frame.js` renderer, which LivePage never runs.
++
++- **columns** — the `navigation: "columns"` word still works on a genuine plain Page elsewhere on the
++  site, but every `/live/` sub-page is forced to LivePage, so `columns-page` and `columns` draw exactly
++  like the tabs demo: a plain tab row over the leaf sub-pages, no side-by-side columns. Retitled both
++  to say so. **What LivePage lacks:** a column layout equivalent; logged for mastermind-live-page.
++
++- **place** — `Jsonl.js`'s fallback `content()` calls `draw_folder()` → `log_draw()` → `draw_placed(entry)`
++  for every `page.placed` entry, but `LivePage.Main` draws only `this.cards` (the `content` List) — it
++  never calls `log_draw()`, so a placed file's markdown never appears, on any of the three demos.
++  [place-page](/live/demos/place-page/) shows its own content text ("Before the place…") but never
++  `readme.md`; [place](/live/demos/place/) and [place-fresh](/live/demos/place-fresh/) are the same.
++  **What LivePage lacks:** a call to the page's `log_draw()` so a placed file appears among the live
++  cards; logged for mastermind-live-page, not built here (`LivePage.js` is out of this task's fence).
++
++- **nav** (rail) — same story as columns: `nav-page` and `nav` both draw as plain LivePage tabs, no
++  left rail. **What LivePage lacks:** a rail layout equivalent.
++
++- **previews** — unchanged from the last round: there is no delta for it at all (`Page.callable` lists
++  only `tab` and `place`); calling `{"previews":{}}` is refused at replay time, not silently ignored.
++  Smallest fix: none makes sense for voice — a preview wall is code a page's author writes once.
+ 
+ ## What this means for voice today
+ 
+-Voice gets a working **rail** or **top tabs** menu only by building a **plain Page** sub-page (`class` explicitly `/framework/core/Page/Page.class.js`), not the LivePage every `/live/` sub-page gets by default. On an ordinary LivePage sub-page, the only features that work from voice are what `ai-api.md` already documents: content cards (`part-text`, `part-card`, `part-heading`, `part-link`) and the LivePage-specific words (`flash`, `alert`, `save`, `restore`).
++Every `/live/` sub-page is a LivePage, full stop — there is no way to opt a sub-page out and get the
++plain-Page renderer's tabs/columns/rail/place words to work on it. The one feature that still works
++the way voice would want is **tabs**, and it works "for free": make the thing you want tabbed a set of
++plain leaf sub-pages (`{"pages":{"add":{…}}}`, `/live/readme.md` "Going into a thing: sub-pages") and
++the tab row and breadcrumb come from LivePage itself. `columns`, `nav` (rail) and `place` need LivePage
++changes outside this task's fence (`public/live/demos/**` only) — each is logged as a finding for
++mastermind-live-page to pick up. `previews` stays as described above: use `part-link` cards instead.

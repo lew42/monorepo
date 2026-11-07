@@ -92,10 +92,18 @@
 	.live-focus { display: flex; flex-direction: column; gap: var(--live-step); }
 	.live-focus .live-sub { opacity: 1; }   /* a card opened as a page: its text is the page, not a note under the title */
 
-	/* The light: a dot, gray when off, green and glowing when on. */
-	.live-icon { flex: none; display: inline-flex; align-items: center; font-size: 1.1rem; line-height: 1; }
+	/* A page's icon (LivePage.stored when it names none): the same in its header and on its cards. The small circle is
+	   an item kept inside its parent's page.jsonl; it is ink, not the light's gray, and smaller than the other icons. */
+	.live-icon { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 1.1rem; font-size: 1.1rem; line-height: 1; }
 	.live-icon .icon { font-size: inherit; opacity: .75; }
-	.live-dot { width: .8em; height: .8em; border-radius: 50%; flex: none; background: light-dark(#c9ccd2, #3a3940); transition: background .15s, box-shadow .15s; }
+	.live-icon .icon.is-small { font-size: .6rem; opacity: .6; }
+	.live-icon.is-empty, .live-icon.is-hidden { display: none; }
+	/* A card's icon and title share a row, on the title's first baseline (titles are sized per context: no fixed height). */
+	.live-card-head { display: flex; align-items: baseline; gap: .5rem; min-width: 0; }
+	.live-card-head > .live-card-title { flex: 1; min-width: 0; }
+	.live-card-icon { width: 1.25rem; font-size: 1.25rem; }
+	/* The light: a small dot by the gear, gray when off, green and glowing when on. */
+	.live-dot { width: .45rem; height: .45rem; border-radius: 50%; flex: none; background: light-dark(#c9ccd2, #3a3940); transition: background .15s, box-shadow .15s; }
 	.live-dot.is-on { background: var(--live-light, #22c55e); box-shadow: 0 0 .6em var(--live-light, #22c55e); }
 
 	/* One gap between every two cards, whatever they are. A row, wrapping: every card takes a whole line except the
@@ -103,7 +111,7 @@
 	.live-main { display: flex; flex-flow: row wrap; align-items: flex-start; gap: var(--live-gap) .6rem; }
 	.live-main > * { flex: 1 1 100%; }
 	.live-main > [data-kind="LiveButton"] { flex: none; }
-	.live-main.is-empty::before { content: "Nothing on screen yet."; opacity: .5; text-align: center; padding: 2rem 0; }
+	.live-main.is-empty::before { content: "Nothing on screen yet."; opacity: .5; text-align: center; padding: .25rem 0 0; }   /* close under the header: the page's own gap is the space above */
 	/* What cannot be tapped draws with no frame (a block); what can is a card (a link to a sub-page), with a chevron. */
 	.live-block { display: flex; flex-direction: column; gap: var(--live-step); min-width: 0; overflow-wrap: anywhere; }   /* no frame, so no inset: it runs the full width */
 	.live-card {

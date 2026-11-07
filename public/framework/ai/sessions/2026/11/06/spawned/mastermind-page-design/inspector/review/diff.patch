@@ -1,51 +1,281 @@
+diff --git a/public/files.jsonl b/public/files.jsonl
+index 9890b741fd..8484dfb062 100644
+--- a/public/files.jsonl
++++ b/public/files.jsonl
+@@ -143,3 +143,5 @@
+ {"file":"public/","gone":true}
+ {"file":"public/"}
+ {"file":"public/","gone":true}
++{"file":"data/","gone":true}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/2026/10/files.jsonl b/public/framework/ai/2026/10/files.jsonl
+index ca0ffb689f..7cc5bb12a3 100644
+--- a/public/framework/ai/2026/10/files.jsonl
++++ b/public/framework/ai/2026/10/files.jsonl
+@@ -7,3 +7,4 @@
+ {"file":"22/"}
+ {"file":"22/","gone":true}
+ {"file":"22/"}
++{"file":"22/","gone":true}
+diff --git a/public/framework/ai/AISession/files.jsonl b/public/framework/ai/AISession/files.jsonl
+index 2c35137d85..2d659d1786 100644
+--- a/public/framework/ai/AISession/files.jsonl
++++ b/public/framework/ai/AISession/files.jsonl
+@@ -76,3 +76,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/AITask/files.jsonl b/public/framework/ai/AITask/files.jsonl
+index a48e544e91..0b705b8924 100644
+--- a/public/framework/ai/AITask/files.jsonl
++++ b/public/framework/ai/AITask/files.jsonl
+@@ -60,3 +60,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/audits/paging/files.jsonl b/public/framework/ai/audits/paging/files.jsonl
+index b93dea49f2..054660a937 100644
+--- a/public/framework/ai/audits/paging/files.jsonl
++++ b/public/framework/ai/audits/paging/files.jsonl
+@@ -199,3 +199,12 @@
+ {"file":"shot-library-1920.png"}
+ {"file":"shot-variants-1920.png"}
+ {"file":"shot-variants-type-1920.png"}
++{"file":"cols-after.png","gone":true}
++{"file":"cols-before.png","gone":true}
++{"file":"cols-dragged.png","gone":true}
++{"file":"shot-1920.png","gone":true}
++{"file":"shot-content-1920.png","gone":true}
++{"file":"shot-css-1920.png","gone":true}
++{"file":"shot-library-1920.png","gone":true}
++{"file":"shot-variants-1920.png","gone":true}
++{"file":"shot-variants-type-1920.png","gone":true}
+diff --git a/public/framework/ai/classes/Session/files.jsonl b/public/framework/ai/classes/Session/files.jsonl
+index 487322ff1e..56f0f1e391 100644
+--- a/public/framework/ai/classes/Session/files.jsonl
++++ b/public/framework/ai/classes/Session/files.jsonl
+@@ -10,3 +10,4 @@
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/dashboard/files.jsonl b/public/framework/ai/dashboard/files.jsonl
+index 09e07678a4..a0c0283981 100644
+--- a/public/framework/ai/dashboard/files.jsonl
++++ b/public/framework/ai/dashboard/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"weight.jsonl"}
+ {"file":"tasks/"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/errors/files.jsonl b/public/framework/ai/errors/files.jsonl
+index f6fa1c12f5..f671f905da 100644
+--- a/public/framework/ai/errors/files.jsonl
++++ b/public/framework/ai/errors/files.jsonl
+@@ -106,3 +106,11 @@
+ {"file":"2026-11-01.jsonl"}
+ {"file":"2026-11-02.jsonl"}
+ {"file":"2026-11-03.jsonl"}
++{"file":"2026-10-09.jsonl","gone":true}
++{"file":"2026-10-21.jsonl","gone":true}
++{"file":"2026-10-25.jsonl","gone":true}
++{"file":"2026-10-26.jsonl","gone":true}
++{"file":"2026-10-28.jsonl","gone":true}
++{"file":"2026-11-01.jsonl","gone":true}
++{"file":"2026-11-02.jsonl","gone":true}
++{"file":"2026-11-03.jsonl","gone":true}
+diff --git a/public/framework/ai/files.jsonl b/public/framework/ai/files.jsonl
+index 5aeb9e4bde..cc19d34c0f 100644
+--- a/public/framework/ai/files.jsonl
++++ b/public/framework/ai/files.jsonl
+@@ -1496,3 +1496,19 @@
+ {"file":"v-s9g6vd1.summary.json"}
+ {"file":"index.json.tmp"}
+ {"file":"index.json.tmp","gone":true}
++{"file":"recordings/","gone":true}
++{"file":"usage.json","gone":true}
++{"file":"openrouter-usage.json","gone":true}
++{"file":"servex-queue.json","gone":true}
++{"file":"tasks.json","gone":true}
++{"file":"v-h999x0j.summary.json","gone":true}
++{"file":"v-s9g6vd1.summary.json","gone":true}
++{"file":"v-omwdzl5.summary.json","gone":true}
++{"file":"page-work.json","gone":true}
++{"file":"screenshots/","gone":true}
++{"file":"v-rs7u4o7.summary.json","gone":true}
++{"file":"state.json","gone":true}
++{"file":"index.jsonl.lock","gone":true}
++{"file":"index.json","gone":true}
++{"file":"index.jsonl","gone":true}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/local/files.jsonl b/public/framework/ai/local/files.jsonl
+index b087ecdc3e..851a0e2099 100644
+--- a/public/framework/ai/local/files.jsonl
++++ b/public/framework/ai/local/files.jsonl
+@@ -5,3 +5,4 @@
+ {"file":"vram.jsonl"}
+ {"file":"tasks/"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/queue/files.jsonl b/public/framework/ai/queue/files.jsonl
+index 79d4e209a4..b0a5155ab9 100644
+--- a/public/framework/ai/queue/files.jsonl
++++ b/public/framework/ai/queue/files.jsonl
+@@ -63,3 +63,7 @@
+ {"file":"failures.jsonl"}
+ {"file":"processes.json"}
+ {"file":"tasks/"}
++{"file":"done-check.json","gone":true}
++{"file":"dropped.json","gone":true}
++{"file":"failures.jsonl","gone":true}
++{"file":"processes.json","gone":true}
 diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof.md b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof.md
 new file mode 100644
-index 000000000..70662d009
+index 0000000000..6cde2bdcac
 --- /dev/null
 +++ b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof.md
-@@ -0,0 +1,17 @@
+@@ -0,0 +1,54 @@
 +# Proof
++
++## Round 2 (review fixes, 2026-11-06)
++
++| Fix | Result |
++|---|---|
++| 1. CSS framing | `Inspect.css` added — rows/lists/chips framed like `LivePage.Files` (`item-inspector-list-body`, `-row`, `-methods`, `delta-history-list`); falls back to a plain card color outside `/live/` |
++| 2. Cards + sub-pages in the History summary | `DeltaHistory.show()` now lists `content` ("cards") and `pages` rows via the shared `item_list()`, not just counts |
++| 3. Proof shows the slider | Full-height shots below, one at line 1 and one at line N, for both pages at both widths |
++| 4. Index line | `public/framework/ext/readme.md`'s `## Index` now lists Inspect |
++| 5. One method walk | `own_methods()` lives only in `ItemInspector.js` (exported); `live/design/ui/MethodMap.js` imports it and adds its `forwarder` flag on top |
++| 6. Heading cards' label | `label_of()` falls back to a part's `text` (truncated) when it has no `title` |
++| 7. Skip `_`-prefixed lists | ItemInspector's Inside filters `Object.keys(lists)` to drop `_pages` etc. |
++| 8. `$list` capped + scrollable | Log lines now append into `$list` (was a bug: they landed in `$box` instead); `.delta-history-list` is `max-height: 14rem; overflow-y: auto` |
++| 9. Settings passes the real class | `LivePage.Settings` now builds `DeltaHistory` with `Class: of.constructor`; `DeltaHistory` uses it instead of guessing from line 1 when given |
++| 10 (optional) | Noted in readme's Watch out: Methods lists every method, not only callable ones; no per-method comment (not cheap to recover at runtime) |
++| 11 (optional) | `ext/Inspect/page.js` added: a Doc page with a live `ItemInspector` demo over an in-memory sample page |
++
++Verified headless, `/live/plan/settings/`:
++- No `_pages (1)` row anywhere (fix 7)
++- A part-heading row reads `h0xklxte — Four classes, each one builds on the last` (its text), not just the id (fix 6)
++- `.item-inspector-list-body` exists and frames the rows (fix 1)
++- `.delta-history-list` computed style: `max-height: 224px`, `overflow-y: auto` (fix 8)
++- `/live/design/settings/` (a `DesignPage`, 141 lines, 15 `removed` + 31 `content`): Methods shows `DesignPage (4)` first (its own 4 methods), confirming `Class: of.constructor` is used, not the `Page` fallback (fix 9)
++
++`node --check` clean on all 6 touched/new files. `node public/framework/ext/Inspect/Inspect.test.mjs` passes, 0.13s.
++
++`node Server/smoke.mjs . /live/plan/settings/ --base http://localhost:62990` exits 0. `... /live/design/settings/ ...` together FAILs on one unrelated link: `/live/design/settings/failures.jsonl/` 404s, because `public/live/design/page.jsonl:139` has a bare `{"file":"failures.jsonl"}` line with no matching `{"gone":true}` and no such file on disk — stale data in design's own log, outside this task's fence (`LivePage.Files`, which reads it, is pre-existing code this task never touched). Not caused by this round: `/live/plan/settings/` alone is clean, and the failing link has nothing to do with Inspect.
++
++| Shot | Path |
++|---|---|
++| plan/settings, 400, line N (all 14 lines) | [proof/plan-settings-400-lineN.png](proof/plan-settings-400-lineN.png) |
++| plan/settings, 400, line 1 | [proof/plan-settings-400-line1.png](proof/plan-settings-400-line1.png) |
++| plan/settings, 1200, line N | [proof/plan-settings-1200-lineN.png](proof/plan-settings-1200-lineN.png) |
++| plan/settings, 1200, line 1 | [proof/plan-settings-1200-line1.png](proof/plan-settings-1200-line1.png) |
++| design/settings, 400, line N | [proof/design-settings-400-lineN.png](proof/design-settings-400-lineN.png) |
++| design/settings, 400, line 1 | [proof/design-settings-400-line1.png](proof/design-settings-400-line1.png) |
++| design/settings, 1200, line N | [proof/design-settings-1200-lineN.png](proof/design-settings-1200-lineN.png) |
++| design/settings, 1200, line 1 | [proof/design-settings-1200-line1.png](proof/design-settings-1200-line1.png) |
++
++## Round 1 (initial build)
 +
 +| Check | Result |
 +|---|---|
 +| `node --check` on all 4 new/touched JS files | clean |
 +| `node public/framework/ext/Inspect/Inspect.test.mjs` | pass, 0.13s (card count 0→1→2→3 as N goes 1→4) |
-+| `/live/plan/settings/` at 400 | [proof/plan-settings-400.png](proof/plan-settings-400.png) — Inside (11 content cards + 1 sub-page), Methods, Fields, slider |
-+| `/live/plan/settings/` at 1200 | [proof/plan-settings-1200.png](proof/plan-settings-1200.png) |
-+| `/live/design/settings/` at 400 | [proof/design-settings-400.png](proof/design-settings-400.png) |
-+| `/live/design/settings/` at 1200 | [proof/design-settings-1200.png](proof/design-settings-1200.png) |
 +| Slider at line 1 vs line N (headless, `/live/plan/settings/`) | line 1 → "Nothing listed yet."; line 14 (all) → "content: 11", matching the live page's 11 cards |
-+| `node Server/smoke.mjs . /live/plan/settings/ /live/design/settings/ --base http://localhost:62990` | exit 0, no console errors (only pre-existing unrelated 404s: `page-work.json`, `tasks.json`) |
++| `node Server/smoke.mjs . /live/plan/settings/ /live/design/settings/ --base http://localhost:62990` | exit 0, no console errors (only pre-existing unrelated 404s) |
 +
 +Commits in worktree `pd-inspect` (branch `worktree/pd-inspect`):
 +- `6be47d60c` — ItemInspector.js, DeltaHistory.js, Inspect.test.mjs, LivePage.Settings wiring
 +- `64e86958f` — ext/Inspect/readme.md, public/live/readme.md line
 +- `095696cb7` — merge of origin/compliance/dev (live-page's round 7/8, no conflicts; Settings wiring survived)
-diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-1200.png b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-1200.png
++- `1f756a1db` — proof.md and round-1 shots
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-1200-line1.png b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-1200-line1.png
 new file mode 100644
-index 000000000..5de3a203b
-Binary files /dev/null and b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-1200.png differ
-diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-400.png b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-400.png
+index 0000000000..14e14c26a0
+Binary files /dev/null and b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-1200-line1.png differ
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-1200-lineN.png b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-1200-lineN.png
 new file mode 100644
-index 000000000..1ba1a32d0
-Binary files /dev/null and b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-400.png differ
-diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-1200.png b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-1200.png
+index 0000000000..bde7d14b89
+Binary files /dev/null and b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-1200-lineN.png differ
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-400-line1.png b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-400-line1.png
 new file mode 100644
-index 000000000..c07933424
-Binary files /dev/null and b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-1200.png differ
-diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-400.png b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-400.png
+index 0000000000..c9f81f8e17
+Binary files /dev/null and b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-400-line1.png differ
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-400-lineN.png b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-400-lineN.png
 new file mode 100644
-index 000000000..669e712d7
-Binary files /dev/null and b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-400.png differ
+index 0000000000..460925333a
+Binary files /dev/null and b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/design-settings-400-lineN.png differ
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-1200-line1.png b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-1200-line1.png
+new file mode 100644
+index 0000000000..2e46f35144
+Binary files /dev/null and b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-1200-line1.png differ
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-1200-lineN.png b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-1200-lineN.png
+new file mode 100644
+index 0000000000..9ba0e3ccb5
+Binary files /dev/null and b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-1200-lineN.png differ
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-400-line1.png b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-400-line1.png
+new file mode 100644
+index 0000000000..aa3ba29928
+Binary files /dev/null and b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-400-line1.png differ
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-400-lineN.png b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-400-lineN.png
+new file mode 100644
+index 0000000000..a93145ce5d
+Binary files /dev/null and b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/proof/plan-settings-400-lineN.png differ
+diff --git a/public/framework/ai/sessions/doc/live/shots/files.jsonl b/public/framework/ai/sessions/doc/live/shots/files.jsonl
+index 7b3d060d00..88679c398a 100644
+--- a/public/framework/ai/sessions/doc/live/shots/files.jsonl
++++ b/public/framework/ai/sessions/doc/live/shots/files.jsonl
+@@ -229,3 +229,14 @@
+ {"file":"one-grid-1920.png"}
+ {"file":"one-grid-3440.png"}
+ {"file":"one-grid-400.png"}
++{"file":"one-grid-1920.png","gone":true}
++{"file":"one-grid-3440.png","gone":true}
++{"file":"one-grid-400.png","gone":true}
++{"file":"after-grid-1200.png","gone":true}
++{"file":"after-grid-1920.png","gone":true}
++{"file":"after-grid-3440.png","gone":true}
++{"file":"after-grid-400.png","gone":true}
++{"file":"before-grid-1200.png","gone":true}
++{"file":"before-grid-1920.png","gone":true}
++{"file":"before-grid-3440.png","gone":true}
++{"file":"before-grid-400.png","gone":true}
+diff --git a/public/framework/ai/sessions/files.jsonl b/public/framework/ai/sessions/files.jsonl
+index d5a682a551..0ef9666d5b 100644
+--- a/public/framework/ai/sessions/files.jsonl
++++ b/public/framework/ai/sessions/files.jsonl
+@@ -30764,3 +30764,17 @@
+ {"file":"spend-tree.json"}
+ {"file":"transcripts/"}
+ {"file":"week.json"}
++{"file":"transcripts/","gone":true}
++{"file":"sessions.json","gone":true}
++{"file":"spend-tree.json","gone":true}
++{"file":"week.json","gone":true}
++{"file":"session-index.json","gone":true}
++{"file":"session-tree.json","gone":true}
++{"file":"openrouter-reconcile.json","gone":true}
++{"file":"openrouter-costs.json","gone":true}
++{"file":"screenshots/","gone":true}
++{"file":"index.jsonl","gone":true}
++{"file":"failures.jsonl","gone":true}
++{"file":"session-folders.json","gone":true}
++{"file":"2020/","gone":true}
++{"file":"session-twins.json","gone":true}
 diff --git a/public/framework/ext/Inspect/DeltaHistory.js b/public/framework/ext/Inspect/DeltaHistory.js
 new file mode 100644
-index 000000000..dd56ea34c
+index 0000000000..5513c698af
 --- /dev/null
 +++ b/public/framework/ext/Inspect/DeltaHistory.js
-@@ -0,0 +1,53 @@
+@@ -0,0 +1,60 @@
 +import Item from "/framework/core/Item/Item.js";
 +import Page from "/framework/core/Page/Page.class.js";
 +import View, { div, h4, span, input } from "/framework/core/View/View.js";
++import { item_list } from "./ItemInspector.js";
++
++View.stylesheet(import.meta, "Inspect.css");
 +
 +// One delta line, shown short: its number, who made it, when, and the delta itself truncated.
 +function line_label(n, line){
@@ -54,9 +284,10 @@ index 000000000..dd56ea34c
 +	return `${n}. ${who}${ts ? " · " + ts : ""} — ${body.length > 90 ? body.slice(0, 87) + "…" : body}`;
 +}
 +
-+// A quick, read-only replay of a folder's page.jsonl: given {url} (the folder, e.g. `/live/plan/`), it loads the raw
++// A quick, read-only replay of a folder's page.jsonl: given {url} (the folder, e.g. `/live/plan/`) and an optional
++// {Class} (the real class, when the caller already knows it — Settings passes `of.constructor`), it loads the raw
 +// lines and lets a slider (1..N) rebuild the object from only the first N of them — every move replays in memory
-+// (Item.class_for + Class.replay), nothing is ever written back. Below the slider: title, its cards in order, sub-pages.
++// (Class.replay), nothing is ever written back. Below the slider: title, its cards in order, its sub-pages.
 +export default class DeltaHistory extends View {
 +	render(){
 +		const { url } = this;
@@ -69,7 +300,7 @@ index 000000000..dd56ea34c
 +		await store.load();
 +		const lines = store.entries;
 +		this.lines = lines;
-+		this.Class = Item.class_for(lines) !== Item ? Item.class_for(lines) : Page;
++		this.Class = this.Class ?? (Item.class_for(lines) !== Item ? Item.class_for(lines) : Page);
 +		this.$box.empty(() => {
 +			if (!store.loaded || !lines.length){ span.c("muted", "No page.jsonl lines here."); return; }
 +			this.n = lines.length;
@@ -77,28 +308,64 @@ index 000000000..dd56ea34c
 +				.attr("type", "range").attr("min", "1").attr("max", String(lines.length)).attr("value", String(lines.length))
 +				.on("input", () => this.show(+this.$slider.el.value));
 +			this.$count = span.c("delta-history-count muted");
-+			this.$list = div.c("delta-history-list");
 +			this.$summary = div.c("delta-history-summary");
-+			lines.forEach((line, i) => div.c("delta-history-line muted", line_label(i + 1, line)));
++			h4.c("item-inspector-heading", "Lines");
++			this.$list = div.c("delta-history-list");
++			this.$list.append(() => lines.forEach((line, i) => div.c("delta-history-line muted", line_label(i + 1, line))));
 +			this.show(lines.length);
 +		});
 +	}
 +
-+	// Replays lines[0..n) through this.Class fresh, in memory, and shows the result.
++	// Replays lines[0..n) through this.Class fresh, in memory, and shows the result: its title, its cards (`content`)
++	// in order, and its sub-pages (`pages`) — the same row and list shape as ItemInspector's own Inside section.
 +	show(n){
 +		this.$count.text(`line ${n} of ${this.n}`);
 +		const host = this.Class.replay(this.lines.slice(0, n));
 +		this.$summary.empty(() => {
-+			h4(String(host.title ?? host.id ?? "(untitled)"));
-+			const list = host.lists ? host.lists() : {};
-+			Object.entries(list).forEach(([name, l]) => l.length && span.c("delta-history-stat muted", `${name}: ${l.length}`));
-+			if (!Object.values(list).some(l => l.length)) span.c("muted", "Nothing listed yet.");
++			h4.c("item-inspector-heading", String(host.title ?? host.id ?? "(untitled)"));
++			const cards = host.content, pages = host.pages;
++			if (!cards?.length && !pages?.length){ span.c("muted", "Nothing listed yet."); return; }
++			if (cards?.length) item_list("cards", cards, host);
++			if (pages?.length) item_list("pages", pages, host);
 +		});
 +	}
 +}
+diff --git a/public/framework/ext/Inspect/Inspect.css b/public/framework/ext/Inspect/Inspect.css
+new file mode 100644
+index 0000000000..edd4003c8d
+--- /dev/null
++++ b/public/framework/ext/Inspect/Inspect.css
+@@ -0,0 +1,27 @@
++@layer site {
++	/* Mirrors LivePage.css's live-files-* shape: a bordered body (--live-card when inside /live/, else a plain gray
++	   fallback), one row per member with a divider between rows. Used by both ItemInspector and DeltaHistory. */
++	.item-inspector-section + .item-inspector-section { margin-top: var(--live-step, .75rem); }
++	.item-inspector-heading { margin: var(--live-step, .75rem) 0 .3rem; }
++	.item-inspector-list + .item-inspector-list { margin-top: .5rem; }
++	.item-inspector-list-name { display: block; font-size: .85em; font-weight: 600; opacity: .7; margin: 0 0 .2rem .1rem; }
++	.item-inspector-list-body { display: flex; flex-direction: column; background: var(--live-card, light-dark(#fff, #1f1e24)); border-radius: .6rem; padding: .25rem 0; min-width: 0; }
++	.item-inspector-row { display: flex; align-items: center; justify-content: space-between; gap: .6em; padding: .5em .75rem; overflow-wrap: anywhere; }
++	.item-inspector-row + .item-inspector-row { border-top: 1px solid light-dark(#0001, #fff1); }
++	.item-inspector-row a { color: inherit; }
++	.item-inspector-type { flex: none; font-size: .78em; }
++
++	.item-inspector-methods { background: var(--live-card, light-dark(#fff, #1f1e24)); border-radius: .6rem; padding: .4em .75rem; }
++	.item-inspector-methods + .item-inspector-methods { margin-top: .4rem; }
++	.item-inspector-methods > summary { cursor: pointer; font-weight: 600; font-size: .9em; }
++	.item-inspector-chips { display: flex; flex-wrap: wrap; gap: .3em; margin-top: .4em; }
++	.item-inspector-chip { font-size: .78em; font-family: monospace; background: light-dark(#0001, #fff1); border-radius: .4em; padding: .1em .45em; }
++
++	/* DeltaHistory: the slider, then its line log (capped and scrollable so a long page.jsonl doesn't push the rest off screen). */
++	.delta-history-slider { width: 100%; }
++	.delta-history-count { display: block; margin: .2rem 0 .6rem; font-size: .8em; }
++	.delta-history-summary { margin-bottom: .75rem; }
++	.delta-history-list { display: flex; flex-direction: column; max-height: 14rem; overflow-y: auto; background: var(--live-card, light-dark(#fff, #1f1e24)); border-radius: .6rem; padding: .25rem 0; }
++	.delta-history-line { padding: .4em .75rem; font-size: .78em; font-family: monospace; overflow-wrap: anywhere; }
++	.delta-history-line + .delta-history-line { border-top: 1px solid light-dark(#0001, #fff1); }
++}
 diff --git a/public/framework/ext/Inspect/Inspect.test.mjs b/public/framework/ext/Inspect/Inspect.test.mjs
 new file mode 100644
-index 000000000..e369af4b9
+index 0000000000..e369af4b99
 --- /dev/null
 +++ b/public/framework/ext/Inspect/Inspect.test.mjs
 @@ -0,0 +1,34 @@
@@ -138,17 +405,19 @@ index 000000000..e369af4b9
 +console.log("Inspect.test: all assertions pass (replay grows the card count 0→1→2→3 as the slider moves 1→4)");
 diff --git a/public/framework/ext/Inspect/ItemInspector.js b/public/framework/ext/Inspect/ItemInspector.js
 new file mode 100644
-index 000000000..d7864b780
+index 0000000000..ada62fc846
 --- /dev/null
 +++ b/public/framework/ext/Inspect/ItemInspector.js
-@@ -0,0 +1,83 @@
+@@ -0,0 +1,102 @@
 +import Item from "/framework/core/Item/Item.js";
 +import View, { div, h4, span, a, details, summary } from "/framework/core/View/View.js";
 +
-+// Own, callable method names of a class's own prototype (functions only, minus `constructor`).
-+// Same walk as live/design/ui/MethodMap.js's own_methods(); kept here too rather than importing
-+// it, since MethodMap lives under /live/ and this module must work for any Item, not just Page.
-+function own_methods(Class){
++View.stylesheet(import.meta, "Inspect.css");
++
++// Own, callable method names of a class's own prototype (functions only, minus `constructor`). Exported so
++// live/design/ui/MethodMap.js's own_methods() can build its {name, forwarder} shape on top of the same walk,
++// rather than walking the prototype chain a second time (law 6, flagged in review 2026-11-06).
++export function own_methods(Class){
 +	return Object.getOwnPropertyNames(Class.prototype)
 +		.filter(name => name !== "constructor")
 +		.filter(name => typeof Object.getOwnPropertyDescriptor(Class.prototype, name).value === "function");
@@ -174,6 +443,35 @@ index 000000000..d7864b780
 +	return String(value);
 +}
 +
++// What to call a list member by: its own title, else its text (a part-heading or part-text keeps its words there,
++// not in `title`), cut short. Exported so DeltaHistory draws the same label for the same reason.
++export function label_of(kid){
++	const title = kid.title ?? kid.get?.("title");
++	if (title) return String(title);
++	const text = kid.get?.("text");
++	return text ? String(text).replace(/\s+/g, " ").trim().slice(0, 60) : null;
++}
++
++// One row for a list member: id (and label, when it has one), its class, linked where it has a url. Exported so
++// DeltaHistory's replayed-object summary draws identically to ItemInspector's own Inside section.
++export function item_row(kid, owner){
++	const url = kid.url ?? (owner && typeof owner.link_url === "function" && kid.get?.("path") ? owner.link_url(kid.get("path")) : null);
++	const label = kid.id + (label_of(kid) ? ` — ${label_of(kid)}` : "");
++	div.c("item-inspector-row", () => {
++		url ? a(label).href(url) : span(label);
++		span.c("item-inspector-type muted", kid.constructor?.name ?? "?");
++	});
++}
++
++// One named list, framed like LivePage.Files: a heading ("name (n)") then its rows. Exported for the same reason.
++export function item_list(name, list, owner){
++	if (!list.length) return;
++	div.c("item-inspector-list", () => {
++		span.c("item-inspector-list-name", `${name} (${list.length})`);
++		div.c("item-inspector-list-body", () => list.items.forEach(kid => item_row(kid, owner)));
++	});
++}
++
 +// What one Item is made of: given {item}, three sections — Inside (its own lists, each member a
 +// row with id/type/title, linked where the member has a url), Methods (own class first, then each
 +// parent up to Item, collapsed), Fields (its saved data keys, short). Read-only; nothing is written.
@@ -181,29 +479,17 @@ index 000000000..d7864b780
 +	render(){
 +		const { item } = this;
 +		div.c("item-inspector-section", () => {
-+			h4("Inside");
++			h4.c("item-inspector-heading", "Inside");
 +			const lists = item.lists ? item.lists() : {};
-+			const names = Object.keys(lists);
++			// `_pages`, `_content`… are the backing fields lists() finds by walking own keys (Page.pages is a getter
++			// over `this._pages`) — a leading underscore means "not a field meant to be read this way", so it is
++			// skipped here, never shown as e.g. "_pages (1)" (review 2026-11-06, finding 7).
++			const names = Object.keys(lists).filter(name => !name.startsWith("_") && lists[name].length);
 +			if (!names.length) span.c("muted", "Nothing listed.");
-+			names.forEach(name => {
-+				const list = lists[name];
-+				if (!list.length) return;
-+				div.c("item-inspector-list", () => {
-+					span.c("item-inspector-list-name", `${name} (${list.length})`);
-+					list.items.forEach(kid => {
-+						const url = kid.url ?? (typeof item.link_url === "function" && kid.get?.("path") ? item.link_url(kid.get("path")) : null);
-+						const title = kid.title ?? kid.get?.("title");
-+						const label = kid.id + (title ? ` — ${title}` : "");
-+						div.c("item-inspector-row", () => {
-+							url ? a(label).href(url) : span(label);
-+							span.c("item-inspector-type muted", kid.constructor?.name ?? "?");
-+						});
-+					});
-+				});
-+			});
++			names.forEach(name => item_list(name, lists[name], item));
 +		});
 +		div.c("item-inspector-section", () => {
-+			h4("Methods");
++			h4.c("item-inspector-heading", "Methods");
 +			method_chain(item.constructor).forEach(([Class, methods], i) => {
 +				if (!methods.length) return;
 +				const $d = details.c("item-inspector-methods", () => {
@@ -214,7 +500,7 @@ index 000000000..d7864b780
 +			});
 +		});
 +		div.c("item-inspector-section", () => {
-+			h4("Fields");
++			h4.c("item-inspector-heading", "Fields");
 +			const data = item.data ?? {};
 +			const keys = Object.keys(data);
 +			if (!keys.length) span.c("muted", "No saved fields.");
@@ -225,20 +511,67 @@ index 000000000..d7864b780
 +		});
 +	}
 +}
+diff --git a/public/framework/ext/Inspect/files.jsonl b/public/framework/ext/Inspect/files.jsonl
+new file mode 100644
+index 0000000000..4327947ed6
+--- /dev/null
++++ b/public/framework/ext/Inspect/files.jsonl
+@@ -0,0 +1,6 @@
++{"file":"ItemInspector.js"}
++{"file":"DeltaHistory.js"}
++{"file":"Inspect.test.mjs"}
++{"file":"readme.md"}
++{"file":"Inspect.css"}
++{"file":"page.js"}
+diff --git a/public/framework/ext/Inspect/page.js b/public/framework/ext/Inspect/page.js
+new file mode 100644
+index 0000000000..4827f06cc7
+--- /dev/null
++++ b/public/framework/ext/Inspect/page.js
+@@ -0,0 +1,28 @@
++import { Doc, md, demo } from "/app.js";
++import Item from "/framework/core/Item/Item.js";
++import Page from "/framework/core/Page/Page.class.js";
++import ItemInspector from "./ItemInspector.js";
++
++export default new Doc({
++	meta: import.meta,
++	title: "Inspect",
++	description: "See what any Item is made of — its lists, its callable methods, its saved fields — and replay a folder's page.jsonl on a slider.",
++	icon: "search",
++
++	subject: Item,
++	files: "ItemInspector.js DeltaHistory.js Inspect.css Inspect.test.mjs readme.md page.js",
++
++	overview: [
++		{ title: "ItemInspector", icon: "search", description: "Given {item}, three sections: Inside, Methods, Fields.", content(){
++			md("A small Page with two cards, inspected live:");
++			demo(() => {
++				const sample = Page.replay([
++					{ id: "sample", title: "A sample page" },
++					{ content: { add: { id: "h1", type: "part-heading", text: "A heading" } } },
++					{ content: { add: { id: "c1", type: "part-card", title: "A card", text: "Its text." } } },
++				]);
++				new ItemInspector({ item: sample });
++			});
++		} },
++	],
++});
 diff --git a/public/framework/ext/Inspect/readme.md b/public/framework/ext/Inspect/readme.md
 new file mode 100644
-index 000000000..97a84b6c8
+index 0000000000..87d1252e24
 --- /dev/null
 +++ b/public/framework/ext/Inspect/readme.md
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,33 @@
 +# Inspect — see what any page or card is made of, and how it got there
 +
-+Two read-only Views, opt-in from a page's own `settings/` tab. Neither ever writes.
++Two read-only Views, opt-in from a page's own `settings/` tab. Neither ever writes. [page.js](page.js) has a live demo.
 +
 +## Files
 +
-+- [ItemInspector.js](ItemInspector.js) — given `{item}`, three sections: **Inside** (every list the item owns — `content`, `pages`, …, via `item.lists()` — one row per member: id, type, title, linked where it has a url), **Methods** (own class first, then each parent up to `Item`, collapsed `<details>`, one chip per method name), **Fields** (`item.data`'s own keys, short values).
-+- [DeltaHistory.js](DeltaHistory.js) — given `{url}` (a folder with its own `page.jsonl`), loads the raw lines (`new Item.Store({url}).load()`, no host attached, so nothing replays onto a live object) and a slider from 1 to N: moving it reruns `Class.replay(lines.slice(0, n))` *in memory* and shows the result's title and list counts. `Class` is whatever `Item.class_for(lines)` finds registered on line 1, or `Page` when nothing is.
++- [ItemInspector.js](ItemInspector.js) — given `{item}`, three sections: **Inside** (every list the item owns — `content`, `pages`, … via `item.lists()`, skipping the `_`-prefixed backing fields `lists()` also returns — one row per member: id, a label from its title or, failing that, its text, linked where it has a url), **Methods** (own class first, then each parent up to `Item`, collapsed `<details>`, one chip per method name), **Fields** (`item.data`'s own keys, short values). Also exports `own_methods` (the prototype-chain walk), `label_of`, `item_row` and `item_list` — the row and list drawing shared with DeltaHistory, and the walk shared with [MethodMap](/live/design/ui/MethodMap.js).
++- [DeltaHistory.js](DeltaHistory.js) — given `{url}` (a folder with its own `page.jsonl`) and an optional `{Class}` (the real class, when the caller already knows it), loads the raw lines (`new Item.Store({url}).load()`, no host attached, so nothing replays onto a live object) and a slider from 1 to N: moving it reruns `Class.replay(lines.slice(0, n))` *in memory* and shows the result's title, its cards (`content`) in order and its sub-pages (`pages`) — the same rows as ItemInspector's Inside. Below that, every line of the log, capped and scrollable. `Class` defaults to whatever `Item.class_for(lines)` finds registered on line 1, or `Page` when nothing is.
++- [Inspect.css](Inspect.css) — the row/list/chip chrome, mirroring `LivePage.css`'s `live-files-*` shape (a bordered body, a divider between rows); falls back to a plain card color outside `/live/`.
 +- [Inspect.test.mjs](Inspect.test.mjs) — a four-line fixture page.jsonl, replayed at N = 1..4, asserting the card count grows 0→1→2→3; under 1 s.
 +
 +## Use
@@ -247,41 +580,309 @@ index 000000000..97a84b6c8
 +import ItemInspector from "/framework/ext/Inspect/ItemInspector.js";
 +import DeltaHistory from "/framework/ext/Inspect/DeltaHistory.js";
 +new ItemInspector({ item: somePage });
-+new DeltaHistory({ url: somePage.url });   // somePage.url ends in "/", its page.jsonl lives there
++new DeltaHistory({ url: somePage.url, Class: somePage.constructor });   // Class optional; somePage.url ends in "/"
 +```
 +
-+Wired into `LivePage.Settings` (`public/live/LivePage.js`): after the Files list, two more `h4`s, "What it is made of" and "How it got here", each loading its module with a dynamic `import()` so `/live/` pays nothing for Inspect until a settings tab opens.
++Wired into `LivePage.Settings` (`public/live/LivePage.js`): after the Files list, two more `h4`s, "What it is made of" and "How it got here", each loading its module with a dynamic `import()` so `/live/` pays nothing for Inspect until a settings tab opens; Settings already knows the page's real class, so it passes `Class: of.constructor`.
 +
 +## Watch out
 +
-+- `ItemInspector` reuses the same prototype-chain walk as [`live/design/ui/MethodMap.js`](/live/design/ui/MethodMap.js)'s `own_methods()`, written again rather than imported — `MethodMap` lives under `/live/`, and Inspect works for any Item core/Page/ext might open on, not only Page.
-+- `DeltaHistory` never attaches a host to its `Item.Store`, so the file's lines land in `store.entries` instead of replaying onto anything live — the only way to read a log's raw lines without disturbing whatever already has it open.
++- Methods lists every method of the class, not only the ones a delta can call — fine for seeing the shape of a class, not a guide to what is safe to call from voice (that is `LivePage.can_press`).
++- The "first comment line" per method (from the original brief) is not drawn: a method's source comment is not cheap to recover at runtime without re-reading the file, and the method name plus its owning class is enough to place it.
++- `item.lists()` returns the List for every own key that holds one it owns — including the backing field of a getter (`Page.pages` is `this._pages`), which is why names starting with `_` are filtered rather than shown as `_pages (1)`.
 +
 +## More
 +
 +- [core/Item/Item.js](/framework/core/Item/Item.js) — `Item.replay`, `Item.class_for`, `item.lists()`
 +- [core/Item/replay/](/framework/core/Item/replay/) — the older replay lab (button-press tapes, not a slider)
 +- [public/live/readme.md](/live/readme.md) — the settings tab this plugs into
+diff --git a/public/framework/ext/readme.md b/public/framework/ext/readme.md
+index 11ebefdaa6..baa02acbb6 100644
+--- a/public/framework/ext/readme.md
++++ b/public/framework/ext/readme.md
+@@ -9,6 +9,7 @@
+ - [Chat](./Chat/) — a chat log that follows new messages only while you are at the bottom
+ - [DesignTool](./DesignTool/) — measures a layout numerically: what is broken, off or good; no AI at runtime
+ - [Doc](./Doc/) — document a module as a page (Overview, API, Docs, Files) — use it in a module's `page.js`
++- [Inspect](./Inspect/) — see what any Item is made of (its lists, methods, fields) and replay a folder's `page.jsonl` on a slider; plugs into `/live/<page>/settings/`
+ - [Figma](./Figma/) — tracked Figma files as JSONL + screenshots, browsed as previews, designs rebuilt as pages
+ - [Draggable](./Draggable/) — grab-and-move for any View; `Sortable` reorders, crosses lists and nests
+ - [Dropdown](./Dropdown/) — pick one choice from a list; the list opens in the top layer so nothing clips it
+diff --git a/public/framework/files.jsonl b/public/framework/files.jsonl
+index 095bdde3c8..071e6b8bf3 100644
+--- a/public/framework/files.jsonl
++++ b/public/framework/files.jsonl
+@@ -180,3 +180,4 @@
+ {"file":"zz-item-tool-test-38152/","gone":true}
+ {"file":"zz-item-tool-test-55056/"}
+ {"file":"zz-item-tool-test-55056/","gone":true}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/library/files.jsonl b/public/framework/library/files.jsonl
+index 8f3b616e45..6978c9923b 100644
+--- a/public/framework/library/files.jsonl
++++ b/public/framework/library/files.jsonl
+@@ -27,3 +27,4 @@
+ {"file":"screenshots/"}
+ {"file":"screenshots/","gone":true}
+ {"file":"screenshots/"}
++{"file":"screenshots/","gone":true}
+diff --git a/public/framework/servex/tasks/pool-restore-freeze/files.jsonl b/public/framework/servex/tasks/pool-restore-freeze/files.jsonl
+index 5e00a5b9b7..6870b9737d 100644
+--- a/public/framework/servex/tasks/pool-restore-freeze/files.jsonl
++++ b/public/framework/servex/tasks/pool-restore-freeze/files.jsonl
+@@ -21,3 +21,4 @@
+ {"file":"past-work.md","gone":true}
+ {"file":"past-work.md"}
+ {"file":"session.jsonl"}
++{"file":"past-work.md","gone":true}
+diff --git a/public/framework/styles/layouts/catalog/shots/files.jsonl b/public/framework/styles/layouts/catalog/shots/files.jsonl
+index d737386098..6e7f559fc9 100644
+--- a/public/framework/styles/layouts/catalog/shots/files.jsonl
++++ b/public/framework/styles/layouts/catalog/shots/files.jsonl
+@@ -236,3 +236,17 @@
+ {"file":"rail-wall.jpg"}
+ {"file":"split.jpg"}
+ {"file":"steps.jpg"}
++{"file":"document.jpg","gone":true}
++{"file":"left-nav.jpg","gone":true}
++{"file":"docs.jpg","gone":true}
++{"file":"rail-wall.jpg","gone":true}
++{"file":"inbox.jpg","gone":true}
++{"file":"split.jpg","gone":true}
++{"file":"data-grid.jpg","gone":true}
++{"file":"dashboard.jpg","gone":true}
++{"file":"columns.jpg","gone":true}
++{"file":"steps.jpg","gone":true}
++{"file":"properties.jpg","gone":true}
++{"file":"chat.jpg","gone":true}
++{"file":"landing.jpg","gone":true}
++{"file":"figma-card.jpg","gone":true}
+diff --git a/public/framework/styles/system/studies/color/shots/files.jsonl b/public/framework/styles/system/studies/color/shots/files.jsonl
+index f9d0e6deb0..dbc82826dd 100644
+--- a/public/framework/styles/system/studies/color/shots/files.jsonl
++++ b/public/framework/styles/system/studies/color/shots/files.jsonl
+@@ -134,3 +134,11 @@
+ {"file":"ok-dark-mode.jpg"}
+ {"file":"ok-padding-clean.jpg"}
+ {"file":"ok-theme-source-dark.jpg"}
++{"file":"fail-accent-overload.jpg","gone":true}
++{"file":"fail-ai-card-title.jpg","gone":true}
++{"file":"fail-stray-blue-link.jpg","gone":true}
++{"file":"fail-toc-current.jpg","gone":true}
++{"file":"grounds.jpg","gone":true}
++{"file":"ok-dark-mode.jpg","gone":true}
++{"file":"ok-padding-clean.jpg","gone":true}
++{"file":"ok-theme-source-dark.jpg","gone":true}
+diff --git a/public/imagine/design/layout/shots/files.jsonl b/public/imagine/design/layout/shots/files.jsonl
+index 8e8a4e32d7..87f7166908 100644
+--- a/public/imagine/design/layout/shots/files.jsonl
++++ b/public/imagine/design/layout/shots/files.jsonl
+@@ -185,3 +185,14 @@
+ {"file":"tax-reading-column.jpg"}
+ {"file":"tax-solo.jpg"}
+ {"file":"tax-tile-wall.jpg"}
++{"file":"fail-imagine-design-3440.jpg","gone":true}
++{"file":"fail-imagine-gallery-3440.jpg","gone":true}
++{"file":"fail-imagine-root-3440.jpg","gone":true}
++{"file":"fail-michael-3440.jpg","gone":true}
++{"file":"fail-michael-layout-3440.jpg","gone":true}
++{"file":"tax-columns-row.jpg","gone":true}
++{"file":"tax-dashboard-row.jpg","gone":true}
++{"file":"tax-rail-content.jpg","gone":true}
++{"file":"tax-reading-column.jpg","gone":true}
++{"file":"tax-solo.jpg","gone":true}
++{"file":"tax-tile-wall.jpg","gone":true}
+diff --git a/public/imagine/design/navigation/shots/files.jsonl b/public/imagine/design/navigation/shots/files.jsonl
+index 492db894f4..7e7d564b3d 100644
+--- a/public/imagine/design/navigation/shots/files.jsonl
++++ b/public/imagine/design/navigation/shots/files.jsonl
+@@ -253,3 +253,18 @@
+ {"file":"tabs-390.png"}
+ {"file":"toc-1280.png"}
+ {"file":"toc-390.png"}
++{"file":"columns-1280.png","gone":true}
++{"file":"columns-deep-1280.png","gone":true}
++{"file":"columns-deep-390.png","gone":true}
++{"file":"crumbs-1280.png","gone":true}
++{"file":"prev-next-1280.png","gone":true}
++{"file":"prev-next-390.png","gone":true}
++{"file":"preview-wall-1280.png","gone":true}
++{"file":"preview-wall-390.png","gone":true}
++{"file":"rail-nested-1280.png","gone":true}
++{"file":"rail-nested-390-open.png","gone":true}
++{"file":"rail-nested-390.png","gone":true}
++{"file":"tabs-1280.png","gone":true}
++{"file":"tabs-390.png","gone":true}
++{"file":"toc-1280.png","gone":true}
++{"file":"toc-390.png","gone":true}
+diff --git a/public/imagine/design/padding/shots/files.jsonl b/public/imagine/design/padding/shots/files.jsonl
+index 590c0cd4bc..981dbf7954 100644
+--- a/public/imagine/design/padding/shots/files.jsonl
++++ b/public/imagine/design/padding/shots/files.jsonl
+@@ -100,3 +100,9 @@
+ {"file":"good-sidebar-link.png"}
+ {"file":"worst-md-details.png"}
+ {"file":"worst-panel-workspace.png"}
++{"file":"check-scene-hint.png","gone":true}
++{"file":"falsepos-thumb.png","gone":true}
++{"file":"good-page-preview.png","gone":true}
++{"file":"good-sidebar-link.png","gone":true}
++{"file":"worst-md-details.png","gone":true}
++{"file":"worst-panel-workspace.png","gone":true}
+diff --git a/public/imagine/design/scale/shots/files.jsonl b/public/imagine/design/scale/shots/files.jsonl
+index f9a725ff89..34159b9e2b 100644
+--- a/public/imagine/design/scale/shots/files.jsonl
++++ b/public/imagine/design/scale/shots/files.jsonl
+@@ -100,3 +100,9 @@
+ {"file":"notes-git-branch-names.jpg"}
+ {"file":"notes.jpg"}
+ {"file":"observatory.jpg"}
++{"file":"gallery.jpg","gone":true}
++{"file":"mag.jpg","gone":true}
++{"file":"michael.jpg","gone":true}
++{"file":"notes-git-branch-names.jpg","gone":true}
++{"file":"notes.jpg","gone":true}
++{"file":"observatory.jpg","gone":true}
+diff --git a/public/imagine/design/size/shots/files.jsonl b/public/imagine/design/size/shots/files.jsonl
+index a659b9ee34..0bd0abb518 100644
+--- a/public/imagine/design/size/shots/files.jsonl
++++ b/public/imagine/design/size/shots/files.jsonl
+@@ -15,3 +15,4 @@
+ {"file":"size.jpg"}
+ {"file":"size.jpg","gone":true}
+ {"file":"size.jpg"}
++{"file":"size.jpg","gone":true}
+diff --git a/public/imagine/design/spacing/audit/shots/files.jsonl b/public/imagine/design/spacing/audit/shots/files.jsonl
+index 22ddeacaa0..0af9780aa3 100644
+--- a/public/imagine/design/spacing/audit/shots/files.jsonl
++++ b/public/imagine/design/spacing/audit/shots/files.jsonl
+@@ -1035,3 +1035,64 @@
+ {"file":"web-nav-after.jpg"}
+ {"file":"web-nav-before.jpg"}
+ {"file":"web-nav-components.jpg"}
++{"file":"blog-framework-how-this-blog-works-after.jpg","gone":true}
++{"file":"blog-framework-how-this-blog-works-before.jpg","gone":true}
++{"file":"blog-framework-how-this-blog-works-components.jpg","gone":true}
++{"file":"framework-after.jpg","gone":true}
++{"file":"framework-before.jpg","gone":true}
++{"file":"framework-components.jpg","gone":true}
++{"file":"framework-core-after.jpg","gone":true}
++{"file":"framework-core-before.jpg","gone":true}
++{"file":"framework-core-components.jpg","gone":true}
++{"file":"framework-ext-after.jpg","gone":true}
++{"file":"framework-ext-before.jpg","gone":true}
++{"file":"framework-ext-components.jpg","gone":true}
++{"file":"framework-styles-after.jpg","gone":true}
++{"file":"framework-styles-before.jpg","gone":true}
++{"file":"framework-styles-components.jpg","gone":true}
++{"file":"framework-ui-after.jpg","gone":true}
++{"file":"framework-ui-before.jpg","gone":true}
++{"file":"framework-ui-components.jpg","gone":true}
++{"file":"framework-ui-doc-record-after.jpg","gone":true}
++{"file":"framework-ui-doc-record-before.jpg","gone":true}
++{"file":"framework-ui-doc-record-components.jpg","gone":true}
++{"file":"framework-ux-after.jpg","gone":true}
++{"file":"framework-ux-before.jpg","gone":true}
++{"file":"framework-ux-components.jpg","gone":true}
++{"file":"imagine-blogx-after.jpg","gone":true}
++{"file":"imagine-blogx-before.jpg","gone":true}
++{"file":"imagine-blogx-board-after.jpg","gone":true}
++{"file":"imagine-blogx-board-before.jpg","gone":true}
++{"file":"imagine-blogx-board-components.jpg","gone":true}
++{"file":"imagine-blogx-components.jpg","gone":true}
++{"file":"imagine-cms-thinking-after.jpg","gone":true}
++{"file":"imagine-cms-thinking-before.jpg","gone":true}
++{"file":"imagine-cms-thinking-components.jpg","gone":true}
++{"file":"imagine-decks-after.jpg","gone":true}
++{"file":"imagine-decks-before.jpg","gone":true}
++{"file":"imagine-decks-components.jpg","gone":true}
++{"file":"imagine-design-journey-after.jpg","gone":true}
++{"file":"imagine-design-journey-before.jpg","gone":true}
++{"file":"imagine-design-journey-components.jpg","gone":true}
++{"file":"imagine-research-after.jpg","gone":true}
++{"file":"imagine-research-before.jpg","gone":true}
++{"file":"imagine-research-components.jpg","gone":true}
++{"file":"imagine-research-depictions-after.jpg","gone":true}
++{"file":"imagine-research-depictions-before.jpg","gone":true}
++{"file":"imagine-research-depictions-components.jpg","gone":true}
++{"file":"imagine-review-rethink-after.jpg","gone":true}
++{"file":"imagine-review-rethink-before.jpg","gone":true}
++{"file":"imagine-review-rethink-components.jpg","gone":true}
++{"file":"imagine-screens-after.jpg","gone":true}
++{"file":"imagine-screens-before.jpg","gone":true}
++{"file":"imagine-screens-components.jpg","gone":true}
++{"file":"imagine-shells-after.jpg","gone":true}
++{"file":"imagine-shells-before.jpg","gone":true}
++{"file":"imagine-shells-components.jpg","gone":true}
++{"file":"imagine-stream-after.jpg","gone":true}
++{"file":"imagine-stream-before.jpg","gone":true}
++{"file":"imagine-stream-components.jpg","gone":true}
++{"file":"levels-3440.jpg","gone":true}
++{"file":"web-nav-after.jpg","gone":true}
++{"file":"web-nav-before.jpg","gone":true}
++{"file":"web-nav-components.jpg","gone":true}
 diff --git a/public/live/LivePage.js b/public/live/LivePage.js
-index 57b10d4b5..085eb6414 100644
+index e51c2be4e6..cce151ae8c 100644
 --- a/public/live/LivePage.js
 +++ b/public/live/LivePage.js
-@@ -508,6 +508,10 @@ export default class LivePage extends Page {
+@@ -509,6 +509,10 @@ export default class LivePage extends Page {
  			}).catch(() => {});
  			h4.c("live-settings-files-title", "Files here");
  			new LivePage.Files({ page: this.page, folder: holder, at: this.at ?? "" });
 +			h4.c("live-settings-files-title", "What it is made of");
 +			div.c("live-settings-inspect").append(import("/framework/ext/Inspect/ItemInspector.js").then(({ default: ItemInspector }) => new ItemInspector({ item: of })));
 +			h4.c("live-settings-files-title", "How it got here");
-+			div.c("live-settings-inspect").append(import("/framework/ext/Inspect/DeltaHistory.js").then(({ default: DeltaHistory }) => new DeltaHistory({ url: holder })));
++			div.c("live-settings-inspect").append(import("/framework/ext/Inspect/DeltaHistory.js").then(({ default: DeltaHistory }) => new DeltaHistory({ url: holder, Class: of.constructor })));
  		}
  	};
  
+diff --git a/public/live/design/ui/MethodMap.js b/public/live/design/ui/MethodMap.js
+index 600ae0bdf0..6ab272c1ae 100644
+--- a/public/live/design/ui/MethodMap.js
++++ b/public/live/design/ui/MethodMap.js
+@@ -3,6 +3,7 @@ import View, { div, span, button } from "/framework/core/View/View.js";
+ import Page from "/framework/core/Page/Page.class.js";
+ import LivePage from "/live/LivePage.js";
+ import PageUI from "../PageUI.js";
++import { own_methods as method_names } from "/framework/ext/Inspect/ItemInspector.js";
+ 
+ // page.ui.methods — "150 methods in one bag", shown: `mode` is "today" (three flat blocks) or "grouped" (Page's own
+ // methods regrouped by the pattern table in core/Page/doc/namespaces.md, "The shape" — a proposal, not built).
+@@ -33,12 +34,11 @@ function is_forwarder(fn){
+ 	return /^(return\s+)?this\.[a-zA-Z_$][\w$]*\(.*\)(\.[a-zA-Z_$][\w$]*\(.*\))*$/.test(body);
+ }
+ 
+-// Own, callable method names of a class's own prototype (functions only — a getter is never counted — minus `constructor`).
++// Own, callable method names of a class's own prototype (functions only, a getter never counted, minus `constructor`),
++// each flagged as a forwarder or not. The prototype-chain walk itself is ext/Inspect/ItemInspector.js's own_methods()
++// (law 6: one walk, not two — review 2026-11-06, finding 5), kept here only as this {name, forwarder} shape on top of it.
+ function own_methods(Class){
+-	return Object.getOwnPropertyNames(Class.prototype)
+-		.filter(name => name !== "constructor")
+-		.filter(name => typeof Object.getOwnPropertyDescriptor(Class.prototype, name).value === "function")
+-		.map(name => ({ name, forwarder: is_forwarder(Class.prototype[name]) }));
++	return method_names(Class).map(name => ({ name, forwarder: is_forwarder(Class.prototype[name]) }));
+ }
+ 
+ const group_of = name => GROUPS.find(([, pattern]) => pattern.test(name))?.[0] ?? "page";
+diff --git a/public/live/page.jsonl b/public/live/page.jsonl
+index c4e7628360..e6d0a0665d 100644
+--- a/public/live/page.jsonl
++++ b/public/live/page.jsonl
+@@ -147,6 +147,8 @@
+ {"content":{"link-core-page":{"text":null,"title":"@Page"}},"by":"voice-app","ts":"2026-11-06T22:45:08.050Z"}
+ {"save":{"name":"nov6-scratch","title":"Nov 6 scratch"},"by":"voice-app","ts":"2026-11-06T22:54:55.850Z"}
+ {"file":"plan/page.jsonl"}
++{"file":"next/page.jsonl","gone":true}
++{"file":"design-tmp/","gone":true}
+ {"content":{"add":{"id":"link-plan","path":"./plan/","text":"The page system's architecture and decision log.","title":"Plan","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T23:31:39.208Z"}
+ {"content":{"add":{"id":"link-design","after":"link-plan","path":"./design/","text":"Method map, storage findings, tabs findings.","title":"Design lab","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T23:40:13.150Z"}
+ {"content":{"add":{"id":"link-demos","after":"link-design","path":"./demos/","text":"Tabs, nav, place and columns, one tap-through each.","title":"Demos","type":"part-link"}},"by":"voice-app","ts":"2026-11-06T23:40:14.176Z"}
 diff --git a/public/live/readme.md b/public/live/readme.md
-index 497dd3b48..6b2d5f591 100644
+index b782d5d380..9df490879b 100644
 --- a/public/live/readme.md
 +++ b/public/live/readme.md
-@@ -86,7 +86,7 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
+@@ -87,7 +87,7 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
  - **Tabs are this page's own content; link cards go elsewhere.** A tab is a sub-page that draws as part of this page: a plain LivePage folder with no pages of its own. Switching tabs keeps the same tab row and the same h1 (the parent's title; the selected tab says which one). Everything else is a **link card** under the content (`LivePage.Pages`, drawn by code, never written into page.jsonl): a sub-page with pages of its own, a page of another class (DesignPage, a `page.js`), a page that says `{"tab": false}` (a small app, like /live/lab/), and every saved screen. More than five tabs would be a list, so then every sub-page is a card (`LivePage.tab_max`). /live/sessions/, /live/archive/ and /live/v1/ are neither (`LivePage.tab_skip`); the footer of /live/ links them. The rule is `LivePage.pages_of`.
  - **One title everywhere:** a tab label, a link card's title and the page's own h1 all read the sub-page's own `title` (the last `title` in its `page.jsonl`, else its `page.js`; `LivePage.title_of`). To rename a sub-page, set its title on its own path: `item({path: "/live/demos/", delta: {"title": "Feature demos"}})`. A link card's `title` shows only until the page's own one arrives.
  - **The breadcrumb is the url** (`location.pathname`, word for word, every step a link): a phone hides the address bar, so this is where the owner reads it. It redraws on every url change, a tab switch included (`LivePage.on_url`), and the tab row lights the tab the url is in.
@@ -290,3 +891,46 @@ index 497dd3b48..6b2d5f591 100644
  - **`header`** (`{"header": "text"}`) draws just below the sticky header, so the header keeps one size.
  
  ## Files
+diff --git a/public/live/v1/files.jsonl b/public/live/v1/files.jsonl
+index 6566a75c95..7b129523a6 100644
+--- a/public/live/v1/files.jsonl
++++ b/public/live/v1/files.jsonl
+@@ -6,3 +6,4 @@
+ {"file":"LiveToday.js"}
+ {"file":"readme.md"}
+ {"file":"failures.jsonl"}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/notes/files.jsonl b/public/notes/files.jsonl
+index 3116320f11..2c12f2df37 100644
+--- a/public/notes/files.jsonl
++++ b/public/notes/files.jsonl
+@@ -95,3 +95,4 @@
+ {"file":"inbox/"}
+ {"file":"inbox/","gone":true}
+ {"file":"inbox/"}
++{"file":"inbox/","gone":true}
+diff --git a/public/web/nav/doc/study/shots/files.jsonl b/public/web/nav/doc/study/shots/files.jsonl
+index 80b9e1cb47..bf8cb5da28 100644
+--- a/public/web/nav/doc/study/shots/files.jsonl
++++ b/public/web/nav/doc/study/shots/files.jsonl
+@@ -287,3 +287,20 @@
+ {"file":"tabs-390.png"}
+ {"file":"toc-1280.png"}
+ {"file":"toc-390.png"}
++{"file":"columns-1280.png","gone":true}
++{"file":"columns-deep-1280.png","gone":true}
++{"file":"columns-deep-390.png","gone":true}
++{"file":"crumbs-1280.png","gone":true}
++{"file":"prev-next-1280.png","gone":true}
++{"file":"prev-next-390.png","gone":true}
++{"file":"preview-wall-1280.png","gone":true}
++{"file":"preview-wall-390.png","gone":true}
++{"file":"rail-nested-1280.png","gone":true}
++{"file":"rail-nested-390-open.png","gone":true}
++{"file":"rail-nested-390.png","gone":true}
++{"file":"stability-1920.png","gone":true}
++{"file":"stability-card.png","gone":true}
++{"file":"tabs-1280.png","gone":true}
++{"file":"tabs-390.png","gone":true}
++{"file":"toc-1280.png","gone":true}
++{"file":"toc-390.png","gone":true}

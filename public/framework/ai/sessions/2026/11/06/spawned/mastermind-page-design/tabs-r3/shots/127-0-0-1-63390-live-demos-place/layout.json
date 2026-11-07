@@ -1,0 +1,345 @@
+{
+ "url": "http://127.0.0.1:63390/live/demos/place/",
+ "widths": {
+  "400": {
+   "empty": 0.782,
+   "widest_text": 454,
+   "widest_text_sample": "Place (LivePage ignores the place line —",
+   "overflow_x": false,
+   "items": 8,
+   "narrow_share": 0,
+   "layout": "custom",
+   "tabs_gap": null,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 12,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 12
+      }
+     ]
+    },
+    "p": {
+     "total": 12,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 12
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "live-alerts",
+     "y": 12,
+     "h": 0,
+     "share": 0,
+     "ink": 0.375,
+     "big_empty": false
+    },
+    {
+     "cls": "live-head",
+     "y": 0,
+     "h": 95,
+     "share": 0.095,
+     "ink": 0.783,
+     "big_empty": false
+    },
+    {
+     "cls": "live-main",
+     "y": 119,
+     "h": 73,
+     "share": 0.073,
+     "ink": 0.892,
+     "big_empty": false
+    },
+    {
+     "cls": "live-foot",
+     "y": 920,
+     "h": 0,
+     "share": 0,
+     "ink": 0,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "☰Menu",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.884,
+   "widest_text": 951,
+   "widest_text_sample": "This is a LivePage. The place line below",
+   "overflow_x": false,
+   "items": 8,
+   "narrow_share": 0.625,
+   "layout": "custom",
+   "tabs_gap": null,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 120,
+     "layers": [
+      {
+       "cls": "live-head",
+       "px": 96
+      },
+      {
+       "cls": "page",
+       "px": 24
+      }
+     ]
+    },
+    "p": {
+     "total": 120,
+     "layers": [
+      {
+       "cls": "live-main",
+       "px": 96
+      },
+      {
+       "cls": "page",
+       "px": 24
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "live-alerts",
+     "y": 12,
+     "h": 0,
+     "share": 0,
+     "ink": 0.175,
+     "big_empty": false
+    },
+    {
+     "cls": "live-head",
+     "y": 0,
+     "h": 95,
+     "share": 0.095,
+     "ink": 0.658,
+     "big_empty": false
+    },
+    {
+     "cls": "live-main",
+     "y": 119,
+     "h": 70,
+     "share": 0.07,
+     "ink": 0.608,
+     "big_empty": false
+    },
+    {
+     "cls": "live-foot",
+     "y": 920,
+     "h": 0,
+     "share": 0,
+     "ink": 0,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "✦",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.842,
+   "widest_text": 951,
+   "widest_text_sample": "This is a LivePage. The place line below",
+   "overflow_x": false,
+   "items": 8,
+   "narrow_share": 0.625,
+   "layout": "custom",
+   "tabs_gap": null,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 328,
+     "layers": [
+      {
+       "cls": "live-head",
+       "px": 304
+      },
+      {
+       "cls": "page",
+       "px": 24
+      }
+     ]
+    },
+    "p": {
+     "total": 328,
+     "layers": [
+      {
+       "cls": "live-main",
+       "px": 304
+      },
+      {
+       "cls": "page",
+       "px": 24
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "live-alerts",
+     "y": 12,
+     "h": 0,
+     "share": 0,
+     "ink": 0.325,
+     "big_empty": false
+    },
+    {
+     "cls": "live-head",
+     "y": 0,
+     "h": 95,
+     "share": 0.095,
+     "ink": 0.658,
+     "big_empty": false
+    },
+    {
+     "cls": "live-main",
+     "y": 119,
+     "h": 70,
+     "share": 0.07,
+     "ink": 0.542,
+     "big_empty": false
+    },
+    {
+     "cls": "live-foot",
+     "y": 920,
+     "h": 0,
+     "share": 0,
+     "ink": 0,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "✦",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "chatbox-compose-more",
+     "text": "",
+     "lines": 2.4
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.883,
+   "widest_text": 951,
+   "widest_text_sample": "This is a LivePage. The place line below",
+   "overflow_x": false,
+   "items": 8,
+   "narrow_share": 0.875,
+   "layout": "custom",
+   "tabs_gap": null,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 1088,
+     "layers": [
+      {
+       "cls": "live-head",
+       "px": 1064
+      },
+      {
+       "cls": "page",
+       "px": 24
+      }
+     ]
+    },
+    "p": {
+     "total": 1088,
+     "layers": [
+      {
+       "cls": "live-main",
+       "px": 1064
+      },
+      {
+       "cls": "page",
+       "px": 24
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "live-alerts",
+     "y": 12,
+     "h": 0,
+     "share": 0,
+     "ink": 0.225,
+     "big_empty": false
+    },
+    {
+     "cls": "live-head",
+     "y": 0,
+     "h": 95,
+     "share": 0.095,
+     "ink": 0.475,
+     "big_empty": false
+    },
+    {
+     "cls": "live-main",
+     "y": 119,
+     "h": 70,
+     "share": 0.07,
+     "ink": 0.383,
+     "big_empty": false
+    },
+    {
+     "cls": "live-foot",
+     "y": 920,
+     "h": 0,
+     "share": 0,
+     "ink": 0,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "✦",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "chatbox-compose-more",
+     "text": "",
+     "lines": 2.4
+    }
+   ]
+  }
+ },
+ "errors": [
+  "1200: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "400: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)"
+ ]
+}
