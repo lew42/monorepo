@@ -18,7 +18,7 @@ import SessionRecord from "../../Server/SessionRecord.mjs";
  * 1. THE OWNER'S OWN interactive session only — never a minion or mastermind's (minion-echo,
  *    2026-10-02, storage redirect: "a session is a page",
  *    public/framework/ai/sessions/2026/09/30/proposal-flow/page-item-design.md). The prompt becomes one
- *    `page_add` item on that session's own public/framework/ai/sessions/<session_id>/page.jsonl
+ *    `page_add` item on that session's own public/framework/ai/sessions/YYYY/MM/DD/<folder>/page.jsonl (the one dated folder)
  *    — never a second, shared daily file (the old .claude/prompts/<date>.jsonl is retired: text
  *    is never stored twice). This is the owner's "my words should be transcribed in real time."
  *

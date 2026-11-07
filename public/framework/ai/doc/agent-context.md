@@ -23,7 +23,7 @@ Columns: **CLAUDE.md** = the SDK loads it (`setting_sources` unset). **Chain** =
 | `claude -p` / CLI minion (`ext/Ask`, older launchers) | per flag | none | yes | no | project MCP; needs `--permission-mode bypassPermissions` or it writes nothing | the process's own cwd |
 | Cloud voice (Claude app, `ask_mastermind`) | the app's | `RemoteMCP.INSTRUCTIONS` (MCP server instructions) | no (not on this machine) | no | the one tunnel list at `/mcp/remote` | [cloud-voice-agent.md](/Servex/ext/remote/doc/cloud-voice-agent.md) |
 
-**True of every Servex spawn:** `whoami` (its id and its page `/framework/ai/sessions/<id>/`), the task line ("your task is already open at …"), and `past-work.md` beside the brief. Spawn defaults (model, effort, permission) come from the role row and the tier table (`tiers.js`); a caller's own field wins.
+**True of every Servex spawn:** `whoami` (its id and its session's one dated folder, `/framework/ai/sessions/YYYY/MM/DD/<folder>/`), the task line ("your task is already open at …"), and `past-work.md` beside the brief. Spawn defaults (model, effort, permission) come from the role row and the tier table (`tiers.js`); a caller's own field wins.
 
 ## Where loading is fragile when files move
 
