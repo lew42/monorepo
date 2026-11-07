@@ -72,7 +72,7 @@ A session folder is one of three kinds:
 
 ## How to find things
 
-The full guide (search steps, every event's search term, the logging contract): **[doc/finding.md](doc/finding.md)**. Use `git grep`: `rg` is not installed on the owner's shells. Run these from the repo root; each one takes under a second (timed 2026-11-06). `S=public/framework/ai/sessions`.
+The full guide (search steps, every event's search term, the logging contract): **[ai/indexing-past-work.md](../indexing-past-work.md)**. Use `git grep`: `rg` is not installed on the owner's shells. Run these from the repo root; each one takes under a second (timed 2026-11-06). `S=public/framework/ai/sessions`.
 
 | To find | Run |
 |---|---|
