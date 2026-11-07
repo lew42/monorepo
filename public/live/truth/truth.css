@@ -1,0 +1,12 @@
+@layer base, theme, site, util;
+@layer site {
+	.truth { display: grid; gap: 1em; max-width: 120em; }
+	.truth-twins { display: flex; align-items: baseline; gap: .5em .8em; flex-wrap: wrap; }
+	.truth-twins > span:last-child { flex: 1 1 18em; }
+	.truth-body { display: grid; gap: 1.5em; grid-template-columns: minmax(0, 1fr); }
+	.truth-table { border-collapse: collapse; width: 100%; }
+	.truth-table th, .truth-table td { text-align: left; padding: .4em .8em; border-bottom: 1px solid color-mix(in srgb, currentColor 25%, transparent); }
+	.truth-big { font-size: 3em; font-weight: 700; line-height: 1; }
+	.truth-trend { display: flex; align-items: flex-end; gap: 3px; height: 9em; }
+	.truth-bar { width: 1.2em; background: currentColor; opacity: .6; }
+}

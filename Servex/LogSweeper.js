@@ -40,6 +40,7 @@ export default class LogSweeper {
         /^public\/.+\/(page|inbox|prompts|essence|review|files)\.jsonl$|^public\/framework\/ai\/sessions\/.+\/digest\.json$/, // session records (sessions/doc/commit-rule.md, 2026-10-17); caches (cache.jsonl, index.json) stay out
         /^public\/.+\/tasks\/(.+\/)?(task|session)\.jsonl$/, // task records in module homes (<module>/tasks/, since 2026-10-16): no rule covered them, so 100+ sat modified for weeks
         /^public\/.+\/(ai\/log|improvements)\.jsonl$|^public\/framework\/ai\/asks\.jsonl$/, // module logs and the asks ledger, appended the same way
+        /^public\/live\/truth\/truth\.jsonl$/, // the daily truth numbers (Server/Truth.mjs, TaskLoop.truth_daily): appended by a job, so the trend lives in git
     ];
     /* Never swept, even if an ALLOW pattern would match. */
     static DENY = [/^(?!public\/framework\/ai\/(doc\/follow-up(-full)?|handover)\.md$).*\.(js|mjs|css|html|md)$/, /(^|\/)index\.tmp\.json$/, /node_modules/];

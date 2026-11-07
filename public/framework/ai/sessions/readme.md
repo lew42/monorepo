@@ -41,6 +41,8 @@ A session folder is one of three kinds:
 
 **`session.jsonl`** is the folder's one record file (`task.jsonl` in folders not yet moved; both names are read by `SessionRecord.file(dir)`). Line 1 of a Servex agent's is `{"assign":{"session_id","agent","title","model","requested_at","now"}}`; a cloud voice call's is `{"session":{"id","kind":"cloud-voice-agent","caller","at"}}`. Later lines are one event each, told apart by their single top-level verb: the task log (`assign`, `log`, `chat`, `agent`, `commit`, `decision`, `finish`…) and the digest/tag lines (`tag`, `summary`, `note`, `alert`, `weight`, `closed`, `question`, `links`; list in `SessionRecord.TAG_VERBS`). Rule, move script and undo: [doc/session-record.md](doc/session-record.md).
 
+- **How true the record is:** [/live/truth/](/live/truth/) counts it daily by code (sessions with tasks, complete, unproven, twins); [its readme](/live/truth/readme.md).
+
 ## How data gets in
 
 | What | Writer (called from) |

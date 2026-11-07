@@ -21,6 +21,12 @@ try {
 	assert.equal(r.ok, false, "a flat sessions/<uuid>/ folder fails the check");
 	assert.deepEqual(r.flat, [ID]);
 
+	fs.rmSync(path.join(STORE, ID), { recursive: true });
+	put("2026/11/04/" + ID, { session: { id: ID } });   // the same session held by a second dated folder: a twin
+	r = await SessionConsolidate.check(ROOT);
+	assert.equal(r.ok, false, "a twin fails the check (the CLI exits 1 on this)");
+	assert.equal(r.count, 1);
+
 	// The real store: no flat session folder may exist. If this fails, fold it into its dated folder (doc above).
 	const real = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), "..");
 	assert.deepEqual(SessionConsolidate.flat(real), [], "flat session folders in public/framework/ai/sessions/");
