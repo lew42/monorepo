@@ -26,3 +26,4 @@
 {"log":{"at":"2026-11-06T22:32:58-06:00","heartbeat":"deliberate","msg":"minion-tabs-survey its agent is not running: it was stopped on purpose by in-process at 2026-11-06T22:22:07-06:00; not revived."}}
 {"log":{"at":"2026-11-06T22:35:47-06:00","msg":"task-loop status ask 3: minion-tabs-survey was stopped on purpose; not woken","ask":3}}
 {"log":{"at":"2026-11-06T22:40:50-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"stop":{"at":"2026-11-06T23:40:53-06:00","why":"dropped: owner minion-tabs-survey is stopped"}}
