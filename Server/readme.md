@@ -44,7 +44,6 @@ The owner-facing server also starts `whisper-server` for dictation on its own �
 - `Server/on-landing.mjs` — runs on the first `landed_at`: text-check, layout-check, padding-check, `doc-check.mjs` ([`doc/on-landing.md`](./doc/on-landing.md)); `Server/owner-check.mjs` is its last check. The ledger hook refuses a `landed_at` with no `outcome`.
 - `node Server/ReadyToMerge.mjs [--json]` — the branches agents marked `ready:` (not yet in compliance/dev), with review phrase and worktree; Servex serves it to the Merge button on [`/framework/ai/merge/`](/framework/ai/merge/) ([`ai/merge/readme.md`](../public/framework/ai/merge/readme.md)).
 - `Server/dev-branch.mjs` — the one place the PC's dev branch is named (`DEV_BRANCH`); every script and class imports it. `Server/DevPublish.mjs` — what `merge.mjs` does after a landing: fetch, bring `origin/<dev>` in, push (one retry), and publish to `main` through a pull request only if `Server/publish.json` says `{"main": true}` (off). `node Server/rename-dev-branch.mjs` — dry-run manifest of the branch rename, `--apply` does it ([`git.md`](../public/framework/doc/git.md#merge-mjs-and-github-built-2026-11-03)).
-- `.githooks/` + `Server/CommitLog.mjs` — git hooks that put a `Session:` trailer on every commit and log the commit in its session's record; on with `git config core.hooksPath .githooks` ([`doc/commit-log.md`](./doc/commit-log.md)).
 - `node Server/review.mjs <taskdir> [<worktree>]` — a fresh agent says pass or fix before `merge.mjs` takes a branch; run on `compliance/dev` it reviews the task record's worktree or refuses, never a false pass ([`doc/review.md`](./doc/review.md)).
 - `node Server/Audit.mjs <taskdir...>` — computes the consensus of several task audits; no AI writes it from memory.
 - `Server/AskEach.mjs` `askOnce()` — one cheap Q&A turn, optionally on OpenRouter; ⚠ the SDK mis-prices an OpenRouter turn.
@@ -57,7 +56,7 @@ The owner-facing server also starts `whisper-server` for dictation on its own �
 - `node Server/CloseoutWalk.mjs <session> [--dry|--apply|--counts]` — walks a session's open owner asks to done, stopped, or deferred with a home (same doc).
 - `node Server/NavCheck.mjs <worktree>` — the click test: every page a branch adds must have an `a[href]` on its parent page, loaded headless; `merge.mjs` runs it and refuses an unlinked page, `--no-nav "why"` overrides ([`doc/nav-check.md`](./doc/nav-check.md)).
 - `node Server/Tunnel.mjs up|down|status` — the Cloudflare tunnel: `servex.lew42.com` (the voice app's `/mcp/remote`) and `monorepo.lew42.com` (the site from anywhere, through `SiteGateway.mjs`, behind a key cookie); `node Server/TunnelNamed.mjs setup` sets its hosts and DNS ([tunnel doc](../Servex/ext/remote/doc/tunnel.md)).
-- [`git-hooks/`](./git-hooks/) — the git hooks every worktree shares, versioned here with a small installer.
+- [`git-hooks/`](./git-hooks/) — the git hooks every worktree shares, versioned here with a small installer: they log each commit (and a `Session:` trailer) to the session that made it.
 
 ## Moved to a doc (verbatim)
 

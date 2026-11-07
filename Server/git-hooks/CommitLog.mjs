@@ -1,14 +1,14 @@
-// CommitLog — git hooks (.githooks/) call this so a commit is recorded in the session that made it.
-//   node Server/CommitLog.mjs trailer <commit-msg file>   adds "Session: <uuid>" to the message (commit-msg hook)
-//   node Server/CommitLog.mjs log                         appends {"commit","files","branch","worktree"} to the session's record (post-commit hook)
-// Never throws, never blocks: exit 0 always, killed after LIMIT ms. An unknown session writes one line to
-// public/framework/ai/sessions/failures.jsonl and nothing else. Doc: Server/doc/commit-log.md
+// CommitLog: the session half of the git hooks. post-commit.mjs calls CommitLog.log(), commit-msg.mjs calls CommitLog.trailer(file).
+//   trailer: adds "Session: <uuid>" to the message.   log: appends {"commit":{hash,what,files,branch,worktree}} to the session's record.
+// Never throws, never blocks. An unknown session writes one {at, fail:{kind:"commit"}} line to public/framework/ai/sessions/failures.jsonl.
+// A commit Servex made itself (SERVEX_COMMIT_BY set, see Servex/LogSweeper.js) belongs to no session: skipped, no line, no failure.
+// Doc: Server/git-hooks/readme.md
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
-import SessionFolders from "../public/framework/core/Session/SessionFolders.mjs";
-import SessionRecord from "./SessionRecord.mjs";
-import RecordWriter from "../public/framework/core/Item/RecordWriter.js";
+import SessionFolders from "../../public/framework/core/Session/SessionFolders.mjs";
+import SessionRecord from "../SessionRecord.mjs";
+import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
 
 export default class CommitLog {
 	static LIMIT = 8000;
@@ -44,37 +44,31 @@ export default class CommitLog {
 		try {
 			const f = path.join(root, "public/framework/ai/sessions/failures.jsonl");
 			fs.mkdirSync(path.dirname(f), { recursive: true });
-			fs.appendFileSync(f, JSON.stringify({ failure: { at: new Date().toISOString(), module: "CommitLog", why, ...extra } }) + "\n");
+			fs.appendFileSync(f, JSON.stringify({ at: new Date().toISOString(), fail: { kind: "commit", module: "CommitLog", why, ...extra } }) + "\n");
 		} catch {}
 	}
 
 	static async trailer(msgfile){
+		if (process.env.SERVEX_COMMIT_BY) return;
 		const cwd = process.cwd(), root = this.main_root(cwd), id = this.session_id(this.git(["rev-parse", "--show-toplevel"], cwd), root);
 		if (!id) return this.fail(root, "no session for this commit (CLAUDE_CODE_SESSION_ID unset, worktree not in .worktrees.json): no Session trailer", { cwd });
 		this.git(["interpret-trailers", "--in-place", "--if-exists", "doNothing", "--trailer", `Session: ${id}`, path.resolve(msgfile)], cwd);
 	}
 
 	static async log(){
+		if (process.env.SERVEX_COMMIT_BY) return null;
 		const cwd = process.cwd(), top = this.git(["rev-parse", "--show-toplevel"], cwd), root = this.main_root(cwd);
 		const hash = this.git(["rev-parse", "HEAD"], cwd);
 		const msg = this.git(["log", "-1", "--format=%B"], cwd), tr = /^Session: ([0-9a-f-]{36})$/m.exec(msg)?.[1];
 		const id = this.UUID.test(tr ?? "") ? tr : this.session_id(top, root);
-		if (!id) return this.fail(root, "commit not recorded: no session (CLAUDE_CODE_SESSION_ID unset, worktree not in .worktrees.json)", { commit: hash, worktree: top });
+		if (!id){ this.fail(root, "commit not recorded: no session (CLAUDE_CODE_SESSION_ID unset, worktree not in .worktrees.json)", { commit: hash, worktree: top }); return null; }
 		const file = this.record_file(root, id);
-		if (!file) return this.fail(root, "commit not recorded: the session has no record folder", { commit: hash, session: id });
+		if (!file){ this.fail(root, "commit not recorded: the session has no record folder", { commit: hash, session: id }); return null; }
 		const all = this.git(["diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "-m", "--first-parent", "HEAD"], cwd).split("\n").filter(Boolean);
-		const line = { commit: hash, files: all.slice(0, this.FILES), branch: this.git(["rev-parse", "--abbrev-ref", "HEAD"], cwd), worktree: top };
-		if (all.length > this.FILES) line.files_total = all.length;
-		await RecordWriter.write(file, [line], { by: "git-hook", timeout: 3000 });
+		const commit = { hash, what: this.git(["log", "-1", "--format=%s"], cwd), files: all.slice(0, this.FILES), branch: this.git(["rev-parse", "--abbrev-ref", "HEAD"], cwd), worktree: top };
+		if (all.length > this.FILES) commit.files_total = all.length;
+		await RecordWriter.write(file, [{ commit }], { by: "git-hook", timeout: 3000 });
+		return file;
 	}
 
-	static async main([cmd, arg]){
-		const timer = setTimeout(() => process.exit(0), this.LIMIT); timer.unref?.();
-		try { if (cmd === "trailer") await this.trailer(arg); else if (cmd === "log") await this.log(); }
-		catch (e){ try { this.fail(this.main_root(process.cwd()), `CommitLog ${cmd}: ${e.message}`.slice(0, 300)); } catch {} }
-		process.exit(0);
-	}
 }
-
-
-if (process.argv[1]?.endsWith("CommitLog.mjs")) CommitLog.main(process.argv.slice(2));
