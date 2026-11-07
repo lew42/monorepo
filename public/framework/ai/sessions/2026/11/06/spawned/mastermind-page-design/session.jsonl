@@ -157,3 +157,18 @@
 {"log":{"at":"2026-11-06T18:06:30-06:00","msg":"tabs-r3 done (proof.md; commits 86cb4107b, 694e7ef89). review.mjs running. Concern for review: demo titles carry caveats in parentheses (e.g. 'Columns (shows as plain tabs — LivePage has no column layout)')."}}
 {"log":{"at":"2026-11-06T18:06:30-06:00","msg":"card-count drop: live-page says no LivePage change between 17:54 and 18:00 and points at shared chrome (inbox rail/sidebar) or /live/ content cleared by voice-app. Not chasing further: console clean, my diff adds one card type."}}
 {"commit":"ebcda7f620ec","by":"append.mjs","ts":"2026-11-07T00:06:49.467Z"}
+{"log":{"at":"2026-11-06T18:12:25-06:00","msg":"task-loop status ask 1: asked mastermind-page-design","ask":1}}
+{"commit":"d60d2c37ac00","by":"append.mjs","ts":"2026-11-07T00:16:41.553Z"}
+{"log":{"at":"2026-11-06T18:17:16-06:00","msg":"view-type: voice-app's top priority. Built myself in pd-view-type (d60d2c37a). Headless /live/div-test/ shows <div>Hello world</div>; Item/List/Page/item_tool/page_tools tests green. Review running, then merge."}}
+{"decision":{"at":"2026-11-06T18:17:16-06:00","what":"A non-Item registered type (View) hydrates as a plain Item wearing its type; Item.foreign builds the View only when a page draws it","why":"Lists, saving and the node item tool all expect Items; a real View in a List would break toJSON and node (no document)","options":["put the View object itself in the List: closest to the words, but List/Item methods (set, toJSON, parent) do not exist on a View, and node has no document","a wrapper Item subclass per foreign class: works, but one more class per registered type"]}}
+{"log":{"at":"2026-11-06T18:17:16-06:00","msg":"item-validate merge refused twice by flaky tests (snapshot.test passes on rerun; then whisper-detach). Retry after the View merge."}}
+{"action":{"at":"2026-11-06T18:18:05-06:00","did":"edit","files":["public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/view-type/review.md"]},"by":"ledger","ts":"2026-11-07T00:18:05.412Z"}
+{"commit":"b9c060b1eb5b","by":"append.mjs","ts":"2026-11-07T00:19:10.133Z"}
+{"commit":"71802ffd0203","by":"append.mjs","ts":"2026-11-07T00:19:10.614Z"}
+{"commit":"15926a8610bc","by":"append.mjs","ts":"2026-11-07T00:20:03.807Z"}
+{"commit":"05fbb3dc65f3","by":"append.mjs","ts":"2026-11-07T00:20:13.557Z"}
+{"log":{"at":"2026-11-06T18:27:23-06:00","msg":"task-loop status ask 1: asked mastermind-page-design","ask":1}}
+{"log":{"at":"2026-11-06T18:27:30-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-07T00:27:30.830Z"}
+{"log":{"at":"2026-11-06T18:28:26-06:00","msg":"view-type MERGED 6a910932b; live check: /live/div-test/ draws <div>Hello world</div>, 0 console errors. voice-app told, card replied. Next: naming migration onto /live/plan/, 40-char code lines in the highlight readme, item-validate merge retry, inspector merge, tabs-r3 merge."}}
+{"log":{"at":"2026-11-06T18:28:26-06:00","msg":"trap for the architect: review.mjs writes its review into task.jsonl when the folder has no session.jsonl; a later session.jsonl then hides it from merge.mjs (SessionRecord.log_file prefers session.jsonl). Fixed here by appending the answers into task.jsonl."}}
+{"action":{"at":"2026-11-06T18:28:50-06:00","did":"edit","files":["public/live/readme.md"]},"by":"ledger","ts":"2026-11-07T00:28:50.119Z"}
