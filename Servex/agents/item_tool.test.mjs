@@ -550,6 +550,17 @@ try {
 		ok(r.ok, "an answered Question completes with a bare complete");
 		r = await call("item", { path: URL, delta: { unread: {} } });
 		ok(r.ok && !JSON.stringify(r).includes("qq1"), "once read it leaves the unread list");
+		// read mode CALLS a listed query (no write), and reads a plain value; a missing step lists the queries too
+		const lines = fs.readFileSync(fs.existsSync(path.join(DIR, "task.jsonl")) ? path.join(DIR, "task.jsonl") : path.join(DIR, "session.jsonl"), "utf8");
+		r = await call("item", { path: URL, read: "completion_score" });
+		ok(r.ok && typeof r.value === "number", `read:"completion_score" calls the query (${JSON.stringify(r).slice(0, 120)})`);
+		r = await call("item", { path: URL, read: "tally" });
+		ok(r.ok && r.value && typeof r.value === "object", "read:\"tally\" calls the query");
+		r = await call("item", { path: URL, read: "pq1.tasks.qq1.completion_score" });
+		ok(r.ok && r.value === 1, "a query on a nested task is called too");
+		r = await call("item", { path: URL, read: "nope" });
+		ok(r.ok === false && r.here.includes("completion_score"), "a missing step lists the queries it could have read");
+		ok(fs.readFileSync(fs.existsSync(path.join(DIR, "task.jsonl")) ? path.join(DIR, "task.jsonl") : path.join(DIR, "session.jsonl"), "utf8") === lines, "read mode wrote nothing");
 	}
 
 	ok(Buffer.compare(fs.readFileSync(REAL_MOVES), moves_before) === 0, "the test left the real task-moves.jsonl byte-identical");

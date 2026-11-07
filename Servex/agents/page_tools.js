@@ -1168,8 +1168,13 @@ function walk_path(root, read){
 	const parts = hops(read);
 	let node = root;
 	for (const key of parts){
-		const next = hop(node, key);
-		if (next === undefined) return { why: `no such path: ${key}`, here: keys_at(node) };
+		let next = hop(node, key);
+		if (next === undefined && node instanceof Item){
+			// A query the class lists (`static queries`: completion_score, tally, cost, …) is CALLED, the same as a `{"<query>":{}}` delta: no write, no line.
+			if (node.constructor.queries?.includes(key)) next = walk_queries(node, { [key]: {} }).answer[key];
+			else { const v = node.get?.(key); if (v !== undefined && v !== null) next = v; }   // a plain value: a title, a text
+		} else if (next === undefined && is_plain(node) && key in node) next = node[key];   // inside a query's answer: {cost:{usd}} reads "cost.usd"
+		if (next === undefined) return { why: `no such path: ${key}`, here: [...keys_at(node), ...(node instanceof Item ? node.constructor.queries ?? [] : [])] };
 		node = next;
 	}
 	return { node };
@@ -1811,7 +1816,7 @@ export function page_tools(resolve_log = null){
 
 		tool("item", ITEM_DESCRIPTION,
 			{ path: ITEM_PATH, delta: { type: "object", description: "ONE JSONL line, exactly what Item.set(delta) takes and the log holds. Omit it to read the current state. {\"help\":{}} returns the instructions again." },
-				read: { type: "string", description: "A dotted path to read with NO write, e.g. \"content.today\" (never together with `delta`). Answers {ok:true, read, value}: an Item as its data with every List inside replaced by {total, rows:[{id,type,title}]}; a List as that same rows shape; anything else as the plain value. Capped near 4 KB (then `truncated:true`). A path that does not resolve answers {ok:false, why:\"no such path: <the first missing step>\", here:[the ids or keys that exist at the last good step]}." } },
+				read: { type: "string", description: "A dotted path to read with NO write, e.g. \"content.today\" (never together with `delta`). Answers {ok:true, read, value}: an Item as its data with every List inside replaced by {total, rows:[{id,type,title}]}; a List as that same rows shape; a query the class lists (help's \"queries\": completion_score, tally, cost, …) is CALLED and answers its value, still with no write; anything else as the plain value. Capped near 4 KB (then `truncated:true`). A path that does not resolve answers {ok:false, why:\"no such path: <the first missing step>\", here:[the ids or keys that exist at the last good step]}." } },
 			[],
 			async (args, ctx = {}) => JSON.stringify(await run_item(args, { resolve_log, ...ctx }))),
 
