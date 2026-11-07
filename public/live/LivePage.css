@@ -36,6 +36,9 @@
 	.live-scroll > .chatbox-jump { margin-block-start: calc(-1 * var(--live-gap)); flex: none; font-size: 1rem; inline-size: 2.25rem; block-size: 2.25rem; min-block-size: 0; }   /* no gap of its own; a round tap target (a site button rule set a min height) */
 	/* THE HEADER: sticky, one size at every depth and width (rem, not the page's growing em), under 100 px: a tiny
 	   breadcrumb with the settings icon, a small title, one row of tabs. Its floor is opaque so cards pass under it. */
+	/* A row a subclass puts beside the three (DesignPage's page.ui strip under the head) sits in line with the column too. */
+	.live-page > :not(.live-head, .live-scroll, .live-status, .live-alerts) { flex: none; padding-inline: calc(var(--live-pad-x) + var(--live-col)); }
+
 	.live-page > .live-head {
 		flex: none; z-index: 5;
 		display: flex; flex-direction: column; gap: 0;
