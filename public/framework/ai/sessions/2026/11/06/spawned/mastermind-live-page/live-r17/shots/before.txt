@@ -1,0 +1,3 @@
+loaded in 8.1 s; fallback fetches: 22
+new running task on the page: NOT seen in 15 s
+it leaves In flight when completed: after 1 s

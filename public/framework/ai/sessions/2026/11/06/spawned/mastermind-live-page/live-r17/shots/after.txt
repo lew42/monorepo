@@ -1,0 +1,3 @@
+loaded in 8.3 s; fallback fetches: 22
+new running task on the page: after 1 s, no reload
+it leaves In flight when completed: after 1 s

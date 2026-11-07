@@ -1,0 +1,12 @@
+import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
+import fs from "node:fs";
+const [,, url, file] = process.argv;
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1200, height: 900 } });
+const log = [];
+p.on("websocket", ws => { ws.on("framesent", f => { const s = String(f.payload); if (/session\.jsonl/.test(s)) log.push("SENT " + s.slice(0, 160)); }); ws.on("framereceived", f => { const s = String(f.payload); if (/session\.jsonl/.test(s)) log.push("RECV " + s.slice(0, 160)); }); });
+await p.goto(url, { waitUntil: "networkidle" }); await p.waitForTimeout(5000);
+console.log("--- at load:\n" + log.splice(0).join("\n"));
+console.log("ready"); while (!fs.existsSync(file)) await p.waitForTimeout(500);
+await p.waitForTimeout(4000);
+console.log("--- after write:\n" + log.join("\n"));
+await b.close();
