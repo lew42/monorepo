@@ -25,6 +25,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
 import AskIndex from "./AskIndex.mjs";
+import SessionFolders from "../public/framework/core/Session/SessionFolders.mjs";
 import SessionRecord from "./SessionRecord.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -168,7 +169,7 @@ export default class RefineQueue {
 		if (!parsed){ this.failed++; return run; }
 		const ref = { session: p.session ?? p.task, line: p.line, at: p.at, uuid: p.uuid };
 		const item = { ...RefinedCard.item({ ref, parsed, count, brief: this.brief, model: r.model, usd: run.usd, tokens }), uuid: p.uuid, minion: r.session_id };
-		const page = p.page ?? (p.session ? `/framework/ai/sessions/${p.session}/` : null);   // p.page: the prompt's own page (Servex/agents/PromptTasks.js)
+		const page = p.page ?? (p.session ? SessionFolders.url_in(RefineQueue.main_root(), p.session) : null);   // p.page: the prompt's own page (Servex/agents/PromptTasks.js)
 		if (page) await page_add({ path: page, item }, { caller: RefineQueue.CALLER });
 		for (const a of parsed.asks) RefineQueue.append(RefineQueue.ASKS, { session: ref.session, line: ref.line, at: ref.at, id: a.id, ask: a.text.slice(0, 200), key: a.key, module: a.module, kind: a.kind, brief: this.brief });
 		if (p.session && !p.no_index) try { run.filed = new AskIndex({ root: RefineQueue.main_root() }).after_refine(ref, parsed); } catch (e){ run.filed_error = String(e.message ?? e).slice(0, 200); }   // record + cross off / module inbox (ext/Refine/doc/asks.md)
