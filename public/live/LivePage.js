@@ -6,6 +6,8 @@ import DefaultView from "/framework/ux/Content/Object/DefaultView.js";
 import "/framework/core/Page/parts/kinds.js";   // part-card, part-text, part-heading, part-link… as their real classes
 import PageLink from "/framework/core/Page/parts/PageLink.js";
 import LiveChecklist from "./LiveChecklist.js";
+import Task from "/framework/core/Task/Task.js";
+import TaskView from "/framework/core/Task/TaskView.js";
 import LiveLight from "./LiveLight.js";
 import LiveButton from "./LiveButton.js";
 import LiveCode from "./LiveCode.js";
@@ -44,6 +46,9 @@ export default class LivePage extends Page {
 		super(...args);
 		this.screens ??= new LiveScreens({ owner: this, name: "screens" });   // saved screens (LiveScreen), opened at /live/<name>/
 		this.removed ??= new List({ owner: this, name: "removed" });   // what left content or screens, opened at /live/removed/
+		// The page's own tasks, drawn as a checklist above the cards (LivePage.Tasks): {"tasks": {"add": {title}}}, closed with
+		// {"tasks": {"<id>": {"complete": {outcome, evidence}}}}. Before this list, {"tasks": …} was plain data and each add replaced the last (2026-11-06).
+		if (!(this.tasks instanceof List)){ this.tasks = new Task.List({ owner: this, name: "tasks" }); this.tasks.of = Task; }
 		// What this page's card shows, and the top of the page itself (LivePage.Preview): {"preview": {"add": {…}}}. The own
 		// list hides core Page's preview(nav) method on a LivePage (so `{"preview": …}` reaches the list, not the method).
 		if (!(Object.hasOwn(this, "preview") && this.preview instanceof List)) this.preview = new LiveContent({ owner: this, name: "preview" });
@@ -277,6 +282,7 @@ export default class LivePage extends Page {
 			if (this.settings_of) return void part("settings", P.Settings, { of: this.settings_of, at: this.at });
 			part("preview", P.Preview, { item: this.focus ?? this });   // the same preview its card shows, as the top of the page
 			if (this.focus) part("card", P.Focus, { item: this.focus });
+			if (!this.focus && !this.screen && !this.settings_of) part("tasks", P.Tasks);
 			part("cards", P.Main, { list: this.cards });
 			if (!this.focus && !this.screen && !this.settings_of) part("items", P.Items, { classes: "live-items" });
 			part("pages", P.Pages);
@@ -787,6 +793,25 @@ export default class LivePage extends Page {
 			LivePage.icon(this.page, "description");
 			this.$box.empty().el.append(block.el);
 			this.page.$raw?.href(url + "?raw").tc("is-empty", false);
+		}
+	};
+
+	// The page's tasks as one checklist card: a row per task (core/Task/TaskView.js, the one task row), done ones ticked, with
+	// a count in the title. Redraws when a task is added, removed or changes state; hidden while the page has none.
+	static Tasks = class LiveTasksView extends View {
+		render(){
+			const { page } = this, list = page.tasks;
+			this.ac("live-card live-tasks");
+			const $title = h4.c("live-card-title live-tasks-title"), $rows = div.c("live-tasks-rows");
+			const count = () => {
+				const all = [...list], done = all.filter(t => t.state === "complete").length;
+				this.tc("is-empty", !all.length);
+				$title.text(`Tasks · ${done} of ${all.length} done`);
+			};
+			const draw = () => { $rows.empty(() => { list.forEach(t => TaskView.row(t)); }); count(); };   // a block: forEach's return value would be drawn
+			["add", "remove", "move", "order", "clear"].forEach(verb => list.on(verb, () => View.frame(draw)));
+			page.on("change", count);   // a task's state change bubbles to the page, not its list; each row redraws itself (TaskView)
+			draw();
 		}
 	};
 

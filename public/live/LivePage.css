@@ -188,6 +188,15 @@
 	.live-light-card { display: flex; align-items: center; gap: .6rem; }
 	.live-light-card .live-dot { width: 1.2em; height: 1.2em; }
 	.live-checklist { display: flex; flex-direction: column; gap: .5rem; }
+	.live-tasks { display: flex; flex-direction: column; gap: .5rem; }
+	.live-tasks.is-empty { display: none; }
+	.live-tasks-rows { display: flex; flex-direction: column; gap: .35rem; }
+	/* A plain checklist (TaskView rows, lighter): regular text, the box at the first line, no verb buttons; a done one dims. */
+	.live-tasks .task-row-head { align-items: flex-start; cursor: default; }
+	.live-tasks .task-row-title { font-weight: 400; line-height: 1.35; }
+	.live-tasks .task-state-icon { margin-top: .1em; }
+	.live-tasks .task-actions { display: none; }
+	.live-tasks .task-row:has(.is-complete) .task-row-title { opacity: .55; text-decoration: line-through; }
 	.live-checklist-rows { display: flex; flex-direction: column; gap: .35rem; }
 	.live-check { display: flex; align-items: center; gap: .6rem; cursor: pointer; }
 	.live-check input { width: 1.2em; height: 1.2em; margin: 0; flex: none; accent-color: #22c55e; }

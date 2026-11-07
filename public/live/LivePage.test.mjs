@@ -111,6 +111,17 @@ try {
 	await go({ content: { lk: { description: "one line" } } });
 	ok((await read("content.lk")).data.description === "one line", "a link card keeps a description (its preview when the list is empty)");
 	ok((await ids("preview")).join() === "pp1", "the page's own preview list (it hides Page's preview(nav) on a LivePage)");
+	// 13. The page's own tasks: a real list, so a second add keeps the first (it was plain data and replaced it), closed by delta.
+	await go({ tasks: { add: { id: "t1", title: "First" } } });
+	await go({ tasks: { add: { id: "t2", title: "Second" } } });
+	ok((await ids("tasks")).join() === "t1,t2", "two tasks added are both kept");
+	await go({ tasks: { t1: { complete: { outcome: "done", evidence: "a test" } } } });
+	ok((await read("tasks.t1")).data.state === "complete", "tasks.<id>.complete closes one");
+	const tp = new LivePage({ title: "T", url: "/live/t/" }); let heard = 0;
+	tp.on("change", () => heard++);
+	tp.replay_line({ tasks: { add: { id: "x", title: "X" } } });
+	tp.replay_line({ tasks: { x: { complete: { outcome: "o", evidence: "e" } } } });
+	ok(tp.tasks.find("x").state === "complete" && heard > 0, "a task's state change reaches the page (the checklist redraws its count)");
 	console.log(`LivePage.test: ${n} passed`);
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });
