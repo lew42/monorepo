@@ -1,0 +1,3 @@
+#!/bin/sh
+node "$(dirname "$0")/../Server/CommitLog.mjs" log || true
+exit 0
