@@ -796,9 +796,6 @@ export default class LivePage extends Page {
 		}
 	};
 
-	// `footer` (a line of text) when set; on /live/ and its sub-pages, the removed cards; on /live/ itself, the old views.
-	// The pages that are somewhere else (LivePage.pages_of): a link card each, under the content, in two groups: this
-	// page's pages, then its saved screens. Drawn by code from the folder and the screens, never written into page.jsonl.
 	// The page's tasks as one checklist card: a row per task (core/Task/TaskView.js, the one task row), done ones ticked, with
 	// a count in the title. Redraws when a task is added, removed or changes state; hidden while the page has none.
 	static Tasks = class LiveTasksView extends View {
@@ -818,6 +815,9 @@ export default class LivePage extends Page {
 		}
 	};
 
+	// `footer` (a line of text) when set; on /live/ and its sub-pages, the removed cards; on /live/ itself, the old views.
+	// The pages that are somewhere else (LivePage.pages_of): a link card each, under the content, in two groups: this
+	// page's pages, then its saved screens. Drawn by code from the folder and the screens, never written into page.jsonl.
 	static Pages = class LivePagesView extends View {
 		render(){
 			const { page } = this, P = page.constructor;
