@@ -11,6 +11,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Log from "../Log.js";
 import { stamp, place } from "../home.js";
+import SpawnLog from "../SpawnLog.js";
 import Registry, { alive } from "./Registry.js";
 import { defaults as role_defaults, opening, injected, compact_after as role_compact_after, role_system, role_reminder, role_readme_path, alias_path, path_check, path_note } from "./roles.js";
 import { dir_of } from "./directory.js";
@@ -1458,7 +1459,10 @@ Agents.Agent = class Agent {
 	 * 4 KB stay on the agent as `stderr_tail`, and a spec's own `sdk.stderr`
 	 * still hears every chunk. */
 	spawn_claude({ command, args, cwd, env, signal }){
-		const child = spawn(command, args, { cwd, env, signal, stdio: ["pipe", "pipe", "pipe"], windowsHide: true });
+		/* the pid line goes in this agent's own session log and its parent's (Servex/SpawnLog.js) */
+		const child = SpawnLog.within({ agent: this.id, session: this.session_id ?? null, why: "claude.exe",
+			dir: () => this.task?.dir ?? this.host?.task_dir_of?.(this.id), parent_dir: () => this.parent ? SpawnLog.dir_for(this.host, this.parent) : null },
+			() => spawn(command, args, { cwd, env, signal, stdio: ["pipe", "pipe", "pipe"], windowsHide: true }));
 		child.on("error", e => this.emit({ type: "process", state: "failed", error: e.message }));
 		child.stderr.setEncoding("utf8");
 		child.stderr.on("data", d => {
