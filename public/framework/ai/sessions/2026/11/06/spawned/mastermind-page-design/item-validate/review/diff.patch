@@ -1,0 +1,127 @@
+diff --git a/Servex/agents/item_tool.test.mjs b/Servex/agents/item_tool.test.mjs
+index 725982191..b93228baf 100644
+--- a/Servex/agents/item_tool.test.mjs
++++ b/Servex/agents/item_tool.test.mjs
+@@ -414,9 +414,60 @@ try {
+ 			}
+ 			const r = await call("item", { path: PURL, delta: { content: { add: { type: "part-nope" } } } });
+ 			ok(r.ok === false && /part-view/.test(r.why) && /part-file/.test(r.why), "part-nope is refused and the refusal lists the types");
++
++			// record_lines (append.mjs's path, a browser tab's own post) must refuse the SAME bad line the item() tool
++			// refuses above, not just the item() tool's own write path (2026-11-06, item-validate): before the fix, a
++			// raw page.jsonl line only had the generic jsonl-schema shape checked (page.jsonl is "open" by design), so
++			// an unknown part type sailed through unrefused and landed in the file.
++			{
++				const { record_lines } = await import("./page_tools.js");
++				const pfile = path.join(PDIR, "page.jsonl"), before = fs.readFileSync(pfile, "utf8");
++				const out = record_lines(pfile, [{ content: { add: { type: "part-nope" } }, by: "t1", ts: "2026-11-06T00:00:00Z" }]);
++				ok(out.ok === false && out.written === 0 && /part-view/.test(out.refused[0]?.why ?? ""), "record_lines refuses the same unknown part type");
++				ok(fs.readFileSync(pfile, "utf8") === before, "record_lines wrote nothing on the refusal");
++			}
+ 		} finally { fs.rmSync(PDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
+ 	}
+ 
++	// Regression (mastermind-page-design, 2026-11-06): the new bad_page_delta check in record_lines runs against
++	// PAGE_PRELOADED, plain Page — never the page's OWN class (LivePage.js registers its own kinds, "live-light",
++	// "live-button", …). bad_page_delta only judges a `type` whose value STARTS WITH "part-" (its registry check
++	// is `value.startsWith("part-") && !Page.types.has(value)`): a LivePage kind never has that prefix, so it never
++	// reaches the check at all and is written exactly as before, on plain Page or LivePage alike.
++	{
++		const LDIR = DIR + "-live-page", LURL = URL.replace(/\/$/, "-live-page/");
++		fs.mkdirSync(LDIR, { recursive: true });
++		fs.writeFileSync(path.join(LDIR, "page.jsonl"), JSON.stringify({ class: "/live/LivePage.js", title: "Live fixture" }) + "\n");
++		try {
++			const { record_lines } = await import("./page_tools.js");
++			const pfile = path.join(LDIR, "page.jsonl");
++			for (const part of [{ type: "live-light", id: "t1" }, { type: "live-button", id: "t2", label: "x" }]){
++				const before = fs.readFileSync(pfile, "utf8");
++				const out = record_lines(pfile, [{ content: { add: part }, by: "t1", ts: "2026-11-06T00:00:00Z" }]);
++				ok(out.ok === true && out.written === 1 && !out.refused.length, `record_lines still accepts the LivePage-only type "${part.type}"`);
++				ok(fs.readFileSync(pfile, "utf8").length > before.length, `the ${part.type} line landed in the file`);
++			}
++		} finally { fs.rmSync(LDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
++	}
++
++	// A mistaken {"pages":{…}} (a card id colliding with the reserved "pages" verb) used to be swallowed silently:
++	// none of its keys matched add/rename/remove/promote, so apply_pages did nothing, `done` stayed empty, and
++	// run_item_now read that as "nothing left to write" and skipped the append — ok:true, line:null, no why
++	// (mastermind-page-design, 2026-11-06). Now refused by name, nothing written.
++	{
++		const BDIR = DIR + "-pages-bad", BURL = URL.replace(/\/$/, "-pages-bad/");
++		fs.mkdirSync(BDIR, { recursive: true });
++		fs.writeFileSync(path.join(BDIR, "page.jsonl"), JSON.stringify({ title: "Pages bad" }) + "\n");
++		try {
++			const before = fs.readFileSync(path.join(BDIR, "page.jsonl"), "utf8");
++			const r = await call("item", { path: BURL, delta: { pages: { text: "x" } } });
++			ok(r.ok === false && /"text"/.test(r.why) && /add, rename, remove or promote/.test(r.why), "an unknown pages key is refused by name");
++			ok(fs.readFileSync(path.join(BDIR, "page.jsonl"), "utf8") === before, "nothing was written");
++			const r2 = await call("item", { path: BURL, delta: { pages: { add: { name: "sub", title: "Sub" } } } });
++			ok(r2.ok && r2.pages?.[0]?.added === "sub", "a real pages verb still works");
++		} finally { fs.rmSync(BDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
++	}
++
+ 	// Prompt and Question through the real tool: a Question completes bare once answered, and the unread query lists it (core/Task/doc/prompt.md)
+ 	{
+ 		let r = await call("item", { path: URL, delta: { tasks: { add: { type: "Prompt", id: "pq1", raw: ["Why is the sky blue? Also fix it."], paragraphs: [{ id: "a", text: "Why is the sky blue? Also fix it." }] } } } });
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index cea56c03e..86e6536e3 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -411,9 +411,16 @@ function render_html({ page, items }, subpages){
+ /* `{"pages":{"add":{name,title,icon,description}, "rename":{name,to}, "remove":"name"}}`:
+  * folders sit beside the page's own page.jsonl, so a session page's subpage goes in the
+  * session's own folder. Only on the page itself (no target): a subpage is a folder. */
++const PAGES_VERBS = new Set(["add", "rename", "remove", "promote"]);
+ function apply_pages(at, pages, url){
+ 	if (at.target.length) return { why: "`pages` works on the page itself, not inside a target" };
+ 	if (!is_plain(pages)) return { why: "`pages` must be {add|rename|remove: …}" };
++	// `pages` is a reserved top-level key (this function), never a card id — a mistaken {"pages":{"text":…}} used to fall
++	// through with none of its keys matching add/rename/remove/promote, so nothing ran, `done` stayed empty, and the
++	// caller (run_item_now) read "nothing to write" and silently dropped the whole delta: ok:true, line:null, no why
++	// (mastermind-page-design, 2026-11-06). An unknown key here is refused by name instead.
++	const unknown = Object.keys(pages).filter(k => !PAGES_VERBS.has(k));
++	if (unknown.length) return { why: `"pages" takes add, rename, remove or promote — not ${unknown.map(k => `"${k}"`).join(", ")}. A card id never collides with "pages": name a real subpage verb, or use "content" for a card.` };
+ 	const subs = new Subpages(path.dirname(at.file)), base = String(url ?? "").replace(/\/?$/, "/"), done = [];
+ 	try {
+ 		for (const spec of [].concat(pages.add ?? [])){ subs.add(spec); done.push({ added: spec.name, url: base + spec.name + "/" }); }
+@@ -449,6 +456,10 @@ const page_class = () => page_loaded ??= (async () => {
+ 	const { PART_TYPES } = await import("../../public/framework/core/Page/parts/kinds.js");
+ 	return Object.assign(Page, { PART_TYPES });
+ })().catch(e => { console.warn(`item tool: Page.class.js did not import in node, so page lines are written unchecked (${e.message})`); return null; });
++// Loaded once, at import time (not only on first item() call), so record_lines below — called SYNCHRONOUSLY by
++// LogLine.append (Server/LogLine.mjs), for a browser tab's own page.jsonl post and append.mjs — can run the
++// same structural refusal (bad_page_delta) the item() tool's write path runs, without awaiting it per line.
++const PAGE_PRELOADED = await page_class();
+ /* A page.jsonl's own class (line 1's "class": "./LivePage.js", class_of below): resolved against the FILE'S FOLDER and
+  * imported, so a page replays as what it says it is (LivePage's methods, LivePage's own `kinds`) instead of plain Page.
+  * Used only when it extends the real Page (else a mistyped or unrelated module would silently become "the page class").
+@@ -1348,7 +1359,16 @@ export function record_lines(file, lines){
+ 	for (const [i, line] of lines.entries()){   // `i` names the caller's own line in a refusal
+ 		if (!fresh.has(line)){ out.skipped++; continue; }
+ 		if (!is_plain(line)){ out.refused.push({ i, why: "a line is one object" }); continue; }
+-		if (path.basename(file) === "page.jsonl"){ let why = null; try { why = check(file, line); } catch {} if (why){ out.refused.push({ i, why }); continue; } }
++		// Two checks, same ones the item() tool's own write path runs (page_refusal/bad_page_delta): the generic
++		// jsonl-schema shape (page.jsonl is "open" — an unknown key is plain data, by design), THEN whether the line
++		// would hold up on a real Page (a private key, or a part type nobody registered). Before this fix, only the
++		// first ran here: a raw line (a browser tab's own post, or append.mjs) skipped bad_page_delta entirely, so
++		// a line the item() tool refuses (item_tool.test.mjs, "part-nope is refused") landed in the file unrefused.
++		if (path.basename(file) === "page.jsonl"){
++			let why = null; try { why = check(file, line); } catch {}
++			if (!why && PAGE_PRELOADED) try { why = bad_page_delta(PAGE_PRELOADED, line); } catch {}
++			if (why){ out.refused.push({ i, why }); continue; }
++		}
+ 		let warm = store?.host && store.sig === sig(file) && store.deps.every(([f, s]) => sig(f) === s) ? store.host : null;
+ 		// A page line the browser wrote and its schema passed is kept even when node's live Page cannot apply it (a part only the browser
+ 		// registers): the warm root is dropped (try_line does that) and the next read replays the file. A task line is still refused.
+diff --git a/Servex/doc/item-tool.md b/Servex/doc/item-tool.md
+index ea17d2f1b..3f00375d4 100644
+--- a/Servex/doc/item-tool.md
++++ b/Servex/doc/item-tool.md
+@@ -47,6 +47,7 @@ Tests: `item_tool.test.mjs` (a query writes no line, a mixed delta is refused, t
+ - **Page files** (`page.jsonl`): `page_tools.js` `page_class()` loads the real `core/Page/Page.class.js` in node, once. `Servex/agents/site-hooks.mjs` is a node resolve hook that maps site-absolute imports (`/framework/…`) to `public/`, so no DOM stub is needed; the few import-time browser touches (`location`, `document`, `Element`) are guarded in `Reader.js`, `View.js`. `Page.replay(lines)` replays a log (its `replay_new` marks the page as replaying, so a `file` line only records itself).
+ - **One list of part types:** `core/Page/parts/kinds.js` imports every part class and exports `PART_TYPES`. The browser (`Parts.js`, `ai/AISession/AISessionDetail.js`), the tool and `Page.test.mjs` all import it. A new part type is one import and one name there.
+ - **Refused before the write** (`page_refusal`, then `try_line` on the live page, for every page write): a key starting `_` (or `constructor`, `prototype`) anywhere in the delta; a `part-*` type that is not registered (the answer lists the real ones); a line the live page cannot apply. Only `part-*` types are checked: pages also hold plain data typed `card`, `note`, `request`, `task`, `question` that no class claims (the alternative, checking every type, would refuse all of those).
++- **A raw page line is checked the same way** (`record_lines`, 2026-11-06, item-validate): `page.jsonl`'s own jsonl-schema is deliberately "open" — an unknown key is plain data by design — so a browser tab's own post or `append.mjs` used to skip `bad_page_delta` entirely and write a `part-*` type nobody registered (or a `_`-prefixed key) straight to the file; only the item() tool's own write path (`page_refusal`) caught it. `record_lines` now runs `bad_page_delta` too, against a `Page` class preloaded once at import (`PAGE_PRELOADED`, so the check stays synchronous — `record_lines` is called synchronously by `Server/LogLine.mjs`). Test: `item_tool.test.mjs`, "record_lines refuses the same unknown part type".
+ - **Any task line that would break replay is refused too** (`try_line`, `Refused`): the line is replayed on the live root BEFORE it is appended. A throw (for example `commits` in a child add: the getter has no setter) returns `{ok:false, why:"this line would not replay (…). Nothing was written."}` and the cached root is dropped. A `tasks.add` array is checked member by member on an empty root before any member is written.
+ - **A query key given a value is refused:** `{"summary":"text"}` is not an ask and cannot set; the answer says `summary is a query: it only reads and cannot be set`. `{}`, `true`, `null`, an array or an object are arguments.
+ - Tests: `node public/framework/core/Page/Page.test.mjs` (replay, unknown type reported, the tool refuses), `node Servex/agents/item_tool.test.mjs`, `node Servex/agents/page_tools.test.mjs`.
