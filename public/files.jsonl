@@ -147,3 +147,5 @@
 {"file":"failures.jsonl","gone":true}
 {"file":"public/"}
 {"file":"public/","gone":true}
+{"file":"data/"}
+{"file":"failures.jsonl"}

@@ -46,11 +46,17 @@ function bin_of(list){
 }
 
 // Take the member out (the list's own remove: one quiet release, one "remove" event), then put it in the bin quietly.
+// `{"remove": ["a","b"]}` is each id in turn. Only a real member goes to the bin: an id that is not here (already
+// removed, or moved to another page) is skipped, and keeping a card never throws, so a remove cannot blank the page.
 function keep(list, idOrX, remove){
-	const made = typeof idOrX === "object" && idOrX !== null ? idOrX : list.find(idOrX);
+	if (Array.isArray(idOrX)){ idOrX.forEach(x => list.remove(x)); return list; }
+	const key = typeof idOrX === "object" && idOrX !== null ? list.key(idOrX) : idOrX;
+	const made = list.find(key);
 	const bin = bin_of(list);
 	remove();
-	if (made && bin && bin !== list && !made.transient && !list.items.includes(made)) into(bin, made);
+	if (made && typeof made === "object" && bin && bin !== list && !made.transient && !list.items.includes(made)){
+		try { into(bin, made); } catch (error){ console.warn(`LiveContent: "${key}" left the list but could not be kept in removed:`, error); }
+	}
 	return list;
 }
 

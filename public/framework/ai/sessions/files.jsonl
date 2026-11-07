@@ -30778,3 +30778,17 @@
 {"file":"session-folders.json","gone":true}
 {"file":"2020/","gone":true}
 {"file":"session-twins.json","gone":true}
+{"file":"2020/"}
+{"file":"failures.jsonl"}
+{"file":"index.jsonl"}
+{"file":"openrouter-costs.json"}
+{"file":"openrouter-reconcile.json"}
+{"file":"screenshots/"}
+{"file":"session-folders.json"}
+{"file":"session-index.json"}
+{"file":"session-tree.json"}
+{"file":"session-twins.json"}
+{"file":"sessions.json"}
+{"file":"spend-tree.json"}
+{"file":"transcripts/"}
+{"file":"week.json"}
