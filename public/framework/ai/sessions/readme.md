@@ -72,13 +72,13 @@ A session folder is one of three kinds:
 
 ## How to find things
 
-Run these from the repo root. Each one takes under a second (timed 2026-11-06). `S=public/framework/ai/sessions`.
+The full guide (search steps, every event's search term, the logging contract): **[doc/finding.md](doc/finding.md)**. Use `git grep`: `rg` is not installed on the owner's shells. Run these from the repo root; each one takes under a second (timed 2026-11-06). `S=public/framework/ai/sessions`.
 
 | To find | Run |
 |---|---|
-| Today's VS Code tabs | `rg -l '"kind":"vscode-tab"' $S/2026/11/06 -g session.jsonl` (the SessionStart hook writes this line 1) |
-| An agent's folder, by its id | `rg -l '"agent":"mastermind-page-design"' $S -g session.jsonl` |
-| A task, by words in its title | `rg -l -i '"title":"[^"]*worktree' $S -g task.jsonl` |
+| Today's VS Code tabs | `git grep --untracked -l '"kind":"vscode-tab"' -- "$S/2026/11/06/**/session.jsonl"` (the SessionStart hook writes this line 1) |
+| An agent's folder, by its id | `git grep --untracked -l '"agent":"mastermind-page-design"' -- "$S/**/session.jsonl"` |
+| A task, by words in its title | `git grep --untracked -liE '"title":"[^"]*worktree' -- "$S/**/task.jsonl"` |
 | Which session a running process is | PowerShell: `Get-CimInstance Win32_Process -Filter "Name='claude.exe'" \| select ProcessId,CreationDate,CommandLine`. A Servex agent's command line carries `--resume=<session id>`; the folder is `session-<first 8 hex>`. A `claude.exe` under `WindowsApps\Claude_*` is the Claude desktop app, not a session. |
 | A session's transcript | `~/.claude/projects/C--Code-lew42-monorepo/<session id>.jsonl` |
 
