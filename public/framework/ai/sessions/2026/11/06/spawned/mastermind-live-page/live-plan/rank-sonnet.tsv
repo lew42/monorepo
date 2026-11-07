@@ -1,0 +1,197 @@
+core/Page/Page.class.js:39	static use(Ext)	core	plugin registration, needed for any plugin to attach
+core/Page/Page.class.js:52	constructor(...args)	core	identity: how every page comes into being
+core/Page/Page.class.js:64	assign(...args)	core	identity: raw field assignment during construction
+core/Page/Page.class.js:67	static replay_new(lines)	core	replay entry point in node
+core/Page/Page.class.js:74	replay_line(line)	core	replay: applies one stamped line
+core/Page/Page.class.js:76	log_label()	move-out	plugin: log
+core/Page/Page.class.js:82	bubbles()	secondary	small identity helper, most pages touch it
+core/Page/Page.class.js:84	static new_id()	core	identity: how a page gets its id
+core/Page/Page.class.js:88	set(obj)	core	the tree: core data mutation
+core/Page/Page.class.js:108	get items()	core	the tree: item storage, used everywhere
+core/Page/Page.class.js:115	get content()	core	the tree: content list, used everywhere
+core/Page/Page.class.js:116	set content(value)	core	the tree: content list setter
+core/Page/Page.class.js:120	_helper(name)	secondary	lazy helper loader, could move to a part
+core/Page/Page.class.js:126	hoist_content()	secondary	content shape normalization, used by many pages
+core/Page/Page.class.js:140	has_content()	core	the tree: cheap content check
+core/Page/Page.class.js:142	take_content()	core	the tree: content accessor
+core/Page/Page.class.js:144	get(key)	core	identity: field read
+core/Page/Page.class.js:146	lists()	core	the tree: list enumeration
+core/Page/Page.class.js:153	get pages()	core	the tree: child pages list
+core/Page/Page.class.js:156	get children()	move-out	deprecated, use page.pages; delete per migration doc
+core/Page/Page.class.js:159	set children(list)	move-out	deprecated config staging, replaced by pages/declare
+core/Page/Page.class.js:170	ext(name)	secondary	extension lookup, could live in a helper
+core/Page/Page.class.js:178	file(name)	move-out	plugin: Jsonl.js helper
+core/Page/Page.class.js:179	gone(yes)	move-out	plugin: Jsonl.js helper
+core/Page/Page.class.js:180	child_file(entry)	move-out	plugin: Jsonl.js helper
+core/Page/Page.class.js:181	link_child(name)	move-out	plugin: Jsonl.js helper
+core/Page/Page.class.js:182	unlink_child(key)	move-out	plugin: Jsonl.js helper
+core/Page/Page.class.js:183	tab(obj)	move-out	plugin: tabs
+core/Page/Page.class.js:187	take_words(obj)	move-out	plugin: words
+core/Page/Page.class.js:188	overlay(line)	move-out	plugin: Jsonl.js helper
+core/Page/Page.class.js:190	reshape()	secondary	re-declare mechanism, used by many pages
+core/Page/Page.class.js:197	rerender()	core	render entry: redraw in place
+core/Page/Page.class.js:221	tab_state(name)	move-out	plugin: tabs
+core/Page/Page.class.js:222	tab_visible(name)	move-out	plugin: tabs
+core/Page/Page.class.js:223	nav_ready(name)	move-out	plugin: tabs/nav
+core/Page/Page.class.js:224	tab_order(name)	move-out	plugin: tabs
+core/Page/Page.class.js:226	place(value)	secondary	placement hook, small and widely used
+core/Page/Page.class.js:227	log_view()	move-out	plugin: log
+core/Page/Page.class.js:228	draw_folder()	move-out	plugin: files
+core/Page/Page.class.js:229	log_draw()	move-out	plugin: log
+core/Page/Page.class.js:230	log_folder()	move-out	plugin: log
+core/Page/Page.class.js:231	log_redraw()	move-out	plugin: log
+core/Page/Page.class.js:232	draw_placed(entry)	secondary	render helper for placed content
+core/Page/Page.class.js:233	files_button()	move-out	plugin: files
+core/Page/Page.class.js:237	in_tabs_frame()	move-out	plugin: tabs
+core/Page/Page.class.js:240	has_files_button()	move-out	plugin: files
+core/Page/Page.class.js:241	draw_md(url)	move-out	plugin: markdown
+core/Page/Page.class.js:242	draw_module(url, data)	secondary	module rendering, used by most code pages
+core/Page/Page.class.js:243	listing()	secondary	folder listing accessor, widely used
+core/Page/Page.class.js:246	get unknown()	secondary	dev-time field audit helper
+core/Page/Page.class.js:248	report_unknown()	secondary	dev-time field audit helper
+core/Page/Page.class.js:249	log_forget()	move-out	plugin: log
+core/Page/Page.class.js:251	static jsonl(url)	move-out	Page/Jsonl.js helper
+core/Page/Page.class.js:253	static jsonl_file(file_url, address)	move-out	Page/Jsonl.js helper
+core/Page/Page.class.js:256	static listing(url, fresh)	secondary	folder listing lookup, widely used
+core/Page/Page.class.js:259	static fetch_listing(url)	secondary	folder listing fetch, widely used
+core/Page/Page.class.js:262	static page_listing(url)	move-out	Page/Jsonl.js helper
+core/Page/Page.class.js:270	static loaded_listing(url)	move-out	Page/Jsonl.js helper
+core/Page/Page.class.js:272	static log_class(module, url)	move-out	plugin: log
+core/Page/Page.class.js:274	naming()	secondary	naming/slug logic, used by most pages
+core/Page/Page.class.js:289	words()	move-out	plugin: words
+core/Page/Page.class.js:296	word_classes()	move-out	plugin: words
+core/Page/Page.class.js:305	words_said()	move-out	plugin: words
+core/Page/Page.class.js:307	declare(list)	core	the tree: how children are declared
+core/Page/Page.class.js:346	add(name, child)	core	the tree: adds a child page
+core/Page/Page.class.js:361	move(url)	core	the tree: moves a page
+core/Page/Page.class.js:369	chain()	core	the tree: ancestor chain
+core/Page/Page.class.js:376	nearest(role)	secondary	role lookup up the chain
+core/Page/Page.class.js:378	topic()	secondary	role helper, small
+core/Page/Page.class.js:379	document()	secondary	role helper, small
+core/Page/Page.class.js:382	source_children()	core	the tree: lazy children loader, memoised once
+core/Page/Page.class.js:387	child(name, levels)	core	the tree: fetches/builds a child page
+core/Page/Page.class.js:437	child_readme(name, listing, levels)	secondary	readme-as-page fallback, used by many folders
+core/Page/Page.class.js:453	tasks_folder()	move-out	plugin: tasks
+core/Page/Page.class.js:459	ai_page()	move-out	plugin: ai
+core/Page/Page.class.js:464	child_md(name, levels)	secondary	markdown child lookup, widely used
+core/Page/Page.class.js:470	md_folder()	move-out	plugin: markdown
+core/Page/Page.class.js:476	fs_folder()	move-out	plugin: fs browser
+core/Page/Page.class.js:485	md_dir()	move-out	plugin: markdown
+core/Page/Page.class.js:487	open_link(link)	secondary	navigation helper, widely used
+core/Page/Page.class.js:488	swap_link(link)	secondary	navigation helper, widely used
+core/Page/Page.class.js:489	swap_url(file)	secondary	navigation helper, widely used
+core/Page/Page.class.js:490	md_files(names)	move-out	plugin: markdown
+core/Page/Page.class.js:491	static md_page(file)	move-out	plugin: markdown
+core/Page/Page.class.js:492	static md_file(link)	move-out	plugin: markdown
+core/Page/Page.class.js:493	static md_url(file)	move-out	plugin: markdown
+core/Page/Page.class.js:496	static of(el)	core	identity: page instance from a DOM node
+core/Page/Page.class.js:501	static file(url)	core	url resolution, every markdown-backed page needs it
+core/Page/Page.class.js:504	static load(url, levels)	core	save/load: fetches and builds a page
+core/Page/Page.class.js:507	static read_json(url, opts)	core	save/load: the one fetch path
+core/Page/Page.class.js:509	static from(source, adopt)	core	save/load: builds from a loaded source
+core/Page/Page.class.js:511	static props(data, mode)	secondary	field prop helper
+core/Page/Page.class.js:513	static missing(error)	secondary	error-page builder
+core/Page/Page.class.js:515	static slug(title)	secondary	slug helper, widely used
+core/Page/Page.class.js:517	container()	core	render entry: the page's own element
+core/Page/Page.class.js:527	mounts_in(view, claim)	secondary	mount-point helper
+core/Page/Page.class.js:529	activate()	core	render entry: enters the live DOM
+core/Page/Page.class.js:549	warn_if_hidden()	secondary	dev-only warning, not load-bearing
+core/Page/Page.class.js:559	deactivate()	core	render entry: leaves the live DOM
+core/Page/Page.class.js:570	in_doc()	core	render entry: is this page live
+core/Page/Page.class.js:577	render()	core	render entry: the main draw
+core/Page/Page.class.js:629	render_content()	core	render entry: draws the content list
+core/Page/Page.class.js:631	render_content_list(list)	core	render entry: draws an arbitrary list
+core/Page/Page.class.js:634	content_at(url)	secondary	cross-page content embed, used by many pages
+core/Page/Page.class.js:648	drew_content(source, url, level)	secondary	content-embed bookkeeping
+core/Page/Page.class.js:656	link(text)	secondary	small link helper, widely used
+core/Page/Page.class.js:658	crumbs(from)	move-out	plugin: breadcrumbs
+core/Page/Page.class.js:668	related_aside()	move-out	plugin: related
+core/Page/Page.class.js:671	columns({even, fit})	move-out	plugin: columns
+core/Page/Page.class.js:676	column_host()	move-out	plugin: columns
+core/Page/Page.class.js:683	render_column(host)	move-out	plugin: columns
+core/Page/Page.class.js:684	column(host)	move-out	plugin: columns
+core/Page/Page.class.js:685	default_column()	move-out	plugin: columns
+core/Page/Page.class.js:686	column_grab($body)	move-out	plugin: columns
+core/Page/Page.class.js:687	resize_column($body, px)	move-out	plugin: columns
+core/Page/Page.class.js:688	static even_columns(row, fit)	move-out	plugin: columns
+core/Page/Page.class.js:689	even_columns()	move-out	plugin: columns
+core/Page/Page.class.js:690	settle_columns(slide)	move-out	plugin: columns
+core/Page/Page.class.js:691	column_slide()	move-out	plugin: columns
+core/Page/Page.class.js:692	reveal_column(page)	move-out	plugin: columns
+core/Page/Page.class.js:693	scroll_column(slide)	move-out	plugin: columns
+core/Page/Page.class.js:695	nav()	secondary	nav lookup, widely used
+core/Page/Page.class.js:697	nav_for(name)	secondary	nav lookup, widely used
+core/Page/Page.class.js:704	previews(pages, opts)	move-out	plugin: previews
+core/Page/Page.class.js:705	walls()	move-out	plugin: previews
+core/Page/Page.class.js:706	wall_rungs()	move-out	plugin: previews
+core/Page/Page.class.js:708	preview(nav)	move-out	plugin: previews
+core/Page/Page.class.js:710	preview_thumb(thumb)	move-out	plugin: previews
+core/Page/Page.class.js:711	preview_link(nav)	move-out	plugin: previews
+core/Page/Page.class.js:717	load_all_children(levels)	secondary	recursive prefetch, used by some tree views
+core/Page/Page.class.js:730	prefs()	move-out	plugin: prefs
+core/Item/Item.js:72	constructor(...args)	core	identity: how every item is built
+core/Item/Item.js:88	default_id()	core	identity: default id from its file
+core/Item/Item.js:95	assign(...args)	core	identity: raw field assignment
+core/Item/Item.js:99	build_assign(...args)	core	identity: assignment before class fields exist
+core/Item/Item.js:101	get_one(key)	core	identity: single-field read primitive
+core/Item/Item.js:102	put(key, value)	core	identity: single-field write primitive
+core/Item/Item.js:105	static define_fields()	core	identity: declares an item's own fields
+core/Item/Item.js:149	set(a, b)	core	set/replay: the one mutation entry point
+core/Item/Item.js:155	unset(...keys)	core	set/replay: field removal
+core/Item/Item.js:174	act(verb, args)	secondary	button-click dispatch, used by many items
+core/Item/Item.js:187	batch(fn)	secondary	grouped-change helper, used by many items
+core/Item/Item.js:206	as_call(name, args, body)	secondary	call-line construction helper
+core/Item/Item.js:225	static call_value(args)	secondary	call-line argument wrapper
+core/Item/Item.js:234	static call_args(value)	secondary	call-line argument unwrapper
+core/Item/Item.js:258	apply(delta)	core	set/replay: the one key-by-key rule
+core/Item/Item.js:281	set_one(key, value)	core	set/replay: single-key apply logic
+core/Item/Item.js:342	hook_for(key)	core	set/replay: finds a key's set hook
+core/Item/Item.js:351	run_hook(key, raw, value)	core	set/replay: runs a key's set hook
+core/Item/Item.js:373	take(key, value)	core	set/replay: per-class line value shaping
+core/Item/Item.js:380	call_marked(key, value)	core	set/replay: dispatches a marked method call
+core/Item/Item.js:391	call_line(name, args)	core	set/replay: runs a line's method call
+core/Item/Item.js:401	unknown_key(key)	secondary	unknown-field reporting, dev aid
+core/Item/Item.js:416	hop_marked(key, value)	core	set/replay: routes a value to a list member
+core/Item/Item.js:426	emit_safely(event, ...args)	secondary	safe event emission, widely used
+core/Item/Item.js:436	adopt_slot(key, value, old)	secondary	list-slot adoption logic
+core/Item/Item.js:459	get(key)	core	identity: the one field read path
+core/Item/Item.js:481	member(id)	secondary	legacy id-only hop lookup
+core/Item/Item.js:496	locate(path)	secondary	dotted-path lookup, widely used
+core/Item/Item.js:511	remove()	core	the tree: removes self from parent list
+core/Item/Item.js:523	move_to(dest, opts)	secondary	cross-list move, used by some items
+core/Item/Item.js:540	file_url()	core	save/load: where this item's file lives
+core/Item/Item.js:551	load()	core	save/load: loads this item's data
+core/Item/Item.js:556	root()	core	the tree: walks up to the root
+core/Item/Item.js:567	lists()	core	the tree: every List property owned
+core/Item/Item.js:576	walk(fn)	core	the tree: visits self and descendants
+core/Item/Item.js:584	find(id)	secondary	deep search, widely used but not identity
+core/Item/Item.js:599	contains(item)	secondary	descendant check, widely used but not identity
+core/Item/Item.js:607	get view()	secondary	default icon view, used by most items
+core/Item/Item.js:612	set view(v)	secondary	default icon view setter
+core/Item/Item.js:616	get views()	move-out	plugin: multi-view tracking
+core/Item/Item.js:617	set views(v)	move-out	plugin: multi-view tracking
+core/Item/Item.js:621	save()	move-out	deprecated, use item.store
+core/Item/Item.js:622	delete()	core	the tree: deletes self and its file
+core/Item/Item.js:627	toJSON()	core	save/load: serialization shape
+core/Item/Item.js:633	wire()	secondary	wire-name lookup, small
+core/Item/Item.js:636	static new_id()	core	identity: the one id maker
+core/Item/Item.js:640	static short_id(n)	core	identity: short id generation
+core/Item/Item.js:663	static describe()	secondary	item-tool introspection support
+core/Item/Item.js:723	static register(Class, name)	core	identity: registers a class under a name
+core/Item/Item.js:730	static is_item_class(Class)	secondary	class-check helper
+core/Item/Item.js:735	static foreign(item)	secondary	cross-store reference helper
+core/Item/Item.js:747	static replay_new(lines)	core	set/replay: node-side replay entry
+core/Item/Item.js:752	static replay(lines, snapshot)	core	set/replay: the one replay path
+core/Item/Item.js:762	snapshot_unsafe()	secondary	snapshot safety check, used by server tooling
+core/Item/Item.js:765	static from_snapshot({state, memory})	core	save/load: restores from a snapshot
+core/Item/Item.js:776	restore(state, memory)	core	save/load: restore implementation
+core/Item/Item.js:793	replay_line(line)	core	set/replay: applies one stamped line
+core/Item/Item.js:802	static get clock()	core	set/replay: the shared replay clock
+core/Item/Item.js:803	static set clock(at)	core	set/replay: sets the shared replay clock
+core/Item/Item.js:807	static get source()	secondary	local/replay/remote origin flag
+core/Item/Item.js:811	static dots(line)	core	set/replay: dotted-key line expansion
+core/Item/Item.js:827	static unmark(line)	core	set/replay: strips a line's method marks
+core/Item/Item.js:831	static open(src, fallback)	core	save/load: the one file-opening path
+core/Item/Item.js:860	static class_for(entries, fallback)	core	save/load: picks the class for a file
+core/Item/Item.js:871	static root_from(entries)	core	save/load: builds the root from lines
+# counts core=75 secondary=54 move-out=67 total=196

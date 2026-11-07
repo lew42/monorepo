@@ -39,6 +39,6 @@ What the owner liked:
 
 ## Next
 
-1. **The plan** (on `/live/plan/`, visual, iceberg): the method ranking, the plugin and extension shape, what moves from LivePage into Page or plugins, the duplicates, and the session page as the first adopter. It **waits for the owner's yes.**
-2. **The session page study** is running now (task `session-live-view`, mastermind-live-page).
+1. **The plan is up: [/live/plan/fold/](/live/plan/fold/)** (2026-11-07). In short: `class Page extends Pluggable(Item)`, so Page's three extension hooks become core/Plugin rows (per-instance on/off is already built there); LivePage splits into Page (~200 lines), reusable views (~330) and plugins (~390); one tabs plugin replaces three. The first adopter is the session page, and the first decision is whether Item's `file_url`/`load` move to the store. The method ranking (Haiku, Sonnet, mastermind; 119 of 196 agreed) is in [the task folder](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-plan/compare.json). It **waits for the owner's yes.**
+2. **The session page study is done:** [/live/session-page/](/live/session-page/) (the live tail is built, 9782b2db5).
 3. **After approval:** small, additive steps in worktrees, each one smoke-tested. Nothing breaks the existing pages.

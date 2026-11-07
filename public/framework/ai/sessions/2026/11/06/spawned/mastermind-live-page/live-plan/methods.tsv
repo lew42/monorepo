@@ -1,0 +1,196 @@
+core/Page/Page.class.js:39	static use(Ext)	12 lines	
+core/Page/Page.class.js:52	constructor(...args)	11 lines	 ⚠ Nothing is FETCHED here: a module page constructs itself at import. The caller budgets (docdeclaring.md).
+core/Page/Page.class.js:64	assign(...args)	2 lines	
+core/Page/Page.class.js:67	static replay_new(lines)	6 lines	 Page.replay(lines) in node (the item tool, Page.test.mjs): the lines are only being REPLAYED, so a `file` line records itself and imports nothing.
+core/Page/Page.class.js:74	replay_line(line)	1 lines	 The whole line reaches set(), stamp included, so `jsonl_lines` and the "line" event keep `by``ts` (the inbox, the log view).
+core/Page/Page.class.js:76	log_label()	5 lines	
+core/Page/Page.class.js:82	bubbles()	1 lines	
+core/Page/Page.class.js:84	static new_id()	3 lines	
+core/Page/Page.class.js:88	set(obj)	19 lines	
+core/Page/Page.class.js:108	get items()	6 lines	 ════ ITEMS — each one embedded (a line here) or saved in its own file (`file``path`: coreItem's file_urlload, docjsonl.md "page.items") ═══ No `set()` override
+core/Page/Page.class.js:115	get content()	0 lines	 ════ CONTENT — (doccontent.md) ═══
+core/Page/Page.class.js:116	set content(value)	3 lines	
+core/Page/Page.class.js:120	_helper(name)	5 lines	 The helpers (Jsonl, Columns, Previews, Links, Related, Prefs) are made once per page, on first use. (docarchitecture.md) ⚠ Own map, not an inherited one: a Tem
+core/Page/Page.class.js:126	hoist_content()	13 lines	
+core/Page/Page.class.js:140	has_content()	1 lines	
+core/Page/Page.class.js:142	take_content()	1 lines	
+core/Page/Page.class.js:144	get(key)	1 lines	
+core/Page/Page.class.js:146	lists()	6 lines	
+core/Page/Page.class.js:153	get pages()	2 lines	
+core/Page/Page.class.js:156	get children()	2 lines	 DEPRECATED (2026-10-28): use `page.pages` (a List). Guide: frameworkcorePagedocmigration-children-to-pages.md. Remove when: the census (node ServerDeprecated.m
+core/Page/Page.class.js:159	set children(list)	10 lines	 ⚠ A config `children: […]` is only STAGED here; declare() reads it. A `new Map()` means "forget everything". (docwatch-out.md)
+core/Page/Page.class.js:170	ext(name)	7 lines	 ════ EXTENSIONS ═══
+core/Page/Page.class.js:178	file(name)	0 lines	 ════ PAGE.JSONL HOOKS (Jsonl.js, docjsonl.md) ═══
+core/Page/Page.class.js:179	gone(yes)	0 lines	
+core/Page/Page.class.js:180	child_file(entry)	0 lines	
+core/Page/Page.class.js:181	link_child(name)	0 lines	
+core/Page/Page.class.js:182	unlink_child(key)	0 lines	
+core/Page/Page.class.js:183	tab(obj)	3 lines	
+core/Page/Page.class.js:187	take_words(obj)	0 lines	
+core/Page/Page.class.js:188	overlay(line)	1 lines	
+core/Page/Page.class.js:190	reshape()	6 lines	
+core/Page/Page.class.js:197	rerender()	23 lines	 Draw me again in place, no reload. ⚠ Not `redraw()`: Card already has its own. (docwatch-out.md)
+core/Page/Page.class.js:221	tab_state(name)	0 lines	
+core/Page/Page.class.js:222	tab_visible(name)	0 lines	
+core/Page/Page.class.js:223	nav_ready(name)	0 lines	
+core/Page/Page.class.js:224	tab_order(name)	1 lines	
+core/Page/Page.class.js:226	place(value)	0 lines	
+core/Page/Page.class.js:227	log_view()	0 lines	
+core/Page/Page.class.js:228	draw_folder()	0 lines	
+core/Page/Page.class.js:229	log_draw()	0 lines	
+core/Page/Page.class.js:230	log_folder()	0 lines	
+core/Page/Page.class.js:231	log_redraw()	0 lines	
+core/Page/Page.class.js:232	draw_placed(entry)	0 lines	
+core/Page/Page.class.js:233	files_button()	3 lines	
+core/Page/Page.class.js:237	in_tabs_frame()	2 lines	 Drawn as one of a `navigation: "tabs"` parent's tabs: the tab label already names it, so its own h1 and its own Files button both stand down (`render()` above)
+core/Page/Page.class.js:240	has_files_button()	0 lines	 The one page in a tabs frame (or a plain jsonl page) that draws the shared Files button.
+core/Page/Page.class.js:241	draw_md(url)	0 lines	
+core/Page/Page.class.js:242	draw_module(url, data)	0 lines	
+core/Page/Page.class.js:243	listing()	2 lines	
+core/Page/Page.class.js:246	get unknown()	1 lines	 Every `data` key that is not a declared field. (docdecisions.md)
+core/Page/Page.class.js:248	report_unknown()	0 lines	
+core/Page/Page.class.js:249	log_forget()	1 lines	
+core/Page/Page.class.js:251	static jsonl(url)	1 lines	
+core/Page/Page.class.js:253	static jsonl_file(file_url, address)	2 lines	 page.items: a sibling file's own lines, built as a full page at `address` (not where the file sits — LivePage.child()).
+core/Page/Page.class.js:256	static listing(url, fresh)	2 lines	 A folder's own file list: a loaded page's lines, else files.jsonl, else page.jsonl, else null. Memoised per folder. (docdecisions.md)
+core/Page/Page.class.js:259	static fetch_listing(url)	2 lines	 The two files, in the order the parent's listing suggests; the first one there wins.
+core/Page/Page.class.js:262	static page_listing(url)	7 lines	 A jsonl page already loaded at `url` (jsonl() registers it): its lines, as a listing.
+core/Page/Page.class.js:270	static loaded_listing(url)	1 lines	 The listing, only if it is already here — a loaded jsonl page, or a `listing()` call that has come back; never fetches. undefined = not asked yet, null = asked
+core/Page/Page.class.js:272	static log_class(module, url)	1 lines	
+core/Page/Page.class.js:274	naming()	14 lines	
+core/Page/Page.class.js:289	words()	6 lines	 ════ THE SIX PAGE WORDS ═══
+core/Page/Page.class.js:296	word_classes()	8 lines	
+core/Page/Page.class.js:305	words_said()	1 lines	
+core/Page/Page.class.js:307	declare(list = this._raw_children ?? [])	38 lines	
+core/Page/Page.class.js:346	add(name, child = {})	14 lines	
+core/Page/Page.class.js:361	move(url)	7 lines	
+core/Page/Page.class.js:369	chain()	6 lines	
+core/Page/Page.class.js:376	nearest(role)	1 lines	 ════ ROLES ═══
+core/Page/Page.class.js:378	topic()	0 lines	
+core/Page/Page.class.js:379	document()	2 lines	
+core/Page/Page.class.js:382	source_children()	4 lines	 A `children()` function is called ONCE, on the first ask. ⚠ Memoised on `this.sourcing`. (docwatch-out.md)
+core/Page/Page.class.js:387	child(name, levels)	49 lines	
+core/Page/Page.class.js:437	child_readme(name, listing, levels)	15 lines	 A folder with no page.js or page.jsonl but its own readme.md opens as a page showing that readme (docsubpages.md). Only a folder the parent's listing knows is 
+core/Page/Page.class.js:453	tasks_folder()	5 lines	 ⚠ Imported on first use, like md_folder: coreTask imports Page.
+core/Page/Page.class.js:459	ai_page()	4 lines	 ⚠ Imported on first use, like tasks_folder: AIPage extends Page.
+core/Page/Page.class.js:464	child_md(name, levels)	5 lines	
+core/Page/Page.class.js:470	md_folder()	5 lines	 ⚠ Imported on first use: Markdown extends Page, so a static import is a cycle.
+core/Page/Page.class.js:476	fs_folder()	8 lines	 This directory's real files, full screen, at my own `fs` (`?v=1` is the old view). ⚠ Dynamic import. (docdecisions.md)
+core/Page/Page.class.js:485	md_dir()	1 lines	
+core/Page/Page.class.js:487	open_link(link)	0 lines	
+core/Page/Page.class.js:488	swap_link(link)	0 lines	
+core/Page/Page.class.js:489	swap_url(file)	0 lines	
+core/Page/Page.class.js:490	md_files(names)	0 lines	
+core/Page/Page.class.js:491	static md_page(file)	0 lines	
+core/Page/Page.class.js:492	static md_file(link)	0 lines	
+core/Page/Page.class.js:493	static md_url(file)	2 lines	
+core/Page/Page.class.js:496	static of(el)	4 lines	
+core/Page/Page.class.js:501	static file(url)	2 lines	 Last resort: a `.md` beside me IS a page. ⚠ The SPA fallback answers a miss with index.html at 200: content-type is the 404. (docwatch-out.md)
+core/Page/Page.class.js:504	static load(url, levels)	2 lines	 A module that throws is NOT a module that isn't there. ⚠ `levels` bounds its subtree (nothing = its own `depth`). (docwatch-out.md)
+core/Page/Page.class.js:507	static read_json(url, opts)	1 lines	 ⚠ The SPA fallback answers a miss with index.html at 200: content-type is the 404. `opts` goes to fetch. (docdecisions.md)
+core/Page/Page.class.js:509	static from(source, adopt)	1 lines	
+core/Page/Page.class.js:511	static props(data, mode)	1 lines	
+core/Page/Page.class.js:513	static missing(error)	1 lines	
+core/Page/Page.class.js:515	static slug(title)	1 lines	
+core/Page/Page.class.js:517	container()	9 lines	
+core/Page/Page.class.js:527	mounts_in(view, claim)	1 lines	
+core/Page/Page.class.js:529	activate()	19 lines	
+core/Page/Page.class.js:549	warn_if_hidden()	9 lines	 Dev only: an unmarked .page is display:none and nothing throws, so say so. (docapi.md)
+core/Page/Page.class.js:559	deactivate()	10 lines	
+core/Page/Page.class.js:570	in_doc()	6 lines	
+core/Page/Page.class.js:577	render()	51 lines	
+core/Page/Page.class.js:629	render_content()	1 lines	
+core/Page/Page.class.js:631	render_content_list(list = this.content)	2 lines	
+core/Page/Page.class.js:634	content_at(url)	13 lines	 ⚠ A loop fuse: two levels draw, the third is a link. (docdecisions.md)
+core/Page/Page.class.js:648	drew_content(source, url, level)	7 lines	
+core/Page/Page.class.js:656	link(text)	1 lines	
+core/Page/Page.class.js:658	crumbs(from)	9 lines	
+core/Page/Page.class.js:668	related_aside()	2 lines	 ════ RELATED ═══
+core/Page/Page.class.js:671	columns({ even = false, fit = "floor" } = {})	4 lines	 ════ COLUMNS ═══
+core/Page/Page.class.js:676	column_host()	6 lines	 Asked at render time, never walked. ⚠ A page under a tab strip is a tab, not a column. (docdecisions.md)
+core/Page/Page.class.js:683	render_column(host)	0 lines	
+core/Page/Page.class.js:684	column(host)	0 lines	
+core/Page/Page.class.js:685	default_column()	0 lines	
+core/Page/Page.class.js:686	column_grab($body)	0 lines	
+core/Page/Page.class.js:687	resize_column($body, px)	0 lines	
+core/Page/Page.class.js:688	static even_columns(row, fit)	0 lines	
+core/Page/Page.class.js:689	even_columns()	0 lines	
+core/Page/Page.class.js:690	settle_columns(slide)	0 lines	
+core/Page/Page.class.js:691	column_slide()	0 lines	
+core/Page/Page.class.js:692	reveal_column(page)	0 lines	
+core/Page/Page.class.js:693	scroll_column(slide)	1 lines	
+core/Page/Page.class.js:695	nav()	1 lines	
+core/Page/Page.class.js:697	nav_for(name)	6 lines	
+core/Page/Page.class.js:704	previews(pages, opts)	0 lines	 ════ PREVIEWS ═══
+core/Page/Page.class.js:705	walls()	0 lines	
+core/Page/Page.class.js:706	wall_rungs()	1 lines	
+core/Page/Page.class.js:708	preview(nav)	1 lines	
+core/Page/Page.class.js:710	preview_thumb(thumb)	0 lines	
+core/Page/Page.class.js:711	preview_link(nav)	5 lines	
+core/Page/Page.class.js:717	load_all_children(levels = this.depth)	12 lines	 My children fetched, and theirs, until the budget runs out. ⚠ Idempotent; a `leaf` child spends none of it. (docwatch-out.md)
+core/Page/Page.class.js:730	prefs()	26 lines	
+core/Item/Item.js:72	constructor(...args)	15 lines	
+core/Item/Item.js:88	default_id()	6 lines	 An item saved in its own file (page.items: `file``path`) takes that file's name as its id by default (Page.items' `make` asks; scoped there so a content card o
+core/Item/Item.js:95	assign(...args)	3 lines	
+core/Item/Item.js:99	build_assign(...args)	1 lines	 assign() for an object still being built: its fields go straight into data, never through set(). A subclass that assigns again after its own class fields exist
+core/Item/Item.js:101	get_one(key)	0 lines	
+core/Item/Item.js:102	put(key, value)	2 lines	
+core/Item/Item.js:105	static define_fields()	43 lines	 Static fields as accessors: docitem-notes.md. ⚠ Collision detection at register time
+core/Item/Item.js:149	set(a, b)	5 lines	 `set("k", v)` is sugar for `set({k: v})` — told apart by whether the first argument is already a plain delta (an object OR an array of them — see `apply()` bel
+core/Item/Item.js:155	unset(...keys)	18 lines	
+core/Item/Item.js:174	act(verb, args)	12 lines	 A button's verb (browser): run `this[verb](args)` now so the page redraws at once, but record the VERB — `{start:{}}` — not the `set` lines it made, so the ite
+core/Item/Item.js:187	batch(fn)	18 lines	
+core/Item/Item.js:206	as_call(name, args, body)	18 lines	
+core/Item/Item.js:225	static call_value(args)	8 lines	
+core/Item/Item.js:234	static call_args(value)	23 lines	 The reverse: a line's value -> the list of arguments to call the method with. A value that is not the wrapper is the one argument.
+core/Item/Item.js:258	apply(delta)	22 lines	 The one rule, key by key, IN KEY ORDER: 1. skip `constructor`, `__proto__`, anything starting `_` (never trust a line to reach into the prototype chain). 2. a 
+core/Item/Item.js:281	set_one(key, value)	60 lines	
+core/Item/Item.js:342	hook_for(key)	8 lines	 The hook (D17) for a data key: the wrapped `set_<key>` method, or null.
+core/Item/Item.js:351	run_hook(key, raw, value)	21 lines	
+core/Item/Item.js:373	take(key, value)	6 lines	 A line's value for `key` when it is replayed (a Task or Session reads its own line shapes and stores fields itself): the class's hook if it has one, else put()
+core/Item/Item.js:380	call_marked(key, value)	10 lines	 `name()` in a line: call the method `name` with the value as its one argument, or with the list the `$args` wrapper holds (Item.call_value).
+core/Item/Item.js:391	call_line(name, args)	9 lines	 A line's call of my method `name`. What the method stores is its own business (and a `set` call's keys are data the writer named on purpose), so unknown_key st
+core/Item/Item.js:401	unknown_key(key)	14 lines	
+core/Item/Item.js:416	hop_marked(key, value)	9 lines	 `#id` in a line: the list item with that id (one of my lists, or my own members when I am a List); the value goes to it.
+core/Item/Item.js:426	emit_safely(event, ...args)	9 lines	 emit(), but a throwing listener is reported on console (naming the event and this item) instead of reaching the caller.
+core/Item/Item.js:436	adopt_slot(key, value, old)	22 lines	
+core/Item/Item.js:459	get(key)	21 lines	
+core/Item/Item.js:481	member(id)	14 lines	 A member of one of my lists, by id: the first list that has it. Only an old line's id-only hop needs this (set_one above, the item tool's check); every new hop
+core/Item/Item.js:496	locate(path)	14 lines	
+core/Item/Item.js:511	remove()	11 lines	 Me, out of whichever of my parent's lists holds me. The zero-argument form is the only one Item needs — removing a CHILD is a call on that specific list (`pare
+core/Item/Item.js:523	move_to(dest, opts = {})	16 lines	
+core/Item/Item.js:540	file_url()	10 lines	
+core/Item/Item.js:551	load()	4 lines	
+core/Item/Item.js:556	root()	10 lines	
+core/Item/Item.js:567	lists()	8 lines	 Every List property I own, by name — the one seam `find`, `walk` and `toJSON` all read, and the one Page will override (its sub-pages also live in a plain name
+core/Item/Item.js:576	walk(fn)	7 lines	
+core/Item/Item.js:584	find(id)	14 lines	 A DEEP search — every descendant, across every list, at every depth: the first one in walk order, me included. Indexed once per change to any list (Item.genera
+core/Item/Item.js:599	contains(item)	7 lines	 Strict descendants — `contains(this)` is false, so a drop-check still needs `target !== this` beside it.
+core/Item/Item.js:607	get view()	4 lines	 The icon item: a tiny view of `get("icon")` + `get("title")`, built lazily and swappable — Page assigns its OWN `view` directly, which is why this is a getters
+core/Item/Item.js:612	set view(v)	3 lines	
+core/Item/Item.js:616	get views()	0 lines	 Every live view drawing me (ask 33): one item can show in two places at once, and a change reaches each. The default view (uxContentObjectDefaultView.js) adds 
+core/Item/Item.js:617	set views(v)	3 lines	
+core/Item/Item.js:621	save()	0 lines	 A child asking to save persists its DOCUMENT — delegation up, never a partial write. DEPRECATED (2026-10-28): use `item.store` (`Item.Store.for(url)`) for a de
+core/Item/Item.js:622	delete()	4 lines	
+core/Item/Item.js:627	toJSON()	5 lines	 Instance properties (`parent`, `saver`, `store`, `_view`, `_on`) are never emitted — only `data` and each named List, which is what makes a backref impossible 
+core/Item/Item.js:633	wire()	2 lines	
+core/Item/Item.js:636	static new_id()	3 lines	 One id maker (cross-review finding 3): every new Item gets a short id, whether a string add, an object add or a new Ref. Page keeps its own (a folder name).
+core/Item/Item.js:640	static short_id(n = 8)	22 lines	 The id a person or an agent makes (a click, an item-tool add): 8 random letters and digits, never a dot, and never all digits (a number-like key would jump to 
+core/Item/Item.js:663	static describe()	59 lines	 What a caller may put in a delta for this class: {class, fields, methods:[{name, doc}], queries}; doc is "" here (the item tool fills it from source). This lis
+core/Item/Item.js:723	static register(Class, name = Class.name)	6 lines	 ⚠ `names` is an inverse index rather than a static on the class: a static is INHERITED, so an unregistered subclass would silently wear its parent's wire name.
+core/Item/Item.js:730	static is_item_class(Class)	4 lines	
+core/Item/Item.js:735	static foreign(item)	11 lines	
+core/Item/Item.js:747	static replay_new(lines)	4 lines	 Replay: ONE path for every Item, in node (`replay(lines)`) and in the browser (Store.read calls `replay_line` per entry). A subclass overrides `replay_new` (wh
+core/Item/Item.js:752	static replay(lines, snapshot)	9 lines	 The root is built the way Item.open builds it (root_from below): a plain Item IS its line 1 (id and fields), the other lines replay onto it; a class with its o
+core/Item/Item.js:762	snapshot_unsafe()	2 lines	 null when a snapshot of this item can be continued by replaying later lines; else the reason it cannot (ServerSnapshots.mjs refuses it).
+core/Item/Item.js:765	static from_snapshot({ state, memory })	10 lines	 An empty item of this class, restored from a snapshot (nothing is saved while it is built).
+core/Item/Item.js:776	restore(state, memory = [])	16 lines	
+core/Item/Item.js:793	replay_line(line)	8 lines	 `by` and `ts` are the writer's stamp on the line, not data: stripped here, the line's time held in `Item.clock` while it applies (a Task stamps its verbs with 
+core/Item/Item.js:802	static get clock()	0 lines	 The time of the line being replayed (null outside a replay). One clock for every Item: `Task.clock` reads and writes this same value.
+core/Item/Item.js:803	static set clock(at)	3 lines	
+core/Item/Item.js:807	static get source()	3 lines	 Where the change being made right now comes from (spec T1): "local" (code in this tab), "replay" (a log being loaded) or "remote" (a line another writer saved,
+core/Item/Item.js:811	static dots(line)	15 lines	 A line's dotted keys, one level opened: `{"tasks.c3.tasks.d1": v}` -> `{"tasks": {"c3.tasks.d1": v}}` (each level's set() opens the next). For a replay_line th
+core/Item/Item.js:827	static unmark(line)	3 lines	 A line's top-level marks undone, for a replay_line that reads its keys by their bare names (Task, Session): `{"start()":{}}` reads as `{"start":{}}` and `{"#c3
+core/Item/Item.js:831	static open(src, fallback)	28 lines	 A string is a .jsonl url: one Store per file, opened, the host built from its first line, attached. A Saver object keeps the existing whole-JSON path.
+core/Item/Item.js:860	static class_for(entries, fallback = Item)	10 lines	 The class a file's root is, from its own lines (Item.open on a url nothing else names): line 1's registered `type` or `class`; a session's record ({"session":…
+core/Item/Item.js:871	static root_from(entries)	60 lines	 The root a file's lines open as, and the lines still to replay onto it. An Item is line 1 itself (its fields), the rest replayed; a class with its own replay_n

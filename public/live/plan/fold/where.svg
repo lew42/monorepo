@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" font-family="system-ui, sans-serif" font-size="15">
+  <rect width="800" height="300" fill="#fff"/>
+  <text x="20" y="32" font-size="18" font-weight="600" fill="#222">Where LivePage's ~1,240 lines go</text>
+  <!-- one bar, 760 px = 1,240 lines -->
+  <g transform="translate(20,52)">
+    <rect x="0"   y="0" width="123" height="54" fill="#3b6fd8"/>
+    <rect x="123" y="0" width="202" height="54" fill="#5aa469"/>
+    <rect x="325" y="0" width="239" height="54" fill="#e0913a"/>
+    <rect x="564" y="0" width="31"  height="54" fill="#8a63c9"/>
+    <rect x="595" y="0" width="165" height="54" fill="#b8b8b8"/>
+    <text x="10"  y="33" fill="#fff" font-weight="600">Page</text>
+    <text x="133" y="33" fill="#fff" font-weight="600">Reusable views</text>
+    <text x="335" y="33" fill="#fff" font-weight="600">Plugins (on or off)</text>
+    <text x="605" y="33" fill="#222" font-weight="600">Card types</text>
+  </g>
+  <g transform="translate(20,138)" fill="#333">
+    <rect x="0" y="-12" width="14" height="14" fill="#3b6fd8"/><text x="22" y="0"><tspan font-weight="600">Page itself, ~200</tspan>: render with its error box, sub-page routing, links</text>
+    <rect x="0" y="16" width="14" height="14" fill="#5aa469"/><text x="22" y="28"><tspan font-weight="600">Reusable views, ~330</tspan>: the header (breadcrumb, icon, title, gear), cards, previews</text>
+    <rect x="0" y="44" width="14" height="14" fill="#e0913a"/><text x="22" y="56"><tspan font-weight="600">Plugins, ~390</tspan>: tabs, settings + files, status, sub-pages list, tasks, voice, buttons</text>
+    <rect x="0" y="72" width="14" height="14" fill="#8a63c9"/><text x="22" y="84"><tspan font-weight="600">The store, ~50</tspan>: watching a sub-page's own title and icon (not in Page)</text>
+    <rect x="0" y="100" width="14" height="14" fill="#b8b8b8"/><text x="22" y="112"><tspan font-weight="600">Card types, ~270</tspan>: checklist, light, button, code, content; unchanged</text>
+  </g>
+</svg>

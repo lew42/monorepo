@@ -1,0 +1,197 @@
+core/Page/Page.class.js:39	static use	move-out	Plugin: Page.use/ext become Host.use
+core/Page/Page.class.js:52	constructor	core	identity, tree, content, url, render
+core/Page/Page.class.js:64	assign	core	identity, tree, content, url, render
+core/Page/Page.class.js:67	static replay_new	core	identity, tree, content, url, render
+core/Page/Page.class.js:74	replay_line	core	identity, tree, content, url, render
+core/Page/Page.class.js:76	log_label	move-out	plugin: log view
+core/Page/Page.class.js:82	bubbles	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:84	static new_id	core	identity, tree, content, url, render
+core/Page/Page.class.js:88	set	core	identity, tree, content, url, render
+core/Page/Page.class.js:108	get items	core	identity, tree, content, url, render
+core/Page/Page.class.js:115	get content	core	identity, tree, content, url, render
+core/Page/Page.class.js:116	set content	core	identity, tree, content, url, render
+core/Page/Page.class.js:120	_helper	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:126	hoist_content	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:140	has_content	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:142	take_content	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:144	get	core	identity, tree, content, url, render
+core/Page/Page.class.js:146	lists	core	identity, tree, content, url, render
+core/Page/Page.class.js:153	get pages	core	identity, tree, content, url, render
+core/Page/Page.class.js:156	get children	move-out	delete: deprecated, use pages
+core/Page/Page.class.js:159	set children	move-out	delete: deprecated, use pages
+core/Page/Page.class.js:170	ext	move-out	Plugin: Page.use/ext become Host.use
+core/Page/Page.class.js:178	file	move-out	store: Jsonl reader, not Page
+core/Page/Page.class.js:179	gone	move-out	store: Jsonl reader, not Page
+core/Page/Page.class.js:180	child_file	move-out	store: Jsonl reader, not Page
+core/Page/Page.class.js:181	link_child	move-out	store: Jsonl reader, not Page
+core/Page/Page.class.js:182	unlink_child	move-out	store: Jsonl reader, not Page
+core/Page/Page.class.js:183	tab	move-out	plugin: tabs
+core/Page/Page.class.js:187	take_words	move-out	store: Jsonl reader, not Page
+core/Page/Page.class.js:188	overlay	move-out	store: Jsonl reader, not Page
+core/Page/Page.class.js:190	reshape	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:197	rerender	core	identity, tree, content, url, render
+core/Page/Page.class.js:221	tab_state	move-out	plugin: tabs
+core/Page/Page.class.js:222	tab_visible	move-out	plugin: tabs
+core/Page/Page.class.js:223	nav_ready	move-out	plugin: tabs
+core/Page/Page.class.js:224	tab_order	move-out	plugin: tabs
+core/Page/Page.class.js:226	place	move-out	plugin: placed parts
+core/Page/Page.class.js:227	log_view	move-out	plugin: log view
+core/Page/Page.class.js:228	draw_folder	move-out	plugin: log view
+core/Page/Page.class.js:229	log_draw	move-out	plugin: log view
+core/Page/Page.class.js:230	log_folder	move-out	plugin: log view
+core/Page/Page.class.js:231	log_redraw	move-out	plugin: log view
+core/Page/Page.class.js:232	draw_placed	move-out	plugin: placed parts
+core/Page/Page.class.js:233	files_button	move-out	plugin: files
+core/Page/Page.class.js:237	in_tabs_frame	move-out	plugin: tabs
+core/Page/Page.class.js:240	has_files_button	move-out	plugin: files
+core/Page/Page.class.js:241	draw_md	move-out	plugin: folder/markdown discovery
+core/Page/Page.class.js:242	draw_module	move-out	plugin: placed parts
+core/Page/Page.class.js:243	listing	move-out	plugin: files
+core/Page/Page.class.js:246	get unknown	move-out	dev plugin: diagnostics
+core/Page/Page.class.js:248	report_unknown	move-out	dev plugin: diagnostics
+core/Page/Page.class.js:249	log_forget	move-out	store: Jsonl reader, not Page
+core/Page/Page.class.js:251	static jsonl	move-out	store: Jsonl reader, not Page
+core/Page/Page.class.js:253	static jsonl_file	move-out	store: Jsonl reader, not Page
+core/Page/Page.class.js:256	static listing	move-out	plugin: files
+core/Page/Page.class.js:259	static fetch_listing	move-out	plugin: files
+core/Page/Page.class.js:262	static page_listing	move-out	plugin: files
+core/Page/Page.class.js:270	static loaded_listing	move-out	plugin: files
+core/Page/Page.class.js:272	static log_class	move-out	plugin: log view
+core/Page/Page.class.js:274	naming	move-out	plugin: layout words
+core/Page/Page.class.js:289	words	move-out	plugin: layout words
+core/Page/Page.class.js:296	word_classes	move-out	plugin: layout words
+core/Page/Page.class.js:305	words_said	move-out	plugin: layout words
+core/Page/Page.class.js:307	declare	core	identity, tree, content, url, render
+core/Page/Page.class.js:346	add	core	identity, tree, content, url, render
+core/Page/Page.class.js:361	move	core	identity, tree, content, url, render
+core/Page/Page.class.js:369	chain	core	identity, tree, content, url, render
+core/Page/Page.class.js:376	nearest	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:378	topic	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:379	document	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:382	source_children	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:387	child	core	identity, tree, content, url, render
+core/Page/Page.class.js:437	child_readme	move-out	plugin: folder/markdown discovery
+core/Page/Page.class.js:453	tasks_folder	move-out	plugin: folder/markdown discovery
+core/Page/Page.class.js:459	ai_page	move-out	plugin: folder/markdown discovery
+core/Page/Page.class.js:464	child_md	move-out	plugin: folder/markdown discovery
+core/Page/Page.class.js:470	md_folder	move-out	plugin: folder/markdown discovery
+core/Page/Page.class.js:476	fs_folder	move-out	plugin: folder/markdown discovery
+core/Page/Page.class.js:485	md_dir	move-out	plugin: folder/markdown discovery
+core/Page/Page.class.js:487	open_link	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:488	swap_link	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:489	swap_url	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:490	md_files	move-out	plugin: folder/markdown discovery
+core/Page/Page.class.js:491	static md_page	move-out	plugin: folder/markdown discovery
+core/Page/Page.class.js:492	static md_file	move-out	plugin: folder/markdown discovery
+core/Page/Page.class.js:493	static md_url	move-out	plugin: folder/markdown discovery
+core/Page/Page.class.js:496	static of	core	identity, tree, content, url, render
+core/Page/Page.class.js:501	static file	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:504	static load	core	identity, tree, content, url, render
+core/Page/Page.class.js:507	static read_json	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:509	static from	core	identity, tree, content, url, render
+core/Page/Page.class.js:511	static props	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:513	static missing	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:515	static slug	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:517	container	core	identity, tree, content, url, render
+core/Page/Page.class.js:527	mounts_in	core	identity, tree, content, url, render
+core/Page/Page.class.js:529	activate	core	identity, tree, content, url, render
+core/Page/Page.class.js:549	warn_if_hidden	move-out	dev plugin: diagnostics
+core/Page/Page.class.js:559	deactivate	core	identity, tree, content, url, render
+core/Page/Page.class.js:570	in_doc	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:577	render	core	identity, tree, content, url, render
+core/Page/Page.class.js:629	render_content	core	identity, tree, content, url, render
+core/Page/Page.class.js:631	render_content_list	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:634	content_at	core	identity, tree, content, url, render
+core/Page/Page.class.js:648	drew_content	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:656	link	core	identity, tree, content, url, render
+core/Page/Page.class.js:658	crumbs	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:668	related_aside	move-out	plugin: related
+core/Page/Page.class.js:671	columns	move-out	plugin: columns
+core/Page/Page.class.js:676	column_host	move-out	plugin: columns
+core/Page/Page.class.js:683	render_column	move-out	plugin: columns
+core/Page/Page.class.js:684	column	move-out	plugin: columns
+core/Page/Page.class.js:685	default_column	move-out	plugin: columns
+core/Page/Page.class.js:686	column_grab	move-out	plugin: columns
+core/Page/Page.class.js:687	resize_column	move-out	plugin: columns
+core/Page/Page.class.js:688	static even_columns	move-out	plugin: columns
+core/Page/Page.class.js:689	even_columns	move-out	plugin: columns
+core/Page/Page.class.js:690	settle_columns	move-out	plugin: columns
+core/Page/Page.class.js:691	column_slide	move-out	plugin: columns
+core/Page/Page.class.js:692	reveal_column	move-out	plugin: columns
+core/Page/Page.class.js:693	scroll_column	move-out	plugin: columns
+core/Page/Page.class.js:695	nav	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:697	nav_for	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:704	previews	move-out	plugin: previews
+core/Page/Page.class.js:705	walls	move-out	plugin: previews
+core/Page/Page.class.js:706	wall_rungs	move-out	plugin: previews
+core/Page/Page.class.js:708	preview	move-out	plugin: previews
+core/Page/Page.class.js:710	preview_thumb	move-out	plugin: previews
+core/Page/Page.class.js:711	preview_link	move-out	plugin: previews
+core/Page/Page.class.js:717	load_all_children	secondary	real, but a helper part could hold it
+core/Page/Page.class.js:730	prefs	move-out	plugin: settings (core/Settings)
+core/Item/Item.js:72	constructor	core	the node: set, tree, save, replay
+core/Item/Item.js:88	default_id	core	the node: set, tree, save, replay
+core/Item/Item.js:95	assign	core	the node: set, tree, save, replay
+core/Item/Item.js:99	build_assign	secondary	real, but a helper part could hold it
+core/Item/Item.js:101	get_one	core	the node: set, tree, save, replay
+core/Item/Item.js:102	put	core	the node: set, tree, save, replay
+core/Item/Item.js:105	static define_fields	core	the node: set, tree, save, replay
+core/Item/Item.js:149	set	core	the node: set, tree, save, replay
+core/Item/Item.js:155	unset	core	the node: set, tree, save, replay
+core/Item/Item.js:174	act	core	the node: set, tree, save, replay
+core/Item/Item.js:187	batch	core	the node: set, tree, save, replay
+core/Item/Item.js:206	as_call	secondary	real, but a helper part could hold it
+core/Item/Item.js:225	static call_value	secondary	real, but a helper part could hold it
+core/Item/Item.js:234	static call_args	secondary	real, but a helper part could hold it
+core/Item/Item.js:258	apply	core	the node: set, tree, save, replay
+core/Item/Item.js:281	set_one	core	the node: set, tree, save, replay
+core/Item/Item.js:342	hook_for	secondary	real, but a helper part could hold it
+core/Item/Item.js:351	run_hook	secondary	real, but a helper part could hold it
+core/Item/Item.js:373	take	secondary	real, but a helper part could hold it
+core/Item/Item.js:380	call_marked	secondary	real, but a helper part could hold it
+core/Item/Item.js:391	call_line	secondary	real, but a helper part could hold it
+core/Item/Item.js:401	unknown_key	secondary	real, but a helper part could hold it
+core/Item/Item.js:416	hop_marked	secondary	real, but a helper part could hold it
+core/Item/Item.js:426	emit_safely	secondary	real, but a helper part could hold it
+core/Item/Item.js:436	adopt_slot	secondary	real, but a helper part could hold it
+core/Item/Item.js:459	get	core	the node: set, tree, save, replay
+core/Item/Item.js:481	member	secondary	real, but a helper part could hold it
+core/Item/Item.js:496	locate	secondary	real, but a helper part could hold it
+core/Item/Item.js:511	remove	core	the node: set, tree, save, replay
+core/Item/Item.js:523	move_to	core	the node: set, tree, save, replay
+core/Item/Item.js:540	file_url	move-out	store: Store/RecordWriter, store-agnostic
+core/Item/Item.js:551	load	move-out	store: Store/RecordWriter, store-agnostic
+core/Item/Item.js:556	root	core	the node: set, tree, save, replay
+core/Item/Item.js:567	lists	core	the node: set, tree, save, replay
+core/Item/Item.js:576	walk	core	the node: set, tree, save, replay
+core/Item/Item.js:584	find	core	the node: set, tree, save, replay
+core/Item/Item.js:599	contains	secondary	real, but a helper part could hold it
+core/Item/Item.js:607	get view	move-out	view link: View side, not data tier
+core/Item/Item.js:612	set view	move-out	view link: View side, not data tier
+core/Item/Item.js:616	get views	move-out	view link: View side, not data tier
+core/Item/Item.js:617	set views	move-out	view link: View side, not data tier
+core/Item/Item.js:621	save	core	the node: set, tree, save, replay
+core/Item/Item.js:622	delete	core	the node: set, tree, save, replay
+core/Item/Item.js:627	toJSON	core	the node: set, tree, save, replay
+core/Item/Item.js:633	wire	secondary	real, but a helper part could hold it
+core/Item/Item.js:636	static new_id	core	the node: set, tree, save, replay
+core/Item/Item.js:640	static short_id	move-out	doc/debug helper, not the node
+core/Item/Item.js:663	static describe	move-out	doc/debug helper, not the node
+core/Item/Item.js:723	static register	core	the node: set, tree, save, replay
+core/Item/Item.js:730	static is_item_class	secondary	real, but a helper part could hold it
+core/Item/Item.js:735	static foreign	move-out	store: Store/RecordWriter, store-agnostic
+core/Item/Item.js:747	static replay_new	core	the node: set, tree, save, replay
+core/Item/Item.js:752	static replay	core	the node: set, tree, save, replay
+core/Item/Item.js:762	snapshot_unsafe	secondary	real, but a helper part could hold it
+core/Item/Item.js:765	static from_snapshot	secondary	real, but a helper part could hold it
+core/Item/Item.js:776	restore	secondary	real, but a helper part could hold it
+core/Item/Item.js:793	replay_line	core	the node: set, tree, save, replay
+core/Item/Item.js:802	static get clock	move-out	store: Store/RecordWriter, store-agnostic
+core/Item/Item.js:803	static set clock	move-out	store: Store/RecordWriter, store-agnostic
+core/Item/Item.js:807	static get source	move-out	store: Store/RecordWriter, store-agnostic
+core/Item/Item.js:811	static dots	move-out	doc/debug helper, not the node
+core/Item/Item.js:827	static unmark	secondary	real, but a helper part could hold it
+core/Item/Item.js:831	static open	core	the node: set, tree, save, replay
+core/Item/Item.js:860	static class_for	core	the node: set, tree, save, replay
+core/Item/Item.js:871	static root_from	move-out	store: Store/RecordWriter, store-agnostic
+# counts core=58 secondary=47 move-out=91 total=196
