@@ -18,20 +18,26 @@ const ms = t => { const n = Date.parse(t ?? ""); return Number.isFinite(n) ? n :
 /* lines: [{ file, row }] -> { open: [start rows still without an end], starts, ends }. A start is paired with the first later end of the same pid;
  * the same line copied into a parent's log (claude.exe) is one line. */
 export function pair(lines){
-	const seen = new Set(), starts = [], ends = [];
+	const seen = new Map(), starts = [], ends = [], by_pid = new Map(), ends_by_pid = new Map();   // seen: start key -> the start row, or true for an end
+	const list = (m, pid) => m.get(pid) ?? m.set(pid, []).get(pid);
 	for (const { file, row } of lines){
-		if ("pid_exit" in row){ const key = `x${row.pid_exit}@${row.ended ?? row.at}`; if (!seen.has(key)){ seen.add(key); ends.push({ pid: row.pid_exit, t: ms(row.ended ?? row.at), file }); } }
-		else if ("pid" in row && typeof row.pid === "number"){ const key = `s${row.pid}@${row.started ?? row.at}`; if (!seen.has(key)){ seen.add(key); starts.push({ ...row, t: ms(row.started ?? row.at), file, files: [file] }); } }
+		if ("pid_exit" in row){ const key = `x${row.pid_exit}@${row.ended ?? row.at}`; if (!seen.has(key)){ seen.set(key, true); const e = { pid: row.pid_exit, t: ms(row.ended ?? row.at), file }; ends.push(e); list(ends_by_pid, e.pid).push(e); } }
+		else if ("pid" in row && typeof row.pid === "number"){
+			const key = `s${row.pid}@${row.started ?? row.at}`, had = seen.get(key);
+			if (had) { if (!had.files.includes(file)) had.files.push(file); }   // the same line copied to another log: remember every log it is in
+			else { const s = { ...row, t: ms(row.started ?? row.at), file, files: [file] }; seen.set(key, s); starts.push(s); list(by_pid, s.pid).push(s); }
+		}
 	}
-	for (const { file, row } of lines) if ("pid" in row && typeof row.pid === "number"){   // remember every log a start was copied to
-		const s = starts.find(x => x.pid === row.pid && x.t === ms(row.started ?? row.at)); if (s && !s.files.includes(file)) s.files.push(file);
-	}
-	starts.sort((a, b) => a.t - b.t);
-	const open = [], spent = new Set();
-	for (const s of starts){
-		const next = starts.find(x => x.pid === s.pid && x.t > s.t)?.t ?? Infinity;   // the same number started again: an end between belongs to the first
-		const e = ends.find((x, i) => !spent.has(i) && x.pid === s.pid && x.t >= s.t && x.t < next);
-		if (e) spent.add(ends.indexOf(e)); else open.push(s);
+	starts.sort((x, y) => x.t - y.t);
+	const open = [];
+	for (const [pid, mine] of by_pid){
+		mine.sort((x, y) => x.t - y.t);
+		const es = (ends_by_pid.get(pid) ?? []).sort((x, y) => x.t - y.t), spent = new Set();
+		for (let i = 0; i < mine.length; i++){
+			const s = mine[i], next = mine.slice(i + 1).find(x => x.t > s.t)?.t ?? Infinity;   // the same number started again: an end between belongs to the first
+			const e = es.find(x => !spent.has(x) && x.t >= s.t && x.t < next);
+			if (e) spent.add(e); else open.push(s);
+		}
 	}
 	return { open, starts, ends };
 }

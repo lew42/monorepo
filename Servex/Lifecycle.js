@@ -47,7 +47,14 @@ const hours = ms => Math.round(ms / 360000) / 10;
 const SERVEX = () => `http://127.0.0.1:${process.env.SERVEX_PORT || 8090}`;
 /* A Chrome is OURS only when its command line says so: Playwright's own build (`ms-playwright`, `chrome-for-testing`) or one of our --user-data-dir profiles.
  * The owner's Chrome, VS Code, Figma and the like are never ours; every path that ends a process asks owners_own() first (chrome-pin.test.mjs). */
-export const OUR_CHROME = /ms-playwright|chrome-for-testing|--user-data-dir=["']?[^\s"']*(?:playwright_chromiumdev_profile|[\\/]lew42[\\/]|closeout-orphan-)/i;
+export const OUR_CHROME = /ms-playwright|chrome-for-testing|--user-data-dir=["']?[^\s"']*(?:playwright_chromiumdev_profile|closeout-orphan-)/i;
+/** One process's name and command line, read now ({name, cmd}), or null when it is not running or the read failed. */
+export function process_now(pid){
+	try {
+		const out = execFileSync("powershell.exe", ["-NoProfile", "-Command", `$p = Get-CimInstance Win32_Process -Filter "ProcessId=${Number(pid)}"; if ($p) { @{name=$p.Name;cmd=$p.CommandLine} | ConvertTo-Json -Compress }`], { encoding: "utf8", windowsHide: true }).trim();
+		return out ? JSON.parse(out) : null;
+	} catch { return null; }
+}
 export const owners_own = p => /^(chrome|msedge|firefox|brave|code|figma|slack|discord|spotify)\.exe$/i.test(p?.name ?? "") && !(/^chrome\.exe$/i.test(p.name) && OUR_CHROME.test(p.cmd ?? ""));
 export const ONE_PASS = /^(reviewer|clarity|checker|critic|fork)$/;
 export const DEAD_MS = 2 * 3600 * 1000;
@@ -339,9 +346,15 @@ export default class Lifecycle {
 		return null;
 	}
 
+	/** Fails closed: a pid is killed only when its command line is in hand and is not an owner's app. A pid the process list lacks (or no list at all) is read now; unreadable or not running means leave it. */
+	killable(pid){
+		const p = this.procs?.get(pid) ?? process_now(pid);
+		return !!p && !owners_own(p);
+	}
+
 	/** Stop a process tree by its top pid (the wrapper, so nothing respawns), then any child still alive. */
 	kill(r){
-		for (const pid of [r.pid, r.child].filter(Boolean)) if (!owners_own(this.procs?.get(pid))) try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
+		for (const pid of [r.pid, r.child].filter(Boolean)) if (this.killable(pid)) try { execFileSync("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" }); } catch {}
 		// the script that launched a browser keeps its folder as its working directory, so it would block the worktree's removal;
 		// a plain `node script.mjs` is closed with its browser; Servex, an agent (claude), a dev server (server.js / run.js, which opens browsers for its own screenshots) and this process never are
 		// never the main checkout's own processes (the dev server's screenshot plugin holds a browser in-process): only a script started inside a worktree or elsewhere

@@ -33,7 +33,7 @@ const OURS = {
 	playwright: { name: "chrome.exe", cmd: '"C:\\Users\\x\\AppData\\Local\\ms-playwright\\chromium-1181\\chrome-win\\chrome.exe" --headless --remote-debugging-pipe' },
 	testing: { name: "chrome.exe", cmd: '"C:\\Users\\x\\.cache\\chrome-for-testing\\chrome.exe" --headless' },
 	profile: { name: "chrome.exe", cmd: '"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --headless --user-data-dir=C:\\Users\\x\\AppData\\Local\\Temp\\playwright_chromiumdev_profile-AbC123' },
-	headed: { name: "chrome.exe", cmd: '"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --user-data-dir="C:\\Users\\x\\AppData\\Local\\lew42\\chrome-profile"' },
+	headed: { name: "chrome.exe", cmd: '"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --user-data-dir="C:\\Users\\x\\AppData\\Local\\playwright_chromiumdev_profile-chrome"' },
 };
 
 // 1. the one rule

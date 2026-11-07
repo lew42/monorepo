@@ -144,7 +144,7 @@ export default class Processes extends Events {
 		this.history.push(this.point(this.now));
 		if (this.history.length > this.keep) this.history.splice(0, this.history.length - this.keep);
 		if (this.reaping) this.reap();
-			try { this.watch_spin(at); } catch (e) { this.error = e.message; }
+		try { this.watch_spin(at); } catch (e) { this.error = e.message; }
 		try { this.trace(at); } catch (e) { this.error = e.message; }
 		this.emit("tick", this.now);
 	}
