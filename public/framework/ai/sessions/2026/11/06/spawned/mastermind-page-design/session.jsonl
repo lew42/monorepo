@@ -223,3 +223,13 @@
 {"action":{"at":"2026-11-06T19:41:13-06:00","did":"edit","files":["public/live/design/DesignPage.js"]},"by":"ledger","ts":"2026-11-07T01:41:13.055Z"}
 {"log":{"at":"2026-11-07T01:41:43.362Z","msg":"voice-app ask: (1) no VS Code Claude session holds a process; pid 6736 (1.4 GB tree) is the Claude desktop app (WindowsApps, parent sihost, started 11/5 16:46). Only VS Code tab today: session-20ad0991, no transcript, no process. Searches 37-290 ms. (2) sessions readme \"How to find things\" + agents.md and rules.md rule. (3) process-log plan on /live/plan/ open questions. Worktrees: pd-tabs-r3 and pd-item-validate removed, qf-3 returned to the pool; error-button and closeout-test left (not mine). /live/design/ cards show text again after r11 (DesignPreviewView): 25 of 37 cards, no console errors."}}
 {"commit":"da6080851bf0","by":"append.mjs","ts":"2026-11-07T01:41:48.596Z"}
+{"log":{"at":"2026-11-06T19:47:27-06:00","msg":"task-loop status ask 1: asked mastermind-page-design","ask":1}}
+{"log":{"at":"2026-11-07T01:47:49.291Z","msg":"one-folder fix in worktree qf-3: page tool never writes a flat sessions/<uuid>/ folder; check + daily alarm report flat folders and any twin; SessionConsolidate.test fails on a flat folder; 239b0bd4 moved to 2026/11/03/session-239b0bd4. Now: hook and whoami print the dated path, docs, then the fold of 1,410 twins."}}
+{"commit":"b583dd0768b0","by":"append.mjs","ts":"2026-11-07T01:50:29.969Z"}
+{"commit":"14825230e88f","by":"append.mjs","ts":"2026-11-07T01:54:31.390Z"}
+{"commit":"494d2ccab014","by":"append.mjs","ts":"2026-11-07T01:56:37.642Z"}
+{"commit":"a6089a747e5e","by":"append.mjs","ts":"2026-11-07T01:56:45.706Z"}
+{"log":{"at":"2026-11-07T01:56:55.837Z","msg":"one-folder: review fix verdict answered (7/7), merging qf-3. item-tool read fix committed in qf-2 (a6089a747): read calls a listed query; item_tool 143 checks, item-read 48, page_tools 44 pass. Fold dry run: 1410 foldable, 0 held."}}
+{"commit":"dc1526082ea4","by":"append.mjs","ts":"2026-11-07T01:58:36.908Z"}
+{"commit":"6d06f90e1be2","by":"append.mjs","ts":"2026-11-07T02:00:48.678Z"}
+{"log":{"at":"2026-11-07T02:02:41.910Z","msg":"Landed: one folder per session (b19ba1b2e, fold 6d06f90e1: 1,410 twins folded, --check ok) and item-tool read calls queries (44a794481). Both live after the held Servex restart. Filed Store.remember circular-hash crash (live-page report) in core/Item/improvements.jsonl."}}
