@@ -315,10 +315,10 @@ export class Task extends Item {
 	/* THE ONE SCORE, 0..1, or null = "no score, needs review" (the owner, 2026-11-02, 11-04 and 11-06). A plain method: read it here, call it anywhere. In order:
 	   1. the owner checked it off (`checked_by`)  -> 1
 	   2. it has parts: its subtasks that are not stopped (any depth; a child SESSION is one), plus the counted owner Prompts in its `content`
-	      (`counts_toward_score`)  -> the mean of each part's OWN score, so it recurses to any depth. A part with no score (null) is left out of the mean;
-	      when every part is null, so is this one
+	      (`counts_toward_score`)  -> the mean of each part's OWN score, so it recurses to any depth. A child session with nothing to score of its own counts 1 if complete, else 0 (`part_score`);
+	      only a session with no parts at all is null
 	   3. old `steps`/`step`, or the agent's `data.completion`  -> that
-	   4. otherwise  -> a SESSION with nothing to score is null, never 1 or 0 (a missing record is neither done nor undone work); a plain task is 1 if complete, else 0
+	   4. otherwise  -> a SESSION with no parts at all (no tasks, no child sessions, no counted prompts) is null, never 1 or 0 (a missing record is neither done nor undone work); a plain task is 1 if complete, else 0
 	   One complete task makes its session 1; finishing the deepest task moves every parent above it; an unresolved counted Prompt keeps its session
 	   below 1 with nobody acting. A stopped part is left out of the mean (dropped on purpose). The counts beside it (created, finished, open,
 	   unscored, unproven) come from `tally()`. `completion` is this method as a getter, so every page and the item tool show the same number.
@@ -326,7 +326,7 @@ export class Task extends Item {
 	completion_score(){
 		if (this.data.checked_by) return 1;
 		const parts = this.score_parts();
-		if (parts.length) return Task.mean(parts.map(t => t.completion_score()));
+		if (parts.length) return Task.mean(parts.map(t => t.part_score()));
 		const steps = this.data.steps;
 		if (Array.isArray(steps) && steps.length){
 			const step = Math.max(1, Math.min(Number(this.data.step) || 1, steps.length));
@@ -337,6 +337,8 @@ export class Task extends Item {
 		if (this.is_session) return null;
 		return this.state === "complete" ? 1 : 0;
 	}
+	// What this task adds to its parent's mean: its score, or, for a child session that has nothing to score of its own, 1 if it is complete and 0 if not (it still carries the work it stands for).
+	part_score(){ return this.completion_score() ?? (this.state === "complete" ? 1 : 0); }
 	// The mean of the scores that exist; null when none do.
 	static mean(scores){
 		const have = scores.filter(n => typeof n === "number");
@@ -351,7 +353,7 @@ export class Task extends Item {
 	static is_closeout(t){ return /^open-items(-\d+)?$/.test(String(t?.id ?? "")); }
 	// The parts of my score that are not 1 yet: [{id, title, state}].
 	open_items(){
-		return this.score_parts().filter(t => t.completion_score() !== 1)
+		return this.score_parts().filter(t => t.part_score() !== 1)
 			.map(t => ({ id: t.id, title: String(t.get_one("title") ?? t.get_one("text") ?? t.id).replace(/\s+/g, " ").slice(0, 90), state: t.state }));
 	}
 	/* The line (relative to this task) that files the waiting task, or null: the score is 1; nothing is open (a dropped leaf, or an empty tab, has nothing to list: its "needs review" score is the signal);

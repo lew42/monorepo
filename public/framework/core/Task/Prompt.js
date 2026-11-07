@@ -124,7 +124,7 @@ export class Prompt extends Task {
 		if (this.data.checked_by) return 1;
 		if (this.parts.length){ const { done, total } = this.progress_parts(); return total ? done / total : 0; }
 		const kids = [...(this._tasks ?? [])].filter(t => t.state !== "stopped");
-		if (kids.length) return Task.mean(kids.map(t => t.completion_score())) ?? 0;
+		if (kids.length) return Task.mean(kids.map(t => t.part_score())) ?? 0;
 		return super.state === "complete" || this.no_action ? 1 : 0;
 	}
 	/* THE OWNER'S WORDS COUNT AGAINST THE SCORE WITH NOBODY ACTING (the owner, 2026-11-04). The prompt-relay hook writes `counted: true` on every

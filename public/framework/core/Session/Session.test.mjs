@@ -21,7 +21,7 @@ check("three tasks, one complete: completion is 1/3 and progress {1,3}", () => {
 	return p.done === 1 && p.total === 3 && Math.abs(s.completion - 1 / 3) < 1e-9;
 });
 
-check("no tasks: completion 0, progress {0,0}", () => { const s = new Session("s"); return s.completion === 0 && s.progress().total === 0; });
+check("no tasks: completion null (needs review), progress {0,0}", () => { const s = new Session("s"); return s.completion === null && s.progress().total === 0; });
 
 check("replay: a tasks.add line adds a Task", () => {
 	const s = Session.replay([{ session: "r1" }, { tasks: { add: { type: "Task", id: "t1", data: { title: "one" } } } }, { tasks: { add: { type: "Task", id: "t2", data: { state: "complete" } } } }]);
