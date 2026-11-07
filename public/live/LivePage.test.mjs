@@ -132,9 +132,9 @@ try {
 	LivePage.on_meta(view, u => u === "/live/x/beta/", u => got.push(u));
 	LivePage.meta_heard.forEach(fn => fn("/live/x/alpha/")); LivePage.meta_heard.forEach(fn => fn("/live/x/beta/"));
 	ok(got.join() === "/live/x/beta/", "on_meta calls back only for the urls the view shows");
-	view.el.isConnected = false; const before = LivePage.meta_heard.size;
+	view.el.isConnected = false; const listeners = LivePage.meta_heard.size;
 	LivePage.meta_heard.forEach(fn => fn("/live/x/beta/"));
-	ok(got.length === 1 && LivePage.meta_heard.size === before - 1, "a view that left lets go the next time it is heard");
+	ok(got.length === 1 && LivePage.meta_heard.size === listeners - 1, "a view that left lets go the next time it is heard");
 	console.log(`LivePage.test: ${n} passed`);
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });
