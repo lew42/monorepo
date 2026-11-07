@@ -96,6 +96,32 @@ check("session completion (chat-model s7): 5 root tasks, 3 complete, 1 dropped, 
 	return p.done === 3 && p.total === 4 && p.stopped === 1 && s.completion === 0.875;
 });
 
+const ASK_LINES = [
+	{ session: { id: "as1", kind: "vscode-tab", at: "2026-11-06T10:00:00Z" } },
+	{ ask: { id: "q1", text: "do the thing\nplease", via: "vscode" }, by: "owner", ts: "2026-11-06T10:01:00Z" },
+	{ ask: "flat words", via: "voice", by: "owner", ts: "2026-11-06T10:02:00Z" },
+	{ ask: { id: "q1", text: "again", via: "vscode" } },
+];
+check("ask: nested and flat lines each add one open Prompt task with words, via and a title; the same id twice is one", () => {
+	const s = Session.replay(ASK_LINES), a = s.tasks.find("q1");
+	return s.tasks.length === 2 && a.wire() === "Prompt" && a.get_one("via") === "vscode" && a.get_one("text") === "do the thing\nplease" && a.get_one("title") === "do the thing please"
+		&& [...s.tasks][1].get_one("via") === "voice" && s.get_one("via") === undefined;
+});
+check("ask: replays to the same ids every time (a flat line made without an id)", () => [...Session.replay(ASK_LINES).tasks].map(t => t.id).join() === [...Session.replay(ASK_LINES).tasks].map(t => t.id).join());
+check("ask: an open ask holds the session below 1 and counts in tally; no_action settles its score", () => {
+	const s = Session.replay(ASK_LINES);
+	const open = s.completion_score() === 0 && s.tally().open === 2 && s.tally().created === 2;
+	s.replay_line({ q1: { no_action: "answered in chat" } });
+	return open && s.completion_score() === 0.5;
+});
+check("ask: complete with an outcome closes it and the session reads 1 when both are done", () => {
+	const s = Session.replay(ASK_LINES);
+	s.tasks.find("q1").complete(EV); s.tasks.find("q1").put("state", "complete");
+	s.replay_line({ [[...s.tasks][1].id]: { no_action: "remark" } });
+	return s.completion_score() === 1 && s.tally().finished === 1;
+});
+check("ask: an empty ask writes nothing", () => Session.replay([{ session: "e1" }, { ask: { text: "  " } }]).tasks.length === 0);
+
 process.exit(results.every(Boolean) ? 0 : 1);
 
 import Day from "./Day.js";

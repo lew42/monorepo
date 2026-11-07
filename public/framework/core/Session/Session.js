@@ -124,6 +124,8 @@ export default class Session extends Task {
 		 * clears the old why, so a session that came back is not still read as "abandoned" (2026-10-23). */
 		if (delta.stop && typeof delta.stop === "object"){ this.put("state", "stopped"); this.put("why", delta.stop.why ?? null); this.put("stopped_at", delta.stop.at ?? Task.clock); delete delta.stop; }
 		if (delta.start && typeof delta.start === "object"){ this.put("state", "running"); this.put("why", null); this.put("stopped_at", null); delete delta.start; }
+		// THE ASK: {"ask":{"id","text","via"}}, or flat {"ask":"words","via":"vscode"}: the owner's words as one open Prompt task (Session.ask).
+		if (delta.ask !== undefined){ this.ask(delta.ask, delta.via, by); delete delta.ask; delete delta.via; }
 		if (typeof delta.task === "string"){   // a reference line: the live child; one with the same id as a nested child replaces it (it moved home)
 			const kid = Task.from_ref(delta.task, delta.as, delta), had = this._tasks?.find(kid.id);   // a Session entry's type and spawn ride on the same line
 			kid._created_at ??= Task.clock;
@@ -164,6 +166,27 @@ export default class Session extends Task {
 		}
 		// DEPRECATED (2026-10-28): use list deltas (`chat.add`, `place.add`, …); an unknown key falls through to `put` and loses its history. Guide: /framework/core/Session/doc/one-replay-plan.md. Remove when: the one-replay plan is built and the history is replayed through a named shim.
 		for (const [k, v] of Object.entries(delta)) if (k !== "class") this.take(k, v);
+		return this;
+	}
+
+	/* THE ASK (the owner, 2026-11-06): every owner prompt on every channel is ONE line, {"ask":{"id","text","via"}}, that adds a Prompt to
+	   `tasks`. It is an open task from the moment it exists: it counts in completion_score() and tally() until an agent closes it with an
+	   outcome (`complete`) or marks it {"<id>":{"no_action":"<why>"}}. `via` is the channel ("vscode", "voice", "sdk", "phone", …). The words
+	   are stored once, here. The id comes in the line (a replay must make the same task every time); with none it is made from the words. */
+	static ask_id(text, at){
+		let h = 5381;
+		for (const c of `${at ?? ""}|${text}`) h = ((h * 33) ^ c.codePointAt(0)) >>> 0;
+		return "a" + h.toString(36);
+	}
+	static ask_title(text){ const t = String(text).replace(/\s+/g, " ").trim(); return t.length > 70 ? t.slice(0, 69).trimEnd() + "…" : t; }
+	ask(arg, via, by){
+		const a = typeof arg === "string" ? { text: arg } : arg && typeof arg === "object" ? { ...arg } : {};
+		const text = String(a.text ?? "").trim();
+		if (!text) return this;
+		const id = String(a.id ?? Session.ask_id(text, Task.clock));
+		if (this._tasks?.find(id)) return this;   // the same ask twice is one task
+		const { text: _t, id: _i, via: v, title, ...rest } = a;
+		this.tasks.add({ ...rest, type: "Prompt", id, text, via: v ?? via ?? "unknown", title: title ?? Session.ask_title(text) });
 		return this;
 	}
 
