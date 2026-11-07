@@ -10,6 +10,9 @@
 	.item-inspector-row + .item-inspector-row { border-top: 1px solid light-dark(#0001, #fff1); }
 	.item-inspector-row a { color: inherit; }
 	.item-inspector-type { flex: none; font-size: .78em; }
+	/* The Fields key ("description") shares its row with the value: overflow-wrap: anywhere on the row is inherited by
+	   both, so a long key broke mid-word too. The key never wraps; only the value does (round 2 review, finding 1). */
+	.item-inspector-id { flex: none; white-space: nowrap; }
 
 	.item-inspector-methods { background: var(--live-card, light-dark(#fff, #1f1e24)); border-radius: .6rem; padding: .4em .75rem; }
 	.item-inspector-methods + .item-inspector-methods { margin-top: .4rem; }
