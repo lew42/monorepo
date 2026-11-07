@@ -153,9 +153,21 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     assert.ok(turns.every((t, i) => t.refined.re === lines.filter(l => l.owner_words)[i].owner_words.at && t.refined.via === "voice" && t.refined.by === "code" && t.refined.sentences[0].n === 1 && Array.isArray(t.refined.sections)), "re = the words line at; via voice; sentences numbered from 1");
     assert.equal(turns[0].refined.sentences.map(x => x.text).join(" "), "Make it blue, please.", "split by code");
     assert.equal(lines.find(l => l.cost).cost.usd, 1.5, "cost line");
+    // the app reconnects every few calls: a new connection with no title stays on the record in use (one record per conversation, past midnight too)
     const other = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
-    const dflt = JSON.parse((await rpc({ id: 9, method: "tools/call", params: { name: "register_session", arguments: {} } }, other)).json.result.content[0].text);
-    assert.match(dflt.session, /^cloud-voice-app-[0-9]{8}$/, "default name = caller + date");
+    const cont = JSON.parse((await rpc({ id: 9, method: "tools/call", params: { name: "register_session", arguments: {} } }, other)).json.result.content[0].text);
+    assert.equal(cont.session, "cloud-voice-live-page", "a reconnect without a title continues the conversation's record, not a new dated one");
+    assert.equal(cont.file, reg.file, "in the same folder");
+    gw.sessions[RemoteMCP.CURRENT].last = new Date(Date.now() - RemoteMCP.IDLE_MS - 1000).toISOString();   // a long silence: the next call is a new conversation
+    const later = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
+    const dflt = JSON.parse((await rpc({ id: 9, method: "tools/call", params: { name: "register_session", arguments: {} } }, later)).json.result.content[0].text);
+    assert.match(dflt.session, /^cloud-voice-app-[0-9]{8}$/, "after a long gap, default name = caller + date");
+    // a record from an earlier day keeps its folder: the store's row decides where it lives, never today's date
+    servex.sessions.map["cloud-voice-old-chat"] = { id: "cloud-voice-old-chat", file: "/framework/ai/sessions/2026/10/01/cloud-voice-old-chat/session.jsonl" };
+    const named = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
+    const old = JSON.parse((await rpc({ id: 9, method: "tools/call", params: { name: "register_session", arguments: { title: "old chat" } } }, named)).json.result.content[0].text);
+    assert.equal(old.file, "/framework/ai/sessions/2026/10/01/cloud-voice-old-chat/session.jsonl", "a known id is filed in its own folder, not a second one today");
+    delete gw.sessions[RemoteMCP.CURRENT];   // the cases below start a fresh conversation
     const calls = lines.filter(l => l.tool_call).map(l => l.tool_call);
     assert.ok(calls.length >= 6 && calls.every(c => c.args_hash.length === 12), "every call logged with a hash (a call with no words line before it is the gap)");
 }
