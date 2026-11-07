@@ -187,3 +187,7 @@
 {"commit":"498171979e97","by":"append.mjs","ts":"2026-11-07T00:44:30.520Z"}
 {"commit":"c200d5530ea0","by":"append.mjs","ts":"2026-11-07T00:47:17.211Z"}
 {"commit":"7b1edb1e6995","by":"append.mjs","ts":"2026-11-07T00:48:47.239Z"}
+{"commit":"ceb607d7aa54","by":"append.mjs","ts":"2026-11-07T00:52:04.756Z"}
+{"log":{"at":"2026-11-06T18:52:15-06:00","msg":"inspector landed: merged dad2ad468 after resolving a LivePage.js Settings conflict with the new live-page layout (Inspect sections now sit under Files); added ext/Inspect/doc/file/*.md for the smoke 404. Verified headless, task closed, minion stopped."}}
+{"log":{"at":"2026-11-06T18:52:15-06:00","msg":"ref-file redirected: Ref-with-file dropped by the owner. New spec = card ov-items on /live/plan/ (page.items with file/path, dedup via Item.open one root per url); brief requirements-2.md; same minion and worktree."}}
+{"log":{"at":"2026-11-06T18:52:15-06:00","msg":"Five open design questions (Item vs Page, one route, trailing slash, _ vs -, default id) written on /live/plan/ as options with pros, cons and a leaning each (oq-*). Not built, as asked."}}
