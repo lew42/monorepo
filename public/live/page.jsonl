@@ -147,3 +147,5 @@
 {"content":{"link-core-page":{"text":null,"title":"@Page"}},"by":"voice-app","ts":"2026-11-06T22:45:08.050Z"}
 {"save":{"name":"nov6-scratch","title":"Nov 6 scratch"},"by":"voice-app","ts":"2026-11-06T22:54:55.850Z"}
 {"file":"plan/page.jsonl"}
+{"file":"next/page.jsonl","gone":true}
+{"file":"design-tmp/","gone":true}
