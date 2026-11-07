@@ -169,6 +169,22 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     const add = n => fs.appendFileSync(ext.file("voice-app"), Array.from({ length: n }, (_, i) => JSON.stringify({ text: "m" + i })).join("\n") + "\n");
     const up = async args => JSON.parse((await call("updates", args))[0].text);
     assert.equal((await up({})).count, 0, "nothing new: empty");
+    // children of the voice app hang under today's cloud voice record: opening it points voice-app's registry session_id at it
+    {
+        rows["voice-app"] = { id: "voice-app", kind: "external", state: "external", session_id: "voice-20261019-live-page", keep: "me" };
+        const session_of = id => ext.reg().read()[id]?.session_id ?? null;   // Agents.session_of's registry branch (Agents.js:66); importing Agents needs the SDK package
+        assert.equal(session_of("voice-app"), "voice-20261019-live-page", "before: the stale October id");
+        const sid = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
+        await rpc({ id: 9, method: "tools/call", params: { name: "whoami_test", arguments: {} } }, sid);
+        const today = session_of("voice-app");
+        assert.match(today, /^cloud-voice-app-[0-9]{8}$/, "a dated cloud-voice id, not the October one");
+        assert.ok(servex.sessions.map[today], "and it is a row in the Sessions store");
+        assert.equal(session_of("voice-app"), today, "after: session_of(voice-app) is today's record");
+        assert.equal(rows["voice-app"].keep, "me", "nothing else in the row changes");
+        const child = { parent: "voice-app" };
+        if (child.parent && child.parent_session === undefined) child.parent_session = session_of(child.parent);
+        assert.equal(child.parent_session, today, "a child spawned after gets that parent_session (Agents.register's rule)");
+    }
     assert.ok(ext.has("voice-app"), "the caller is registered so follow can address it");
     add(3);
     assert.equal((await call("whoami_test", {})).at(-1).text, "3 new updates for you: call updates.", "hint when behind");
