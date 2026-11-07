@@ -38,7 +38,7 @@ import SessionPopover from "./SessionPopover.js";
 import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
 
 // One session's own page, opened at its dated folder /framework/ai/sessions/YYYY/MM/DD/<folder>/ (StoreFolder.child builds it with `segs`);
-// /framework/ai/sessions/<id>/ redirects there, and is the page only for a session with no folder yet. `home` is the Sessions page it hangs under.
+// the bare-uuid url (/framework/ai/sessions/<uuid>/, kept only for old links) redirects there, and is the page only for a session with no folder yet. `home` is the Sessions page it hangs under.
 // The loaders are statics. Each degrades to null when its file is missing, and a missing piece just does not draw.
 export default class AISessionDetail extends Page {
 

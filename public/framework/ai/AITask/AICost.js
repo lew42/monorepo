@@ -1,4 +1,5 @@
 import { div, span, a, small, table, thead, tbody, tr, th, td } from "../../core/View/View.js";
+import AISession from "../AISession/AISession.js";
 
 export default class AICost {
 	/* What a task cost, in dollars — the `cost_usd` a task's log carries once
@@ -157,7 +158,7 @@ export default class AICost {
 	static STALE_MS = 30000;
 	static asking = new Map();   // folder url -> the answer's promise while it is on its way, so two surfaces asking at once send one request
 
-	/** The summary answer for one folder (or `/framework/ai/sessions/<uuid>/`): the cached one while fresh, else one new ask. */
+	/** The summary answer for one folder (or `/framework/ai/sessions/YYYY/MM/DD/<folder>/`): the cached one while fresh, else one new ask. */
 	static summary(base){
 		const hit = AICost.known.get(base);
 		if (hit && Date.now() - hit.at <= AICost.STALE_MS) return Promise.resolve(hit.answer);
@@ -167,6 +168,9 @@ export default class AICost {
 
 	/** A session's summary url by its id: the list and the session page both ask by it, so they share one cached answer. */
 	static session_url = id => "/framework/ai/sessions/" + id + "/";
+
+	/** The link to a session's page: its one dated folder once the index has named it. `session_url` is only the cost-summary key, never a link. */
+	static session_href = id => AISession.page_url(id, AICost.session_url(id));
 
 	/** The answer already here for a session, or null: a list row shows it without asking. */
 	static known_cost = base => { const hit = AICost.known.get(base); return hit && Date.now() - hit.at <= AICost.STALE_MS ? hit.answer?.summary?.cost ?? null : null; };

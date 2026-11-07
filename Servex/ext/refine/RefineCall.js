@@ -6,7 +6,7 @@ import { session_backend } from "../../agents/Sessions.js";
  * class RefineCall — ONE model call as its OWN NEW session (never resumed), with the lean
  * options `agents/tidy.js` uses (no tools, no MCP, no skills: a ~800-token prefix instead of ~50k,
  * which is the difference between $0.01 and $0.18 per call). The session is persisted, so it has a
- * page at `/framework/ai/sessions/<session_id>/`, and the call reports what it cost.
+ * page at its dated folder (`/framework/ai/sessions/YYYY/MM/DD/<folder>/`), and the call reports what it cost.
  *
  *   const r = await RefineCall.run(prompt, { model, system });
  *   RefineCall.run(prompt, { model, system, cwd: os.tmpdir() })   // cwd outside the repo: no auto-memory in the prefix (33x cheaper)

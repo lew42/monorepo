@@ -107,7 +107,7 @@ export default class SessionTimeline extends View {
 					span.c("stl-text", r.children?.length ? r.text + ":" : r.text);
 					(r.children ?? []).forEach((id, i) => {
 						const c = this.kid(id);
-						a.c("stl-link", c?.snap?.title ?? c?.snap?.agent ?? c?.name ?? String(id).slice(0, 36)).href(AICost.session_url(c?.id ?? id));
+						a.c("stl-link", c?.snap?.title ?? c?.snap?.agent ?? c?.name ?? String(id).slice(0, 36)).href(AICost.session_href(c?.id ?? id));
 						if (i < r.children.length - 1) span(",");
 						if (r.children.length === 1 && c?.snap) this.kid_meta(c, id, small.c("stl-meta muted", ""));
 					});

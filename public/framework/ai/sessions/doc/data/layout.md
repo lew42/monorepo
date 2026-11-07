@@ -19,7 +19,7 @@ The day is the day of the session's first message (`first_at`, UTC). The index, 
 1. **One folder per session.** Nothing about a session is stored in a second place. Older shapes are only read, never written.
 2. **Only code writes the path.** `Session.locate(id, first_at)` (node) decides it and moves an older folder in. `Session.dir_url(id)` (browser) reads the day from the index. Nobody builds the path by hand.
 3. **The listing is never written.** The dev server does not create a `files.jsonl` inside a session folder (`Server/plugins/PageFiles.js`), and `.gitignore` keeps the computed files out of git, so thousands of folders cannot dirty the tree.
-4. **One route.** Every row opens `/framework/ai/sessions/<id>/`, whichever shape the data is stored in.
+4. **One route.** Every row opens `/framework/ai/sessions/YYYY/MM/DD/<folder>/`, whichever shape the data is stored in.
 
 ### Old paths still load
 

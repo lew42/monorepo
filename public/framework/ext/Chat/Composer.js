@@ -23,7 +23,7 @@ export function composer({
 	                    // `Dictate` reads `remembered_device()` on its own, which a caller's own device PICKER (not built here — this
 	                    // composer has no UI for choosing a mic) writes to through `remember_device()`, `ux/Dictate/Dictate.js`.
 	session,           // this mount's own session id (a string, or a function read fresh) — forwarded to `ComposerMic`'s live-refine
-	                    // calls (`Mic.js`'s `refine_tick`/`refine_final`) so the outline lands under `/framework/ai/sessions/<id>/`
+	                    // calls (`Mic.js`'s `refine_tick`/`refine_final`) so the outline lands under `/framework/ai/sessions/YYYY/MM/DD/<folder>/`
 	                    // same as every other stage (`contract.md`). Unset is fine — the live call just has no session to attach to.
 	per_sentence,      // true: every finished sentence leaves the box at once while the next is still being transcribed (`ComposerMic.sentences_per_send`, Mic.js); unset follows the gear setting
 	on_refine_live,    // (answer) => … — forwarded straight to `ComposerMic`'s own `on_refine_live`: the live `/api/refine/live`

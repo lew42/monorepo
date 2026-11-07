@@ -89,7 +89,7 @@ Walk through it yourself: [try-it.md](try-it.md).
 
 **Phone sheet vs desktop sidebar.** One already: the chat itself (`ux/Dictate/chat.js`: `chat()`, one global session, the mic, `new_session_button`); both surfaces mount it. Two today: the container. The phone's `DrawerRailSheetChat` (`ext/drawer/rail.js`) has a drag handle and the states closed / open / full, but "full" is only a taller sheet with link buttons (New session, Dictation, Settings, Open full AI) that close it and open the desktop `DrawerTabs` (`ext/drawer/tabs.js`: ai, dictation, settings, element). Smallest change: in the "full" state mount `DrawerTabs` (its AI tab already is the chat) inside the sheet instead of closing it for the link buttons. Not built here: it edits `ext/drawer/`, outside this module's fence, and needs 400/1200/1920/3440 checks. The brief is [next.md](next.md).
 
-**New session:** yes. The "New session" button (`new_session_button` in `chat.js`, shown in the sheet's links row) calls `reset()`: it forgets the saved session; the next message starts a fresh one through `Session.start`, so it lands as a normal session page at `/framework/ai/sessions/<id>/`, and the old one stays resumable ("Pick up where you left off?"). Nothing to fix.
+**New session:** yes. The "New session" button (`new_session_button` in `chat.js`, shown in the sheet's links row) calls `reset()`: it forgets the saved session; the next message starts a fresh one through `Session.start`, so it lands as a normal session page at its dated folder (`/framework/ai/sessions/YYYY/MM/DD/<folder>/`), and the old one stays resumable ("Pick up where you left off?"). Nothing to fix.
 
 ## 2026-10-13 (later) — bubble order, and how dictate / chat / refine nest
 
