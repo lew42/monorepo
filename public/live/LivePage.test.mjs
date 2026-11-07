@@ -71,6 +71,10 @@ try {
 	ok((await read("screens.s1.content.c1")).data.title === "Renamed in the screen", "a card inside a saved screen: /<page>/s1/c1/");
 	await at("nope/", { title: "x" });
 	ok(fs.existsSync(path.join(DIR, "nope", "page.jsonl")), "a segment naming no card keeps the old answer (a new page there)");
+	// 8. A sub-page is never a tab by default: only the parent's {"tab": {"name", "tab"}} line (the last one wins) picks it.
+	const { default: LivePage } = await import("./LivePage.js");   // after run_item: its loader resolves /framework/ imports
+	const picks = LivePage.picks_of([{ tab: { name: "a", tab: true } }, { tab: { name: "b", tab: true } }, { tab: { name: "b", tab: false } }, { title: "x" }]);
+	ok(picks.get("a") === true && picks.get("b") === false && !picks.has("c"), "tab picks: opt-in only, the last line wins");
 	console.log(`LivePage.test: ${n} passed`);
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });
