@@ -6,6 +6,7 @@ import * as Session from "/framework/ext/Session/Session.js";
 import ChatV2Model from "/framework/ext/Chat/v2/old/ChatV2Model.js";   // V1 still folds tasks with the old model; ChatV2 itself moved on (ChatV2.js, step 2 of views-on-messages.md)
 import DictateHealth from "./DictateHealth.js";
 import Link from "/framework/dev/Socket/Link.js";
+import Socket from "/framework/dev/Socket/Socket.js";
 import Recite from "/framework/audio/Recite/Recite.js";
 import BargeIn from "/framework/audio/Recite/BargeIn.js";
 import WhisperLog from "/framework/audio/Whisper/WhisperLog.js";
@@ -464,7 +465,8 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 			if (DictateHealth.layers.wire.state === "idle" || DictateHealth.layers.wire.why.startsWith("the live wire")) DictateHealth.set("wire", "ok", "the live wire to Servex is open");
 		} });
 	}
-	function set_link(next){ link = next; Link.report("servex", next.state === "down" ? { why: next.why, since: next.since, retry: () => stop_stream?.reconnect?.() } : null); for (const fn of on_link) try { fn(link); } catch (e){ console.error("chat on_link:", e); } }
+	// urgent: a voice session depends on Servex now (a mic is live, ext/Chat/Mic.js add_busy, or a sentence is still sending); Link.js then shows the banner, else a dot.
+	function set_link(next){ link = next; Link.report("servex", next.state === "down" ? { why: next.why, since: next.since, retry: () => stop_stream?.reconnect?.(), urgent: () => sending.length > 0 || Socket.singleton().busy() } : null); for (const fn of on_link) try { fn(link); } catch (e){ console.error("chat on_link:", e); } }
 
 	attach();
 	owner.report_nav(target.path, target.card);
