@@ -23,4 +23,11 @@ node Server/Transcripts.mjs --grep "dedup|duplicate" [--all]
 ```
 Default: last 2 days (by file time), newest first, only sessions with a task folder. `--dry-run` prints raw KB -> essence KB and totals without writing. `--grep` searches the owner's prompts in the essence files already written ("didn't I ask for this before?"); `--all` includes agent briefs. It only sees days that were run, so widen `--since` first.
 
+## One transcript, the owner's turns: `ClaudeCodeTranscript`
+[`ClaudeCodeTranscript.mjs`](../ClaudeCodeTranscript.mjs) reads ONE Claude Code / SDK transcript file (a local one, or a cloud session's copy in `~/.claude/cloud-transcripts/`) and returns the owner's own turns, numbered: user lines with text, minus tool results, meta lines (skills, reminders) and task notifications. `ClaudeCodeTranscript.sentences(text)` splits a turn into numbered sentences. Nothing is written. First used by the prompt-refinement calibration ([doc/prompt-refinement-and-tasks.md](../../public/framework/ai/doc/prompt-refinement-and-tasks.md)).
+```
+node Server/ClaudeCodeTranscript.mjs <file> [--from N] [--to N] [--json]
+```
+Turns are in file order; a resumed cloud session can put an older turn after a newer one, so read `at` when order matters.
+
 Related: [`session-index.md`](./session-index.md) (task records in memory).
