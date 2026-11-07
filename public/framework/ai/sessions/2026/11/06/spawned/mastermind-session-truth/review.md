@@ -1,18 +1,19 @@
 verdict: fix
-1. [fix] Task t14 is never closed: `session.jsonl:435` adds `t14-calibration`, but no later line closes it with an outcome and evidence, and `requirements.md` still shows `- [ ] **t14, calibration:**` even though its own text says "Done". After the reader lands, close t14 with its proof (the merge, `calibration/results.md`, `/live/calibration/`) and tick the box.
-2. [note] All three fixes from the last review are in (commit 2a3d59f33). `RefineQueue.owner_text` now just calls `ClaudeCodeTranscript.owner_text` (`Server/RefineQueue.mjs:58`), so there is one filter. `Server/doc/transcripts.md` explains how it relates to RefineQueue and how the two number turns. `calibration/` now has a readme and results.md, and both are in git. In the worktree, `node Server/ClaudeCodeTranscript.test.mjs` passes 5 checks and `node Server/PromptAudit-stream.test.mjs` prints ok.
-3. [note] The shared filter now also drops `[Request interrupted…` lines (`Server/ClaudeCodeTranscript.mjs:25`). This changes RefineQueue and PromptAudit too, which will no longer file "[Request interrupted by user]" as an owner prompt. It's a good change, but the commit message doesn't mention it.
-4. [note] There is still a third owner-prompt filter: `Server/AskTally.mjs:45` has its own regex, with a slightly different list (`<`, `Base directory for this skill`). Law 6 says to point it at `ClaudeCodeTranscript.owner_text` in a later small step. That code isn't in this diff, so this is a note and not a fix.
-5. [note] Both t14 commits (2b0ff8539, 2a3d59f33) are still on `worktree/shell-commits`, the t13 branch that was already merged. The landing log will show this as "shell-commits" again.
-6. [note] `Server/readme.md:54` indexes the new tool and its test. `Server/doc/transcripts.md` documents it. `calibration/readme.md` links back to it. Nothing new is left unindexed, and a fresh agent could pick up t14 from `calibration/readme.md` alone.
+1. [fix] Ask t15 ("cloud voice record: one per conversation, not per date", session.jsonl:646) is missing from requirements.md: it has no checkbox, no merge and no proof line. A fresh agent reading the task folder cannot see this work exists. Add it under "Added 2026-11-07" with branch `voice-sticky` (commit 94213e899) and its state.
+2. [fix] Servex/ext/remote/doc/cloud-voice-agent.md:19 still says the untitled record is "Made by `RemoteMCP.voice_session()` on the first call of the day". Servex/ext/remote/doc/voice-logging.md:3 still says "one folder per cloud voice agent per day". Both are now stale: the code continues the record in use across midnight. Point both lines at the new paragraph at voice-logging.md:29.
+3. [fix] The comment block at Servex/ext/remote/RemoteMCP.js:196-197 still opens with "One folder per cloud voice agent per day … <name> is … else the caller + date". The new paragraph below it contradicts that first sentence. Reword the first sentence so the block says one thing.
+4. [note] voice-logging.md:29 says "a longer gap opens another", but that is not always true. After a gap of more than 2 hours, an untitled call goes to `cloud-voice-app-<today>`. If that record already exists today, it is reused, so two separate untitled chats on the same day still share one record (RemoteMCP.js:212). Either say so in the doc, or add a suffix after a gap.
+5. [note] The task t15 record has only the `add` line: no log and no close with an outcome. The brief also asks for parts (1)–(3), the proposal, the 11-06/11-07 link and the count of midnight crossings. Only the doc paragraph shows they were done. Close t15 with evidence once it is merged.
+6. [note] Simpler-way check: the "save at most once a minute" branch (RemoteMCP.js:217-218) adds a third field and an else branch just to throttle a small JSON write. Saving only when `moved`, and writing `last` on the existing per-connection save at line 366, would be enough. The current version is correct, though.
+7. [note] The code looks right. `live` requires the store row to exist, a known id keeps its own folder (`store.map[id]?.file`), and the `caller:voice-app` key is safe in remote.sessions.json, because nothing iterates that map (git grep: only RemoteMCP.js reads it). `node Servex/ext/remote/RemoteMCP.test.mjs` in the voice-sticky worktree prints `ok 7 calls`. It goes live only after a Servex restart.
 
 ## Requirements
-- t14 "a transcript reader named for Claude Code transcripts" — yes — `Server/ClaudeCodeTranscript.mjs`, test passes
-- t14 "3–5 of the owner's prompts … Haiku then Sonnet … judged by Opus" — yes — `calibration/inputs/` has 4 prompts and `outputs/` has both models; `results.md` has the verdict
-- t14 "suggestions go on a /live/ sub-page" — yes — `public/live/calibration/page.jsonl`, linked from `public/live/page.jsonl:215`
-- t14 "Write no tasks into that record" — yes — the diff doesn't touch the voice-app record
-- t14 closed with evidence — no — no close line for `t14-calibration` (finding 1)
-- New class: can you open a page that shows its live instances? — n/a — it's a read-only CLI reader and holds no state
+- t15 (1) "proposal on what keys a cloud record": yes. voice-logging.md:29 explains why the connection id is not the conversation id, and what an exact key would need.
+- t15 (2) "link the 11-06 and 11-07 records, additive": yes, per voice-logging.md:29 (a Session entry and a `continues` note). Not verified in the diff, because those records are outside it.
+- t15 (3) "count other midnight crossings": yes. voice-logging.md:29 records one crossing, and gaps of 64 min, then 206 min and up.
+- t15 (4) "the real fix only if small (worktree, test)": yes. It is in the voice-sticky worktree, with a test block at RemoteMCP.test.mjs:156-170 that passes.
+- Class with live instances: n/a. No class was added; RemoteMCP gained two statics only.
+- Stated widths: none. The diff changes no page; the shots/ folder is from earlier tasks.
 ## Words
-- Comments and doc are plain, full sentences — yes — `Server/doc/transcripts.md` new section; `Server/ClaudeCodeTranscript.mjs:1-6`
-- The doc says what the tool is, how to run it, and what it writes — yes — "Nothing is written", with the usage block
+- Doc paragraph is plain, with full sentences: yes, voice-logging.md:29. It runs long, but it is a deep doc.
+- The new code comments match the file's style: yes. They contradict the older sentence above them (finding 3).

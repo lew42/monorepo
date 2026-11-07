@@ -1,150 +1,73 @@
-diff --git a/Server/ClaudeCodeTranscript.mjs b/Server/ClaudeCodeTranscript.mjs
-new file mode 100644
-index 000000000..65439a151
---- /dev/null
-+++ b/Server/ClaudeCodeTranscript.mjs
-@@ -0,0 +1,49 @@
-+// ClaudeCodeTranscript: reads ONE raw Claude Code / Agent SDK transcript file (~/.claude/projects/<project>/<session-id>.jsonl, or a cloud
-+// session's copy in ~/.claude/cloud-transcripts/) and gives the owner's own turns, in order. No LLM calls, nothing written.
-+// Not our session logs (those are session.jsonl, read by core/Session); the batch condenser for many transcripts is Server/Transcripts.mjs.
-+// owner_text is THE owner-prompt filter: Server/RefineQueue.mjs and Server/PromptAudit.mjs reach it as RefineQueue.owner_text.
-+//   node Server/ClaudeCodeTranscript.mjs <file> [--from N] [--to N] [--json]     (N is the turn number this prints)
-+// Doc: Server/doc/transcripts.md
-+import fs from "node:fs";
-+import { fileURLToPath } from "node:url";
-+import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
-+
-+export default class ClaudeCodeTranscript {
-+	constructor(file){
-+		this.file = file;
-+		// one entry per line of the file (null for a blank or broken line), so an index is the file's own line number, 0-based
-+		this.lines = fs.readFileSync(file, "utf8").split("\n").map(l => { try { return l ? JSON.parse(l) : null; } catch { return null; } });
-+	}
-+
-+	/** One user line -> the owner's words, or null when it is not the owner speaking: a tool result, a meta line (a skill, a reminder),
-+	 *  a task notification, a slash command, an agent relay or brief ("[from: ", "[You are "), a compaction summary, an interruption note. */
-+	static owner_text(l){
-+		if (l?.type !== "user" || l.isMeta || l.isSidechain || l.turnOrigin === "task_notification") return null;
-+		const c = l.message?.content;
-+		if (Array.isArray(c) && c.some(b => b?.type === "tool_result")) return null;
-+		const t = typeof c === "string" ? c : Array.isArray(c) ? c.filter(b => b?.type === "text").map(b => b.text).join("\n") : "";
-+		const text = RefinedCard.strip(t);
-+		if (!text || /^<(command-|local-command|task-notification)/.test(text) || /^(Caveat:|\[from: |\[You are |This session is being continued|\[Request interrupted)/.test(text)) return null;
-+		return text;
-+	}
-+
-+	/** [{n, at, line, text}]: every owner turn, numbered from 1 in file order; `line` is its 0-based line in the file (RefineQueue's key). */
-+	owner_turns(){
-+		let n = 0;
-+		return this.lines.flatMap((l, line) => { const text = ClaudeCodeTranscript.owner_text(l); return text ? [{ n: ++n, at: l.timestamp ?? null, line, text }] : []; });
-+	}
-+
-+	/** The turn's sentences: RefinedCard.sentences, so a cite [3] means the same sentence here and on a refined card. */
-+	static sentences(text){ return RefinedCard.sentences(text); }
-+
-+	static main(argv){
-+		const file = argv[0], arg = k => { const i = argv.indexOf(k); return i < 0 ? null : argv[i + 1]; };
-+		if (!file) { console.error("usage: node Server/ClaudeCodeTranscript.mjs <file> [--from N] [--to N] [--json]"); process.exit(1); }
-+		const from = Number(arg("--from") ?? 1), to = Number(arg("--to") ?? Infinity);
-+		const turns = new ClaudeCodeTranscript(file).owner_turns().filter(t => t.n >= from && t.n <= to);
-+		if (argv.includes("--json")) console.log(JSON.stringify(turns, null, 1));
-+		else for (const t of turns) console.log(`#${t.n} ${t.at} (line ${t.line})\n${t.text}\n`);
-+	}
-+}
-+
-+if (process.argv[1] && fileURLToPath(import.meta.url) === fs.realpathSync(process.argv[1])) ClaudeCodeTranscript.main(process.argv.slice(2));
-diff --git a/Server/ClaudeCodeTranscript.test.mjs b/Server/ClaudeCodeTranscript.test.mjs
-new file mode 100644
-index 000000000..cc3132419
---- /dev/null
-+++ b/Server/ClaudeCodeTranscript.test.mjs
-@@ -0,0 +1,30 @@
-+// node Server/ClaudeCodeTranscript.test.mjs: one scratch transcript, the owner's turns come out and nothing else does.
-+import fs from "node:fs";
-+import os from "node:os";
-+import path from "node:path";
-+import Test from "../public/framework/core/Test/Test.js";
-+import ClaudeCodeTranscript from "./ClaudeCodeTranscript.mjs";
-+
-+const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "cct-")), "t.jsonl");
-+const user = (content, extra = {}) => JSON.stringify({ type: "user", timestamp: "2026-11-06T07:00:00Z", message: { role: "user", content }, ...extra });
-+fs.writeFileSync(file, [
-+	user("Hey Claude. Can you spawn a mastermind?"),
-+	user([{ type: "text", text: "Spoken words." }, { type: "text", text: "Second block." }]),
-+	user([{ type: "tool_result", content: "ok" }]),
-+	user("skill text", { isMeta: true }),
-+	user("<task-notification>done</task-notification>", { turnOrigin: "task_notification" }),
-+	user("[from: voice-app] a relayed brief"),
-+	user("This session is being continued from a previous conversation."),
-+	JSON.stringify({ type: "assistant", message: { content: [{ type: "text", text: "Sure." }] } }),
-+	"not json",
-+].join("\n") + "\n");
-+
-+const t = new Test("ClaudeCodeTranscript: owner turns only");
-+const turns = new ClaudeCodeTranscript(file).owner_turns();
-+t.eq(turns.length, 2, "two owner turns: no tool result, meta line, notification, relay, compaction summary or assistant");
-+t.eq(turns[1].text, "Spoken words.\nSecond block.", "text blocks are joined");
-+t.eq(turns[0].n, 1, "numbered from 1");
-+t.eq(turns[1].line, 1, "and keyed by the line it sits on");
-+t.eq(ClaudeCodeTranscript.sentences(turns[0].text), ["Hey Claude.", "Can you spawn a mastermind?"], "sentences split on end marks");
-+fs.rmSync(path.dirname(file), { recursive: true, force: true });
-+t.done();
-diff --git a/Server/RefineQueue.mjs b/Server/RefineQueue.mjs
-index 26f54d14b..1748f8bb3 100644
---- a/Server/RefineQueue.mjs
-+++ b/Server/RefineQueue.mjs
-@@ -25,6 +25,7 @@ import { spawnSync } from "node:child_process";
- import { fileURLToPath, pathToFileURL } from "node:url";
- import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
- import AskIndex from "./AskIndex.mjs";
-+import ClaudeCodeTranscript from "./ClaudeCodeTranscript.mjs";
- import SessionFolders from "../public/framework/core/Session/SessionFolders.mjs";
- import SessionRecord from "./SessionRecord.mjs";
+diff --git a/Servex/ext/remote/RemoteMCP.js b/Servex/ext/remote/RemoteMCP.js
+index 2523cf3b8..696159fe6 100644
+--- a/Servex/ext/remote/RemoteMCP.js
++++ b/Servex/ext/remote/RemoteMCP.js
+@@ -195,14 +195,27 @@ export default class RemoteMCP {
  
-@@ -53,16 +54,8 @@ export default class RefineQueue {
- 			: path.join(os.homedir(), ".claude", "projects", RefineQueue.main_root().replace(/[^a-zA-Z0-9]/g, "-"));
- 	}
+     /* One folder per cloud voice agent per day (owner, 2026-10-19): sessions/YYYY/MM/DD/cloud-voice-<name>/session.jsonl, kind
+      * "cloud-voice-agent". <name> is the register_session title, else the caller + date. It is a row in the Sessions store
+-     * (so session_summary and session_line work) with a hand-set `cost`, not a v-… folder. Guide: doc/cloud-voice-agent.md */
++     * (so session_summary and session_line work) with a hand-set `cost`, not a v-… folder. Guide: doc/cloud-voice-agent.md
++     * ONE RECORD PER CONVERSATION, NOT PER DATE (2026-11-07): the app opens a new MCP connection every few calls (so `sid` names a
++     * connection, not a conversation), so the caller's record in use is kept under CURRENT. A call on a connection with no title of its
++     * own stays on that record while calls keep coming (under IDLE_MS apart), past midnight too; only a new title or a long gap opens
++     * another. Two cloud chats at once still share one record: the server cannot tell them apart. */
++    static CURRENT = "caller:voice-app";
++    static IDLE_MS = 2 * 3600e3;   // the gaps between voice records, 10-20 to 11-07: 64 min (one chat past midnight), then 206 min and up
+     voice_session(sid){
+         const store = this.servex.sessions;
+         if (!store?.map) return null;   // Servex without its session layer: nowhere to file it, and no third store
+         const ymd = TaskDirs.day().replaceAll("-", "");
+         const slug = s => String(s).toLowerCase().replace(/^cloud-voice-?/, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+-        const name = slug(this.sessions[sid]?.voice_name ?? "") || `${slug(RemoteMCP.CALLER.replace(/^voice-/, "")) || "app"}-${ymd}`;
+-        const id = `cloud-voice-${name}`, home = DatedFiles.url(DatedFiles.sessions.path(Date.now(), id)), file = `${home}session.jsonl`, abs = path.join(this.root, "public", file);
++        const titled = slug(this.sessions[sid]?.voice_name ?? ""), cur = this.sessions[RemoteMCP.CURRENT];
++        const live = cur?.id && store.map[cur.id] && Date.now() - Date.parse(cur.last) < RemoteMCP.IDLE_MS;
++        const name = titled || (live ? slug(cur.id) : `${slug(RemoteMCP.CALLER.replace(/^voice-/, "")) || "app"}-${ymd}`);
++        // an id the store already has keeps its own folder (the day it began): a later day's call must not open a second folder for it
++        const id = `cloud-voice-${name}`, file = store.map[id]?.file ?? `${DatedFiles.url(DatedFiles.sessions.path(Date.now(), id))}session.jsonl`, home = file.replace(/session\.jsonl$/, ""), abs = path.join(this.root, "public", file);
++        const now = new Date().toISOString(), moved = cur?.id !== id;
++        this.sessions[RemoteMCP.CURRENT] = { id, last: now };
++        if (moved || !cur?.saved || Date.now() - Date.parse(cur.saved) > 60e3) this.sessions[RemoteMCP.CURRENT].saved = now, this.save_sessions();   // at most once a minute while it stays put
++        else this.sessions[RemoteMCP.CURRENT].saved = cur.saved;
+         if (!store.map[id]){
+             const at = Date.now();
+             store.map[id] = { id, home, file, kind: "cloud-voice-agent", caller: RemoteMCP.CALLER, at, cost: null, visited: [], fast: null, smart: null, backing: { fast: null, smart: null } };
+diff --git a/Servex/ext/remote/RemoteMCP.test.mjs b/Servex/ext/remote/RemoteMCP.test.mjs
+index 1042b63b3..2ea9184bf 100644
+--- a/Servex/ext/remote/RemoteMCP.test.mjs
++++ b/Servex/ext/remote/RemoteMCP.test.mjs
+@@ -153,9 +153,21 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
+     assert.ok(turns.every((t, i) => t.refined.re === lines.filter(l => l.owner_words)[i].owner_words.at && t.refined.via === "voice" && t.refined.by === "code" && t.refined.sentences[0].n === 1 && Array.isArray(t.refined.sections)), "re = the words line at; via voice; sentences numbered from 1");
+     assert.equal(turns[0].refined.sentences.map(x => x.text).join(" "), "Make it blue, please.", "split by code");
+     assert.equal(lines.find(l => l.cost).cost.usd, 1.5, "cost line");
++    // the app reconnects every few calls: a new connection with no title stays on the record in use (one record per conversation, past midnight too)
+     const other = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
+-    const dflt = JSON.parse((await rpc({ id: 9, method: "tools/call", params: { name: "register_session", arguments: {} } }, other)).json.result.content[0].text);
+-    assert.match(dflt.session, /^cloud-voice-app-[0-9]{8}$/, "default name = caller + date");
++    const cont = JSON.parse((await rpc({ id: 9, method: "tools/call", params: { name: "register_session", arguments: {} } }, other)).json.result.content[0].text);
++    assert.equal(cont.session, "cloud-voice-live-page", "a reconnect without a title continues the conversation's record, not a new dated one");
++    assert.equal(cont.file, reg.file, "in the same folder");
++    gw.sessions[RemoteMCP.CURRENT].last = new Date(Date.now() - RemoteMCP.IDLE_MS - 1000).toISOString();   // a long silence: the next call is a new conversation
++    const later = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
++    const dflt = JSON.parse((await rpc({ id: 9, method: "tools/call", params: { name: "register_session", arguments: {} } }, later)).json.result.content[0].text);
++    assert.match(dflt.session, /^cloud-voice-app-[0-9]{8}$/, "after a long gap, default name = caller + date");
++    // a record from an earlier day keeps its folder: the store's row decides where it lives, never today's date
++    servex.sessions.map["cloud-voice-old-chat"] = { id: "cloud-voice-old-chat", file: "/framework/ai/sessions/2026/10/01/cloud-voice-old-chat/session.jsonl" };
++    const named = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
++    const old = JSON.parse((await rpc({ id: 9, method: "tools/call", params: { name: "register_session", arguments: { title: "old chat" } } }, named)).json.result.content[0].text);
++    assert.equal(old.file, "/framework/ai/sessions/2026/10/01/cloud-voice-old-chat/session.jsonl", "a known id is filed in its own folder, not a second one today");
++    delete gw.sessions[RemoteMCP.CURRENT];   // the cases below start a fresh conversation
+     const calls = lines.filter(l => l.tool_call).map(l => l.tool_call);
+     assert.ok(calls.length >= 6 && calls.every(c => c.args_hash.length === 12), "every call logged with a hash (a call with no words line before it is the gap)");
+ }
+diff --git a/Servex/ext/remote/doc/voice-logging.md b/Servex/ext/remote/doc/voice-logging.md
+index 9b5d75ddb..a4c06f734 100644
+--- a/Servex/ext/remote/doc/voice-logging.md
++++ b/Servex/ext/remote/doc/voice-logging.md
+@@ -26,4 +26,4 @@ Work in a worktree. Do not touch `Servex/agents/Sessions.js`, `ux/Dictate/chat.j
  
--	/** One user line → the owner's words, or null when it is not an owner prompt. */
--	static owner_text(l){
--		if (l?.type !== "user" || l.isMeta || l.isSidechain || l.turnOrigin === "task_notification") return null;
--		const c = l.message?.content;
--		if (Array.isArray(c) && c.some(b => b?.type === "tool_result")) return null;
--		const t = typeof c === "string" ? c : Array.isArray(c) ? c.filter(b => b?.type === "text").map(b => b.text).join("\n") : "";
--		const text = RefinedCard.strip(t);
--		if (!text || /^<(command-|local-command|task-notification)/.test(text) || /^(Caveat:|\[from: |\[You are |This session is being continued)/.test(text)) return null;
--		return text;
--	}
-+	/** One user line → the owner's words, or null when it is not an owner prompt. The filter itself lives in ClaudeCodeTranscript (the transcript reader). */
-+	static owner_text(l){ return ClaudeCodeTranscript.owner_text(l); }
+ Every tool call from the voice app runs `RemoteMCP.voice_session(sid)`, which also calls `point_caller(id)`: it sets the `voice-app` registry row's `session_id` to that record's id (`External.register`, which changes nothing else in the row). `Agents.session_of("voice-app")` reads it, so each agent the voice app spawns afterwards gets that record as its `parent_session`. Only the registry row is set: the voice app is never a live agent, so there is no live entry to update. Before this, the row kept the id it was registered with on 2026-10-19 and tonight's children hung under an October session. Test: the "children of the voice app" block in `RemoteMCP.test.mjs`. Needs a Servex restart.
  
- 	/** Every owner prompt in the VS Code transcripts touched since `since` (ms), newest first: { session, line, uuid, at, text }. */
- 	static find({ since }){
-diff --git a/Server/doc/transcripts.md b/Server/doc/transcripts.md
-index ab9fa8b94..985a02fcb 100644
---- a/Server/doc/transcripts.md
-+++ b/Server/doc/transcripts.md
-@@ -23,4 +23,11 @@ node Server/Transcripts.mjs --grep "dedup|duplicate" [--all]
- ```
- Default: last 2 days (by file time), newest first, only sessions with a task folder. `--dry-run` prints raw KB -> essence KB and totals without writing. `--grep` searches the owner's prompts in the essence files already written ("didn't I ask for this before?"); `--all` includes agent briefs. It only sees days that were run, so widen `--since` first.
- 
-+## One transcript, the owner's turns: `ClaudeCodeTranscript`
-+[`ClaudeCodeTranscript.mjs`](../ClaudeCodeTranscript.mjs) reads ONE Claude Code / SDK transcript file (a local one, or a cloud session's copy in `~/.claude/cloud-transcripts/`) and returns the owner's own turns: `{n, at, line, text}`, where `n` counts owner turns from 1 and `line` is the 0-based line in the file (the key [RefineQueue](../../public/framework/ext/Refine/doc/refine-queue.md) uses). `ClaudeCodeTranscript.owner_text(line)` is the one owner-prompt filter: it drops tool results, meta lines, task notifications, slash commands, agent relays and briefs, and compaction summaries, and `RefineQueue.owner_text` and `PromptAudit` call it. `ClaudeCodeTranscript.sentences(text)` is `RefinedCard.sentences`, so a sentence number means the same thing on a refined card. Nothing is written. First used by the prompt-refinement calibration ([doc/prompt-refinement-and-tasks.md](../../public/framework/ai/doc/prompt-refinement-and-tasks.md)).
-+```
-+node Server/ClaudeCodeTranscript.mjs <file> [--from N] [--to N] [--json]
-+```
-+Turns are in file order; a resumed cloud session can put an older turn after a newer one, so read `at` when order matters.
-+
- Related: [`session-index.md`](./session-index.md) (task records in memory).
-diff --git a/Server/readme.md b/Server/readme.md
-index 472503225..e0ab77b75 100644
---- a/Server/readme.md
-+++ b/Server/readme.md
-@@ -51,6 +51,7 @@ The owner-facing server also starts `whisper-server` for dictation on its own 
- - `Server/Council.mjs` — Feedback Council collector and runner; off switch `COUNCIL=off`.
- - `node Server/ReadmeOrphans.mjs` — lists every directory with a readme that the readme above it never names (the readme chain cannot reach it); the page-nav twin is `OrphanCheck.mjs`.
- - `node Server/SessionIdentity.mjs <session uuid>` — read-only: which transcripts, folders, cost lines and child agents belong to one session; TrackingCheck's check 6 runs it; test `SessionIdentity.test.mjs` ([core/Session/doc/identity.md](../public/framework/core/Session/doc/identity.md)).
-+- `node Server/ClaudeCodeTranscript.mjs <file> [--from N] [--to N] [--json]` — the owner's own turns from ONE Claude Code / SDK transcript file (local or a cloud copy), numbered; writes nothing; test `ClaudeCodeTranscript.test.mjs` ([doc/transcripts.md](./doc/transcripts.md)).
- - `node Server/SessionConsolidate.mjs <session uuid> | --all | --check [--write] [--json]`, plus `[--apply --manifest <file>]` — one session, one folder: folds a session's second folders into one home (the oldest day, then the folder holding most), with a dry run, a manifest and a moved-aside copy; `--all` folds every session held twice, `--check` reports twins (run daily by `Servex/TaskLoop.js`). `session-dir-clash.test.mjs` tests the folder lookup (`DatedFiles.session_dir`), `session-twins.test.mjs` the twin check and the finder. `Servex/agents/turn-costs.test.mjs` tests a session's own turns.
- - `node Server/Truth.mjs [--write] [--root <repo>] [--label ...]` — the truth numbers: how true the session and task record is (sessions by id, with a work log / tags only / transcript only, with tasks, complete, done tasks without proof, no commit line, unfiled asks, twins). Counts with the real classes, writes nothing into the tree it reads, refuses to write a line whose parts do not add up to their totals; `--write` appends one line to `public/live/truth/truth.jsonl`, which [/live/truth/](/live/truth/) draws (run daily by `Servex/TaskLoop.js`, `truth_daily`). `Truth.test.mjs` tests it.
- - `node Server/DoneCheck.mjs [--dry|--list]` — Haiku check of completed owner asks, "marked done, not done" ([completion](../public/framework/core/Task/doc/completion.md)).
+-**A second cloud voice session on the same day (current behaviour, written down, not changed).** The record's id comes from the connection's `register_session` title (`cloud-voice-<title>`), else `cloud-voice-app-<YYYYMMDD>`. So two calls on one day that never name themselves share one record, and a titled call gets its own. The registry row holds one id, the one opened by the most recent call, so two live conversations alternating calls would flip it. Proposal (not built): give an untitled connection `cloud-voice-app-<YYYYMMDD>-<n>` from its MCP session id, and key the parent by connection (the spawn's `sid`) instead of the single registry row. Alternative: keep one record per day and make same-day conversations tabs inside it; cheaper, but costs and children of two conversations stay mixed.
++**One record per conversation, not per date (built 2026-11-07).** The Claude app opens a new MCP connection every few calls (2,288 connections in `remote.sessions.json`, about 150 on 11-07 alone), so a connection is not a conversation and the server never sees a conversation id. `RemoteMCP.voice_session` therefore keeps the caller's record in use under `remote.sessions.json` key `caller:voice-app` (`RemoteMCP.CURRENT`): a call on a connection with no title of its own stays on that record while calls come less than 2 hours apart (`RemoteMCP.IDLE_MS`), past local midnight too; a `register_session` title, or a longer gap, opens another (`cloud-voice-<title>`, else `cloud-voice-app-<YYYYMMDD>`). An id the Sessions store already has is filed in its own folder (the day it began), never a second folder today. Before this, the 11-06 conversation went on at 00:13 local into a new `cloud-voice-app-20261107` record; the two are linked by a Session entry on the 11-06 record and a `continues` note on the 11-07 one. It was the only voice record that crossed midnight (gaps between voice records, 10-20 to 11-07: 64 min, then 206 min and up). **Still open:** two cloud chats at once share one record, because the server cannot tell them apart; the only exact key is one the agent passes itself (a title on every reconnect, or an id on every call), which the voice agent has not reliably done so far.
