@@ -195,14 +195,27 @@ export default class RemoteMCP {
 
     /* One folder per cloud voice agent per day (owner, 2026-10-19): sessions/YYYY/MM/DD/cloud-voice-<name>/session.jsonl, kind
      * "cloud-voice-agent". <name> is the register_session title, else the caller + date. It is a row in the Sessions store
-     * (so session_summary and session_line work) with a hand-set `cost`, not a v-… folder. Guide: doc/cloud-voice-agent.md */
+     * (so session_summary and session_line work) with a hand-set `cost`, not a v-… folder. Guide: doc/cloud-voice-agent.md
+     * ONE RECORD PER CONVERSATION, NOT PER DATE (2026-11-07): the app opens a new MCP connection every few calls (so `sid` names a
+     * connection, not a conversation), so the caller's record in use is kept under CURRENT. A call on a connection with no title of its
+     * own stays on that record while calls keep coming (under IDLE_MS apart), past midnight too; only a new title or a long gap opens
+     * another. Two cloud chats at once still share one record: the server cannot tell them apart. */
+    static CURRENT = "caller:voice-app";
+    static IDLE_MS = 2 * 3600e3;   // the gaps between voice records, 10-20 to 11-07: 64 min (one chat past midnight), then 206 min and up
     voice_session(sid){
         const store = this.servex.sessions;
         if (!store?.map) return null;   // Servex without its session layer: nowhere to file it, and no third store
         const ymd = TaskDirs.day().replaceAll("-", "");
         const slug = s => String(s).toLowerCase().replace(/^cloud-voice-?/, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
-        const name = slug(this.sessions[sid]?.voice_name ?? "") || `${slug(RemoteMCP.CALLER.replace(/^voice-/, "")) || "app"}-${ymd}`;
-        const id = `cloud-voice-${name}`, home = DatedFiles.url(DatedFiles.sessions.path(Date.now(), id)), file = `${home}session.jsonl`, abs = path.join(this.root, "public", file);
+        const titled = slug(this.sessions[sid]?.voice_name ?? ""), cur = this.sessions[RemoteMCP.CURRENT];
+        const live = cur?.id && store.map[cur.id] && Date.now() - Date.parse(cur.last) < RemoteMCP.IDLE_MS;
+        const name = titled || (live ? slug(cur.id) : `${slug(RemoteMCP.CALLER.replace(/^voice-/, "")) || "app"}-${ymd}`);
+        // an id the store already has keeps its own folder (the day it began): a later day's call must not open a second folder for it
+        const id = `cloud-voice-${name}`, file = store.map[id]?.file ?? `${DatedFiles.url(DatedFiles.sessions.path(Date.now(), id))}session.jsonl`, home = file.replace(/session\.jsonl$/, ""), abs = path.join(this.root, "public", file);
+        const now = new Date().toISOString(), moved = cur?.id !== id;
+        this.sessions[RemoteMCP.CURRENT] = { id, last: now };
+        if (moved || !cur?.saved || Date.now() - Date.parse(cur.saved) > 60e3) this.sessions[RemoteMCP.CURRENT].saved = now, this.save_sessions();   // at most once a minute while it stays put
+        else this.sessions[RemoteMCP.CURRENT].saved = cur.saved;
         if (!store.map[id]){
             const at = Date.now();
             store.map[id] = { id, home, file, kind: "cloud-voice-agent", caller: RemoteMCP.CALLER, at, cost: null, visited: [], fast: null, smart: null, backing: { fast: null, smart: null } };
