@@ -30778,6 +30778,7 @@
 {"file":"session-folders.json","gone":true}
 {"file":"2020/","gone":true}
 {"file":"session-twins.json","gone":true}
+{"file":"session-folders.json"}
 {"file":"2020/"}
 {"file":"failures.jsonl"}
 {"file":"index.jsonl"}
@@ -30792,3 +30793,17 @@
 {"file":"spend-tree.json"}
 {"file":"transcripts/"}
 {"file":"week.json"}
+{"file":"transcripts/","gone":true}
+{"file":"sessions.json","gone":true}
+{"file":"spend-tree.json","gone":true}
+{"file":"week.json","gone":true}
+{"file":"session-index.json","gone":true}
+{"file":"session-tree.json","gone":true}
+{"file":"openrouter-reconcile.json","gone":true}
+{"file":"openrouter-costs.json","gone":true}
+{"file":"screenshots/","gone":true}
+{"file":"index.jsonl","gone":true}
+{"file":"failures.jsonl","gone":true}
+{"file":"2020/","gone":true}
+{"file":"session-twins.json","gone":true}
+{"file":"2020/"}

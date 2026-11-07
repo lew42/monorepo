@@ -1,0 +1,17 @@
+{
+  "rows": [
+    "Thing\n\nFirst line of text.\n\n›",
+    "Note\n\nAn embedded member, no file."
+  ],
+  "tail_ms": 25,
+  "tailed": true,
+  "opened_url": "http://localhost:59081/live/items-proof/thing/",
+  "opened_live_page": 3,
+  "opened_text": "live\n/\nitems-proof\n/\nthing\nsettings\nfolder\nThing\n\nTailed at 2026-11-07T01:13:15.427Z",
+  "errors": [
+    "404 http://localhost:59081/framework/ai/page-work.json",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "404 http://localhost:59081/framework/ai/tasks.json",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}

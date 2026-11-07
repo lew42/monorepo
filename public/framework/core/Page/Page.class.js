@@ -102,6 +102,15 @@ export class Page extends Item {
 		return super.set(obj);
 	}
 
+	// ════ ITEMS — each one embedded (a line here) or saved in its own file (`file`/`path`: core/Item's file_url/load, doc/jsonl.md
+	// "page.items") ═══ No `set()` override needed: `this.items` self-registers by name (List.named), so a generic
+	// `{"items":{"add":…}}}` line already routes there the same way any other named list does (Item.get/set_one).
+	get items(){
+		return this._items ??= Object.assign(new List({ owner: this, name: "items" }), {
+			make(x){ const made = List.prototype.make.call(this, x); if (x?.id == null && made?.default_id) made.id = made.default_id() ?? made.id; return made; },
+		});
+	}
+
 	// ════ CONTENT — (doc/content.md) ═══
 	get content(){ return this._content ??= new this.constructor.Content({ owner: this, name: "content" }); }
 	set content(value){ this.content.fill(value); }
@@ -135,8 +144,9 @@ export class Page extends Item {
 	get(key){ return key === "content" ? this.content : super.get(key); }
 
 	lists(){
-		const { _content, ...lists } = super.lists();
+		const { _content, _items, ...lists } = super.lists();
 		if (_content?.items.some(item => !item.transient)) lists.content = _content;
+		if (_items?.items.length) lists.items = _items;
 		return lists;
 	}
 
@@ -239,6 +249,8 @@ export class Page extends Item {
 	log_forget(){ return this._helper("Jsonl").log_forget(); }
 
 	static jsonl(url){ return this.Jsonl.load(this, url); }
+	// page.items: a sibling file's own lines, built as a full page at `address` (not where the file sits — LivePage.child()).
+	static jsonl_file(file_url, address){ return this.Jsonl.load_file(this, file_url, address); }
 
 	// A folder's own file list: a loaded page's lines, else files.jsonl, else page.jsonl, else null. Memoised per folder. (doc/decisions.md)
 	static listing(url, fresh){ return Page.Listing.listing(Page, url, fresh); }

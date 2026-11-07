@@ -15,6 +15,9 @@ View.stylesheet(import.meta, "tabs.css");
  * Design record: framework/ext/tabs/readme.md.
  */
 Page.prototype.tabs = function(names, { home } = {}){
+	// tabs() draws; it is not a line verb. A page.jsonl line {"tabs": {…}} (meant for a card whose id is "tabs":
+	// {"content": {"tabs": {…}}}) reaches here as a bare call and is skipped, not thrown (2026-11-06, /live/).
+	if (names != null && typeof names !== "string") return void console.warn(`tabs(): ${JSON.stringify(names)} is not a list of names; a {"tabs": …} line is skipped (a card named "tabs" is {"content": {"tabs": …}})`);
 	const list = names ? names.trim().split(/\s+/) : [...this.children.keys()];
 
 	// A `{"tab": {"name": "x", "active": true}}` line (core/Page/Log.js) names the

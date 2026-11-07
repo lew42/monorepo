@@ -472,6 +472,22 @@ try {
 		} finally { fs.rmSync(VDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 	}
 
+	// page.items: a loose sibling .jsonl with no class of its own is read as the class of the page that LISTS it
+	// ({"items":{"add":{"file":"thing.jsonl"}}}), so /live/item-test/thing.jsonl replays as LivePage; one nobody lists stays plain Page.
+	{
+		const IDIR = DIR + "-items-class", IURL = URL.replace(/\/$/, "-items-class/");
+		fs.mkdirSync(IDIR, { recursive: true });
+		fs.writeFileSync(path.join(IDIR, "page.jsonl"), [{ class: "/live/LivePage.js", title: "Lists" }, { items: { add: { file: "thing.jsonl" } } }].map(l => JSON.stringify(l)).join("\n") + "\n");
+		fs.writeFileSync(path.join(IDIR, "thing.jsonl"), JSON.stringify({ title: "Thing" }) + "\n");
+		fs.writeFileSync(path.join(IDIR, "loose.jsonl"), JSON.stringify({ title: "Loose" }) + "\n");
+		try {
+			const r = JSON.parse(await tools.item.handler({ path: IURL + "thing.jsonl" }, { caller: "t-items-a" }));
+			ok(r.ok && r.instructions?.class === "LivePage", "a listed loose file replays as its listing page's class (LivePage)");
+			const r2 = JSON.parse(await tools.item.handler({ path: IURL + "loose.jsonl" }, { caller: "t-items-b" }));
+			ok(r2.ok && r2.instructions?.class === "Page", "an unlisted loose file stays plain Page");
+		} finally { fs.rmSync(IDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
+	}
+
 	// A mistaken {"pages":{…}} (a card id colliding with the reserved "pages" verb) used to be swallowed silently:
 	// none of its keys matched add/rename/remove/promote, so apply_pages did nothing, `done` stayed empty, and
 	// run_item_now read that as "nothing left to write" and skipped the append — ok:true, line:null, no why

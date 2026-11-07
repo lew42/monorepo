@@ -1,0 +1,105 @@
+diff --git a/public/framework/core/Item/Ref.js b/public/framework/core/Item/Ref.js
+index 659af875fc..f5cea7a8ff 100644
+--- a/public/framework/core/Item/Ref.js
++++ b/public/framework/core/Item/Ref.js
+@@ -18,11 +18,22 @@ import Store from "./Store.js";
+    Node: Item.open fetches the url, so an absolute http url resolves (Ref.test.mjs); a task's {"task":"<folder>"} keeps Task.resolver. */
+ export class Ref extends Item {
+ 
+-	static fields = ["url", "path"];
++	// `file` ("thing.jsonl") is a sibling of the page that holds this Ref: resolved against that page's own folder (`folder()`),
++	// never against the Ref's own file — a page moved keeps naming the same sibling. `url` wins when both are set.
++	static fields = ["url", "path", "file"];
+ 	static HOPS = 8;   // forwards followed before a chain is called a loop
+ 	static changes = 0;   // bumped when any Ref changes its address: the backlinks are walked again
+ 
+-	put(key, value){ super.put(key, value); if (key === "path" || key === "url") Ref.changes++; }
++	put(key, value){ super.put(key, value); if (key === "path" || key === "url" || key === "file") Ref.changes++; }
++
++	// The folder of the page this Ref sits in (its root's own `url`, which a Page always ends in "/"): where `file` is looked for.
++	folder(){
++		const root = this.root(), u = root?.url ?? root?.get_one?.("url");
++		return u ? String(u).replace(/[^/]*$/, "") : "";
++	}
++
++	/** Where this Ref points, as a url `resolve()` can open: `url` itself, or `file` against this Ref's own page's folder. */
++	get address(){ return this.url || (this.file ? this.folder() + this.file : null); }
+ 
+ 	/** The resolved item: undefined until resolve() has run, null when it is gone. */
+ 	get target(){ return this._target; }
+@@ -30,8 +41,9 @@ export class Ref extends Item {
+ 
+ 	/** Resolve (again): find the root, the target, follow forwards; returns the target or null. A live root's change re-runs it. */
+ 	async resolve(){
+-		const root = await this.root_of(this.url);
+-		return this.settle(root, this.url);
++		const url = this.address;
++		const root = await this.root_of(url);
++		return this.settle(root, url);
+ 	}
+ 
+ 	// Steps 2 to 4 above, from a root already open.
+@@ -81,7 +93,7 @@ export class Ref extends Item {
+ 		if (this._watched === root) return;
+ 		if (this._watched) this._watched.off?.("read", this._on_root);
+ 		this._watched = root;
+-		root.on?.("read", this._on_root ??= () => this.settle(this._watched, this.url));
++		root.on?.("read", this._on_root ??= () => this.settle(this._watched, this.address));
+ 	}
+ 
+ 	/** Why it is gone, in words, for the "gone" row. */
+diff --git a/public/framework/core/Item/Ref.test.mjs b/public/framework/core/Item/Ref.test.mjs
+index eeb569625a..b2b8462bed 100644
+--- a/public/framework/core/Item/Ref.test.mjs
++++ b/public/framework/core/Item/Ref.test.mjs
+@@ -68,6 +68,18 @@ try {
+ 	const nofile = new Ref({ url: BASE + "/s/never-made/", path: "tasks.t1" });
+ 	t.eq(await nofile.resolve(), null, "a Ref to a folder with no record is gone too, not a throw");
+ 
++	// 1b. `file`: a sibling .jsonl beside the page that holds this Ref, resolved against that page's own folder
++	write("page-dir/page.jsonl", [{ id: "pg", title: "Page" }]);
++	write("page-dir/thing.jsonl", [{ title: "Thing" }]);
++	const page = Item.hydrate({ id: "pg", title: "Page", chat: [] });
++	page.url = BASE + "/page-dir/";
++	const fileRef = page.chat.add({ type: "Ref", id: "fr", file: "thing.jsonl" });
++	t.eq(fileRef.address, BASE + "/page-dir/thing.jsonl", "file resolves against the holding page's own folder (its root's url)");
++	t.eq((await fileRef.resolve())?.get_one("title"), "Thing", "and opens that sibling file as its target");
++	fs.appendFileSync(path.join(DIR, "page-dir/thing.jsonl"), JSON.stringify({ text: "Loose, tailed, and alive." }) + "\n");
++	await fileRef.target.store.load();   // a static re-read of the growth (no live socket in this test harness)
++	t.eq(fileRef.target.get_one("text"), "Loose, tailed, and alive.", "a line appended to the file it points at reaches the same live target");
++
+ 	// 2. an id fallback
+ 	const before = fs.readFileSync(path.join(DIR, "s/child-1/session.jsonl"), "utf8");
+ 	const stale = new Ref({ url: BASE + "/s/child-1/", path: "tasks.t1.tasks.t3" });   // t3 was under t2, never t1
+diff --git a/public/framework/core/Item/RefView.js b/public/framework/core/Item/RefView.js
+index 89895742f7..d406f2f7f8 100644
+--- a/public/framework/core/Item/RefView.js
++++ b/public/framework/core/Item/RefView.js
+@@ -1,4 +1,4 @@
+-import View, { a, span, icon } from "../View/View.js";
++import View, { a, span, icon, h4, p, div } from "../View/View.js";
+ import Ref from "./Ref.js";
+ 
+ View.stylesheet(import.meta, "RefView.css");
+@@ -35,6 +35,21 @@ export default class RefView extends View {
+ 			span.c("ref-view-gone", `gone: ${r.why ?? r.path}`);
+ 			return;
+ 		}
++		// Full: the target has something to say beyond its title (a `text`, or content of its own — a Page-shaped thing), so this
++		// draws title + content instead of the usual one-row link (ids-and-paths.md §6, "a Ref to a page draws the page").
++		const text = t.get_one?.("text");
++		const kids = t.content?.items?.filter?.(i => !i.transient) ?? [];
++		this.el.classList.toggle("ref-view-full", text != null || kids.length > 0);
++		if (text == null && !kids.length) return this.link_row(r, t, root);
++
++		const href = t.get_one?.("path");
++		h4.c("ref-view-full-title", () => (href ? a(this.title_of(t)).href(href) : span(this.title_of(t))));
++		if (text != null) p.c("ref-view-full-text", String(text));
++		if (kids.length) div.c("ref-view-full-kids", () => kids.forEach(k => p.c("ref-view-full-kid", this.title_of(k) || String(k.get_one?.("text") ?? k.id))));
++	}
++
++	// The usual one-row link: an icon for the target's state, then "where › what".
++	link_row(r, t, root){
+ 		icon(RefView.STAGE[t.state] ?? "subdirectory_arrow_right").ac("ref-view-state", "is-" + (t.state ?? "item")).attr("title", t.state ?? "");
+ 		if (this.where !== false && r.url && root && root !== t){   // where: false when a heading above already names the file
+ 			a.c("ref-view-where", this.title_of(root)).href(r.url);
