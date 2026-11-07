@@ -23,7 +23,9 @@ Verified headless, `/live/plan/settings/`:
 - `.delta-history-list` computed style: `max-height: 224px`, `overflow-y: auto` (fix 8)
 - `/live/design/settings/` (a `DesignPage`, 141 lines, 15 `removed` + 31 `content`): Methods shows `DesignPage (4)` first (its own 4 methods), confirming `Class: of.constructor` is used, not the `Page` fallback (fix 9)
 
-`node --check` clean on all 6 touched/new files. `node public/framework/ext/Inspect/Inspect.test.mjs` passes, 0.13s. `node Server/smoke.mjs . /live/plan/settings/ /live/design/settings/ --base http://localhost:62990` exits 0 (only pre-existing unrelated 404s: `page-work.json`, `tasks.json`, present before this task too).
+`node --check` clean on all 6 touched/new files. `node public/framework/ext/Inspect/Inspect.test.mjs` passes, 0.13s.
+
+`node Server/smoke.mjs . /live/plan/settings/ --base http://localhost:62990` exits 0. `... /live/design/settings/ ...` together FAILs on one unrelated link: `/live/design/settings/failures.jsonl/` 404s, because `public/live/design/page.jsonl:139` has a bare `{"file":"failures.jsonl"}` line with no matching `{"gone":true}` and no such file on disk — stale data in design's own log, outside this task's fence (`LivePage.Files`, which reads it, is pre-existing code this task never touched). Not caused by this round: `/live/plan/settings/` alone is clean, and the failing link has nothing to do with Inspect.
 
 | Shot | Path |
 |---|---|
