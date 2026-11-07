@@ -157,10 +157,9 @@ export default class LivePage extends Page {
 	}
 
 	route(name){
-		// Under settings/ every name is a folder or a file of the page's own folder (LivePage.Files), and settings/ again
-		// is that page's own settings (/live/settings/LivePage.js/settings/).
+		// Under settings/ every name is a folder or a file of the page's own folder (LivePage.Files). A settings page has no
+		// settings of its own: its gear is an X back to the page (LivePage.Head), so settings/settings/ is only a folder there.
 		if (this.settings_of){
-			if (name === "settings") return new this.constructor({ title: "Settings", url: this.url + "settings/", settings_of: this });
 			return new this.constructor({ title: name, url: this.url + name + "/", settings_of: this.settings_of, at: (this.at ?? "") + name + "/" });
 		}
 		const page = super.route?.(name);
@@ -381,7 +380,10 @@ export default class LivePage extends Page {
 				new P.Crumbs({ page });
 				if (page.at) page.$raw = a.c("live-raw is-empty", "raw").attr("target", "_blank").attr("title", "The file itself, as text");   // a file's page shows it (LivePage.Files)
 				page.$dot = span.c("live-dot");   // the voice light: small, by the gear, never beside the title (that is the page's own icon)
-				a.c("live-gear", () => icon("settings")).href(page.url + "settings/").attr("aria-label", "Settings: where this page comes from").attr("title", "Where this page comes from");
+				// The gear opens settings; on a settings page (or a file under it) the same spot is an X back to the page.
+				const back = page.settings_of?.url;
+				if (back) a.c("live-gear is-close", () => icon("close")).href(back).attr("aria-label", "Close settings").attr("title", "Back to the page");
+				else a.c("live-gear", () => icon("settings")).href(page.url + "settings/").attr("aria-label", "Settings: where this page comes from").attr("title", "Where this page comes from");
 			});
 			div.c("live-head-row", () => {
 				page.$icon = span.c("live-icon", () => P.icon(page, page.icon_name));
@@ -519,22 +521,24 @@ export default class LivePage extends Page {
 		render(){
 			const { page, item } = this, P = page.constructor;
 			const own = item instanceof PageLink ? page.link_url(item.get("path")) : page.url + item.id + "/";
-			let $title;
+			let $title, $icon;
 			const go = () => {
 				this.tc("live-entity", !!$title?.only);
 				$icon?.tc("is-hidden", !!$title?.only);   // "@Page" brings that thing's own icon in its mention
 				this.$go?.attr("href", $title?.only ?? own).attr("aria-label", String(item.get("title") ?? item.id));
 			};
 			this.attr("id", item.id).attr("data-kind", item.constructor.name);
-			// The icon its page's header shows (LivePage.icon_name): a link asks the page, a card is an item stored here.
-			const $icon = span.c("live-icon live-card-icon");
-			if (item instanceof PageLink){
-				const fallback = item.get("icon") ?? (/\.jsonl$/.test(own) ? P.stored.file : P.stored.folder);
-				P.glyph($icon, fallback);
-				if (own.startsWith("/live/")) P.icon_of(own).then(n => P.glyph($icon, n ?? fallback)).catch(() => {});   // the page's own icon wins: the same as its header
-			} else this.bind(item, "icon", n => P.glyph($icon, n ?? P.stored.item));
 			div.c("live-card-body", () => {
-				$title = new P.Heading({ tag: "h4", item, classes: "live-card-title", on_text: go });
+				div.c("live-card-head", () => {
+					// The icon its page's header shows (LivePage.icon_name): a link asks the page, a card is an item stored here.
+					$icon = span.c("live-icon live-card-icon");
+					if (item instanceof PageLink){
+						const fallback = item.get("icon") ?? (/\.jsonl$/.test(own) ? P.stored.file : P.stored.folder);
+						P.glyph($icon, fallback);
+						if (own.startsWith("/live/")) P.icon_of(own).then(n => P.glyph($icon, n ?? fallback)).catch(() => {});   // the page's own icon wins: the same as its header
+					} else this.bind(item, "icon", n => P.glyph($icon, n ?? P.stored.item));
+					$title = new P.Heading({ tag: "h4", item, classes: "live-card-title", on_text: go });
+				});
 				if (item instanceof PageLink && own.startsWith("/live/")) P.title_of(own).then(t => $title.fix(t)).catch(() => {});
 				new P.Md({ item, key: "text", classes: "live-card-text" });
 				if (!(item instanceof PageLink)) new P.Children({ list: item.content });
@@ -623,8 +627,10 @@ export default class LivePage extends Page {
 			const group = (label, list) => list.length && div.c("live-pages-group", () => {
 				h4.c("live-pages-label", label);
 				list.forEach(c => div.c("live-card live-page-card", () => {
-					span.c("live-icon live-card-icon", () => P.glyph(null, c.icon));
-					div.c("live-card-body", () => h4.c("live-card-title", c.title));
+					div.c("live-card-body", () => div.c("live-card-head", () => {
+						span.c("live-icon live-card-icon", () => P.glyph(null, c.icon));
+						h4.c("live-card-title", c.title);
+					}));
 					a.c("live-card-go", "›").href(c.url).attr("aria-label", c.title);
 				}));
 			});

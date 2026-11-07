@@ -75,12 +75,13 @@ try {
 	const { default: LivePage } = await import("./LivePage.js");   // after run_item: its loader resolves /framework/ imports
 	const picks = LivePage.picks_of([{ tab: { name: "a", tab: true } }, { tab: { name: "b", tab: true } }, { tab: { name: "b", tab: false } }, { title: "x" }]);
 	ok(picks.get("a") === true && picks.get("b") === false && !picks.has("c"), "tab picks: opt-in only, the last line wins");
-	// 9. Settings routes: <page>/settings/, a file under it, and that file page's own settings; each knows the page's folder.
+	// 9. Settings routes: <page>/settings/ and a file under it; each knows the page's folder. A settings page has no settings:
+	// settings/settings/ is a name in the folder, closing back to the page like every settings page.
 	const page = new LivePage({ title: "P", url: "/live/p/" });
-	const set = page.route("settings"), file = set.route("LivePage.js"), set2 = file.route("settings");
+	const set = page.route("settings"), file = set.route("LivePage.js"), set2 = set.route("settings");
 	ok(set.settings_of === page && set.folder === "/live/p/" && set.icon_name === "settings", "settings/: the page's settings, its folder, a gear");
 	ok(file.at === "LivePage.js/" && file.folder === "/live/p/" && file.url === "/live/p/settings/LivePage.js/", "settings/<file>/: a path inside the folder");
-	ok(set2.settings_of === file && set2.folder === "/live/p/" && set2.url === "/live/p/settings/LivePage.js/settings/", "a settings page has its own settings");
+	ok(set2.settings_of === page && set2.at === "settings/" && file.settings_of.url === "/live/p/", "no settings of settings: every settings page closes to the page");
 	ok(page.icon_name === "folder" && LivePage.src_of(LivePage).endsWith("/live/LivePage.js"), "a page with no icon of its own is a folder; LivePage's file is known");
 	// 10. A page with no icon of its own shows where it is stored: an item inside its parent's page.jsonl is a small circle.
 	const card = new LivePage({ title: "C", url: "/live/p/c/", focus: { get: () => undefined } });

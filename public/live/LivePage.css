@@ -96,9 +96,12 @@
 	   an item kept inside its parent's page.jsonl; it is ink, not the light's gray, and smaller than the other icons. */
 	.live-icon { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 1.1rem; font-size: 1.1rem; line-height: 1; }
 	.live-icon .icon { font-size: inherit; opacity: .75; }
-	.live-icon .icon.is-small { font-size: .5em; opacity: .6; }
+	.live-icon .icon.is-small { font-size: .6rem; opacity: .6; }
 	.live-icon.is-empty, .live-icon.is-hidden { display: none; }
-	.live-card-icon { font-size: 1.25rem; width: 1.25rem; }
+	/* A card's icon and title share a row, on the title's first baseline (titles are sized per context: no fixed height). */
+	.live-card-head { display: flex; align-items: baseline; gap: .5rem; min-width: 0; }
+	.live-card-head > .live-card-title { flex: 1; min-width: 0; }
+	.live-card-icon { width: 1.25rem; font-size: 1.25rem; }
 	/* The light: a small dot by the gear, gray when off, green and glowing when on. */
 	.live-dot { width: .45rem; height: .45rem; border-radius: 50%; flex: none; background: light-dark(#c9ccd2, #3a3940); transition: background .15s, box-shadow .15s; }
 	.live-dot.is-on { background: var(--live-light, #22c55e); box-shadow: 0 0 .6em var(--live-light, #22c55e); }
