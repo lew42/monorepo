@@ -100,7 +100,7 @@ Similar things live in several places. Each one should point to the others, and 
 | One row per task, agent, card, ask | `Server/doc/ai-index.md` (AIIndex) | |
 | Every task in memory, plain JS queries | `Server/doc/session-index.md` | |
 | Work since 10-20, by area | [doc/built-index.md](doc/built-index.md) | hand-written, 11-01 |
-| Asks vs. outcomes | [doc/asks-outcomes.md](doc/asks-outcomes.md), [doc/audits.md](doc/audits.md) | |
+| Asks vs. outcomes | [doc/asks-outcomes.md](doc/asks-outcomes.md), [doc/audits.md](doc/audits.md) | the next audit's design: [doc/past-work-audit-design.md](doc/past-work-audit-design.md) |
 | How readmes work, what each role reads | [doc/readme-system.md](doc/readme-system.md), [agents.md](agents.md) | **also** `Servex/agents/roles/` (one readme per role). Two homes for agent docs: to be cross-linked, then merged into `framework/ai` |
 
 **Readmes are the first index.** A folder's `readme.md` is short. It names everything directly inside the folder (or links a sub-doc that does) and says how to search its data. When a search was hard, the folder's readme gets the query that worked ([doc/readme-system.md](doc/readme-system.md)).
