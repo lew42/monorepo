@@ -240,3 +240,4 @@
 {"log":{"at":"2026-11-06T20:30:00-06:00","msg":"Idle: one-folder fix and item-tool read are merged and pushed; nothing in flight. Waiting on the held Servex restart (voice-app picks the time) and on new asks. Next in my area if idle: Store.remember circular-hash crash (core/Item/improvements, ja6f7nfy), queued not promised."}}
 {"commit":"03743e5170a8","by":"append.mjs","ts":"2026-11-07T02:13:56.727Z"}
 {"log":{"at":"2026-11-06T20:16:55-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-07T02:16:55.245Z"}
+{"log":{"at":"2026-11-06T20:20:00-06:00","msg":"Landed: Store.remember circular-hash crash (ja6f7nfy). Store.read hashes each line before replay_line. Merged 4f2f05535, improvement closed b08cdb033, pushed, qf-3 back in the pool, live-page told. Idle again; nothing in flight."}}
