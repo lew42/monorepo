@@ -91,7 +91,7 @@ export class List extends Item {
 	   the list's own verbs stay verbs: add, remove, move, order, clear, set, and any method a List subclass defines
 	   (Paragraphs' append and replace). The plan review, 2026-10-28. */
 	set_one(key, value){
-		if (typeof this[key] === "function" && !LIST_VERBS.has(key) && !subclass_verb(this, key)){
+		if (typeof this[key] === "function" && !List.is_verb(this, key)){
 			const kid = this.find(key);
 			if (kid && typeof kid.set === "function") return void kid.set(value);
 		}
@@ -436,6 +436,13 @@ function subclass_verb(list, key){
 		if (Object.hasOwn(proto, key)) return true;
 	return false;
 }
+/* Is `key` one of THIS LIST's own verbs — never only the base five (add/remove/move/order/clear/set): a subclass's own
+ * method (Paragraphs' append and replace, LiveContent's own remove/clear overrides) and anything the class documents
+ * in its own `static callable` (Page.class.js, List.js itself) count too. The one shared rule `set_one` above and the
+ * item tool's own write-path check (Servex/agents/page_tools.js, bad_list_delta) both call, so a subclass verb is
+ * never refused as "not an existing card" just because it lives outside this file (page-design review, 2026-11-07). */
+List.is_verb = (list, key) => LIST_VERBS.has(key) || subclass_verb(list, key) || !!(list?.constructor?.callable && Object.hasOwn(list.constructor.callable, key));
+
 // A cache or registry kept on an instance: not enumerable, so lists(), toJSON() and Object.keys never see it.
 const hide = (item, name, value) => Object.defineProperty(item, name, { value, writable: true, configurable: true, enumerable: false });
 

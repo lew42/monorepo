@@ -414,7 +414,108 @@ try {
 			}
 			const r = await call("item", { path: PURL, delta: { content: { add: { type: "part-nope" } } } });
 			ok(r.ok === false && /part-view/.test(r.why) && /part-file/.test(r.why), "part-nope is refused and the refusal lists the types");
+
+			// record_lines (append.mjs's path, a browser tab's own post) must refuse the SAME bad line the item() tool
+			// refuses above, not just the item() tool's own write path (2026-11-06, item-validate): before the fix, a
+			// raw page.jsonl line only had the generic jsonl-schema shape checked (page.jsonl is "open" by design), so
+			// an unknown part type sailed through unrefused and landed in the file.
+			{
+				const { record_lines } = await import("./page_tools.js");
+				const pfile = path.join(PDIR, "page.jsonl"), before = fs.readFileSync(pfile, "utf8");
+				const out = record_lines(pfile, [{ content: { add: { type: "part-nope" } }, by: "t1", ts: "2026-11-06T00:00:00Z" }]);
+				ok(out.ok === false && out.written === 0 && /part-view/.test(out.refused[0]?.why ?? ""), "record_lines refuses the same unknown part type");
+				ok(fs.readFileSync(pfile, "utf8") === before, "record_lines wrote nothing on the refusal");
+			}
 		} finally { fs.rmSync(PDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
+	}
+
+	// Regression (mastermind-page-design, 2026-11-06): the new bad_page_delta check in record_lines runs against
+	// PAGE_PRELOADED, plain Page — never the page's OWN class (LivePage.js registers its own kinds, "live-light",
+	// "live-button", …). bad_page_delta only judges a `type` whose value STARTS WITH "part-" (its registry check
+	// is `value.startsWith("part-") && !Page.types.has(value)`): a LivePage kind never has that prefix, so it never
+	// reaches the check at all and is written exactly as before, on plain Page or LivePage alike.
+	{
+		const LDIR = DIR + "-live-page", LURL = URL.replace(/\/$/, "-live-page/");
+		fs.mkdirSync(LDIR, { recursive: true });
+		fs.writeFileSync(path.join(LDIR, "page.jsonl"), JSON.stringify({ class: "/live/LivePage.js", title: "Live fixture" }) + "\n");
+		try {
+			const { record_lines } = await import("./page_tools.js");
+			const pfile = path.join(LDIR, "page.jsonl");
+			for (const part of [{ type: "live-light", id: "t1" }, { type: "live-button", id: "t2", label: "x" }]){
+				const before = fs.readFileSync(pfile, "utf8");
+				const out = record_lines(pfile, [{ content: { add: part }, by: "t1", ts: "2026-11-06T00:00:00Z" }]);
+				ok(out.ok === true && out.written === 1 && !out.refused.length, `record_lines still accepts the LivePage-only type "${part.type}"`);
+				ok(fs.readFileSync(pfile, "utf8").length > before.length, `the ${part.type} line landed in the file`);
+			}
+		} finally { fs.rmSync(LDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
+	}
+
+	// Review follow-up (page-design, 2026-11-07): bad_list_delta must agree with List.is_verb (List.js), not a hardcoded
+	// five, so a LivePage card's own content — a LiveContent (public/live/LiveContent.js, a List subclass that
+	// overrides `remove`/`clear`) — still takes its own verbs, a nested card's own content (every card is a page), and
+	// the `after` modifier real /live/ lines use beside `add`.
+	{
+		const VDIR = DIR + "-live-verbs", VURL = URL.replace(/\/$/, "-live-verbs/");
+		fs.mkdirSync(VDIR, { recursive: true });
+		fs.writeFileSync(path.join(VDIR, "page.jsonl"), JSON.stringify({ class: "/live/LivePage.js", title: "Live verbs" }) + "\n");
+		try {
+			let r = await call("item", { path: VURL, delta: { content: { add: { id: "card1", type: "part-card", title: "C1", text: "x" } } } });
+			ok(r.ok, "add a card on a LivePage");
+			r = await call("item", { path: VURL, delta: { content: { add: { id: "card2", type: "part-text", text: "y" }, after: "card1" } } });
+			ok(r.ok, "`after` beside `add` (real /live/ shape, public/live/lab/page.jsonl) still works");
+			r = await call("item", { path: VURL, delta: { content: { card1: { content: { add: { id: "nested1", type: "part-text", text: "deep" } } } } } });
+			ok(r.ok, "a nested card's OWN content (every card is a page) still takes an add");
+			r = await call("item", { path: VURL, delta: { content: { card1: { content: { remove: "nested1" } } } } });
+			ok(r.ok, "LiveContent's own remove() override, called on a nested card's content, still works");
+			r = await call("item", { path: VURL, delta: { content: { clear: true } } });
+			ok(r.ok, "LiveContent's own clear() override still works (it keeps what it clears, in `removed`, but the line itself must not be refused)");
+		} finally { fs.rmSync(VDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
+	}
+
+	// A mistaken {"pages":{…}} (a card id colliding with the reserved "pages" verb) used to be swallowed silently:
+	// none of its keys matched add/rename/remove/promote, so apply_pages did nothing, `done` stayed empty, and
+	// run_item_now read that as "nothing left to write" and skipped the append — ok:true, line:null, no why
+	// (mastermind-page-design, 2026-11-06). Now refused by name, nothing written.
+	{
+		const BDIR = DIR + "-pages-bad", BURL = URL.replace(/\/$/, "-pages-bad/");
+		fs.mkdirSync(BDIR, { recursive: true });
+		fs.writeFileSync(path.join(BDIR, "page.jsonl"), JSON.stringify({ title: "Pages bad" }) + "\n");
+		try {
+			const before = fs.readFileSync(path.join(BDIR, "page.jsonl"), "utf8");
+			const r = await call("item", { path: BURL, delta: { pages: { text: "x" } } });
+			ok(r.ok === false && /"text"/.test(r.why) && /add, rename, remove or promote/.test(r.why), "an unknown pages key is refused by name");
+			ok(fs.readFileSync(path.join(BDIR, "page.jsonl"), "utf8") === before, "nothing was written");
+			const r2 = await call("item", { path: BURL, delta: { pages: { add: { name: "sub", title: "Sub" } } } });
+			ok(r2.ok && r2.pages?.[0]?.added === "sub", "a real pages verb still works");
+		} finally { fs.rmSync(BDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
+	}
+
+	// Review fix 1 (mastermind-page-design, 2026-11-06): `{"content":{"text":"x"}}` names no list verb (add, remove, move,
+	// order, clear, set) and no existing card "text"; `{"content":{"nope":{"text":"x"}}}` names no card "nope". Both used
+	// to answer ok:true and append a line that does nothing on a real replay (Item/List's own apply() is forgiving by
+	// design: an unrecognised key is stored as a plain field on the LIST ITSELF, never a warn or a throw). Now refused
+	// by name, nothing written; an edit of a card that DOES exist still works.
+	{
+		const CDIR = DIR + "-content-bad", CURL = URL.replace(/\/$/, "-content-bad/");
+		fs.mkdirSync(CDIR, { recursive: true });
+		fs.writeFileSync(path.join(CDIR, "page.jsonl"), JSON.stringify({ title: "Content bad" }) + "\n");
+		try {
+			const pfile = path.join(CDIR, "page.jsonl");
+			let before = fs.readFileSync(pfile, "utf8");
+			let r = await call("item", { path: CURL, delta: { content: { text: "x" } } });
+			ok(r.ok === false && /"content\.text"/.test(r.why) && /not an existing card/.test(r.why), "content:{text} (no verb, no card) is refused by name");
+			ok(fs.readFileSync(pfile, "utf8") === before, "nothing was written");
+
+			before = fs.readFileSync(pfile, "utf8");
+			r = await call("item", { path: CURL, delta: { content: { nope: { text: "x" } } } });
+			ok(r.ok === false && /"content\.nope"/.test(r.why) && /not an existing card/.test(r.why), "content:{nope:{…}} (an unknown card id) is refused by name");
+			ok(fs.readFileSync(pfile, "utf8") === before, "nothing was written");
+
+			r = await call("item", { path: CURL, delta: { content: { add: { type: "part-text", id: "t1", text: "hi" } } } });
+			ok(r.ok, "a real content.add still works");
+			r = await call("item", { path: CURL, delta: { content: { t1: { text: "changed" } } } });
+			ok(r.ok, "editing an existing card by its real id still works");
+		} finally { fs.rmSync(CDIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
 	}
 
 	// Prompt and Question through the real tool: a Question completes bare once answered, and the unread query lists it (core/Task/doc/prompt.md)
