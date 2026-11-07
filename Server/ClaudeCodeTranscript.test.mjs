@@ -13,15 +13,18 @@ fs.writeFileSync(file, [
 	user([{ type: "tool_result", content: "ok" }]),
 	user("skill text", { isMeta: true }),
 	user("<task-notification>done</task-notification>", { turnOrigin: "task_notification" }),
+	user("[from: voice-app] a relayed brief"),
+	user("This session is being continued from a previous conversation."),
 	JSON.stringify({ type: "assistant", message: { content: [{ type: "text", text: "Sure." }] } }),
 	"not json",
 ].join("\n") + "\n");
 
 const t = new Test("ClaudeCodeTranscript: owner turns only");
 const turns = new ClaudeCodeTranscript(file).owner_turns();
-t.eq(turns.length, 2, "two owner turns: no tool result, no meta line, no notification, no assistant");
+t.eq(turns.length, 2, "two owner turns: no tool result, meta line, notification, relay, compaction summary or assistant");
 t.eq(turns[1].text, "Spoken words.\nSecond block.", "text blocks are joined");
 t.eq(turns[0].n, 1, "numbered from 1");
+t.eq(turns[1].line, 1, "and keyed by the line it sits on");
 t.eq(ClaudeCodeTranscript.sentences(turns[0].text), ["Hey Claude.", "Can you spawn a mastermind?"], "sentences split on end marks");
 fs.rmSync(path.dirname(file), { recursive: true, force: true });
 t.done();

@@ -1,42 +1,40 @@
 // ClaudeCodeTranscript: reads ONE raw Claude Code / Agent SDK transcript file (~/.claude/projects/<project>/<session-id>.jsonl, or a cloud
 // session's copy in ~/.claude/cloud-transcripts/) and gives the owner's own turns, in order. No LLM calls, nothing written.
 // Not our session logs (those are session.jsonl, read by core/Session); the batch condenser for many transcripts is Server/Transcripts.mjs.
+// owner_text is THE owner-prompt filter: Server/RefineQueue.mjs and Server/PromptAudit.mjs reach it as RefineQueue.owner_text.
 //   node Server/ClaudeCodeTranscript.mjs <file> [--from N] [--to N] [--json]     (N is the turn number this prints)
 // Doc: Server/doc/transcripts.md
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
+import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
 
 export default class ClaudeCodeTranscript {
 	constructor(file){
 		this.file = file;
-		this.lines = fs.readFileSync(file, "utf8").split("\n").filter(Boolean).flatMap(l => { try { return [JSON.parse(l)]; } catch { return []; } });
+		// one entry per line of the file (null for a blank or broken line), so an index is the file's own line number, 0-based
+		this.lines = fs.readFileSync(file, "utf8").split("\n").map(l => { try { return l ? JSON.parse(l) : null; } catch { return null; } });
 	}
 
-	/** The text of a user line: a plain string, or its text blocks joined (a tool_result is not the owner speaking). */
-	static text_of(line){
-		const c = line?.message?.content;
-		if (typeof c === "string") return c;
-		return Array.isArray(c) ? c.filter(b => b?.type === "text").map(b => b.text).join("\n") : "";
+	/** One user line -> the owner's words, or null when it is not the owner speaking: a tool result, a meta line (a skill, a reminder),
+	 *  a task notification, a slash command, an agent relay or brief ("[from: ", "[You are "), a compaction summary, an interruption note. */
+	static owner_text(l){
+		if (l?.type !== "user" || l.isMeta || l.isSidechain || l.turnOrigin === "task_notification") return null;
+		const c = l.message?.content;
+		if (Array.isArray(c) && c.some(b => b?.type === "tool_result")) return null;
+		const t = typeof c === "string" ? c : Array.isArray(c) ? c.filter(b => b?.type === "text").map(b => b.text).join("\n") : "";
+		const text = RefinedCard.strip(t);
+		if (!text || /^<(command-|local-command|task-notification)/.test(text) || /^(Caveat:|\[from: |\[You are |This session is being continued|\[Request interrupted)/.test(text)) return null;
+		return text;
 	}
 
-	/** Is this line the owner speaking? A user line, not meta (a skill or reminder), not a task notification, with text, and not a harness note. */
-	static is_owner(line){
-		if (line?.type !== "user" || line.isMeta || line.isSidechain) return false;
-		if (line.turnOrigin === "task_notification" || line.origin?.kind === "task-notification") return false;
-		const t = ClaudeCodeTranscript.text_of(line).trim();
-		return !!t && !/^(<system-reminder>|<task-notification>|<local-command|<command-name>|\[Request interrupted)/.test(t);
-	}
-
-	/** [{n, at, text}]: every owner turn, numbered from 1 in file order. */
+	/** [{n, at, line, text}]: every owner turn, numbered from 1 in file order; `line` is its 0-based line in the file (RefineQueue's key). */
 	owner_turns(){
 		let n = 0;
-		return this.lines.filter(ClaudeCodeTranscript.is_owner).map(l => ({ n: ++n, at: l.timestamp ?? null, text: ClaudeCodeTranscript.text_of(l).trim() }));
+		return this.lines.flatMap((l, line) => { const text = ClaudeCodeTranscript.owner_text(l); return text ? [{ n: ++n, at: l.timestamp ?? null, line, text }] : []; });
 	}
 
-	/** Sentences of one turn, numbered from 1 (a plain split on . ? ! followed by a space; good enough to point at). */
-	static sentences(text){
-		return String(text).replace(/\s+/g, " ").split(/(?<=[.?!])\s+(?=\S)/).map(s => s.trim()).filter(Boolean);
-	}
+	/** The turn's sentences: RefinedCard.sentences, so a cite [3] means the same sentence here and on a refined card. */
+	static sentences(text){ return RefinedCard.sentences(text); }
 
 	static main(argv){
 		const file = argv[0], arg = k => { const i = argv.indexOf(k); return i < 0 ? null : argv[i + 1]; };
@@ -44,7 +42,7 @@ export default class ClaudeCodeTranscript {
 		const from = Number(arg("--from") ?? 1), to = Number(arg("--to") ?? Infinity);
 		const turns = new ClaudeCodeTranscript(file).owner_turns().filter(t => t.n >= from && t.n <= to);
 		if (argv.includes("--json")) console.log(JSON.stringify(turns, null, 1));
-		else for (const t of turns) console.log(`#${t.n} ${t.at}\n${t.text}\n`);
+		else for (const t of turns) console.log(`#${t.n} ${t.at} (line ${t.line})\n${t.text}\n`);
 	}
 }
 

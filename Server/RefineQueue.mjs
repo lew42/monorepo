@@ -25,6 +25,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
 import AskIndex from "./AskIndex.mjs";
+import ClaudeCodeTranscript from "./ClaudeCodeTranscript.mjs";
 import SessionFolders from "../public/framework/core/Session/SessionFolders.mjs";
 import SessionRecord from "./SessionRecord.mjs";
 
@@ -53,16 +54,8 @@ export default class RefineQueue {
 			: path.join(os.homedir(), ".claude", "projects", RefineQueue.main_root().replace(/[^a-zA-Z0-9]/g, "-"));
 	}
 
-	/** One user line → the owner's words, or null when it is not an owner prompt. */
-	static owner_text(l){
-		if (l?.type !== "user" || l.isMeta || l.isSidechain || l.turnOrigin === "task_notification") return null;
-		const c = l.message?.content;
-		if (Array.isArray(c) && c.some(b => b?.type === "tool_result")) return null;
-		const t = typeof c === "string" ? c : Array.isArray(c) ? c.filter(b => b?.type === "text").map(b => b.text).join("\n") : "";
-		const text = RefinedCard.strip(t);
-		if (!text || /^<(command-|local-command|task-notification)/.test(text) || /^(Caveat:|\[from: |\[You are |This session is being continued)/.test(text)) return null;
-		return text;
-	}
+	/** One user line → the owner's words, or null when it is not an owner prompt. The filter itself lives in ClaudeCodeTranscript (the transcript reader). */
+	static owner_text(l){ return ClaudeCodeTranscript.owner_text(l); }
 
 	/** Every owner prompt in the VS Code transcripts touched since `since` (ms), newest first: { session, line, uuid, at, text }. */
 	static find({ since }){
