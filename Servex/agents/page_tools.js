@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import SessionRecord from "../../Server/SessionRecord.mjs";
+import OpenItems from "../OpenItems.js";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import Subpages from "./Subpages.js";
@@ -223,6 +224,10 @@ function write_line(file, line, own_check = false){
 	// Fix 1 (fixes.md: a newline guard before every append; review, chat-model step 1 finding 2): shared with
 	// RecordWriter.append_once and Append.js, so a torn last line never glues onto what this call appends next.
 	fs.appendFileSync(file, RecordWriter.guard_newline(fs, file) + JSON.stringify(line) + "\n");
+	if (OpenItems.after_write(file, line).length){   // a close under 100% filed its waiting task: the cached live root lacks it, so it replays next time
+		const st = Item.Store?.instances?.get("/" + path.relative(PUBLIC, file).split(path.sep).join("/"));
+		if (st) st.host = null;
+	}
 	return size_of(file);
 }
 

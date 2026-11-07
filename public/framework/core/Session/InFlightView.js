@@ -44,12 +44,12 @@ export default class InFlightView extends View {
 	section(title, fill){ div.c("if-section", () => { strong.c("if-h", title); fill(); }); }
 
 	row(t, line, bare){
-		const pct = Math.round(t.completion * 100), href = t.get_one("url") ?? t.get_one("path");
+		const pct = t.completion === null ? 0 : Math.round(t.completion * 100), label = t.completion === null ? "needs review" : pct + "%", href = t.get_one("url") ?? t.get_one("path");
 		div.c("if-row" + (bare ? " if-bare" : ""), () => {
 			(href ? a.c("if-title", t.get_one("title") ?? t.id).href(href) : span.c("if-title", t.get_one("title") ?? t.id));
 			if (!bare){
-				span.c("if-bar", () => span.c("if-fill").style({ width: pct + "%" })).attr("title", pct + "%");
-				small.c("if-pct", pct + "%");
+				span.c("if-bar", () => span.c("if-fill").style({ width: pct + "%" })).attr("title", label);
+				small.c("if-pct", label);
 			}
 			const now = line ?? InFlight.now_of(t);
 			if (now) div.c("if-now muted", now);
