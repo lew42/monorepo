@@ -1,0 +1,297 @@
+diff --git a/.claude/hooks/prompt-relay.mjs b/.claude/hooks/prompt-relay.mjs
+index 5a76eca06..eb099571e 100644
+--- a/.claude/hooks/prompt-relay.mjs
++++ b/.claude/hooks/prompt-relay.mjs
+@@ -114,12 +114,8 @@ const SERVEX = () => `http://127.0.0.1:${process.env.SERVEX_PORT || 8090}`;
+  * `ai/<day>/session-<id8>/` card tree, pinned by a tmp marker; that marker is no longer read. A folder that is
+  * somehow missing is made here with the hook's own line 1, so the write is never refused as a typo. */
+ function session_page_url(session_id){
+-	const dir = DatedFiles.sessions.session_dir(session_id);
+-	if (!SessionRecord.file(dir)) try {
+-		const first = { session: { id: session_id, kind: "vscode-tab", at: new Date().toISOString() } };
+-		fs.mkdirSync(dir, { recursive: true });
+-		fs.appendFileSync(SessionRecord.start_file(dir, first), JSON.stringify(first) + "\n");
+-	} catch {}
++	let dir = DatedFiles.sessions.session_dir(session_id);
++	try { dir = DatedFiles.sessions.session_folders().create(session_id, { first: { session: { id: session_id, kind: "vscode-tab", at: new Date().toISOString() } } }); } catch {}   // the one creator (SessionFolders#create)
+ 	return "/" + path.relative(path.join(DatedFiles.ROOT, "public"), dir).split(path.sep).join("/") + "/";
+ }
+ 
+diff --git a/.claude/hooks/reply-relay.mjs b/.claude/hooks/reply-relay.mjs
+index 6e612389d..57aeae227 100644
+--- a/.claude/hooks/reply-relay.mjs
++++ b/.claude/hooks/reply-relay.mjs
+@@ -2,6 +2,7 @@ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import Day from "../../public/framework/core/Session/Day.js";
++import DatedFiles from "../../Server/DatedFiles.mjs";
+ 
+ /* reply-relay.mjs — the Stop hook that logs the owner's side of the chat too (2026-10-02).
+  *
+@@ -58,18 +59,11 @@ const now = () => {
+ 	return new Date(d.getTime() + off * 60000).toISOString().slice(0, 19) + (off < 0 ? "-" : "+") + p(Math.trunc(off / 60)) + ":" + p(off % 60);
+ };
+ 
+-// STORAGE REDIRECT (minion-echo, 2026-10-02, "a session is a page" — see prompt-relay.mjs's
+-// own identical copy of this comment, with the full reasoning): the reply becomes one item on
+-// the SAME session page prompt-relay.mjs already writes the prompt onto — public/framework/ai/
+-// <YYYY-MM-DD>/sessions/<slug>-<first 8 of the session uuid>/page.jsonl, filed by the day the
+-// session STARTED, never a second file. Copied here, not imported — this module's own top
+-// comment explains why every small piece here is a hand copy.
+-//
+-// This hook, unlike prompt-relay.mjs, DOES get `transcript_path` — so on the first reply for a
+-// session with no cached marker yet, it reads the transcript's own FIRST line for the real
+-// start day, rather than guessing "today" (prompt-relay.mjs's own fallback, used only if ITS
+-// hook happens to run first and nothing has cached a day yet).
+-const session_marker_file = sid => path.join(os.tmpdir(), `claude-session-page-${String(sid).replace(/[^\w-]/g, "_")}`);
++// The reply becomes one item on the SAME session page prompt-relay.mjs writes the prompt onto ("a session is a page", 2026-10-02).
++// This hook gets `transcript_path`, so a folder it makes first is filed on the transcript's first day, not today.
++// ONE SESSION, ONE FOLDER (2026-11-06): the reply goes into the session's own folder under ai/sessions/YYYY/MM/DD/, made (if it is
++// somehow missing) by the one creator, SessionFolders#create. Until then this built `ai/<day>/session-<id8>/` by hand, outside the
++// sessions store, through a tmp marker whose `os` was never imported, so every Stop threw and no reply landed.
+ function transcript_start_day(transcript_path){
+ 	try {
+ 		const first = fs.readFileSync(transcript_path, "utf8").split("\n").find(l => l.trim());
+@@ -77,18 +71,9 @@ function transcript_start_day(transcript_path){
+ 	} catch { return null; }
+ }
+ function session_page_url(session_id, { transcript_path } = {}){
+-	const marker = session_marker_file(session_id);
+-	let use_day, slug;
+-	try {
+-		const cached = JSON.parse(fs.readFileSync(marker, "utf8"));
+-		if (cached?.day && cached?.slug){ use_day = cached.day; slug = cached.slug; }
+-	} catch {}
+-	if (!use_day){
+-		use_day = transcript_start_day(transcript_path) || now().slice(0, 10);
+-		slug = "session";
+-		try { fs.writeFileSync(marker, JSON.stringify({ day: use_day, slug })); } catch {}
+-	}
+-	return `/framework/ai/${use_day.replaceAll("-", "/")}/${slug}-${session_id.slice(0, 8)}/`;
++	const day = (transcript_start_day(transcript_path) || Day.of()).replaceAll("-", "/");   // a folder made here is filed on the day the session began
++	let dir; try { dir = DatedFiles.sessions.session_folders().create(session_id, { day, first: { session: { id: session_id, kind: "vscode-tab", at: new Date().toISOString() } } }); } catch { return null; }
++	return "/" + path.relative(path.join(DatedFiles.ROOT, "public"), dir).split(path.sep).join("/") + "/";
+ }
+ 
+ async function mcp_call(name, args, as){
+@@ -175,6 +160,7 @@ const run = async () => {
+ 	const secret = looks_like_secret(text);
+ 	const safe_text = secret ? WITHHELD : text;
+ 	const page_url = session_page_url(session_id, { transcript_path });
++	if (!page_url) return;
+ 	const out = await mcp_call("page_add", { path: page_url, item: { type: "Reply", text: safe_text, redacted: secret || undefined } }, "assistant");
+ 	const item_id = out?.ok ? out.id : null;
+ 
+diff --git a/.claude/hooks/session-page.mjs b/.claude/hooks/session-page.mjs
+index 2c9d58624..57d613f58 100644
+--- a/.claude/hooks/session-page.mjs
++++ b/.claude/hooks/session-page.mjs
+@@ -28,10 +28,7 @@ process.stdin.on("data", d => raw += d).on("end", () => {
+ 
+ function record(id, cwd){
+ 	try {
+-		const dir = DatedFiles.sessions.session_dir(id);
+-		if (SessionRecord.file(dir)) return;   // a resume, or a folder that already has its record
+-		const first = { session: { id, kind: "vscode-tab", role: "mastermind", cwd, at: new Date().toISOString() } };
+-		fs.mkdirSync(dir, { recursive: true });
+-		fs.appendFileSync(SessionRecord.start_file(dir, first), JSON.stringify(first) + "\n");
++		// The one creator (SessionFolders#create): the session's home, made, line 1 only when it has no record yet (a resume keeps its own).
++		DatedFiles.sessions.session_folders().create(id, { first: { session: { id, kind: "vscode-tab", role: "mastermind", cwd, at: new Date().toISOString() } } });
+ 	} catch {}
+ }
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 77ce79311..73a893ee5 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -1118,7 +1118,6 @@ export function open_task(task, { session_id, agent, role, by, model, effort = n
+ 	const dir = TaskDirs.normalize(path.isAbsolute(task.dir) ? task.dir : path.join(process.cwd(), task.dir), session_id);
+ 	task.dir = path.relative(process.cwd(), dir).split(path.sep).join("/");
+ 	if (task.parent_task) task.parent_task = TaskDirs.follow(path.resolve(task.parent_task));
+-	fs.mkdirSync(dir, { recursive: true });
+ 	/* NESTED TASKS: `parent_task` (the parent's task dir, repo-relative, forward
+ 	 * slashes) and `after` (sibling task dirs this one waits for) — the tree
+ 	 * ai/AITask/tree.js draws. */
+@@ -1130,9 +1129,12 @@ export function open_task(task, { session_id, agent, role, by, model, effort = n
+ 	const line = JSON.stringify({ assign: strip({ session_id, agent, role, card: task.card, brief: task.brief, title: task.title,
+ 		model, effort: effort ?? undefined, role_readme: role_readme ?? undefined, worktree: task.worktree ?? worktree, parent_task, after, home: task.home, requested_at: stamp(), now: "starting" }) });
+ 	/* A new session folder (directly under a day, its own session_id on line 1) starts as session.jsonl; a task folder keeps task.jsonl. */
+-	fs.appendFileSync(SessionRecord.start_file(dir, JSON.parse(line)), line + "\n");
+-	// A record folder nested inside its parent (not a direct child of a day) is found by its session id only through a claim (SessionFolders.record_of).
+-	if (session_id) try { SessionFolders.at(path.join(process.cwd(), "public/framework/ai/sessions")).claim(session_id, dir); } catch (e){ console.warn("session folder claim failed for", dir, e); }
++	// The one creator (core/Session/SessionFolders.mjs create) makes the folder, writes line 1 when it has no record yet, and claims a record
++	// folder nested inside its parent (found by its session id only through that claim, SessionFolders.record_of). A folder that already has
++	// a record gets this assign line appended, like every other assign a task log collects.
++	const first = JSON.parse(line), file = SessionRecord.start_file(dir, first), had = ["session.jsonl", "task.jsonl"].some(n => fs.existsSync(path.join(dir, n)));
++	SessionFolders.at(path.join(process.cwd(), "public/framework/ai/sessions")).create(session_id, { dir, first, file: path.basename(file) });
++	if (had) fs.appendFileSync(file, line + "\n");
+ 	// A task folder under a session or another task counts as its task: the parent's log gets one {"task":"<url>"} reference (never twice).
+ 	// A handoff (`task: {from, id}`) is referenced by move_item's own `as` line; a second plain one would replay as a twin child, so link only without a handoff (or when it is refused, below).
+ 	/* THE SESSION ENTRY (core/Session/readme.md, "Session entries"): the reference is {"task":url,"type":"Session","spawn":{…}}, nested under
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 6f52e3e9f..af429dc03 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -178,9 +178,12 @@ async function session_file(id){
+ 	// A uuid with no folder, no Servex agent and no transcript is not a session: refuse rather than make a folder for it.
+ 	if (!AISession.days.has(uuid) && !name && !has_transcript(uuid))
+ 		return { why: `no session ${uuid}: it has no folder, no transcript and no Servex agent, so nothing was created. Was the id typed${nearest(uuid, [...AISession.days.keys()]).replace(/^; d/, "? D").replace(/^\.$/, "?")} ${OMIT}` };
+-	const file = fileURLToPath(new URL("page.jsonl", await AISession.locate(uuid, undefined, slug)));
+-	// A brand-new folder says whose it is on its first line, so AISession.scan() finds it again (never a second folder).
+-	if (!fs.existsSync(file)){ fs.mkdirSync(path.dirname(file), { recursive: true }); fs.appendFileSync(file, JSON.stringify({ session: uuid, ts: new Date().toISOString() }) + "\n"); }
++	// The one creator (core/Session/SessionFolders.mjs create): its folder if it has one, else a new one made with line 1 saying whose it is,
++	// so every later writer finds it (never a second folder).
++	const dir = await AISession.create({ id: uuid, name: slug, first: { session: { id: uuid, kind: "agent", agent: name ?? undefined, at: new Date().toISOString() } } });
++	// The page itself: a folder is a page only with a page.js or page.jsonl, and its first line names whose page it is.
++	const file = path.join(dir, "page.jsonl");
++	if (!fs.existsSync(file)) fs.appendFileSync(file, JSON.stringify({ session: uuid, ts: new Date().toISOString() }) + "\n");
+ 	return file;
+ }
+ 
+diff --git a/public/framework/ai/agents.md b/public/framework/ai/agents.md
+index 313c26a2a..606e1b94d 100644
+--- a/public/framework/ai/agents.md
++++ b/public/framework/ai/agents.md
+@@ -21,7 +21,7 @@ This is the short base for any agent on this repo (a mastermind or a worker, Cla
+ 
+ ## ⚠ One folder per session (the owner, asked many times; 2026-11-06)
+ 
+-A session has exactly ONE folder: `public/framework/ai/sessions/YYYY/MM/DD/<folder>/`, the day it began. The url `/framework/ai/sessions/<uuid>/` only redirects there; never create, name or write a folder `sessions/<uuid>/`. Your session's folder is printed at start ("Your session is …; its one folder is …"). In code, find it with `SessionFolders.at(store).of(id)` (its own folder) or `.record_of(id)` (where its record sits, nested for a spawned agent) ([core/Session/SessionFolders.mjs](../core/Session/SessionFolders.mjs)), never by building a path. A check fails loudly on a flat folder: `node Server/SessionConsolidate.mjs --check`. Details: [sessions/doc/one-folder.md](sessions/doc/one-folder.md).
++A session has exactly ONE folder: `public/framework/ai/sessions/YYYY/MM/DD/<folder>/`, the day it began. The url `/framework/ai/sessions/<uuid>/` only redirects there; never create, name or write a folder `sessions/<uuid>/`. Your session's folder is printed at start ("Your session is …; its one folder is …"). In code, find it with `SessionFolders.at(store).of(id)` (its own folder) or `.record_of(id)` (where its record sits, nested for a spawned agent) ([core/Session/SessionFolders.mjs](../core/Session/SessionFolders.mjs)), never by building a path; make it with `.create(id, {first})` (or `Session.create({id, name, parent, first})`), the one creator. A check fails loudly on a flat folder: `node Server/SessionConsolidate.mjs --check`. Details: [sessions/doc/one-folder.md](sessions/doc/one-folder.md).
+ 
+ ## Explaining to the owner
+ 
+diff --git a/public/framework/ai/sessions/doc/one-folder.md b/public/framework/ai/sessions/doc/one-folder.md
+index 5f2926333..f78318bb4 100644
+--- a/public/framework/ai/sessions/doc/one-folder.md
++++ b/public/framework/ai/sessions/doc/one-folder.md
+@@ -49,6 +49,23 @@ Code: [`core/Session/SessionFolders.mjs`](/framework/core/Session/SessionFolders
+ 
+ **Why a cached path can no longer come back.** The finder checks its answer on disk on every call: a folder that moved or was removed is never returned, so no writer `mkdir`s it back (what happened on 2026-10-09, when a running Servex kept writing into renamed folders). Its memory, `sessions/session-folders.json` (gitignored), is only a starting point: every day folder is listed again on each lookup that misses, and a day whose mtime moved is read again in full. An old flat `sessions/<uuid>/` folder (none are left today) is still moved into its day by `Session.locate`, which `AISession.save()` calls before it writes the cache; `AISessionIndex` no longer does that move itself. Speed on the live store (13,547 folders): a hit under 2 ms, a miss about 40 ms, a cold start 4 to 17 s depending on load, then 62 ms from the saved map.
+ 
++## The one creator (2026-11-06)
++
++Every writer that may be the first to touch a session makes its folder through ONE method, which asks the finder above:
++
++```js
++SessionFolders.at(store).create(id, { first })                 // its home (found, else session-<id8> today), made, line 1 if it has no record
++SessionFolders.at(store).create(id, { day, name, first })      // a new one named `name` on `day` (still the existing folder if it has one)
++SessionFolders.at(store).create(id, { parent, name, first })   // nested in the parent session's record folder, and claimed
++await Session.create({ id, name, parent, first })              // the same, from the class (AISession inherits it)
++```
++
++Callers: the SessionStart hook (`session-page.mjs`), the prompt and reply hooks (`prompt-relay.mjs`, `reply-relay.mjs`), the page tool's own-page `session_file()`, and Servex `spawn_agent` (`Agents.open_task`, with `dir`). Line 1 is written only when the folder has no `session.jsonl` or `task.jsonl`, so whoever comes second finds the first one's folder and writes no second line 1. The census that found the creators: [one-creator/census.md](../2026/11/06/spawned/mastermind-page-design/one-creator/census.md).
++
++- **Found with it:** the reply hook built `ai/<day>/session-<id8>/`, outside this store, through a tmp marker whose `os` was never imported, so every Stop threw and no reply landed on a session page. It now asks the creator.
++- **Not on it, on purpose:** voice sessions (`Servex/agents/Sessions.js` `session_path`). Their ids are `v-…`, not session uuids, so the finder can neither find nor twin them, and `session_path` is already their one namer, in the same dated shape. Alternative: pass them as `create(id, {dir})`; worth it only if a second voice creator appears.
++- **Task folders** (`TaskDirs --new`) are tasks, not sessions: inside a session's folder they ask `DatedFiles.session_dir` (the finder); without a session they go under the day.
++
+ ## The twin check, and the fold
+ 
+ - **Check:** `node Server/SessionConsolidate.mjs --check` exits 1 and lists any session held by two folders, and any flat `sessions/<uuid>/` folder (`SessionConsolidate.flat()`; added 2026-11-06, because the twin finder only walks day folders and missed one). Servex runs it once a day (`TaskLoop.twins_daily`, `--write` keeps the list in `sessions/session-twins.json`) and posts a risk note **every day while any twin or flat folder exists**, not only when one is new (changed 2026-11-06: 1,410 old twins had sat silent for a week). `Server/SessionConsolidate.test.mjs` fails on a flat folder in the real store. `DatedFiles.sessions.check()` reports `twins` too.
+diff --git a/public/framework/core/Session/Session.js b/public/framework/core/Session/Session.js
+index 4c78875f9..09301117d 100644
+--- a/public/framework/core/Session/Session.js
++++ b/public/framework/core/Session/Session.js
+@@ -195,6 +195,14 @@ export default class Session extends Task {
+ 		if (name !== id) this.slugs.set(id, name); else this.slugs.delete(id);
+ 	}
+ 
++	// Node, async: MAKE the session's folder, the one creator (SessionFolders#create, which says what each option means): its home, made,
++	// with `first` as line 1 when it has no record yet. Returns the folder's absolute path. Session.create({id, name, parent, first}).
++	static async create({ id, ...opts } = {}){
++		const store = await this.folders(), at = store.create(id, opts);
++		this.remember(id, at, store.root);
++		return at;
++	}
++
+ 	// Node, async: the folder to WRITE into. Where the session lives now (SessionFolders, checked on disk every call), else an old flat
+ 	// uuid folder (moved into its day), else a new folder named `slug` (default session-<id8>) under the day of first_at, else today.
+ 	static async locate(id, first_at, slug){
+diff --git a/public/framework/core/Session/SessionFolders.mjs b/public/framework/core/Session/SessionFolders.mjs
+index c6b50080a..8d5f53602 100644
+--- a/public/framework/core/Session/SessionFolders.mjs
++++ b/public/framework/core/Session/SessionFolders.mjs
+@@ -9,6 +9,7 @@
+ //   .twins()                       [{id, home, others}] for every id held by more than one folder
+ //   .record_of(id)                 the folder that holds the session's RECORD (session.jsonl / task.jsonl): a spawned agent's record sits inside its parent's folder
+ //                                  (claimed with .claim), else of(id). The day-level folder of(id) is still where the indexer writes index.json
++//   .create(id, {day, name, dir, first, file})  THE one creator: home() (or `dir`), made, line 1 written if it has no record, nested dirs claimed
+ //   .claim(id, dir)                register a record folder nested below a day's folder (Agents.open_task does, .adopt_nested() backfills)
+ //   SessionFolders.owner(dir)      the id a folder says it holds (the claim rule below), or null
+ //
+@@ -16,6 +17,7 @@
+ // so a session whose folder was a slug got a second one; the others cached a folder and wrote into it after it had moved, making it again.
+ import fs from "node:fs";
+ import path from "node:path";
++import Day from "./Day.js";
+ 
+ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/, ID8 = /^session-([0-9a-f]{8})$/;
+ const mtime = p => { try { return fs.statSync(p).mtimeMs; } catch { return 0; } };
+@@ -174,6 +176,26 @@ export default class SessionFolders {
+ 		return fs.existsSync(short) ? path.join(dd, id) : short;   // of() found nothing, so an existing session-<id8> belongs to another id
+ 	}
+ 
++	/** THE ONE CREATOR (2026-11-06): make the session's folder and give it its first line; every writer that may be first calls this (directly,
++	 *  or through Session.create). The folder is home(id, day, name): the one it already has, else a new one on `day` (default today, the owner's
++	 *  local day). `dir` instead names the folder outright: a spawned agent's record nested inside its parent's folder (claimed here, so
++	 *  record_of finds it), or a voice session whose id is not a uuid. `parent` (a session id) is the short way to say "nested in that
++	 *  session's record folder, named `name`". `first` (a line object) is appended to `file` only when the folder has no record yet (no
++	 *  session.jsonl or task.jsonl), so a resume never gets a second line 1. Returns the folder (absolute). */
++	create(id, { day = null, name = null, dir = null, parent = null, first = null, file = "session.jsonl" } = {}){
++		if (!dir && parent){
++			const up = this.record_of(parent);
++			if (!up) throw new Error(`SessionFolders.create: parent session ${parent} has no folder`);
++			dir = path.join(up, name ?? id);
++		}
++		if (!dir && !UUID.test(id ?? "")) throw new Error(`SessionFolders.create: "${id}" is not a session uuid; pass \`dir\` for a session named otherwise`);
++		const at = dir ? path.resolve(dir) : this.home(id, day ?? Day.path(Date.now()), name);
++		fs.mkdirSync(at, { recursive: true });
++		if (first && !["session.jsonl", "task.jsonl"].some(f => fs.existsSync(path.join(at, f)))) fs.appendFileSync(path.join(at, file), JSON.stringify(first) + "\n");
++		if (dir && UUID.test(id ?? "")) this.claim(id, at);   // refuses a folder directly under a day (that one of() finds by itself)
++		return at;
++	}
++
+ 	/** Every id held by more than one folder: [{id, home, others}], absolute paths, the home as all() picks it. */
+ 	twins(){
+ 		this.refresh();
+diff --git a/public/framework/core/Session/SessionFolders.test.mjs b/public/framework/core/Session/SessionFolders.test.mjs
+index 4b1e430db..4ba99993c 100644
+--- a/public/framework/core/Session/SessionFolders.test.mjs
++++ b/public/framework/core/Session/SessionFolders.test.mjs
+@@ -61,5 +61,18 @@ try {
+ 	assert.equal(fresh().record_of(G), null, "an unclaimed nested folder is not found by id");
+ 	assert.equal(fresh().adopt_nested(), 1, "adopt_nested() claims the record folders below session folders");
+ 	assert.equal(fresh().record_of(G), old, "and record_of() then finds it");
+-	console.log("SessionFolders: 25 checks pass");
++
++	// create(): the one creator. Made with line 1, found by the next writer whatever name it asks for, never a second folder.
++	const C = "c1c1c1c1-0008-4a19-9b01-000000000008", line1 = { session: { id: C, kind: "vscode-tab" } };
++	const made = fresh().create(C, { day: "2026/11/06", name: "minion-x-c1c1c1c1", first: line1 });
++	assert.equal(made, path.join(ROOT, "2026/11/06/minion-x-c1c1c1c1"), "create() makes the named folder on the day asked");
++	assert.deepEqual(JSON.parse(fs.readFileSync(path.join(made, "session.jsonl"), "utf8")), line1, "with `first` as line 1 of session.jsonl");
++	assert.equal(fresh().create(C, { day: "2026/11/07", first: { session: { id: C, kind: "other" } } }), made, "a second creator asking another day and no name gets the same folder");
++	assert.equal(fs.readFileSync(path.join(made, "session.jsonl"), "utf8").split("\n").filter(Boolean).length, 1, "and writes no second line 1");
++	assert.deepEqual(fresh().twins(), [], "no twin");
++	const N = "c2c2c2c2-0009-4a19-9b01-000000000009", nest = fresh().create(N, { parent: C, name: "minion-y", first: { assign: { session_id: N, agent: "minion-y" } }, file: "task.jsonl" });
++	assert.equal(nest, path.join(made, "minion-y"), "`parent` nests the folder in that session's folder");
++	assert.equal(fresh().record_of(N), nest, "and claims it, so record_of() finds it");
++	assert.throws(() => fresh().create("v-voice01"), /not a session uuid/, "a non-uuid id with no `dir` is refused");
++	console.log("SessionFolders: 33 checks pass");
+ } finally { fs.rmSync(ROOT, { recursive: true, force: true }); }
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index 608145dcf..1a76581d6 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -33,9 +33,10 @@ class Session extends Task                       // ../Task/Task.js (Task extend
+   static day(first_at)      // "YYYY/MM/DD" via Day.path, or null
+   static dir_url(id, day?)  // sync: the dated folder, else the old flat <id>/
+   static async scan()       // node: fills days/slugs with every session's home, from SessionFolders (a filler; locate never trusts it)
++  static async create({id, name?, parent?, day?, first?})  // node: MAKES the session's folder, the one creator (SessionFolders#create)
+   static async locate(id, first_at?, slug?)  // node: the folder to WRITE into, asked of SessionFolders on every call; never makes a second one
+ 
+-// SessionFolders.mjs (node only): the store's ONE finder. at(root).of(id), .home(id, day, name), .all(id), .twins(); static owner(dir)
++// SessionFolders.mjs (node only): the store's ONE finder. at(root).of(id), .home(id, day, name), .create(id, opts), .all(id), .twins(); static owner(dir)
+ 
+ // Day.js: class Day, static of(t) "YYYY-MM-DD", path(t) "YYYY/MM/DD" - the owner's LOCAL day, never UTC
+ ```

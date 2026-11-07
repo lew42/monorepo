@@ -1,0 +1,22 @@
+verdict: fix
+1. [fix] The census misses a live creator in scope: `Servex/ext/remote/RemoteMCP.js:207-210` `voice_session()` mkdirs `sessions/YYYY/MM/DD/cloud-voice-<name>/` and writes its own line 1 by hand, never asking SessionFolders. Add it as a row in `census.md` (the counts become 4 + 4 = 8), and list it under "Not on it, on purpose" in `sessions/doc/one-folder.md` (same reason as the `v-…` voice sessions: not a uuid id), or move it onto `create(id, {dir, first})`.
+2. [fix] `census.md` reads as today's state, but the build has since moved five of its rows onto `SessionFolders#create`, and `one-folder.md:183` links it as "the census that found the creators". Add one line at its top: "a snapshot from before the build (7097d66e1); after it, every row except Sessions.js, RemoteMCP.js and TaskDirs calls `create`". Without that line, a fresh agent will take the reply-relay and open_task rows as still open.
+3. [fix] The task folder doesn't say where the build stands. `session.jsonl` ends at the census log and a heartbeat; nothing records that the build is on `worktree/qf-1` (7097d66e1), that it is not merged yet, or that the spawn tests were never run. Append one `log` line saying so, so the next agent knows to merge it and to run the spawn path (an `open_task` smoke test on the main tree, which has the SDK).
+4. [note] `Servex/agents/Agents.js:1126`: the `claim` used to sit inside its own try/catch that only warned. Now it runs inside `create`, so if `claim`'s `save()` throws, the whole `spawn_agent` fails. Wrapping that one call again would keep a cache-write failure from blocking a spawn.
+5. [note] `Servex/agents/page_tools.js:144`: an existing folder that has only a `page.jsonl` (older sessions) now gets a new `session.jsonl` with `kind: "agent"` on its next own-page write, even when it is the owner's tab session. This doesn't make a twin, but the kind may be wrong. Consider passing `first` only when the folder is new.
+6. [note] Stale comments and imports: `Servex/agents/page_tools.js:76` still says "AISession.locate() makes one"; `.claude/hooks/session-page.mjs:4` still imports `SessionRecord`, which nothing there uses now; `public/framework/ai/design-decisions-2026-10-27.md:63` lists the old creators (it is a dated doc, so a one-line pointer to `one-folder.md` "The one creator" is enough).
+7. [note] I checked these on the worktree, and they hold: `SessionFolders.test.mjs` passes its 33 checks, `page_tools.test.mjs` passes its 44, and all three hooks pass `node --check`. The `reply-relay.mjs` fix is real (it used `os` with no import, and it wrote outside the store). `claim()` returns false and does not throw for a folder directly under a day, so `open_task` on a top-level session folder is safe.
+
+## Requirements
+- 1 "Find every place in code that can CREATE a session's folder" — no — `census.md` has 7 rows; `RemoteMCP.js:207` `voice_session()` is missing (finding 1)
+- 2 "Confirm or deny each" of the six named — yes — each one appears as a row or under "Ruled out" (`ArchiveSessions`, `DatedFiles.make`, `move-voice-sessions`)
+- 3 "how many rows ask SessionFolders and how many build the path themselves … must add up" — yes — 4 + 3 = 7, but it becomes 8 rows once RemoteMCP is added
+- 4 "Prove each 'builds it itself' with the line of code" — yes — `census.md` quotes the template strings for Sessions.js and reply-relay and the mkdir order in Agents.js
+- 5 "Log one `log` line in `task.jsonl`" — yes — the log line is in `session.jsonl` (this folder's record file is session.jsonl, not task.jsonl)
+- 6 The build: "ONE object-oriented creator, e.g. `Session.create({uuid, name, parent})`, which asks SessionFolders, and make every other writer call it" — partly — `SessionFolders#create` and `Session.create` exist and ask `home()`/`record_of()`, and five writers moved onto them. Voice sessions and TaskDirs were left out with stated reasons; RemoteMCP was left out without one (finding 1)
+- Class: can you open a page that shows its live instances? — n/a — no new class, only a method on existing ones
+
+## Words
+- content — yes — the new section in `one-folder.md` "The one creator" is a short code block plus three bullets, in plain sentences, and each bullet gives its reason
+- content — yes — the `agents.md:24` addition is a single clause added to the existing rule
+- content — no (note) — `census.md` gives no date and doesn't say it was written before the build (finding 2)
