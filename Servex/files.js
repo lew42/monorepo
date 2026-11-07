@@ -52,11 +52,20 @@ export default class FileTools {
 		return process.platform === "win32" && fs.existsSync(git) ? git : "bash";
 	}
 
-	static run(shell, command, cwd, timeout_ms){
+	/* The caller's session ({id, file}, set by ext/remote/RemoteMCP.js), for the git hooks: a commit made here lands on that record
+	 * (Server/git-hooks/CommitLog.mjs shell_caller). CLAUDE_CODE_SESSION_ID is dropped, or Servex's own (if it has one) would win. */
+	static env_of(session){
+		if (!session?.id || !session?.file) return process.env;
+		const env = { ...process.env, SERVEX_SESSION_ID: session.id, SERVEX_SESSION_RECORD: session.file };
+		delete env.CLAUDE_CODE_SESSION_ID;
+		return env;
+	}
+
+	static run(shell, command, cwd, timeout_ms, session = null){
 		return new Promise(resolve => {
 			const exe = shell === "powershell" ? ["powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", command]]
 				: [FileTools.bash(), ["-c", command]];
-			const child = spawn(exe[0], exe[1], { cwd, windowsHide: true });
+			const child = spawn(exe[0], exe[1], { cwd, windowsHide: true, env: FileTools.env_of(session) });
 			let stdout = "", stderr = "", timed_out = false;
 			const timer = setTimeout(() => { timed_out = true; spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { windowsHide: true }); }, timeout_ms);
 			child.stdout.on("data", d => { if (stdout.length < MAX) stdout += d; });
@@ -104,7 +113,7 @@ export default class FileTools {
 				return { ok: true, matches: out };
 			}),
 			tool("shell", "Run a command and return stdout, stderr and the exit code. shell is bash (Git Bash, default) or powershell. cwd defaults to the root. Timeout default 60s, max 600s.", { command: { type: "string" }, shell: { type: "string", enum: ["bash", "powershell"] }, cwd: { type: "string", description: "Folder, relative to the root." }, timeout_s: { type: "number" } }, ["command"], a =>
-				FileTools.run(a.shell, a.command, FileTools.abs(a.root, a.cwd), Math.min(a.timeout_s ?? 60, 600) * 1000)),
+				FileTools.run(a.shell, a.command, FileTools.abs(a.root, a.cwd), Math.min(a.timeout_s ?? 60, 600) * 1000, a.caller_session)),
 		];
 	}
 }

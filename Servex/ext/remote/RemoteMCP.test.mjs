@@ -110,6 +110,8 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     assert.equal(JSON.parse(text(await call("write_file", { root: dir, path: "x.jsonl", content: "{}" }))).ok, false, "jsonl write refused");
     const sh = JSON.parse(text(await call("shell", { root: dir, command: "echo hi" })));
     assert.ok(sh.ok && sh.stdout.trim() === "hi" && sh.exit_code === 0, "shell runs");
+    const who = JSON.parse(text(await call("shell", { root: dir, command: 'echo "$SERVEX_SESSION_ID"' }))).stdout.trim();
+    assert.ok(/^cloud-voice-/.test(who), "the shell names its caller's record for the git hooks (CommitLog.shell_caller): " + who);
     assert.equal(JSON.parse(text(await call("shell", { command: "sleep 5", timeout_s: 0.3 }))).timed_out, true, "timeout kills");
     assert.equal(text(await call("call", { tool: "whoami_test", args: {} })), "caller=voice-app", "generic call dispatches");
     fs.rmSync(dir, { recursive: true, force: true });

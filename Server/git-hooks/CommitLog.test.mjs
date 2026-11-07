@@ -44,5 +44,20 @@ git(["commit", "-q", "-m", "second"], env);
 t.eq(lines().length, n, "no session: no line written");
 t.ok(fs.readFileSync(failures, "utf8").split("\n").filter(Boolean).length >= 1, "no session: a failure line");
 t.eq(git(["log", "-1", "--format=%s"], env), "second", "no session: the commit still succeeded");
+
+// a commit through Servex's shell for the cloud voice app (Servex/files.js env_of): its id is not a uuid, its record is named directly
+const vid = "cloud-voice-app-20261107", vrec = path.join(root, "public/framework/ai/sessions/2026/11/07/cloud-voice-app-20261107/session.jsonl");
+fs.mkdirSync(path.dirname(vrec), { recursive: true });
+fs.writeFileSync(vrec, JSON.stringify({ session: { id: vid, kind: "cloud-voice-agent" } }) + "\n");
+const vlines = () => fs.readFileSync(vrec, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
+fs.writeFileSync(path.join(root, "c.txt"), "c");
+git(["add", "c.txt"], env);
+git(["commit", "-q", "-m", "third"], { ...env, SERVEX_SESSION_ID: vid, SERVEX_SESSION_RECORD: vrec });
+t.eq(vlines().find(l => l.commit)?.commit?.what, "third", "a Servex shell caller: the commit lands on the record it names");
+t.ok(/^Session: cloud-voice-app-20261107$/m.test(git(["log", "-1", "--format=%B"], env)), "and the message has its Session trailer");
+fs.writeFileSync(path.join(root, "d.txt"), "d");
+git(["add", "d.txt"], env);
+git(["commit", "-q", "-m", "fourth"], { ...env, SERVEX_SESSION_ID: "someone-else", SERVEX_SESSION_RECORD: vrec });
+t.eq(vlines().filter(l => l.commit).length, 1, "a record whose line 1 names another session is never written");
 fs.rmSync(root, { recursive: true, force: true });
 t.done();

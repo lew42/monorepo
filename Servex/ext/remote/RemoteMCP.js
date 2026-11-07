@@ -184,6 +184,8 @@ export default class RemoteMCP {
         this.record(v, inner, inner === RemoteMCP.LOG.name ? target.words : null, { tool: inner, args: target }, sid);
         if (inner === RemoteMCP.LOG.name) return { done: { content: [{ type: "text", text: JSON.stringify({ ok: !!v && !!String(target.words ?? "").trim(), session: v?.id ?? null }) }] } };
         if (v && /^(session_summary|session_line|quick_fix)$/.test(inner) && !this.servex.sessions?.map?.[target.session]) target.session = v.id;
+        // a commit made through the shell lands on this record (Servex/files.js env_of, Server/git-hooks/CommitLog.mjs shell_caller)
+        if (v && inner === "shell") target.caller_session = { id: v.id, file: path.join(this.root, "public", v.file) };
         if (v && registering){
             return { done: { content: [{ type: "text", text: JSON.stringify({ ok: true, session: v.id, file: v.file, note: "You are a cloud voice agent: use this session id for session_summary and session_line. Call cloud_voice_log with the owner's exact words first on every turn. Guide: Servex/ext/remote/doc/cloud-voice-agent.md" }) }] } };
         }
