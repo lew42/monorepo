@@ -1,0 +1,9 @@
+@layer base, theme, site, util;
+@layer site {
+	.truth { display: grid; gap: 1em; padding: 1em; max-width: 90em; }
+	.truth-table { border-collapse: collapse; width: 100%; }
+	.truth-table th, .truth-table td { text-align: left; padding: .4em .8em; border-bottom: 1px solid #8884; }
+	.truth-big { font-size: 3em; font-weight: 700; margin-right: .3em; }
+	.truth-trend { display: flex; align-items: flex-end; gap: 3px; height: 9em; }
+	.truth-bar { width: 1.2em; background: #4a8; }
+}
