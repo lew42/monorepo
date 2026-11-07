@@ -49,6 +49,23 @@ Code: [`core/Session/SessionFolders.mjs`](/framework/core/Session/SessionFolders
 
 **Why a cached path can no longer come back.** The finder checks its answer on disk on every call: a folder that moved or was removed is never returned, so no writer `mkdir`s it back (what happened on 2026-10-09, when a running Servex kept writing into renamed folders). Its memory, `sessions/session-folders.json` (gitignored), is only a starting point: every day folder is listed again on each lookup that misses, and a day whose mtime moved is read again in full. An old flat `sessions/<uuid>/` folder (none are left today) is still moved into its day by `Session.locate`, which `AISession.save()` calls before it writes the cache; `AISessionIndex` no longer does that move itself. Speed on the live store (13,547 folders): a hit under 2 ms, a miss about 40 ms, a cold start 4 to 17 s depending on load, then 62 ms from the saved map.
 
+## The one creator (2026-11-06)
+
+Every writer that may be the first to touch a session makes its folder through ONE method, which asks the finder above:
+
+```js
+SessionFolders.at(store).create(id, { first })                 // its home (found, else session-<id8> today), made, line 1 if it has no record
+SessionFolders.at(store).create(id, { day, name, first })      // a new one named `name` on `day` (still the existing folder if it has one)
+SessionFolders.at(store).create(id, { parent, name, first })   // nested in the parent session's record folder, and claimed
+await Session.create({ id, name, parent, first })              // the same, from the class (AISession inherits it)
+```
+
+Callers: the SessionStart hook (`session-page.mjs`), the prompt and reply hooks (`prompt-relay.mjs`, `reply-relay.mjs`), the page tool's own-page `session_file()`, and Servex `spawn_agent` (`Agents.open_task`, with `dir`). Line 1 is written only when the folder has no `session.jsonl` or `task.jsonl`, so whoever comes second finds the first one's folder and writes no second line 1. The census that found the creators: [one-creator/census.md](../2026/11/06/spawned/mastermind-page-design/one-creator/census.md).
+
+- **Found with it:** the reply hook built `ai/<day>/session-<id8>/`, outside this store, through a tmp marker whose `os` was never imported, so every Stop threw and no reply landed on a session page. It now asks the creator.
+- **Not on it, on purpose:** voice sessions (`Servex/agents/Sessions.js` `session_path`). Their ids are `v-…`, not session uuids, so the finder can neither find nor twin them, and `session_path` is already their one namer, in the same dated shape. Alternative: pass them as `create(id, {dir})`; worth it only if a second voice creator appears.
+- **Task folders** (`TaskDirs --new`) are tasks, not sessions: inside a session's folder they ask `DatedFiles.session_dir` (the finder); without a session they go under the day.
+
 ## The twin check, and the fold
 
 - **Check:** `node Server/SessionConsolidate.mjs --check` exits 1 and lists any session held by two folders, and any flat `sessions/<uuid>/` folder (`SessionConsolidate.flat()`; added 2026-11-06, because the twin finder only walks day folders and missed one). Servex runs it once a day (`TaskLoop.twins_daily`, `--write` keeps the list in `sessions/session-twins.json`) and posts a risk note **every day while any twin or flat folder exists**, not only when one is new (changed 2026-11-06: 1,410 old twins had sat silent for a week). `Server/SessionConsolidate.test.mjs` fails on a flat folder in the real store. `DatedFiles.sessions.check()` reports `twins` too.

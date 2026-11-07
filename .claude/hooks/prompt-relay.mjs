@@ -114,12 +114,8 @@ const SERVEX = () => `http://127.0.0.1:${process.env.SERVEX_PORT || 8090}`;
  * `ai/<day>/session-<id8>/` card tree, pinned by a tmp marker; that marker is no longer read. A folder that is
  * somehow missing is made here with the hook's own line 1, so the write is never refused as a typo. */
 function session_page_url(session_id){
-	const dir = DatedFiles.sessions.session_dir(session_id);
-	if (!SessionRecord.file(dir)) try {
-		const first = { session: { id: session_id, kind: "vscode-tab", at: new Date().toISOString() } };
-		fs.mkdirSync(dir, { recursive: true });
-		fs.appendFileSync(SessionRecord.start_file(dir, first), JSON.stringify(first) + "\n");
-	} catch {}
+	let dir = DatedFiles.sessions.session_dir(session_id);
+	try { dir = DatedFiles.sessions.session_folders().create(session_id, { first: { session: { id: session_id, kind: "vscode-tab", at: new Date().toISOString() } } }); } catch {}   // the one creator (SessionFolders#create)
 	return "/" + path.relative(path.join(DatedFiles.ROOT, "public"), dir).split(path.sep).join("/") + "/";
 }
 
