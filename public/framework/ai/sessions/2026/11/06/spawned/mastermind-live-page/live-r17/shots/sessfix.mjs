@@ -3,7 +3,7 @@ import fs from "node:fs";
 const [,, base, root] = process.argv, rel = "/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/";
 const file = root + "/public" + rel + "session.jsonl";
 const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1200, height: 900 } });
-await p.route("**/ext/JSONL/live.js*", async r => { const res = await r.fetch(); const src = process.env.OLD ? fs.readFileSync("C:/Code/lew42/monorepo/public/framework/ext/JSONL/live.js", "utf8") : await res.text(); const body = src.replace("const WAIT = 1500;", "const WAIT = 1;"); r.fulfill({ response: res, body }); });
+await p.route("**/ext/JSONL/live.js*", async r => { const res = await r.fetch(); const src = process.env.OLD ? fs.readFileSync("C:/Code/lew42/monorepo/public/framework/ext/JSONL/live.js", "utf8") : await res.text(); const body = src.replace("stream.WAIT = 1500;", "stream.WAIT = 1;").replace("const WAIT = 1500;", "const WAIT = 1;"); r.fulfill({ response: res, body }); });
 const t0 = Date.now(); let late = 0;
 p.on("console", m => { if (/no answer from the dev server/.test(m.text())) late++; });
 await p.goto(base + rel, { waitUntil: "networkidle" }); await p.waitForTimeout(4000);
