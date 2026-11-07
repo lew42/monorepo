@@ -8,6 +8,8 @@
 
 `class Page extends Item` (`Page.class.js`, the small files beside it are its parts, listed in [doc/classes.md](doc/classes.md)). A page is built either from code (`page.js`) or from a log (`page.jsonl`); the Router finds it by walking the url one folder name at a time. Its demo and Docs: [/framework/core/Page/](/framework/core/Page/).
 
+**Direction (the owner, 2026-11-07):** every page is live by default. LivePage's header, breadcrumb, settings and card-pages fold into Page or into plugins, as a plan that waits for approval: [doc/live-by-default.md](doc/live-by-default.md).
+
 ## The recipe: make a page
 
 ```js

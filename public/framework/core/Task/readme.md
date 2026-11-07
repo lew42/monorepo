@@ -1,5 +1,7 @@
 # Task — a DOM-free unit of work: id, title, a state machine, a computed duration and progress, a List of subtasks
 
+**The plan (the owner, 2026-11-07):** prompt cards, sentence coverage, questions, weights, plans that wait for approval, queues, and moving tasks between sessions and modules: [ai/doc/prompt-refinement-and-tasks.md](../../ai/doc/prompt-refinement-and-tasks.md).
+
 ## Status (verified 2026-10-19 against the code)
 
 - **Built and tested:** the state machine, subtasks, replay of `task.jsonl` (`node Task.test.mjs`, 66 of 66 pass, checked 2026-11-02), the core test as steps ([`Task.steps.js`](Task.steps.js): make, save, add, start, finish, replay; `node Task.steps.test.mjs`, drawn live at [/framework/core/Test/view/?test=Task](/framework/core/Test/view/?test=Task)), `TaskView`, `TaskPage`, `TasksPage`, references between tasks (`Task.from_ref`), module homes made by the item tool's `tasks.add`.

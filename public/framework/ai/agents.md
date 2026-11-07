@@ -45,7 +45,7 @@ A session has exactly ONE folder: `public/framework/ai/sessions/YYYY/MM/DD/<fold
 
 ## Cost and roles (long form: [doc/agent-rules.md](doc/agent-rules.md))
 
-- **Usage pace:** a mastermind runs `node Server/usage-now.mjs` when it starts and before each spawn. Over pace: Sonnet by default, no Opus without a stated reason, fewer agents.
+- **Usage pace:** a mastermind runs `node Server/usage-now.mjs` when it starts and before each spawn. Over pace: Sonnet by default, no Opus without a stated reason, fewer agents. **Bands (the owner, 2026-11-07): under 80% of pace, work normally; from 80%, slow down (no new masterminds, Sonnet/Haiku only); never pass 100%. Background audits only under 50%.**
 - **Audits go to Haiku, under 100k tokens:** aim for 30–60k per request; a node script chunks big inputs. Sonnet is for UI and object-oriented code.
 - **Mind the token burn:** let a script read and calculate, batch tool calls, no session replays or long audits unless asked, keep sessions short.
 - **Context size:** keep a working agent rather than switching for context size alone; compact around 300k. Decisions go in the module's docs as they are made ([doc/context.md](doc/context.md)).
