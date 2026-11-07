@@ -1,0 +1,10 @@
+# /live/: confirm item files and tabs stream with no reload; fix what does not
+
+Relayed by @voice-app, 2026-11-06: task `live-streaming` in [voice-app's session](/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/). Branch: `worktree/live-r16`.
+
+## Asks
+
+- [x] **(a) A write to `/live/item-test/thing.jsonl` shows on `/live/item-test/` with no reload.** It already did: on a copy (`/live/zzitem/`), a new `title` and `text` in thing.jsonl showed on the parent's card within 2.5 s, and a `content.add` showed on `/live/zzitem/thing/`. A card shows its item's title and text, not its cards. Probe: [shots/item2.mjs](shots/item2.mjs).
+- [x] **(b) A `{"tab": …}` change on `/live/demos/tabs-page/` shows with no reload.** The parent's own picks (`{"tab": {"name": "beta", "tab": false}}`) and a new folder already streamed. **What did not:** a line in the sub-page's OWN file, such as `beta/page.jsonl`'s `{"tab": true}` (how beta became a tab on 2026-11-07 00:37) or a new title there. `LivePage.meta_of` fetched each sub-page's file once and cached it. **Fix:** it now streams that file (`LivePage.meta_stream`, one reader per url, never paused) and calls `LivePage.on_meta` listeners: the tab row, a link card's title and icon, and the Pages group redraw. Proof before and after: [shots/tabs-after.txt](shots/tabs-after.txt) from [shots/tabs2.mjs](shots/tabs2.mjs) ("beta's own title" and "gamma's own tab:false" lines; before the fix both stayed unchanged).
+  - A core-style `{"tab": {"name": "gamma", "title": "Gamma"}}` line names no folder and has no `tab: true`, so a LivePage draws no tab for it (by design, live/readme.md "A page is EITHER a tab OR a link card").
+  - **Alternative:** watch only the urls shown in a row (fewer sockets on /live/, which has about 20 folders). One subscription per folder is cheap on the dev server's Tail, so not done.
