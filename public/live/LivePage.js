@@ -263,7 +263,7 @@ export default class LivePage extends Page {
 		this.view = div.c("page live-page", () => {
 			this.$alerts = div.c("live-alerts");
 			part("header", P.Head);
-			part("header", P.Md, { item: this, key: "header", classes: "live-sub" });   // below the sticky header, so the header stays one size
+			part("subheader", P.Md, { item: this, key: "header", classes: "live-sub" });   // below the sticky header, so the header stays one size
 			new P.Errors({ page: this });
 			if (this.settings_of) return void part("settings", P.Settings, { of: this.settings_of, at: this.at });
 			if (this.focus) part("card", P.Focus, { item: this.focus });
@@ -570,7 +570,9 @@ export default class LivePage extends Page {
 					span(`${lines.length === 1 ? "One line" : `${lines.length} lines`} in this page's file could not be applied and ${lines.length === 1 ? "was" : "were"} skipped: ${lines.at(-1).message}`);
 				});
 			};
-			page.on?.("caught", () => queueMicrotask(() => this.el.isConnected && draw()));
+			// The first error heard after the card left the page lets go (a rebuilt page makes a new one).
+			const heard = () => queueMicrotask(() => this.el.isConnected ? draw() : page.off?.("caught", heard));
+			page.on?.("caught", heard);
 			draw();
 		}
 	};
