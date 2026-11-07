@@ -171,3 +171,7 @@
 {"file":"next/page.jsonl"}
 {"content":{"add":{"id":"tabs","text":"How tabs work:\n\n- **Opt-in only.** A sub-page is never a tab on its own. It's a link card by default.\n- **To make one a tab:** `{\"tab\":{\"name\":\"today\",\"tab\":true}}` on the parent (or the page opts itself in).\n- **To remove a tab:** the same line with `tab:false`.\n- **Each tab is a real sub-page:** it has its own folder, URL and page.jsonl. The breadcrumb follows it.\n- **The H1 stays the parent's title**, and the tab row switches between sections.\n- **Rule:** tabs are for permanent core sections with short names. Everything else is a link card, never both.\n- **Example:** /live/plan/ has the tabs Today and Questions.","title":"Tabs","type":"part-card"}},"by":"voice-app","ts":"2026-11-07T01:10:03.288Z"}
 {"tabs":{"text":""},"by":"voice-app","ts":"2026-11-07T01:10:27.836Z"}
+{"file":"tabs/page.jsonl"}
+{"remove":"tabs","by":"voice-app","ts":"2026-11-07T01:17:17.119Z"}
+{"tabs":{"text":"The survey of every tab system, with paths, snippets and styles: [/live/tabs/](/live/tabs/)."},"by":"minion-tabs-survey","ts":"2026-11-07T01:25:49.016Z"}
+{"file":"failures.jsonl"}
