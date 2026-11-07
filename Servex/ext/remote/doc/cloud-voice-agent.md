@@ -16,7 +16,7 @@ If you are reading this through `read_file`, you are probably a **cloud voice ag
 
 ## Your session (verified against RemoteMCP.js, 2026-10-19)
 
-- Name: `cloud-voice-<title>`, for example `cloud-voice-live-page`; with no title `cloud-voice-app-YYYYMMDD` (caller plus date). Made by `RemoteMCP.voice_session()` on the first call of the day.
+- Name: `cloud-voice-<title>`, for example `cloud-voice-live-page`; with no title `cloud-voice-app-YYYYMMDD` (caller plus date). Made by `RemoteMCP.voice_session()` on the first call of a conversation. An untitled call stays on the record in use while calls come under 2 hours apart, past midnight too ([voice-logging.md](voice-logging.md), "One record per conversation").
 - Folder: `public/framework/ai/sessions/YYYY/MM/DD/cloud-voice-<name>/`, holding `session.jsonl`. Line 1 is `{"session":{"id","kind":"cloud-voice-agent","caller":"voice-app","at"}}`; every later line is one verb: `owner_words`, `tool_call`, `spawned`, `cost`.
 - It is also a row in the Servex sessions store (`servex.sessions.map[id]`: `kind`, `caller`, `cost`), so the dashboards, the day index and [/live/sessions/](/live/sessions/) list it. `cost` is `null` until you set it: you have no accounting, so call `register_session` again with `cost` (USD) if you know it; the row and a `{cost}` line both update.
 - How you reach it: `POST /mcp/remote` with the bearer token as a header or as `/mcp/remote/<token>` in the path (token file: `%LOCALAPPDATA%/lew42/servex/remote.token`). Task folders you hand work to live elsewhere, under the day's folders ([ai/tasks](/framework/ai/tasks/)).

@@ -193,8 +193,8 @@ export default class RemoteMCP {
         return { ...params, arguments: args, [RemoteMCP.SESSION]: v ? { id: v.id, file: path.join(this.root, "public", v.file) } : null };
     }
 
-    /* One folder per cloud voice agent per day (owner, 2026-10-19): sessions/YYYY/MM/DD/cloud-voice-<name>/session.jsonl, kind
-     * "cloud-voice-agent". <name> is the register_session title, else the caller + date. It is a row in the Sessions store
+    /* One folder per cloud voice conversation (per day until 2026-11-07; owner, 2026-10-19): sessions/YYYY/MM/DD/cloud-voice-<name>/session.jsonl,
+     * dated the day it began, kind "cloud-voice-agent". <name> is the register_session title, else the record in use (below), else caller + date. It is a row in the Sessions store
      * (so session_summary and session_line work) with a hand-set `cost`, not a v-… folder. Guide: doc/cloud-voice-agent.md
      * ONE RECORD PER CONVERSATION, NOT PER DATE (2026-11-07): the app opens a new MCP connection every few calls (so `sid` names a
      * connection, not a conversation), so the caller's record in use is kept under CURRENT. A call on a connection with no title of its
