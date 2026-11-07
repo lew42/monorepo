@@ -2,6 +2,8 @@
 
 The owner asks for things in long prompts; many asks were never filed or never finished. Over September and October several systems were built to catch them. This page lists each one: what it is, where its output is, and whether it still runs. **Use the [prompt audit](prompt-audit.md) for new work;** the rest are kept for their history and their data.
 
+**The next audit's design** (the owner, 2026-11-06; calibrate before running, and only under 50% weekly pace): [past-work-audit-design.md](past-work-audit-design.md). How to search past work: [../indexing-past-work.md](../indexing-past-work.md).
+
 ## Runs today
 
 | System | What it does | Output | Runs |

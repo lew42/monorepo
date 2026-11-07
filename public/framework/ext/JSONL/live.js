@@ -5,8 +5,8 @@ import Socket from "/framework/dev/Socket/Socket.js";
    the registry holds a Set of subscriptions per url-path. */
 const streams = new Map();
 
-// A dev server predating Tail.js answers a subscribe with nothing at all.
-const WAIT = 1500;
+// A dev server predating Tail.js answers a subscribe with nothing at all; a busy page hears it late. The wait is
+// stream.WAIT (1.5 s, below stream()), so a test can shorten it.
 
 const each = (path, fn) => streams.get(path)?.forEach(fn);
 
@@ -39,6 +39,9 @@ Socket.prototype.jsonl = function(path, lines = [], offset, from, ends){
 		// each line ends (Tail.js), so only the lines past this reader's own offset
 		// are read; an older server sends no `ends`, and the whole batch is read.
 		const at = s.jsonl.offset ?? 0;
+		// A late first answer after the fallback fetch (stream()): the fetched copy has no offset, so the server's lines
+		// replace it whole, the same way a rewritten file is read (reset, then one read), and from here the reader streams.
+		if (s.fetched && lines.length && offset > at){ s.fetched = false; s.jsonl.reset(); }
 		if (lines.length && offset > at){
 			const fresh = Array.isArray(ends) && ends.length === lines.length && from < at ? lines.filter((_, i) => ends[i] > at) : lines;
 			s.jsonl.offset = offset;
@@ -134,17 +137,31 @@ export function stream(jsonl, changed, { owner } = {}){
 		if (owner !== null) adopt(jsonl, owner);
 		const k = key(jsonl.url);
 
+		// ⚠ No answer in stream.WAIT: show the file by one fetch, but STAY subscribed. A busy page (a 9 s session page, 2026-11-06)
+		// hears the answer late; dropping the reader here meant it never streamed again, so every change needed a reload.
 		s.timer = setTimeout(() => {
-			streams.get(k)?.delete(s);
 			s.first = null;
-			console.warn("JSONL.live(): no answer from the dev server, fetching —", jsonl.url);
-			jsonl.load().then(resolve);
-		}, WAIT);
+			console.warn("JSONL.live(): no answer from the dev server yet; fetching once, still subscribed —", jsonl.url);
+			fallback(s).then(resolve);
+		}, stream.WAIT);
 
 		if (!streams.has(k)) streams.set(k, new Set());
 		streams.get(k).add(s);
 		subscribe(s);
 	});
+}
+stream.WAIT = 1500;
+
+/* The timed-out first read: `load()`'s fetch, skipped when the socket answered while it was in flight (its lines are
+   already in, and reading the fetch too would apply them twice). `fetched` marks a copy the late answer replaces. */
+async function fallback(s){
+	const j = s.jsonl, res = await fetch(j.url).catch(() => null);
+	const text = res?.ok && !res.headers.get("content-type")?.includes("html") ? await res.text() : null;
+	if (text == null || j.offset) return j;
+	s.fetched = true;
+	j.loaded = true;
+	j.read(j.parse(text));
+	return j;
 }
 
 /**
