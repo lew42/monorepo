@@ -36,7 +36,7 @@ try {
 			const seen = await run_item({ path: PURL }, { caller: "t" });
 			ok(/# Renamed/.test(seen.state), "page set: a read draws the page from the live root");
 			const added = JSON.parse(await tool("page_add")({ path: PURL, item: { type: "part-card", title: "Card one" } }, { caller: "t" }));
-			ok(added.ok && RANDOM.test(added.id), "page add: the card gets an 8-character random id");
+			ok(added.ok && added.id === "card-one", "page add: the card's id is the slug of its title (2026-11-06)");
 			const called = JSON.parse(await tool("page_call")({ path: PURL, target: ["content", added.id], method: "set", args: { text: "called" } }, { caller: "t" }));
 			const logged = JSON.parse(await tool("page_log")({ path: PURL, text: "testing" }, { caller: "t" }));
 			ok(called.ok && logged.ok, "page call and page log go through the same write");
@@ -65,14 +65,14 @@ try {
 	{
 		let r = await run_item({ path: URL, delta: { tasks: { add: { title: "Level one" } } } }, { caller: "t" });
 		const a = r.ids[0];
-		ok(r.ok && RANDOM.test(a), "an agent-made task id is 8 random characters, not a slug of its title");
+		ok(r.ok && a === "level-one", "an agent-made task id is the slug of its title (2026-11-06)");
 		r = await run_item({ path: URL, delta: { tasks: { add: { title: "Level one, again" } } } }, { caller: "t" });
-		ok(r.ok && RANDOM.test(r.ids[0]) && r.ids[0] !== a, "a second add draws its own id");
+		ok(r.ok && r.ids[0] === "level-one-again" && r.ids[0] !== a, "a second add gets its own id");
 		r = await run_item({ path: URL, target: [`tasks.${a}`], delta: { tasks: { add: { title: "Level two", id: "b" } } } }, { caller: "t" });
 		ok(r.ok, "a task added by the list's own verb at a dotted target");
 		r = await run_item({ path: URL, target: [`tasks.${a}.tasks.b`], delta: { tasks: { add: { title: "Level three" } } } }, { caller: "t" });
 		const c = r.ids[0];
-		ok(r.ok && RANDOM.test(c), "three deep, the add gets a random id too");
+		ok(r.ok && c === "level-three", "three deep, the add gets its title's slug too");
 
 		// 3. A DOTTED PATH SET THREE LEVELS DEEP: written nested (the store writes nested), applied by each level's own get.
 		r = await run_item({ path: URL, delta: { [`tasks.${a}.tasks.b.tasks.${c}.description`]: "set three deep" } }, { caller: "t" });
