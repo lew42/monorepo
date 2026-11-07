@@ -8,6 +8,7 @@ import PageLink from "/framework/core/Page/parts/PageLink.js";
 import LiveChecklist from "./LiveChecklist.js";
 import LiveLight from "./LiveLight.js";
 import LiveButton from "./LiveButton.js";
+import LiveCode from "./LiveCode.js";
 import LiveScreen from "./LiveScreen.js";
 import LiveContent, { LiveScreens } from "./LiveContent.js";
 import { PART_TYPES } from "/framework/core/Page/parts/kinds.js";
@@ -56,7 +57,7 @@ export default class LivePage extends Page {
 		restore: "{\"restore\": \"name\"}: put a saved screen's cards back (the current ones move to removed); {\"restore\": \"<id>\"} brings back one removed card or screen.",
 	};
 	static data_keys = ["header", "footer"];   // {"header": "a line under the title"}, {"footer": "…"}; null hides it
-	static card_types = [...Page.card_types, "live-light", "live-checklist", "live-button"];   // the help prints each one's `static example`
+	static card_types = [...Page.card_types, "live-light", "live-checklist", "live-button", "live-code"];   // the help prints each one's `static example`
 
 	// {"flash": {}} or {"flash": "red"} — the screen blinks once.
 	flash(color){

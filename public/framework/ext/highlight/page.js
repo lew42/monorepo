@@ -12,13 +12,13 @@ export default new Doc({
 	notes:      "choice hooks chaining decisions architecture",
 	files:      "highlight.js highlight.css example.js page.js readme.md editor.md "
 		+ "hljs/core.min.js hljs/languages/css.min.js hljs/languages/javascript.min.js "
-		+ "hljs/languages/json.min.js hljs/languages/markdown.min.js hljs/languages/xml.min.js",
+		+ "hljs/languages/json.min.js hljs/languages/markdown.min.js hljs/languages/xml.min.js hljs/languages/bash.min.js",
 
 	content(){
 
 		demo(() => {
 			code.js(`const sum = (a, b) => a + b;`);
-		}, "`code()` and `code.c()` stay elemental. Importing the ext adds the languages: `code.js`, `code.html`, `code.css`, `code.md`, `code.json`.");
+		}, "`code()` and `code.c()` stay elemental. Importing the ext adds the languages: `code.js`, `code.html`, `code.css`, `code.md`, `code.json`, `code.sh`.");
 
 		demo(() => {
 			code.fn(() => {

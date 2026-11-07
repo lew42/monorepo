@@ -1,0 +1,2 @@
+{"tasks":{"add":{"type":"Task","title":"LivePage: card titles one step smaller than the page h1","why":"On /live/demos/code-card/ at 1200, .live-card-title draws almost as large as the h1, so three cards read as three sections (code-card review, finding 4).","id":"wi803p3b"}},"by":"mastermind-page-design","ts":"2026-11-06T23:51:10.227Z"}
+{"sessions":[{"id":"mastermind-page-design","task":"/live/"}],"by":"mastermind-page-design","ts":"2026-11-06T23:51:10.229Z"}

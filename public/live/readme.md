@@ -27,6 +27,7 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
 | a checklist | `{"content":{"add":{"type":"live-checklist","id":"today","title":"Today","items":[{"id":"milk","text":"Buy milk"}]}}}`; tick `{"content":{"today":{"items":{"milk":{"done":true}}}}}`; flip `{"content":{"today":{"check":"milk"}}}`; add `{"content":{"today":{"items":{"add":{"id":"tea","text":"Tea"}}}}}` |
 | a button | `{"content":{"add":{"type":"live-button","id":"b1","label":"Flash red","method":"flash","args":"red"}}}`; press `{"content":{"b1":{"press":{}}}}` |
 | buttons inside a card | add them to the card's own list: `{"content":{"<card>":{"content":{"add":{"type":"live-button","id":"yes","label":"Yes","method":"alert","args":"Yes"}}}}}` (or write to `/live/<card>/` with the plain `content.add`). They draw in one row on the card; tapping one presses it, tapping elsewhere opens the card |
+| a code block | `{"content":{"add":{"type":"live-code","lang":"js","code":"const sum = (a, b) => a + b;"}}}`; `lang` is js, json, css, html or sh (default js), highlighted by `ext/highlight`; optional `title` and one-line `caption` |
 | a card for a thing on the site | `{"content":{"add":{"type":"part-card","id":"pg","title":"@Page"}}}`: its icon and name, and a tap opens it (ext/Mention) |
 
 ## Going into a thing: sub-pages
@@ -46,7 +47,7 @@ A card removed, or taken by a clear, moves into the page's `removed` List ([Live
 
 ## Every card is a page
 
-Tap a card and it opens at `/live/<card id>/`. Voice writes there with the same deltas as on /live/: `item({path: "/live/foo/", delta: {"content": {"add": …}}})` puts a card **inside** foo, at any depth (`/live/foo/bar/`), also inside a saved screen (`/live/<screen>/<id>/`). It all stays in the one `page.jsonl`: every card on a LivePage gets its own `content` list ([LiveContent.js](LiveContent.js)), and the item tool turns a url with no folder into the hops to that card (`card_at` in [Servex/agents/page_tools.js](/Servex/agents/page_tools.js)). A sub-page folder of the same name wins. A card's id must not be a page word (`pages`, `content`, `screens`, `removed`): the list refuses it. Storage plan (embedded now, break out to a folder later): [core/Page/doc/recursive-pages.md](/framework/core/Page/doc/recursive-pages.md). Tests: [LivePage.test.mjs](LivePage.test.mjs) (through the real item tool). Battle-test results: [/live/lab/](/live/lab/).
+Tap a card and it opens at `/live/<card id>/`. Voice writes there with the same deltas as on /live/: `item({path: "/live/foo/", delta: {"content": {"add": …}}})` puts a card **inside** foo, at any depth (`/live/foo/bar/`), also inside a saved screen (`/live/<screen>/<id>/`). It all stays in the one `page.jsonl`: every card on a LivePage gets its own `content` list ([LiveContent.js](LiveContent.js)), and the item tool turns a url with no folder into the hops to that card (`card_at` in [Servex/agents/page_tools.js](/Servex/agents/page_tools.js)). A sub-page folder of the same name wins. A card's id must not be a page word (`pages`, `content`, `screens`, `removed`): the list refuses it. Storage plan (embedded now, break out to a folder later): [core/Page/doc/recursive-pages.md](/framework/core/Page/doc/recursive-pages.md). Tests: [LivePage.test.mjs](LivePage.test.mjs) (through the real item tool), [LiveCode.test.mjs](LiveCode.test.mjs) (the code card). Battle-test results: [/live/lab/](/live/lab/).
 
 ## A tap reaches the agents
 
@@ -92,7 +93,7 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
 ## Files
 
 - [LivePage.js](LivePage.js): the page, its methods, and how it draws: View classes in the house style (core/View), as static parts a subclass can swap: `Head`, `Crumbs`, `Tabs`, `Settings`, `Files`, `Pages` (the link cards), `Focus`, `Main`, `Card`, `Block`, `Children` (a card's buttons), `Heading` and `Md` (markdown with mentions, `{ safe: true }`), `Foot`. Each takes `{page, item}` (or `{page, list}`); its CSS class comes from its name (`LiveCardView` draws `.live-card`). [DesignPage](design/DesignPage.js) extends `Card` and `Block`, so keep those names and args. [LivePage.css](LivePage.css): the floor, blocks and cards, light and dark.
-- [LiveLight.js](LiveLight.js), [LiveChecklist.js](LiveChecklist.js), [LiveButton.js](LiveButton.js), [LiveScreen.js](LiveScreen.js): one type each, `class … extends Item`, registered as `live-light`, `live-checklist`, `live-button`, `live-screen`.
+- [LiveLight.js](LiveLight.js), [LiveChecklist.js](LiveChecklist.js), [LiveButton.js](LiveButton.js), [LiveScreen.js](LiveScreen.js), [LiveCode.js](LiveCode.js): one type each, `class … extends Item`, registered as `live-light`, `live-checklist`, `live-button`, `live-screen`, `live-code`.
 - [page.jsonl](page.jsonl): the log. Write it only through the item tool (or the page tools), never by hand.
 - [sessions/](sessions/) and [archive/](archive/): the old views of past screens, which read v1's log. [doc/](doc/): v1's notes.
 

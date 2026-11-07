@@ -30,7 +30,9 @@ inside the same turn as the `innerHTML` write, so there is no frame of un-highli
 code (`./hooks.md`), and it is what the unbuilt editor's overlay needs. speed-highlight
 — otherwise a lovely fit for a no-build repo — would have needed a sequence guard.
 
-## Keep: five languages, not fifty
+## Keep: six languages, not fifty
+
+Bash joined the first five on 2026-11-06 (`hljs/languages/bash.min.js`), for the `/live/` code card.
 
 js, css, xml, markdown, json. Their built-in aliases cover `js`/`jsx`/`mjs`/`cjs`,
 `html`/`svg`/`xhtml`, `md`. An unregistered language is not an error, so the cost of

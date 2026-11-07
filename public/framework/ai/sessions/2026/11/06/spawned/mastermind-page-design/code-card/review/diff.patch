@@ -1,0 +1,232 @@
+diff --git a/public/framework/ext/highlight/highlight.js b/public/framework/ext/highlight/highlight.js
+index 77f4b730d2..4984f71cc5 100644
+--- a/public/framework/ext/highlight/highlight.js
++++ b/public/framework/ext/highlight/highlight.js
+@@ -6,6 +6,7 @@ import css from "./hljs/languages/css.min.js";
+ import xml from "./hljs/languages/xml.min.js";
+ import markdown from "./hljs/languages/markdown.min.js";
+ import json from "./hljs/languages/json.min.js";
++import bash from "./hljs/languages/bash.min.js";
+ 
+ View.stylesheet(import.meta, "highlight.css");
+ 
+@@ -25,6 +26,7 @@ hljs.registerLanguage("css", css);
+ hljs.registerLanguage("xml", xml);
+ hljs.registerLanguage("markdown", markdown);
+ hljs.registerLanguage("json", json);
++hljs.registerLanguage("bash", bash);
+ 
+ /* ⚠ Written out, never generated from hljs.listLanguages(): hljs ships a language
+    called **c**, which would silently overwrite `code.c()` — the classes variant
+@@ -38,6 +40,8 @@ const accessors = {
+ 	md: "markdown",
+ 	markdown: "markdown",
+ 	json: "json",
++	sh: "bash",
++	bash: "bash",
+ };
+ 
+ // Mirrors ext/markdown's block_tags on purpose — same question, and they must not
+diff --git a/public/framework/ext/highlight/hljs/languages/bash.min.js b/public/framework/ext/highlight/hljs/languages/bash.min.js
+new file mode 100644
+index 0000000000..d4a42a95a0
+--- /dev/null
++++ b/public/framework/ext/highlight/hljs/languages/bash.min.js
+@@ -0,0 +1,21 @@
++/*! `bash` grammar compiled for Highlight.js 11.11.1 */
++var hljsGrammar=(()=>{"use strict";return e=>{const s=e.regex,t={},a={
++begin:/\$\{/,end:/\}/,contains:["self",{begin:/:-/,contains:[t]}]}
++;Object.assign(t,{className:"variable",variants:[{
++begin:s.concat(/\$[\w\d#@][\w\d_]*/,"(?![\\w\\d])(?![$])")},a]});const n={
++className:"subst",begin:/\$\(/,end:/\)/,contains:[e.BACKSLASH_ESCAPE]
++},c=e.inherit(e.COMMENT(),{match:[/(^|\s)/,/#.*$/],scope:{2:"comment"}}),i={
++begin:/<<-?\s*(?=\w+)/,starts:{contains:[e.END_SAME_AS_BEGIN({begin:/(\w+)/,
++end:/(\w+)/,className:"string"})]}},o={className:"string",begin:/"/,end:/"/,
++contains:[e.BACKSLASH_ESCAPE,t,n]};n.contains.push(o);const r={begin:/\$?\(\(/,
++end:/\)\)/,contains:[{begin:/\d+#[0-9a-f]+/,className:"number"},e.NUMBER_MODE,t]
++},l=e.SHEBANG({binary:"(fish|bash|zsh|sh|csh|ksh|tcsh|dash|scsh)",relevance:10
++}),m={className:"function",begin:/\w[\w\d_]*\s*\(\s*\)\s*\{/,returnBegin:!0,
++contains:[e.inherit(e.TITLE_MODE,{begin:/\w[\w\d_]*/})],relevance:0};return{
++name:"Bash",aliases:["sh","zsh"],keywords:{$pattern:/\b[a-z][a-z0-9._-]+\b/,
++keyword:["if","then","else","elif","fi","time","for","while","until","in","do","done","case","esac","coproc","function","select"],
++literal:["true","false"],
++built_in:["break","cd","continue","eval","exec","exit","export","getopts","hash","pwd","readonly","return","shift","test","times","trap","umask","unset","alias","bind","builtin","caller","command","declare","echo","enable","help","let","local","logout","mapfile","printf","read","readarray","source","sudo","type","typeset","ulimit","unalias","set","shopt","autoload","bg","bindkey","bye","cap","chdir","clone","comparguments","compcall","compctl","compdescribe","compfiles","compgroups","compquote","comptags","comptry","compvalues","dirs","disable","disown","echotc","echoti","emulate","fc","fg","float","functions","getcap","getln","history","integer","jobs","kill","limit","log","noglob","popd","print","pushd","pushln","rehash","sched","setcap","setopt","stat","suspend","ttyctl","unfunction","unhash","unlimit","unsetopt","vared","wait","whence","where","which","zcompile","zformat","zftp","zle","zmodload","zparseopts","zprof","zpty","zregexparse","zsocket","zstyle","ztcp","chcon","chgrp","chown","chmod","cp","dd","df","dir","dircolors","ln","ls","mkdir","mkfifo","mknod","mktemp","mv","realpath","rm","rmdir","shred","sync","touch","truncate","vdir","b2sum","base32","base64","cat","cksum","comm","csplit","cut","expand","fmt","fold","head","join","md5sum","nl","numfmt","od","paste","ptx","pr","sha1sum","sha224sum","sha256sum","sha384sum","sha512sum","shuf","sort","split","sum","tac","tail","tr","tsort","unexpand","uniq","wc","arch","basename","chroot","date","dirname","du","echo","env","expr","factor","groups","hostid","id","link","logname","nice","nohup","nproc","pathchk","pinky","printenv","printf","pwd","readlink","runcon","seq","sleep","stat","stdbuf","stty","tee","test","timeout","tty","uname","unlink","uptime","users","who","whoami","yes"]
++},contains:[l,e.SHEBANG(),m,r,c,i,{match:/(\/[a-z._-]+)+/},o,{match:/\\"/},{
++className:"string",begin:/'/,end:/'/},{match:/\\'/},t]}}})()
++;export default hljsGrammar;
+\ No newline at end of file
+diff --git a/public/framework/ext/highlight/hljs/languages/files.jsonl b/public/framework/ext/highlight/hljs/languages/files.jsonl
+index 63a30766bc..ff219986bc 100644
+--- a/public/framework/ext/highlight/hljs/languages/files.jsonl
++++ b/public/framework/ext/highlight/hljs/languages/files.jsonl
+@@ -9,3 +9,4 @@
+ {"file":"json.min.js"}
+ {"file":"markdown.min.js"}
+ {"file":"xml.min.js"}
++{"file":"bash.min.js"}
+diff --git a/public/live/LiveCode.js b/public/live/LiveCode.js
+new file mode 100644
+index 0000000000..526c083dda
+--- /dev/null
++++ b/public/live/LiveCode.js
+@@ -0,0 +1,30 @@
++import Item from "/framework/core/Item/Item.js";
++import View, { div, h4 } from "/framework/core/View/View.js";
++import { code } from "/framework/ext/highlight/highlight.js";
++
++/* {"type":"live-code","lang":"js","code":"const x = 1;","title":"Optional","caption":"one line under it"} — a code block
++ * card: a title, the code highlighted (ext/highlight), a caption. `lang` is one of js, json, css, html, sh (default js);
++ * an unregistered language degrades to escaped plain text (ext/highlight's own rule). A long line scrolls inside the
++ * block; the card itself never grows wider than the page. */
++export default class LiveCode extends Item {
++	static example = { id: "snippet", lang: "js", code: "const sum = (a, b) => a + b;", title: "Add", caption: "Two numbers in, one out." };   // what the item tool's help shows
++}
++
++LiveCode.View = class LiveCodeView extends View {
++	render(){
++		const item = this.item;
++		return div.c("live-code-card", () => {
++			h4.c("live-card-title").bind(item, "title", function(t){ this.tc("is-empty", !t).text(t ?? ""); });
++			const $wrap = div.c("live-code-wrap");
++			const draw = () => {
++				const lang = item.get("lang") ?? "js";
++				const fn = code[lang] ?? code.js;
++				$wrap.empty(() => fn(String(item.get("code") ?? "")));
++			};
++			["lang", "code"].forEach(key => item.on("change", k => { if (k === key) draw(); }));
++			draw();
++			div.c("live-code-caption").bind(item, "caption", function(t){ this.tc("is-empty", !t).empty(() => { if (t) this.md(String(t), { safe: true }); }); });
++		});
++	}
++};
++Item.register(LiveCode, "live-code");
+diff --git a/public/live/LiveCode.test.mjs b/public/live/LiveCode.test.mjs
+new file mode 100644
+index 0000000000..44c3705452
+--- /dev/null
++++ b/public/live/LiveCode.test.mjs
+@@ -0,0 +1,30 @@
++/* LiveCode: a live-code line replays with its fields intact. `node public/live/LiveCode.test.mjs` */
++import assert from "node:assert";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { run_item } from "../../Servex/agents/page_tools.js";
++
++const HERE = path.dirname(fileURLToPath(import.meta.url));
++const NAME = ".test-" + process.pid, DIR = path.join(HERE, NAME), URL = `/live/${NAME}/`;
++let n = 0;
++const ok = (c, m) => { assert.ok(c, m); n++; };
++const go = async delta => { const r = await run_item({ path: URL, delta }, { caller: "LiveCode.test" }); assert.ok(r.ok, JSON.stringify(delta) + " refused: " + r.why); return r; };
++const read = async p => (await run_item({ path: URL, read: p }, { caller: "LiveCode.test" })).value;
++
++fs.mkdirSync(DIR, { recursive: true });
++fs.writeFileSync(path.join(DIR, "page.jsonl"), JSON.stringify({ class: "/live/LivePage.js", title: "Test" }) + "\n");
++try {
++	await go({ content: { add: { type: "live-code", id: "s1", lang: "js", code: "const x = 1;", title: "X", caption: "a snippet" } } });
++	const s1 = await read("content.s1");
++	ok(s1.type === "live-code", "a live-code line replays as live-code");
++	ok(s1.data.lang === "js" && s1.data.code === "const x = 1;", "lang and code survive replay");
++	ok(s1.data.title === "X" && s1.data.caption === "a snippet", "title and caption survive replay");
++
++	await go({ content: { add: { type: "live-code", id: "s2", code: "{}" } } });
++	const s2 = await read("content.s2");
++	ok(s2.data.lang === undefined, "lang defaults to js only in the View, not forced onto the stored data");
++	console.log(`LiveCode.test: ${n} passed`);
++} finally {
++	fs.rmSync(DIR, { recursive: true, force: true });
++}
+diff --git a/public/live/LivePage.css b/public/live/LivePage.css
+index b0de0d5dec..09c88fc455 100644
+--- a/public/live/LivePage.css
++++ b/public/live/LivePage.css
+@@ -147,6 +147,10 @@
+ 	.live-check { display: flex; align-items: center; gap: .6rem; cursor: pointer; }
+ 	.live-check input { width: 1.2em; height: 1.2em; margin: 0; flex: none; accent-color: #22c55e; }
+ 	.live-check.is-done span { text-decoration: line-through; opacity: .55; }
++	.live-code-card { display: flex; flex-direction: column; gap: var(--live-step); min-width: 0; }
++	.live-code-wrap { min-width: 0; max-width: 100%; }
++	.live-code-wrap pre { max-width: 100%; overflow-x: auto; }   /* a long line scrolls inside the block, never the page */
++	.live-code-caption { opacity: .8; font-size: .9em; }
+ 	button.live-button { font: inherit; font-size: .85em; line-height: 1.2; align-self: flex-start; white-space: nowrap; padding: .5em 1em; border-radius: .5em; border: 0; cursor: pointer; background: var(--prime, #FF6157); color: #1a1a1a; font-weight: 600; }
+ 	button.live-button.is-pressed { animation: live-press .4s ease-out; }
+ 	@keyframes live-press { from { transform: scale(.94); filter: brightness(1.2); } to { transform: none; filter: none; } }
+diff --git a/public/live/LivePage.js b/public/live/LivePage.js
+index 57b10d4b58..e51c2be4e6 100644
+--- a/public/live/LivePage.js
++++ b/public/live/LivePage.js
+@@ -8,6 +8,7 @@ import PageLink from "/framework/core/Page/parts/PageLink.js";
+ import LiveChecklist from "./LiveChecklist.js";
+ import LiveLight from "./LiveLight.js";
+ import LiveButton from "./LiveButton.js";
++import LiveCode from "./LiveCode.js";
+ import LiveScreen from "./LiveScreen.js";
+ import LiveContent, { LiveScreens } from "./LiveContent.js";
+ import { PART_TYPES } from "/framework/core/Page/parts/kinds.js";
+@@ -56,7 +57,7 @@ export default class LivePage extends Page {
+ 		restore: "{\"restore\": \"name\"}: put a saved screen's cards back (the current ones move to removed); {\"restore\": \"<id>\"} brings back one removed card or screen.",
+ 	};
+ 	static data_keys = ["header", "footer"];   // {"header": "a line under the title"}, {"footer": "…"}; null hides it
+-	static card_types = [...Page.card_types, "live-light", "live-checklist", "live-button"];   // the help prints each one's `static example`
++	static card_types = [...Page.card_types, "live-light", "live-checklist", "live-button", "live-code"];   // the help prints each one's `static example`
+ 
+ 	// {"flash": {}} or {"flash": "red"} — the screen blinks once.
+ 	flash(color){
+diff --git a/public/live/demos/code-card/page.jsonl b/public/live/demos/code-card/page.jsonl
+new file mode 100644
+index 0000000000..f522684622
+--- /dev/null
++++ b/public/live/demos/code-card/page.jsonl
+@@ -0,0 +1,5 @@
++{"title":"Code card","class":"/live/LivePage.js","header":"Three live-code cards: js, json, css."}
++{"content":{"add":{"id":"js1","type":"live-code","lang":"js","title":"A sum","code":"const sum = (a, b) => a + b;\nconsole.log(sum(2, 3));","caption":"Two numbers in, one out."}}}
++{"content":{"add":{"id":"json1","type":"live-code","lang":"json","title":"A card's own delta","code":"{\n  \"type\": \"live-code\",\n  \"lang\": \"js\",\n  \"code\": \"const x = 1;\"\n}","caption":"What the item tool sends to make one of these."}}}
++{"content":{"add":{"id":"css1","type":"live-code","lang":"css","title":"The card's own rule","code":".live-code-wrap pre {\n  max-width: 100%;\n  overflow-x: auto;\n}","caption":"A long line scrolls inside the block, never the page."}}}
++{"file":"shots/"}
+diff --git a/public/live/demos/code-card/shots/1200.png b/public/live/demos/code-card/shots/1200.png
+new file mode 100644
+index 0000000000..581f5e1c2b
+Binary files /dev/null and b/public/live/demos/code-card/shots/1200.png differ
+diff --git a/public/live/demos/code-card/shots/400.png b/public/live/demos/code-card/shots/400.png
+new file mode 100644
+index 0000000000..dfccca7153
+Binary files /dev/null and b/public/live/demos/code-card/shots/400.png differ
+diff --git a/public/live/demos/code-card/shots/files.jsonl b/public/live/demos/code-card/shots/files.jsonl
+new file mode 100644
+index 0000000000..498e3ef255
+--- /dev/null
++++ b/public/live/demos/code-card/shots/files.jsonl
+@@ -0,0 +1,2 @@
++{"file":"1200.png"}
++{"file":"400.png"}
+diff --git a/public/live/demos/page.jsonl b/public/live/demos/page.jsonl
+index ee45f1af9e..06ba9eedbe 100644
+--- a/public/live/demos/page.jsonl
++++ b/public/live/demos/page.jsonl
+@@ -16,3 +16,5 @@
+ {"content":{"add":{"id":"uk9bm36m","type":"part-link","path":"./previews/","title":"Previews — broken (no delta reaches it; crashes replay)"}},"by":"minion-page-features","ts":"2026-11-06T21:52:51.824Z"}
+ {"content":{"add":{"id":"j1jdxp9s","type":"part-text","text":"Same five, tried again on a **LivePage** sub-page (the default class under `/live/`): [tabs](./tabs/) · [columns](./columns/) · [place](./place/) · [nav](./nav/) — all four show \"Nothing on screen yet\", because LivePage's own `render()` never builds the parts (`Frame.js`, `draw_folder()`) that make them work. Detail: [doc/page-features.md](/live/doc/page-features.md)."}},"by":"minion-page-features","ts":"2026-11-06T21:52:53.986Z"}
+ {"prjrjsft":{"title":"Columns — works (plain Page)"},"by":"mastermind-page-design","ts":"2026-11-06T23:10:29.441Z"}
++{"file":"code-card/page.jsonl"}
++{"content":{"add":{"id":"codecard1","type":"part-link","path":"./code-card/","title":"Code card — js, json and css, highlighted"}},"ts":"2026-11-06T23:30:00.000Z","by":"minion-code-card"}
+diff --git a/public/live/readme.md b/public/live/readme.md
+index 497dd3b48a..1cfc844ab3 100644
+--- a/public/live/readme.md
++++ b/public/live/readme.md
+@@ -27,6 +27,7 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
+ | a checklist | `{"content":{"add":{"type":"live-checklist","id":"today","title":"Today","items":[{"id":"milk","text":"Buy milk"}]}}}`; tick `{"content":{"today":{"items":{"milk":{"done":true}}}}}`; flip `{"content":{"today":{"check":"milk"}}}`; add `{"content":{"today":{"items":{"add":{"id":"tea","text":"Tea"}}}}}` |
+ | a button | `{"content":{"add":{"type":"live-button","id":"b1","label":"Flash red","method":"flash","args":"red"}}}`; press `{"content":{"b1":{"press":{}}}}` |
+ | buttons inside a card | add them to the card's own list: `{"content":{"<card>":{"content":{"add":{"type":"live-button","id":"yes","label":"Yes","method":"alert","args":"Yes"}}}}}` (or write to `/live/<card>/` with the plain `content.add`). They draw in one row on the card; tapping one presses it, tapping elsewhere opens the card |
++| a code block | `{"content":{"add":{"type":"live-code","lang":"js","code":"const sum = (a, b) => a + b;"}}}`; `lang` is js, json, css, html or sh (default js), highlighted by `ext/highlight`; optional `title` and one-line `caption` |
+ | a card for a thing on the site | `{"content":{"add":{"type":"part-card","id":"pg","title":"@Page"}}}`: its icon and name, and a tap opens it (ext/Mention) |
+ 
+ ## Going into a thing: sub-pages
+@@ -92,7 +93,7 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
+ ## Files
+ 
+ - [LivePage.js](LivePage.js): the page, its methods, and how it draws: View classes in the house style (core/View), as static parts a subclass can swap: `Head`, `Crumbs`, `Tabs`, `Settings`, `Files`, `Pages` (the link cards), `Focus`, `Main`, `Card`, `Block`, `Children` (a card's buttons), `Heading` and `Md` (markdown with mentions, `{ safe: true }`), `Foot`. Each takes `{page, item}` (or `{page, list}`); its CSS class comes from its name (`LiveCardView` draws `.live-card`). [DesignPage](design/DesignPage.js) extends `Card` and `Block`, so keep those names and args. [LivePage.css](LivePage.css): the floor, blocks and cards, light and dark.
+-- [LiveLight.js](LiveLight.js), [LiveChecklist.js](LiveChecklist.js), [LiveButton.js](LiveButton.js), [LiveScreen.js](LiveScreen.js): one type each, `class … extends Item`, registered as `live-light`, `live-checklist`, `live-button`, `live-screen`.
++- [LiveLight.js](LiveLight.js), [LiveChecklist.js](LiveChecklist.js), [LiveButton.js](LiveButton.js), [LiveScreen.js](LiveScreen.js), [LiveCode.js](LiveCode.js): one type each, `class … extends Item`, registered as `live-light`, `live-checklist`, `live-button`, `live-screen`, `live-code`.
+ - [page.jsonl](page.jsonl): the log. Write it only through the item tool (or the page tools), never by hand.
+ - [sessions/](sessions/) and [archive/](archive/): the old views of past screens, which read v1's log. [doc/](doc/): v1's notes.
+ 
