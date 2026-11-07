@@ -88,6 +88,8 @@ try {
 	const named = new LivePage({ title: "N", url: "/live/p/n/", focus: { get: k => k === "icon" ? "⚡" : undefined } });
 	ok(card.icon_name === LivePage.stored.item && named.icon_name === "⚡", "a card opened as a page: a small circle, or its own icon");
 	ok(await LivePage.icon_of("/live/p/x.jsonl") === null && LivePage.stored.file === "description", "a loose .jsonl names no icon: a file is drawn");
+	const link = icon => ({ get: k => k === "icon" ? icon : undefined });
+	ok(LivePage.link_icon(link(), "/live/notes.jsonl") === "description" && LivePage.link_icon(link(), "/live/lab/") === "folder" && LivePage.link_icon(link("⚡"), "/live/lab/") === "⚡", "a link card: a file for a loose .jsonl, a folder for a folder, its own icon first");
 	console.log(`LivePage.test: ${n} passed`);
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });

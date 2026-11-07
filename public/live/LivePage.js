@@ -360,6 +360,8 @@ export default class LivePage extends Page {
 		if (/\.jsonl\/?$/.test(url)) return Promise.resolve(null);
 		return this.meta_of(url).then(m => m.icon ?? null);
 	}
+	// A link card's icon before its page answers: the link's own, else a file for a .jsonl url, else a folder.
+	static link_icon(link, url){ return link.get("icon") ?? (/\.jsonl\/?$/.test(url) ? this.stored.file : this.stored.folder); }
 	static icon(page, name){
 		if (!page.$icon) return void this.glyph(null, name);
 		this.glyph(page.$icon, name);
@@ -533,7 +535,7 @@ export default class LivePage extends Page {
 					// The icon its page's header shows (LivePage.icon_name): a link asks the page, a card is an item stored here.
 					$icon = span.c("live-icon live-card-icon");
 					if (item instanceof PageLink){
-						const fallback = item.get("icon") ?? (/\.jsonl$/.test(own) ? P.stored.file : P.stored.folder);
+						const fallback = P.link_icon(item, own);
 						P.glyph($icon, fallback);
 						if (own.startsWith("/live/")) P.icon_of(own).then(n => P.glyph($icon, n ?? fallback)).catch(() => {});   // the page's own icon wins: the same as its header
 					} else this.bind(item, "icon", n => P.glyph($icon, n ?? P.stored.item));
