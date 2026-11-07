@@ -55,8 +55,8 @@ export default class SpawnLog {
 
 	/* The machine's load as the queued line records it; the process monitor has no page-file reading yet, so page_file_mb is null until it grows one. */
 	static load(servex){
-		const p = servex?.procmon, pct = p?.commit_mb && p?.commit_limit_mb ? 100 * p.commit_mb / p.commit_limit_mb : null;
-		return { commit_pct: pct == null ? null : Math.round(pct * 10) / 10, page_file_mb: p?.page_file_mb ?? null };
+		const pct = servex?.global?.commit_pct?.() ?? null;   // one rule: Global.commit_pct() (Servex/agents/Global.js)
+		return { commit_pct: pct == null ? null : Math.round(pct * 10) / 10, page_file_mb: servex?.procmon?.page_file_mb ?? null };
 	}
 
 	/* Called by Crumbs after spawn/exec/execFile/fork. `result` is the ChildProcess, or (promisified exec/execFile) a promise carrying `.child`.
@@ -85,7 +85,9 @@ export default class SpawnLog {
 	static put(where, line){
 		if (!where) return this.spawns(line);
 		return this.later(({ LogLine }) => {
-			for (const d of new Set(where)){ const file = this.file_of(d); if (file) LogLine.raw(file, { ...line, by: "servex" }); }
+			let wrote = false;
+			for (const d of new Set(where)){ const file = this.file_of(d); if (file){ LogLine.raw(file, { ...line, by: "servex" }); wrote = true; } }
+			if (!wrote) this.spawns(line);   // a dir with no session.jsonl or task.jsonl: never drop the line
 		});
 	}
 

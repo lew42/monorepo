@@ -21,7 +21,7 @@ const read = () => fs.readFileSync(path.join(dir, "session.jsonl"), "utf8").spli
 
 const started = [];
 const fake = {
-	queue: [], log: { append: () => Promise.resolve() }, procmon: { commit_mb: 8200, commit_limit_mb: 10000 },
+	queue: [], log: { append: () => Promise.resolve() }, procmon: { commit_mb: 8200, commit_limit_mb: 10000 }, global: { commit_pct: () => 82 },
 	agents: { live: new Map([["mastermind-p", { task: { dir } }]]), name: ({ role, name }) => `${role}-${name}`, spawn_now: spec => (started.push(spec.id), { id: spec.id, send(){} }) },
 	reserve(spec){ return Servex.prototype.reserve.call(this, spec); },
 	save_queue(){}, stale: () => false, next_ready(){ return this.queue.length ? 0 : -1; }, emit(){}, dispatcher: { queue: [] }, pool: null,
