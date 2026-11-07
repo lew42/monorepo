@@ -1,5 +1,7 @@
 # AI — the folder where the AI system's records live and the pages that show them
 
+**The session data is the source of truth (the owner, asked many times; restated 2026-11-06).** Every session is logged in one folder, every task in it is filed when asked and closed with an outcome and evidence, every cost is counted once (never duplicated, never omitted), and a session is complete only when its tasks and child sessions are all at 100%. `session.completion_score()` computes that from the tasks on demand; it is never stored by hand. Anything we can't find, count or score from the logs is a bug in the logging: fix the log, then the search ([sessions/doc/finding.md](sessions/doc/finding.md)).
+
 **Priorities now: [priority.md](priority.md)** — the ranked list every mastermind reads before it spawns. Who does what: [doc/readme-system.md](doc/readme-system.md) (roles, what each agent reads).
 
 `ai/` holds (1) the AI system's **records**: the session store, the asks ledger, the cards index, the usage logs, `index.json`; (2) the **classes that draw them**: `AISession/`, `AITask/`, `cards/`, `rail/`, `tasks/`; (3) docs about the AI system (`doc/`). A module that AI merely *uses* does not belong here. Servex (`Servex/`, [/framework/servex/](/framework/servex/)) runs the agents; each task is a folder with a JSONL log; node scripts, not memory, compute every number. The pages: [/framework/ai/](/framework/ai/) (the Inbox), [System tab](/framework/ai/system/).

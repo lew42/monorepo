@@ -178,3 +178,18 @@ Proved with two throwaway Haiku children, the item tool on real folders, and scr
 - **Completion reads.** A finished spawned session with no tasks reads `completion: 1` (state `complete`). A session with tasks reads the mean of its tasks' own completions, not done/total: `mastermind-voice-system` is 27 of 44 done, 5 stopped, and reads 0.614, not 27/39. Both are by design, but the page should say which it shows.
 - **Unlinked children are not shrinking.** `e00f55c9`: `counts.children` = `{entries: 288, unlinked: 345}` (the handover's 170 of 186 was an older, smaller count). An unlinked child is a registry row with no entry on its parent's record; run `node Server/ChildLinks.mjs --entries --names e00f55c9` to see the plan.
 - **Asks filed as tasks.** Over the last 7 days, of 170 tab session folders with prompts (8,367 user turns in their `cache.jsonl`, which overcounts), 3 filed any task (9 tasks). Of the 62 tabs that have owner `Prompt` lines in `session.jsonl` (67 prompts), 1 filed any. The law "file each ask" is almost never followed by tabs.
+
+## Open question: logging a computed value (the owner, 2026-11-06)
+
+`completion` is computed on demand, never stored: `{"completion":{}}` (a query) calls `completion_score()` and writes nothing. To keep a history of what it was, without a second source of truth, write a **reading** that replay skips:
+
+```js
+// the call: computes, logs nothing
+{ "completion": {} }
+// a reading: a past value, never replayed into state
+{ "measured": { "completion": 0.22 } }
+```
+
+Rejected: `{"completion": 0.22}` (reads like a call with an argument) and a magic prefix such as `=completion` (one more rule to remember). Not built yet.
+
+**Known gap:** a session with no tasks reads `1` when complete and `0` otherwise (see "Completion reads" above). The owner wants it to read **no score / needs review** instead: no tasks means the work was never recorded, not that it was done.
