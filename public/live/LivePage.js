@@ -110,7 +110,7 @@ export default class LivePage extends Page {
 	can_press(method){
 		for (let C = this.constructor; C && C !== Page; C = Object.getPrototypeOf(C))
 			if (typeof method === "string" && Object.hasOwn(C.prototype, method) && typeof C.prototype[method] === "function")
-				return !/^(constructor|render|route|listen|replaying|on_screen|can_press|voice_at|paint_voice|link_url)$/.test(method);   // the machinery is not a button
+				return !/^(constructor|render|route|listen|replaying|replay_line|caught|tab|on_screen|can_press|voice_at|paint_voice|link_url)$/.test(method);   // the machinery is not a button
 		return false;
 	}
 
@@ -121,10 +121,39 @@ export default class LivePage extends Page {
 	// True while a line is being replayed (opening the page), false for a line another writer just saved.
 	replaying(){ return Item.source === "replay"; }
 
-	// One bad line never blanks the page: it is skipped and logged, and the page draws the rest.
+	// ════ NOTHING BLANKS THE PAGE ═══
+	// One bad line (on load or arriving live) is skipped: the page draws the rest and an error card at the top says so.
 	replay_line(line){
 		try { return super.replay_line(line); }
-		catch (error){ console.error(`LivePage ${this.url ?? ""}: a line could not be applied and was skipped —`, line, error); }
+		catch (error){ this.caught(error, { where: "line", line }); }
+	}
+
+	// Every error the page caught (a line, a card, a part of the page): kept for its error card (LivePage.Errors), and one
+	// line in the shared error log, ext/ErrorLog: /framework/ai/errors/<date>.jsonl (one file a day), and /live/failures.jsonl,
+	// which the agent owning /live/ follows, so it hears of it. In node (the item tool replaying a page) only the console.
+	caught(error, { where, line, item } = {}){
+		const entry = { where, message: String(error?.message ?? error), id: item?.id, line: line === undefined ? undefined : JSON.stringify(line).slice(0, 2000) };
+		console.error(`LivePage ${this.url ?? ""}: a ${where} failed and was skipped —`, line ?? item?.id ?? "", error);
+		if (!this.caught_errors) Object.defineProperty(this, "caught_errors", { value: [], enumerable: false });
+		this.caught_errors.push(entry);
+		this.emit?.("caught", entry);
+		if (typeof document !== "undefined") import("/framework/ext/ErrorLog/ErrorLog.js")
+			.then(({ default: ErrorLog }) => ErrorLog.report(error, { module: "/live/", kind: "error", where: `LivePage ${where}`, url: this.url, id: entry.id, line: entry.line }))
+			.catch(() => {});
+	}
+
+	// Draw with fn; if it throws, the captor stack is put back as it was (a View that threw mid-render leaves its own on
+	// it), the error is caught (above), and a small error card stands where the part would be. `capture: false` views only:
+	// the caller places what this returns.
+	static safely(page, where, fn, item){
+		const depth = View.previous_captors.length, captor = View.captor;
+		try { return fn(); }
+		catch (error){
+			while (View.previous_captors.length > depth) View.restore_captor();
+			View.captor = captor;
+			page.caught(error, { where, item });
+			return new this.Broken({ item, where, error, capture: false });
+		}
 	}
 
 	// {"tab": {"name": "x", "tab": true}} is a pick (picks_of reads it from the raw lines): the folder x/ stays its own
@@ -229,15 +258,18 @@ export default class LivePage extends Page {
 		LivePage.shown = this;
 		if (this.view) return this.view;
 		const P = this.constructor;
+		// Each part is drawn on its own (safely): one that throws becomes a small error card, and the rest still draw.
+		const part = (where, Part, opts) => { const v = P.safely(this, where, () => new Part({ page: this, ...opts, capture: false })); View.captor?.append(v); };
 		this.view = div.c("page live-page", () => {
 			this.$alerts = div.c("live-alerts");
-			new P.Head({ page: this });
-			new P.Md({ item: this, key: "header", classes: "live-sub" });   // below the sticky header, so the header stays one size
-			if (this.settings_of) return void new P.Settings({ page: this, of: this.settings_of, at: this.at });
-			if (this.focus) new P.Focus({ page: this, item: this.focus });
-			new P.Main({ page: this, list: this.cards });
-			new P.Pages({ page: this });
-			new P.Foot({ page: this });
+			part("header", P.Head);
+			part("header", P.Md, { item: this, key: "header", classes: "live-sub" });   // below the sticky header, so the header stays one size
+			new P.Errors({ page: this });
+			if (this.settings_of) return void part("settings", P.Settings, { of: this.settings_of, at: this.at });
+			if (this.focus) part("card", P.Focus, { item: this.focus });
+			part("cards", P.Main, { list: this.cards });
+			part("pages", P.Pages);
+			part("footer", P.Foot);
 		});
 		this.listen();
 		this.paint_voice();
@@ -507,10 +539,38 @@ export default class LivePage extends Page {
 			const card = item => item instanceof PageLink || item.wire?.() === "part-card";
 			const draw = () => {
 				const members = list.items.filter(i => !i.transient);   // a transient item is the page's own code, never a card
-				DefaultView.place(this.el, members, drawn, item => new (card(item) ? P.Card : P.Block)({ page, item }));
+				DefaultView.place(this.el, members, drawn, item => P.safely(page, "card", () => new (card(item) ? P.Card : P.Block)({ page, item, capture: false }), item));   // one card that throws is an error card in its place
 				this.tc("is-empty", !members.length);
 			};
 			["add", "remove", "move", "order", "clear"].forEach(verb => list.on(verb, draw));
+			draw();
+		}
+	};
+
+	// A part or a card that threw while drawing (LivePage.safely): one small line where it would be. The error is logged.
+	static Broken = class LiveBrokenView extends View {
+		render(){
+			const { item, where, error } = this;
+			this.attr("role", "alert").attr("title", String(error?.stack ?? error));
+			if (item?.id) this.attr("id", item.id);
+			icon("error_outline");
+			span(`${item?.id ? `Card “${item.id}”` : `The ${where ?? "part"}`} could not be drawn: ${error?.message ?? error}`);
+		}
+	};
+
+	// Lines the page could not apply (replay_line): one small card at the top, kept in step as more arrive.
+	static Errors = class LiveErrorsView extends View {
+		render(){
+			const { page } = this;
+			const draw = () => {
+				const lines = (page.caught_errors ?? []).filter(e => e.where === "line");
+				this.tc("is-empty", !lines.length).empty(() => {
+					if (!lines.length) return;
+					icon("error_outline");
+					span(`${lines.length === 1 ? "One line" : `${lines.length} lines`} in this page's file could not be applied and ${lines.length === 1 ? "was" : "were"} skipped: ${lines.at(-1).message}`);
+				});
+			};
+			page.on?.("caught", () => queueMicrotask(() => this.el.isConnected && draw()));
 			draw();
 		}
 	};
