@@ -1,7 +1,10 @@
 # Git hooks
 
-Git hooks that every worktree shares. `.git/hooks/` isn't versioned, so the scripts live here and a small installer writes the hook file.
+Git hooks that every worktree shares. `.git/hooks/` isn't versioned, so the scripts live here and a small installer writes the hook files.
 
-- `install.mjs`: `node Server/git-hooks/install.mjs` writes the shared `.git/hooks/post-commit`. It refuses to overwrite a hook that isn't its own.
-- `post-commit.mjs`: appends `{"commit":"<12-char hash>"}` to the `task.jsonl` named by `SERVEX_TASK`, which `Servex/agents/Agents.js` `door()` sets for each agent with a task. It writes each hash once and never fails a commit.
-- `post-commit.test.mjs`: the test.
+- `install.mjs`: `node Server/git-hooks/install.mjs` writes the shared `.git/hooks/post-commit` and `.git/hooks/commit-msg`. It refuses to overwrite a hook that isn't its own, and is safe to run again. Once per clone (the hooks are shared by all its worktrees); no `core.hooksPath`, which would switch the installed hooks off.
+- `commit-msg.mjs`: adds a `Session: <uuid>` trailer to every commit message.
+- `post-commit.mjs`: appends `{"commit":{"hash":"<full>","what":"<subject>","files":[…],"branch":"…","worktree":"…"}}` to the committing session's record (`CommitLog.log`; `SessionTimelineRows` reads `hash` and `what`). Over 200 files it keeps the first 200 and adds `files_total`. It also appends `{"commit":"<12-char hash>"}` to the `task.jsonl` named by `SERVEX_TASK` (set by `Servex/agents/Agents.js` `door()`), unless that is the same file as the session record. Each hash is written once; it never fails a commit.
+- `CommitLog.mjs`: the session half. The session is `CLAUDE_CODE_SESSION_ID` (a Servex agent's and a VS Code tab's shell), else a `session` field on the worktree's row in `.worktrees.json` (nothing writes it yet), else none: it writes nothing and appends one `{at, fail:{kind:"commit",…}}` line to `public/framework/ai/sessions/failures.jsonl`. The record is the main checkout's (`git rev-parse --git-common-dir`), found by `SessionFolders.record_of` and `SessionRecord.log_file`, written through `RecordWriter.write` (Servex is the writer; a direct once-only append if it is down). Both hooks exit 0 always, within 8 seconds.
+- **Commits Servex makes itself** (`Servex/LogSweeper.js` sets `SERVEX_COMMIT_BY=LogSweeper`) belong to no session: both hooks skip them, with no line and no failure. `merge.mjs` makes its merge commit with `commit-tree`, which runs no hooks.
+- `post-commit.test.mjs`, `CommitLog.test.mjs`: the tests (the second runs a scratch repo with both hooks).

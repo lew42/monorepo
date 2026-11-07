@@ -83,6 +83,10 @@ answers `{ K, N_hours, slots: [...] }`. The AI 2 Live card reads it.
 
 **Known limit.** A pool worktree is branched from *committed* `compliance/dev`. Work that sits uncommitted in the main tree is not in it, so a quick fix to an uncommitted file cannot be made there. Commit `compliance/dev` often. (2026-09-25: `Pool.js` and `merge.mjs` themselves were not yet in `qf-1`.)
 
+## A slot someone holds is never removed (2026-11-06)
+
+`adopt()` used to await a ready slot's server while the fixer took that same slot with `take_sync()`, then removed the now-taken slot and emptied the fixer's folder (qf-1 15:43, qf-2 20:17). Now `take_sync()` returns nothing until `adopt()` is done, `adopt()` re-checks the slot's state after its await, and `remove(slot)` itself refuses (one `NOT removed` log line) a taken or held slot or one a live agent works in; only a caller that already owns the slot passes `{ force: true }`. `Fixer.take_slot()` drops a held slot whose folder lost its `.git` or that the pool no longer lists, and stops the fixer standing in it so `ensure()` restarts it in a fresh slot. Proof: `node Servex/pool-adopt-race.test.mjs`.
+
 ## A taken worktree stays taken
 
 **A worktree someone took is never reclaimed while anyone works in it, and never deleted while it holds work.**

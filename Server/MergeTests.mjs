@@ -44,9 +44,15 @@ export default class MergeTests {
 			} finally { MergeTests.remove(main, base_dir); }
 			else out.notes.push("tests: could not check out the merge base; failing tests are not compared");
 		}
+		/* The base runs only the failed tests, alone; the branch ran ~100 at once. A timing test (whisper-detach's 40 s model
+		 * load, 2026-11-06) then fails on the branch from load alone. So a regression is re-run alone on the branch before it refuses. */
+		const suspect = failed.filter(r => cached.get(r.file) === true).map(r => r.file);
+		const again = new Map();
+		if (suspect.length) for (const r of await mk(dir).run(suspect, { trigger: "merge-rerun" })) if (!r.timeout) again.set(r.file, r.ok);
 		for (const r of failed) {
 			const was = cached.get(r.file);
-			if (was === true) out.refused.push({ file: r.file, tail: r.tail });
+			if (was === true && again.get(r.file) === true) out.notes.push(`${r.file}: failed in the full branch run, passed re-run alone (load, not a regression); does not block`);
+			else if (was === true) out.refused.push({ file: r.file, tail: r.tail });
 			else out.notes.push(`${r.file}: fails on the branch; ${was === false ? "already failing on the base" : "no base result (new test, or the base run timed out)"}, so it does not block`);
 		}
 		return out;

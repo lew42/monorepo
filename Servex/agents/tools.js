@@ -8,6 +8,7 @@ import os from "node:os";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { agents as singleton } from "./Agents.js";
+import SpawnLog from "../SpawnLog.js";
 import { Policy } from "./policy.js";
 import { ops_tools } from "./ops.js";
 import { wake_tools } from "./Wakeups.js";
@@ -604,7 +605,11 @@ export function server(agents = singleton, ctx = { caller: null }, list = tools(
 		Object.fromEntries(Object.entries(t.inputSchema.properties).map(([k, p]) =>
 			[k, (t.inputSchema.required.includes(k) ? zod(p) : zod(p).optional()).describe(p.description ?? k)])),
 		async args => {
-			try { return { content: [{ type: "text", text: String(await t.handler(args, ctx)) }] }; }
+			try {
+				const who = ctx.caller, run = () => t.handler(args, ctx);   // every child process this tool starts is logged under the calling agent (Servex/SpawnLog.js)
+				const out = who ? await SpawnLog.within({ agent: who, session: agents.live?.get(who)?.session_id ?? null, why: t.name, dir: () => SpawnLog.dir_for(agents, who) }, run) : await run();
+				return { content: [{ type: "text", text: String(out) }] };
+			}
 			catch (e){ return { content: [{ type: "text", text: String(e.message || e) }], isError: true }; }
 		})) });
 }
