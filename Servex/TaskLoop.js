@@ -178,6 +178,7 @@ export default class TaskLoop {
      * "Done today" = the last line's `at` is today (local), so a restart never repeats it. Doc: public/live/truth/readme.md */
     truth_daily(){
         const file = path.join(this.root, "public", "live", "truth", "truth.jsonl");
+        if (!fs.existsSync(path.dirname(file))) return; // a test root (TaskLoop-steps.test) has no truth page: never spawn there, or the child holds its temp dir open (EPERM on rm)
         let at = 0; try { at = Date.parse(JSON.parse(fs.readFileSync(file, "utf8").trim().split("\n").pop()).truth.at); } catch {}
         if (this.date_id(new Date(at)) === this.date_id(new Date()) || this.truth_busy) return;
         this.truth_busy = true;
