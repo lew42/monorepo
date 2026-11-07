@@ -23,7 +23,7 @@ fs.mkdirSync(DIR, { recursive: true });
 fs.writeFileSync(FILE, JSON.stringify({ assign: { agent: "architect", title: "Process system" } }) + "\n");
 try {
 	await item({ tasks: { add: { title: "Answer a design question" } } }, "vscode-mastermind"); await tick();
-	ok(asked.length === 1 && asked[0].to === "architect" && asked[0].from === "vscode-mastermind" && /^[a-z][a-z0-9]{7}$/.test(asked[0].id), "a task another agent adds is a request: the receiver hears once (its id is 8 random characters)");
+	ok(asked.length === 1 && asked[0].to === "architect" && asked[0].from === "vscode-mastermind" && asked[0].id === "answer-a-design-question", "a task another agent adds is a request: the receiver hears once (its id is the slug of its title)");
 	const QID = asked[0]?.id;
 	ok(read(FILE).find(l => l.tasks?.add)?.tasks.add.from === "vscode-mastermind", "node stamps `from` on the logged item");
 

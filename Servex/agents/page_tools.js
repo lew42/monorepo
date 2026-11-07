@@ -237,18 +237,31 @@ function size_of(file){
 	return { file: path.relative(ROOT, file).replaceAll("\\", "/"), bytes: buf.length, lines, ...(buf.length > LARGE ? { large: true } : {}) };
 }
 
+/* DEFAULT ID = SLUG OF THE TITLE (the owner, 2026-11-06, /live/ task ox5xlkmz; this replaces the random default of
+ * core/Session/tasks/data-shapes/ids-and-paths.md §5 for anything with a title): an add with a `title` and no `id` gets
+ * Task.slug(title), then -2, -3 … on a clash among its siblings; no title keeps the short random id; old ids are untouched.
+ * §5's caveat still holds and is accepted: the id is minted once and never follows a rename (the title is what a reader
+ * sees, the id is an address). A slug that is a field name (TASK_KEYS: "tasks", "title" …) is suffixed too, so a dotted
+ * path never reads a field where a child was meant. Returns null when there is no title. */
+function title_id(title, taken){
+	if (typeof title !== "string" || !title.trim()) return null;
+	const base = Task.slug(title);
+	for (let n = 1; ; n++){ const id = n === 1 ? base : `${base}-${n}`; if (!TASK_KEYS.includes(id) && !taken(id)) return id; }
+}
+
 /* Every `add` in a delta, at any depth, gets an id if it brought none — the agent never
- * invents ids (the owner, 2026-10-09: "the tool stamps those"). */
-function stamp_ids(value, ids){
-	if (Array.isArray(value)) return value.map(v => stamp_ids(v, ids));
+ * invents ids (the owner, 2026-10-09: "the tool stamps those"). `scope` is the live node the
+ * delta lands on (null when unknown), walked alongside it so an add sees its siblings. */
+function stamp_ids(value, ids, scope = null, minted = new Set()){
+	if (Array.isArray(value)) return value.map(v => stamp_ids(v, ids, scope, minted));
 	if (!is_plain(value)) return value;
 	const out = {};
 	for (const [key, v] of Object.entries(value)){
 		if (key === "add" && is_plain(v)){
-			const id = v.id ?? Item.short_id();
-			ids?.push(id);
-			out[key] = { id, ...stamp_ids(v, ids) };
-		} else out[key] = stamp_ids(v, ids);
+			const id = v.id ?? title_id(v.title, id => minted.has(id) || !!scope?.find?.(id)) ?? Item.short_id();
+			minted.add(id); ids?.push(id);
+			out[key] = { id, ...stamp_ids(v, ids, null, minted) };
+		} else out[key] = stamp_ids(v, ids, scope == null ? null : hop(scope, key) ?? null, minted);
 	}
 	return out;
 }
@@ -1647,10 +1660,10 @@ async function run_item_now({ path: url, target, delta, read } = {}, ctx = {}, a
 			const home = typeof a.process === "string" || Array.isArray(a.steps) ? await process_home(path.dirname(at.file), a) : path.basename(at.file) === "improvements.jsonl" ? null : task_home(path.dirname(at.file), a, ctx.module_root, url);   // an improvement nests in its folder's list (mastermind role readme)
 			if (home?.why) return { ok: false, why: home.why };
 			if (home?.taken) return { ok: false, why: `a task "${home.slug}" already exists under ${home.list.module}/tasks/; nothing was written. Use the id "${home.free}" (or a different title), or work on the existing one.`, suggest: home.free };
-			// An agent-made id is 8 random characters, redrawn on a clash among siblings (ids-and-paths.md §5); never a slug of the title.
+			// An agent-made id is the slug of the title (title_id, above: -2, -3 on a clash among siblings), else 8 random characters, redrawn on a clash.
 			// An explicit id is kept, but a dot is refused (a dot is a path) and so is one a sibling already has.
 			const taken = id => root()._tasks?.find(id) || plan.some(p => p.id === id);
-			let id = home ? null : a.id !== undefined ? String(a.id) : Item.short_id();
+			let id = home ? null : a.id !== undefined ? String(a.id) : title_id(a.title, taken) ?? Item.short_id();
 			if (id && a.id === undefined) while (taken(id)) id = Item.short_id();
 			if (id && id.includes(".")) return { ok: false, why: `an id never holds a dot ("${id}"): a dot is a path. Nothing was written. Leave the id out and one is made for you.` };
 			if (id && a.id !== undefined && taken(id))
@@ -1725,7 +1738,9 @@ async function run_item_now({ path: url, target, delta, read } = {}, ctx = {}, a
 		// A fingerprint without costs: the full picture (task_state) reads every agent's spend, twice per write.
 		const print = t => ({ state: t.state, completion: t.completion, data: t.data, kids: every_task(t._tasks).map(k => [k.id, k.state, k.data]) });
 		const was = verb ? steady(print(root())) : null;
-		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: stamp(), ...(client ? { client } : {}) }), !!tasky);
+		// The node the delta lands on, so a titled add sees its siblings (only when there is an add: building it costs a replay).
+		let scope = null; if (JSON.stringify(body).includes('"add"')) try { scope = walk(root(), at.target) ?? null; } catch {}
+		put(nest(at.target, { ...stamp_ids(body, ids, scope), by, ts: stamp(), ...(client ? { client } : {}) }), !!tasky);
 		// THE REAL CHAT LIST (core/Session/Chat): a {place} with a cleaned text also updates that sentence's text on its Prompt, in place.
 		if (kind === "Session" && !at.target.length && is_plain(body.place)) try { for (const m of [ChatWriter.place(root(), body.place), ChatWriter.move_line(root(), body.place)]) if (m){ const keep = line; put({ ...m, by, ts: stamp(), ...(client ? { client } : {}) }); line = keep; } } catch (e) { console.error(`item: a {place} was written but not mirrored into the chat list (${at.file}): ${e.message}`); }
 		if (verb && steady(print(root())) === was) unchanged = `"${verb}" was written but changed nothing: the task (or the child it names) is in a state that refuses it, or no child has that id`;

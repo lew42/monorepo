@@ -102,6 +102,8 @@ A deep item needs one level of braces per hop. A **path key** says the same thin
 
 **The type letter.** It never causes a clash, because the random part carries the uniqueness, so two types sharing a letter is harmless. But it repeats the item's `type` field, and goes stale if an item changes class (a Prompt that becomes something else). Recommendation: no letter. The path already says what something is (`tasks/k2p9x4mq`).
 
+> **Changed 2026-11-06 (the owner, on /live/, task ox5xlkmz): default id = slug of the title.** The item tool now mints `Task.slug(title)` for an add with a title and no id (`-2`, `-3` on a clash among siblings; a field name is suffixed), and the random id below only when there is no title. The caveat in the table stays true and is accepted: an id never follows a rename. Detail: [Servex/doc/item-tool.md](/Servex/doc/item-tool.md), "Ids". The rule as it was:
+
 **The rule, then:**
 - **Code-made structure gets a fixed, readable name** (`ui`, `review`). Code reruns safely: an `add` of a name that exists does nothing.
 - **Anything a click or an agent makes gets a short random id,** minted once, at that moment.
