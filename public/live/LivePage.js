@@ -411,6 +411,7 @@ export default class LivePage extends Page {
 		render(){
 			const { item } = this, Own = item.constructor.View;
 			this.attr("data-kind", item.constructor.name);
+			if (Item.foreign(item)) return;   // a registered class that is not an Item ({"type":"View"}) draws itself
 			if (Own && Own !== Item.View && !PART_TYPES.includes(item.wire?.())) return void new Own({ item, subject: item });
 			new this.page.constructor.Md({ item, key: "text", classes: "live-sub" });
 		}
@@ -438,6 +439,7 @@ export default class LivePage extends Page {
 		render(){
 			const { page, item } = this, P = page.constructor, Own = item.constructor.View;
 			this.attr("id", item.id).attr("data-kind", item.constructor.name);
+			if (Item.foreign(item)) return;   // a registered class that is not an Item ({"type":"View"}) draws itself
 			if (P.kinds.has(item.constructor) || (Own && Own !== Item.View && !PART_TYPES.includes(item.wire?.())))
 				return void new Own({ item, subject: item });
 			new P.Heading({ tag: "h4", item, classes: "live-card-title" });

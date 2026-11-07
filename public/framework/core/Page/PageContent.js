@@ -1,4 +1,5 @@
 import List from "../List/List.js";
+import Item from "../Item/Item.js";
 import View, { div, h4, is } from "../View/View.js";
 import PageContentItem from "./PageContentItem.js";
 import PageCode from "./PageCode.js";
@@ -74,6 +75,8 @@ PageContent.View = class PageContentView extends PageContentItem.View {
 		let result;
 		this.list.items.forEach(item => {
 			if (result !== undefined) View.captor.append(result);
+			result = undefined;
+			if (Item.foreign(item)) return;   // a registered class that is not an Item ({"type":"View"}) draws itself, captured here
 			result = new item.constructor.View({ item }).result;
 		});
 		return result;
@@ -114,6 +117,7 @@ PageContent.View = class PageContentView extends PageContentItem.View {
 					});
 					return;
 				}
+				if (Item.foreign(item)) return;   // a registered class that is not an Item ({"type":"View"}) draws itself
 				if (Draw){
 					const made = new Draw({ item });
 					return made.result;

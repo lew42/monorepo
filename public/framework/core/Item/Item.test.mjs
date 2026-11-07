@@ -177,4 +177,14 @@ n++;
 	t(page.pages.find("kid") && page.data.pages === undefined, "(2) a page's {\"pages\":{\"add\":…}} line adds a sub-page on replay");
 }
 
+// A registered class that is not an Item (View): hydrate keeps a plain Item wearing its type, and it saves the same line back.
+{
+	await import("../List/List.js");
+	const page = Item.hydrate({ id: "p", content: [{ id: "hello-div", type: "View", content: "Hello world" }] });
+	const kid = page.content.items[0];
+	t(Item.types.has("View") && kid.constructor === Item && kid.wire() === "View", "a {type:\"View\"} member hydrates as a plain Item named View");
+	t(JSON.stringify(kid.toJSON()) === '{"type":"View","id":"hello-div","data":{"content":"Hello world"}}', "it saves back the same type and data");
+	t(Item.foreign(new Item({})) === null, "Item.foreign builds nothing for an ordinary Item");
+}
+
 console.log(`ok — ${n} assertions passed`);
