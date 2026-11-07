@@ -9,6 +9,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { agents as singleton } from "./Agents.js";
 import SpawnLog from "../SpawnLog.js";
+import ErrorLine from "../ErrorLine.js";
 import { Policy } from "./policy.js";
 import { ops_tools } from "./ops.js";
 import { wake_tools } from "./Wakeups.js";
@@ -610,7 +611,7 @@ export function server(agents = singleton, ctx = { caller: null }, list = tools(
 				const out = who ? await SpawnLog.within({ agent: who, session: agents.live?.get(who)?.session_id ?? null, why: t.name, dir: () => SpawnLog.dir_for(agents, who) }, run) : await run();
 				return { content: [{ type: "text", text: String(out) }] };
 			}
-			catch (e){ return { content: [{ type: "text", text: String(e.message || e) }], isError: true }; }
+			catch (e){ ErrorLine.note(agents, ctx.caller, e, { tool: t.name }); return { content: [{ type: "text", text: String(e.message || e) }], isError: true }; }   // the agent sees the error; its session log gets an {"error"} line (Servex/ErrorLine.js)
 		})) });
 }
 

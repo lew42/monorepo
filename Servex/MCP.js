@@ -103,6 +103,7 @@ export default class MCP extends Events {
         try {
             return this.text(await handler(args, ctx));
         } catch (e){
+            this.on_error?.(e, name, ctx);   // Servex sets it: an {"error"} line in the caller's session log (Servex/ErrorLine.js)
             return { content: [{ type: "text", text: String(e.message || e) }], isError: true };
         }
     }
