@@ -1,0 +1,111 @@
+diff --git a/public/live/LivePage.css b/public/live/LivePage.css
+index d3be6ed36..b3ba62437 100644
+--- a/public/live/LivePage.css
++++ b/public/live/LivePage.css
+@@ -188,6 +188,15 @@
+ 	.live-light-card { display: flex; align-items: center; gap: .6rem; }
+ 	.live-light-card .live-dot { width: 1.2em; height: 1.2em; }
+ 	.live-checklist { display: flex; flex-direction: column; gap: .5rem; }
++	.live-tasks { display: flex; flex-direction: column; gap: .5rem; }
++	.live-tasks.is-empty { display: none; }
++	.live-tasks-rows { display: flex; flex-direction: column; gap: .35rem; }
++	/* A plain checklist (TaskView rows, lighter): regular text, the box at the first line, no verb buttons; a done one dims. */
++	.live-tasks .task-row-head { align-items: flex-start; cursor: default; }
++	.live-tasks .task-row-title { font-weight: 400; line-height: 1.35; }
++	.live-tasks .task-state-icon { margin-top: .1em; }
++	.live-tasks .task-actions { display: none; }
++	.live-tasks .task-row:has(.is-complete) .task-row-title { opacity: .55; text-decoration: line-through; }
+ 	.live-checklist-rows { display: flex; flex-direction: column; gap: .35rem; }
+ 	.live-check { display: flex; align-items: center; gap: .6rem; cursor: pointer; }
+ 	.live-check input { width: 1.2em; height: 1.2em; margin: 0; flex: none; accent-color: #22c55e; }
+diff --git a/public/live/LivePage.js b/public/live/LivePage.js
+index 1165e0caf..e2d695976 100644
+--- a/public/live/LivePage.js
++++ b/public/live/LivePage.js
+@@ -6,6 +6,8 @@ import DefaultView from "/framework/ux/Content/Object/DefaultView.js";
+ import "/framework/core/Page/parts/kinds.js";   // part-card, part-text, part-heading, part-link… as their real classes
+ import PageLink from "/framework/core/Page/parts/PageLink.js";
+ import LiveChecklist from "./LiveChecklist.js";
++import Task from "/framework/core/Task/Task.js";
++import TaskView from "/framework/core/Task/TaskView.js";
+ import LiveLight from "./LiveLight.js";
+ import LiveButton from "./LiveButton.js";
+ import LiveCode from "./LiveCode.js";
+@@ -44,6 +46,9 @@ export default class LivePage extends Page {
+ 		super(...args);
+ 		this.screens ??= new LiveScreens({ owner: this, name: "screens" });   // saved screens (LiveScreen), opened at /live/<name>/
+ 		this.removed ??= new List({ owner: this, name: "removed" });   // what left content or screens, opened at /live/removed/
++		// The page's own tasks, drawn as a checklist above the cards (LivePage.Tasks): {"tasks": {"add": {title}}}, closed with
++		// {"tasks": {"<id>": {"complete": {outcome, evidence}}}}. Before this list, {"tasks": …} was plain data and each add replaced the last (2026-11-06).
++		if (!(this.tasks instanceof List)){ this.tasks = new Task.List({ owner: this, name: "tasks" }); this.tasks.of = Task; }
+ 		// What this page's card shows, and the top of the page itself (LivePage.Preview): {"preview": {"add": {…}}}. The own
+ 		// list hides core Page's preview(nav) method on a LivePage (so `{"preview": …}` reaches the list, not the method).
+ 		if (!(Object.hasOwn(this, "preview") && this.preview instanceof List)) this.preview = new LiveContent({ owner: this, name: "preview" });
+@@ -277,6 +282,7 @@ export default class LivePage extends Page {
+ 			if (this.settings_of) return void part("settings", P.Settings, { of: this.settings_of, at: this.at });
+ 			part("preview", P.Preview, { item: this.focus ?? this });   // the same preview its card shows, as the top of the page
+ 			if (this.focus) part("card", P.Focus, { item: this.focus });
++			if (!this.focus && !this.screen && !this.settings_of) part("tasks", P.Tasks);
+ 			part("cards", P.Main, { list: this.cards });
+ 			if (!this.focus && !this.screen && !this.settings_of) part("items", P.Items, { classes: "live-items" });
+ 			part("pages", P.Pages);
+@@ -793,6 +799,25 @@ export default class LivePage extends Page {
+ 	// `footer` (a line of text) when set; on /live/ and its sub-pages, the removed cards; on /live/ itself, the old views.
+ 	// The pages that are somewhere else (LivePage.pages_of): a link card each, under the content, in two groups: this
+ 	// page's pages, then its saved screens. Drawn by code from the folder and the screens, never written into page.jsonl.
++	// The page's tasks as one checklist card: a row per task (core/Task/TaskView.js, the one task row), done ones ticked, with
++	// a count in the title. Redraws when a task is added, removed or changes state; hidden while the page has none.
++	static Tasks = class LiveTasksView extends View {
++		render(){
++			const { page } = this, list = page.tasks;
++			this.ac("live-card live-tasks");
++			const $title = h4.c("live-card-title live-tasks-title"), $rows = div.c("live-tasks-rows");
++			const count = () => {
++				const all = [...list], done = all.filter(t => t.state === "complete").length;
++				this.tc("is-empty", !all.length);
++				$title.text(`Tasks · ${done} of ${all.length} done`);
++			};
++			const draw = () => { $rows.empty(() => { list.forEach(t => TaskView.row(t)); }); count(); };   // a block: forEach's return value would be drawn
++			["add", "remove", "move", "order", "clear"].forEach(verb => list.on(verb, () => View.frame(draw)));
++			page.on("change", count);   // a task's state change bubbles to the page, not its list; each row redraws itself (TaskView)
++			draw();
++		}
++	};
++
+ 	static Pages = class LivePagesView extends View {
+ 		render(){
+ 			const { page } = this, P = page.constructor;
+diff --git a/public/live/LivePage.test.mjs b/public/live/LivePage.test.mjs
+index 80f3f761b..4546d8531 100644
+--- a/public/live/LivePage.test.mjs
++++ b/public/live/LivePage.test.mjs
+@@ -111,6 +111,17 @@ try {
+ 	await go({ content: { lk: { description: "one line" } } });
+ 	ok((await read("content.lk")).data.description === "one line", "a link card keeps a description (its preview when the list is empty)");
+ 	ok((await ids("preview")).join() === "pp1", "the page's own preview list (it hides Page's preview(nav) on a LivePage)");
++	// 13. The page's own tasks: a real list, so a second add keeps the first (it was plain data and replaced it), closed by delta.
++	await go({ tasks: { add: { id: "t1", title: "First" } } });
++	await go({ tasks: { add: { id: "t2", title: "Second" } } });
++	ok((await ids("tasks")).join() === "t1,t2", "two tasks added are both kept");
++	await go({ tasks: { t1: { complete: { outcome: "done", evidence: "a test" } } } });
++	ok((await read("tasks.t1")).data.state === "complete", "tasks.<id>.complete closes one");
++	const tp = new LivePage({ title: "T", url: "/live/t/" }); let heard = 0;
++	tp.on("change", () => heard++);
++	tp.replay_line({ tasks: { add: { id: "x", title: "X" } } });
++	tp.replay_line({ tasks: { x: { complete: { outcome: "o", evidence: "e" } } } });
++	ok(tp.tasks.find("x").state === "complete" && heard > 0, "a task's state change reaches the page (the checklist redraws its count)");
+ 	console.log(`LivePage.test: ${n} passed`);
+ } finally {
+ 	fs.rmSync(DIR, { recursive: true, force: true });
+diff --git a/public/live/readme.md b/public/live/readme.md
+index 372a92096..ec7d7835b 100644
+--- a/public/live/readme.md
++++ b/public/live/readme.md
+@@ -25,6 +25,7 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
+ | blink / a 4 s banner | `{"flash":{}}` · `{"flash":"red"}` · `{"alert":"Look at this"}` |
+ | a status light | `{"content":{"add":{"type":"live-light","id":"build","label":"Build","on":true,"color":"green"}}}`, then `{"content":{"build":{"color":"red"}}}` |
+ | a checklist | `{"content":{"add":{"type":"live-checklist","id":"today","title":"Today","items":[{"id":"milk","text":"Buy milk"}]}}}`; tick `{"content":{"today":{"items":{"milk":{"done":true}}}}}`; flip `{"content":{"today":{"check":"milk"}}}`; add `{"content":{"today":{"items":{"add":{"id":"tea","text":"Tea"}}}}}` |
++| the page's own tasks | `{"tasks":{"add":{"id":"t1","title":"Ship it"}}}`; close one `{"tasks":{"t1":{"complete":{"outcome":"…","evidence":"…"}}}}`. Drawn as one checklist card above the cards, "Tasks · 2 of 8 done", ticking live ([core/Task](/framework/core/Task/) rows, `LivePage.Tasks`). Hidden while there are none. |
+ | a button | `{"content":{"add":{"type":"live-button","id":"b1","label":"Flash red","method":"flash","args":"red"}}}`; press `{"content":{"b1":{"press":{}}}}` |
+ | buttons inside a card | add them to the card's own list: `{"content":{"<card>":{"content":{"add":{"type":"live-button","id":"yes","label":"Yes","method":"alert","args":"Yes"}}}}}` (or write to `/live/<card>/` with the plain `content.add`). They draw in one row on the card; tapping one presses it, tapping elsewhere opens the card |
+ | a code block | `{"content":{"add":{"type":"live-code","lang":"js","code":"const sum = (a, b) => a + b;"}}}`; `lang` is js, json, css, html or sh (default js), highlighted by `ext/highlight`; optional `title` and one-line `caption`. **Use it for any code in a card. Keep each line of an example under about 40 characters, because that is what fits on a phone, and put each chained call (`.map`, `.filter`, `.reduce`) on its own line.** A file view (settings → a file) can scroll; an example should fit |

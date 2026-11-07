@@ -1,0 +1,10 @@
+import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
+const [,, url, out, w = "400"] = process.argv;
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: +w, height: 900 } });
+const logs = []; p.on("console", m => ["error","warning"].includes(m.type()) && logs.push(m.type()+": "+m.text().slice(0,200))); p.on("pageerror", e => logs.push("pageerror: "+String(e).slice(0,300)));
+await p.goto(url, { waitUntil: "networkidle" }); await p.waitForTimeout(4000);
+console.log(await p.evaluate(() => [...document.querySelectorAll(".live-tasks")].map(t => ({ cls: t.className, title: t.querySelector(".live-tasks-title")?.textContent, rows: t.querySelectorAll(".task-view").length, inActive: !!t.closest(".active-page") }))));
+await p.screenshot({ path: out });
+console.log(await p.evaluate(() => { const t = document.querySelector(".live-tasks"); return t && { title: t.querySelector(".live-tasks-title")?.textContent, rows: t.querySelectorAll(".task-view").length, w: t.getBoundingClientRect().width, top: Math.round(t.getBoundingClientRect().top) }; }));
+console.log(logs.join("\n"));
+await b.close();

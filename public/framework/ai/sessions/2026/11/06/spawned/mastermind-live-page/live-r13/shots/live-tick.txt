@@ -1,0 +1,6 @@
+# tick.mjs on worktree live-r13, scratch page with the 8 /live/ task lines (one completed); lines appended while the page stays open
+before: Tasks · 1 of 8 done | checked rows: 1 | rows: 8
+after complete: Tasks · 2 of 8 done | checked rows: 2 | rows: 8
+after add: Tasks · 2 of 9 done | checked rows: 2 | rows: 9
+404 http://live-r13.localhost/framework/ai/page-work.json
+404 http://live-r13.localhost/framework/ai/tasks.json

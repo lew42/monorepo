@@ -1,0 +1,14 @@
+import fs from "node:fs";
+import { chromium } from "file:///C:/Users/mike/AppData/Roaming/npm/node_modules/playwright/index.mjs";
+const F = "C:/Code/lew42/worktrees/live-r13/public/live/zzprobe/page.jsonl";
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 400, height: 900 } });
+const fails = []; p.on("response", r => r.status() >= 400 && fails.push(r.status() + " " + r.url()));
+await p.goto("http://live-r13.localhost/live/zzprobe/", { waitUntil: "networkidle" }); await p.waitForTimeout(3000);
+const state = () => p.evaluate(() => { const t = document.querySelector(".active-page .live-tasks"); return t.querySelector(".live-tasks-title").textContent + " | checked rows: " + t.querySelectorAll(".task-state-icon.is-complete").length + " | rows: " + t.querySelectorAll(".task-view").length; });
+console.log("before:", await state());
+fs.appendFileSync(F, JSON.stringify({ tasks: { czuky0s1: { complete: { outcome: "o", evidence: "e" } } }, by: "probe", ts: new Date().toISOString() }) + "\n");
+await p.waitForTimeout(2500); console.log("after complete:", await state());
+fs.appendFileSync(F, JSON.stringify({ tasks: { add: { id: "new1", title: "A ninth task" } }, by: "probe", ts: new Date().toISOString() }) + "\n");
+await p.waitForTimeout(2500); console.log("after add:", await state());
+console.log(fails.join("\n"));
+await b.close();
