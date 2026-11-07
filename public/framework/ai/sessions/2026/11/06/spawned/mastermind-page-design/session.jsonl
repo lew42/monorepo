@@ -259,3 +259,6 @@
 {"action":{"at":"2026-11-06T21:07:23-06:00","did":"edit","files":["Servex/readme.md"]},"by":"ledger","ts":"2026-11-07T03:07:23.601Z"}
 {"log":{"at":"2026-11-06T21:05:00-06:00","msg":"Recorded the owner's probable direction (from voice-app; doc only, not built): SDK agents run in the project's dev server, which holds one item cache; Servex becomes a manager; each project gets its own MCP. Written in Servex/readme.md and ai/agents.md with tradeoffs, open questions and the alternative (Servex as the only cache). The browser's fallback that skips validation is confirmed at Store.js warned_no_servex. 0e0f56dc9."}}
 {"log":{"at":"2026-11-06T21:11:51-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-07T03:11:51.479Z"}
+{"log":{"at":"2026-11-06T21:21:40-06:00","msg":"task-loop status ask 1: asked mastermind-page-design","ask":1}}
+{"log":{"at":"2026-11-06T21:21:44-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-07T03:21:44.006Z"}
+{"log":{"at":"2026-11-06T21:18:00-06:00","msg":"Idle. Nothing is in flight. Everything asked today has landed and been pushed, the probable-direction doc last (0e0f56dc9). Waiting on new asks and on the held Servex restart (voice-app picks the time). No wake-up set."}}
