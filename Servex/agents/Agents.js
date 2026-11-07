@@ -338,13 +338,13 @@ export class Agents {
 			? `[Your session is ${session_id}; ${Agents.folder_line(session_id)}]\n` : "");
 	}
 
-	/* Where an agent's session lives, in one sentence: its dated folder, never /framework/ai/sessions/<uuid>/ (that url only
+	/* Where an agent's session lives, in one sentence: its dated folder, the only address (the bare-uuid url only
 	 * redirects; ai/sessions/doc/one-folder.md). The SessionStart hook (.claude/hooks/session-page.mjs) prints the same. */
 	static folder_line(session_id){
 		const store = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../public/framework/ai/sessions");
 		let dir = null; try { dir = SessionFolders.at(store).record_of(session_id) ?? DatedFiles.sessions.session_dir(session_id); } catch {}
 		const url = dir ? "/framework/ai/sessions/" + path.relative(store, dir).split(path.sep).join("/") + "/" : null;
-		return url ? `its one folder is ${url} (pass it as \`path\` to page_set, page_add, page_call and page_read; /framework/ai/sessions/<uuid>/ is only a redirect, never a folder).`
+		return url ? `its one folder is ${url} (pass it as \`path\` to page_set, page_add, page_call and page_read; it is the only address, never make a folder for the bare id).`
 			: "omit `path` in the page tools to mean your own page.";
 	}
 

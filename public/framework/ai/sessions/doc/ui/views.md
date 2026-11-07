@@ -25,7 +25,7 @@ Dictated in VS Code tab 7efd07d5. Design input for the page mastermind; generali
 <!-- merged from session-cards.md (original kept in archive/) -->
 ## Cards the AI posts to a session page
 
-A session page (`/framework/ai/sessions/<id>/`) shows the live conversation drawn by `ext/Chat`. A card the AI posts appears in that conversation, at its time, as it arrives.
+A session page (`/framework/ai/sessions/YYYY/MM/DD/<folder>/`) shows the live conversation drawn by `ext/Chat`. A card the AI posts appears in that conversation, at its time, as it arrives.
 
 **Design choice.** A session already has its own folder with a `page.jsonl`, written by the `page_add` tool. So a card is one `page_add` call on that page, not a new store (a separate `cards.jsonl` was rejected: a second card system, law 6):
 
@@ -48,7 +48,7 @@ Every page under the Sessions tab is a class that extends `Page`. `page.js` only
 | URL | Template | What it shows |
 |---|---|---|
 | `/framework/ai/sessions/` | [`AISessionsPage`](../AISessionsPage.js) | The in-flight strip, the grid, the list of every session |
-| `/framework/ai/sessions/<id>/` | [`AISessionDetail`](../AISessionDetail.js) | One session: cost, model, tokens, trace. Opens in the right-hand half. |
+| `/framework/ai/sessions/YYYY/MM/DD/<folder>/` | [`AISessionDetail`](../AISessionDetail.js) | One session: cost, model, tokens, trace. Opens in the right-hand half. |
 | `/framework/ai/sessions/doc/` | `AISessionsPage.docs_page()` | The priority list |
 | `/framework/ai/sessions/readme/` | `AISessionsPage.docs_page()` | This module's readme |
 

@@ -80,6 +80,8 @@ Session logs only grow, so old versions of them add nothing; history is for code
 
 One event, one line, **one fixed first key**, plus `by` and `ts`. The same event is always written the same way, whoever writes it.
 
+**A session has one address: its dated folder** (`public/framework/ai/sessions/YYYY/MM/DD/<folder>/`, url `/framework/ai/sessions/YYYY/MM/DD/<folder>/`). Search, link and write there. The bare `/framework/ai/sessions/<uuid>/` url is not an address: it is a browser-only redirect kept for old links, and there is never a folder behind it.
+
 ```js
 { "sentences": [{ "n": 1, "text": "…" }] }
 { "queued": { "agent": "x", "commit_pct": 82 } }

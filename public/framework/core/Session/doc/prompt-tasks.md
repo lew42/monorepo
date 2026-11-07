@@ -1,6 +1,6 @@
 # Owner prompts become tasks on the session page
 
-**What it does.** When you type a prompt in a VS Code tab, each piece of work in it shows up a few seconds later as an **open task** (idle, waiting on nobody) on that session's page (`/framework/ai/sessions/<id>/`, Conversation tab). Questions and plain statements are not tasks: they stay on the prompt's refined card (the Coverage tab). The owner asked for it on 2026-10-22: "owner prompts become tasks on the session page in real time".
+**What it does.** When you type a prompt in a VS Code tab, each piece of work in it shows up a few seconds later as an **open task** (idle, waiting on nobody) on that session's page (`/framework/ai/sessions/YYYY/MM/DD/<folder>/`, Conversation tab). Questions and plain statements are not tasks: they stay on the prompt's refined card (the Coverage tab). The owner asked for it on 2026-10-22: "owner prompts become tasks on the session page in real time".
 
 ![Two proposed tasks on a session page at 1200 px](shots/session-tasks-1200.png) · [at 400 px](shots/session-tasks-400.png)
 

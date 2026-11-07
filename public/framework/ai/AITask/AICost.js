@@ -158,7 +158,7 @@ export default class AICost {
 	static STALE_MS = 30000;
 	static asking = new Map();   // folder url -> the answer's promise while it is on its way, so two surfaces asking at once send one request
 
-	/** The summary answer for one folder (or `/framework/ai/sessions/<uuid>/`): the cached one while fresh, else one new ask. */
+	/** The summary answer for one folder (or `/framework/ai/sessions/YYYY/MM/DD/<folder>/`): the cached one while fresh, else one new ask. */
 	static summary(base){
 		const hit = AICost.known.get(base);
 		if (hit && Date.now() - hit.at <= AICost.STALE_MS) return Promise.resolve(hit.answer);

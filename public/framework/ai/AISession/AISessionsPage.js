@@ -749,7 +749,7 @@ export default class AISessionsPage extends Page {
 		return super.child(name, levels);
 	}
 
-	/** `/framework/ai/sessions/<id>/` is one session's page; `doc` and `readme` are this page's own docs. */
+	/** `/framework/ai/sessions/YYYY/MM/DD/<folder>/` is one session's page; `doc` and `readme` are this page's own docs. */
 	route(id){
 		if (id.includes(".")) return;   // a stray asset request, not a session id
 		if (id === "doc" || id === "readme") return this.docs_page(id);
