@@ -173,16 +173,16 @@ export default class Session extends Task {
 	   `re` (the chat line's `at`; for a VS Code prompt, the `at` the hook gave its counted Prompt). The turn is ONE Prompt task, id Session.turn_id(re)
 	   (the hook's content Prompt when it is there, else made here in `tasks`), open until something is filed under it; each section item is a child task
 	   citing sentences (`a<n>`, the paragraph "a" below). A later refined line for the same turn replaces the sentences and adds the items it lacks. Code
-	   writes the first line (Server/Ask.mjs, sentences only), the refiner the sections. Old refined lines with sections derive their tasks the same way. */
+	   writes the first line (Server/Ask.mjs, sentences only), the refiner the sections. A refined line WITHOUT `v: 2` (every line written before 2026-11-06) never makes a turn; it only fills one that already exists. */
 	static turn_id(at){ let h = 5381; for (const c of String(at)) h = ((h * 33) ^ c.codePointAt(0)) >>> 0; return "t" + h.toString(36); }
-	static turn_title(text){ const t = String(text).replace(/s+/g, " ").trim(); return t.length > 70 ? t.slice(0, 69).trimEnd() + "…" : t; }
+	static turn_title(text){ const t = String(text).replace(/\s+/g, " ").trim(); return t.length > 70 ? t.slice(0, 69).trimEnd() + "…" : t; }
 	refine_turn(r){
 		if (!r.re) return this;
 		const id = Session.turn_id(r.re), texts = (r.sentences ?? []).map(s => typeof s === "string" ? s : s?.text).filter(t => typeof t === "string" && t.trim());
 		let turn = this._tasks?.find(id) ?? this._content?.find(id);
 		if (!turn){
-			if (!texts.length) return this;
-		const text = texts.join(" ");
+			if (r.v !== 2 || !texts.length) return this;   // only a line the new writer stamped (Server/Ask.mjs) makes a turn: older lines replay untasked
+			const text = texts.join(" ");
 			this.tasks.add({ type: "Prompt", id, text, via: r.via ?? "unknown", title: Session.turn_title(text), requested_at: r.re });
 			turn = this._tasks.find(id);
 		}

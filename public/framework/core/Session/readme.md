@@ -78,11 +78,11 @@ class Session extends Task                       // ../Task/Task.js (Task extend
 ## Asks: the owner's turns (every channel)
 
 Every owner prompt, on every channel, leaves the same line on that session's record, written by code:
-`{"refined":{"at","re":<the turn's at>,"sentences":[{n,text}],"sections":[],"via","by":"code"}}`.
-- **Writer: `Server/Ask.mjs`** (`Ask.write`, `Ask.refined`). It skips empty text, slash commands and harness turns, withholds anything that looks like a secret, and splits the words with ext/Refine `quick_clean` (no AI). Callers: the VS Code hook (`.claude/hooks/prompt-relay.mjs`, also adds the counted `Prompt` item that is the turn), `Sessions.say` (SDK agents, V1, the phone sheet), `RemoteMCP.record` (Claude-app voice). The browser voice model writes the same line with sections.
-- **Reader: `Session.refine_turn`** (called from `apply_line`). A turn is one open `Prompt` task, id `Session.turn_id(re)` (the same hash as `Ask.turn_id`); each `sections` item becomes a child task `<turn>-<item id>` with `cites` ("a1 a2") and `section`. A turn with no sections is one open item. It counts until an agent closes it with an outcome, or `{"<id>":{"no_action":"why"}}`.
+`{"refined":{"at","re":<the turn's at>,"sentences":[{n,text}],"sections":[],"via","by":"code","v":2}}`, `at` local time with ms and offset on every channel.
+- **Writer: `Server/Ask.mjs`** (`Ask.write(text, via, re, put, opts)`: skip, redact, shape and the write, for every channel; `put` is that channel's own door, sync or async). It skips empty text, slash commands and harness turns, withholds anything that looks like a secret, and splits the words with ext/Refine `quick_clean` (no AI). Callers: the VS Code hook (`.claude/hooks/prompt-relay.mjs`, also adds the counted `Prompt` item that is the turn), `Sessions.say` (SDK agents, V1, the phone sheet), `RemoteMCP.record` (Claude-app voice). The browser voice model writes the same line with sections.
+- **Reader: `Session.refine_turn`** (called from `apply_line`). A turn is one open `Prompt` task, id `Session.turn_id(re)` (`Session.turn_id` is the only copy; `Ask` calls it); each `sections` item becomes a child task `<turn>-<item id>` with `cites` ("a1 a2") and `section`. A turn with no sections is one open item. It counts until an agent closes it with an outcome, or `{"<id>":{"no_action":"why"}}`.
 - **Sections for a VS Code turn** come from Echo (`Servex/agents/Echo.js`), which writes a second `refined` line with the same `re`. Echo runs only when `SERVEX_ECHO=on`.
-- A later `refined` line with the same `re` adds its items; ids already filed are kept. Old lines replay as before.
+- A later `refined` line with the same `re` adds its items; ids already filed are kept. Only a line stamped `v: 2` by the writer makes a turn; older `refined` lines make no task (they still fill a turn that exists).
 - Search: `git grep '"sentences":'`. Tests: `node Server/Ask.test.mjs`, `node public/framework/core/Session/Session.test.mjs`, `node Servex/ext/remote/RemoteMCP.test.mjs`.
 
 ## Session entries

@@ -100,8 +100,8 @@ const T1 = "2026-11-06T10:01:00.000Z", T2 = "2026-11-06T10:02:00.000Z", T3 = "20
 const TURN_LINES = [
 	{ session: { id: "as1", kind: "voice", at: "2026-11-06T10:00:00Z" } },
 	{ chat: { at: T1, from: { kind: "owner" }, via: "voice", text: "do the thing. then the other." } },   // a chat line alone is not a task (old history)
-	{ refined: { at: T1, re: T1, sentences: [{ n: 1, text: "Do the thing." }, { n: 2, text: "Then the other." }], sections: [], via: "voice", by: "code" } },
-	{ refined: { at: T2, re: T2, sentences: [{ n: 1, text: "Build it." }], sections: [], via: "vscode", by: "code" } },
+	{ refined: { at: T1, re: T1, sentences: [{ n: 1, text: "Do the thing." }, { n: 2, text: "Then the other." }], sections: [], via: "voice", by: "code", v: 2 } },
+	{ refined: { at: T2, re: T2, sentences: [{ n: 1, text: "Build it." }], sections: [], via: "vscode", by: "code", v: 2 } },
 	{ refined: { at: T2, re: T2, sentences: [{ n: 1, text: "Build it." }], sections: [{ id: "sec1", heading: "Build", items: [{ id: "sec1-i1", text: "Build the page", cites: [1] }] }] } },
 ];
 const turn = (s, at) => s.tasks.find(Session.turn_id(at));
@@ -113,8 +113,14 @@ check("turn: section items become child tasks citing sentences; the same item tw
 	const s = Session.replay([...TURN_LINES, TURN_LINES[4]]), t = turn(s, T2), kids = [...t.tasks];
 	return kids.length === 1 && kids[0].get_one("title") === "Build the page" && kids[0].get_one("cites") === "a1" && kids[0].get_one("section") === "Build" && kids[0].id === Session.turn_id(T2) + "-sec1-i1";
 });
-const ASK = (await import("../../../../Server/Ask.mjs")).default;
-check("turn: ids are the same on every replay, and Server/Ask.mjs makes the same one", () => Session.turn_id(T1) === turn(Session.replay(TURN_LINES), T1).id && Session.turn_id(T1) === ASK.turn_id(T1));
+check("turn: ids are the same on every replay", () => Session.turn_id(T1) === turn(Session.replay(TURN_LINES), T1).id);
+check("turn: a title keeps its words and collapses whitespace (an s is not a space)", () => Session.turn_title("Make  it \t blue, please") === "Make it blue, please" && turn(Session.replay(TURN_LINES), T1).get_one("title") === "Do the thing. Then the other.");
+check("turn: old refined lines (no v: 2) replay as before: no task, nothing filed; they still fill a turn that exists", () => {
+	const old = { refined: { at: T1, re: T1, sentences: [{ n: 1, text: "Do it." }], sections: [{ id: "s", heading: "H", items: [{ id: "s-i", text: "Do", cites: [1] }] }], via: "voice" } };
+	const bare = Session.replay([{ session: { id: "o1", kind: "voice", at: "2026-11-06T10:00:00Z" } }, old]);
+	const made = Session.replay([{ session: { id: "o2", kind: "voice", at: "2026-11-06T10:00:00Z" } }, TURN_LINES[2], old]);
+	return bare.tasks.length === 0 && bare.completion_score() === 0 && turn(made, T1).tasks.length === 1;
+});
 check("turn: an open turn holds the session below 1 and counts in the tally; no_action settles its score", () => {
 	const s = Session.replay(TURN_LINES.slice(0, 3));
 	const open = s.completion_score() === 0 && s.tally().open === 1 && s.tally().created === 1;

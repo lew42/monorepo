@@ -26,6 +26,8 @@ Not registered yet: tunnels, whisper-server and the recite python process (the i
 
 **When nobody closes it** the sweep catches the rest. `Servex.reaper()` runs `Lifecycle.sweep()` on every heartbeat and always appends one `lifecycle-sweep` line to the `servex` log (what it closed, what it found gone, what it kept). Its rules (`Lifecycle.why()`): a task that landed or whose agent is dead owns nothing; a logged browser whose `launcher` pid is gone is closed; a ready pool slot holds no browser or health watcher (`kept()` checks the slot's pool file, not the `qf-N` path); a worktree folder git does not list is moved aside by the 10-minute `Worktrees.tick`.
 
+**Why the sweep once closed nothing (found 2026-11-06: `closed 0, kept 726`).** 717 of the 726 were dormant agent rows, which run nothing, and the sweep could not tell which belonged to a landed task: `recent_tasks()` only walked `ai/YYYY-MM-DD` and `ai/Y/M/D`, never `ai/sessions/Y/M/D` where tasks live now, so no agent mapped to a task. It now walks `sessions/` too. A dormant one-pass agent (reviewer, clarity, checker, critic, fork) is closed like an idle one: its registry `turns` reads 0, so `turns > 0` is not asked of a dormant row. `sweep()` returns the dormant rows apart (`dormant`) and `kept` lists only what is really running or protected. Dry run before: 0 to close, 726 kept; after: 47 to close, 7 kept.
+
 **A browser cannot outlive its launcher.** `Server/Browser.mjs` starts `Server/browser-watchdog.mjs <launcher pid> <chrome pid>` detached; it kills Chromium the moment the launcher is gone, even after a hard kill that skips `process.on("exit")`. `LEW_NO_BROWSER_WATCHDOG=1` turns it off (the test does, to prove the sweep rule alone). Closing a browser also ends its launcher (`Lifecycle.kill`), so a script that held the browser cannot keep a worktree folder locked; a launcher that looks like Servex, claude, an MCP server or VS Code is never killed.
 
 **Why the list was empty inside Servex (found 2026-11-05).** `Crumbs.js` wraps every `child_process` function to drop a breadcrumb, and the wrapper lost Node's `util.promisify.custom` hook, so `promisify(execFile)` resolved a bare string and `.stdout` was `undefined`: every listing inside the live Servex came back empty (a plain script was fine, which hid it). `Crumbs.js` now copies the hook back; `node Servex/Crumbs.test.mjs` proves it. Until then the sweep could not see any process, and wrote `found gone` for everything it had logged.
@@ -121,6 +123,23 @@ pagefile. Free RAM alone can look fine while the pagefile is almost full; commit
 number that actually explains thrashing. Read by the same PowerShell loop as everything else,
 once a tick.
 
+## Early relief at 70%
+
+[`Relief.js`](../Relief.js) acts before the machine runs out of memory: Global's spawn gate only slows new work at `SERVEX_COMMIT_HIGH_PCT` (80), and Windows starts failing allocations near 100. Once a minute it reads `commit_mb / commit_limit_mb` from the monitor. When that is at or above `SERVEX_RELIEF_PCT` (default 70), and the last run was 15 or more minutes ago, it runs, in this order (each step is a `relief-step` line on the `processes` log):
+
+1. `Lifecycle.sweep()`: close what landed or dead tasks still own.
+2. Stop the dev servers of finished worktrees, through `Worktrees.stop_idle` (the same call the worktree tick makes; nothing copied).
+3. Put idle agents to sleep with their own `sleep` method (`SERVEX_RELIEF_IDLE_MIN`, default 10 minutes idle). Never the front desk, the voice seats (`session-fast`, `session-smart`), the standing fixer, an agent whose `dormant_after` is `"session"`, a parent with a child still working, or anything that is not `idle`. The owner's own tabs are not agents, so they are never in the list.
+4. Count what the monitor already reaped as orphans (`procmon.reaped`).
+
+It then writes one line, `{type: "relief", commit_pct, closed, dormant, reaped, freed_mb_estimate}`. If the commit is still at the line after the run, it posts ONE `owner_note` (kind `risk`) per episode: the five biggest apps that are **not ours** (the monitor's `other`, grouped by exe name), each with its MB, as a suggestion to close. It never ends any of them, and never ends anything itself: only the three owners above close things. The note is re-armed only when the commit falls below 65%. `SERVEX_NO_RELIEF=1` boots without it.
+
+The rule is the exported pure `decide({commit_pct, last_run, armed})`. Proof: `node Servex/Relief.test.mjs`.
+
+## A spinning idle agent
+
+An agent whose state is `idle` should cost nothing, yet one was measured burning a core. The monitor (`Processes.watch_spin`) watches every real agent: idle and over `SERVEX_SPIN_CORE_PCT` (default 50) percent of one core for `SERVEX_SPIN_MS` (default 5 minutes) in a row, with the same pid throughout, makes it dormant (`Agent.sleep("spinning")`; its session stays and the next message wakes it) and writes `{type: "spinning-idle", id, pid, cpu, minutes, action}` on the `processes` log. A `working` agent never counts. `SERVEX_SPIN_DORMANT=0` only logs. The owner's own tabs are not agents and are never touched. Proof: `node Servex/processes.test.mjs`.
+
 ## Running means a real process
 
 Servex starts every agent's claude.exe itself (`Agents.spawn_claude`, through the SDK's `spawnClaudeCodeProcess`), so it knows the PID from the first moment:
@@ -184,6 +203,30 @@ the worktree it watches, so neither stop is ever a guessed pid. One `servex` log
 (`type: "worktrees"`) per worktree actually stopped; the running total is `summary().
 servers_stopped`. `SERVEX_WORKTREE_STOP_SERVERS=0` turns this off (the removal flow above is
 unaffected).
+
+## Who started this pid
+
+Every async child process Servex starts (`spawn`, `exec`, `execFile`, `fork`, plain or promisified) gets a start line the moment it has a pid, and an exit line when it ends. [`Crumbs.js`](../Crumbs.js) hooks `child_process` and calls [`SpawnLog.watch`](../SpawnLog.js); `SpawnLog.js` holds the AsyncLocalStorage that says which agent's tool call (or which agent's own claude.exe) started it. Writes never throw and never slow the caller.
+
+```json
+{"pid":12345,"agent":"minion-x","session":"<uuid>","cmd":"git status --short","why":"shell","at":"…","by":"servex"}
+{"pid_exit":12345,"code":0,"signal":null,"at":"…","by":"servex"}
+```
+
+`pid` is the first key, so `"pid":12345` finds the start line only and `"pid_exit":12345` the exit. `cmd` is cut at 300 characters; `why` is the tool name (`shell`, `quick_fix`, …) or `claude.exe`, or `spawn:<program>` when there is no tool.
+
+- **Called for an agent:** the line goes to that agent's session log (`session.jsonl`, else `task.jsonl`). A claude.exe also goes to its parent's log, so a mastermind sees its children's pids.
+- **Called by Servex itself** (no agent): the `spawns` log, `%LOCALAPPDATA%/lew42/servex/logs/spawns.jsonl`. Four pollers are skipped there by name: the process-table query (`Get-CimInstance Win32_Process`), `netstat`, `git worktree list` and `git rev-parse --verify --quiet`. Measured over 10.6 h on 2026-11-06: 7,724 async spawns, about 12 a minute; those four were about 9 of the 12, so the `spawns` log gets about 3 start lines a minute (plus an exit line each).
+- **Not logged:** sync spawns (`spawnSync`, `execFileSync`, `execSync`: no live pid to report, and they block for milliseconds); and anything Servex did not start itself.
+
+Finding things: [How to find things](/framework/ai/sessions/#how-to-find-things).
+
+Limits:
+- The Bash tool's children of a claude.exe (the commands an agent types) are started by claude.exe, not by Servex, so they get no line.
+- `MCP.call` (the HTTP door) carries no agent, so its spawns land in `spawns`.
+- ⬜ A PostToolUse hook could write a line for those Bash-tool children too; not built.
+
+The queue is loud in the same way: `Servex.hold()` appends `{"queued":{"agent","reason","commit_pct","page_file_mb"}}` to the parent's session log, and `drain()` appends `{"started":{"agent","waited_s"}}`. `page_file_mb` is null until the process monitor reads the page file. A queue entry restored after a restart writes no second `queued` line. Tests: `Servex/SpawnLog.test.mjs`, `Servex/Gate-loud.test.mjs`.
 
 ## Cost
 

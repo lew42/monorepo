@@ -261,7 +261,7 @@ export default class Lifecycle {
 				add({ kind: "browser", id: `chrome:${p.pid}`, pid: p.pid, path: null, owner_task: null, owner_agent: null, born: p.born, logged: false });
 		const agents = this.all_agents = await this.agents();
 		for (const a of agents) if (a.state === "idle" || a.state === "dormant")   // a dormant agent of a landed task is closed too (dormant-idle, 09-30)
-			rows.push({ kind: "agent", id: a.id, role: a.role, parent: a.parent ?? null, turns: a.turns, path: a.cwd, owner_agent: a.parent ?? null });
+			rows.push({ kind: "agent", id: a.id, role: a.role, state: a.state, parent: a.parent ?? null, turns: a.turns, path: a.cwd, owner_agent: a.parent ?? null });
 		return rows;
 	}
 
@@ -311,7 +311,7 @@ export default class Lifecycle {
 			const owner = r.parent && (rows.find(a => a.state !== "stopped" && a.state !== "gone") ?? rows[0]);
 			const task = [...(this.tasks?.values() ?? [])].find(t => t && t.agent && t.agent === r.parent);
 			if (only) return task?.key === only || r.owner_task === only ? `idle, and its task ${only} has landed` : null;
-			if (ONE_PASS.test(r.role ?? "") && (r.turns ?? 1) > 0) return `one-pass ${r.role}, its result is written`;
+			if (ONE_PASS.test(r.role ?? "") && ((r.turns ?? 1) > 0 || r.state === "dormant")) return `one-pass ${r.role}, its result is written`;
 			if (task?.landed) return `idle, and its task ${task.key} has landed`;
 			if (owner && (owner.state === "stopped" || owner.state === "gone") && r.role === "minion") return `idle, and its parent ${owner.id} has stopped`;
 			return null;
@@ -439,7 +439,8 @@ export default class Lifecycle {
 			for (const { at, ...e } of gone) await record({ ...e, event: "end", why: "found gone (killed without a goodbye)" }, this.servex?.log);
 			try { await this.servex?.pool?.reclaim(); } catch {}
 		}
-		return { close, gone, kept: rows.filter(r => !r.why) };
+		const left = rows.filter(r => !r.why), dormant = left.filter(r => r.kind === "agent" && r.state === "dormant").length;   // a dormant agent runs nothing: it is a row to wake, not a resource that is kept
+		return { close, gone, kept: left.filter(r => !(r.kind === "agent" && r.state === "dormant")), dormant };
 	}
 }
 
@@ -451,7 +452,7 @@ function recent_tasks(){
 		for (const e of list) if (e.isDirectory() && !e.name.startsWith(".") && depth < 4) walk(path.join(dir, e.name), depth + 1);
 			else if (SessionRecord.is_log_entry(dir, e.name)) try { out.push({ dir, mtime: fs.statSync(path.join(dir, e.name)).mtimeMs }); } catch {}
 	};
-	for (const d of [0, 1]) { const [y, m, dd] = day(d); walk(path.join(ai_dir(), `${y}-${m}-${dd}`), 0); walk(path.join(ai_dir(), y, m, dd), 0); }
+	for (const d of [0, 1]) { const [y, m, dd] = day(d); walk(path.join(ai_dir(), `${y}-${m}-${dd}`), 0); walk(path.join(ai_dir(), y, m, dd), 0); walk(path.join(ai_dir(), "sessions", y, m, dd), 0); }   // sessions/ is today's store: without it no agent maps to a task and nothing is ever "landed" (726 kept, 2026-11-06)
 	return out.sort((a, b) => b.mtime - a.mtime);
 }
 

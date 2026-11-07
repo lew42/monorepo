@@ -91,6 +91,7 @@ export default class TaskLoop {
             try { spawn(process.execPath, [path.join(this.root, "Server", "worktree-sweep.mjs")], { detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}
             this.follow_up_daily();
             this.twins_daily();
+            this.truth_daily();
             this.handover_daily();
             this.undone_asks_daily();
             await this.read_inboxes(this.servex.agents.registry_list(), this.clock()).catch(e => this.servex.say?.(`task-loop: inbox sweep failed: ${e.message || e}`));
@@ -170,6 +171,20 @@ export default class TaskLoop {
             if (r.first && r.count) this.servex?.cards?.owner_note?.({ title: `Twin check started: ${r.count} sessions have two folders`, text: `The daily check found ${r.count} sessions held by more than one folder, left from before the one finder (2026-11-01). From tomorrow it reports only new ones. Fold these: node Server/SessionConsolidate.mjs --all --apply --manifest <file>.`, kind: "risk", links: ["/framework/ai/sessions/doc/one-folder.md"], by: "task-loop" })?.catch?.(() => {});
             // Loud every day while ANY twin or flat folder exists, not only new ones: 1,410 old twins sat silent for a week (2026-11-06).
             else if (r.count || r.flat?.length) this.servex?.cards?.owner_note?.({ title: r.flat?.length ? `${r.flat.length} flat session folder(s) in sessions/` : `${r.count} sessions still have two folders`, text: `${r.flat?.length ? "Flat (a writer went around SessionFolders): " + r.flat.join(", ") + ". " : ""}${r.count} sessions are held by more than one folder${r.new ? `, ${r.new} new since the last check (e.g. ${r.examples[0]?.others?.[0] ?? "?"})` : ""}. Fold them: node Server/SessionConsolidate.mjs --all --apply --manifest <file>.`, kind: "risk", links: ["/framework/ai/sessions/doc/one-folder.md"], by: "task-loop" })?.catch?.(() => {});
+        });
+    }
+
+    /* truth-daily, 2026-11-07: once per local day, node Server/Truth.mjs --write appends one line of truth numbers (sessions with tasks, unproven done tasks, twins...) to public/live/truth/truth.jsonl, drawn at /live/truth/.
+     * "Done today" = the last line's `at` is today (local), so a restart never repeats it. Doc: public/live/truth/readme.md */
+    truth_daily(){
+        const file = path.join(this.root, "public", "live", "truth", "truth.jsonl");
+        if (!fs.existsSync(path.dirname(file))) return; // a test root (TaskLoop-steps.test) has no truth page: never spawn there, or the child holds its temp dir open (EPERM on rm)
+        let at = 0; try { at = Date.parse(JSON.parse(fs.readFileSync(file, "utf8").trim().split("\n").pop()).truth.at); } catch {}
+        if (this.date_id(new Date(at)) === this.date_id(new Date()) || this.truth_busy) return;
+        this.truth_busy = true;
+        execFile(process.execPath, [path.join(this.root, "Server", "Truth.mjs"), "--write"], { cwd: this.root, windowsHide: true, timeout: 300000 }, err => {
+            this.truth_busy = false;
+            if (err) this.servex?.log?.append("servex", { type: "task-loop-error", error: "truth: " + String(err.message || err) }).catch(() => {});
         });
     }
 

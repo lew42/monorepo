@@ -178,4 +178,37 @@ console.log(`processes.test (with worktrees): ${pass} checks pass`);
 	ok(decide_game({ idle_min: 31, free_mb: 8000, running }, cfg) === null, "never with 8 GB free (RAM not tight)");
 	ok(decide_game({ idle_min: 31, free_mb: 4000, running: [] }, cfg) === null, "never with no listed game running");
 }
+// a spinning idle agent (relief, 2026-11-06): idle + over half a core for spin_ms straight -> dormant, one log line
+{
+	const mk = (state, extra = {}) => { const slept = []; return { id: "x", state, claude_pid: 900, slept, sleep(why){ slept.push(why); this.state = "dormant"; return true; }, ...extra }; };
+	const lines = [];
+	const setup = (agent, cpu_pct_of_core, { cores = 4 } = {}) => {
+		const live = new Map([[agent.id, agent]]);
+		const m = new Processes({ reaping: false, spin_ms: 5 * 60000, servex: { agents: { live }, global: { mark_slept(){ lines.push("mark_slept"); } }, log: { append: (_n, e) => { lines.push(e); return Promise.resolve(); } } } });
+		m.cores = cores;
+		m.procs = new Map([[900, { pid: 900, name: "claude.exe", cpu: cpu_pct_of_core / cores, cmd: "claude.exe" }]]);
+		return m;
+	};
+	const T = 1_000_000;
+	let a = mk("idle"), m = setup(a, 105);
+	ok(m.watch_spin(T).length === 0 && m.watch_spin(T + 4 * 60000).length === 0, "idle + 105% of a core is not acted on before 5 minutes");
+	const hit = m.watch_spin(T + 5 * 60000);
+	ok(hit.length === 1 && hit[0].type === "spinning-idle" && hit[0].id === "x" && hit[0].pid === 900 && hit[0].cpu === 105 && hit[0].minutes === 5 && hit[0].action === "dormant", "after 5 minutes: one spinning-idle line, action dormant");
+	ok(a.slept.join() === "spinning" && a.state === "dormant" && lines.includes("mark_slept"), "the agent's own sleep() ran, and the dormant tally was told");
+	ok(m.watch_spin(T + 6 * 60000).length === 0, "no second line a minute later");
+	a = mk("idle"); m = setup(a, 105); m.watch_spin(T);
+	m.procs.get(900).cpu = 10 / 4; m.watch_spin(T + 3 * 60000);
+	ok(m.watch_spin(T + 5 * 60000).length === 0 && a.slept.length === 0, "a dip below 50% restarts the clock");
+	a = mk("working"); m = setup(a, 300); m.watch_spin(T);
+	ok(m.watch_spin(T + 20 * 60000).length === 0 && a.slept.length === 0, "a working agent is never touched, however hot");
+	a = mk("idle"); m = setup(a, 49); m.watch_spin(T);
+	ok(m.watch_spin(T + 20 * 60000).length === 0, "49% of a core is not a spin");
+	process.env.SERVEX_SPIN_DORMANT = "0";
+	a = mk("idle"); m = setup(a, 105); m.watch_spin(T);
+	const logged = m.watch_spin(T + 5 * 60000);
+	delete process.env.SERVEX_SPIN_DORMANT;
+	ok(logged.length === 1 && logged[0].action === "logged" && a.slept.length === 0 && a.state === "idle", "SERVEX_SPIN_DORMANT=0 only logs");
+	a = mk("idle", { sleep(){ return false; } }); m = setup(a, 105); m.watch_spin(T);
+	ok(m.watch_spin(T + 5 * 60000)[0].action === "sleep-refused", "an agent that refuses to sleep is logged as such");
+}
 console.log(`processes.test (idle: stale sessions + games): ${pass} checks pass`);

@@ -39,12 +39,29 @@ export default class Fixer {
 		return a && a.state !== "stopped" ? a : null;
 	}
 
+	/* The slot it holds is dead when its folder lost its .git (gutted by a remove, 2026-11-06) or the pool no longer lists it. Doc: doc/pool.md */
+	gutted(slot){
+		const slots = this.servex?.pool?.slots;
+		return !fs.existsSync(path.join(slot.path, ".git")) || (Array.isArray(slots) && !slots.some(s => s.id === slot.id && s.path === slot.path));
+	}
+
+	/* Forget a dead slot, and stop the fixer if it sits in that folder, so ensure() starts it fresh in a new slot. */
+	drop_gutted(){
+		if (!this.slot || !this.gutted(this.slot)) return;
+		const dead = this.slot, flat = p => String(p ?? "").replace(/\\/g, "/").toLowerCase();
+		this.servex?.say?.(`fixer: ${dead.id} at ${dead.path} is gone or gutted, dropping it`, { event: "fixer", id: dead.id });
+		this.slot = null;
+		const live = this.live();
+		if (live && (flat(live.cwd) + "/").startsWith(flat(dead.path) + "/")) this.servex.agents.stop(this.id, { by: "fixer" });
+	}
+
 	/* Take (once) and hold the pool slot this fixer lives in. Synchronous, like
 	 * `Pool.take_sync()` itself — `ensure()` below needs a plain return, not a promise, because
 	 * `quick_fix` calls it on the hot path and cannot await a whole worktree-prepare cycle. A
 	 * slot already taken earlier this boot (`this.slot`) is reused; the pool is asked exactly
 	 * once per Servex process life, same as the fast assistant asks `spawn` once. */
 	take_slot(){
+		this.drop_gutted();
 		if (this.slot) return this.slot;
 		const pool = this.servex?.pool;
 		if (!pool) throw new Error("no worktree pool is running in this Servex (SERVEX_NO_POOL?) — the fixer needs one to hold");
@@ -61,6 +78,7 @@ export default class Fixer {
 	 * spawn is never queued behind the machine-is-hot gate (Servex.bypass()): the fixer is
 	 * infrastructure, not a unit of work, the same reason the fast assistant is never queued. */
 	ensure(){
+		this.drop_gutted();
 		const live = this.live();
 		if (live) return live;
 		const slot = this.take_slot();

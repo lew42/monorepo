@@ -1,5 +1,7 @@
 # Roles — one readme per agent role
 
+**Two homes for agent docs (to be merged into `framework/ai`).** This folder holds each role's readme, as Servex hands it to a spawned agent. What every agent reads, and how readmes work, is in [`public/framework/ai/agents.md`](../../../public/framework/ai/agents.md) and [`ai/doc/readme-system.md`](../../../public/framework/ai/doc/readme-system.md). Finding past work: [`ai/indexing-past-work.md`](../../../public/framework/ai/indexing-past-work.md).
+
 A **role** is the job an agent is started for: a minion does one narrow job, a mastermind decides and splits work. Each role has one readme in this folder, and that readme is everything the agent is told about its job.
 
 **How an agent gets it.** The role's row in [`../roles.js`](../roles.js) names its readme (`readme: "minion"`). When Servex spawns the agent, it puts the whole file into the agent's first message, before the task (a mastermind spawned at a `path` also gets that path's readme chain and `mastermind.md` in its system prompt). A VS Code tab reads it by hand: CLAUDE.md says "read your role's readme". The old skill (`.claude/skills/minion/SKILL.md`) is now one line pointing here, so `/minion` in a tab still works, and `skill_text()` in `roles.js` follows the pointer.

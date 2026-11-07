@@ -25,7 +25,7 @@ export default class RemoteMCP {
         "ask_mastermind is deprecated: it starts a separate voice-<id> mastermind session with its own reply-file protocol. Do not call it; use spawn_agent and send_to_agent.",
         "/live/ is your presentation screen: it shows only what you and the owner are discussing right now, the owner's current ask refined into structure, and you are its only author. When the topic changes, clear it first with page_set path \"/live/\" delta {\"content\":{\"clear\":true}}, then show the new topic with page_add path \"/live/\" and items such as {type: \"part-card\", title, text}. Never post heard or summary cards there.",
         "The owner's standing rule (2026-10-16): when the owner asks a question, put the answer on /live/ as a card first, then say \"take a look\" and keep the spoken reply to one or two sentences. A status answer (\"what's running\") is a card listing each agent's id, state, what it is on and its cost (list_agents has them); it is shown, not spoken.",
-        "Never call restart_servex (or stop_server on Servex) during a call: it would drop your own connection. The owner picks the time.",
+        "Restarting Servex needs no question (the owner, 2026-11-06): it takes seconds and dev servers keep running. Do it between turns, never mid-sentence in a voice call, since it drops your own connection for a moment. Then check it came back (list_agents).",
         "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
         "Call `updates` at the start of nearly every turn: it returns only what arrived for you since your last call (agent messages, the owner's notes, changes to logs you follow). Subscribe to a log with follow({path, agent: \"voice-app\"}).",
     ].join("\n");
@@ -250,7 +250,7 @@ export default class RemoteMCP {
         try {
             if (text) fs.appendFileSync(abs, JSON.stringify({ owner_words: { at, words: text, caller: RemoteMCP.CALLER } }) + "\n");
             // the same words as numbered sentences, split by code with secrets withheld (Server/Ask.mjs): the line the voice model writes, `re` = the words line's `at`
-            if (text && !Ask.skip(text)) fs.appendFileSync(abs, JSON.stringify(Ask.refined(text, "voice", at, at)) + "\n");
+            if (text) Ask.write(text, "voice", at, line => fs.appendFileSync(abs, JSON.stringify(line) + "\n"));
             const hash = crypto.createHash("sha256").update(JSON.stringify(call.args ?? {})).digest("hex").slice(0, 12);
             fs.appendFileSync(abs, JSON.stringify({ tool_call: { at, tool, args_hash: hash, caller: RemoteMCP.CALLER } }) + "\n");
         } catch (e) { console.error("remote-mcp: voice log write failed:", e.message); }

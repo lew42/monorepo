@@ -1,6 +1,7 @@
 import fs from "fs";
 import { model } from "./tiers.js";
 import Ask from "../../Server/Ask.mjs";
+import Session from "../../public/framework/core/Session/Session.js";
 import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -228,7 +229,7 @@ export default class Echo {
 			// one-release compat window `page_tools.js`'s own `replay()` already keeps.
 			if (line.at === "content" && line.add?.id === item_id) found = line.add;
 			if (line.content?.add?.id === item_id) found = line.content.add;
-			if (line.refined?.re && Ask.turn_id(line.refined.re) === item_id) re = line.refined.re;   // the turn's `at`, from the refined line Server/Ask.mjs wrote beside the Prompt
+			if (line.refined?.re && Session.turn_id(line.refined.re) === item_id) re = line.refined.re;   // the turn's `at`, from the refined line Server/Ask.mjs wrote beside the Prompt
 		}
 		return found ? { ...found, re } : null;
 	}
@@ -353,7 +354,7 @@ export default class Echo {
 		// anything. `sections`/`coverage` ride on `pending` until then.
 		await this.page_set(page, item_id, { sentences, strikes, misheard, flags, cost: { usd: round4(cost_usd) } }, this.id_for(session_id));
 		// The same sections as the voice model's line, so Session turns each item into a task under the turn (core/Session/Session.js, refine_turn): {refined:{re,sentences,sections}}.
-		if (re) await this.page_set(page, null, { refined: { at: new Date().toISOString(), re, sentences, sections, flags, cost_usd: round4(cost_usd), via: "vscode" } }, this.id_for(session_id), []);
+		if (re) await Ask.write(text, "vscode", re, line => this.page_set(page, null, line, this.id_for(session_id), []), { sentences, sections, flags, cost_usd: round4(cost_usd), by: "echo" });
 
 		this.page_of.set(session_id, page);
 		this.pending.set(session_id, { page, item_id, sections, coverage, flags, misheard, strikes, cost_usd });

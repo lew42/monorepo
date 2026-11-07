@@ -29,12 +29,12 @@ git grep --untracked -lEi '"title":"[^"]*tools' -- "$S/**"
 
 | Channel | Where the words are | Search |
 |---|---|---|
-| VS Code tab | `{"refined":{"re","sentences":[{n,text}],"by":"code","via":"vscode"}}` per prompt, beside the counted `Prompt` item, written by the `UserPromptSubmit` hook (`.claude/hooks/prompt-relay.mjs`) through `Server/Ask.mjs` | `'"sentences":[[^]]*word'` |
-| Browser voice (Dictate) | the same `refined` line, `sentences` (raw, per sentence) and `sections` (the asks, citing sentence numbers); the AI refine adds the sections | `'"sentences":[[^]]*word'` |
-| Claude app voice | the same `refined` line (`via:"voice"`, `by:"code"`) beside each `owner_words` line, written by `Servex/ext/remote/RemoteMCP.js` | `'"sentences":[[^]]*word'` |
-| SDK agents, phone sheet | the same `refined` line (`by:"code"`) after each owner chat line, written by `Sessions.say`; the "From …" relays to agents stay lossy | `'"sentences":[[^]]*word'` |
+| VS Code tab | `{refined:{sentences:[{n,text}],v:2,via:"vscode"}}` on `session.jsonl`, written by the `UserPromptSubmit` hook (`.claude/hooks/prompt-relay.mjs`); the hook's counted `Prompt` line has the raw text too. With `SERVEX_ECHO=on`, Echo adds a second line with `sections` | `'"sentences":\[[^]]*word'` |
+| Browser voice (Dictate) | the same `refined` line, with `sections` (the asks, citing sentence numbers) | `'"sentences":\[[^]]*word'` |
+| Claude app voice | the same `refined` line (`via:"voice"`), written by `RemoteMCP.record`; the `"from":"owner (voice)"` chat line stays | `'"sentences":\[[^]]*word'` |
+| SDK agents, phone sheet | the same `refined` line (`via` of the sheet), written by `Sessions.say`. Relays from other agents ("From Michael: …") are lossy | `'"sentences":\[[^]]*word'` |
 
-One shape, one writer (`Server/Ask.mjs`, doc: [core/Session/readme.md](../core/Session/readme.md), "Asks"). Sentences are split by code (ext/Refine `quick_clean`, no AI) and a line that looks like a secret is withheld. `Session.refine_turn` turns each turn into one open `Prompt` task and each `sections` item into a child task citing its sentences, so a turn counts until an agent closes it with an outcome or `no_action` with a why. A turn the refiner has not run on stays one open item. For VS Code turns the refiner is Echo (`Servex/agents/Echo.js`), which runs only when `SERVEX_ECHO=on` (off by default, cost).
+**One shape for every channel (2026-11-06):** `{refined:{at,re,sentences,sections,via,by:"code",v:2}}`, written by code through `Server/Ask.mjs` (`Ask.write`), so `git grep '"sentences":'` finds the owner's raw words everywhere. Session derives a Prompt task per turn and a child task per `sections` item. Lines without `v: 2` are older and make no task. Owner: mastermind-session-truth.
 
 ## 3. The raw transcripts (the full story)
 

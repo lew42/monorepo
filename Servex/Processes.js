@@ -75,6 +75,9 @@ export default class Processes extends Events {
 		this.idle_s = null;             // seconds since any keyboard/mouse input (GetLastInputInfo), for Games.js
 		this.commit_mb = null;          // the machine's commit charge (Win32_OperatingSystem: Total - Free virtual memory)
 		this.commit_limit_mb = null;
+		this.spin_ms ??= Number(process.env.SERVEX_SPIN_MS) || 5 * 60000;          // an idle agent must burn a core this long
+		this.spin_core_pct ??= Number(process.env.SERVEX_SPIN_CORE_PCT) || 50;
+		this.spin = new Map();         // agent id -> { pid, since }: idle and over spin_core_pct of a core, since then
 	}
 
 	start(){
@@ -137,6 +140,7 @@ export default class Processes extends Events {
 		this.history.push(this.point(this.now));
 		if (this.history.length > this.keep) this.history.splice(0, this.history.length - this.keep);
 		if (this.reaping) this.reap();
+		try { this.watch_spin(at); } catch (e) { this.error = e.message; }
 		this.emit("tick", this.now);
 	}
 
@@ -277,6 +281,35 @@ export default class Processes extends Events {
 				kind: standing.test(a.id) ? "desk" : task ? "task" : "agent",
 				label: standing.test(a.id) ? "Front desk" : task ?? a.id };
 		});
+	}
+
+	/* A SPINNING IDLE AGENT (qf-2 20:17, qf-1 15:43, 2026-11-06): a claude.exe whose agent is `idle` but that uses over half a core for
+	 * five minutes straight is stuck (it spun at 105% in a folder that had been emptied under it). Put it to sleep the agent's own way, so
+	 * the next message wakes it; SERVEX_SPIN_DORMANT=0 only logs. Only Servex Agents are listed by agents(), so the owner's tabs are never
+	 * touched, and a `working` agent never counts. Doc: doc/processes.md "A spinning idle agent". */
+	watch_spin(at = Date.now()){
+		const seen = new Set(), out = [];
+		for (const a of this.agents()){
+			const p = a.pid && this.procs.get(a.pid);
+			if (a.state !== "idle" || !p || p.cpu * this.cores <= this.spin_core_pct) continue;
+			seen.add(a.id);
+			const hot = this.spin.get(a.id);
+			if (!hot || hot.pid !== a.pid){ this.spin.set(a.id, { pid: a.pid, since: at }); continue; }
+			if (at - hot.since < this.spin_ms) continue;
+			const cpu = round(p.cpu * this.cores, 0), minutes = Math.round((at - hot.since) / 60000);
+			let action = "logged";
+			if (process.env.SERVEX_SPIN_DORMANT !== "0"){
+				const agent = this.servex?.agents?.live?.get(a.id);
+				action = agent?.sleep?.("spinning") ? "dormant" : "sleep-refused";
+				if (action === "dormant") this.servex?.global?.mark_slept?.(agent, 0);
+			}
+			hot.since = at;   // one line per spin_ms, not per tick
+			const entry = { type: "spinning-idle", id: a.id, pid: a.pid, cpu, minutes, action };
+			out.push(entry);
+			this.log(entry);
+		}
+		for (const id of [...this.spin.keys()]) if (!seen.has(id)) this.spin.delete(id);
+		return out;
 	}
 
 	/* The detached servers: procs/*.json (Process.js) and the port-80 gate. */

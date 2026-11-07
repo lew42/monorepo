@@ -234,7 +234,7 @@ const run = async () => {
 	if (owner_interactive) {
 		page_url = session_page_url(session_id);
 		// Server/Ask.mjs: the counted Prompt item (the turn) plus its raw sentences as one {refined:{re,sentences}} line, split by code; skips slash commands, withholds secrets.
-		const out = await Ask.write(page_url, prompt, "vscode", (url, delta) => mcp_call("page_set", { path: url, delta }, "owner"), { turn: true });
+		const out = await Ask.write(prompt, "vscode", Ask.now(), delta => mcp_call("page_set", { path: page_url, delta }, "owner"), { turn: true });
 		prompt_item_id = out.ok && out.id ? out.id : null;
 	}
 
