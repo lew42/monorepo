@@ -90,6 +90,17 @@ try {
 	ok(await LivePage.icon_of("/live/p/x.jsonl") === null && LivePage.stored.file === "description", "a loose .jsonl names no icon: a file is drawn");
 	const link = icon => ({ get: k => k === "icon" ? icon : undefined });
 	ok(LivePage.link_icon(link(), "/live/notes.jsonl") === "description" && LivePage.link_icon(link(), "/live/lab/") === "folder" && LivePage.link_icon(link("⚡"), "/live/lab/") === "⚡", "a link card: a file for a loose .jsonl, a folder for a folder, its own icon first");
+	// 11. Nothing blanks the page: a list of ids removes each one (a missing id is skipped), and a line that throws is
+	// skipped and kept as a caught error, never thrown.
+	await go({ content: { add: [{ type: "part-text", id: "r1", text: "1" }, { type: "part-text", id: "r2", text: "2" }] } });
+	await go({ content: { remove: ["r1", "r2", "not-here"] } });
+	const removed = await ids("removed");
+	ok(removed.includes("r1") && removed.includes("r2") && !removed.includes("not-here"), "{\"remove\": [ids]}: each one kept in removed, a missing id skipped");
+	class Boom extends LivePage { boom(){ throw new Error("boom"); } }
+	const boom = new Boom({ title: "B", url: "/live/b/" });
+	boom.replay_line({ "boom()": {} });
+	boom.replay_line({ title: "Still here" });
+	ok(boom.caught_errors?.length === 1 && boom.caught_errors[0].where === "line" && boom.get("title") === "Still here", "a line that throws is skipped and kept; the next line still applies");
 	console.log(`LivePage.test: ${n} passed`);
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });

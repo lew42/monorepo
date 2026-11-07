@@ -110,7 +110,7 @@ export default class LivePage extends Page {
 	can_press(method){
 		for (let C = this.constructor; C && C !== Page; C = Object.getPrototypeOf(C))
 			if (typeof method === "string" && Object.hasOwn(C.prototype, method) && typeof C.prototype[method] === "function")
-				return !/^(constructor|render|route|listen|replaying|on_screen|can_press|voice_at|paint_voice|link_url)$/.test(method);   // the machinery is not a button
+				return !/^(constructor|render|route|listen|replaying|replay_line|caught|tab|on_screen|can_press|voice_at|paint_voice|link_url)$/.test(method);   // the machinery is not a button
 		return false;
 	}
 
@@ -121,10 +121,39 @@ export default class LivePage extends Page {
 	// True while a line is being replayed (opening the page), false for a line another writer just saved.
 	replaying(){ return Item.source === "replay"; }
 
-	// One bad line never blanks the page: it is skipped and logged, and the page draws the rest.
+	// ════ NOTHING BLANKS THE PAGE ═══
+	// One bad line (on load or arriving live) is skipped: the page draws the rest and an error card at the top says so.
 	replay_line(line){
 		try { return super.replay_line(line); }
-		catch (error){ console.error(`LivePage ${this.url ?? ""}: a line could not be applied and was skipped —`, line, error); }
+		catch (error){ this.caught(error, { where: "line", line }); }
+	}
+
+	// Every error the page caught (a line, a card, a part of the page): kept for its error card (LivePage.Errors), and one
+	// line in the shared error log, ext/ErrorLog: /framework/ai/errors/<date>.jsonl (one file a day), and /live/failures.jsonl,
+	// which the agent owning /live/ follows, so it hears of it. In node (the item tool replaying a page) only the console.
+	caught(error, { where, line, item } = {}){
+		const entry = { where, message: String(error?.message ?? error), id: item?.id, line: line === undefined ? undefined : JSON.stringify(line).slice(0, 2000) };
+		console.error(`LivePage ${this.url ?? ""}: a ${where} failed and was skipped —`, line ?? item?.id ?? "", error);
+		if (!this.caught_errors) Object.defineProperty(this, "caught_errors", { value: [], enumerable: false });
+		this.caught_errors.push(entry);
+		this.emit?.("caught", entry);
+		if (typeof document !== "undefined") import("/framework/ext/ErrorLog/ErrorLog.js")
+			.then(({ default: ErrorLog }) => ErrorLog.report(error, { module: "/live/", kind: "error", where: `LivePage ${where}`, url: this.url, id: entry.id, line: entry.line }))
+			.catch(() => {});
+	}
+
+	// Draw with fn; if it throws, the captor stack is put back as it was (a View that threw mid-render leaves its own on
+	// it), the error is caught (above), and a small error card stands where the part would be. `capture: false` views only:
+	// the caller places what this returns.
+	static safely(page, where, fn, item){
+		const depth = View.previous_captors.length, captor = View.captor;
+		try { return fn(); }
+		catch (error){
+			while (View.previous_captors.length > depth) View.restore_captor();
+			View.captor = captor;
+			page.caught(error, { where, item });
+			return new this.Broken({ item, where, error, capture: false });
+		}
 	}
 
 	// {"tab": {"name": "x", "tab": true}} is a pick (picks_of reads it from the raw lines): the folder x/ stays its own
@@ -236,17 +265,20 @@ export default class LivePage extends Page {
 		LivePage.shown = this;
 		if (this.view) return this.view;
 		const P = this.constructor;
+		// Each part is drawn on its own (safely): one that throws becomes a small error card, and the rest still draw.
+		const part = (where, Part, opts) => { const v = P.safely(this, where, () => new Part({ page: this, ...opts, capture: false })); View.captor?.append(v); };
 		this.view = div.c("page live-page", () => {
 			this.$alerts = div.c("live-alerts");
-			new P.Head({ page: this });
-			new P.Md({ item: this, key: "header", classes: "live-sub" });   // below the sticky header, so the header stays one size
-			if (!this.focus && !this.screen && !this.settings_of) new P.Md({ item: this, key: "text", classes: "live-sub" });   // a page.items file opened whole: its own text
-			if (this.settings_of) return void new P.Settings({ page: this, of: this.settings_of, at: this.at });
-			if (this.focus) new P.Focus({ page: this, item: this.focus });
-			new P.Main({ page: this, list: this.cards });
-			if (!this.focus && !this.screen && !this.settings_of) new P.Items({ page: this, classes: "live-items" });
-			new P.Pages({ page: this });
-			new P.Foot({ page: this });
+			part("header", P.Head);
+			part("subheader", P.Md, { item: this, key: "header", classes: "live-sub" });   // below the sticky header, so the header stays one size
+			if (!this.focus && !this.screen && !this.settings_of) part("text", P.Md, { item: this, key: "text", classes: "live-sub" });   // a page.items file opened whole: its own text
+			new P.Errors({ page: this });
+			if (this.settings_of) return void part("settings", P.Settings, { of: this.settings_of, at: this.at });
+			if (this.focus) part("card", P.Focus, { item: this.focus });
+			part("cards", P.Main, { list: this.cards });
+			if (!this.focus && !this.screen && !this.settings_of) part("items", P.Items, { classes: "live-items" });
+			part("pages", P.Pages);
+			part("footer", P.Foot);
 		});
 		this.listen();
 		this.paint_voice();
@@ -305,8 +337,8 @@ export default class LivePage extends Page {
 	}
 	static tab_skip = new Set(["/live/sessions/", "/live/archive/", "/live/v1/"]);
 	static tab_max = 5;
-	static async pages_of(url, loaded){
-		const listing = await Page.listing(url).catch(() => null);
+	static async pages_of(url, loaded, fresh){
+		const listing = await Page.listing(url, fresh).catch(() => null);
 		const folders = [...listing?.pages.keys() ?? []].map(name => url + name + "/").filter(u => !this.tab_skip.has(u));
 		const plain = cls => !cls || /(^|\/)LivePage\.js$/.test(cls) || /\/core\/Page\/Page\.class\.js$/.test(cls);   // drawn as a LivePage
 		const picks = this.picks_of(loaded?.jsonl_lines);   // the parent's own {"tab": {"name": x, "tab": true}} lines win
@@ -326,13 +358,13 @@ export default class LivePage extends Page {
 	// The tab row for a page: { owner, title, tabs: [{url, title}] }. Its own tabs when it has any, itself first; else, when
 	// it is one of its parent's tabs, the parent's row (the same row, the parent's title). Else no row: a page with its
 	// own tabs elsewhere is reached by a link card, and the breadcrumb takes it back.
-	static async tabs_of(page){
-		const own = page.focus || page.settings_of ? { tabs: [] } : await this.pages_of(page.url, page);
+	static async tabs_of(page, fresh){
+		const own = page.focus || page.settings_of ? { tabs: [] } : await this.pages_of(page.url, page, fresh);
 		if (own.tabs.length) return { owner: page.url, title: null, tabs: [{ url: page.url, title: page.title ?? "Live" }, ...own.tabs] };
 		const up = page.url.replace(/[^/]+\/$/, "");
 		if (page.is_top || page.focus || page.settings_of || !up.startsWith("/live/")) return { owner: null, tabs: [] };
 		const parent = page.parent instanceof LivePage ? page.parent : null;
-		const theirs = await this.pages_of(up, parent);
+		const theirs = await this.pages_of(up, parent, fresh);
 		if (!theirs.tabs.some(t => t.url === page.url)) return { owner: null, tabs: [] };
 		const title = parent?.title ?? await this.title_of(up);
 		return { owner: up, title, tabs: [{ url: up, title }, ...theirs.tabs] };
@@ -437,9 +469,9 @@ export default class LivePage extends Page {
 			$bar.on("scroll", $fade);
 			const seen = new ResizeObserver($fade); seen.observe($bar.el);
 			this.tc("is-empty", true);
-			const draw = () => P.tabs_of(page).then(({ owner, tabs }) => {
+			const draw = fresh => P.tabs_of(page, fresh).then(({ owner, tabs }) => {
 				this.tc("is-empty", tabs.length < 2);
-				if (tabs.length < 2) return;
+				if (tabs.length < 2) return void $bar.empty();
 				$bar.empty(() => tabs.forEach(tab => a.c("tab", tab.title).href(tab.url).ac(tab.url === owner && "tab-default")));
 				mark();
 			}).catch(() => {});
@@ -452,17 +484,17 @@ export default class LivePage extends Page {
 				$fade();
 			};
 			LivePage.on_url(this, mark);
-			const top = page.is_top ? page : page.parent instanceof LivePage ? page.parent : null;
-			// The row lives as long as its page is shown: the first change heard after it left lets go of everything.
-			const picked = line => line?.tab !== undefined && heard();   // a {"tab": …} line changes the row
+			// The row is this page's own tabs or its parent's, so a {"tab": …} or {"file": …} line on either redraws it, from a
+			// fresh folder listing (a tab can be a folder made a moment ago). The row lives as long as its page is shown: the
+			// first change heard after it left lets go of everything.
+			const pages = [page, page.parent instanceof LivePage && page.parent].filter(Boolean);
+			const picked = line => (line?.tab !== undefined || line?.file !== undefined) && heard();
 			const heard = () => queueMicrotask(() => {
-				if (this.el.isConnected) return draw();
+				if (this.el.isConnected) return draw(true);
 				seen.disconnect();
-				["add", "remove"].forEach(verb => top.screens.off?.(verb, heard));
-				top.off?.("line", picked);
+				pages.forEach(p => { ["add", "remove"].forEach(verb => p.screens?.off?.(verb, heard)); p.off?.("line", picked); });
 			});
-			if (top?.screens?.on) ["add", "remove"].forEach(verb => top.screens.on(verb, heard));
-			top?.on?.("line", picked);
+			pages.forEach(p => { ["add", "remove"].forEach(verb => p.screens?.on?.(verb, heard)); p.on?.("line", picked); });
 			draw();
 		}
 	};
@@ -516,7 +548,7 @@ export default class LivePage extends Page {
 			const card = item => item instanceof PageLink || item.wire?.() === "part-card";
 			const draw = () => {
 				const members = list.items.filter(i => !i.transient);   // a transient item is the page's own code, never a card
-				DefaultView.place(this.el, members, drawn, item => new (card(item) ? P.Card : P.Block)({ page, item }));
+				DefaultView.place(this.el, members, drawn, item => P.safely(page, "card", () => new (card(item) ? P.Card : P.Block)({ page, item, capture: false }), item));   // one card that throws is an error card in its place
 				this.tc("is-empty", !members.length);
 			};
 			["add", "remove", "move", "order", "clear"].forEach(verb => list.on(verb, draw));
@@ -547,6 +579,36 @@ export default class LivePage extends Page {
 				});
 			};
 			["add", "remove", "move", "order", "clear"].forEach(verb => list.on(verb, draw));
+			draw();
+		}
+	};
+
+	// A part or a card that threw while drawing (LivePage.safely): one small line where it would be. The error is logged.
+	static Broken = class LiveBrokenView extends View {
+		render(){
+			const { item, where, error } = this;
+			this.attr("role", "alert").attr("title", String(error?.stack ?? error));
+			if (item?.id) this.attr("id", item.id);
+			icon("error_outline");
+			span(`${item?.id ? `Card “${item.id}”` : `The ${where ?? "part"}`} could not be drawn: ${error?.message ?? error}`);
+		}
+	};
+
+	// Lines the page could not apply (replay_line): one small card at the top, kept in step as more arrive.
+	static Errors = class LiveErrorsView extends View {
+		render(){
+			const { page } = this;
+			const draw = () => {
+				const lines = (page.caught_errors ?? []).filter(e => e.where === "line");
+				this.tc("is-empty", !lines.length).empty(() => {
+					if (!lines.length) return;
+					icon("error_outline");
+					span(`${lines.length === 1 ? "One line" : `${lines.length} lines`} in this page's file could not be applied and ${lines.length === 1 ? "was" : "were"} skipped: ${lines.at(-1).message}`);
+				});
+			};
+			// The first error heard after the card left the page lets go (a rebuilt page makes a new one).
+			const heard = () => queueMicrotask(() => this.el.isConnected ? draw() : page.off?.("caught", heard));
+			page.on?.("caught", heard);
 			draw();
 		}
 	};
@@ -690,14 +752,14 @@ export default class LivePage extends Page {
 					a.c("live-card-go", "›").href(c.url).attr("aria-label", c.title);
 				}));
 			});
-			const draw = () => P.pages_of(page.url, page).then(({ cards, screens }) => {
+			const draw = fresh => P.pages_of(page.url, page, fresh).then(({ cards, screens }) => {
 				this.tc("is-empty", !cards.length && !screens.length).empty(() => { group("Pages", cards); group("Saved screens", screens); });
 			}).catch(() => {});
 			this.tc("is-empty", true);
 			if (page.screen || page.focus || page.settings_of) return;
-			const picked = line => (line?.tab !== undefined || line?.content) && heard();   // a tab choice or a new link card
+			const picked = line => (line?.tab !== undefined || line?.file !== undefined || line?.content) && heard();   // a tab choice, a new sub-page or a new link card
 			const heard = () => queueMicrotask(() => {
-				if (this.el.isConnected) return draw();
+				if (this.el.isConnected) return draw(true);
 				["add", "remove"].forEach(v => page.screens.off?.(v, heard));
 				page.off?.("line", picked);
 			});

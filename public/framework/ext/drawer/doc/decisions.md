@@ -296,3 +296,4 @@ default, not a made-up number), `background: var(--wash)`.
 - **Below `26rem` the rail is the whole sheet.** That breakpoint mirrors `--rail-floor`'s default by hand.
 - **`z-index: 40`.** Over `.demo.max` (30), under the mode button (60); docks beside DevBar (`--devbar`), not under it.
 - **Below 52em, the ☰ hides itself when the page has its own `.sidebar` (`core/Sidebar`).** That panel draws a native ☰ in the same corner, avoiding double hamburger buttons.
+- **…and also when `.app` is `.app-error` (2026-11-06, error-button).** `App.error()` (`core/App/App.js`) never routes a page, so it never gets a `.sidebar` either — without this, the Page Load Error screen showed the fixed `.drawer-menu` duplicated beside the mobile sheet's own ✦. `core/App/doc/error-page.md` has the full story.
