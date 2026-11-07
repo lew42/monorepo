@@ -68,8 +68,8 @@ export default class Socket {
 	watch_alive(){
 		const visible = () => document.visibilityState === "visible";
 		document.addEventListener("visibilitychange", () => visible() && this.alive());
-		addEventListener("online", () => this.alive());
-		addEventListener("pageshow", e => e.persisted && this.alive());
+		globalThis.addEventListener?.("online", () => this.alive());   // ?.: core/Item/transport.tab.mjs runs this in node, with no window events
+		globalThis.addEventListener?.("pageshow", e => e.persisted && this.alive());
 		setInterval(() => visible() && this.alive(), Socket.ALIVE.every);
 	}
 	async alive(){
