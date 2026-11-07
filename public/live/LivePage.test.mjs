@@ -122,6 +122,7 @@ try {
 	tp.replay_line({ tasks: { add: { id: "x", title: "X" } } });
 	tp.replay_line({ tasks: { x: { complete: { outcome: "o", evidence: "e" } } } });
 	ok(tp.tasks.find("x").state === "complete" && heard > 0, "a task's state change reaches the page (the checklist redraws its count)");
+	ok(LivePage.path_of({ get: k => ({ href: "/live/tabs/" })[k] }) === "/live/tabs/" && LivePage.path_of({ get: k => ({ path: "./a/", href: "/b/" })[k] }) === "./a/", "a link card's target: path, else href");
 	console.log(`LivePage.test: ${n} passed`);
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });

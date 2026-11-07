@@ -314,6 +314,9 @@ export default class LivePage extends Page {
 			.catch(e => console.warn("LivePage: no scroll lock (" + e.message + ")"));
 	}
 
+	// A link card's target: its `path`, or `href` (a common guess: two cards on /live/ used it, drew as /live/ itself and showed "Live").
+	static path_of(link){ return link.get("path") ?? link.get("href"); }
+
 	// A link's path ("./plan/" or "plan/") against the url of the page its card was written on: this page, or for a saved
 	// screen the page it was saved from (its cards still point where they pointed on /live/).
 	link_url(path){
@@ -375,7 +378,7 @@ export default class LivePage extends Page {
 			const m = await this.meta_of(u), name = u.slice(url.length, -1);
 			return { url: u, title: m.title, description: m.description, icon: m.icon ?? this.stored.folder, tab: (picks.get(name) ?? m.tab) === true && !m.js && plain(m.cls) };
 		}));
-		const linked = new Set((loaded?.content?.items ?? []).filter(i => i instanceof PageLink).map(i => loaded.link_url(i.get("path"))));
+		const linked = new Set((loaded?.content?.items ?? []).filter(i => i instanceof PageLink).map(i => loaded.link_url(LivePage.path_of(i))));
 		const shown = loaded && !loaded.screen && !loaded.focus && !loaded.settings_of;
 		const screens = shown ? loaded.screens.items.map(s => ({ url: url + s.id + "/", title: s.get("title") ?? s.id, icon: s.get("icon") ?? this.stored.item })) : [];
 		let tabs = rows.filter(r => r.tab), cards = rows.filter(r => !r.tab);
@@ -656,6 +659,7 @@ export default class LivePage extends Page {
 		render(){
 			const { page, item } = this, P = page.constructor, Own = item.constructor.View;
 			this.attr("id", item.id).attr("data-kind", item.constructor.name);
+			this.bind(item, "bleed", function(on){ this.tc("bleed", !!on); });   // {"bleed": true}: edge to edge on a phone (LivePage.css)
 			if (Item.foreign(item)) return;   // a registered class that is not an Item ({"type":"View"}) draws itself
 			if (P.kinds.has(item.constructor) || (Own && Own !== Item.View && !PART_TYPES.includes(item.wire?.())))
 				return void new Own({ item, subject: item });
@@ -671,7 +675,7 @@ export default class LivePage extends Page {
 	static Card = class LiveCardView extends View {
 		render(){
 			const { page, item } = this, P = page.constructor;
-			const own = item instanceof PageLink ? page.link_url(item.get("path")) : page.url + item.id + "/";
+			const own = item instanceof PageLink ? page.link_url(LivePage.path_of(item)) : page.url + item.id + "/";
 			let $title, $icon;
 			const go = () => {
 				this.tc("live-entity", !!$title?.only);

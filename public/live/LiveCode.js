@@ -13,6 +13,7 @@ export default class LiveCode extends Item {
 LiveCode.View = class LiveCodeView extends View {
 	render(){
 		const item = this.item;
+		this.ac("bleed");   // code runs edge to edge on a phone: the line has the room it needs (LivePage.css .bleed)
 		return div.c("live-code-card", () => {
 			h4.c("live-card-title").bind(item, "title", function(t){ this.tc("is-empty", !t).text(t ?? ""); });
 			const $wrap = div.c("live-code-wrap");

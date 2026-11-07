@@ -8,7 +8,7 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
 
 1. **Look:** `page_read({path: "/live/"})` gives the title, every card with its id, and the sub-pages. `item({path: "/live/", read: "content"})` (or `"screens"`, `"removed"`) lists one list as `{total, rows: [{id, type, title}]}` and writes nothing. `item({path: "/live/", delta: {"help": {}}})` lists every verb and card type.
 2. **New topic:** save what is there (`{"save": {"name": "…", "title": "…"}}`) or clear it (`{"content": {"clear": true}}`; nothing is lost, see *removed cards*).
-3. **Show:** one `item({path: "/live/", delta})` call per change, with a delta from the table below. Every open tab, the phone included, redraws within a second.
+3. **Show:** one `item({path: "/live/", delta})` call per change, with a delta from the table below. Every open tab, the phone included, redraws within a second. **One idea per card, the picture first** (the owner, 2026-11-06): a card is a title and a line or two, or a code block, a light or a checklist; never a wall of bullets. Five points are five cards, or a sub-page with five cards.
 4. **Hear taps:** `follow({path: "public/live/page.jsonl", agent: "<your id>"})` once, then `updates` each turn (*A tap reaches the agents*).
 
 ## Showing things
@@ -24,6 +24,7 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
 | a line under the title / at the bottom | `{"header":"text"}` · `{"footer":"text"}` (`null` hides it) |
 | blink / a 4 s banner | `{"flash":{}}` · `{"flash":"red"}` · `{"alert":"Look at this"}` |
 | a status light | `{"content":{"add":{"type":"live-light","id":"build","label":"Build","on":true,"color":"green"}}}`, then `{"content":{"build":{"color":"red"}}}` |
+| a block that runs edge to edge on a phone | add `"bleed": true` to any card that draws with no frame (a code card does it by itself) |
 | a checklist | `{"content":{"add":{"type":"live-checklist","id":"today","title":"Today","items":[{"id":"milk","text":"Buy milk"}]}}}`; tick `{"content":{"today":{"items":{"milk":{"done":true}}}}}`; flip `{"content":{"today":{"check":"milk"}}}`; add `{"content":{"today":{"items":{"add":{"id":"tea","text":"Tea"}}}}}` |
 | the page's own tasks | `{"tasks":{"add":{"id":"t1","title":"Ship it"}}}`; close one `{"tasks":{"t1":{"complete":{"outcome":"…","evidence":"…"}}}}`. Drawn as one checklist card above the cards, "Tasks · 2 of 8 done", ticking live ([core/Task](/framework/core/Task/) rows, `LivePage.Tasks`). Shown on the page itself (not on a saved screen, an opened card or settings); hidden while there are none. |
 | a button | `{"content":{"add":{"type":"live-button","id":"b1","label":"Flash red","method":"flash","args":"red"}}}`; press `{"content":{"b1":{"press":{}}}}` |
@@ -42,6 +43,8 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
 4. **Edit either one:** the card with `{"content":{"link-plan":{"title":"…","description":"…"}}}` on `/live/`; the detail with deltas on `/live/plan/`.
 
 The screen stays live by itself: a dev socket that goes quiet (a phone that slept, a dropped tunnel) is pinged and reopened, and each stream picks up from where it stopped ([dev/Socket, Watch out](/framework/dev/Socket/readme.md)).
+
+**The Pages list at the bottom is built by code, never written:** it lists every sub-folder of the page that holds a page (`page.jsonl` or `page.js`), then the saved screens, each as a link card with the sub-page's own title and description (`LivePage.pages_of`). A sub-page that a card in the content already links to is left out, so nothing shows twice; so is a tab. A link card names its target with `path` (`href` is read too, since 2026-11-06: two cards with `href` drew as /live/ itself, titled "Live"). Every card's id, title, slug and folder name, compared: [doc/names.md](doc/names.md).
 
 A card already on screen can become a sub-page (a link card stays in its place): `{"pages":{"promote":{"id":"<card id>","name":"plan"}}}` ([core/Page/doc/ai-api.md](/framework/core/Page/doc/ai-api.md)).
 
