@@ -213,3 +213,5 @@
 {"content":{"add":{"type":"part-link","id":"link-session-page","path":"./session-page/","title":"Session page: proposal"}},"by":"pages.add","ts":"2026-11-07T05:11:00.919Z"}
 {"file":"calibration/page.jsonl"}
 {"content":{"add":{"type":"part-link","id":"link-calibration","path":"./calibration/","title":"Prompt calibration: what the record misses"}},"by":"pages.add","ts":"2026-11-07T06:28:42.018Z"}
+{"file":"pids/page.jsonl"}
+{"content":{"add":{"id":"link-pids","path":"./pids/","title":"Process logging: is every process logged and ended?","type":"part-link"}},"by":"voice-app","ts":"2026-11-08T13:44:06.599Z"}
