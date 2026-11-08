@@ -649,3 +649,7 @@
 {"tool_call":{"at":"2026-11-08T13:01:22.756Z","tool":"send_to_agent","args_hash":"c8bc5df4d7f2","caller":"voice-app"}}
 {"tool_call":{"at":"2026-11-08T13:01:30.895Z","tool":"item","args_hash":"d2e113058e44","caller":"voice-app"}}
 {"tasks":{"pid-accounting":{"log":{"msg":"Handed to resources 13:01 UTC: measure 24 h coverage (logged start/exit/attribution per process kind), check the CLI minions launched outside Servex today, one table on a /live/ page; small fixes only, under ~$5; no kills."},"owner":"mastermind-resources","start":{}}},"by":"voice-app","ts":"2026-11-08T13:01:30.901Z"}
+{"log":{"at":"2026-11-08T07:11:25-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-08T07:21:25-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-08T07:26:25-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-08T07:31:25-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
