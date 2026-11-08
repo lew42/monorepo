@@ -1,0 +1,217 @@
+{
+  "note": "study only, no build. Prompt text for vscode is the raw counted Prompt item; cloud-voice prompts are a DERIVED proxy (tasks.add title+why), since neither cloud-voice-app-20261106 nor -20261108 session.jsonl carries a raw owner-turn field (0 'refined' lines, 0 'sentences' lines in either file).",
+  "window": "2026-11-02..2026-11-08",
+  "prompts_total": 36,
+  "prompts_by_source": {
+    "vscode": 10,
+    "cloud": 26
+  },
+  "refined_lines_seen_this_week": 2,
+  "vocabulary": {
+    "refs_names": 35,
+    "people_names": 10,
+    "search_terms": 79
+  },
+  "explicit": {
+    "tagged_prompts": 1,
+    "name_hits": 1,
+    "unknown_top20": []
+  },
+  "implicit": {
+    "tagged_prompts": 20,
+    "name_hits": 26
+  },
+  "top_names": [
+    {
+      "name": "owner",
+      "prompts": 8
+    },
+    {
+      "name": "mastermind",
+      "prompts": 3
+    },
+    {
+      "name": "Page",
+      "prompts": 3
+    },
+    {
+      "name": "Servex",
+      "prompts": 2
+    },
+    {
+      "name": "Item",
+      "prompts": 2
+    },
+    {
+      "name": "term:one folder per session",
+      "prompts": 2
+    },
+    {
+      "name": "MCP",
+      "prompts": 1
+    },
+    {
+      "name": "CLAUDE.md",
+      "prompts": 1
+    },
+    {
+      "name": "List",
+      "prompts": 1
+    },
+    {
+      "name": "Session",
+      "prompts": 1
+    },
+    {
+      "name": "term:item.open",
+      "prompts": 1
+    },
+    {
+      "name": "term:cloud-voice",
+      "prompts": 1
+    }
+  ],
+  "buckets": {
+    "0": 16,
+    "1": 16,
+    "2-3": 3,
+    "4+": 1
+  },
+  "agreement": {
+    "sum_over_prompts": 26,
+    "sum_over_names": 26,
+    "equal": true
+  },
+  "samples": [
+    {
+      "text120": "are you aware of our push to main problem, and white listing our pushes?\n\ndo i whitelist my mikelew42 github account, my",
+      "names": []
+    },
+    {
+      "text120": "Okay, our repo is quite dirty in terms of the, I'm not even sure which branch it's on. I think we're on compliance dev, ",
+      "names": [
+        "mastermind"
+      ]
+    },
+    {
+      "text120": "<pasted_content id=\"32e8\">\nGit workflow for this repo (machine: \"compliance\")\n\nBranches\n- main: latest integrated code, ",
+      "names": []
+    },
+    {
+      "text120": "Yeah, I think I forgot to paste the actual brief that the guy wrote up. See if that makes sense. See if our Git strategy",
+      "names": [
+        "mastermind"
+      ]
+    },
+    {
+      "text120": "Okay, what's going on with all these files in the Git? When I type git status, I like to see it clean. Like, I'm not sur",
+      "names": [
+        "mastermind"
+      ]
+    }
+  ],
+  "implicit_sample20": [
+    {
+      "prompt_idx": 1,
+      "text120": "Okay, our repo is quite dirty in terms of the, I'm not even sure which branch it's on. I think we're on compliance dev, ",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 3,
+      "text120": "Yeah, I think I forgot to paste the actual brief that the guy wrote up. See if that makes sense. See if our Git strategy",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 4,
+      "text120": "Okay, what's going on with all these files in the Git? When I type git status, I like to see it clean. Like, I'm not sur",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 5,
+      "text120": "All right, so I'm using a Claude session from Claude to use the MCP to spawn agents. And what I'm wondering, what I'm gu",
+      "name": "MCP"
+    },
+    {
+      "prompt_idx": 10,
+      "text120": "One doc for finding past work, linked from every readme that needs it — Owner, 11-06: we keep asking for past-work searc",
+      "name": "owner"
+    },
+    {
+      "prompt_idx": 11,
+      "text120": "CLAUDE.md is one import of agents.md; every shared rule lives in agents.md",
+      "name": "CLAUDE.md"
+    },
+    {
+      "prompt_idx": 12,
+      "text120": "A block that needs the owner is a waiting task, asked again every check-in (law 5)",
+      "name": "owner"
+    },
+    {
+      "prompt_idx": 15,
+      "text120": "Restart Servex so the item-tool fixes go live",
+      "name": "Servex"
+    },
+    {
+      "prompt_idx": 16,
+      "text120": "Capture the owner's raw sentences on every channel (VS Code hook, voice, app) — Owner, 11-06: three shapes for the same ",
+      "name": "owner"
+    },
+    {
+      "prompt_idx": 18,
+      "text120": "Hand off the task itself with the owner's sentences, never a paraphrase — Owner, 11-06: the telephone game loses meaning",
+      "name": "owner"
+    },
+    {
+      "prompt_idx": 22,
+      "text120": "Mentions index: @Page in a prompt tags it; each module lists the prompts that mention it",
+      "name": "Page"
+    },
+    {
+      "prompt_idx": 23,
+      "text120": "Readmes as system maps with per-module search terms (start: Item/List/Page, sessions, Servex, Dictate family)",
+      "name": "Page"
+    },
+    {
+      "prompt_idx": 23,
+      "text120": "Readmes as system maps with per-module search terms (start: Item/List/Page, sessions, Servex, Dictate family)",
+      "name": "Item"
+    },
+    {
+      "prompt_idx": 23,
+      "text120": "Readmes as system maps with per-module search terms (start: Item/List/Page, sessions, Servex, Dictate family)",
+      "name": "List"
+    },
+    {
+      "prompt_idx": 23,
+      "text120": "Readmes as system maps with per-module search terms (start: Item/List/Page, sessions, Servex, Dictate family)",
+      "name": "Servex"
+    },
+    {
+      "prompt_idx": 27,
+      "text120": "Session page shows its tasks and plan evolving live (session detail on LivePage features)",
+      "name": "Session"
+    },
+    {
+      "prompt_idx": 28,
+      "text120": "Merge LivePage's header, breadcrumb, gear and settings into the default Page (opt-in first)",
+      "name": "Page"
+    },
+    {
+      "prompt_idx": 29,
+      "text120": "Item tool as get/set/call on Item.open; shrink page_tools.js; cut the 97 tools",
+      "name": "Item"
+    },
+    {
+      "prompt_idx": 29,
+      "text120": "Item tool as get/set/call on Item.open; shrink page_tools.js; cut the 97 tools",
+      "name": "term:item.open"
+    },
+    {
+      "prompt_idx": 30,
+      "text120": "Raise the Windows page file to 48 GB (insurance; owner only)",
+      "name": "owner"
+    }
+  ],
+  "judged_false_positive": [],
+  "judged_false_positive_rate": "0/20"
+}
