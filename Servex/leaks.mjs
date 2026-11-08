@@ -54,12 +54,12 @@ export function classify(open, alive, owner_done){
 	return { gone, done, working };
 }
 
-function repo_root(){
+export function repo_root(){
 	try { return path.dirname(execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], { cwd: path.dirname(fileURLToPath(import.meta.url)), windowsHide: true }).toString().trim()); }
 	catch { return process.cwd(); }
 }
 
-function read_lines(root){
+export function read_lines(root){
 	const out = [];
 	try {
 		const text = execFileSync("git", ["grep", "--untracked", "-H", "-I", "-e", '"pid":[0-9]', "-e", '"pid_exit":[0-9]', "--", "*.jsonl"], { cwd: root, windowsHide: true, maxBuffer: 1 << 29 }).toString();
