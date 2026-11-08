@@ -1,0 +1,6 @@
+{"session":{"id":"00c47a44-5c7b-484f-ad58-de918861ad11","kind":"vscode-tab","at":"2026-11-08T11:39:53.371Z"},"by":"TaskDirs"}
+{"task":"/framework/ai/sessions/2026/11/08/session-00c47a44/readme-maps/","by":"TaskDirs","ts":"2026-11-08T11:39:53.381Z"}
+{"messages":{"add":{"type":"Ref","url":"/framework/ai/sessions/2026/11/08/session-00c47a44/readme-maps/","by":"servex","at":"2026-11-08T11:39:53.382Z"}},"by":"servex","ts":"2026-11-08T11:39:53.382Z"}
+{"log":{"at":"2026-11-08T05:46:23-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-08T05:51:24-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-08T06:01:23-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}

@@ -616,3 +616,15 @@
 {"log":{"at":"2026-11-08T05:16:21-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
 {"log":{"at":"2026-11-08T05:21:22-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
 {"log":{"at":"2026-11-08T05:31:21-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-08T05:36:23-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"tool_call":{"at":"2026-11-08T11:37:56.766Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T11:37:58.601Z","tool":"shell","args_hash":"f09dd6b59476","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T11:38:07.244Z","tool":"send_to_agent","args_hash":"0a35e4e821a6","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T11:38:08.452Z","tool":"item","args_hash":"a1b7c24d30a5","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T11:38:15.510Z","tool":"item","args_hash":"6b8eb2420656","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T11:38:25.362Z","tool":"send_to_agent","args_hash":"117a89c6001f","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T11:38:33.753Z","tool":"item","args_hash":"6e9cc72baaa9","caller":"voice-app"}}
+{"tasks":{"readme-maps":{"log":{"msg":"First slice handed to page-design 11:38 UTC: Map + Search terms sections in core/Item, core/List, core/Page readmes; unlinked files listed. Docs only, under ~$5."},"owner":"mastermind-page-design","start":{}}},"by":"voice-app","ts":"2026-11-08T11:38:33.764Z"}
+{"log":{"at":"2026-11-08T05:46:23-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-08T05:51:24-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-08T06:01:23-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
