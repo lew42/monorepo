@@ -1,0 +1,11 @@
+{"session":{"id":"cloud-voice-app-20261108","kind":"cloud-voice-agent","caller":"voice-app","at":1794133348968}}
+{"tool_call":{"at":"2026-11-08T10:22:29.062Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T10:22:34.408Z","tool":"list_agents","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T10:22:35.806Z","tool":"shell","args_hash":"0eec0bfecf11","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T10:22:44.952Z","tool":"shell","args_hash":"339bed399328","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T10:23:03.188Z","tool":"item","args_hash":"485a8e69825a","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T10:23:15.898Z","tool":"send_to_agent","args_hash":"84117fbdf197","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T10:23:20.637Z","tool":"send_to_agent","args_hash":"76856a0444d9","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T10:23:28.862Z","tool":"item","args_hash":"e2ce6c5b04da","caller":"voice-app"}}
+{"log":{"at":"2026-11-08T04:28:33-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-08T04:33:33-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
