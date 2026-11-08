@@ -80,6 +80,38 @@ Today Servex runs every SDK agent, and the dev server serves the site. Each one 
 - **Scoping:** a project MCP carries no open shell. Permissions are checked server side on every request, not trusted from the client.
 - **Alternative:** keep agents in Servex and make Servex the only item cache, with the dev server reading through it. That keeps one supervisor, but every page read crosses two processes.
 
+## Map
+
+Every file, one line each: [map.md](./map.md).
+
+**How it connects**
+- `spawn_agent` (`agents/tools.js`'s `own(agents)`, folded into `agents/tools.js:72`) → `Agents.spawn()` (`agents/Agents.js:145`) → the real `claude.exe` child (`agents/Agents.js:1463`, inside `SpawnLog.within(...)`) → `SpawnLog.js` logs who started it and why
+- An MCP request at `/mcp` → `Servex/MCP.js` → one of `tools.js`'s groups, e.g. `page_tools()` (`agents/page_tools.js:1780`, called from `agents/tools.js:72`, `agents/Agents.js:45`, `agents/Global.js:528`) → the `item`/`page_set`/`page_add` tools
+- remote: `/mcp/remote` (`Servex.js:358`, `this.remote = new RemoteMCP(...)`) → `ext/remote/RemoteMCP.js` → `voice_session()` (`RemoteMCP.js:209`, called from `:184` and `:261`)
+- `Agents.door()` (`agents/Agents.js:1497`) → every spawned agent's own `/mcp?as=<id>` door, so a tool call always knows its caller
+
+**Design:** [doc/architecture.md](doc/architecture.md) (first), [doc/sdk.md](doc/sdk.md), [doc/lifecycle.md](doc/lifecycle.md), [doc/dormant.md](doc/dormant.md), [doc/processes.md](doc/processes.md), [doc/pool.md](doc/pool.md), [doc/worktree-preview.md](doc/worktree-preview.md), [doc/steps.md](doc/steps.md), [doc/task-loop.md](doc/task-loop.md) (+ its picture, [doc/task-loop.svg](doc/task-loop.svg)), [doc/landing.md](doc/landing.md), [doc/skills.md](doc/skills.md), [doc/module-inbox.md](doc/module-inbox.md), [doc/restart.md](doc/restart.md), [doc/budget.md](doc/budget.md) (pace bands), [doc/follow.md](doc/follow.md) (`Follow.js`), [doc/echo.md](doc/echo.md), [doc/fixer.md](doc/fixer.md), [doc/item-tool.md](doc/item-tool.md), [doc/tools-map.md](doc/tools-map.md), [doc/tool-process.md](doc/tool-process.md), [doc/readme-chain.md](doc/readme-chain.md), [doc/never-lose-a-wake.md](doc/never-lose-a-wake.md), [doc/skills-and-roles.md](doc/skills-and-roles.md) (+ the data and the tool that builds it, [doc/skills-and-roles.json](doc/skills-and-roles.json), [doc/skills-and-roles.mjs](doc/skills-and-roles.mjs)), [doc/pool-stuck-2026-10-09.md](doc/pool-stuck-2026-10-09.md) (history), [doc/owner-2026-10-16-tools.md](doc/owner-2026-10-16-tools.md) (dictated notes).
+
+## Search terms
+
+The words that find this module's past work (counts: `sessions N files · M commits`, from `git grep -c -i '<term>' -- public/framework/ai/sessions | wc -l` and `git log --oneline -S '<term>' | wc -l`; raw output in [terms.txt](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/readme-maps-servex/terms.txt)):
+
+- `spawn_agent` (sessions 479 files · 390 commits)
+- `take_worktree` (sessions 301 files · 188 commits)
+- `Heartbeat` (sessions 1696 files · 171 commits) — too common alone; pair it with a verb
+- `Dropped` (sessions 1352 files · 140 commits) — too common alone; pair it with "task"
+- `TaskLoop` (sessions 356 files · 364 commits)
+- `Pool.js` (sessions 181 files · 146 commits) — the quick-fix worktree pool
+- `worktree pool` (sessions 117 files · 91 commits)
+- `quick_fix` (sessions 65 files · 70 commits)
+- `LogSweeper` (sessions 80 files · 86 commits)
+- `Monitor.js` (sessions 46 files · 38 commits)
+- `ReverseProxy` (sessions 36 files · 29 commits)
+- `Games.js` (sessions 28 files · 28 commits) — the window/process closer
+- `pid-coverage` (sessions 10 files · 11 commits)
+- `OpenItems` (sessions 9 files · 11 commits) — proposed, off by default
+- `Lineage.js` (sessions 9 files · 11 commits)
+
 ## More
 
 [doc/architecture.md](doc/architecture.md) · [doc/sdk.md](doc/sdk.md) (how an agent is started) · [doc/lifecycle.md](doc/lifecycle.md) · [doc/dormant.md](doc/dormant.md) · [doc/processes.md](doc/processes.md) (closing a task leaves nothing running; who started a pid; early relief at 70% memory; the page file) · [doc/pool.md](doc/pool.md) · [doc/worktree-preview.md](doc/worktree-preview.md) (a worktree waiting for review, on your phone) · [doc/steps.md](doc/steps.md) · [doc/task-loop.md](doc/task-loop.md) · [doc/landing.md](doc/landing.md) · [doc/skills.md](doc/skills.md) · [doc/module-inbox.md](doc/module-inbox.md) · [doc/restart.md](doc/restart.md) (surviving a reboot) · [ext/remote/readme.md](ext/remote/readme.md) · [../Server/doc/scripts.md](../Server/doc/scripts.md) · the old readme with its dated notes: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md) and [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md).

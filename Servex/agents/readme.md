@@ -137,3 +137,33 @@ An agent Servex spawns gets its tools over HTTP: `Agents.door()` points it at th
 Why, and what moves to tools first: [`tiers-design/doc/tools.md`](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/tools.md).
 
 - **The `log` tool** (path + line in, one stamped line out, in `tools.js`): [Server/doc/log-line.md](../../Server/doc/log-line.md)
+
+## Map
+
+Every file, one line each: [map.md](./map.md).
+
+**How it connects**
+- `spawn_agent` → `Agents.spawn()` (`Agents.js:145`) → the real `claude.exe` child (`Agents.js:1463`) → `SpawnLog.within(...)` (`Agents.js:1463`, defined in `../SpawnLog.js`)
+- An MCP request → its tool → `page_tools()` (`page_tools.js:1780`), registered into the tool list at `tools.js:72` and called again from `Agents.js:45` (`local_page_tools`) and `Global.js:528`
+- `send_to_agent` to a VS Code tab → `External.js` (not a running agent: `kind: "external"`) → one line appended to the tab's inbox file, read on its next turn
+- the Dispatcher: a card with `route: "task"` → `Dispatcher.js` watches the `prompts` log → spawns a `page-mastermind` agent, registered as a fake "parent" `dispatcher`
+- when a turn ends → `Agent.close_loop()` (`Agents.js:2413`) → `Servex/CloseLoop.js` decides complete / one wake / nothing
+
+**Design:** [doc/architecture.md](doc/architecture.md) (first), [doc/api.md](doc/api.md), [doc/sdk.md](doc/sdk.md), [doc/lifecycle.md](doc/lifecycle.md), [doc/messaging.md](doc/messaging.md), [doc/traps.md](doc/traps.md), [doc/names.md](doc/names.md), [doc/layers.md](doc/layers.md), [doc/experts.md](doc/experts.md), [doc/jobs.md](doc/jobs.md), [../doc/readme-chain.md](../doc/readme-chain.md), [doc/say-tools.md](doc/say-tools.md), [doc/own-page.md](doc/own-page.md), [doc/assistant-chain.md](doc/assistant-chain.md), [doc/external.md](doc/external.md) (`External.js`), [doc/directory.md](doc/directory.md) (`ask_directory`), [doc/relay.md](doc/relay.md), [doc/page-pairs.md](doc/page-pairs.md), [doc/page-roles.md](doc/page-roles.md), [doc/class-plan.md](doc/class-plan.md) (a plan, not a change), [doc/dictate-backend.md](doc/dictate-backend.md), [doc/task-mastermind-long-form.md](doc/task-mastermind-long-form.md), [doc/owner-2026-10-16-compaction.md](doc/owner-2026-10-16-compaction.md) and [doc/owner-2026-10-16-realtime-interrupt.md](doc/owner-2026-10-16-realtime-interrupt.md) (dictated notes).
+
+## Search terms
+
+The words that find this module's past work (counts: `sessions N files · M commits`, from `git grep -c -i '<term>' -- public/framework/ai/sessions | wc -l` and `git log --oneline -S '<term>' | wc -l`; raw output in [terms.txt](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/readme-maps-servex/terms.txt)):
+
+- `page_tools` (sessions 429 files · 467 commits)
+- `spawn_agent` (sessions 479 files · 390 commits)
+- `send_to_agent` (sessions 338 files · 335 commits)
+- `Dispatcher` (sessions 299 files · 162 commits)
+- `readme-chain` (sessions 289 files · 153 commits)
+- `respawn` (sessions 173 files · 132 commits)
+- `WakePolicy` (sessions 63 files · 60 commits)
+- `External.js` (sessions 46 files · 40 commits)
+- `ModuleInbox` (sessions 33 files · 47 commits)
+- `SpawnLog` (sessions 30 files · 23 commits)
+- `close_loop` (sessions 5 files · 5 commits) — `Agent.close_loop()`, when a turn ends
+- `landed_fyi` (sessions 3 files · 3 commits) — a landed worker is never woken by news alone

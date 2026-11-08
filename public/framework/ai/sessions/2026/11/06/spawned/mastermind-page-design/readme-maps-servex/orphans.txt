@@ -1,0 +1,85 @@
+Unlinked files per folder tree: top-level files (plus doc/*.md, agents/doc/*.md, agents/roles/*.md)
+whose basename appears in no readme.md or map.md in that folder tree.
+Method: `git grep --untracked -l -F '<basename>' -- '<readme/map files>'` — empty result = orphan.
+(--untracked matters here: the new map.md files are untracked until this task's commit, and a
+plain `git grep` silently skips untracked files, which looked like 0 fixed on the first pass.)
+
+## Servex/ (top level + doc/) — 73 + 12 before -> 0 after
+
+Top level before (73): Budget.js, CloseLoop.js, Crumbs.js, Crumbs.test.mjs, CrumbsWatch.js,
+Dropped.test.mjs, Follow-kind.test.mjs, Follow-skip.test.mjs, Follow.js, Games.js,
+Gate-loud.test.mjs, Gate-stale.test.mjs, Heartbeat-card.test.mjs, Heartbeat-held.test.mjs,
+Heartbeat-landed.test.mjs, Landed-merged.test.mjs, Landed.js, Lineage.test.mjs, Log.js,
+LogSweeper.js, LogSweeper.test.mjs, Monitor.js, OpenItems.test.mjs, Pool.js, Pool.test.mjs,
+PortRegistry.js, Process.js, ProcessRunner.test.mjs, Processes.js, Project.js, Relief.test.mjs,
+ReverseProxy.js, SpawnLog.js, SpawnLog.test.mjs, Stream.js, TaskLoop-chase.test.mjs,
+TaskLoop-close.test.mjs, TaskLoop-cracks.test.mjs, TaskLoop-handover.test.mjs,
+TaskLoop-launch.test.mjs, TaskLoop-state.test.mjs, TaskLoop-steps.test.mjs, Usage.js,
+WorktreeWatch.js, WorktreeWatch.test.mjs, Worktrees.js, chrome-pin.test.mjs,
+closeout.fixture.mjs, closeout.test.mjs, ensure-deps.mjs, failures.jsonl, files.js, gate.mjs,
+hidden-launch.vbs, home.js, keep.json, leaks.test.mjs, orphan.mjs, package-lock.json,
+package.json, page.jsonl, pages.js, pid-coverage.test.mjs, pool-adopt-race.test.mjs,
+pool-heal.test.mjs, pool-hold.test.mjs, pool-restore.test.mjs, pool-status.mjs,
+process-live.mjs, processes.test.mjs, whisper-detach.test.mjs.
+doc/ before (12): budget.md, echo.md, fixer.md, follow.md, never-lose-a-wake.md,
+owner-2026-10-16-tools.md, pool-stuck-2026-10-09.md, readme-chain.md, skills-and-roles.json,
+skills-and-roles.md, skills-and-roles.mjs, task-loop.svg.
+
+All fixed: `Servex/map.md`'s new table links every top-level file (the *.test.mjs row lists every
+test file name, grouped test/fixture pairs get one row each); the readme's new "Design" list names
+every doc/*.md, with skills-and-roles.json/.mjs added beside skills-and-roles.md as its data and
+tool.
+
+## Servex/agents/ (top level + doc/ + roles/) — 97 + 9 + 2 before -> 0 after
+
+Top level before (73, listed in the deliverable's own count as part of 97 with doc/roles):
+ChatWriter.js, ChatWriter.move.test.mjs, ChatWriter.order.test.mjs, Dispatcher-task.test.mjs,
+Echo.js, Fixer.js, Follow-ack.test.mjs, Hitl.js, ModuleInbox.js, ModuleInbox.test.mjs,
+Promote.js, PromptLines.js, PromptLines.say.test.mjs, PromptLines.test.mjs, PromptTasks.js,
+Respawn.js, Sessions.test.mjs, Subpages.js, WakePolicy.js, WakePolicy.test.mjs, Wakeups.js,
+awaken-race.test.mjs, card-messages.test.mjs, chain-fast.md, chain-proof.mjs,
+chat-messages.test.mjs, child-follow.test.mjs, child-links.test.mjs,
+compact-before-sleep.test.mjs, compact-nudge.test.mjs, context-alert.test.mjs,
+crash-revive.test.mjs, directory.js, echo-replay.mjs, echo.md, failures.jsonl, fixer.md,
+fixer.test.mjs, global.test.mjs, groups.fixture.json, groups.test.mjs, handoff-route.test.mjs,
+handover.test.mjs, hitl.proof.mjs, honest-completion.test.mjs, inbox.js, inbox.jsonl,
+item-backbone.test.mjs, item-generic.test.mjs, item-local.test.mjs, item-read.test.mjs,
+item_tool.test.mjs, landed-reap-proof.mjs, landing-check.test.mjs, layers-proof.mjs,
+layers.test.mjs, log-tool.test.mjs, master-assistant.md, mastermind-servex.md,
+move-voice-sessions.mjs, one-writer.test.mjs, open-task.test.mjs,
+openrouter-cost-blind-proof.mjs, page-assistant-proof.mjs, page.jsonl, page_tools.test.mjs,
+path-mastermind.test.mjs, policy.test.mjs, prompt-tasks.test.mjs, ref-cache.test.mjs,
+relay-bypass-proof.mjs, requests.test.mjs, respawn.test.mjs, revive-skip.test.mjs,
+revive-sweep.test.mjs, role-system.test.mjs, roles-json.mjs, roles.test.mjs,
+seat-cost.test.mjs, session-entries.test.mjs, session-fast.md, session-query-record.test.mjs,
+session-route-tasks.test.mjs, session-smart.md, session-state.test.mjs,
+session_tasks.test.mjs, site-hooks.mjs, skill-tool.test.mjs, spawn-parent.test.mjs,
+spawn-worktree.test.mjs, spend-gate-proof.mjs, test-store.mjs, tidy.js, turn-costs.test.mjs,
+verb-note.test.mjs, voice-backfill.mjs, voice-backfill.test.mjs, voice-models-proof.mjs,
+wakeups.test.mjs.
+doc/ before (9): class-plan.md, dictate-backend.md, directory.md, external.md,
+owner-2026-10-16-compaction.md, owner-2026-10-16-realtime-interrupt.md, page-pairs.md,
+page-roles.md, relay.md.
+roles/ before (2): ai-system-mastermind.md, servex-mastermind.md (both "# Moved" stubs for
+retired role names; `roles/readme.md`'s own table already names the words `ai-system-mastermind`
+and `servex-mastermind` but never as the literal filename, so they stayed orphaned by this
+script's exact-basename rule until `agents/map.md`'s `roles/` row linked the two files directly).
+
+All fixed the same way: `agents/map.md`'s table (one grouped row for all `*.test.mjs`, one for
+all `*-proof.mjs`/`*.proof.mjs`) plus the readme's new "Design" list.
+
+## Servex/ext/remote/ (top level + doc/) — 1 + 0 before -> 0 after
+
+Top level before (1): TunnelKeeper.js (RemoteMCP.js and RemoteMCP.test.mjs were already named in
+the readme's first paragraph). doc/ had 0 before — every file there was already linked in the
+readme's bullet list.
+
+Fixed by the readme's new inline Map table (deliverable 2 keeps remote's table inline, per the
+brief, since it is only 10 files).
+
+## Terms checked
+
+See terms.txt: 35 search-term counts run (15 kept for Servex/readme.md, 12 for
+Servex/agents/readme.md, 8 for Servex/ext/remote/readme.md — all within the 8-15 target). None
+had 0 and 0; one weak term ("crash and revive", 4 files/1 commit) was dropped from Servex's list
+in favor of stronger ones rather than for having zero signal.

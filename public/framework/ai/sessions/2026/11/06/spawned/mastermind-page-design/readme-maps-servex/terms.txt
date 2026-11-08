@@ -1,0 +1,53 @@
+Raw git grep -c -i / git log -S counts behind each Search terms line (readme-maps-servex, slice 3).
+Method: `git grep -c -i '<term>' -- public/framework/ai/sessions | wc -l` (sessions files), `git log --oneline -S '<term>' | wc -l` (commits).
+
+## Servex/readme.md (15 terms)
+
+spawn_agent | sessions 479 files | commits 390
+take_worktree | sessions 301 files | commits 188
+quick_fix | sessions 65 files | commits 70
+ReverseProxy | sessions 36 files | commits 29
+Heartbeat | sessions 1696 files | commits 171
+Pool.js | sessions 181 files | commits 146
+worktree pool | sessions 117 files | commits 91
+OpenItems | sessions 9 files | commits 11
+Lineage.js | sessions 9 files | commits 11
+pid-coverage | sessions 10 files | commits 11
+Dropped | sessions 1352 files | commits 140
+TaskLoop | sessions 356 files | commits 364
+LogSweeper | sessions 80 files | commits 86
+Games.js | sessions 28 files | commits 28
+Monitor.js | sessions 46 files | commits 38
+
+Checked but dropped (one data point only, kept out of the 15 above to leave room for the stronger terms):
+crash and revive | sessions 4 files | commits 1
+
+## Servex/agents/readme.md (12 terms)
+
+page_tools | sessions 429 files | commits 467
+spawn_agent | sessions 479 files | commits 390 (reused; already counted above)
+send_to_agent | sessions 338 files | commits 335
+Dispatcher | sessions 299 files | commits 162
+readme-chain | sessions 289 files | commits 153
+respawn | sessions 173 files | commits 132
+WakePolicy | sessions 63 files | commits 60
+External.js | sessions 46 files | commits 40
+ModuleInbox | sessions 33 files | commits 47
+SpawnLog | sessions 30 files | commits 23
+close_loop | sessions 5 files | commits 5
+landed_fyi | sessions 3 files | commits 3
+
+## Servex/ext/remote/readme.md (8 terms)
+
+RemoteMCP | sessions 188 files | commits 186
+ask_mastermind | sessions 140 files | commits 150
+bearer token | sessions 26 files | commits 30
+voice_session | sessions 41 files | commits 34
+cloud_voice_log | sessions 21 files | commits 23
+TunnelKeeper | sessions 8 files | commits 13
+remote.fallback | sessions 8 files | commits 9
+voice_hear | sessions 8 files | commits 10
+
+None of the 35 terms checked had 0 and 0, so none were dropped for that reason (one, "crash and
+revive", was dropped from Servex/readme.md anyway to keep the count at 15 and favor terms with
+real signal).

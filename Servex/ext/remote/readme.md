@@ -9,3 +9,34 @@
 - **Cloud voice agent guide** (what it is, session naming, logging, tasks, caveats; the one line the server instructions point to): [doc/cloud-voice-agent.md](doc/cloud-voice-agent.md)
 - Every voice prompt logged verbatim by code (built: the cloud-only `cloud_voice_log` tool, cloud `register_session`): [doc/voice-logging.md](doc/voice-logging.md); the voice app's children are parented to the record it opens (`point_caller`)
 - File and shell tools (`read_file`, `write_file`, `edit_file`, `list_dir`, `glob`, `shell`) and the generic `call` door: [doc/remote-tools.md](doc/remote-tools.md)
+
+## Map
+
+| File | What it does |
+|---|---|
+| [RemoteMCP.js](./RemoteMCP.js) | the class: serves `/mcp/remote`, `ask_mastermind`, `voice_hear`, `voice_session()`, `INSTRUCTIONS` |
+| [TunnelKeeper.js](./TunnelKeeper.js) | keeps `Server/Tunnel.mjs` running and reachable; Servex restarts it and shows the connector URL |
+| `RemoteMCP.test.mjs` | the one test |
+| [doc/](./doc/) | the detail: every file already linked above |
+| [readme.md](./readme.md) | this index |
+
+**How it connects**
+- `/mcp/remote` (mounted `Servex.js:358`, `this.remote = new RemoteMCP(...)`) → `RemoteMCP.js` → `voice_session(sid)` (`RemoteMCP.js:209`, called at `:184` on every tool call and `:261` for `ask_mastermind`'s status check)
+- `ask_mastermind({to, ...})` → `RemoteMCP.js` → a stuck spawn gate falls back to `remote.fallback` (a one-line file beside `remote.token` in `%LOCALAPPDATA%/lew42/servex/`, or `REMOTE_MCP_FALLBACK`)
+- a cloud voice call → `voice_session()` → `SessionFolders.create()` ([core/Session/SessionFolders.mjs](/framework/core/Session/SessionFolders.mjs)) → that call's own `cloud-voice-<name>/session.jsonl`
+- a Servex agent never reaches this door: `Agents.door()` sets `disallowedTools` so an agent calls its own `/mcp` instead
+
+**Design:** [doc/cloud-voice-agent.md](doc/cloud-voice-agent.md) (first: what it is, session naming, logging, tasks, caveats), [doc/remote-tools.md](doc/remote-tools.md) ("The bridge"; file and shell tools), [doc/mcp-unify.md](doc/mcp-unify.md) (why one registry, fully exposed), [doc/tunnel.md](doc/tunnel.md) (the tunnel and its keeper, the site from anywhere), [doc/catch-up.md](doc/catch-up.md) (the `updates` tool), [doc/voice-logging.md](doc/voice-logging.md) (`cloud_voice_log`, `register_session`).
+
+## Search terms
+
+The words that find this module's past work (counts: `sessions N files · M commits`, from `git grep -c -i '<term>' -- public/framework/ai/sessions | wc -l` and `git log --oneline -S '<term>' | wc -l`; raw output in [terms.txt](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/readme-maps-servex/terms.txt)):
+
+- `RemoteMCP` (sessions 188 files · 186 commits)
+- `ask_mastermind` (sessions 140 files · 150 commits) — deprecated per `agents/roles/readme.md`, still the tool name
+- `bearer token` (sessions 26 files · 30 commits)
+- `voice_session` (sessions 41 files · 34 commits)
+- `cloud_voice_log` (sessions 21 files · 23 commits)
+- `TunnelKeeper` (sessions 8 files · 13 commits)
+- `remote.fallback` (sessions 8 files · 9 commits)
+- `voice_hear` (sessions 8 files · 10 commits)
