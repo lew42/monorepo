@@ -1,0 +1,6 @@
+Unlinked files (top-level files + files directly in doc/, basename named in no readme.md of the folder tree; script: loop over ls -p, grep -F the basename)
+core/Session: before 11 -> after 0
+  was: InFlight.css, InFlight.real.test.mjs, InFlight.test.mjs, SessionFolders.test.mjs, SessionMenu.css, SessionMenu.js, SessionSettings.js, files.jsonl, improvements.jsonl, doc/files.jsonl, doc/in-flight-real-400.png
+ai/sessions: before 24 -> after 0
+  was: card-moves-files.jsonl, card-moves.jsonl, files.jsonl, improvements.jsonl, inbox.jsonl, migration-manifest.json, prompts-migration-manifest.json, ready-to-merge.jsonl, session-day-moves.jsonl, session-folders.json, session-record-moves.jsonl, sessions.css, task-migrations.jsonl, task-moves-files.jsonl, task-moves.jsonl, task-moves.plan.json, task-pages.json, task-redirects.txt, weight.jsonl, worktree-removals.jsonl, doc/compaction.md, doc/files.jsonl, doc/readme-full-2026-10-12.md, doc/refined-asks.md
+Notes: doc/files.jsonl counts as linked because the basename files.jsonl is named in the Map (generated census, one per folder). doc/readme-full-2026-10-12.md is linked as an older full readme kept for reference (not dead, superseded). Not settled: inbox.jsonl in ai/sessions has no single obvious writer (several Server/Servex files mention an inbox.jsonl); the Map says only what it holds.

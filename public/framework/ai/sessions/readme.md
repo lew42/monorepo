@@ -90,6 +90,55 @@ The full guide (search steps, every event's search term, the logging contract): 
 
 `session-index.json`, `session-tree.json`, `sessions.json` (`Server/session-summary.mjs`) · `session-buckets.json` (`Server/session-buckets.mjs`) · `session-flags.json` (`Server/session-flags.mjs`) · `spend-tree.json` (`Server/spend-tree.mjs`) · `session-links.jsonl`, `session-entries.jsonl` (`Server/ChildLinks.mjs`'s backfill manifests, written by `--apply` and `--entries --apply`: one line for every child reference or Session entry it appended, so a backfill can be audited and undone; [core/Session/readme.md](/framework/core/Session/readme.md), "Session entries") · `*-moves.jsonl`, `task-manifest.json` (move ledgers, so a move can be undone) · `settings.jsonl` (the page's saved view) · `page.js`, `system.js` (the page and its `ReadmeSystem`).
 
+## Map
+
+| File or folder | What it does |
+|---|---|
+| `readme.md`, `page.js`, `system.js`, `sessions.css` | this index; the page (`new AISessionsPage`, the list at `/framework/ai/sessions/`); the `ReadmeSystem` that checks this readme's links; the page's grid styles |
+| `2026/` (and any year) | one folder per session, by the day it began: `YYYY/MM/DD/<folder>/`, plus the rolled `index.json` / `index.jsonl` per scope |
+| `v/` | variants of the list page: `v/classic/` (the old all-controls-in-rows layout), `v/mobile/` (the phone pages; [readme](./v/mobile/readme.md)) |
+| `tasks/` | this module's own task folders (`tasks/task.jsonl` plus one folder per task, each with a `task.jsonl` and a `page.js`) |
+| `ai/` | this module's log: `ai/log.jsonl`, the short index of AI work done here (read its last lines before editing) |
+| `doc/` | the design docs (below) and their sub-folders: `archive/` (old designs), `asks/`, `cost/`, `data/`, `live/`, `ui/`, `variants/` (prototype classes) |
+| `session-index.json`, `session-tree.json`, `sessions.json`, `session-buckets.json`, `session-flags.json`, `spend-tree.json` | the indexes, trees and costs: `Server/session-summary.mjs`, `Server/session-buckets.mjs` (`doc/buckets.md`), `Server/session-flags.mjs` (read by `Server/SessionResume.mjs`), `Server/spend-tree.mjs`; generated, never hand-edited (`session-index.json`, `session-tree.json`, `sessions.json` and `spend-tree.json` exist only after their script has run, and are not committed) |
+| `session-folders.json` | `SessionFolders`' saved map of which folder holds which session; gitignored machine state, refreshed against the disk ([../../core/Session/SessionFolders.mjs](../../core/Session/SessionFolders.mjs)) |
+| `session-links.jsonl`, `session-entries.jsonl` | `ChildLinks` backfill manifests, one line per child or Session entry appended, so a backfill can be audited and undone |
+| `task-moves.jsonl`, `task-moves-files.jsonl`, `task-moves.plan.json`, `task-pages.json`, `task-redirects.txt`, `task-manifest.json`, `task-migrations.jsonl` | the task-folder move ledgers and their plan, written by `Server/TaskMove.mjs` (and `TaskMigrate.mjs` for `task-migrations`); the redirects file maps old urls to the new ones |
+| `card-moves.jsonl`, `card-moves-files.jsonl` | the same, for card folders (`Server/TaskMove.mjs`) |
+| `session-day-moves.jsonl`, `session-record-moves.jsonl` | session folders moved to their start day (`Server/SessionDayMove.mjs`) and record files renamed to `session.jsonl` (`Server/SessionRecord.mjs`) |
+| `migration-manifest.json`, `prompts-migration-manifest.json` | the one-off moves of old prompt logs into sessions (`Server/session-migrate.mjs`, `Server/PromptsToSession.mjs`) |
+| `worktree-removals.jsonl`, `ready-to-merge.jsonl` | closed worktrees with how to restore them, and branches marked ready (`Server/Worktrees.mjs`, `Servex/Worktrees.js`) |
+| `inbox.jsonl`, `page.jsonl`, `settings.jsonl`, `improvements.jsonl`, `weight.jsonl` | the page's own data: notes left for this page, the saved view (`{"settings":{"view":"table"}}`), skill-improvement notes, page weight |
+| `files.jsonl` | the file census, written by its tool |
+
+**How it connects**
+- `SessionFolders.at(root).create(id, {first})` (`../../core/Session/SessionFolders.mjs:198`) ← `Servex/agents/Agents.js:1137` (`open_task`, before an agent's first turn) and `Servex/ext/remote/RemoteMCP.js:233`; `.of(id)` / `.record_of(id)` (`:165`, `:118`) ← `Server/ChildLinks.mjs`, `Server/Truth.mjs`, `Server/SessionConsolidate.mjs`
+- `RemoteMCP.voice_session(sid)` (`../../../../Servex/ext/remote/RemoteMCP.js:209`) ← `:184` (every call) and `:261`: files one cloud voice record `cloud-voice-<name>/session.jsonl` and keeps the app's `remote.sessions.json` rows `caller:voice-app` (`:207`, the record in use) and `conv:<claude.ai conversation id>` (`:215`, binds a conversation to its record; `register_session({conversation})` sets it). Guide: [cloud voice agent](/Servex/ext/remote/doc/cloud-voice-agent.md)
+- `ChildLinks.link(child_dir, parent_session, agent)` (`../../../../Server/ChildLinks.mjs:84`) ← `Servex/agents/Agents.js:1148`: writes the `{"task":url,"as":agent}` line that makes a child session a task in its parent; `node Server/ChildLinks.mjs [--apply]` backfills the old ones (and `--entries` the Session entries), logging `session-links.jsonl` / `session-entries.jsonl`
+- `query(args)` (`../../../../Server/session-query.mjs:22`) → `DatedFiles.sessions.find` (`Server/DatedFiles.mjs:310`); `report(ref)` (`:65`) replays one session and prints its completion. Called by the MCP tool `query_sessions` (`query_sessions_tool()`, `Servex/agents/tools.js:79`, handler `:91`), by `recent()`/`recent_reports()` (`:117`, `:120`), and from the command line (`node Server/session-query.mjs --tag … --since …`)
+- `completion_score()` → `Server/Truth.mjs:60` replays every session record (`SessionFolders.homes()`, `:56`) and writes the daily numbers the truth page [/live/truth/](/live/truth/) shows
+- `node Server/SessionConsolidate.mjs --check` fails on a flat `sessions/<uuid>/` folder or a session held by two folders ("twins"); `Server/SessionConsolidate.test.mjs` is its test
+
+**Design:** [`doc/one-folder.md`](./doc/one-folder.md) (one session, one folder; read first) · [`doc/session-record.md`](./doc/session-record.md) (`session.jsonl` and its verbs) · [`doc/data-sources.md`](./doc/data-sources.md) · [`doc/data/data-architecture.md`](./doc/data/data-architecture.md) · [`doc/data/record-spec.md`](./doc/data/record-spec.md) (asking about past sessions) · [`doc/buckets.md`](./doc/buckets.md) · [`doc/commit-rule.md`](./doc/commit-rule.md) · [`doc/compaction.md`](./doc/compaction.md) (when a context is summarized) · [`doc/refined-asks.md`](./doc/refined-asks.md) · [`doc/readme-full-2026-10-12.md`](./doc/readme-full-2026-10-12.md) (an older full readme, kept for reference) · [`doc/next.md`](./doc/next.md) · the rest are in "More" below.
+
+## Search terms
+
+The words that find this module's past work (counts: `sessions N files · M commits`, from `git grep -c -i '<term>' -- public/framework/ai/sessions | wc -l` and `git log --oneline -S '<term>' | wc -l`; raw output in [terms.txt](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/readme-maps-sessions/terms.txt)). The class terms are in [core/Session/readme.md](../../core/Session/readme.md#search-terms).
+
+- `session.jsonl` (sessions 1408 files · 1085 commits) — the record file; too common alone, pair it with a verb
+- `child session` (sessions 228 files · 273 commits) — an agent spawned under another; the owner's phrase
+- `cloud-voice` (sessions 214 files · 198 commits) — the cloud voice call records
+- `twins` (sessions 101 files · 116 commits) — one session held by two folders, or two records of one session
+- `TaskMove` (sessions 100 files · 101 commits) — the task-folder move ledgers
+- `SessionConsolidate` (sessions 57 files · 50 commits) — the one-folder check and merge
+- `ChildLinks` (sessions 53 files · 50 commits) — child under parent
+- `session-query` (sessions 37 files · 45 commits) — asking about past sessions
+- `voice_session` (sessions 37 files · 31 commits) — the cloud voice record
+- `SessionDayMove` (sessions 24 files · 33 commits) — folders moved to their start day
+- `one folder per session` (sessions 28 files · 24 commits) — the owner's rule, asked many times
+- `session-folders.json` (sessions 16 files · 20 commits) — the saved folder map
+- `conv:` (sessions 6 files · 4 commits) — the `remote.sessions.json` key binding a claude.ai conversation to its record
+
 ## More
 
 **Views plan (2026-10-20, proposals, waiting on your pick):** [doc/views-plan.md](doc/views-plan.md): the day view, the URL shape, columns, and the session page with its tasks; prototype at [doc/variants/](/framework/ai/sessions/doc/variants/).
