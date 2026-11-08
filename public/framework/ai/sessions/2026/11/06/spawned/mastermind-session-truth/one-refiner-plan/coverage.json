@@ -1,0 +1,49 @@
+{
+  "window": "2026-11-01..2026-11-08",
+  "prompts_total": 298,
+  "agrees_with_count_mjs": {
+    "this_script": 298,
+    "count_mjs_same_window": 298,
+    "by_source": {
+      "vscode": 10,
+      "cloud": 26,
+      "voice": 262
+    },
+    "equal": true
+  },
+  "channels": {
+    "vscode": {
+      "prompts": 10,
+      "sentences": 121,
+      "refined": 0,
+      "placed": 0,
+      "coverage": 0
+    },
+    "cloud voice": {
+      "prompts": 26,
+      "sentences": 0,
+      "refined": 0,
+      "placed": 0,
+      "coverage": 0
+    },
+    "web dictation": {
+      "prompts": 262,
+      "sentences": 257,
+      "refined": 38,
+      "placed": 0,
+      "coverage": 0
+    }
+  },
+  "notes": {
+    "v1_refined_lines": 30,
+    "v2_refined_lines": 0,
+    "parts_lines": 0,
+    "prompts_jsonl_files": 0,
+    "source_part_tasks": 0
+  },
+  "why_zero": {
+    "vscode": "the counted Prompt item exists only on 2026-11-04; PromptTasks (the live parts+tasks step) is switched off (prompt-tasks.off in the Servex home) and no prompts.jsonl in the window has a parts line; Ask.write's v:2 refined line has not been written yet.",
+    "cloud voice": "the record holds tool calls and logs, no owner sentences, so there is nothing to refine; prompts here are tasks the voice agent filed (count.mjs's proxy).",
+    "web dictation": "sentences are stored and placed into the live outline (`place` lines), and some turns have a v1 `refined` outline, but a v1 outline item is not a task; no v:2 line exists, so placed is 0 until Ask.write's v:2 lines flow."
+  }
+}
