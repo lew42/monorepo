@@ -1,0 +1,246 @@
+{
+  "note": "study only, no build. vscode: the raw counted Prompt item. cloud: a DERIVED proxy (tasks.add title+why), since neither cloud-voice-app-20261106 nor -20261108 session.jsonl carries a raw owner-turn field. voice: browser dictation (v-* folders) — one prompt per `messages.add.prompt` id, its sentence texts joined in order; plus any 'refined' v2 line not already matched to a collected turn's timestamp (none were, this week — every refined line's `re` matched an already-collected voice turn, so it added 0 new prompts, only confirmed the dedup).",
+  "window": "2026-11-02..2026-11-08",
+  "prompts_total": 259,
+  "prompts_by_source": {
+    "vscode": 10,
+    "cloud": 26,
+    "voice": 223
+  },
+  "voice_files_this_week": 7,
+  "refined_lines_seen_this_week": {
+    "vscode_files": 0,
+    "voice_files": 2
+  },
+  "vocabulary": {
+    "refs_names": 35,
+    "people_names": 10,
+    "search_terms": 79
+  },
+  "explicit": {
+    "tagged_prompts": 1,
+    "name_hits": 1,
+    "unknown_top20": []
+  },
+  "implicit": {
+    "tagged_prompts": 41,
+    "name_hits": 47
+  },
+  "top_names": [
+    {
+      "name": "mastermind",
+      "prompts": 21
+    },
+    {
+      "name": "owner",
+      "prompts": 8
+    },
+    {
+      "name": "Page",
+      "prompts": 3
+    },
+    {
+      "name": "Servex",
+      "prompts": 2
+    },
+    {
+      "name": "Item",
+      "prompts": 2
+    },
+    {
+      "name": "term:one folder per session",
+      "prompts": 2
+    },
+    {
+      "name": "MCP",
+      "prompts": 1
+    },
+    {
+      "name": "CLAUDE.md",
+      "prompts": 1
+    },
+    {
+      "name": "List",
+      "prompts": 1
+    },
+    {
+      "name": "Session",
+      "prompts": 1
+    },
+    {
+      "name": "term:item.open",
+      "prompts": 1
+    },
+    {
+      "name": "term:cloud-voice",
+      "prompts": 1
+    },
+    {
+      "name": "term:recite",
+      "prompts": 1
+    },
+    {
+      "name": "term:question card",
+      "prompts": 1
+    },
+    {
+      "name": "minion",
+      "prompts": 1
+    }
+  ],
+  "buckets": {
+    "0": 218,
+    "1": 37,
+    "2-3": 3,
+    "4+": 1
+  },
+  "agreement": {
+    "sum_over_prompts": 47,
+    "sum_over_names": 47,
+    "equal": true
+  },
+  "samples": [
+    {
+      "text120": "are you aware of our push to main problem, and white listing our pushes?\n\ndo i whitelist my mikelew42 github account, my",
+      "names": []
+    },
+    {
+      "text120": "Okay, our repo is quite dirty in terms of the, I'm not even sure which branch it's on. I think we're on compliance dev, ",
+      "names": [
+        "mastermind"
+      ]
+    },
+    {
+      "text120": "<pasted_content id=\"32e8\">\nGit workflow for this repo (machine: \"compliance\")\n\nBranches\n- main: latest integrated code, ",
+      "names": []
+    },
+    {
+      "text120": "Yeah, I think I forgot to paste the actual brief that the guy wrote up. See if that makes sense. See if our Git strategy",
+      "names": [
+        "mastermind"
+      ]
+    },
+    {
+      "text120": "Okay, what's going on with all these files in the Git? When I type git status, I like to see it clean. Like, I'm not sur",
+      "names": [
+        "mastermind"
+      ]
+    }
+  ],
+  "voice_implicit_sample20": [
+    {
+      "prompt_idx": 113,
+      "text120": "You know, if you're not aware of where those files live, you could, well, you probably should have the master pass along",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 203,
+      "text120": "But, you know, again, creating a key tool question card or creating a task card or creating a context card and referenci",
+      "name": "term:question card"
+    },
+    {
+      "prompt_idx": 153,
+      "text120": "we just do it well an alternative is that we go paragraph by paragraph so one of the thoughts there is if you just gener",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 235,
+      "text120": "The quick fix idea is that just any mastermind could use a quick fix branch rather than make a brand new work tree.",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 207,
+      "text120": "having a mastermind be able to load this little chat in a playwright browser might be a useful thing so that we can have",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 64,
+      "text120": "Are you able to message the VS Code a mastermind session.",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 205,
+      "text120": "Have the mastermind try to load this page.",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 144,
+      "text120": "That's something the mastermind should double check and study its code and see what exactly the threshold is, well, what",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 145,
+      "text120": "Another potential option I was just thinking for, you know, like to avoid the echo problem is getting some sort of voice",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 156,
+      "text120": "Yeah, so you can ask these questions to the mastermind while I am dictating, right?",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 107,
+      "text120": "One thing you could ask the mastermind is, is that I'm wondering if we could or should change the number of sentences th",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 193,
+      "text120": "Have the mastermind look into, well, so yeah, the mangled transcriptions, it might be a whisper chunking problem.",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 47,
+      "text120": "See if you're able to find the currently running VS Code mastermind session.",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 65,
+      "text120": "Tell the VS Code mastermind that...",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 149,
+      "text120": "And by the way, tell the mastermind that the synchron ization of the visual read aloud like highlighting gets unsynced e",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 175,
+      "text120": "And essentially what would happen there is that the setting screen for this dictate could be broken down by both, you kn",
+      "name": "term:recite"
+    },
+    {
+      "prompt_idx": 233,
+      "text120": "Do you have a mastermind you can ask to fix this?",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 254,
+      "text120": "By the way, there was some past work on a plug-in system for classes that have a minion spawn a minion like a I don't kn",
+      "name": "minion"
+    },
+    {
+      "prompt_idx": 232,
+      "text120": "You should either respond quickly when I pause or you should play a thinking sound to let me know that you're, you know,",
+      "name": "mastermind"
+    },
+    {
+      "prompt_idx": 162,
+      "text120": "The way that you work, when you're not generating messages, you can still be asking the mastermind my questions and find",
+      "name": "mastermind"
+    }
+  ],
+  "judged_false_positive": [],
+  "judged_false_positive_rate": "0/20",
+  "false_positives_found_outside_sample": [
+    {
+      "name": "page",
+      "text": "So the last two prompts of mine each have gone on their own card on the chat V3 page. page and it looks like there's kind of a title that is essentially the same thing as the prompt itself. …",
+      "why": "\"page\" names a specific site page (the Chat V3 page), not the Page class/module"
+    },
+    {
+      "name": "page",
+      "text": "Have the mastermind try to load this page.",
+      "why": "\"this page\" is whatever page is open, a generic noun, not a reference to the Page module"
+    }
+  ]
+}

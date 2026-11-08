@@ -30,7 +30,7 @@ git grep --untracked -lEi '"title":"[^"]*tools' -- "$S/**"
 | Channel | Where the words are | Search |
 |---|---|---|
 | VS Code tab | `{refined:{sentences:[{n,text}],v:2,via:"vscode"}}` on `session.jsonl`, written by the `UserPromptSubmit` hook (`.claude/hooks/prompt-relay.mjs`); the hook's counted `Prompt` line has the raw text too. With `SERVEX_ECHO=on`, Echo adds a second line with `sections` | `'"sentences":\[[^]]*word'` |
-| Browser voice (Dictate) | the same `refined` line, with `sections` (the asks, citing sentence numbers) | `'"sentences":\[[^]]*word'` |
+| Browser voice (Dictate) | the same `refined` line, with `sections` (the asks, citing sentence numbers). ⚠ The `v-*` dictation sessions still write an older shape (checked 2026-11-08: every `v-*` folder from 11-02 to 11-06, 0 `refined` lines): one `{sentences:{add:{id,text,via:"voice"}}, messages:{add:{type:"Prompt",by:"owner",sentences:[ids],prompt:"p-…"}}}` line per sentence, and one prompt is every sentence sharing a `prompt` id | `'"sentences":{"add":{[^}]*word'` |
 | Claude app voice | the same `refined` line (`via:"voice"`), written by `RemoteMCP.record`; the `"from":"owner (voice)"` chat line stays | `'"sentences":\[[^]]*word'` |
 | SDK agents, phone sheet | the same `refined` line (`via` of the sheet), written by `Sessions.say`. Relays from other agents ("From Michael: …") are lossy | `'"sentences":\[[^]]*word'` |
 
