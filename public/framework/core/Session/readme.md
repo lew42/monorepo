@@ -167,6 +167,48 @@ Test: `node Servex/agents/session-state.test.mjs`.
 
 - Auditing the completion of every past session is later.
 
+## Map
+
+| File | What it does |
+|---|---|
+| `Session.js` | the class: `Session extends Task` (`Session.js:22`), its `MENU` (`:55`), `replay_new()` (`:86`), `locate()` (`:238`); `completion_score()` is inherited from `Task` |
+| `SessionFolders.mjs` | node only: the one finder of which dated folder holds a session (`at`, `of`, `home`, `record_of`, `create`, `homes`); its saved map is `ai/sessions/session-folders.json` |
+| `Day.js` | the one rule for "which day is it": the owner's local calendar day, no imports, shared by browser, server and hooks |
+| `SessionTasks.js` | a session's tasks drawn live on its page, with Approve / Reject / Make it a project on proposed ones |
+| `InFlight.js`, `InFlightView.js`, `InFlight.css` | the in-flight dashboard: `InFlight.pick(session)` chooses (DOM-free), the view draws it, the css styles it ([doc/in-flight.md](./doc/in-flight.md)) |
+| `SessionMenu.js`, `SessionMenu.css` | the button at the right end of a session's name line and its menu rows ([doc/menu.md](./doc/menu.md)) |
+| `SessionSettings.js` | the Settings sub-page, a form drawn from `SETTINGS`; each change appends one `{"settings":…}` line to `session.jsonl` |
+| `page.js` | the Session class page (`Doc`) |
+| `*.test.mjs` | `Session.test.mjs`, `SessionFolders.test.mjs`, `InFlight.test.mjs`, `InFlight.real.test.mjs`, `session-task.test.mjs` |
+| `Chat/` | a session's chat as one list of real Items ([Chat/readme.md](./Chat/readme.md)) |
+| `doc/` | the design docs (below), plus `method/` and `file/` (one note per method and file, drawn by the class page) and `in-flight-real-400.png` (the screenshot in in-flight.md) |
+| `fixtures/` | `agent.jsonl`, `complete.jsonl`, `process.jsonl`: sample session logs the tests replay |
+| `tasks/` | this module's own task folders (`data-shapes/`, `do-not-move-the-ai-session-class-now-wri/`) |
+| `files.jsonl`, `improvements.jsonl` | the file census (written by its tool) and skill-improvement notes (appended by agents) |
+
+**How it connects**
+- `SessionFolders.at(store).of(id)` / `.record_of(id)` / `.create(id, {first})` (`./SessionFolders.mjs:30`, `:165`, `:118`, `:198`) ← called by `Servex/agents/Agents.js:345` and `:1137`, `Server/ChildLinks.mjs:14`, `Server/Truth.mjs:56`, and `Session.locate` (`Session.js:208`–`:211`). It calls nothing but the disk
+- `session.completion_score()` (`../Task/Task.js:326`; a `Session` inherits it from `Task`, `Session.js:22`) → read by `Server/Truth.mjs:60`, which replays every record and counts the complete sessions; the truth page `/live/truth/` draws that ([readme](/live/truth/readme.md))
+- `Session.replay(lines)` (`../Item/Item.js:752`) → `Server/session-query.mjs --report` makes the same replay, so the CLI and the truth page agree
+- `Session.MENU` (`Session.js:55`) → `session.menu(url)` (`:68`) → `SessionMenu.entries()` → one row per entry; `SessionSettings` is the first entry's page
+- `ChildLinks.link(child_dir, parent_session, agent)` (`../../../../Server/ChildLinks.mjs:84`) ← `Servex/agents/Agents.js:1148`: a child session becomes a `{"task":url,"as":agent}` line in its parent's record
+- Cloud voice records: `RemoteMCP.voice_session()` (`../../../../Servex/ext/remote/RemoteMCP.js:209`) ← `:184`, `:261`; it calls `session_folders().create(…)` (`:233`). The scripts and the records are mapped in [ai/sessions/readme.md](../../ai/sessions/readme.md#map)
+
+**Design:** [`doc/architecture.md`](./doc/architecture.md) (decisions, first) · [`doc/identity.md`](./doc/identity.md) (ids, folders, the check) · [`doc/classes.md`](./doc/classes.md) (the classes on one screen) · [`doc/session-is-a-task.md`](./doc/session-is-a-task.md) · [`doc/one-replay-plan.md`](./doc/one-replay-plan.md) (plan, not built) · [`doc/prompt-breakdown.md`](./doc/prompt-breakdown.md) · [`doc/prompt-tasks.md`](./doc/prompt-tasks.md) · [`doc/in-flight.md`](./doc/in-flight.md) · [`doc/menu.md`](./doc/menu.md)
+
+## Search terms
+
+The words that find this module's past work (counts: `sessions N files · M commits`, from `git grep -c -i '<term>' -- public/framework/ai/sessions | wc -l` and `git log --oneline -S '<term>' | wc -l`; raw output in [terms.txt](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/readme-maps-sessions/terms.txt)). The folder, record and voice terms are in [ai/sessions/readme.md](../../ai/sessions/readme.md#search-terms).
+
+- `Session.replay` (sessions 74 files · 129 commits) — rebuild a session from its log lines
+- `SessionFolders` (sessions 59 files · 45 commits) — the one finder of a session's folder
+- `Session.locate` (sessions 47 files · 54 commits) — the older lookup, now a thin caller of `SessionFolders`
+- `session entries` (sessions 33 files · 11 commits) — a child session as a typed line in its parent's log
+- `completion_score` (sessions 21 files · 29 commits) — the recursive mean the truth page counts
+- `record_of` (sessions 15 files · 15 commits) — the folder that holds a session's record, nested for a spawned agent
+- `Truth.mjs` (sessions 14 files · 9 commits) — the daily truth numbers
+- `adopt_nested` (sessions 10 files · 9 commits) — claims a record folder nested inside its parent's
+
 ## More
 
 - [doc/identity.md](doc/identity.md): which session owns each line, dollar and task; every way an id changes (compaction, resume, fork, renewal); the check `node Server/SessionIdentity.mjs <id>`
