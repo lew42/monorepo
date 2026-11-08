@@ -41,7 +41,6 @@ const md = report(g, { starts: starts.length, ends: ends.length });
 assert.match(md, /## 1\. Gone, end missed \(1\)/); assert.match(md, /## 2\. Alive, owner done: the leaks \(1\)/); assert.match(md, /## 3\. Alive, owner working \(2\)/);
 assert.equal(report({ gone: [], done: [], working: [] }, { starts: 0, ends: 0 }).match(/_none_/g).length, 3);
 console.log("PASS  report(): three sections");
-console.log("leaks.test: all checks pass");
 
 const boot = ms("05:30");
 const closed = close_lines(g.gone.concat(open.find(s => s.pid === 6)), starts, boot);   // pid 3 (two logs) is gone; pid 6 started after the boot
@@ -52,3 +51,4 @@ assert.equal(Date.parse(reused[0].line.ended), ms("05:00") - 1, "a number starte
 const after = pair(lines.concat(closed.map(c => L(c.file, c.line))));
 assert.ok(!after.open.some(s => s.pid === 3), "pair() counts the boot line as the end");
 console.log("PASS  close_lines(): gone-at-boot ends, every log, upper-bound time, a reused number");
+console.log("leaks.test: all checks pass");

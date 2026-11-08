@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { AsyncLocalStorage } from "node:async_hooks";
+import { execFile } from "node:child_process";
 import { place, stamp } from "./home.js";
 
 /* WHO STARTED THIS PID: every child_process spawn Servex makes gets a `{"pid":N,...}` line, and an exit line when it ends.
@@ -93,6 +94,21 @@ export default class SpawnLog {
 			for (const d of new Set(where)){ const file = this.file_of(d); if (file){ LogLine.raw(file, { ...line, by: "servex" }); wrote = true; } }
 			if (!wrote) this.spawns(line);   // a dir with no session.jsonl or task.jsonl: never drop the line
 		});
+	}
+
+	/* GONE AT BOOT (doc/processes.md): `leaks.mjs --close-gone` prints the end lines a crash never wrote; Servex appends them here, as the
+	 * one writer, into the same logs as their starts. Async and never throws; resolves to how many lines were written. `run` is for the test. */
+	static close_gone(root, before_iso, run = null){
+		run ??= () => new Promise(ok => execFile(process.execPath, [path.join(root, "Servex", "leaks.mjs"), "--close-gone", "--root", root, "--before", before_iso],
+			{ cwd: root, windowsHide: true, maxBuffer: 1 << 26 }, (err, out) => ok(err ? "" : String(out))));
+		return Promise.resolve().then(run).then(out => {
+			let writes = []; try { writes = JSON.parse(out).writes ?? []; } catch {}
+			for (const { file, line } of writes){
+				if (file === "spawns") this.spawns(line);
+				else this.later(({ LogLine }) => LogLine.raw(path.join(root, file), { ...line, by: "servex" }));
+			}
+			return this.flush().then(() => writes.length);
+		}).catch(() => 0);
 	}
 
 	static spawns(line){

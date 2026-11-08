@@ -66,5 +66,15 @@ await run(lost); await SpawnLog.flush();
 assert.ok(pids(read(spawns)).some(l => l.pid === lost.pid), "no dir: the spawns log");
 console.log("PASS  an agent with no task dir lands in spawns");
 
+// close_gone: what leaks.mjs --close-gone printed lands in the start's own log (through the one appender) and in spawns
+fs.mkdirSync(path.join(tmp, "repo", "logs-a"), { recursive: true });
+const printed = JSON.stringify({ writes: [{ file: "logs-a/session.jsonl", line: { pid_exit: 7, ended: "2026-11-08T11:06:00.000Z", seen: "boot" } }, { file: "spawns", line: { pid_exit: 8, ended: "2026-11-08T11:06:00.000Z", seen: "boot" } }] });
+assert.equal(await SpawnLog.close_gone(path.join(tmp, "repo"), "2026-11-08T11:06:00.000Z", () => printed), 2, "two lines written");
+await new Promise(r => setTimeout(r, 200));
+assert.ok(exits(read(path.join(tmp, "repo", "logs-a", "session.jsonl"))).some(l => l.pid_exit === 7 && l.seen === "boot" && l.by === "servex"), "end line in the start's log");
+assert.ok(exits(read(spawns)).some(l => l.pid_exit === 8), "end line in spawns");
+assert.equal(await SpawnLog.close_gone(tmp, "x", () => "not json"), 0, "bad output writes nothing, never throws");
+console.log("PASS  close_gone(): printed boot ends land in their logs");
+
 fs.rmSync(tmp, { recursive: true, force: true });
 process.exit(0);
