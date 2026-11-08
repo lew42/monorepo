@@ -1,0 +1,172 @@
+diff --git a/Servex/agents/roles/mastermind.md b/Servex/agents/roles/mastermind.md
+index 21937380e..06038bcc3 100644
+--- a/Servex/agents/roles/mastermind.md
++++ b/Servex/agents/roles/mastermind.md
+@@ -57,7 +57,7 @@ Nobody else can reach or reopen an in-process agent. Servex agents are MCP-addre
+ 
+ - **Spawn:** `spawn_agent {role, name, prompt}`; `model`, `effort`, `cwd` override the role's defaults, and `role` loads that role's skill. Then `send_to_agent`, `interrupt_agent`, `stop_agent`, `list_agents`. Seam: [`Servex/agents/readme.md`](../readme.md); roles: [`tiers-design/doc/roles.md`](/framework/ai/sessions/2026/09/22/tiers-design/tiers-design/doc/roles.md).
+ - **Warm time:** `dormant_after` (seconds). Minions, reviewers and masterminds owning one task default to 0 (a cold resume loads in 0.15 s). Use `60` only when you will read the reply and may ask a follow-up.
+-- **Fallback when Servex is down:** `claude --session-id <uuid> -p "<prompt naming the brief>" --model <full id> --effort <level> --permission-mode acceptEdits --allowedTools "Bash,Read,Write,Edit,Glob,Grep,Skill,WebFetch,WebSearch" --output-format json` from the repo root; `claude --resume <id> -p` to follow up; forks are the `fork-claude-session` skill. ⚠ Those permission flags are the whole difference between a minion that works and one that writes nothing.
++- **Fallback ONLY when Servex itself cannot be reached** (its MCP tools time out or error, not a normal refusal): `claude --session-id <uuid> -p "<prompt naming the brief>" --model <full id> --effort <level> --permission-mode acceptEdits --allowedTools "Bash,Read,Write,Edit,Glob,Grep,Skill,WebFetch,WebSearch" --output-format json` from the repo root; `claude --resume <id> -p` to follow up; forks are the `fork-claude-session` skill. ⚠ Those permission flags are the whole difference between a minion that works and one that writes nothing. ⚠ **Never for a `spawn_agent`/`take_worktree` REFUSAL** (no pool worktree ready, the commit-charge gate, a cap) — that is Servex working as designed, and this escape hatch starts a claude.exe Servex never sees: no pid start/end line, no agent/session attribution, ever (Lineage can only sample a process that is a child of something Servex is already tracking, and while Servex is down it is tracking nothing). Retry `spawn_agent`/`take_worktree` later, or queue the work, instead (2026-11-08, `pid-accounting`: two CLI minions launched this way on a pool refusal left no trace at all — `public/framework/ai/sessions/2026/11/06/spawned/mastermind-resources/pid-accounting/report.md`).
+ - **Ask, don't read:** a question about one module goes to its expert (`list_experts`, `ask_expert`); several modules, a mastermind with `readme_modules`.
+ - **Record** the agent's id and `session_id` in the brief and the task's `task.jsonl` launch line; that makes the work resumable.
+ - **Keep everything moving.** `spawn_agent` returns at once. From a tab (not a Servex agent), run a background watcher on the child's state so its "done" still reaches you. Long helpers (servers, `Server/health-supervisor.mjs`, Playwright) run in the background and report.
+diff --git a/Servex/doc/processes.md b/Servex/doc/processes.md
+index ad06f04c4..45feb9ae3 100644
+--- a/Servex/doc/processes.md
++++ b/Servex/doc/processes.md
+@@ -251,6 +251,15 @@ The Bash tool's shell, grep, node, a Playwright browser, a worktree dev server:
+ 
+ `node Servex/leaks.mjs` (a leak = a start line with no end line) reads every start and end line from the session logs and the `spawns` log and puts each unended start in a group: **gone, end missed** (the pid is not running: a logging bug), **alive, owner done** (its agent is stopped or dormant, or its task has landed: a real leak) or **alive, owner working** (fine). `--write <file>` writes the markdown report. It never kills anything. Run it, then fix the close path that missed the process (`Lifecycle.js`, `closeout`, `Pool.js`, `Server/Browser.mjs`), never the process itself. Tests: `Servex/leaks.test.mjs` (the pairing), `Servex/chrome-pin.test.mjs` (no ending path ever picks the owner's Chrome, Code or Figma; a Playwright chrome is picked; a forced kill writes its end lines).
+ 
++### Coverage, and the two gaps that log nothing
++
++`node Servex/pid-coverage.mjs [--hours 24]` sorts every start line in the window by the exe actually spawned (`claude.exe`, `node`, `git`, `powershell/bash`, `chrome (playwright)`, `other`) and prints, per kind, how many got an end line and how many carry both an `agent` and a `session`. Read-only, reuses `pair()`/`read_lines()` from `leaks.mjs`. A snapshot (2026-11-08, 24 h, 1,460 starts): claude.exe and chrome end and attribute near 100%; git, node and the rest end near 99% but are attributed only through their nearest tracked ancestor (an agent's own claude.exe), so a line copied to no agent's log (a lone `spawns` poll) shows 0% there by design, not as a bug.
++
++Two gaps the coverage number cannot see, because nothing is ever written for them:
++
++1. **Under 10 seconds, Lineage never samples it.** Measured the same day: about 150 shell starts were sampled in 24 h (Lineage, `"seen":"sample"`, kind `powershell/bash`), against roughly 3,280 Bash/PowerShell tool calls made by agents in the same window (counted from the transcripts' own `"name":"Bash"` / `"name":"PowerShell"` tool-use lines, the cheaper source — `~/.claude/projects/<dir>/*.jsonl` modified in the last 24 h, `grep -oc` for the two tool names). **About 1 in 22 is ever seen.** It cannot leak (gone before the next sample), so this is a visibility gap, not a leak risk.
++2. **A `claude -p` launched outside `spawn_agent` is invisible for its whole life.** `Servex/agents/roles/mastermind.md`'s "Fallback when Servex is down" recipe starts a bare `claude.exe` that Servex never put in its `owners` map, so Lineage's `root()` walk can never name it (while Servex is actually down, this is also moot — nothing is sampling at all). The bug was a mastermind using that same recipe for an ordinary `spawn_agent`/`take_worktree` **refusal** (no pool worktree ready), where Servex is up and the right move is to retry or queue. Two sessions did this on 2026-11-07/08 (`73e88e75`, `d2507b09`; a third, `00c47a44`, also used it and registered its own task folder by running `TaskDirs.mjs` itself, but still has no pid line); both had already ended by the time this was checked, and `pid-coverage.mjs`'s companion check of every live `claude.exe` against every logged pid found none unlogged right now. **Fixed 2026-11-08:** the role readme now restricts the recipe to Servex being genuinely unreachable and says to retry/queue on a plain refusal (`mastermind.md`, "Spawning").
++
+ Finding things: [How to find things](/framework/ai/sessions/#how-to-find-things).
+ 
+ Limits:
+diff --git a/Servex/leaks.mjs b/Servex/leaks.mjs
+index f67cf8866..ba1a0a238 100644
+--- a/Servex/leaks.mjs
++++ b/Servex/leaks.mjs
+@@ -54,12 +54,12 @@ export function classify(open, alive, owner_done){
+ 	return { gone, done, working };
+ }
+ 
+-function repo_root(){
++export function repo_root(){
+ 	try { return path.dirname(execFileSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], { cwd: path.dirname(fileURLToPath(import.meta.url)), windowsHide: true }).toString().trim()); }
+ 	catch { return process.cwd(); }
+ }
+ 
+-function read_lines(root){
++export function read_lines(root){
+ 	const out = [];
+ 	try {
+ 		const text = execFileSync("git", ["grep", "--untracked", "-H", "-I", "-e", '"pid":[0-9]', "-e", '"pid_exit":[0-9]', "--", "*.jsonl"], { cwd: root, windowsHide: true, maxBuffer: 1 << 29 }).toString();
+diff --git a/Servex/pid-coverage.mjs b/Servex/pid-coverage.mjs
+new file mode 100644
+index 000000000..9d25a47e2
+--- /dev/null
++++ b/Servex/pid-coverage.mjs
+@@ -0,0 +1,79 @@
++/* node Servex/pid-coverage.mjs [--root <repo>] [--hours 24] [--write <file>] [--json]
++ * COVERAGE, BY KIND: every `{"pid":N}` start line in the window (default last 24 h), sorted into one of six kinds by its
++ * `cmd`/`why` text (claude.exe, node, git, powershell/bash, chrome (playwright), other), with what fraction of each kind
++ * got an end line and what fraction carries an agent AND a session. Read-only: reuses `pair()` and `read_lines()` from
++ * leaks.mjs rather than re-reading or re-pairing the logs. Doc: Servex/doc/processes.md, "Who started this pid".
++ * The two numbers that must agree: the sum of the per-kind "starts" column equals the window's own start-line count. */
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { pair, read_lines, repo_root } from "./leaks.mjs";
++
++export const KINDS = ["claude.exe", "node", "git", "powershell/bash", "chrome (playwright)", "other"];
++
++/* The exe actually being spawned, not just any word in the command line: the FIRST `something.exe` token in `cmd`
++ * (full path or bare), so `C:\Program Files\nodejs\node.exe C:\...\script.mjs` reads as "node.exe", not "other", and
++ * `...bash.exe -c "git log ..."` reads as "bash.exe", not "git" (the git text is an argument, not the spawned exe).
++ * Falls back to the first bare word (no `.exe` at all, as some sampled process names come through) for Playwright's
++ * `chrome`/`chromium` and a plain `node script.js`/`git status` seen without an extension. */
++function exe_of(cmd){
++	const m = String(cmd).match(/([a-z0-9_.+-]+\.exe)\b/i);
++	if (m) return m[1].toLowerCase();
++	return (String(cmd).trim().split(/\s+/)[0] ?? "").toLowerCase();
++}
++
++/* One row's own `cmd` sorted into a kind by the exe it actually runs — `why` is skipped on purpose: a sampled
++ * child's `why` is "child of claude.exe" for EVERY grandchild of an agent (git, node, a shell), so matching on it
++ * would call them all "claude.exe". */
++export function kind_of(row){
++	const exe = exe_of(row.cmd);
++	if (exe === "claude.exe") return "claude.exe";
++	if (/^chrom(e|ium)(\.exe)?$/.test(exe) || /playwright/.test(exe)) return "chrome (playwright)";
++	if (/^git(\.exe)?$/.test(exe)) return "git";
++	if (/^(powershell|pwsh|bash|sh|cmd)(\.exe)?$/.test(exe)) return "powershell/bash";
++	if (/^node(\.exe)?$/.test(exe)) return "node";
++	return "other";
++}
++
++/* starts: pair()'s `starts` array (every start row, deduped by pid+started, with `.t` already computed). open: pair()'s
++ * `open` array — the SAME objects, by reference, for the ones with no end (checked with `.has`, not reconstructed). */
++export function coverage(starts, open_set, since_ms){
++	const rows = new Map(KINDS.map(k => [k, { kind: k, starts: 0, with_end: 0, with_both: 0 }]));
++	let windowed = 0;
++	for (const s of starts){
++		if (s.t < since_ms) continue;
++		windowed++;
++		const row = rows.get(kind_of(s));
++		row.starts++;
++		if (!open_set.has(s)) row.with_end++;
++		if (s.agent && s.session) row.with_both++;
++	}
++	return { rows: [...rows.values()], windowed };
++}
++
++function pct(n, d){ return d ? `${Math.round((n / d) * 1000) / 10}%` : "—"; }
++
++export function report({ rows, windowed }, hours){
++	const total = rows.reduce((n, r) => n + r.starts, 0);
++	const lines = [`# PID coverage, last ${hours} h`, "",
++		`${windowed} start lines in the window. Row totals: ${total} (${total === windowed ? "agree" : "DISAGREE — a row was double-counted or missed"}).`, "",
++		"| kind | starts | with end | with agent+session |", "|---|---|---|---|",
++		...rows.map(r => `| ${r.kind} | ${r.starts} | ${pct(r.with_end, r.starts)} (${r.with_end}/${r.starts}) | ${pct(r.with_both, r.starts)} (${r.with_both}/${r.starts}) |`),
++		""];
++	return lines.join("\n");
++}
++
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
++	const arg = n => { const i = process.argv.indexOf(n); return i >= 0 ? process.argv[i + 1] : null; };
++	const root = arg("--root") ?? repo_root();
++	const hours = Number(arg("--hours") ?? 24);
++	const { starts, open } = pair(read_lines(root));
++	const open_set = new Set(open);
++	const since = Date.now() - hours * 3600000;
++	const cov = coverage(starts, open_set, since);
++	if (process.argv.includes("--json")) console.log(JSON.stringify(cov));
++	else {
++		const md = report(cov, hours);
++		if (arg("--write")) fs.writeFileSync(arg("--write"), md); else console.log(md);
++	}
++}
+diff --git a/Servex/pid-coverage.test.mjs b/Servex/pid-coverage.test.mjs
+new file mode 100644
+index 000000000..60139cb4d
+--- /dev/null
++++ b/Servex/pid-coverage.test.mjs
+@@ -0,0 +1,29 @@
++import assert from "node:assert";
++import { kind_of, coverage, report } from "./pid-coverage.mjs";
++
++/* kind_of: the spawned exe, not any word inside the command line. */
++assert.equal(kind_of({ cmd: `"C:\\Program Files\\nodejs\\node.exe" C:\\x\\script.mjs` }), "node");
++assert.equal(kind_of({ cmd: `"C:\\Program Files\\Git\\bin\\bash.exe" -c "git log --oneline"` }), "powershell/bash");
++assert.equal(kind_of({ cmd: `git.exe -c core.fsmonitor= status --short` }), "git");
++assert.equal(kind_of({ cmd: `C:\\...\\claude.exe --resume=abc` }), "claude.exe");
++assert.equal(kind_of({ cmd: `chrome.exe --headless` }), "chrome (playwright)");
++assert.equal(kind_of({ cmd: `python C:\\x\\script.py` }), "other");
++
++/* coverage: counts per kind, with-end and with-agent-session, only for rows inside the window. */
++const now = Date.now();
++const starts = [
++	{ t: now - 1000, cmd: "git status", agent: "minion-x", session: "s1" },     // in window, has end, attributed
++	{ t: now - 2000, cmd: "git status", agent: null, session: null },          // in window, open (no end), unattributed
++	{ t: now - 1000 * 60 * 60 * 25, cmd: "git status", agent: "a", session: "s" },   // outside the 24h window
++];
++const open_set = new Set([starts[1]]);
++const cov = coverage(starts, open_set, now - 24 * 3600000);
++assert.equal(cov.windowed, 2);
++const git_row = cov.rows.find(r => r.kind === "git");
++assert.deepEqual([git_row.starts, git_row.with_end, git_row.with_both], [2, 1, 1]);
++
++const md = report(cov, 24);
++assert.ok(md.includes("agree"));
++assert.ok(md.includes("| git | 2 |"));
++
++console.log("pid-coverage.test.mjs ok");
