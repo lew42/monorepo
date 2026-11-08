@@ -1,6 +1,6 @@
 /* node Servex/leaks.test.mjs — leaks.mjs pairs start lines with end lines and sorts the open ones, on made-up log lines. */
 import assert from "node:assert/strict";
-import { pair, classify, report } from "./leaks.mjs";
+import { pair, classify, report, close_lines } from "./leaks.mjs";
 
 const T = s => `2026-11-06T10:${s}.000Z`, ms = s => Date.parse(T(s));
 const L = (file, row) => ({ file, row });
@@ -42,3 +42,13 @@ assert.match(md, /## 1\. Gone, end missed \(1\)/); assert.match(md, /## 2\. Aliv
 assert.equal(report({ gone: [], done: [], working: [] }, { starts: 0, ends: 0 }).match(/_none_/g).length, 3);
 console.log("PASS  report(): three sections");
 console.log("leaks.test: all checks pass");
+
+const boot = ms("05:30");
+const closed = close_lines(g.gone.concat(open.find(s => s.pid === 6)), starts, boot);   // pid 3 (two logs) is gone; pid 6 started after the boot
+assert.deepEqual(closed.map(c => c.file).sort(), ["a.jsonl", "parent.jsonl"], "one end line into every log the start is in");
+assert.ok(closed.every(c => c.line.pid_exit === 3 && c.line.seen === "boot" && Date.parse(c.line.ended) === boot), "ended = the sweeping boot");
+const reused = close_lines([starts.find(s => s.pid === 5 && s.t === ms("04:00"))], starts, ms("09:00"));
+assert.equal(Date.parse(reused[0].line.ended), ms("05:00") - 1, "a number started again ends 1 ms before its next start");
+const after = pair(lines.concat(closed.map(c => L(c.file, c.line))));
+assert.ok(!after.open.some(s => s.pid === 3), "pair() counts the boot line as the end");
+console.log("PASS  close_lines(): gone-at-boot ends, every log, upper-bound time, a reused number");

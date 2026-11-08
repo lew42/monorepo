@@ -6,6 +6,8 @@
  *   3. alive, owner working still running and its owner is still at work: normal, only counted.
  * It only READS: it never kills anything. A real leak is fixed in the close path that missed it (Lifecycle.js, closeout, Pool.js,
  * Server/Browser.mjs, Relief.js), not from this report. Both field names are read (`at` before 2026-11-06, `started` / `ended` after).
+ * `--close-gone [--before <iso>] [--dry-run]` writes the end line each GONE start older than --before never got (close_lines below); Servex runs it
+ * once a minute after every boot. That is its only write.
  * Doc: Servex/doc/processes.md, "Leaks: a start with no end". */
 import fs from "node:fs";
 import path from "node:path";
@@ -70,6 +72,20 @@ export function read_lines(root){
 	return out;
 }
 
+/* GONE AT BOOT: a crash takes Servex's exit handlers with it, so a process that ended while Servex was down never got its end line.
+ * For each gone start older than `before_ms` (the boot that is sweeping), one `{"pid_exit"}` into every log the start is in, marked
+ * `"seen":"boot"`. Its `ended` is an upper bound: the sweeping boot, or 1 ms before the same number was started again. */
+export function close_lines(gone, starts, before_ms){
+	const out = [];
+	for (const s of gone){
+		if (!(s.t < before_ms)) continue;
+		const next = starts.find(x => x.pid === s.pid && x.t > s.t)?.t ?? Infinity;
+		const ended = new Date(Math.min(before_ms, next - 1)).toISOString();
+		for (const file of s.files) out.push({ file, line: { pid_exit: s.pid, ended, code: null, signal: null, seen: "boot", why: "gone at boot: no exit was logged" } });
+	}
+	return out;
+}
+
 function live_pids(){
 	const text = execFileSync("powershell.exe", ["-NoProfile", "-Command",
 		"Get-CimInstance Win32_Process | % { '{0} {1}' -f $_.ProcessId, $(if($_.CreationDate){[DateTimeOffset]::new($_.CreationDate).ToUnixTimeMilliseconds()}else{0}) }"], { windowsHide: true, maxBuffer: 1 << 26 }).toString();
@@ -112,7 +128,18 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 	const root = arg("--root") ?? repo_root();
 	const { open, starts, ends } = pair(read_lines(root));
 	const groups = classify(open, live_pids(), owner_probe(root));
-	if (process.argv.includes("--json")) console.log(JSON.stringify({ starts: starts.length, ends: ends.length, ...Object.fromEntries(Object.entries(groups).map(([k, v]) => [k, v.length])) }));
+	if (process.argv.includes("--close-gone")){
+		const writes = close_lines(groups.gone, starts, ms(arg("--before")) || Date.now() - 300000);   // by hand: leave the last 5 min to Lineage's next sample
+		if (!process.argv.includes("--dry-run")){
+			const { default: LogLine } = await import("../Server/LogLine.mjs");
+			for (const { file, line } of writes){
+				if (file === "spawns") fs.appendFileSync(place("logs", "spawns.jsonl"), JSON.stringify(line) + "\n");
+				else LogLine.raw(path.join(root, file), { ...line, by: "servex" });
+			}
+		}
+		console.log(JSON.stringify({ closed: new Set(writes.map(w => w.line.pid_exit)).size, lines: writes.length, dry_run: process.argv.includes("--dry-run") }));
+	}
+	else if (process.argv.includes("--json")) console.log(JSON.stringify({ starts: starts.length, ends: ends.length, ...Object.fromEntries(Object.entries(groups).map(([k, v]) => [k, v.length])) }));
 	else {
 		const md = report(groups, { starts: starts.length, ends: ends.length });
 		if (arg("--write")) fs.writeFileSync(arg("--write"), md); else console.log(md);

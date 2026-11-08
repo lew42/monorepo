@@ -350,6 +350,11 @@ export default class Servex extends Events {
         if (!process.env.SERVEX_NO_FIXER && this.pool) setImmediate(() => this.fixer.start());
 
         this.agents.revive();   // agents alive at the last boot come back (resume, same id); the rest are marked gone
+        /* A crash kills the exit handlers with it: a pid that ended while Servex was down never got its end line. A minute in, leaks.mjs
+         * writes those ("seen":"boot"); doc/processes.md, "Gone at boot". SERVEX_NO_GONE_SWEEP=1 skips it. */
+        if (!process.env.SERVEX_NO_GONE_SWEEP) setTimeout(() => {
+            try { spawn(process.execPath, [path.join(HERE, "leaks.mjs"), "--close-gone", "--before", new Date(Date.now() - process.uptime() * 1000).toISOString()], { cwd: REPO, windowsHide: true, stdio: "ignore" }).on("error", () => {}); } catch {}
+        }, 60000).unref();
         if (!process.env.SERVEX_NO_WAKEUPS) this.wakeups.start();   // every pending wake-up armed again; one already due fires now
         this.routes();
         this.remote = new RemoteMCP({ servex: this, root: REPO, router: this.dashboard.router });   // /mcp/remote, bearer token (voice-bridge.md)
