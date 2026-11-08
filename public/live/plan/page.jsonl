@@ -72,3 +72,5 @@
 {"file":"mentions/page.jsonl"}
 {"content":{"add":{"type":"part-link","id":"link-mentions","path":"./mentions/","title":"Mentions: each module lists the prompts that name it"}},"by":"pages.add","ts":"2026-11-08T15:59:54.649Z"}
 {"content":{"add":{"id":"link-mentions","type":"part-link","path":"./mentions/","title":"Mentions: each module lists the prompts that name it"}},"by":"mastermind-session-truth","ts":"2026-11-08T16:00:45.996Z"}
+{"file":"one-refiner/page.jsonl"}
+{"content":{"add":{"type":"part-link","id":"link-one-refiner","path":"./one-refiner/","title":"One refiner: every sentence you say lands in a task"}},"by":"pages.add","ts":"2026-11-08T16:35:18.133Z"}

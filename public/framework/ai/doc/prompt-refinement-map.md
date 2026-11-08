@@ -2,6 +2,8 @@
 
 Eight mechanisms touch an owner's prompt, and they write to different files. This page lists them, says how they differ, and flags the overlaps. Verified against the code on 2026-10-24.
 
+**Changed since (checked 2026-11-08):** the hook now writes through `Ask.write` (`Server/Ask.mjs`, one splitter that numbers sentences). PromptTasks (mechanism 2) is switched off by the `prompt-tasks.off` file in the Servex home, so no `parts` line or `source.part` task was written 11-01..08, and coverage is 0% on every channel. The plan to keep one refiner, with each mechanism's lesson: [/live/plan/one-refiner/](/live/plan/one-refiner/) (record: [inventory.json](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/one-refiner-plan/inventory.json)).
+
 ## The mechanisms
 
 | # | Mechanism | Runs when | Model | Writes (exact file) | What it does |
