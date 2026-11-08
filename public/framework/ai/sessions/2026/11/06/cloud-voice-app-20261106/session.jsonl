@@ -717,3 +717,18 @@
 {"log":{"at":"2026-11-08T09:56:25-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
 {"log":{"at":"2026-11-08T10:06:24-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
 {"log":{"at":"2026-11-08T10:11:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"tool_call":{"at":"2026-11-08T16:27:50.087Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T16:27:51.224Z","tool":"shell","args_hash":"9eec864ab0a1","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T16:27:59.478Z","tool":"item","args_hash":"2bf55cb4654c","caller":"voice-app"}}
+{"tasks":{"mentions-index":{"log":{"msg":"Plan up (study only): /live/plan/mentions/ (7 cards; three steps ~$9; must not duplicate Sessions/SessionIndex/PastWork). Commits 5c75c4798, a3d568951; minion $3.00. Side finding: Dictate does not go through Ask.write (b31e2e48e, filed)."},"wait":{"on":"owner","what":"Yes or changes on /live/plan/mentions/ (note /framework/ai/2026/11/08/mentions-plan-ready-for-a-yes-or-changes/)"}}},"by":"voice-app","ts":"2026-11-08T16:27:59.487Z"}
+{"tool_call":{"at":"2026-11-08T16:28:00.005Z","tool":"item","args_hash":"bc83022fbce6","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T16:28:04.020Z","tool":"shell","args_hash":"6d1a0e30502e","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T16:28:07.809Z","tool":"shell","args_hash":"09b046fe359a","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T16:28:15.458Z","tool":"shell","args_hash":"eb08db701695","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T16:28:25.545Z","tool":"shell","args_hash":"64fc623cb5f8","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T16:28:40.931Z","tool":"send_to_agent","args_hash":"dc9511c4643b","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T16:28:46.824Z","tool":"item","args_hash":"fc790f96262a","caller":"voice-app"}}
+{"tasks":{"old-lessons":{"log":{"msg":"Folded into the place-sentences study: each of the 8 refinement mechanisms gets its lesson written before anything retires."},"owner":"mastermind-session-truth","start":{}},"place-sentences":{"log":{"msg":"Study + plan (with old-lessons) handed to session-truth 16:28 UTC: the 8 refinement mechanisms with their lessons, which one to keep, how sentences get placed on all channels; /live/plan/one-refiner/; nothing retires without the owner's yes; under ~$5."},"owner":"mastermind-session-truth","start":{}}},"by":"voice-app","ts":"2026-11-08T16:28:46.831Z"}
+{"log":{"at":"2026-11-08T10:36:25-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-08T10:41:25-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-08T10:46:25-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
