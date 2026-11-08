@@ -653,3 +653,27 @@
 {"log":{"at":"2026-11-08T07:21:25-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
 {"log":{"at":"2026-11-08T07:26:25-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
 {"log":{"at":"2026-11-08T07:31:25-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"tool_call":{"at":"2026-11-08T13:43:13.910Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:43:14.991Z","tool":"shell","args_hash":"40a3f045b834","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:43:18.709Z","tool":"shell","args_hash":"ea45bb1817d1","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:43:21.634Z","tool":"shell","args_hash":"c322061a92e9","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:43:28.612Z","tool":"shell","args_hash":"506eb2aedb28","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:43:47.033Z","tool":"item","args_hash":"f65e0e65cbd3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:43:54.628Z","tool":"item","args_hash":"8b18be57b0fb","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:43:55.067Z","tool":"shell","args_hash":"7e2c99f84690","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:44:01.652Z","tool":"item","args_hash":"17f70c660425","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:44:02.087Z","tool":"shell","args_hash":"034b11f97f6f","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:44:06.598Z","tool":"item","args_hash":"8cc1d6945d84","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:44:07.011Z","tool":"check_page","args_hash":"909183430d39","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:44:10.537Z","tool":"check_page","args_hash":"5ae8d010b38e","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:44:13.006Z","tool":"check_page","args_hash":"dece6700fe8b","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:44:19.520Z","tool":"check_page","args_hash":"4b3eacb79059","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:44:28.491Z","tool":"shell","args_hash":"5a916524a52d","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:44:33.482Z","tool":"shell","args_hash":"8f1017b3eff5","caller":"voice-app"}}
+{"commit":{"hash":"1c9d77784e6e0aa561b8fa13ce71b60b783dd860","what":"live: /live/pids/ process-logging coverage card (resources' pid-accounting, a692f261c), linked from /live/","files":["public/live/page.jsonl","public/live/pids/page.jsonl"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-08T13:44:34.018Z"}
+{"tool_call":{"at":"2026-11-08T13:44:49.549Z","tool":"item","args_hash":"70c3e25c1c1d","caller":"voice-app"}}
+{"tasks":{"pid-accounting":{"log":{"msg":"Measured + bypass fixed (a692f261c, $5.31): 24 h coverage by kind (ends 97.5-100% except claude.exe 88.9%); the claude -p fallback that let page-design's 3 CLI minions run with zero pid lines now applies only when Servex is unreachable; none still running. Rerun Servex/pid-coverage.mjs matched (claude.exe 32/36 ends). Table on /live/pids/ (1c9d77784). Open: 4 claude.exe exits never logged; follow-up sent to resources."}}},"by":"voice-app","ts":"2026-11-08T13:44:49.556Z"}
+{"tool_call":{"at":"2026-11-08T13:44:49.967Z","tool":"send_to_agent","args_hash":"a0fbc0178e79","caller":"voice-app"}}
+{"log":{"at":"2026-11-08T07:51:25-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-08T07:56:25-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-08T08:01:25-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
