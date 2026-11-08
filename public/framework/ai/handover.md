@@ -27,45 +27,28 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-07 00:02 UTC, last 24 h)
+## NOW (computed 2026-11-08 05:43 UTC, last 24 h)
 
-**Pace:** Week: 12% used · 27% gone · 45% of pace (room to spend, 5 days 2 hours left)
+**Pace:** Week: 25% used · 45% gone · 56% of pace (room to spend, 3 days 21 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (12):**
-- [inspector](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/inspector/) (minion-inspector)
-- [code-card](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/code-card/) (minion-code-card)
-- [Read-only research, change no files. The owner remembers asking for a plugin system for classes, maybe called ](/framework/ai/sessions/2026/11/06/spawned/minion-plugin-system-review/) (minion-plugin-system-review)
-- [Feedback inbox (obvious): i-mw5kzee8nne. Problem: `close_task` records a landed task as stopped, never complet](/framework/ai/sessions/2026/11/06/spawned/mastermind-ai/) (mastermind-ai)
-- [Load the minion skill. Your brief: public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/tabs](/framework/ai/sessions/2026/11/06/session-7caa4528/minion-tabs-page/) (minion-tabs-page)
-- [tabs-page](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/tabs-page/)
-- [storage](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/storage/) (minion-storage)
-- [past-work](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/storage/past-work/) (minion-index-past-work)
-- [page-ui](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/page-ui/) (minion-page-ui)
-- [Page features from voice: tabs, columns, place, nav, previews — proven live, each with cause](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/page-features/) (minion-page-features)
-- [Michael is alarmed. The Servex item tool, on a write to /live/, returned an "instructions" block listing ~149 ](/framework/ai/sessions/2026/11/06/spawned/mastermind-method-audit/) (mastermind-method-audit)
-- [Item tool: read a dotted path, refuse read-only verbs, build the page's own class](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/item-read/) (mastermind-item-read)
+**Landed (0):**
+- none
 
-**Open, touched in the window (7):**
-- [You are the Page/Item design lead. You own this topic for Michael: his questions about Page, List, Item and th](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/) (mastermind-page-design)
-- [simplify](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/simplify/) (minion-simplify)
-- [You are the Item / List / Page mastermind. Michael (via the voice app) wants a REAL-TIME page that voice Claud](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/) (mastermind-live-page)
-- [item-validate](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/item-validate/) (minion-item-validate)
-- [tabs-r3](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/tabs-r3/) (minion-tabs-r3)
-- [Read-only survey, no edits. Michael wants to define an MVP for his site/framework (monorepo.lew42.com). Go thr](/framework/ai/sessions/2026/11/06/spawned/minion-site-survey/) (minion-site-survey)
-- [Michael (via voice) wants a map of recent agent sessions. Read the framework/ai readmes, especially anything a](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-map/) (mastermind-session-map)
+**Open, touched in the window (0):**
+- none
 
 **Latest commits on this branch:**
 ```
-f1eb297f3 page-design: code card records, simplification brief, owner's view on /live/plan/, improvements
-507cc4c0e Merge pd-code-card: page-design: code card review fixes (highlight docs name bash, LiveCode.test indexed, a long line proves the scroll)
-6fb91cc13 smoke: a live console-allow entry also covers a named same-origin HTTP error (for a deliberate missing-file demo)
-e9b99cf3e console-allow: ext/markdown's deliberate missing-file demo 404
-1e5e32e00 live-page: /live/demos/ titled Demos, /live/lab/ marked not a tab (live data lines)
-954054f61 page-design: code card review fixes (highlight docs name bash, LiveCode.test indexed, a long line proves the scroll)
-2512e40c5 Merge branch 'compliance/dev' into worktree/pd-code-card
-2cdb2daf3 page-design: commit the /live/demos/ sub-page folders (gitignored, so worktrees never had them)
+e802563ac servex: log sweep (2 files)
+c0e1b168f servex: log sweep (8 files)
+3a397a4f3 servex: log sweep (3 files)
+1950e38ba servex: log sweep (8 files)
+70e73b633 servex: log sweep (2 files)
+ac5a9604d servex: log sweep (8 files)
+0285d770b servex: log sweep (2 files)
+149b2395c servex: log sweep (8 files)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
