@@ -803,3 +803,6 @@
 {"log":{"at":"2026-11-08T02:13:40-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-08T08:13:40.039Z"}
 {"pid_exit":38940,"ended":"2026-11-08T02:13:40-06:00","code":0,"signal":null,"by":"servex"}
 {"waiting_what":"All the work has landed. Two answers are needed before this task can close: t11 (keep or undo the twins fold; voice-app recommends keep) and t12 (switch on SERVEX_OPEN_ITEMS). A Servex restart needs no question (the owner, 2026-11-06).","by":"mastermind-session-truth","ts":"2026-11-08T08:13:53.796Z"}
+{"commit":{"hash":"c37b99fdf87cf1fb6c3bb8ac4b926b23b9a73059","what":"session-truth: waiting_what set to the two open answers (t11, t12)","files":["public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/session.jsonl"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-08T08:14:00.788Z"}
+{"log":{"at":"2026-11-08T02:18:16-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-08T08:18:16.633Z"}
+{"pid_exit":26844,"ended":"2026-11-08T02:18:16-06:00","code":0,"signal":null,"by":"servex"}
