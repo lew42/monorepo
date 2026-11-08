@@ -628,3 +628,14 @@
 {"log":{"at":"2026-11-08T05:46:23-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
 {"log":{"at":"2026-11-08T05:51:24-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
 {"log":{"at":"2026-11-08T06:01:23-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-08T06:06:23-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"tool_call":{"at":"2026-11-08T12:19:23.483Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T12:19:25.122Z","tool":"shell","args_hash":"75f2ba067150","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T12:19:30.590Z","tool":"shell","args_hash":"66445be144f5","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T12:19:33.447Z","tool":"shell","args_hash":"f6cfcd523d78","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T12:19:37.075Z","tool":"shell","args_hash":"aa4f40739bf9","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T12:19:43.242Z","tool":"item","args_hash":"acc47ed6c8d9","caller":"voice-app"}}
+{"tasks":{"gap-split":{"complete":{"evidence":["6f60981c7","abdcc138f","757bdc028","remote.sessions.json conv:session_01SYB8YfVfcMoVGwYNF7rnPU -> cloud-voice-app-20261106","session-truth t16-conv-key"],"outcome":"This chat's record is keyed by its claude.ai conversation id (no gap splits it); 11-08 record linked into 11-06; 16 stray session-cloud-vo caches moved aside with a manifest, 0 left."}},"readme-maps":{"log":{"msg":"Slice 1 done (59fcd6650): Map + Search terms in core/Item, List, Page readmes; unlinked files Item 15->0, List 5->0, Page 60->9 (9 explained in orphans.txt); 148 lines added, 0 removed; $2.58 minion. Spot-checked Item.js:70, Item.js:831, List.js:463: correct. Next slices: sessions, Servex, Dictate family."}}},"by":"voice-app","ts":"2026-11-08T12:19:43.249Z"}
+{"tool_call":{"at":"2026-11-08T12:19:50.850Z","tool":"send_to_agent","args_hash":"8e3718d21bc1","caller":"voice-app"}}
+{"log":{"at":"2026-11-08T06:26:24-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-08T06:31:25-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
