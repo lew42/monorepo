@@ -1,0 +1,16 @@
+# Brief: inventory of every Servex MCP tool
+
+Budget: $2. Load the `minion` skill first. Read only the files named here and what they import for tool definitions. Never edit code, never restart a server, never `git stash`. rg is not installed; use `git grep`.
+
+**Goal:** a table of every tool the `servex` MCP offers an agent, so the plan can mark each one keep, fold into `item`, or drop.
+
+**Where the tools are defined:** `git grep -n 'tool("' -- Servex` (the main files are `Servex/agents/tools.js`, `Servex/Servex.js`, `Servex/cards/Cards.js`, `Servex/agents/Layers.js`, `Servex/files.js`, `Servex/pages.js`, `Servex/agents/Experts.js`, `Servex/agents/page_tools.js`, `Servex/agents/ops.js`, `Servex/agents/Wakeups.js`, `Servex/Lifecycle.js`, `Servex/agents/Jobs.js`, `Servex/ext/refine/VoicePage.js`). Skip the `*.test.mjs` and `*-proof.mjs` files. Also check `Servex/ext/remote/RemoteMCP.js` for the tools it adds or renames (ask_mastermind, for example).
+
+**Step 1, a script (count, don't recall):** write a node script in your scratchpad that lists every tool name with its file and line. Count them.
+**Step 2, the check:** an agent's own tool list has these servex names (copy of a live session's list, 2026-11-08): add_item amend_bubble append_log append_prompt_event ask_directory ask_expert ask_manager ask_module attach_card audit_session cancel_wake card_ask card_reply card_set card_summary check_page check_usage claim_topic clear close_task compact_self create_card create_page dated_create dated_query dir_log drop edit_file file_to_group follow fork_self glob heartbeat_status inbox interrupt_agent job_result kill_task list_agents list_cards list_claims list_dir list_experts list_follows list_pages list_servers list_waiting list_wakes load_module log log_session module_inbox move_project nothing owner_note page_note page_reply pause_dispatch place quick_fix quick_fix_landed read_card read_file read_page readme_modules refine_step register_session release_topic rename_session reprioritise_task restart_server restart_servex resume_dispatch retract_say return_worktree say send_to_agent server_logs session_line session_summary set_focus set_layout shell skill snooze_task spawn_agent start_job start_server stop_agent stop_server system_health take_worktree task_loop_status unfollow updates wait_for_agent wake_me write_file. The in-process `local` server adds: item page_add page_call page_log page_read page_set. Say which names your script found that are not in these lists, and which listed names it did not find.
+**Step 3, judgment:** for each tool, one row: `name · file:line · what it does (≤10 words) · mark · why (≤12 words)`. Marks:
+- `item`: it reads or writes a record that `Item.open(url)` can reach (a page, a task, a session, a card, an inbox, a log), so `item({path, get|set|call})` covers it.
+- `keep`: it acts on the machine or on processes, not on a record (spawn, stop, servers, shell, worktrees, usage), or it is the voice door.
+- `drop`: it is a duplicate, an old name, or unused. Prove unused: `git grep` its name outside its own definition and the tests, and give the hit count.
+
+**Deliverable:** `table.md` in this folder: the counts first (script found N, list has M, the differences), then the table sorted by mark then name, then three totals (keep, item, drop) that must add up to N.
