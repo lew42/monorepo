@@ -1537,7 +1537,9 @@ Agents.Agent = class Agent {
 	 * who asked and where the answer goes. Plain text on purpose: the agent has
 	 * to understand it with no schema and no training. */
 	envelope(text, { from, reply_to } = {}){
-		const head = [from && `from: ${from}`, reply_to && `reply to: ${reply_to} (once: in the turn that answers this message, never after it unless a new message arrives)`].filter(Boolean).join(" · ");
+		/* `log agent-X` / `message X` are routes, not tool names: an agent read "log agent-voice-app" as the `log` tool (2026-11-08). Say the tool. */
+		const route = String(reply_to ?? "").replace(/^log agent-(\S+)$/, "send_to_agent to $1").replace(/^message (\S+)$/, "send_to_agent to $1");
+		const head = [from && `from: ${from}`, reply_to && `reply to: ${route} (once: in the turn that answers this message, never after it unless a new message arrives)`].filter(Boolean).join(" · ");
 		return head ? `[${head}]\n${text}` : text;
 	}
 

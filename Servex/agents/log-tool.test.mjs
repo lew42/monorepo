@@ -28,6 +28,11 @@ try {
 	const bad = JSON.parse(await log.handler({ path: rel, line: { nonsense: { a: 1 } } }, { caller: "minion-t" }));
 	assert.equal(bad.ok, false); assert.match(bad.why, /unknown verb|flat/);
 
+	// a name that is no folder (an agent id mistaken for a path) is refused, not created
+	const ghost = JSON.parse(await log.handler({ path: "agent-voice-app-nonexistent", line: { log: { msg: "x" } } }, { caller: "minion-t" }));
+	assert.equal(ghost.ok, false); assert.match(ghost.why, /send_to_agent/);
+	assert.ok(!fs.existsSync(path.join(ROOT, "public", "agent-voice-app-nonexistent")), "no folder created");
+
 	// 2. the CLI: old (git HEAD) vs new append.mjs on copies of three file kinds, same input, same result but `at`
 	const lines = path.join(dir, "lines.json");
 	fs.writeFileSync(lines, JSON.stringify([{ log: { at: "NOW", task: "x", msg: "same" } }, { action: { at: "NOW", did: "edit" } }, { log: { task: "y", msg: "no at" } }]));

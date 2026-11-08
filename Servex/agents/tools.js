@@ -339,6 +339,7 @@ export function resolve_log_path(p){
 	const cands = path.isAbsolute(raw) && fs.existsSync(raw) ? [raw] : [path.join(ROOT, "public", rel), path.join(ROOT, rel), path.join(ROOT, raw)];
 	const abs = path.resolve(cands.find(c => fs.existsSync(c)) ?? (/\.jsonl$/.test(raw) ? cands[1] : cands[0]));
 	if (path.relative(ROOT, abs).startsWith("..") || path.isAbsolute(path.relative(ROOT, abs))) throw new Error(`"${p}" is outside the repo`);
+	if (!fs.existsSync(abs) && !/\.jsonl$/.test(abs)) throw new Error(`no such folder or file: "${p}". \`log\` writes to a log that exists (a .jsonl file, an existing folder, or a site url); to message an agent use send_to_agent.`);
 	let dir = false; try { dir = fs.statSync(abs).isDirectory(); } catch {}
 	return dir || !/\.jsonl$/.test(abs) ? SessionRecord.start_file(abs) : abs;
 }
