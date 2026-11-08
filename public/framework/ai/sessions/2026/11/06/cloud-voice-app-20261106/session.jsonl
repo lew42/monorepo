@@ -743,3 +743,11 @@
 {"log":{"at":"2026-11-08T11:21:25-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
 {"log":{"at":"2026-11-08T11:26:25-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
 {"log":{"at":"2026-11-08T11:31:25-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"tool_call":{"at":"2026-11-08T17:52:19.306Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T17:52:20.485Z","tool":"shell","args_hash":"f8bac49c5c40","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T17:52:31.889Z","tool":"item","args_hash":"d43db63dc0e8","caller":"voice-app"}}
+{"tasks":{"capture-sentences":{"complete":{"evidence":["session-truth t1-asks","47b0f8125","980c8c7ac"],"outcome":"Every channel files the owner's sentences through one writer, Ask.write: the VS Code prompt hook, Sessions.say (SDK, V1, phone sheet), the remote door, and web dictation (already since 47b0f8125; the 11-08 'gap' was a misread, corrected)."}}},"by":"voice-app","ts":"2026-11-08T17:52:31.913Z"}
+{"log":{"at":"2026-11-08T12:01:25-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-08T12:06:25-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-08T12:11:25-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-08T12:16:25-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
