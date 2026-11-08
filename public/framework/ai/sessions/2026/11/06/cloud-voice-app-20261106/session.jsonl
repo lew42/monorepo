@@ -595,3 +595,8 @@
 {"log":{"at":"2026-11-08T01:38:32-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-08T02:38:33-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-08T03:38:33-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"tasks":{"add":{"type":"Task","id":"gap-split","owner":"mastermind-session-truth","title":"The 2 h gap rule still splits this sparse conversation (third record 2026/11/08/cloud-voice-app-20261108/); key cloud records by the claude.ai conversation id; explain stray 11/08/session-cloud-vo/","why":"Follow-up of midnight-split; one folder per session."}},"by":"voice-app","ts":"2026-11-08T10:23:28.865Z"}
+{"messages":{"add":{"type":"Ref","path":"tasks.gap-split","by":"servex","at":"2026-11-08T10:23:28.866Z"}},"by":"servex","ts":"2026-11-08T10:23:28.866Z"}
+{"tasks":{"item-three-verbs":{"owner":"mastermind-page-design","start":{}}},"by":"voice-app","ts":"2026-11-08T10:23:28.868Z"}
+{"task":"/framework/ai/sessions/2026/11/08/cloud-voice-app-20261108/","as":"mastermind-session-truth","by":"mastermind-session-truth","ts":"2026-11-08T10:24:42.868Z"}
+{"messages":{"add":{"type":"Ref","url":"/framework/ai/sessions/2026/11/08/cloud-voice-app-20261108/","by":"servex","at":"2026-11-08T10:24:42.869Z"}},"by":"servex","ts":"2026-11-08T10:24:42.869Z"}

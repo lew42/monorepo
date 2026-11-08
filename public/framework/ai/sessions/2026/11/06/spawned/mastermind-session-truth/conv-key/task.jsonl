@@ -1,0 +1,2 @@
+{"decision":{"at":"2026-11-08T04:29:17-06:00","question":"review size","computed":"full","chose":"none","why":"small server change: record keying + index folder fix; no page"}}
+{"review":{"at":"2026-11-08T04:29:17-06:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/session-truth-conv","head":"4c9cd2b40a441a997f602981a739ebcef540e633","model":null,"cost":0,"file":"review.md"}}
