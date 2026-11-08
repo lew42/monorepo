@@ -693,3 +693,14 @@
 {"log":{"at":"2026-11-08T08:36:22-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
 {"log":{"at":"2026-11-08T08:41:22-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
 {"log":{"at":"2026-11-08T08:46:22-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"tool_call":{"at":"2026-11-08T15:03:56.257Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T15:03:58.164Z","tool":"shell","args_hash":"e1226ce8d1e2","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T15:04:04.684Z","tool":"shell","args_hash":"0694e96c491c","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T15:04:23.892Z","tool":"item","args_hash":"5d219aaa69b0","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T15:04:24.466Z","tool":"item","args_hash":"e1f34e20abae","caller":"voice-app"}}
+{"tasks":{"pid-accounting":{"complete":{"evidence":["a692f261c (bypass)","82ad4dbeb (boot sweep, live after 14:21:44 UTC restart)","node Servex/pid-coverage.mjs 15:04 UTC: claude.exe 46/46","/live/pids/"],"outcome":"Every claude.exe start has a logged end (46/46 after the boot sweep; was 32/36); ends 99.1-100% for every kind; the claude -p bypass and the crash gap are fixed; no leaks found, nothing killed."}},"readme-maps":{"log":{"msg":"Slice 3 done by page-design (51cf5ecd0): Servex, Servex/agents, Servex/ext/remote readmes get Map (file tables in map.md files), How it connects, Search terms; unlinked 85->0, 84->0, 1->0; minion $3.41. Spot-checked RemoteMCP.js:209 and page_tools.js:1780: correct."}}},"by":"voice-app","ts":"2026-11-08T15:04:24.473Z"}
+{"tool_call":{"at":"2026-11-08T15:04:24.948Z","tool":"send_to_agent","args_hash":"375412e89b0b","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T15:04:30.241Z","tool":"shell","args_hash":"10405072f430","caller":"voice-app"}}
+{"commit":{"hash":"1076417b5e91213c9e2dc9685e4645f29469dd95","what":"live: /live/pids/ numbers after the boot sweep (claude.exe ends 46/46)","files":["public/live/pids/page.jsonl"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-08T15:04:31.246Z"}
+{"log":{"at":"2026-11-08T09:11:25-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-08T09:16:25-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
