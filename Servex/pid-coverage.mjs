@@ -1,6 +1,6 @@
 /* node Servex/pid-coverage.mjs [--root <repo>] [--hours 24] [--write <file>] [--json]
  * COVERAGE, BY KIND: every `{"pid":N}` start line in the window (default last 24 h), sorted into one of six kinds by its
- * `cmd`/`why` text (claude.exe, node, git, powershell/bash, chrome (playwright), other), with what fraction of each kind
+ * own `cmd` (claude.exe, node, git, powershell/bash, chrome (playwright), other), with what fraction of each kind
  * got an end line and what fraction carries an agent AND a session. Read-only: reuses `pair()` and `read_lines()` from
  * leaks.mjs rather than re-reading or re-pairing the logs. Doc: Servex/doc/processes.md, "Who started this pid".
  * The two numbers that must agree: the sum of the per-kind "starts" column equals the window's own start-line count. */
