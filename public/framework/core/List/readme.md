@@ -40,6 +40,45 @@ list.find(id)  list.forEach(fn)  list.map(fn)  list.at(i)  list.length
 list.toJSON()       //  a bare array
 ```
 
+## Map
+
+| File | What it does |
+|---|---|
+| `List.js` | the class: `List extends Item`, Events built in, the four verbs (`add`/`remove`/`move`/`order`) plus their quiet counterparts (`insert`/`replace`/`release`) |
+| `List.examples.js` | six `{title, run}` examples that are also the tests; the List page shows each live, pass or fail |
+| `List.methods.js` | each method's job in one line plus a tiny runnable example, for the class page ([ClassDoc](/framework/ext/Doc/doc/class-doc.md)) |
+| `List.steps.js` | the core test as steps, drawn step by step on the class page; `List.steps.test.mjs` runs the same array in node |
+| `page.js` | the List class page: draws `Item.life`, `List.steps`, `List.methods` and `List.examples` live |
+| `*.test.mjs` | `List.steps.test.mjs`, `List.test.mjs` — the steps, plus add/remove/move/order surviving a save and a replay |
+| `doc/` | `architecture.md`, `decisions.md`, `adoption.md` (the design, below); `doc/method/*.md`, `doc/property/*.md`, `doc/file/*.md` — one note per verb, field and file, drawn by ClassDoc |
+| `tasks/` | `task.jsonl` (this module's own task log) and `list-events/` (a landed task's folder) |
+| `failures.jsonl`, `files.jsonl`, `weight.jsonl` | this folder's layout-check failures, file census and page weight — one row, all written by their own tools, not by hand |
+
+**How it connects**
+- `class List extends Item` (`List.js:54`) → [`Item`](../Item/Item.js)
+- `Item.makeList = opts => new List(opts)` (`List.js:463`) ← List wires itself back into Item at load time, so `Item.hydrate()` can make one without Item importing List (the cycle `List.js`'s own header comment avoids)
+- `new List({ owner: this, name: "items" })` and `new List({ owner: this, name: "pages" })` (`../Page/Page.class.js:109`, `:153`) ← Page gives itself two Lists
+- `list.render()` → `List.View` (wired in by [`ux/Content/Object/DefaultView.js`](/framework/ux/Content/Object/DefaultView.js); `List.js:429` falls back to `undefined` if nothing wired it)
+- Subclassed by `PageContent` (`../Page/PageContent.js:10`), `Chat` (`../Session/Chat/Chat.js:11`), `Task.List`/`TaskList` (`../Task/Task.js:61`), `Paragraphs` (`../Task/Prompt.js:16`)
+
+**Design:** [`doc/architecture.md`](./doc/architecture.md) (why, first), [`doc/adoption.md`](./doc/adoption.md) (why `owner` exists, not the list), [`doc/decisions.md`](./doc/decisions.md) (the Array dissent, what was cut, who calls it).
+
+## Search terms
+
+The words that find this module's past work (counts: `sessions N files · M commits`, from `git grep -c -i '<term>' -- public/framework/ai/sessions | wc -l` and `git log --oneline -S '<term>' | wc -l`; raw output in [terms.txt](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/readme-maps/terms.txt)):
+
+- `List.add` (sessions 79 files · 142 commits)
+- `LiveList` (sessions 59 files · 54 commits) — the retired event-less variant, merged into List 2026-10-02
+- `List.View` (sessions 62 files · 40 commits)
+- `List.order` (sessions 57 files · 0 commits)
+- `List extends Item` (sessions 34 files · 65 commits)
+- `List.move` (sessions 35 files · 32 commits)
+- `List.find` (sessions 31 files · 8 commits)
+- `List.ref` / `list.ref` (sessions 22 files · 8–13 commits) — links an item another list already owns, without a copy
+- `insert_before` (sessions 10 files · 26 commits)
+- `evented list` (sessions 10 files · 7 commits) — the owner's own phrase for "every List is live"
+- `List.examples` (sessions 12 files · 12 commits)
+
 ## Watch out
 
 - `adopt()` sets `parent` to the `owner` (the Item), never the list — walking up never steps over a collection: [doc/adoption.md](./doc/adoption.md)

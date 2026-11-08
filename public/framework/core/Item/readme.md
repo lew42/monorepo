@@ -139,6 +139,53 @@ The target model (the owner, 2026-10-21): any item holds items on demand, adding
 
 A testing system is a need, not now (2026-10-20). Tests today are plain node files (`node Item.test.mjs`). The core test the [Item page](/framework/core/Item/) draws step by step is `Item.steps.js`; `node Item.steps.test.mjs` runs the same steps. The page's life-cycle picture is `Item.life.js` and its method pages are `Item.methods.js` plus `doc/method/<name>.md` for `set`, `get` and `toJSON` ([ClassDoc](/framework/ext/Doc/doc/class-doc.md)).
 
+## Map
+
+| File | What it does |
+|---|---|
+| `Item.js` | the class: `Events(Object)`, `id`/`data`, `set(delta)`, `store`, `view`/`views`, `remove`/`root`/`contains`/`walk`/`find`/`save`/`delete`, `toJSON`, `static hydrate`/`register`/`open` |
+| `Store.js` | one `.jsonl` file = one object's history: `attach`/`flush`/`replay`/`read`/`tail`, the merge/batch/coalesce rules |
+| `Snapshot.js` | the sidecar cache (`task.snapshot.json`): an item's saved shape plus how far into the log it covers |
+| `LineKey.js` | strips the D13 marks off a saved line's keys (`start()` → `start`, `#c3` → `c3`) |
+| `RecordWriter.js` | the one writer for record files (`session.jsonl`, `task.jsonl`, `page.jsonl`, `improvements.jsonl`): posts to `POST /api/item`, falls back to a plain append |
+| `Outbox.js` | the browser's wire queue: every line leaves through here over the dev socket and stays until acked, replayed from `localStorage` after a reload |
+| `Ref.js`, `RefView.js`, `RefView.css` | `Ref`: a small Item that points at an item elsewhere (`{path}` or `{url, path}`); `RefView` draws it as a row |
+| `Dated.js` | a collection filed by day (`<root>/YYYY/MM/DD/<slug>/`) with one pointer row per item; node half is `Server/DatedFiles.mjs` |
+| `page.js` | the Item class page: draws `Item.life`, `Item.steps`, `Item.methods`, the `watch/` tree builder |
+| `Item.life.js`, `Item.methods.js`, `Item.steps.js` | the class page's three feeds: the life-cycle picture, one line + example per method, and the core test as steps |
+| `*.test.mjs` | `Item.test.mjs`, `Item.basic.test.mjs`, `Item.steps.test.mjs`, `Dated.test.mjs`, `Ref.test.mjs`, `RecordWriter.test.mjs`, `Store.test.mjs`, `Outbox.test.mjs`, `act.test.mjs`, `batch.test.mjs`, `call.test.mjs`, `coalesce.test.mjs`, `delta-flow.test.mjs`, `hooks.test.mjs`, `item-core.test.mjs`, `line-format.test.mjs`, `line-readers.test.mjs`, `persistence.test.mjs`, `replay.test.mjs`, `replay-vs-open.test.mjs` (fails on purpose, a known bug), `reset.test.mjs`, `snapshot.test.mjs`, `transport.test.mjs`, `unknown-key.test.mjs`, `unset.test.mjs` — see "Click-through tests" above for what each proves |
+| `transport.browser.mjs`, `transport.tab.mjs` | not unit tests: a two-real-tab browser check, and the headless "tab" child process `transport.test.mjs` drives |
+| `doc/` | `architecture.md` (why, first), `decisions.md`, `line-format.md`, `hooks.md`, `batch.md`, `call.md`, `core-fixes.md`, `envelope.md`, `transport.md`, `reset.md`, `snapshots.md`, `ref.md`, `one-writer.md`, `one-stream.md`, `store-index-query-plan.md`, `item-notes.md`, `owner-2026-10-21-items-hold-items.md`, `map.md`; `doc/method/*.md`, `doc/property/*.md`, `doc/file/*.md` (one note per verb, field and file, drawn by ClassDoc); `doc/next.md`, `doc/refined-asks.md` (open ideas, not built) |
+| `Dated/`, `live/`, `replay/`, `watch/` | class-page demo folders: `Dated/page.js` (the Dated demo), `live/` (a List saved to a real file, drag/add/sort/reload), `replay/` (the Replay lab: `ReplayLab.js`, `LabTape.js`, `LabTask.js`, four worked examples), `watch/` (`Watch.js`, `Box.js`, `ScratchStore.js` — step through a tree being built) |
+| `tasks/` | landed task folders for this module (`item-move`, `page-extends-item`, `field-collision-throw`, `ui-actions-as-deltas`, `decide-later-how-to-prioritise-data-bind`) plus `task.jsonl` |
+| `failures.jsonl`, `files.jsonl`, `inbox.jsonl`, `weight.jsonl` | layout-check failures, file census, page inbox notes, page weight — one row, all written by their own tools |
+
+**How it connects**
+- `class Item extends Events(Object)` (`Item.js:70`) → the [`Events`](../Events/Events.js) mixin
+- `Item.open(src)` (`Item.js:831`) → `Store.attach`/`replay` (`Store.js`); called by every `.jsonl`-backed page and task on load
+- `item.act("start")` → `Store.flush` → `RecordWriter.post` → `POST /api/item` (Servex `page_tools.js`'s `record_lines`), stamped `by`/`ts` ([doc/transport.md](./doc/transport.md))
+- `Item.makeList = opts => new List(opts)` (`../List/List.js:463`; the slot is `Item.js:925`) ← [`List`](../List/List.js) fills this in on load so `hydrate()` never imports List directly
+- Subclassed outside this folder by `Task` (`../Task/Task.js:37`), `Message`/`PromptItem`/`Sentence` (`../Session/Chat/`), `Paragraph` (`../Task/Prompt.js:11`), `PluginEntry` (`../Plugin/PluginEntry.js:5`), `Panel` (`../../ext/Panel/Panel.js:18`), `Block` (`../../ext/editor/blocks.js:14`) — inside this tree, by [`List`](../List/List.js) and [`Page`](../Page/Page.class.js)
+
+**Design:** [`doc/architecture.md`](./doc/architecture.md) (decisions and why, first), [`doc/decisions.md`](./doc/decisions.md) (the council ruling, traps, who uses Item), [`doc/line-format.md`](./doc/line-format.md) (D13, the marked spelling), [`doc/hooks.md`](./doc/hooks.md) (D17), [`doc/batch.md`](./doc/batch.md) (T1/T2, coalescing), [`doc/call.md`](./doc/call.md) (D14), [`doc/transport.md`](./doc/transport.md) (how a line travels), [`doc/reset.md`](./doc/reset.md) (R4), [`doc/snapshots.md`](./doc/snapshots.md), [`doc/ref.md`](./doc/ref.md), [`doc/one-writer.md`](./doc/one-writer.md), [`doc/one-stream.md`](./doc/one-stream.md) (design, not built), [`doc/envelope.md`](./doc/envelope.md), [`doc/core-fixes.md`](./doc/core-fixes.md), [`doc/store-index-query-plan.md`](./doc/store-index-query-plan.md), [`doc/item-notes.md`](./doc/item-notes.md) (pruned comments, verbatim), [`doc/map.md`](./doc/map.md) (every class/store/tool/writer that makes or saves items), [`doc/next.md`](./doc/next.md) and [`doc/refined-asks.md`](./doc/refined-asks.md) (open ideas, not built).
+
+## Search terms
+
+The words that find this module's past work (counts: `sessions N files · M commits`, from `git grep -c -i '<term>' -- public/framework/ai/sessions | wc -l` and `git log --oneline -S '<term>' | wc -l`; raw output in [terms.txt](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/readme-maps/terms.txt)):
+
+- `Item.Store` (sessions 140 files · 151 commits)
+- `Item.open` (sessions 70 files · 79 commits)
+- `Item.register` (sessions 43 files · 100 commits)
+- `RecordWriter` (sessions 29 files · 57 commits)
+- `Item.act` (sessions 24 files · 15 commits)
+- `marked_lines` (sessions 21 files · 31 commits) — D13's on/off switch for the `name()`/`#id` spelling
+- `Dated.js` (sessions 19 files · 23 commits)
+- `Outbox` (sessions 18 files · 41 commits)
+- `as_call` (sessions 13 files · 24 commits) — D14, a method saved as one line
+- `Item.foreign` (sessions 11 files · 8 commits) — builds a non-Item registered class (e.g. `View`) from a page line
+- `Ref.resolve` (sessions 10 files · 7 commits) — a Ref's one verb, points at an item living elsewhere
+- `snapshot.test` (sessions 6 files · 19 commits)
+
 ## Watch out
 
 - **Ids: a made thing gets `Item.short_id()`, code-made structure a fixed name.** 8 random letters and digits, a letter first, never a dot (a dot is a path) and never a slug of a title (a rename would leave a lying id). `new_id()` (a UUID) is still what a bare `new Item()` gets. The rule: [ids-and-paths.md §5](/framework/core/Session/tasks/data-shapes/ids-and-paths.md).

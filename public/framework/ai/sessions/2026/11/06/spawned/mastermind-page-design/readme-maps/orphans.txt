@@ -1,0 +1,34 @@
+Unlinked files per folder tree: top-level files and doc/*.md files whose basename appears in no readme.md inside that folder tree.
+Method: `git grep -l -F '<basename>' -- '<dir>/**/readme.md' '<dir>/readme.md'` — empty result = orphan.
+
+## core/Item — 15 before -> 0 after
+
+Before: Dated.test.mjs, failures.jsonl, files.jsonl, inbox.jsonl, Item.basic.test.mjs, RecordWriter.test.mjs,
+RefView.css, RefView.js, Snapshot.js, Store.test.mjs, transport.tab.mjs, weight.jsonl, doc/files.jsonl,
+doc/next.md, doc/refined-asks.md.
+All fixed: the new Map table links every top-level file (including the *.test.mjs row and the data-files
+row), and doc/next.md + doc/refined-asks.md are now named under "Design".
+
+## core/List — 5 before -> 0 after
+
+Before: failures.jsonl, files.jsonl, List.test.mjs, weight.jsonl, doc/files.jsonl.
+All fixed: the Map table's *.test.mjs and data-files rows link them.
+
+## core/Page — 60 before -> 9 after
+
+51 fixed by the new Map table (every top-level file, folder, and the expanded "Design" paragraph
+naming 27 more doc/*.md files that existed but no readme linked).
+
+Still orphaned (9), left alone because they are one-off, already-finished tooling/plans, not live
+documentation a future agent would be sent to read:
+- doc/comment-plan.md — DONE 2026-10-12; the plan for moving Page.class.js's comment blocks, already executed
+- doc/comment-blocks.mjs, doc/comment-move.mjs — the one-off scripts comment-plan.md's move ran; finished, not re-run
+- doc/split-plan.md — COMPLETE 2026-10-12 (Page.class.js 2270 -> 849 lines); the plan, already executed
+- doc/split-extract-2.mjs, doc/split-measure.mjs, doc/split-statics.mjs — the one-off scripts split-plan.md's split ran; finished, not re-run
+- doc/readme-log.jsonl — a log of readme edits from a past pass; data, not a doc to read
+
+## Terms checked
+
+See terms.txt for the raw `git grep -c -i`/`git log -S` output behind every Search terms line
+(Item 12 terms, List 12 terms, Page 11 terms — all within 8-15, none dropped since every term had
+at least one nonzero count).

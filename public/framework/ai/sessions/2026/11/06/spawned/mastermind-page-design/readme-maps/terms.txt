@@ -1,0 +1,45 @@
+Raw output of, per term: `git grep -c -i '<term>' -- public/framework/ai/sessions | wc -l` (sessions) and `git log --oneline -S '<term>' | wc -l` (commits).
+
+## core/Item
+
+Item.open -> sessions=70 commits=79
+Item.act -> sessions=24 commits=15
+Item.Store -> sessions=140 commits=151
+Item.register -> sessions=43 commits=100
+RecordWriter -> sessions=29 commits=57
+Ref.resolve -> sessions=10 commits=7
+marked_lines -> sessions=21 commits=31
+as_call -> sessions=13 commits=24
+Item.foreign -> sessions=11 commits=8
+Dated.js -> sessions=19 commits=23
+snapshot.test -> sessions=6 commits=19
+Outbox -> sessions=18 commits=41
+
+## core/List
+
+List.add -> sessions=79 commits=142
+List.move -> sessions=35 commits=32
+List.order -> sessions=57 commits=0
+List.find -> sessions=31 commits=8
+LiveList -> sessions=59 commits=54
+List.ref -> sessions=22 commits=8
+list.ref -> sessions=22 commits=13
+List.View -> sessions=62 commits=40
+insert_before -> sessions=10 commits=26
+List extends Item -> sessions=34 commits=65
+List.examples -> sessions=12 commits=12
+evented list -> sessions=10 commits=7
+
+## core/Page
+
+page_set -> sessions=451 commits=235
+create_page -> sessions=106 commits=90
+PageContent -> sessions=53 commits=68
+Page.use -> sessions=174 commits=30
+page.pages -> sessions=66 commits=68
+Router.js -> sessions=138 commits=102
+six page words -> sessions=34 commits=44
+columns() -> sessions=129 commits=141
+Files tab -> sessions=129 commits=75
+page.jsonl -> sessions=1671 commits=1456
+Page.child -> sessions=228 commits=137

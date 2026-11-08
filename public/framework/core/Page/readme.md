@@ -79,6 +79,68 @@ Also here: [audit/](audit/) (every page layout in use, most-used first) · [make
 
 [content-shapes](content-shapes/) · [dynamic](dynamic/) (a parent's `route()` answers a name) · [generator](generator/) (virtual tree from a spec) · [overview](overview/) · [settings](settings/) · [weight](weight/) · [ai](ai/) · [card](card/) · [ext](ext/) (turn a behavior on by name; [Inbox](ext/Inbox/readme.md)) · [jsonl](jsonl/) · [layout](layout/) · [navigation](navigation/) · [parts](parts/readme.md) · [Template](Template/) · [tool](tool/) · [old](old/)
 
+## Map
+
+| File | What it does |
+|---|---|
+| `Page.class.js` | the class: `class Page extends Item`, `child(name)` (the Router's one hop), `static use(Ext)`, the `page.jsonl` bits (`set`, `file`, `tab`, `place`) |
+| `Frame.js` | `PageFrame`: how a page draws itself — rail, tabs, swaps — read with `doc/Frame-notes.md` |
+| `Columns.js` | the Finder shape: `page.columns()`, `column(host)`, `render_column(host)` — opt-in Miller columns |
+| `Children.js` | the deprecated `page.children` shim (`Map`-shaped view over `page.pages`); remove once the census shows 0 live callers |
+| `Reader.js` | `PageLogReader extends Item.Store`: the `Item.Store` for one `page.jsonl`, one per url (`Reader.for`) |
+| `Listing.js`, `Listing.test.mjs` | `PageListing`: what `listing()` answers (files, dirs, pages, is-this-a-page, the source file) |
+| `Load.js` | `PageLoad`: the loading statics, each taking the class first; `Page` keeps one-line forwarders |
+| `Log.js` | a compat re-export, `PageLog` = `Page` (folded into `Page` 2026-10-03); still imported by `ai/cards/Tasks.js` and `ai/rail/groups.js` |
+| `Links.js` | where a clicked link opens, and the `.md`-file helpers it uses (`doc/open.md`) |
+| `Jsonl.js` | the `page.jsonl` system object: child linking, the `link_child` helper `Page.class.js:181` calls |
+| `FilesTab.js`, `FilesTab.css` | `PageFilesTab`: the `files/` tab UI (list, upload, set-aside, rename/move) |
+| `PageAddress.js`, `PageCode.js`, `PageParagraph.js`, `PageContentItem.js` | the three kinds a page's own code/config makes as content (address, code, paragraph), and their shared base (`doc/content.md`) |
+| `PageContent.js` | `class PageContent extends List` — the page's `content` list |
+| `PageInbox.js`, `PageInbox.css` | notes left on a page (`inbox.jsonl`), drawn as the page's Inbox tab |
+| `PageWeight.js` | one weight for anything with a url, an object with `url`, or an object with a number `weight` (`weight/readme.md`, `doc/design.md`) |
+| `Prefs.js` | `PagePrefs`: a page's own preferences, with an in-memory fallback when `localStorage` refuses a save |
+| `Previews.js` | the cards a page draws for its children (`page.previews()` etc.) |
+| `Related.js` | a page's pinned "Related" aside (`page.related_aside()`) |
+| `Markdown.js`, `Markdown.css` | a bare `.md` file drawn as a page |
+| `object.js` | `page_object(page)`: a live Page instance drawn as a `DefaultView` item tree |
+| `words.js` | the six page words, as lists a reader can see (the other half of what `Page.class.js` stamps as classes) |
+| `page.js` | the Page class page itself: the live demo and docs at [/framework/core/Page/](/framework/core/Page/) |
+| `expert.json`, `page.jsonl`, `task.jsonl`, `failures.jsonl`, `improvements.jsonl` | this folder's own page-tool expert config, its page-as-log data, its task log, its layout-check failures and its skill-improvement notes — one row |
+| `*.test.mjs` | `Page.test.mjs` (a real page.jsonl replays; an unknown part type is reported; the item tool refuses a bad line before writing), `Listing.test.mjs` (`PageListing.live` folds real `files.jsonl` lines) |
+| `doc/` | 70+ notes — architecture, api, css, navigation, streaming, files, templates, binding, deprecation guides; see "Design" below for the ones that exist. `doc/archive/` holds older, superseded notes |
+| `ai/`, `audit/`, `card/`, `content-shapes/`, `dynamic/`, `ext/`, `jsonl/`, `layout/`, `navigation/`, `parts/`, `Template/`, `tool/`, `old/` | linked above, "Folders here" |
+| `generator/` | pages without the filesystem: a seed draws a spec string into a virtual tree (`generator/readme.md`) |
+| `make/` | the page-builder demos (`make/readme-page/` — a readme as the whole page) |
+| `weight/` | `weight.js`/`has-file.js`/`ai-cost.js` — how `PageWeight` computes a number, and the AI cost that rides beside it (`weight/readme.md`) |
+| `screenshots/` | dated screenshot dumps from past audits (e.g. `2026-10-12-173251/`); not linked elsewhere, kept for reference |
+| `tools/` | `links.mjs` — the links census: for every page on the site, who points at it (`node public/framework/core/Page/tools/links.mjs`) |
+| `layout-check/` | empty; reserved for layout-check output, nothing written here yet |
+
+**How it connects**
+- `class Page extends Item` (`Page.class.js:34`) → [`Item`](../Item/Item.js), [`List`](../List/List.js) (for `pages`/`content`/`items`)
+- The Router's walk, `page = await page.child(name)` (`../Router/Router.js:104`) → `Page.class.js:387`'s `child(name)`, one hop per url segment
+- `Page._ext.push(Ext)` / `static use(Ext)` (`Page.class.js:39`) ← every plugin that calls `Page.use(...)` (`doc/architecture.md`)
+- Agents call `page_set`/`page_add`/`page_call`/`page_log`/`page_note`/`page_read` → `Servex/agents/page_tools.js`'s `page_tools()` (`page_tools.js:1780`), which validates and appends one line
+- `class PageContent extends List` (`PageContent.js:10`) → [`List`](../List/List.js); drawn by `Page.render_content_list()`
+
+**Design:** [`doc/architecture.md`](./doc/architecture.md) (first), [`doc/api.md`](./doc/api.md), [`doc/jsonl.md`](./doc/jsonl.md) ("The store"), [`doc/streaming.md`](./doc/streaming.md) (how a line reaches the screen), [`doc/files.md`](./doc/files.md) (pages as folders, the Files tab), [`doc/navigation.md`](./doc/navigation.md), [`doc/watch-out.md`](./doc/watch-out.md) (traps), [`doc/namespaces.md`](./doc/namespaces.md) (proposal, not built), [`doc/recursive-pages.md`](./doc/recursive-pages.md) (proposal, measured, not built), [`doc/migration-children-to-pages.md`](./doc/migration-children-to-pages.md), [`doc/jsonl-pages.md`](./doc/jsonl-pages.md), [`doc/loading.md`](./doc/loading.md), [`doc/subpages.md`](./doc/subpages.md), [`doc/templates.md`](./doc/templates.md), [`doc/binding.md`](./doc/binding.md), [`doc/server.md`](./doc/server.md), [`doc/content.md`](./doc/content.md) (the three content kinds), [`doc/columns.md`](./doc/columns.md), [`doc/open.md`](./doc/open.md), [`doc/previews.md`](./doc/previews.md), [`doc/design.md`](./doc/design.md) (PageWeight), [`doc/words.md`](./doc/words.md) (the six page words), [`doc/ai-api.md`](./doc/ai-api.md), [`doc/index-jsonl.md`](./doc/index-jsonl.md) (planned, not built), [`doc/live-by-default.md`](./doc/live-by-default.md) (plan, awaits approval), [`doc/readme-before-2026-10-19.md`](./doc/readme-before-2026-10-19.md) (history), [`doc/start-here.md`](./doc/start-here.md), [`doc/storage.md`](./doc/storage.md) and [`doc/storage-slice-1.md`](./doc/storage-slice-1.md) (give `Store` a backend, zero behaviour change), [`doc/css.md`](./doc/css.md) (the arrangement tier, `Page.css`), [`doc/composition.md`](./doc/composition.md) ("a thing has a page; it is not one"), [`doc/declaring.md`](./doc/declaring.md) (the three jobs a parent needs, and the CMS question), [`doc/data-children.md`](./doc/data-children.md), [`doc/class-block.md`](./doc/class-block.md), [`doc/how-a-page-renders.md`](./doc/how-a-page-renders.md), [`doc/labels.md`](./doc/labels.md) (titles, labels, icons), [`doc/markdown.md`](./doc/markdown.md) (every page's `md/`), [`doc/panels.md`](./doc/panels.md) (splitting the height), [`doc/inbox-tab.md`](./doc/inbox-tab.md), [`doc/roles.md`](./doc/roles.md) (how nested pages reference their parent), [`doc/query.md`](./doc/query.md) (finding past work), [`doc/page-tool-2026-10-09.md`](./doc/page-tool-2026-10-09.md) and [`doc/page-js-notes.md`](./doc/page-js-notes.md) and [`doc/Page-notes.md`](./doc/Page-notes.md) (pruned comments, verbatim), [`doc/server-instance.md`](./doc/server-instance.md) (design, nothing built), [`doc/indexing-2026-10-08.md`](./doc/indexing-2026-10-08.md) and [`doc/asks.md`](./doc/asks.md) and [`doc/refined-asks.md`](./doc/refined-asks.md) (the owner's own asks, merged or generated), [`doc/content-list-step-1.md`](./doc/content-list-step-1.md) (step 1 of `content.md`'s design, as built), [`doc/vision.md`](./doc/vision.md), [`doc/readme-full-2026-10-12.md`](./doc/readme-full-2026-10-12.md) and [`doc/readme-moved-2026-10-17.md`](./doc/readme-moved-2026-10-17.md) (earlier readme text, moved out, history only).
+
+## Search terms
+
+The words that find this module's past work (counts: `sessions N files · M commits`, from `git grep -c -i '<term>' -- public/framework/ai/sessions | wc -l` and `git log --oneline -S '<term>' | wc -l`; raw output in [terms.txt](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/readme-maps/terms.txt)):
+
+- `page.jsonl` (sessions 1671 files · 1456 commits)
+- `page_set` (sessions 451 files · 235 commits)
+- `Page.child` (sessions 228 files · 137 commits)
+- `Page.use` (sessions 174 files · 30 commits)
+- `Router.js` (sessions 138 files · 102 commits)
+- `columns()` (sessions 129 files · 141 commits) — the Finder/Miller-columns shape
+- `Files tab` (sessions 129 files · 75 commits)
+- `create_page` (sessions 106 files · 90 commits)
+- `page.pages` (sessions 66 files · 68 commits) — the `page.children` replacement (2026-10-28)
+- `PageContent` (sessions 53 files · 68 commits)
+- `six page words` (sessions 34 files · 44 commits) — the owner's own phrase for Page's layout vocabulary
+
 ## More
 
 Reference: [doc/files.md](doc/files.md) (design: pages as folders, the Files tab, create/drop/move from the UI), [doc/words.md](doc/words.md) (the six page words) · [doc/api.md](doc/api.md) · [doc/jsonl.md](doc/jsonl.md) · [doc/watch-out.md](doc/watch-out.md) (traps) · [doc/migration-children-to-pages.md](doc/migration-children-to-pages.md) (the deprecated `page.children`, and how to move to `page.pages`) · [doc/architecture.md](doc/architecture.md) · [doc/namespaces.md](doc/namespaces.md) (proposal: Page's ~150 methods in groups, not built) · [doc/recursive-pages.md](doc/recursive-pages.md) (every card a page you can open: one address, embedded or own folder, Ref stitches; when a card becomes a folder (proposal) and what a parent loads today, measured) · [doc/start-here.md](doc/start-here.md) (working on this module: inbox, log, tests). The readme as it stood before this rewrite, with the split-out sections and dated notes: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md).
