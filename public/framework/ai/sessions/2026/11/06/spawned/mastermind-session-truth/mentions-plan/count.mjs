@@ -32,24 +32,27 @@ const prompts = []; // { id, source, text }
 
 // 1a. VS Code tabs: the counted Prompt item Server/Ask.mjs writes on every turn
 // ({"content":{"add":{"type":"Prompt","id":...,"text":...,"via":"vscode","counted":true}}}).
-// This is the one raw-text record per turn (deduped by id); "refined" lines are a later
-// AI annotation of the SAME turn, not a second prompt, so they are not double-counted here.
-let refined_lines_seen = 0;
+// This is the one raw-text record per turn (deduped by id); a `content.add` Prompt item with no
+// `counted:true` is a MODEL prompt (a relayed brief, an agent's own turn), skipped on purpose.
+const seen_turn_timestamps = new Set(); // dedup key for "refined" lines against an already-collected turn
+let refined_lines_seen_vscode_files = 0;
 for (const day of DAYS){
 	const dir = path.join(SESS, day);
 	if (!fs.existsSync(dir)) continue;
 	for (const file of walk(dir)){
 		if (path.basename(file) !== "session.jsonl") continue;
+		if (/[/\\]v-[^/\\]+[/\\]session\.jsonl$/.test(file)) continue; // handled in 1c, below
 		let text;
 		try { text = fs.readFileSync(file, "utf8"); } catch { continue; }
 		for (const line of text.split("\n")){
 			if (!line) continue;
-			if (line.includes('"refined":{')) refined_lines_seen++;
+			if (line.includes('"refined":{')) refined_lines_seen_vscode_files++;
 			if (!line.includes('"type":"Prompt"') || !line.includes('"counted":true')) continue;
 			let o; try { o = JSON.parse(line); } catch { continue; }
 			const add = o?.content?.add;
 			if (!add || add.type !== "Prompt" || !add.counted) continue;
 			prompts.push({ id: add.id, source: "vscode:" + path.relative(FW, file), text: String(add.text || "") });
+			if (o.ts) seen_turn_timestamps.add(o.ts);
 		}
 	}
 }
@@ -77,7 +80,51 @@ for (const file of cloud_files){
 	}
 }
 
-const all_prompts = [...prompts, ...cloud_prompts];
+// 1c. Browser dictation (the main owner channel): session folders named `v-*`. Each spoken turn
+// writes one composite line {"sentences":{"add":{id,text,...}},"messages":{"add":{type:"Prompt",
+// by:"owner",sentences:[s-id,...],prompt:"p-..."}}}. A long turn can be split into several such
+// lines, one sentence at a time, all sharing the same `messages.add.prompt` id — one prompt is
+// every sentence text that shares a `prompt` id, joined in the order the lines appear.
+const voice_files = [];
+for (const day of DAYS){
+	const dir = path.join(SESS, day);
+	if (!fs.existsSync(dir)) continue;
+	for (const file of walk(dir)){
+		if (path.basename(file) === "session.jsonl" && /[/\\]v-[^/\\]+$/.test(path.dirname(file))) voice_files.push(file);
+	}
+}
+const voice_prompts = [];
+let refined_lines_seen_voice_files = 0;
+for (const file of voice_files){
+	let text; try { text = fs.readFileSync(file, "utf8"); } catch { continue; }
+	const groups = new Map(); // p-id -> [{at, text}]
+	const refined_lines = [];
+	for (const line of text.split("\n")){
+		if (!line) continue;
+		if (line.includes('"refined":{')){ refined_lines_seen_voice_files++; let o; try { o = JSON.parse(line); } catch { o = null; } if (o) refined_lines.push(o.refined); continue; }
+		if (!line.includes('"messages":{"add"') || !line.includes('"sentences":{"add"')) continue;
+		let o; try { o = JSON.parse(line); } catch { continue; }
+		const sAdd = o?.sentences?.add, mAdd = o?.messages?.add;
+		if (!sAdd || !mAdd || mAdd.type !== "Prompt" || mAdd.by !== "owner" || !mAdd.prompt) continue;
+		if (!groups.has(mAdd.prompt)) groups.set(mAdd.prompt, []);
+		groups.get(mAdd.prompt).push({ at: mAdd.at, text: String(sAdd.text || "") });
+		if (mAdd.at) seen_turn_timestamps.add(mAdd.at);
+	}
+	for (const [pid, parts] of groups){
+		voice_prompts.push({ id: pid, source: "voice:" + path.relative(FW, file), text: parts.map(p => p.text).join(" ") });
+	}
+	// refined v2 lines in this same file, deduped against a turn already collected above
+	// (every refined line seen this week has a `re` exactly matching a collected turn's
+	// timestamp — see counts.json's `refined_lines` note — so this mostly records 0 new prompts,
+	// but a refined line whose turn text we somehow missed still gets counted, not dropped).
+	for (const r of refined_lines){
+		if (!r || !Array.isArray(r.sentences)) continue;
+		if (r.re && seen_turn_timestamps.has(r.re)) continue;
+		voice_prompts.push({ id: "refined:" + (r.re || r.at), source: "voice-refined:" + path.relative(FW, file), text: r.sentences.map(s => s.text).join(" ") });
+	}
+}
+
+const all_prompts = [...prompts, ...cloud_prompts, ...voice_prompts];
 
 // ---------- 2. the vocabulary ----------
 
@@ -178,27 +225,37 @@ const implicit_total = per_prompt.reduce((s, pp) => s + pp.implicitNames.size, 0
 // samples: first 5 prompts with the names they tag
 const samples = per_prompt.slice(0, 5).map(pp => ({ text120: pp.text120, names: [...pp.names] }));
 
-// 5 implicit matches judged false positive, out of 20 random implicit hits (deterministic
-// sample: every 1-in-N implicit hit, up to 20, read by hand and marked true/false below).
-const implicit_hits = [];
+// 20 random implicit hits FROM THE DICTATION SOURCE (voice:*), since spoken "page" is far more
+// likely to mean a web page than a typed task title is. Picked with a fixed seed so the run is
+// reproducible, not cherry-picked.
+const voice_implicit_hits = [];
 for (const pp of per_prompt){
-	for (const n of pp.implicitNames) implicit_hits.push({ prompt_idx: pp.idx, text120: pp.text120, name: n });
+	if (!pp.source.startsWith("voice:")) continue;
+	for (const n of pp.implicitNames) voice_implicit_hits.push({ prompt_idx: pp.idx, text120: pp.text120, name: n });
 }
-const sample20 = implicit_hits.slice(0, 20);
-// Hand-read each of the 20 against the fuller prompt text (not just its 120-char preview) and
-// judged true/false by what the sentence is actually about. Recorded as a plain list, not forced
-// to 5 — the brief asks for an honest estimate, and this corpus (mostly task titles and dictation
-// about the framework's own systems, e.g. "Yeah, you're a mastermind", "@Page in a prompt tags
-// it") turned out to have NO false positives in this sample: every hit is a genuine reference to
-// the named class, module or role, not an unrelated English word wearing the same spelling.
-const judged_false = [];
+function seeded_shuffle(arr, seed){
+	const a = arr.slice();
+	let s = seed;
+	const rand = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+	for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+	return a;
+}
+const sample20 = seeded_shuffle(voice_implicit_hits, 42).slice(0, 20);
+// Hand-read each of the 20 against the full prompt text (not just its 120-char preview, which
+// `full_text` below carries) and judged true/false by what the sentence is actually about.
+for (const h of sample20) h.full_text = (all_prompts.find(p => per_prompt[h.prompt_idx].id === p.id && per_prompt[h.prompt_idx].source === p.source) || {}).text || h.text120;
+// Hand-judged against h.full_text below (FALSE_IDX names the sample20 indices actually read as
+// false positives — a word used in its plain-English sense, not the class/concept sense).
+const FALSE_IDX = [];
+const judged_false = FALSE_IDX.map(i => sample20[i]);
 
 const out = {
-	note: "study only, no build. Prompt text for vscode is the raw counted Prompt item; cloud-voice prompts are a DERIVED proxy (tasks.add title+why), since neither cloud-voice-app-20261106 nor -20261108 session.jsonl carries a raw owner-turn field (0 'refined' lines, 0 'sentences' lines in either file).",
+	note: "study only, no build. vscode: the raw counted Prompt item. cloud: a DERIVED proxy (tasks.add title+why), since neither cloud-voice-app-20261106 nor -20261108 session.jsonl carries a raw owner-turn field. voice: browser dictation (v-* folders) — one prompt per `messages.add.prompt` id, its sentence texts joined in order; plus any 'refined' v2 line not already matched to a collected turn's timestamp (none were, this week — every refined line's `re` matched an already-collected voice turn, so it added 0 new prompts, only confirmed the dedup).",
 	window: "2026-11-02..2026-11-08",
 	prompts_total: all_prompts.length,
-	prompts_by_source: { vscode: prompts.length, cloud: cloud_prompts.length },
-	refined_lines_seen_this_week: refined_lines_seen,
+	prompts_by_source: { vscode: prompts.length, cloud: cloud_prompts.length, voice: voice_prompts.length },
+	voice_files_this_week: voice_files.length,
+	refined_lines_seen_this_week: { vscode_files: refined_lines_seen_vscode_files, voice_files: refined_lines_seen_voice_files },
 	vocabulary: { refs_names: refs_names.length, people_names: people_names.length, search_terms: search_terms.size },
 	explicit: { tagged_prompts: per_prompt.filter(pp => pp.explicitNames.size > 0).length, name_hits: explicit_total, unknown_top20: top_unknown },
 	implicit: { tagged_prompts: per_prompt.filter(pp => pp.implicitNames.size > 0).length, name_hits: implicit_total },
@@ -206,9 +263,17 @@ const out = {
 	buckets,
 	agreement: { sum_over_prompts, sum_over_names, equal: sum_over_prompts === sum_over_names },
 	samples,
-	implicit_sample20: sample20,
-	judged_false_positive: judged_false,
+	voice_implicit_sample20: sample20.map(({ full_text, ...h }) => ({ ...h, text120: full_text.slice(0, 120) })),
+	judged_false_positive: judged_false.map(({ full_text, ...h }) => ({ ...h, text120: full_text.slice(0, 120) })),
 	judged_false_positive_rate: `${judged_false.length}/${sample20.length}`,
+	// Found by targeted search, NOT part of the random sample above (there are only 3 "Page"
+	// implicit hits this week total, so a 20-pick random sample had low odds of catching one):
+	// real generic-noun "page" uses that the random sample's 0/20 rate understates. Kept separate
+	// so the formal rate stays the honest random-sample number, not inflated by cherry-picking.
+	false_positives_found_outside_sample: [
+		{ name: "page", text: "So the last two prompts of mine each have gone on their own card on the chat V3 page. page and it looks like there's kind of a title that is essentially the same thing as the prompt itself. …", why: "\"page\" names a specific site page (the Chat V3 page), not the Page class/module" },
+		{ name: "page", text: "Have the mastermind try to load this page.", why: "\"this page\" is whatever page is open, a generic noun, not a reference to the Page module" },
+	],
 };
 
 fs.writeFileSync(path.join(here, "counts.json"), JSON.stringify(out, null, 2) + "\n");
