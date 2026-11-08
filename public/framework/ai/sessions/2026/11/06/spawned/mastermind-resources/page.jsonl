@@ -8,3 +8,4 @@
 {"inbox":{"id":"n-2ibzybtl","from":"servex-heartbeat","text":"mastermind-resources its agent is not running; Servex revived it and asked where it is at.","at":"2026-11-07T01:14:16.510-06:00"}}
 {"inbox":{"id":"n-6y1oqrnq","from":"servex-task-loop","text":"Task spawned/mastermind-resources is waiting on the owner since 2026-11-07T01:14:30-06:00: Idle; the one open item is the crash-dump admin command (servex-turn-on-windows-crash-dumps-for-n). Wake me with a message for new resource work or the next crash..","at":"2026-11-07T03:18:28.106-06:00"}}
 {"inbox":{"id":"n-me1iqmmw","from":"servex-task-loop","text":"Task spawned/mastermind-resources is waiting on the owner since 2026-11-07T01:14:30-06:00: Idle; the one open item is the crash-dump admin command (servex-turn-on-windows-crash-dumps-for-n). Wake me with a message for new resource work or the next crash..","at":"2026-11-08T03:18:34.802-06:00"}}
+{"file":"pid-accounting/"}

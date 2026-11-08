@@ -639,3 +639,13 @@
 {"tool_call":{"at":"2026-11-08T12:19:50.850Z","tool":"send_to_agent","args_hash":"8e3718d21bc1","caller":"voice-app"}}
 {"log":{"at":"2026-11-08T06:26:24-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
 {"log":{"at":"2026-11-08T06:31:25-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-08T06:41:24-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-08T06:46:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"tool_call":{"at":"2026-11-08T13:01:02.033Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:01:03.109Z","tool":"shell","args_hash":"5c9ae272492e","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:01:06.592Z","tool":"shell","args_hash":"2f357723740c","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:01:22.336Z","tool":"item","args_hash":"36267eebd41d","caller":"voice-app"}}
+{"tasks":{"readme-maps":{"log":{"msg":"Slice 2 done by session-truth (merge 670030863; 46f147411 + fixes c5b0e3472): Map + Search terms in core/Session and ai/sessions readmes; unlinked 11->0 and 24->0; 32 file:line refs checked, 3 fixed; $2.19 minion. Spot-checked session-query.mjs:117/:120: correct. Next slice: Servex, Dictate family."}}},"by":"voice-app","ts":"2026-11-08T13:01:22.347Z"}
+{"tool_call":{"at":"2026-11-08T13:01:22.756Z","tool":"send_to_agent","args_hash":"c8bc5df4d7f2","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T13:01:30.895Z","tool":"item","args_hash":"d2e113058e44","caller":"voice-app"}}
+{"tasks":{"pid-accounting":{"log":{"msg":"Handed to resources 13:01 UTC: measure 24 h coverage (logged start/exit/attribution per process kind), check the CLI minions launched outside Servex today, one table on a /live/ page; small fixes only, under ~$5; no kills."},"owner":"mastermind-resources","start":{}}},"by":"voice-app","ts":"2026-11-08T13:01:30.901Z"}
