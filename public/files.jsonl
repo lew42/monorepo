@@ -162,3 +162,5 @@
 {"file":"data/"}
 {"file":"failures.jsonl"}
 {"file":"Server/"}
+{"file":"agent-voice-app/"}
+{"file":"agent-voice-app/","gone":true}
