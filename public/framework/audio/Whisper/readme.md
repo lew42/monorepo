@@ -19,3 +19,5 @@ The local whisper-server as objects, and a live log of every answer it sends.
 - **Home:** maybe `ai/` rather than `audio/`. Whisper is an AI system and an audio system; the overlap is real. A note, not a move.
 - **The raw demo:** built 2026-10-20, the demo above. Servex's `whisper-raw` log is no longer written (one store).
 - 19:20: `ai/whisper/<date>.jsonl` is a second dated system; the rule is one data system for every log kind (see [core/Item/doc/store-index-query-plan.md](/framework/core/Item/doc/store-index-query-plan.md)). For now a temporary bucket per session is fine; the raw lines may turn out useless once the flow is understood. The page as found: three demos, the first does nothing, the second shows no log or structure. **Done:** one bucket file, no date code (`doc/demo.md`); the page is now one demo.
+
+Every file in this folder, one line each: [map.md](../map.md#whisper)

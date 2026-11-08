@@ -92,3 +92,5 @@ Every read-aloud step writes one `recite` line to [the Whisper log](/framework/a
 - [ReciteBubble.test.mjs](ReciteBubble.test.mjs): the headless test of the bubble control in Chat V1, V2 and V3 (`FENCE_SERVEX=1 node ReciteBubble.test.mjs <site-url>`; also on the browser-scripts list).
 - [Recite.test.mjs](Recite.test.mjs): runs on [the test page](/framework/core/Test/view/?file=audio/Recite/Recite.test.mjs) (it needs the DOM; in node it skips). The server's test is `Servex/ext/recite/recite.test.mjs`.
 - [doc/architecture.md](doc/architecture.md), [doc/voice-models.md](doc/voice-models.md) (what Kokoro costs here, and which voices sound better)
+
+Every file in this folder, one line each: [map.md](../map.md#recite)

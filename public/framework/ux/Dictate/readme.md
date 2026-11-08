@@ -139,6 +139,37 @@ ever appeared — no error, no clue why.
 - [workspace](./workspace/)
 - [MicIndicator](MicIndicator.js) — the one mic-state badge every voice surface shows
 
+## Map
+
+Every file, one line each: [map.md](./map.md).
+
+**How it connects:** mic → sentences → session record (the whole chain, with `audio/`'s own output half at [audio/readme.md](/framework/audio/readme.md), "How it connects"):
+- `MicStream.start()` → `navigator.mediaDevices.getUserMedia()` (`audio/MicStream/MicStream.js:78`) opens the mic; `ux/Dictate` keeps its OWN copy of the buffer code in `capture.js`, not an import ([audio/readme.md](/framework/audio/readme.md))
+- `Dictate.js`'s own `fetch()` wrapper (`Dictate.js:70`) sends audio straight to whisper-server on its own path (it does not go through `audio/Transcriber`) → a finished sentence lands in `Dictate.js:717` (`commit(text, reason)`)
+- `chat.js:113` (`Session.start()`, one shared promise) → `ext/Session/Session.js:56-57` (`start()` posts `new`) → `Servex/agents/Sessions.js:1935` (the `new` route) → `:1085` (`create()`), `:1103` (the `v-` id) — the voice session is made, not the page
+- `chat.js:236` (`Session.say(...)`) → `ext/Session/Session.js:101` (`say()`, posts `say` at `:106`) → `Servex/agents/Sessions.js:1278` (`say()`) appends a `chat` line (`:1302`) to the session's own `session.jsonl` (`core/Session/readme.md`, the same file every session verb writes through)
+- Which pages mount the widget: [`surfaces/`](./surfaces/) (nine surfaces, one census) and the ✦ phone sheet (`ext/drawer/Sheet.js`)
+- What reads replies aloud: `chat.js:439` hands every live-wire event to `Recite.shared.from_wire(ev)` (`audio/Recite/Recite.js:319`); `DictationBar.mount` puts the Recite bar above the mic
+
+**Design:** [doc/architecture.md](doc/architecture.md) (first) · [doc/pipeline.md](doc/pipeline.md) (mic to screen, file:line per stage) · [doc/map.md](doc/map.md) (every dictation piece, the duplicates, the plan) · [doc/voice-architecture.md](doc/voice-architecture.md) (which class owns what) · [doc/principles.md](doc/principles.md) (Voice Chat's guiding principles) · [doc/decisions.md](doc/decisions.md).
+
+## Search terms
+
+The words that find this module's past work (counts: `sessions N files · M commits`, from `git grep -c -i '<term>' -- public/framework/ai/sessions | wc -l` and `git log --oneline -S '<term>' | wc -l`; raw output in [terms.txt](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/readme-maps-dictate/terms.txt)):
+
+- `DictationBar` (sessions 74 files · 72 commits)
+- `single-voice-assistant` (sessions 89 files · 71 commits)
+- `turn-taking` (sessions 46 files · 55 commits)
+- `wake-policy` (sessions 51 files · 37 commits)
+- `WakePolicy` (sessions 66 files · 61 commits) — the class behind it
+- `question card` (sessions 83 files · 70 commits)
+- `DictateHealth` (sessions 34 files · 44 commits) — the eight lights
+- `sentences_per_send` (sessions 26 files · 35 commits)
+- `VoiceChat` (sessions 27 files · 34 commits) — the per-chat plugin host
+- `echo-and-turn-taking` (sessions 14 files · 12 commits)
+- `phantom-gate` (sessions 12 files · 15 commits)
+- `ChatStatus` (sessions 11 files · 10 commits) — the one-word status line
+
 ## More
 
 - **Wide screens** (2026-10-17): [`page.js`](./page.js) wraps the Overview in `.ux-dictate-page`; below 1920 it is the single 40em column it always was, from 1920 up the workbench sits on the left and the rest flows into 28em CSS columns (`Dictate.css`), like [/tasks/](/tasks/). Empty share at 3440: 0.74 before, 0.42 after. The alternative, a Browse view, needs more code.

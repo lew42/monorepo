@@ -5,3 +5,5 @@
 - Screenshots are made by `shoot.mjs` in the task that built the page (`ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-surfaces/`); take them again when a surface changes.
 - The 2026-09-30 shots (`card-sidebar-1920.png`, `live-fold-1920.png`) are kept, no longer used.
 - [`ux/Dictate`](/framework/ux/Dictate/): the mic and the widget · [`ext/Session`](/framework/ext/Session/): the voice session every mount uses
+
+Every file in this folder, one line each: [map.md](../map.md#surfaces)

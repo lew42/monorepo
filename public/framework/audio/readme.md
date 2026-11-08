@@ -74,6 +74,35 @@ The old six-class version — same classes, same three demo pages, unchanged —
   text) — a demo wires a state view and a controls view side by side, same pattern both had
   before this task.
 
+## Map
+
+Every file, one line each: [map.md](./map.md).
+
+**How it connects:** the mic-in chain is "How `ux/Dictate` assembles them" above; here is the output half, speech back out:
+- `Recite.shared.from_wire(ev)` (`Recite/Recite.js:319`) ← `ux/Dictate/chat.js:439` (the smart seat's reply, streaming) and `:365` (the file-poll/wire fallback) — the one reader every chat view shares
+- `Recite.read()` / `.queue()` → `Voice.render(text, url)` (`Voice/Voice.js`) → a WAV from recite-server (Kokoro), or `Voice.speak()` (the browser fallback)
+- `Transcriber.Whisper` (`Transcriber/Whisper.js:9`, the timeout wrapper on `fetch()`) reads an already-started `MicStream`'s buffer (`mic.snapshot()` / `mic.cut()`) and sends it to the local whisper-server
+- `MicStream.start()` → `navigator.mediaDevices.getUserMedia()` (`MicStream/MicStream.js:78`) is the one mic-open call every class here shares; `ux/Dictate/capture.js:46` keeps its own copy (not an import)
+
+**Design:** [doc/decisions.md](doc/decisions.md) (what got extracted vs. rebuilt, the six-to-three consolidation).
+
+## Search terms
+
+The words that find this module's past work (counts: `sessions N files · M commits`, from `git grep -c -i '<term>' -- public/framework/ai/sessions | wc -l` and `git log --oneline -S '<term>' | wc -l`; raw output in [terms.txt](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/readme-maps-dictate/terms.txt)):
+
+- `MicStream` (sessions 101 files · 99 commits)
+- `whisper-server` (sessions 211 files · 169 commits)
+- `Transcriber` (sessions 120 files · 97 commits)
+- `Recite` (sessions 267 files · 259 commits) — too common alone; pair it with a verb
+- `BargeIn` (sessions 60 files · 74 commits)
+- `push-to-talk` (sessions 179 files · 145 commits) — the old class, folded into `MicStream`
+- `audio-consolidate` (sessions 152 files · 156 commits) — the task that built the six-to-three merge
+- `recite-server` (sessions 22 files · 33 commits)
+- `persona` (sessions 111 files · 114 commits)
+- `WhisperLog` (sessions 70 files · 86 commits)
+- `phantom-phrases` (sessions 6 files · 8 commits)
+- `karaoke` (sessions 19 files · 32 commits) — the read-aloud highlight
+
 ## More
 
 - [`doc/decisions.md`](doc/decisions.md) — what got extracted vs. rebuilt, the push-to-talk

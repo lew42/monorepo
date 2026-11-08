@@ -29,3 +29,5 @@ voice.speak("Hello there.");   // the browser's voice: state "speaking", then "i
 - [Recite](../Recite/readme.md): reads replies aloud, the local engine's main user
 - `Servex/ext/recite/readme.md`: recite-server
 - [doc/owner-2026-10-16-voice-conversation.md](doc/owner-2026-10-16-voice-conversation.md): the owner's notes on a full voice loop
+
+Every file in this folder, one line each: [map.md](../map.md#voice)

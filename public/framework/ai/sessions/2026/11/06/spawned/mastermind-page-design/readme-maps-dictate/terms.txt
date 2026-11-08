@@ -1,0 +1,36 @@
+Raw counts for the Search terms sections, from:
+  git grep -c -i '<term>' -- public/framework/ai/sessions | wc -l     (files)
+  git log --oneline -S '<term>' | wc -l                               (commits)
+
+## public/framework/audio/readme.md terms
+
+MicStream               101 files   99 commits
+whisper-server           211 files  169 commits
+Transcriber              120 files   97 commits
+Recite                   267 files  259 commits
+BargeIn                   60 files   74 commits
+push-to-talk             179 files  145 commits
+audio-consolidate        152 files  156 commits
+recite-server             22 files   33 commits
+persona                  111 files  114 commits
+WhisperLog                70 files   86 commits
+phantom-phrases            6 files    8 commits
+karaoke                   19 files   32 commits
+
+## public/framework/ux/Dictate/readme.md terms
+
+DictationBar              74 files   72 commits
+VoiceChat                 27 files   34 commits
+WakePolicy                66 files   61 commits
+single-voice-assistant    89 files   71 commits
+phantom-gate               12 files   15 commits
+ChatStatus                 11 files   10 commits
+sentences_per_send         26 files   35 commits
+turn-taking                46 files   55 commits
+DictateHealth              34 files   44 commits
+wake-policy                51 files   37 commits
+question card              83 files   70 commits
+echo-and-turn-taking       14 files   12 commits
+
+Dropped (counted, not used): "voice session" (752 files / 653 commits) — too broad to act as a
+search term on its own, and the readme already explains the chain in prose.

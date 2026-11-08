@@ -63,3 +63,5 @@ quiet instant instead of mid-word — see `../doc/decisions.md`, "Seams".
 - [Overview](/framework/audio/MicStream/) — the live demo
 - [`../readme.md`](../readme.md) — the audio/ library
 - [`../doc/decisions.md`](../doc/decisions.md) — what got extracted vs. rebuilt
+
+Every file in this folder, one line each: [map.md](../map.md#micstream)

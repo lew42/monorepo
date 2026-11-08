@@ -24,3 +24,5 @@ rec.save("take-1.webm");
 
 - [Overview](/framework/audio/Recorder/) — the live demo
 - [`../readme.md`](../readme.md) — the audio/ library · [Sound recorder](/framework/audio/v1/sound-recorder/)
+
+Every file in this folder, one line each: [map.md](../map.md#recorder)

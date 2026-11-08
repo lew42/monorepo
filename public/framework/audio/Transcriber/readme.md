@@ -61,3 +61,5 @@ page can show both side by side (see [Mic → Whisper → text](/framework/audio
 - [`../doc/decisions.md`](/framework/audio/doc/decisions.md) — extraction, the import-cycle
   reasoning, the seams experiment · [`doc/streaming.md`](doc/streaming.md) — streaming vs. resend, researched
 - [`../readme.md`](../readme.md) — the audio/ library · [Mic → Whisper → text](/framework/audio/v1/mic-to-text/)
+
+Every file in this folder, one line each: [map.md](../map.md#transcriber)

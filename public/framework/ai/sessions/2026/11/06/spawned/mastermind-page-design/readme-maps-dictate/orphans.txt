@@ -1,0 +1,42 @@
+Unlinked-file check: before this task's readme.md + map.md edits vs. after.
+"Before" = whether the basename appeared anywhere in that folder's pre-edit readme.md (map.md did not exist yet).
+"After" = whether it appears in readme.md or map.md anywhere in the ux/Dictate or audio family tree (git grep -F basename over readme.md + map.md files).
+Command (after): for each top-level file in a folder, grep -qF "<basename>" over every readme.md/map.md under public/framework/ux/Dictate and public/framework/audio.
+
+Per-folder counts (orphan / total):
+
+ux/Dictate top        20 / 41  ->  0 / 41
+VoiceChat               1 / 3  ->  0 / 3
+surfaces               12 / 17  ->  0 / 17
+ux/Dictate/doc         10 / 54  ->  0 / 54
+audio top               5 / 6  ->  0 / 6
+audio/doc               1 / 2  ->  0 / 2
+MicStream               3 / 6  ->  0 / 6
+MicStream/doc           1 / 2  ->  0 / 2
+Recorder                2 / 4  ->  0 / 4
+Transcriber             3 / 8  ->  0 / 8
+Transcriber/doc         1 / 2  ->  0 / 2
+Whisper                 7 / 13  ->  0 / 13
+Whisper/doc             5 / 8  ->  0 / 8
+Voice                   3 / 7  ->  0 / 7
+Voice/doc               1 / 2  ->  0 / 2
+Recite                  3 / 18  ->  0 / 18
+Recite/doc              2 / 4  ->  0 / 4
+
+Total: 80 orphans before, 0 after, across 198 top-level files.
+
+Every one of the 80 is now linked, almost all through its folder's new `map.md` table (one row per file,
+or shared with a test/screenshot/jsonl row); a handful landed as a direct readme.md link where that read
+better (VoiceChat's and every sub-readme's new "Every file in this folder, one line each: [map.md](...)"
+line, which itself is the link that resolves the rest).
+
+Nothing was deleted or judged dead except one stray folder, noted here rather than fixed:
+
+- `public/framework/audio/doc/file/` — a stray generated folder (`Part.js.md`, `files.jsonl`) that looks
+  like an old doc-tool misfire (classdoc writing to a literal "file" path, maybe from a bad arg). It is
+  linked from `audio/map.md` ("a stray generated folder... not a real doc") so it is not an orphan, but
+  it is not a real doc either. Left alone — deciding whether to delete it is outside this task's fence
+  (additive-only, docs-only).
+
+Raw "before" scan output: see this folder's requirements.md deliverable 4; the per-folder orphan
+basenames (all 80, now linked) are not repeated here since the fix (map.md) already names every one.

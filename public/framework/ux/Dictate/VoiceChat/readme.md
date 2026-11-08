@@ -31,3 +31,5 @@ Both are read-aloud rules, so both declare `static group = "recite"`; a plugin w
 - One Recite means one set of read-aloud settings on a page: two chats on a page share one VoiceChat, they do not each get their own.
 - A plugin's `detach` must be safe when it was never attached.
 - `audio/Recite` imports nothing from `ux/`; the hosts are handed in.
+
+Every file in this folder, one line each: [map.md](../map.md#voicechat)
