@@ -69,3 +69,6 @@
 {"content":{"add":{"type":"part-link","id":"link-fold","path":"./fold/","title":"LivePage into Page: the plan"}},"by":"pages.add","ts":"2026-11-07T06:21:38.542Z"}
 {"file":"item-tool/page.jsonl"}
 {"content":{"add":{"type":"part-link","id":"link-item-tool","path":"./item-tool/","title":"One item tool: get, set, call"}},"by":"pages.add","ts":"2026-11-08T10:25:39.684Z"}
+{"file":"mentions/page.jsonl"}
+{"content":{"add":{"type":"part-link","id":"link-mentions","path":"./mentions/","title":"Mentions: each module lists the prompts that name it"}},"by":"pages.add","ts":"2026-11-08T15:59:54.649Z"}
+{"content":{"add":{"id":"link-mentions","type":"part-link","path":"./mentions/","title":"Mentions: each module lists the prompts that name it"}},"by":"mastermind-session-truth","ts":"2026-11-08T16:00:45.996Z"}
