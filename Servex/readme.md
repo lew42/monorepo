@@ -49,6 +49,7 @@ class Servex {
 | `ErrorLine.js` | a tool call that throws writes `{"error","where":"file:line","tool","agent"}` into the calling agent's session log (test `ErrorLine.test.mjs`; [doc/tool-process.md](doc/tool-process.md)) |
 | `Relief.js` | at 70% memory commit, closes what is finished and puts idle agents to sleep; suggests closing the owner's own apps only in a note, only when they are away from the PC: [doc/processes.md](doc/processes.md#early-relief-at-70) · the page file is insurance, not the fix: [doc/processes.md](doc/processes.md#the-page-file-insurance-not-the-fix) |
 | `Lineage.js`, `leaks.mjs` | start and end lines for processes an agent's claude.exe starts (sampled every 10 s), and the report of every start with no end: [doc/processes.md](doc/processes.md#leaks-a-start-with-no-end) |
+| `pid-coverage.mjs` (+ `.test.mjs`) | end% and agent+session% per process kind (claude.exe, node, git, powershell/bash, chrome, other), reusing `leaks.mjs`'s own reading and pairing: [doc/processes.md](doc/processes.md#coverage-and-the-two-gaps-that-log-nothing) |
 | `doc/` | the detail; `proof/` and `*.test.mjs` are checks |
 
 ## On disk

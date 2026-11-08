@@ -44,7 +44,7 @@ what is true today, checked against the code on 2026-09-24:
 |---|---|---|
 | **A VS Code tab** (like the one that wrote this) | Claude Code in the sidebar; the owner types or pastes into it | the owner. With the `servex` tools (new tabs only), it can also start and message Servex agents |
 | **A Servex agent** | inside the Servex process, started with the Agent SDK; listed in `registry.json`, `list_agents`, and `GET /agents` | whoever sends it a message; its parent hears automatically when it finishes |
-| **A CLI session** (`claude -p --session-id …`) | a separate process; the older way to start minions | nobody while it runs; you read its result afterwards |
+| **A CLI session** (`claude -p --session-id …`) | a separate process; the older way to start minions, only when Servex is unreachable — never as a substitute for a `spawn_agent`/`take_worktree` refusal, which should retry or queue instead ([doc/processes.md](/Servex/doc/processes.md#coverage-and-the-two-gaps-that-log-nothing)) | nobody while it runs; you read its result afterwards |
 
 **The Servex agents that exist today** ([`Servex/agents/`](/Servex/agents/)):
 
