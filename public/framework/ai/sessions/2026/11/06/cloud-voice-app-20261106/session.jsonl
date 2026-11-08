@@ -677,3 +677,19 @@
 {"log":{"at":"2026-11-08T07:51:25-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
 {"log":{"at":"2026-11-08T07:56:25-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
 {"log":{"at":"2026-11-08T08:01:25-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-08T08:06:25-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"tool_call":{"at":"2026-11-08T14:20:57.341Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T14:20:58.458Z","tool":"shell","args_hash":"3b16e1c74968","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T14:21:02.998Z","tool":"restart_servex","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T14:21:06.540Z","tool":"item","args_hash":"78143c85b473","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T14:21:09.334Z","tool":"shell","args_hash":"5d73ee8af42a","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T14:21:13.211Z","tool":"shell","args_hash":"38b4463ae2a8","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T14:21:39.072Z","tool":"shell","args_hash":"7c311a01b423","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T14:21:50.249Z","tool":"shell","args_hash":"3ec774058fcc","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T14:22:02.371Z","tool":"send_to_agent","args_hash":"7b8baae8087c","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-08T14:22:03.821Z","tool":"item","args_hash":"ecabf0a730ce","caller":"voice-app"}}
+{"tasks":{"readme-maps":{"log":{"msg":"Slice 3 (Servex readmes) handed to page-design 14:22 UTC, under ~$5, docs only."}}},"by":"voice-app","ts":"2026-11-08T14:22:03.850Z"}
+{"log":{"at":"2026-11-08T08:31:22-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-08T08:36:22-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-08T08:41:22-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-08T08:46:22-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}

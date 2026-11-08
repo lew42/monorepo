@@ -750,3 +750,5 @@
 {"log":{"at":"2026-11-08T08:01:40-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-08T14:01:40.192Z"}
 {"pid_exit":8880,"ended":"2026-11-08T08:01:40-06:00","code":0,"signal":null,"by":"servex"}
 {"pid_exit":52860,"ended":"2026-11-08T08:01:49-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":25216,"ended":"2026-11-08T14:21:17.156Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}
+{"pid_exit":37708,"ended":"2026-11-08T14:21:17.156Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}
