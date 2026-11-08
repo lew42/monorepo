@@ -23,6 +23,8 @@ assert.deepEqual([...ix.snaps.keys()], ["cloud-voice-demo"]);
 await ix.stop();
 const written = JSON.parse(fs.readFileSync(path.join(day, "index.json"), "utf8"));
 assert.equal(written.snapshots.length, 1); assert.equal(written.snapshots[0].id, "cloud-voice-demo");
+assert.equal(JSON.parse(fs.readFileSync(path.join(cloud, "index.json"), "utf8")).id, "cloud-voice-demo", "the record's own index.json is in its own folder");
+assert.ok(!fs.existsSync(path.join(day, "session-cloud-vo")), "never a stray session-<first 8 chars> folder beside it (2026-11-08)");
 console.log("AISessionIndex record-only: ok");
 
 // a voice session (v-…, kind voice) takes its children's dollars and count from the sessions whose parent is it

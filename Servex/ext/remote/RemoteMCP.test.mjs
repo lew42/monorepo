@@ -167,6 +167,17 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     const named = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
     const old = JSON.parse((await rpc({ id: 9, method: "tools/call", params: { name: "register_session", arguments: { title: "old chat" } } }, named)).json.result.content[0].text);
     assert.equal(old.file, "/framework/ai/sessions/2026/10/01/cloud-voice-old-chat/session.jsonl", "a known id is filed in its own folder, not a second one today");
+    // keyed by the claude.ai conversation id (2026-11-08): a title adopts a record, a bound record outlives any gap, another id gets its own
+    const reg_on = async args => { const c = (await rpc({ id: 1, method: "initialize", params: {} })).sid; return JSON.parse((await rpc({ id: 9, method: "tools/call", params: { name: "register_session", arguments: args } }, c)).json.result.content[0].text); };
+    const adopt = await reg_on({ title: "old chat", conversation: "session_01AAA" });
+    assert.equal(adopt.session, "cloud-voice-old-chat", "a title with a conversation id binds that id to the titled (existing) record");
+    gw.sessions[RemoteMCP.CURRENT].last = new Date(Date.now() - 10 * RemoteMCP.IDLE_MS).toISOString();   // hours of silence
+    assert.equal((await reg_on({})).session, "cloud-voice-old-chat", "a bound record is not ended by a gap: a reconnect without an id stays on it");
+    assert.equal((await reg_on({ conversation: "session_01AAA" })).session, "cloud-voice-old-chat", "the same id finds its record");
+    const b = await reg_on({ conversation: "session_01BBBxyz" });
+    assert.match(b.session, /^cloud-voice-app-[0-9]{8}-bbbxyz$/, "another conversation id opens its own record");
+    assert.equal((await reg_on({ conversation: "session_01AAA" })).session, "cloud-voice-old-chat", "and the first id still goes back to its own");
+    assert.equal(gw.sessions["conv:session_01BBBxyz"].id, b.session, "the binding is kept with the connections (saved in remote.sessions.json)");
     delete gw.sessions[RemoteMCP.CURRENT];   // the cases below start a fresh conversation
     const calls = lines.filter(l => l.tool_call).map(l => l.tool_call);
     assert.ok(calls.length >= 6 && calls.every(c => c.args_hash.length === 12), "every call logged with a hash (a call with no words line before it is the gap)");

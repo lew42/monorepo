@@ -167,7 +167,7 @@ export default class RemoteMCP {
     // the one registry (servex.mcp, read at call time so late registrations show up) with ask_mastermind on top
     tools(){
         const own = [RemoteMCP.TOOL.name, RemoteMCP.CALL.name, RemoteMCP.LOG.name, RemoteMCP.HEAR.name], all = [RemoteMCP.TOOL, RemoteMCP.HEAR, RemoteMCP.CALL, RemoteMCP.LOG, ...(this.servex.mcp?.tools ?? []).filter(t => !own.includes(t.name))];
-        return all.map(t => t.name === "register_session" ? { ...t, description: RemoteMCP.REGISTER_DESCRIPTION, inputSchema: { type: "object", properties: { title: { type: "string", description: "A short name for this conversation, e.g. live page; the session is filed as cloud-voice-<name>." }, cost: { type: "number", description: "Your own cost so far in USD, if you know it (optional)." } } } } : t);
+        return all.map(t => t.name === "register_session" ? { ...t, description: RemoteMCP.REGISTER_DESCRIPTION, inputSchema: { type: "object", properties: { title: { type: "string", description: "A short name for this conversation, e.g. live page; the session is filed as cloud-voice-<name>." }, cost: { type: "number", description: "Your own cost so far in USD, if you know it (optional)." }, conversation: { type: "string", description: "Your claude.ai conversation id (e.g. session_01...), if you know it: the record is keyed by it, so a long gap never splits one conversation (optional)." } } } } : t);
     }
 
     /* Voice logging (doc/voice-logging.md): file cloud_voice_log words, log every call, and give a cloud
@@ -180,6 +180,7 @@ export default class RemoteMCP {
         let v = null;
         const registering = inner === "register_session" && !target.id;   // a cloud caller names its session here; a local agent passes an id
         if (registering && typeof target.title === "string" && target.title.trim()) (this.sessions[sid] ??= { agent: null, dir: null, started: new Date().toISOString(), last: null }).voice_name = target.title, this.save_sessions();
+        if (registering && typeof target.conversation === "string" && target.conversation.trim()) (this.sessions[sid] ??= { agent: null, dir: null, started: new Date().toISOString(), last: null }).conversation = target.conversation.trim(), this.save_sessions();
         try { v = this.voice_session(sid); } catch (e) { console.error("remote-mcp: voice session:", e.message); }
         if (v && registering && target.cost != null) this.set_cost(v, target.cost);
         this.record(v, inner, inner === RemoteMCP.LOG.name ? target.words : null, { tool: inner, args: target }, sid);
@@ -199,7 +200,10 @@ export default class RemoteMCP {
      * ONE RECORD PER CONVERSATION, NOT PER DATE (2026-11-07): the app opens a new MCP connection every few calls (so `sid` names a
      * connection, not a conversation), so the caller's record in use is kept under CURRENT. A call on a connection with no title of its
      * own stays on that record while calls keep coming (under IDLE_MS apart), past midnight too; only a new title or a long gap opens
-     * another. Two cloud chats at once still share one record: the server cannot tell them apart. */
+     * another. Two cloud chats at once still share one record: the server cannot tell them apart.
+     * KEYED BY THE CONVERSATION (2026-11-08): a gap cannot tell one conversation from two, but the cloud agent knows its claude.ai id.
+     * register_session({conversation}) binds that id to a record (under "conv:<id>"; with a title, the titled record, so an existing one
+     * can be adopted); while the record in use is bound, no gap ends it. Only another conversation id (or a title) moves it. */
     static CURRENT = "caller:voice-app";
     static IDLE_MS = 2 * 3600e3;   // the gaps between voice records, 10-20 to 11-07: 64 min (one chat past midnight), then 206 min and up
     voice_session(sid){
@@ -208,13 +212,17 @@ export default class RemoteMCP {
         const ymd = TaskDirs.day().replaceAll("-", "");
         const slug = s => String(s).toLowerCase().replace(/^cloud-voice-?/, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
         const titled = slug(this.sessions[sid]?.voice_name ?? ""), cur = this.sessions[RemoteMCP.CURRENT];
-        const live = cur?.id && store.map[cur.id] && Date.now() - Date.parse(cur.last) < RemoteMCP.IDLE_MS;
-        const name = titled || (live ? slug(cur.id) : `${slug(RemoteMCP.CALLER.replace(/^voice-/, "")) || "app"}-${ymd}`);
+        const conv = this.sessions[sid]?.conversation ?? null, bound = conv ? this.sessions[`conv:${conv}`]?.id : null;
+        const live = cur?.id && store.map[cur.id] && (cur.conversation || Date.now() - Date.parse(cur.last) < RemoteMCP.IDLE_MS);
+        const app = `${slug(RemoteMCP.CALLER.replace(/^voice-/, "")) || "app"}-${ymd}`;
+        const name = bound && store.map[bound] ? slug(bound) : titled || (conv ? (live && !cur.conversation ? slug(cur.id) : `${app}-${slug(conv).slice(-6)}`) : live ? slug(cur.id) : app);
         // an id the store already has keeps its own folder (the day it began): a later day's call must not open a second folder for it
         const id = `cloud-voice-${name}`, file = store.map[id]?.file ?? `${DatedFiles.url(DatedFiles.sessions.path(Date.now(), id))}session.jsonl`, home = file.replace(/session\.jsonl$/, ""), abs = path.join(this.root, "public", file);
         const now = new Date().toISOString(), moved = cur?.id !== id;
-        this.sessions[RemoteMCP.CURRENT] = { id, last: now };
-        if (moved || !cur?.saved || Date.now() - Date.parse(cur.saved) > 60e3) this.sessions[RemoteMCP.CURRENT].saved = now, this.save_sessions();   // at most once a minute while it stays put
+        this.sessions[RemoteMCP.CURRENT] = { id, last: now, conversation: conv ?? (moved ? null : cur?.conversation ?? null) };
+        const bind = conv && this.sessions[`conv:${conv}`]?.id !== id;
+        if (bind) this.sessions[`conv:${conv}`] = { id };
+        if (bind || moved || !cur?.saved || Date.now() - Date.parse(cur.saved) > 60e3) this.sessions[RemoteMCP.CURRENT].saved = now, this.save_sessions();   // at most once a minute while it stays put
         else this.sessions[RemoteMCP.CURRENT].saved = cur.saved;
         if (!store.map[id]){
             const at = Date.now();

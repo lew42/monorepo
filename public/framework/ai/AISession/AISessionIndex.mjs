@@ -355,7 +355,8 @@ export default class AISessionIndex {
 	/** The folder to write `id` into, asked of the store's one finder on EVERY write (SessionFolders, checked on disk). this.dirs is only
 	 *  what the last answer was: a folder moved or removed since (a rename, a cleanup) is never written to, so never made again. */
 	async dir_of(id, snap){
-		const dir = SessionFolders.at(this.root).home(id, AISession.day(snap.first_at) ?? AISession.day(new Date()));
+		// a record-only session (a cloud-voice id, not a uuid) is named for its folder (record_snap): home() would make session-<id8> beside it (2026-11-08)
+		const dir = SessionFolders.at(this.root).home(id, AISession.day(snap.first_at) ?? AISession.day(new Date()), UUID.test(id) ? null : id);
 		this.dirs.set(id, dir);
 		if (snap.folder !== path.basename(dir)) snap.folder = path.basename(dir);   // the folder name travels with the snapshot, so the browser can find the folder
 		return dir;
