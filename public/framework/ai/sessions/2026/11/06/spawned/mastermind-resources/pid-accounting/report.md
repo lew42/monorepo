@@ -48,3 +48,10 @@ None found. `node Servex/leaks.mjs --json` → `{"done":0,"working":6}`: zero pr
 ## Note for the reviewer: chrome classification is not a kill filter
 
 `pid-coverage.mjs`'s `kind_of()` labels any process whose exe matches `chrome`/`chromium` as "chrome (playwright)" for counting purposes only — it reads already-logged lines, never the live process list, and never ends anything. It must not be reused to pick processes to kill; `chrome-pin.test.mjs` (leaks.mjs's own ending path) is the thing that already proves no ending path ever picks the owner's real Chrome.
+
+## 6. Follow-up: the 4 claude.exe exits that were never logged (2026-11-08)
+
+- **Which:** `assistant-fast` (pid 45644), `master-assistant` (2472) and two of `mastermind-session-truth` (44296, 5112). All four started 05:05:35–05:06:16 in Servex boot `mw7q7foa`, the boot voice-app started with a restart at 05:05.
+- **How they ended:** that boot crashed natively at 05:06 (the 0xC0000409 crash, 11:06 UTC); the next boot `mw7q8l53` came up at 05:06:24 and revived `mastermind-session-truth`. A native crash takes Servex's exit handlers with it, so none of the four got an end line. None is running now.
+- **Fix:** branch `worktree/pid-gone-ends` (commits `5b6f711d4`, `16158ec41`). A minute after every boot, Servex runs `node Servex/leaks.mjs --close-gone --before <boot time>`, which only prints. It then writes the printed lines itself, through its one writer (`SpawnLog.close_gone`): every gone start older than the boot gets a `{"pid_exit","seen":"boot"}` end line, with `ended` as an upper bound. A dry run today would close 39 (these 4 plus 35 older ones). Doc: `Servex/doc/processes.md`, "Gone at boot". Tests: `leaks.test.mjs`, `SpawnLog.test.mjs`.
+- **Live after the next Servex restart** (it is boot code). The end % in `pid-coverage.mjs` counts the boot ends, so the claude.exe gap disappears from the table after that boot; `git grep '"seen":"boot"'` finds them.
