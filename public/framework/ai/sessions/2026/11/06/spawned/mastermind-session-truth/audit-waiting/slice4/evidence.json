@@ -1,0 +1,421 @@
+[
+ {
+  "n": 61,
+  "card": "2026/09/22/reuse-audit",
+  "ask": "a-mulmt48l54",
+  "kind": "decision",
+  "title": "Delete the 739 dead files?",
+  "question": "May I delete the 739 dead files (14,354 lines) left behind when /imagine/ pages moved, since they are byte-identical to their moved copies?",
+  "options": [
+   {
+    "say": "prune"
+   },
+   {
+    "say": "wait"
+   }
+  ],
+  "at": "2026-09-28T14:19:39-05:00",
+  "control": "decision",
+  "dir": "public/framework/ai/sessions/2026/09/22/cards/reuse-audit",
+  "task_id": "a-mulmt48l54",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 62,
+  "card": "2026/09/28/dictation-a-playground-and-a-better-proc/commit-the-dictation-playground",
+  "ask": "card",
+  "kind": "question",
+  "title": "Commit the dictation playground",
+  "question": "Commit the dictation playground",
+  "at": "2026-09-28T13:44:33-05:00",
+  "control": "reply",
+  "dir": "public/framework/ai/sessions/2026/09/28/cards/dictation-a-playground-and-a-better-proc/commit-the-dictation-playground",
+  "task_id": "",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 63,
+  "card": "2026/09/24/pages-markdown/demo-of-jsonl-pages-with-code",
+  "ask": "card",
+  "kind": "question",
+  "title": "Demo of JSONL pages with code",
+  "question": "Demo of JSONL pages with code",
+  "at": "2026-09-25T15:31:41-05:00",
+  "control": "reply",
+  "dir": "public/framework/ai/sessions/2026/09/24/cards/pages-markdown/demo-of-jsonl-pages-with-code",
+  "task_id": "",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 64,
+  "card": "2026/09/24/pages-markdown/explain-the-jsonl-page-format",
+  "ask": "card",
+  "kind": "question",
+  "title": "Explain the JSONL page format",
+  "question": "Explain the JSONL page format",
+  "at": "2026-09-25T15:31:33-05:00",
+  "control": "reply",
+  "dir": "public/framework/ai/sessions/2026/09/24/cards/pages-markdown/explain-the-jsonl-page-format",
+  "task_id": "",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 65,
+  "card": "2026/09/24/pages-markdown/where-we-landed-on-pages-and-markdown",
+  "ask": "card",
+  "kind": "question",
+  "title": "Where we landed on pages and markdown",
+  "question": "Where we landed on pages and markdown",
+  "at": "2026-09-25T15:28:07-05:00",
+  "control": "reply",
+  "dir": "public/framework/ai/sessions/2026/09/24/cards/pages-markdown/where-we-landed-on-pages-and-markdown",
+  "task_id": "",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 66,
+  "card": "2026/09/24/chat-demo",
+  "ask": "card",
+  "kind": "question",
+  "title": "Chat demo",
+  "question": "Chat demo",
+  "at": "2026-09-24T22:04:28-05:00",
+  "control": "reply",
+  "dir": "public/framework/ai/sessions/2026/09/24/cards/chat-demo",
+  "task_id": "",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 67,
+  "card": "2026/09/24/new-card/session-lifetime-and-message-relay-to-ma",
+  "ask": "card",
+  "kind": "question",
+  "title": "Session lifetime and message relay to master assistant",
+  "question": "Session lifetime and message relay to master assistant",
+  "at": "2026-09-24T21:33:18-05:00",
+  "control": "reply",
+  "dir": "public/framework/ai/sessions/2026/09/24/cards/new-card/session-lifetime-and-message-relay-to-ma",
+  "task_id": "",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 68,
+  "card": "2026/09/24/prompt-mechanics-2/chat-as-right-hand-column",
+  "ask": "card",
+  "kind": "question",
+  "title": "Chat as right-hand column",
+  "question": "Chat as right-hand column",
+  "at": "2026-09-24T21:31:51-05:00",
+  "control": "reply",
+  "dir": "public/framework/ai/sessions/2026/09/24/cards/prompt-mechanics-2/chat-as-right-hand-column",
+  "task_id": "",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 69,
+  "card": "2026/09/24/cards-content/two-no-image-screenshot-links",
+  "ask": "card",
+  "kind": "question",
+  "title": "Two no-image screenshot links",
+  "question": "Two no-image screenshot links",
+  "at": "2026-09-24T21:02:50-05:00",
+  "control": "reply",
+  "dir": "public/framework/ai/sessions/2026/09/24/cards/cards-content/two-no-image-screenshot-links",
+  "task_id": "",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 70,
+  "card": "2026/09/24/cards-content/why-is-this-card-full-width",
+  "ask": "card",
+  "kind": "question",
+  "title": "Why is this card full width",
+  "question": "Why is this card full width",
+  "at": "2026-09-24T21:01:02-05:00",
+  "control": "reply",
+  "dir": "public/framework/ai/sessions/2026/09/24/cards/cards-content/why-is-this-card-full-width",
+  "task_id": "",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 71,
+  "card": "2026/09/28/in-flight-tonight-5-tasks-stalled-2-rest",
+  "ask": "d-resume-stalled",
+  "kind": "decision",
+  "title": "In flight tonight: 5 tasks stalled, 2 restarted",
+  "question": "Resume the 5 held tasks?",
+  "options": [
+   {
+    "say": "Fix the queue bug first, then resume them one or two at a time",
+    "caveat": "Slower, but nothing gets lost again. About $5 for the fix."
+   },
+   {
+    "say": "Resume all 5 now",
+    "caveat": "Fastest, but it may pile up in the memory queue again."
+   },
+   {
+    "say": "Leave them until I look",
+    "caveat": "Nothing spends; the work so far stays in their worktrees."
+   }
+  ],
+  "control": "decision",
+  "dir": "public/framework/ai/sessions/2026/09/28/cards/in-flight-tonight-5-tasks-stalled-2-rest",
+  "task_id": "d-resume-stalled",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 72,
+  "card": "2026/09/25/now",
+  "ask": "d-now-first",
+  "kind": "decision",
+  "title": "Now",
+  "question": "What should the Now card show at the top?",
+  "options": [
+   {
+    "say": "The latest answer to you",
+    "caveat": "What you asked last is always first, and older answers move down."
+   },
+   {
+    "say": "Usage and what's running",
+    "caveat": "A steady status board, with answers below it."
+   }
+  ],
+  "control": "decision",
+  "dir": "public/framework/ai/sessions/2026/09/25/cards/now",
+  "task_id": "d-now-first",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 73,
+  "card": "2026/09/25/now",
+  "ask": "d-next-build",
+  "kind": "decision",
+  "title": "Now",
+  "question": "Both results are in: the open-tasks sweep and the page review design. What should run next?",
+  "options": [
+   {
+    "say": "Review loop, steps 1 and 2 (about $4.50)",
+    "caveat": "You can drag a section and have it stay, and see an agent's addition in green and accept it. That's the whole loop, on one page."
+   },
+   {
+    "say": "The sweep's cheap three first (under $1)",
+    "caveat": "Close 4 finished tasks and hide every popup window. Bookkeeping, nothing new."
+   },
+   {
+    "say": "Both",
+    "caveat": "Still well under the weekly pace."
+   },
+   {
+    "say": "Nothing yet",
+    "caveat": "I'll read the two cards first."
+   }
+  ],
+  "control": "decision",
+  "dir": "public/framework/ai/sessions/2026/09/25/cards/now",
+  "task_id": "d-next-build",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 74,
+  "card": "2026/09/25/who-is-who-every-agent-role",
+  "ask": "d-ops-mastermind",
+  "kind": "decision",
+  "title": "Who is who: every agent role",
+  "question": "Who should own operations (quick fixes, impasses, merge order)?",
+  "options": [
+   {
+    "say": "A new operations mastermind in Servex (Sonnet)",
+    "caveat": "Always on, and it doesn't need this tab. One more standing agent to pay for."
+   },
+   {
+    "say": "The Servex mastermind takes it on",
+    "caveat": "No new role, but the architect gets pulled into routine work."
+   },
+   {
+    "say": "Keep it in the VS Code tab",
+    "caveat": "Nothing new to build, but it stops when the tab closes."
+   }
+  ],
+  "control": "decision",
+  "dir": "public/framework/ai/sessions/2026/09/25/cards/who-is-who-every-agent-role",
+  "task_id": "d-ops-mastermind",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 75,
+  "card": "2026/09/25/new-card-5",
+  "ask": "d-split-cards-content",
+  "kind": "decision",
+  "title": "New card",
+  "question": "Split the \"Cards & content\" group in two?",
+  "options": [
+   {
+    "say": "Split: Cards, and Content",
+    "caveat": "Each group is smaller and clearer, but there's one more row in the rail."
+   },
+   {
+    "say": "Keep one group",
+    "caveat": "Fewer rows, but card work and content modules stay mixed."
+   }
+  ],
+  "control": "decision",
+  "dir": "public/framework/ai/sessions/2026/09/25/cards/new-card-5",
+  "task_id": "d-split-cards-content",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 76,
+  "card": "2026/09/25/new-card-5",
+  "ask": "q-more-fold-label",
+  "kind": "question",
+  "title": "New card",
+  "question": "What should the fold at the bottom of a card say?",
+  "hint": "Type your own words. Answering again replaces the old answer.",
+  "control": "reply",
+  "dir": "public/framework/ai/sessions/2026/09/25/cards/new-card-5",
+  "task_id": "",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 77,
+  "kind": "task",
+  "id": "2026~10~20~session-e00f55c9~prompt-refinement-should-work-in-a-vs-co",
+  "title": "Prompt refinement should work in a VS Code tab as they dictate, and retroactively too.",
+  "ask": "Prompt refinement should work in a VS Code tab as they dictate, and retroactively too.",
+  "at": null,
+  "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/",
+  "home": "session",
+  "dir": "public/framework/ai/sessions/2026/10/20/session-e00f55c9",
+  "task_id": "prompt-refinement-should-work-in-a-vs-co",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 78,
+  "kind": "task",
+  "id": "2026~10~20~session-e00f55c9~loosen-the-wording-that-caps-main-asks-a",
+  "title": "Loosen the wording that caps main asks at 1 to 3; condensing loses the essence of the prompt. Unsure whether a Servex restart is needed.",
+  "ask": "Loosen the wording that caps main asks at 1 to 3; condensing loses the essence of the prompt. Unsure whether a Servex restart is needed.",
+  "at": null,
+  "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/",
+  "home": "session",
+  "dir": "public/framework/ai/sessions/2026/10/20/session-e00f55c9",
+  "task_id": "loosen-the-wording-that-caps-main-asks-a",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 79,
+  "kind": "task",
+  "id": "2026~10~20~session-e00f55c9~refinement-must-cover-every-sentence-of",
+  "title": "Refinement must cover every sentence of each raw prompt, with every item tagged to at least one task, question, or note.",
+  "ask": "Refinement must cover every sentence of each raw prompt, with every item tagged to at least one task, question, or note.",
+  "at": null,
+  "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/",
+  "home": "session",
+  "dir": "public/framework/ai/sessions/2026/10/20/session-e00f55c9",
+  "task_id": "refinement-must-cover-every-sentence-of",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 80,
+  "kind": "task",
+  "id": "2026~10~20~session-e00f55c9~add-a-chat-view-per-session-showing-refi",
+  "title": "Add a chat view per session showing refined prompts as bubbles; click through each to its produced tasks, questions, and notes.",
+  "ask": "Add a chat view per session showing refined prompts as bubbles; click through each to its produced tasks, questions, and notes.",
+  "at": null,
+  "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/",
+  "home": "session",
+  "dir": "public/framework/ai/sessions/2026/10/20/session-e00f55c9",
+  "task_id": "add-a-chat-view-per-session-showing-refi",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 81,
+  "kind": "task",
+  "id": "2026~10~20~session-e00f55c9~look-into-it",
+  "title": "Look into it.",
+  "ask": "Look into it.",
+  "at": null,
+  "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/",
+  "home": "session",
+  "dir": "public/framework/ai/sessions/2026/10/20/session-e00f55c9",
+  "task_id": "look-into-it",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 82,
+  "kind": "task",
+  "id": "2026~10~20~session-e00f55c9~use-the-same-subscription-system-everywh",
+  "title": "Use the same subscription system everywhere; unsure how the builder subscribes to test failures.",
+  "ask": "Use the same subscription system everywhere; unsure how the builder subscribes to test failures.",
+  "at": null,
+  "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/",
+  "home": "session",
+  "dir": "public/framework/ai/sessions/2026/10/20/session-e00f55c9",
+  "task_id": "use-the-same-subscription-system-everywh",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 83,
+  "kind": "task",
+  "id": "2026~10~20~session-e00f55c9~write-down-that-the-tail-terms-should-st",
+  "title": "Write down that the tail terms should stay flexible, with one adapter interface that can be swapped out for anything.",
+  "ask": "Write down that the tail terms should stay flexible, with one adapter interface that can be swapped out for anything.",
+  "at": null,
+  "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/",
+  "home": "session",
+  "dir": "public/framework/ai/sessions/2026/10/20/session-e00f55c9",
+  "task_id": "write-down-that-the-tail-terms-should-st",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 84,
+  "kind": "task",
+  "id": "2026~10~20~session-e00f55c9~work-out-the-right-data-structure-for-ta",
+  "title": "Work out the right data structure for tasks attached to prompts; nesting tasks in prompts may be the wrong way, and the owner does not know the right setup.",
+  "ask": "Work out the right data structure for tasks attached to prompts; nesting tasks in prompts may be the wrong way, and the owner does not know the right setup.",
+  "at": null,
+  "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/",
+  "home": "session",
+  "dir": "public/framework/ai/sessions/2026/10/20/session-e00f55c9",
+  "task_id": "work-out-the-right-data-structure-for-ta",
+  "lines": [],
+  "commits": []
+ },
+ {
+  "n": 85,
+  "kind": "task",
+  "id": "2026~10~20~session-e00f55c9~get-this-session-to-100-completion-that",
+  "title": "Get this session to 100% completion; that is goal number one.",
+  "ask": "Get this session to 100% completion; that is goal number one.",
+  "at": null,
+  "url": "/framework/ai/sessions/2026/10/20/session-e00f55c9/",
+  "home": "session",
+  "dir": "public/framework/ai/sessions/2026/10/20/session-e00f55c9",
+  "task_id": "get-this-session-to-100-completion-that",
+  "lines": [],
+  "commits": []
+ }
+]
