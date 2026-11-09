@@ -1607,11 +1607,16 @@ async function run_item_now({ path: url, target, delta, read, get, set, call, ar
 	// surface (surface_of) and its lists — the same data `instructions.methods` gives, never a hardcoded list.
 	if (used_verb === "set" && Class){
 		const node = at.target.length ? node_at(live_or_refuse(), at.target) : live_or_refuse();
-		const methods = new Set(surface_of(node?.constructor ?? Class).map(m => m.name));
-		const lists = node && typeof node.lists === "function" ? node.lists() : {};
-		for (const key of Object.keys(expand_dots(delta))){
-			if (lists[key]) return { ok: false, why: `"${key}" is a list; use call: "${key}.add" (or another of its verbs) to change it, or get: "${key}" to read it. Nothing was written.` };
-			if (methods.has(key)) return { ok: false, why: `"${key}" is a method; use call: "${key}". Nothing was written.` };
+		// A dotted key ("tasks.x.priority") is checked at its LAST step, on the node its prefix reaches; a prefix that
+		// does not resolve is left to today's write path, which refuses or creates exactly as the same delta would.
+		for (const key of Object.keys(delta)){
+			const parts = hops(key), last = parts.pop();
+			const at_node = parts.length ? walk(node, parts) : node;
+			if (parts.length && at_node === undefined) continue;
+			const methods = new Set(surface_of(at_node?.constructor ?? Class).map(m => m.name));
+			const lists = at_node && typeof at_node.lists === "function" ? at_node.lists() : {};
+			if (lists[last]) return { ok: false, why: `"${key}" is a list; use call: "${key}.add" (or another of its verbs) to change it, set a field inside it with a dotted key ("${key}.<id>.<field>"), or get: "${key}" to read it. Nothing was written.` };
+			if (methods.has(last)) return { ok: false, why: `"${key}" is a method; use call: "${key}". Nothing was written.` };
 		}
 	}
 	if (used_verb === "call" && Class){

@@ -44,7 +44,12 @@ try {
 	let started = await run_item({ path: URL, call: "start" }, { caller: "t" });
 	ok(started.ok && started.line?.start !== undefined && JSON.stringify(started.line.start) === "{}", "call: \"start\" with no args writes {start:{}}");
 
+	// 5. set with a dotted key reaches inside a list: checked at its last step, so a field of a task is allowed.
+	const dotted = await run_item({ path: URL, set: { [`tasks.${kid}.priority`]: 2 } }, { caller: "t" });
+	ok(dotted.ok && JSON.stringify(dotted.line?.tasks?.[kid]) === JSON.stringify({ priority: 2 }), "set: {\"tasks.<id>.priority\": 2} writes {tasks:{<id>:{priority:2}}}");
+
 	// ---- refusals ----
+	const before = fs.readFileSync(FILE, "utf8");
 	r = await run_item({ path: URL, get: "tasks", set: { title: "x" } }, { caller: "t" });
 	ok(r.ok === false && /only one of/.test(r.why) && /get/.test(r.why) && /set/.test(r.why), "more than one verb in one call is refused");
 
@@ -64,7 +69,6 @@ try {
 	ok(r.ok === false && /"completion" only reads; use get/.test(r.why), "call on a query is refused, pointed at get");
 
 	// None of the refusals above wrote anything.
-	const before = fs.readFileSync(FILE, "utf8");
 	ok(before === fs.readFileSync(FILE, "utf8"), "the refusals wrote nothing (file unchanged across all of them)");
 
 	console.log(`item-verbs: ${n} checks passed`);
