@@ -210,7 +210,7 @@ export default class Session extends Task {
 		for (const p of prompts){
 			const own = p.sentences, all = own.length ? own : Prompt.split(p.get_one("text") ?? "").map((text, i) => ({ id: "a" + (i + 1), text }));   // a hook-made Prompt has only its text: the shared splitter
 			if (!all.length) continue;
-			const cited = new Set(), parts = ps => (ps ?? []).forEach(q => { (q.cites ?? []).forEach(n => cited.add(String(n))); parts(q.parts); });
+			const cited = new Set(), parts = ps => (ps ?? []).forEach(q => { (q.cites ?? []).forEach(n => cited.add(typeof n === "number" ? all[n]?.id : String(n))); parts(q.parts); });   // PromptRecords cites a 0-based index (parts_one numbers the sentences from 0); refine_turn cites ids
 			parts(p.parts);
 			const below = list => { for (const t of list ?? []){ String(t.get_one?.("cites") ?? "").split(/\s+/).filter(Boolean).forEach(n => cited.add(n)); below(t._tasks); } };
 			below(p._tasks);
