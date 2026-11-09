@@ -1,0 +1,12 @@
+{
+ "note": "The mastermind's own verdicts on items 1-5, written before reading the Sonnet worker's results.json, to calibrate it (past-work-audit-design.md, Calibration).",
+ "by": "mastermind-session-truth (Opus)",
+ "verdicts": [
+  {"n": 1, "verdict": "still waiting", "question": "Build the one-refiner plan (one way to turn your sentences into tasks)?", "why": "plan on /live/plan/one-refiner/, no answer line anywhere"},
+  {"n": 2, "verdict": "duplicate", "of": 1, "why": "voice-app's place-sentences holds the same wait as session-truth t21 (it handed the study down, then mirrored the wait)"},
+  {"n": 3, "verdict": "still waiting", "question": "Build the mentions plan (an @Page in a prompt tags that page)?", "why": "plan on /live/plan/mentions/; same wait also on session-truth t19-mentions-yes (outside the newest 20)"},
+  {"n": 4, "verdict": "still waiting", "question": "Build the item-tool plan (one tool with get, set and call instead of 97)?", "why": "plan on /live/plan/item-tool/, commit 0a54c7c4b, no answer"},
+  {"n": 5, "verdict": "duplicate", "of": 4, "why": "page-design's own copy of voice-app's item-three-verbs wait"}
+ ],
+ "system_finding": "Every plan handed down is waiting twice: once on the agent that wrote it and once on the agent that handed it down (items 1/2, 3 and t19, 4/5). The design says a task handed down is the same task, not a new one; list_waiting should show it once."
+}

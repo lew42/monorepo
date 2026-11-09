@@ -1,0 +1,222 @@
+[
+ {
+  "n": 1,
+  "id": "2026~11~06~spawned~mastermind-session-truth~t21-one-refiner-yes",
+  "asked": "Keep ONE of the 8 prompt-refinement mechanisms; the owner's yes or changes on /live/plan/one-refiner/ (agent's words)",
+  "asked_link": "public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/session.jsonl:1240",
+  "built": "Plan page /live/plan/one-refiner/ (commit 01a465184); no build",
+  "still_true": "public/live/plan/one-refiner exists and no later line carries an owner yes or changes",
+  "verdict": "still waiting",
+  "question": "Do you say yes to keeping one prompt refiner, built on Sonnet in ext/Refine, or do you want changes?",
+  "confidence": "high"
+ },
+ {
+  "n": 2,
+  "id": "2026~11~06~cloud-voice-app-20261106~place-sentences",
+  "asked": "Place every sentence into a task; keep one refiner (same ask as item 1, filed on the voice-app record)",
+  "asked_link": "public/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/session.jsonl:731",
+  "built": "Same plan as item 1 (01a465184)",
+  "still_true": "Same wait as item 1; no owner answer found",
+  "verdict": "duplicate",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 3,
+  "id": "2026~11~06~cloud-voice-app-20261106~mentions-index",
+  "asked": "Mentions index: @Page in a prompt tags it, each module lists the prompts that mention it (task title from the voice app; plan waits for a yes)",
+  "asked_link": "public/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/session.jsonl:714",
+  "built": "Plan page /live/plan/mentions/ (5c75c4798, 345b60c0a); no build, three steps about $9",
+  "still_true": "public/live/plan/mentions exists; no owner answer found after 11-08",
+  "verdict": "still waiting",
+  "question": "Do you say yes to the mentions plan (three steps, about 9 dollars) or want changes?",
+  "confidence": "high"
+ },
+ {
+  "n": 4,
+  "id": "2026~11~06~cloud-voice-app-20261106~item-three-verbs",
+  "asked": "Item tool as get/set/call; shrink page_tools.js; cut the tools (voice-app filed it; plan waits for a yes)",
+  "asked_link": "public/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/session.jsonl:607",
+  "built": "Plan page /live/plan/item-tool/ (0a54c7c4b); no build",
+  "still_true": "public/live/plan/item-tool exists; no later owner answer; it renames a core tool API so it is ask-before",
+  "verdict": "still waiting",
+  "question": "Do you say yes to the one item tool with three verbs (get, set, call), built in eight merges, or want changes?",
+  "confidence": "high"
+ },
+ {
+  "n": 5,
+  "id": "2026~11~06~spawned~mastermind-page-design~item-three-verbs",
+  "asked": "Item tool plan, same ask as item 4, on the page-design agent's own record",
+  "asked_link": "public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/session.jsonl:341",
+  "built": "Same plan as item 4 (0a54c7c4b)",
+  "still_true": "Same wait as item 4",
+  "verdict": "duplicate",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 6,
+  "id": "2026~11~06~spawned~mastermind-live-page~live-plan",
+  "asked": "Fold LivePage into Page; plan on /live/plan/fold/; first decision is whether Item's file_url/load move to the store (agent's words)",
+  "asked_link": "public/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/session.jsonl:238",
+  "built": "Plan page /live/plan/fold/; LivePage.js still in public/live/ and still referenced by core/Page/Jsonl.js and Page.class.js",
+  "still_true": "public/live/LivePage.js exists unchanged; the agent's 11-08 check-in says no answer yet",
+  "verdict": "still waiting",
+  "question": "Do you say yes to folding LivePage into Page, starting with moving Item's file_url and load to the store?",
+  "confidence": "high"
+ },
+ {
+  "n": 7,
+  "id": "2026~10~20~session-e00f55c9~sessions-and-tasks~process-system~run-1~merge",
+  "asked": "Merge: the owner merges the reviewed branch for the readme-page process run 1 (agent's words, 2026-10-22)",
+  "asked_link": "public/framework/ai/sessions/2026/10/22 (task log line 39 in the readmes-page folder)",
+  "built": "Readme-page work landed in core/Page (d93d988d38, c8e8558f9c, e5b6e2d2a5)",
+  "still_true": "Seventeen days old; the readme page change is in history, a ProcessRunner placeholder wait",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 8,
+  "id": "2026~10~20~session-e00f55c9~sessions-and-tasks~process-system~run-1~readmes-page~merge",
+  "asked": "Same Merge wait as item 7, in the readmes-page task folder",
+  "asked_link": "readmes-page/task.jsonl:39",
+  "built": "Same as item 7",
+  "still_true": "Same wait as item 7",
+  "verdict": "duplicate",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 9,
+  "id": "2026~10~20~session-e00f55c9~sessions-and-tasks~dictation-debug~okay",
+  "asked": "Okay on the chat proposal (class Session sketch, four process steps), planning mode set 2026-10-25 (agent's words)",
+  "asked_link": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/proposal.md",
+  "built": "Debug tab and dictation steps 3 and 4 landed (12c2769e43); Session classes since built (core/Session); dictation-debug later had a wake dropped as past its decide-by",
+  "still_true": "Proposal is 15 days old, its hold was lifted for safe fixes the same day (d9bb08bc93), and the shape it proposes has been overtaken",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 10,
+  "id": "2026~10~20~session-e00f55c9~sessions-and-tasks~dictation-debug~okay",
+  "asked": "Same okay task as item 9 (same id, in dictation-debug)",
+  "asked_link": "dictation-debug/session.jsonl:1",
+  "built": "Same as item 9",
+  "still_true": "Same wait as item 9",
+  "verdict": "duplicate",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 11,
+  "id": "2026~10~20~session-e00f55c9~sessions-and-tasks~dictation-debug~okay",
+  "asked": "Same okay task as item 9 (same id and text variant)",
+  "asked_link": "dictation-debug/session.jsonl:1",
+  "built": "Same as item 9",
+  "still_true": "Same wait as item 9",
+  "verdict": "duplicate",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 12,
+  "id": "2026~10~20~session-e00f55c9~sessions-and-tasks~dictation-debug~chat-tasks-get-done~okay",
+  "asked": "Okay on proposal.md, subtask chat-tasks-get-done (same proposal as item 9)",
+  "asked_link": "dictation-debug/chat-tasks-get-done/task.jsonl:9",
+  "built": "Same as item 9",
+  "still_true": "Child step of the item 9 proposal",
+  "verdict": "duplicate",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 13,
+  "id": "2026~10~20~session-e00f55c9~sessions-and-tasks~dictation-debug~chat-polish~okay",
+  "asked": "Okay on proposal.md, subtask chat-polish (same proposal as item 9)",
+  "asked_link": "dictation-debug/chat-polish/task.jsonl:7",
+  "built": "Same as item 9",
+  "still_true": "Child step of the item 9 proposal",
+  "verdict": "duplicate",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 14,
+  "id": "2026~10~20~session-e00f55c9~sessions-and-tasks~dictation-debug~chat-one-session-one-view~okay",
+  "asked": "Okay on proposal.md, subtask chat-one-session-one-view (same proposal as item 9)",
+  "asked_link": "dictation-debug/chat-one-session-one-view/task.jsonl:9",
+  "built": "Same as item 9",
+  "still_true": "Child step of the item 9 proposal",
+  "verdict": "duplicate",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 15,
+  "id": "2026~10~20~session-e00f55c9~chat-model~f7-add-default",
+  "asked": "Should List.add() of an item another list owns make a Ref instead of moving it? (agent's words)",
+  "asked_link": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/session.jsonl:51",
+  "built": "list.ref() exists (core/List/List.js:324); add() still moves",
+  "still_true": "List.js shows add() unchanged; night morning.md of 11-02 lists it as an open owner call",
+  "verdict": "still waiting",
+  "question": "Should adding an item that another list already owns link to it as a Ref instead of moving it? The census says it is safe.",
+  "confidence": "high"
+ },
+ {
+  "n": 16,
+  "id": "2026~11~06~spawned~mastermind-live-page",
+  "asked": "Root task of the live-page mastermind, whose real wait is item 6",
+  "asked_link": "public/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/session.jsonl:372",
+  "built": "Plan page /live/plan/fold/",
+  "still_true": "The agent's own check-in says the wait is the needs-you note that is item 6",
+  "verdict": "duplicate",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 17,
+  "id": "2026~11~06~spawned~mastermind-resources",
+  "asked": "Root session of the resource-management mastermind; the agent is not itself asking anything (agent's words)",
+  "asked_link": "public/framework/ai/sessions/2026/11/06/spawned/mastermind-resources/session.jsonl:745",
+  "built": "Subtask of this session (item 18) holds the only real wait",
+  "still_true": "Last lines are process pid logs, not a question; the session's one question is item 18",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 18,
+  "id": "2026~11~06~spawned~mastermind-resources~servex-turn-on-windows-crash-dumps-for-n",
+  "asked": "Turn on Windows crash dumps for node.exe (needs admin, about 2 minutes) (agent's words)",
+  "asked_link": "public/framework/ai/sessions/2026/11/06/spawned/mastermind-resources/servex-turn-on-windows-crash-dumps-for-n/task.jsonl:1",
+  "built": "Nothing; note and task filed (2b1c4c85a)",
+  "still_true": "Registry LocalDumps has keys for NVIDIA apps but none for node.exe",
+  "verdict": "still waiting",
+  "question": "Can you run the crash-dump command as admin once (about 2 minutes) so node crashes leave a dump?",
+  "confidence": "high"
+ },
+ {
+  "n": 19,
+  "id": "2026~11~06~spawned~mastermind-session-truth",
+  "asked": "Root session of the session-truth mastermind; it is the agent running, and its own waits are items 1 to 3",
+  "asked_link": "public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/session.jsonl:1302",
+  "built": "This audit task (t22) is the live work",
+  "still_true": "The session is working, not waiting; its real waits are listed separately",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 20,
+  "id": "2026~11~06~spawned~mastermind-page-design",
+  "asked": "Root task of the page-design mastermind, whose real wait is item 4 (item tool plan)",
+  "asked_link": "public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/session.jsonl:704",
+  "built": "Plan page /live/plan/item-tool/",
+  "still_true": "Same wait as item 4",
+  "verdict": "duplicate",
+  "question": "",
+  "confidence": "medium"
+ }
+]
