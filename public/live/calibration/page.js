@@ -42,9 +42,9 @@ export default new Page({
 
 function draw(rows){
 	p(() => {
-		span("A model test from 11-07: four of your prompts from the ");
+		span("Four of your prompts from the ");
 		a("cloud chat's session record").attr("href", SESSION);
-		span(" were each refined by Sonnet and by Haiku, then checked against the tasks already on that record. Sonnet did it better, at about $0.03 a prompt against Haiku's $0.10. Full write-up: ");
+		span(", refined by Sonnet and by Haiku. Sonnet won. ");
 		a("results.md").attr("href", RUN + "results.md");
 		span(".");
 	});
