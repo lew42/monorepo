@@ -13,3 +13,4 @@
 {"read_upto":12,"at":"2026-11-02T15:55:08-06:00","by":"servex-task-loop"}
 {"at":"2026-11-02T15:55:56-06:00","from":"minion-minion-marked-tests","kind":"done","text":"Task now shows `\"state\":\"complete\"` in `session.jsonl`. It's properly landed."}
 {"inbox_card":{"upto":15,"lines":1,"at":"2026-11-02T16:00:08-06:00"}}
+{"read_upto":15,"at":"2026-11-09T15:59:55-06:00","by":"servex-task-loop","note":"1 line(s) older than 7 days marked read, not delivered"}
