@@ -219,3 +219,9 @@
 {"content":{"add":{"type":"part-link","id":"link-audit","path":"./audit/","title":"Audit: what's waiting on you"}},"by":"pages.add","ts":"2026-11-09T06:02:53.409Z"}
 {"file":"done/page.jsonl"}
 {"content":{"add":{"id":"link-done","after":null,"path":"./done/","title":"What got done, Nov 6 to 9: one link each","type":"part-link"}},"by":"voice-app","ts":"2026-11-09T23:26:25.049Z"}
+{"file":"fs-audit/page.jsonl"}
+{"content":{"add":{"type":"part-link","id":"link-fs-audit","path":"./fs-audit/","title":"File-system audit"}},"by":"pages.add","ts":"2026-11-09T23:43:13.015Z"}
+{"content":{"add":{"id":"link-voice-session","after":null,"path":"/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/","text":"Every task, live: 24 of 33 done","title":"This voice chat's session","type":"part-link"}},"by":"voice-app","ts":"2026-11-09T23:43:26.971Z"}
+{"tab":{"name":"done","tab":true},"by":"mastermind-live-page","ts":"2026-11-09T23:45:38.944Z"}
+{"tab":{"name":"next","tab":true},"by":"mastermind-live-page","ts":"2026-11-09T23:45:39.311Z"}
+{"tab":{"name":"plan","tab":true},"by":"mastermind-live-page","ts":"2026-11-09T23:45:39.762Z"}
