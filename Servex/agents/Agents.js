@@ -28,6 +28,7 @@ import { turn_costs } from "./turn-costs.js";
 import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
 import { server as sdk_server } from "./tools.js";   // cycle with tools.js is fine: used only at call time
+import { strip_marks } from "./mark-strip.js";
 const MAIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");   // Servex runs from the main tree
 import { page_tools, move_item, task_origin } from "./page_tools.js";
 import { handoff_note } from "./handoff-note.js";
@@ -1052,6 +1053,22 @@ export class Agents {
 		}
 		const text = kind === "error" ? child.last_error : fork ? (child.words ?? child.last_text) : child.last_text;
 		const body =(fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 4000)}`);
+		/* STEP 4 (one place per conversation, 2026-11-09) — an external parent (a cloud voice call) that
+		 * already heard this child say "done, nothing changed" does not need to hear it again: hundreds of
+		 * identical "Idle and blocked, no change since …" lines were the single biggest source of inbox noise
+		 * (catch-up.md, measured 2026-11-09). Compared AFTER stripping timestamps and ids, so only a REALLY
+		 * identical report is skipped — any new word in it still goes through. The skip is counted on the
+		 * host (`this._dup_done_skips`), never logged per occurrence: a count, not a line. */
+		if (kind === "done" && !fork && this.external?.has?.(child.parent)){
+			const stripped = strip_marks(body);
+			const seen = (this._done_seen ??= new Map());
+			if (seen.get(child.parent + ":" + child.id) === stripped){
+				this._dup_done_skips = (this._dup_done_skips ?? 0) + 1;
+				child.woke = true;
+				return;
+			}
+			seen.set(child.parent + ":" + child.id, stripped);
+		}
 		child.woke = true;
 		/* THE NEXT STEP, in node (2026-10-13): a landed task tells its parent which queued sibling it unblocks, with the brief's path. */
 		const next = kind === "done" && child.task?.dir && task_landed(child.task.dir) ? next_briefs(child.task.dir) : [];
