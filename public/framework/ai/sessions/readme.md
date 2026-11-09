@@ -43,6 +43,8 @@ A session folder is one of three kinds:
 
 - **How true the record is:** [/live/truth/](/live/truth/) counts it daily by code (sessions with tasks, complete, unproven, twins); [its readme](/live/truth/readme.md).
 
+**The twins fold's originals (2026-11-06 run):** the pre-fold copies of the 1,410 folded sessions' second folders sit outside the repo in `%LOCALAPPDATA%/lew42/servex/moved-aside/2026-11-07T01-59-52-828Z/public/...` (mostly `cache.jsonl`), kept so the fold can be checked or undone; the plan and every step are in [fold-manifest.json](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/one-folder/fold-manifest.json). Check the accounting with `node Server/FoldAccounting.mjs` (also the "Twins fold" table on [/live/truth/](/live/truth/)).
+
 ## How data gets in
 
 | What | Writer (called from) |

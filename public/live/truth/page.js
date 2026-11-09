@@ -1,4 +1,4 @@
-import { Page, View, div, h2, p, span, table, tr, th, td, ul, li } from "/app.js";
+import { Page, View, div, h2, p, span, table, tr, th, td, ul, li, a } from "/app.js";
 import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 
 View.stylesheet(import.meta, "truth.css");
@@ -53,6 +53,17 @@ export default new Page({
 					p(`Folders under the day folders: ${n(last.folders?.total)}. ${n(last.folders?.no_session_file)} hold no session file at all (${n(last.folders?.empty)} are empty). They are not sessions and are not in the table.`);
 				});
 			});
+			const f = last.fold;
+			if (f){
+				h2("Twins fold: nothing lost");
+				p(f.lost ? `${n(f.lost)} of ${n(f.sessions)} folded sessions lost cost or tasks in the merge.` : `All ${n(f.sessions)} folded sessions kept every cost and task of their moved-aside halves (${n(f.mismatched)} differ only because the cost was recomputed later or cannot be read).`);
+				table.c("truth-table", () => {
+					tr(() => { th("Folded sessions"); th("Matching"); th("Differ"); th("Lost"); th("Unreadable"); th("Cost before / after"); th("Tasks before / after"); });
+					tr(() => { td(n(f.sessions)); td(n(f.matching)); td(n(f.mismatched)); td(n(f.lost)); td(n(f.unreadable)); td(`${n(Math.round(f.cost_before))} / ${n(Math.round(f.cost_after))}`); td(`${n(f.tasks_before)} / ${n(f.tasks_after)}`); });
+				});
+				if (f.mismatches?.length) ul(() => { for (const x of f.mismatches) for (const d of x.diffs) li(() => { span(`${d.number} ${d.before} before, ${d.after} now (${d.cause ?? "tasks"}): `); a(x.session.slice(0, 8)).attr("href", "/" + x.home.replace(/^public\//, "") + "/"); span(` · moved-aside half: ${d.half}`); }); });
+				p("Before = the larger of the moved-aside halves; after = the merged record. Command: node Server/FoldAccounting.mjs.");
+			}
 			h2("Trend: sessions with any task");
 			const top = Math.max(...runs.map(r => r.all.with_tasks / Math.max(1, r.all.sessions)));
 			div.c("truth-trend", () => {
