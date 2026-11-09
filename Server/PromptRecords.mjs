@@ -228,7 +228,7 @@ Answer at the end with ONE JSON object and nothing else after it:
 		return r?.ok ? (r.ids?.[0] ?? null) : null;
 	}
 
-	/** One Haiku call, no tools: is this prompt more work on one of the open tasks? Its id, or null; a failure means no match. */
+	/** One call on the parts model (LIVE_MODEL in live), no tools: is this prompt more work on one of the open tasks? Its id, or null; a failure means no match. */
 	async attach_to(row, todo, open){
 		if (!open.length) return null;
 		try {
