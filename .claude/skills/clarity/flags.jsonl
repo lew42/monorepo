@@ -2390,3 +2390,12 @@
 {"at":"2026-11-09T08:17:21.743Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/audit-waiting/slice4/requirements.md","verdict":"queued","kind":"proposal"}
 {"at":"2026-11-09T08:18:23.020Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/audit-waiting/slice4/requirements.md","verdict":"spawned","to":"clarity-slice4"}
 {"at":"2026-11-09T08:18:41.000Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/audit-waiting/slice4/requirements.md","verdict":"clear","what":"text-check clean; short bullets, one output named, links present","to":"slice4/requirements.md"}
+{"at":"2026-11-09T23:17:59.329Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-plan/fold-1/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-09T23:18:18.281Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/list-add-ref/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-09T23:18:44.578Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/item-verbs/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-09T23:19:01.714Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-plan/fold-1/requirements.md","verdict":"spawned","to":"clarity-fold-1"}
+{"at":"2026-11-09T23:19:09.985Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-plan/fold-2/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-09T12:00:00.000Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-plan/fold-1/requirements.md","verdict":"rewrote","what":"Split the 80-word Why paragraph into two short ones; rest clear (table shows the change, text-check clean)","to":"requirements.md"}
+{"at":"2026-11-09T23:19:19.484Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/list-add-ref/requirements.md","verdict":"spawned","to":"clarity-list-add-ref"}
+{"at":"2026-11-09T12:00:00.000Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/list-add-ref","verdict":"clear","what":"text-check clean; proposal is agent-facing, states ask, fence, steps, report","to":"clarity-list-add-ref"}
+{"at":"2026-11-09T23:19:45.863Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/item-verbs/requirements.md","verdict":"spawned","to":"clarity-item-verbs"}
