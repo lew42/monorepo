@@ -24,3 +24,4 @@
 {"pid_exit":34192,"ended":"2026-11-09T01:01:20-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid_exit":3248,"ended":"2026-11-09T01:01:20-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"log":{"at":"2026-11-09T01:11:57-06:00","heartbeat":"deliberate","msg":"minion-audit-waiting-2 its agent is not running: it was stopped on purpose by mastermind-session-truth at 2026-11-09T01:01:11-06:00; not revived."}}
+{"stop":{"at":"2026-11-09T02:14:55-06:00","why":"dropped: owner minion-audit-waiting-2 is stopped"}}
