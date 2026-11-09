@@ -23,11 +23,11 @@ export default new Page({
 	description: "One item, two places: edit the title in List A and List B's Ref shows the change, no reload.",
 	icon: "link",
 	content(){
-		md("**One item, two places.** List A owns the item below; List B holds a [Ref](/framework/core/Item/doc/ref.md) to it — a pointer, never a copy. Press the button and watch BOTH cards change, because List B reads THROUGH the Ref to the same item, not a snapshot of it.");
+		md("**One item, two places.** List A owns the item below; List B holds a [Ref](/framework/core/Item/doc/ref.md) to it — a pointer, never a copy. Press the button and watch both cards change, because List B reads **through** the Ref to the same item, not a snapshot of it.");
 		let $titleA;
 		div.c("flex gap auto ref-demo-row", () => {
 			div.c("card pad flow ref-demo-card", () => {
-				h3("List A — owns the item");
+				h3("List A — owns it");
 				$titleA = p.c("ref-demo-title", shared.get_one("title"));
 				button.c("btn prim").text("Edit the title").attr("type", "button").click(() => {
 					shared.set({ title: TITLES[++i % TITLES.length] });
@@ -37,7 +37,7 @@ export default new Page({
 				h3("List B — holds a Ref");
 				new RefView({ ref });   // already resolved (above); redraws live on the Ref's own "target" event if the target ever changes again
 				const stored = ref.toJSON();
-				p.c("muted ref-demo-source").text("what List B actually stores:");
+				p.c("muted ref-demo-source").text(`Ref → list a / item ${shared.id}. What List B actually stores:`);
 				pre(() => code(JSON.stringify({ type: stored.type, ...stored.data }))).attr("style", "white-space: pre-wrap; word-break: break-word");
 			});
 		});
