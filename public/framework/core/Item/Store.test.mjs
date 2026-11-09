@@ -69,4 +69,20 @@ try {
 	t.eq(circ.applied.size, 2, "both lines are remembered for reset recovery");
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
 
+// 5. file loading (moved from Item.js into Store, 2026-11-09): url_of and root_from.
+{
+	const owner = { url: "/page-a/" };
+	t.eq(Store.url_of({ data: { file: "thing.jsonl" }, parent: owner }), "/page-a/thing.jsonl", "url_of: file only");
+	t.eq(Store.url_of({ data: { path: "sub" }, parent: owner }), "/page-a/sub/page.jsonl", "url_of: path only means <path>/page.jsonl");
+	t.eq(Store.url_of({ data: { path: "sub", file: "thing.jsonl" }, parent: owner }), "/page-a/sub/thing.jsonl", "url_of: both means <path>/<file>");
+
+	const withId = Store.root_from(Item, [{ id: "x", title: "T" }, { set: { title: "T2" } }], Item);
+	t.eq(withId.host.id, "x", "root_from: line 1 with an id becomes the host's own fields");
+	t.eq(withId.rest.length, 1, "root_from: the rest is only the lines after line 1");
+
+	const noId = Store.root_from(Item, [{ set: { title: "T2" } }], Item);
+	t.ok(noId.host instanceof Item && noId.host.get_one("title") === undefined, "root_from: a first line with no id starts an empty host (unreplayed)");
+	t.eq(noId.rest.length, 1, "root_from: every line replays when line 1 has no id");
+}
+
 t.done();

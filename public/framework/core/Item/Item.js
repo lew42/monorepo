@@ -532,26 +532,11 @@ export class Item extends Events(Object) {
 		return forward;
 	}
 
-	/* page.items: an item whose data carries `file` and/or `path` keeps its own lines in a file beside the page, instead of
-	   a line in the page's own file (core/Item/readme.md and core/Page/doc/jsonl.md, "page.items"). Resolved against the folder of the LIST THAT HOLDS ME
-	   (`this.parent`, a list member's owner — List.adopt — never `root()`, which climbs past my own page to the whole
-	   page tree's top): `file` alone → `<folder><file>`; `path` alone → `<folder><path>/page.jsonl`; both → `<folder><path>/<file>`.
-	   null when embedded (a line in the page's own file, as before). */
-	file_url(){
-		const { file, path } = this.data ?? {};
-		if (!file && !path) return null;
-		const owner = this.parent, folder = String(owner?.jsonl_url ?? owner?.url ?? owner?.get_one?.("url") ?? "").replace(/[^/]*$/, "");
-		return folder + (path ? `${path}/${file ?? "page.jsonl"}` : file);
-	}
+	// Where my own lines live, if not embedded: Store.url_of (core/Item/Store.js, "page.items").
+	file_url(){ return this.constructor.Store.url_of(this); }
 
-	/** The live object this item's own data is on: itself when embedded, else the shared root `Item.open(file_url())` opens —
-	    one object per url (Store.for), so two pages that list the SAME file share it (never two copies drifting apart). Its
-	    class: the file's own line 1 `type`/`class`, else the class of the page that lists it (`this.parent`'s own class).
-	    Always a Promise, embedded too, so a caller can `.then()` every member alike. */
-	load(){
-		const url = this.file_url();
-		return url ? Item.open(url, this.parent?.constructor) : Promise.resolve(this);
-	}
+	// The live object my own data is on, loaded if needed: Store.load.
+	load(){ return this.constructor.Store.load(this, Item); }
 
 	root(){ let item = this; while (item.parent) item = item.parent; return item; }
 
@@ -854,30 +839,11 @@ export class Item extends Events(Object) {
 		return rooting;
 	}
 
-	// The class a file's root is, from its own lines (Item.open on a url nothing else names): line 1's registered `type` or
-	// `class`; a session's record ({"session":…} line 1, or a spawn's {"assign":{session_id, agent}}) is a Session, any other
-	// {"assign"} record a Task; else `fallback` (page.items: the class of the page that lists it) or, with none, a plain Item.
-	static class_for(entries, fallback = Item){
-		const first = entries[0] ?? {}, a = entries.find(e => e?.assign)?.assign;
-		const named = Item.types.get(first.type ?? first.class);
-		if (named) return named;
-		if (first.session || (a && a.session_id && a.agent)) return Item.types.get("Session") ?? Item.types.get("Task") ?? Item;
-		if (a) return Item.types.get("Task") ?? Item;
-		return fallback ?? Item;
-	}
+	// The class a file's root is, from its own lines: Store.class_for.
+	static class_for(entries, fallback = Item){ return this.Store.class_for(Item, entries, fallback); }
 
-	// The root a file's lines open as, and the lines still to replay onto it. An Item is line 1 itself (its fields), the
-	// rest replayed; a class with its own replay_new (Task, Session) builds its root from all the lines and replays them all.
-	static root_from(entries){
-		if (this.replay_new !== Item.replay_new) return { host: this.replay_new(entries), rest: entries };
-		const first = entries[0];
-		// Line 1 is the item's own fields only when it carries the item's id (`{"id":"layer","x":24}`). A first line that is a change
-		// (`{"cards":{"add":…}}`, a Dated index row) has no id: the item starts empty and every line replays, as Item.replay does.
-		if (!(is_plain(first) && typeof first.id === "string")) return { host: new this(), rest: entries };
-		const host = new this(first);
-		for (const key of Object.keys(first)) if (key !== "id" && host.hook_for(key)) host.take(key, host.get_one(key));   // line 1's fields are a replayed line: their hooks run (the constructor cannot: the subclass is not built yet)
-		return { host, rest: entries.slice(1) };
-	}
+	// The root a file's lines open as, and the lines still to replay onto it: Store.root_from.
+	static root_from(entries){ return this.Store.root_from(this, entries, Item); }
 }
 
 const warn = (message, key = message) => {
