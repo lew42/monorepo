@@ -1,0 +1,4 @@
+[
+ {"n": 53, "verdict": "stale", "confidence": "high", "why": "The 10-01 ask was a Cloudflare tunnel login. Remote access now runs on a named tunnel set up with an API token (Server/TunnelNamed.mjs setup; Servex/ext/remote/doc/tunnel.md:20), and %LOCALAPPDATA%/lew42/servex/remote.tunnel.token exists. No login is needed; the ask is moot."},
+ {"n": 59, "verdict": "stale", "confidence": "high", "why": "It asked to drop stash@{0}, the full tree from the 2026-09-19 reset. The stash reflog now has 55 entries and the oldest is 2026-09-29, so the 09-19 entry is already gone. Nothing is left to decide."}
+]

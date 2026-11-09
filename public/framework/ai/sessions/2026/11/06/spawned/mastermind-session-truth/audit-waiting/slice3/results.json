@@ -1,0 +1,222 @@
+[
+ {
+  "n": 41,
+  "id": "d-mva4koeq3e",
+  "asked": "Budget pause: helper-loose-ends reached its $8.00 allowance ($8.59 spent) on the 2026-10-15 voice session (Servex's words)",
+  "asked_link": "public/framework/ai/sessions/2026/10/15/cards/voice-session-2026-10-15-16-42/page.jsonl:12",
+  "built": "Loose-ends scan work landed under sessions/2026/10/15/voice-20261015/loose-ends/ before the pause (commits around 2026-10-17)",
+  "still_true": "A pause from 2026-10-15 on a helper agent long since ended; the money is spent and the choice is moot. Budget caps are no longer stop-points (owner 2026-11-04: never stop an agent on spend)",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 42,
+  "id": "d-mv7bvgch67",
+  "asked": "Budget pause: task-mastermind-instance-tree reached its $2.00 allowance ($2.57 spent) building the live instance tree (Servex's words, 2026-10-13)",
+  "asked_link": "public/framework/ai/sessions/2026/10/13/cards/the-live-instance-tree-see-the-running-p/page.jsonl:3",
+  "built": "public/framework/ux/Content/Object/InstanceTree.js exists and is committed",
+  "still_true": "InstanceTree.js is in the tree today, so the work the pause was blocking got finished; the spend decision is moot",
+  "verdict": "done",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 43,
+  "id": "card",
+  "asked": "\"Repro question card\" — a placeholder/test card with no real question text, filed by mastermind-owner-inbox",
+  "asked_link": "public/framework/ai/sessions/2026/10/12/cards/repro-question-card/page.jsonl:1",
+  "built": "nothing; the card's only line is its own creation, no question body beyond the title",
+  "still_true": "The title and body are both just \"Repro question card\" — a test fixture, not a real ask",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 44,
+  "id": "d-muvm60rwlw",
+  "asked": "Budget safety gate: task-mastermind-openrouter-agent-trial made 3 unpriced OpenRouter calls and was paused as a cost-blind gate (Servex's words, 2026-10-05), posted to the 'Now' card",
+  "asked_link": "public/framework/ai/sessions/2026/10/03/cards/now/page.jsonl:257",
+  "built": "requirements.md/task.jsonl filed for openrouter-agent-trial; no further build found",
+  "still_true": "A pause from 2026-10-05 on a trial agent long since ended; the choice is moot. Budget caps are no longer stop-points (owner 2026-11-04)",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 45,
+  "id": "d-muusbpidrl",
+  "asked": "Budget pause: task-mastermind-dictate-one-engine reached its $2.00 allowance ($3.70 spent), posted to the 'Now' card (Servex's words, 2026-10-05)",
+  "asked_link": "public/framework/ai/sessions/2026/10/03/cards/now/page.jsonl:238",
+  "built": "Dictate.js changes before the pause; ux/Dictate has since been rebuilt multiple times (dictation-v3, item 25 of slice 2)",
+  "still_true": "A pause from 2026-10-05 on an agent long since ended, overtaken by later Dictate rebuilds; the choice is moot",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 46,
+  "id": "d-muuhxkhq5v",
+  "asked": "Budget pause: task-mastermind-vscode-session-cost reached its $3.00 allowance ($4.18 spent), posted to the 'Now' card (Servex's words, 2026-10-04)",
+  "asked_link": "public/framework/ai/sessions/2026/10/03/cards/now/page.jsonl:169",
+  "built": "Server/session-cost.mjs, Server/week-cost.mjs and sessions/doc/decisions.md commits landed before the pause",
+  "still_true": "A pause from 2026-10-04 on an agent long since ended; the session-cost work is already in the tree. The choice is moot",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 47,
+  "id": "d-muuhbqy5fz",
+  "asked": "Budget pause: task-mastermind-day-cards reached its $5.00 allowance ($12.50 spent), posted to the 'Now' card (Servex's words, 2026-10-04)",
+  "asked_link": "public/framework/ai/sessions/2026/10/03/cards/now/page.jsonl:163",
+  "built": "Several commits on worktree/day-cards (ext/AITask/day-prompts.js, dashboard.js) landed before the pause",
+  "still_true": "A pause from 2026-10-04 on an agent long since ended; the day-cards work is already in the tree. The choice is moot",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 48,
+  "id": "d-muu8p99008",
+  "asked": "Budget safety gate: task-mastermind-web-benchmarks made 3 unpriced OpenRouter calls and was paused as a cost-blind gate (Servex's words, 2026-10-04), posted to the 'Now' card",
+  "asked_link": "public/framework/ai/sessions/2026/10/03/cards/now/page.jsonl:145",
+  "built": "requirements.md filed for web-benchmarks; no further build found",
+  "still_true": "A pause from 2026-10-04 on a trial agent long since ended; the choice is moot",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 49,
+  "id": "d-muu3e48v5p",
+  "asked": "Budget pause: task-mastermind-land-two-branches reached its $3.00 allowance ($4.89 spent), posted to the 'Now' card (Servex's words, 2026-10-04)",
+  "asked_link": "public/framework/ai/sessions/2026/10/03/cards/now/page.jsonl:131",
+  "built": "Commits landing sessions-tab-polish and data-grid branches, plus a Server/smoke.mjs fix, before the pause",
+  "still_true": "A pause from 2026-10-04 on an agent long since ended; the branches it names are long since merged. The choice is moot",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 50,
+  "id": "d-mutfv97ai0",
+  "asked": "Budget pause: task-mastermind-local-brain reached its $2.00 allowance ($3.05 spent), posted to the 'Now' card (Servex's words, 2026-10-04)",
+  "asked_link": "public/framework/ai/sessions/2026/10/03/cards/now/page.jsonl:103",
+  "built": "nothing yet, per the pause note itself; no later build found for this task",
+  "still_true": "A pause from 2026-10-04 on an agent long since ended; the choice is moot. Budget caps are no longer stop-points (owner 2026-11-04)",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 51,
+  "id": "d-musrvrno0d",
+  "asked": "Budget pause: minion-voice-refine reached its $5.00 allowance ($6.79 spent) on the one-dictation task, posted to its card (Servex's words, 2026-10-03)",
+  "asked_link": "public/framework/ai/sessions/2026/09/30/cards/one-dictation-chat-everywhere/page.jsonl:44",
+  "built": "Commits refining the fast-assistant and answering review round 1, landed on worktree/voice-refine before the pause",
+  "still_true": "A pause from 2026-10-03 on an agent long since ended; the choice is moot. Budget caps are no longer stop-points (owner 2026-11-04)",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 52,
+  "id": "q-murvj0e1do",
+  "asked": "Who should review qf-6, which is held by a stopped mastermind-servex-9 with uncommitted changes and is blocking every minion spawn machine-wide? (agent's words, 2026-10-02)",
+  "asked_link": "public/framework/ai/sessions/2026/10/02/cards/model-weights-rung-0-primer-a-b-section/page.jsonl:3",
+  "built": "qf-6 no longer exists as a worktree; `git stash list` shows three entries labelled \"On worktree/qf-6\" (its noise/logs saved off, not applied)",
+  "still_true": "`git worktree list` today shows only qf-1 through qf-4, all clean and in use; qf-6 was resolved (salvaged or removed) and the pool is unstuck",
+  "verdict": "done",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 53,
+  "id": "card",
+  "asked": "Remote access setup (card title says Cloudflare tunnel login, originally filed as installing Tailscale), 2026-10-01",
+  "asked_link": "public/framework/ai/sessions/2026/10/01/cards/remote-access-install-tailscale-on-pc-an/page.jsonl:7",
+  "built": "Server/TunnelNamed.mjs reads CLOUDFLARE_API_TOKEN from the environment; the root readme documents working Cloudflare preview deploys via git push",
+  "still_true": "Remote access and Cloudflare deploys are both working today through a token-based flow built since this card; this specific five-week-old ask is overtaken",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 54,
+  "id": "last",
+  "asked": "\"Can you hear me?\" / \"Yes, I can hear you\" — a voice mic-check exchange, not a real ask (2026-09-30)",
+  "asked_link": "public/framework/ai/sessions/2026/09/30/cards/now-one-inbox-everywhere-and-refined-pro/page.jsonl:3",
+  "built": "nothing to build; it's a greeting",
+  "still_true": "A six-week-old mic-check reply with an open reply box is not a live question",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 55,
+  "id": "card",
+  "asked": "Commit the live-system code now? (ext/Chat/, ext/Classify/, app.js edits were uncommitted and at risk from a git clean) (agent's words, 2026-09-28)",
+  "asked_link": "public/framework/ai/sessions/2026/09/28/cards/commit-the-live-system-code-now/page.jsonl:2",
+  "built": "public/framework/ext/Chat/ and public/framework/ext/Classify/ both exist today and are fully committed (last touched by a routine merge)",
+  "still_true": "The code named in the question is on disk and in git history; the commit happened long ago, so the ask is answered",
+  "verdict": "done",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 56,
+  "id": "a-mulmu67czi",
+  "asked": "May I add a git-safety hook blocking stash/checkout --/reset --hard in the main tree? (agent's words, 2026-09-28)",
+  "asked_link": "public/framework/ai/sessions/2026/09/28/cards/add-a-git-safety-hook/page.jsonl:2",
+  "built": ".claude/hooks/git-guard.mjs is wired into .claude/settings.json today, and the minion role readme says it blocks these commands in the main tree",
+  "still_true": "The hook described in the question exists and runs today, so it was answered yes and built",
+  "verdict": "done",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 57,
+  "id": "a-mulmttmecz",
+  "asked": "May I add to CLAUDE.md: multi-file work goes to a Servex mastermind, small edits stay in the tab? (agent's words, 2026-09-28)",
+  "asked_link": "public/framework/ai/sessions/2026/09/28/cards/add-the-tab-rule-to-claude-md/page.jsonl:2",
+  "built": "No such rule exists in agents.md today; its law 'No hard fences between roles' says the opposite — a capable agent just does the job",
+  "still_true": "Six weeks old, and the rule it proposed was never adopted; the system's actual rule went a different direction",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 58,
+  "id": "a-mulmttovwx",
+  "asked": "Will you authorize the Gmail connector in your claude.ai connector settings? (agent's words, 2026-09-28)",
+  "asked_link": "public/framework/ai/sessions/2026/09/28/cards/authorize-the-gmail-connector/page.jsonl:2",
+  "built": "nothing; no Gmail code or config found in Server/ or Servex/",
+  "still_true": "This session's own tool list still shows 'claude.ai Gmail' as requiring authorization today, so the setup step is still undone",
+  "verdict": "still waiting",
+  "question": "Will you authorize the Gmail connector in your claude.ai connector settings? It still shows as unauthorized.",
+  "confidence": "high"
+ },
+ {
+  "n": 59,
+  "id": "a-mulmttlbni",
+  "asked": "Once the dead-file prune lands, may I drop git stash@{0} (the full working tree from the 2026-09-19 reset)? (agent's words, 2026-09-28)",
+  "asked_link": "public/framework/ai/sessions/2026/09/28/cards/drop-the-old-git-stash/page.jsonl:2",
+  "built": "nothing found confirming the drop happened; the stash stack now holds 55 entries, much newer work on top",
+  "still_true": "Six weeks and dozens of worktrees of work have passed; whatever that single old stash held is long since superseded, so dropping or keeping it no longer matters",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 60,
+  "id": "a-mulmttngfi",
+  "asked": "Will you run `npx wrangler login` (or give an API token), about 5 minutes, so a real Cloudflare D1 database and the Cloudflare MCP connector can be set up? (agent's words, 2026-09-28)",
+  "asked_link": "public/framework/ai/sessions/2026/09/28/cards/log-in-to-cloudflare/page.jsonl:2",
+  "built": "nothing; no D1 database or Cloudflare MCP connector reference anywhere in Server/ or Servex/, though Cloudflare preview deploys now work via CLOUDFLARE_API_TOKEN for a different purpose (tunnels, item 53)",
+  "still_true": "No D1 database or Cloudflare MCP connector exists today, so this specific setup was never done; six weeks old and low priority, but still technically open",
+  "verdict": "still waiting",
+  "question": "Do you still want a real Cloudflare D1 database and MCP connector set up (a 5-minute wrangler login), or has that idea been dropped?",
+  "confidence": "medium"
+ }
+]
