@@ -143,9 +143,15 @@
 	   (2026-11-06: it was small and crammed into the bottom corner). */
 	.live-card-go { color: inherit; text-decoration: none; }
 	.live-card-go::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
-	.live-card:has(> .live-card-go) { padding-right: 2.5rem; }
-	.live-card-chevron { position: absolute; right: .75rem; top: 50%; transform: translateY(-50%); font-size: 1.75rem; line-height: 1; opacity: .45; pointer-events: none; }
+	/* A small corner mark, not a reserved column: the card keeps extra room only at the BOTTOM (one strip, not a
+	   whole right side), so text uses the card's full width and the chevron still never sits under it. */
+	.live-card:has(> .live-card-go) { padding-bottom: 2rem; }
+	.live-card-chevron { position: absolute; right: .75rem; bottom: .6rem; font-size: 1.1rem; line-height: 1; opacity: .45; pointer-events: none; }
 	.live-card :is(a:not(.live-card-go), button, input, select, label, pre, .live-code-wrap, table) { position: relative; z-index: 1; }   /* tapped, or swiped sideways, on their own */
+	/* A code block inside a card (LivePage.Preview's own members): page padding, card padding and the chevron would
+	   squeeze it to nothing, so it bleeds to the card's own edges (its padding, inline) and scrolls sideways instead
+	   (at every width, not just a phone: a wide card is still only its own column wide). */
+	.live-card :is(.live-card-text pre, .live-code-wrap) { margin-inline: -1rem; max-width: none; border-radius: 0; }
 	/* A card's preview (LivePage.Preview) starts where its title starts, not under the icon; an "@Page" card has no icon. */
 	.live-preview, .live-preview-list { display: flex; flex-direction: column; gap: var(--live-step); min-width: 0; }
 	:is(.live-preview-list, .live-preview-text).is-empty, .live-preview-text.is-hidden { display: none; }
@@ -170,7 +176,10 @@
 	.live-card .live-card-text { font-weight: 400; opacity: .8; }
 	.live-foot-removed.is-empty { display: none; }
 	.live-foot-removed { color: inherit; opacity: .7; }
-	.live-card-title { margin: 0; font-size: 1.15em; line-height: 1.25; text-transform: none; letter-spacing: normal; }
+	/* .live-title (the page's h1) is fixed at 1.05rem, not the page's own growing em (LivePage.css above), so a card
+	   title has to be fixed too to stay clearly smaller at every width: 0.8rem reuses the framework's h4 level
+	   (framework.css's six-level type scale), as rem instead of em, rather than inventing a new number. */
+	.live-card-title { margin: 0; font-size: .8rem; line-height: 1.25; text-transform: none; letter-spacing: normal; }
 	.live-card-text, .live-sub, .live-foot-text { line-height: 1.45; }
 	:is(.live-card-text, .live-sub, .live-foot-text) .md > * { --flow: var(--live-step); }   /* the markdown inside is .flow, which spaces by --flow (set on every element): one step here too */
 	:is(.live-card-text, .live-sub, .live-foot-text) > * { margin: 0; }
@@ -185,7 +194,6 @@
 		.live-scroll .live-main > .bleed, .live-scroll .live-main > .live-block:has(> .bleed) { margin-inline: calc(-1 * var(--live-pad-x)); max-width: none; }
 		.live-scroll .bleed :is(.live-card-title, .live-code-caption, .live-card-text > :not(pre)) { padding-inline: var(--live-pad-x); }
 		.live-scroll .bleed :is(.live-code-wrap, pre) { max-width: none; border-radius: 0; }
-		.live-card :is(.live-card-text pre, .live-code-wrap) { margin-inline: -1rem; max-width: none; border-radius: 0; }
 		.live-page table:has(td[data-label]) { display: block; border: 0; width: 100%; }
 		.live-page table:has(td[data-label]) thead { display: none; }
 		.live-page table:has(td[data-label]) :is(tbody, tr) { display: block; }

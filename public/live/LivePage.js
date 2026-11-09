@@ -427,6 +427,8 @@ export default class LivePage extends Page {
 	// A title, in markdown with mentions, kept in step with the item: new LivePage.Heading({ tag: "h4", item }).
 	// `only` is the url when the whole title is one mention ("@Page"), so a card can become that thing's card.
 	// `fix(t)` shows t instead from then on (a link card shows the title its page gives itself).
+	// `strip_emoji: true` + `on_icon(name)`: a title that starts with a mapped emoji (LivePage.emoji_icons) is shown
+	// without it, and `on_icon` is told the Material name (or null); an emoji not in the map is left alone.
 	static Heading = class LiveHeadingView extends View {
 		render(){
 			this.bind(this.item, this.key ?? "title", function(t){ this.show(this.fixed ?? t); });
@@ -434,6 +436,12 @@ export default class LivePage extends Page {
 		fix(t){ if (t) this.show(this.fixed = t); }
 		show(t){
 			t ??= this.fallback;
+			let icon = null;
+			if (this.strip_emoji && t){
+				const found = LivePage.icon_of_title(t);
+				if (found){ icon = found.icon; t = found.title; }
+			}
+			this.on_icon?.(icon);
 			this.tc("is-empty", !t).empty();
 			if (t) this.md(String(t), { safe: true });
 			const one = this.el.children.length === 1 && this.el.firstElementChild.matches("a.mention") ? this.el.firstElementChild : null;
@@ -441,6 +449,22 @@ export default class LivePage extends Page {
 			this.on_text?.();
 		}
 	};
+
+	// Emoji seen in /live/ titles today, mapped to a Material icon name (git grep every page.jsonl under /live/, 2026-11-09):
+	// an author who wants a different look sets its own `icon` field instead (that wins, and skips this table entirely).
+	static emoji_icons = {
+		"🐛": "bug_report", "📄": "description", "🎯": "target", "✅": "check_circle", "⚠️": "warning",
+		"💡": "lightbulb", "🔧": "build", "📌": "push_pin", "📊": "bar_chart", "❓": "help",
+		"🔁": "repeat", "💤": "bedtime", "⚙": "settings", "🧠": "psychology",
+	};
+	// A title's leading emoji, mapped: { icon, title (with the emoji and its following space dropped) }, or null when
+	// the title has no leading emoji, or has one this table does not know (kept as it is: the author's own choice).
+	static icon_of_title(title){
+		if (typeof title !== "string") return null;
+		for (const [emoji, icon] of Object.entries(this.emoji_icons))
+			if (title.startsWith(emoji)) return { icon, title: title.slice(emoji.length).replace(/^\s+/, "") };
+		return null;
+	}
 
 	// A text in markdown with mentions, kept in step with one key of an item: new LivePage.Md({ item, key: "text" }).
 	static Md = class LiveMdView extends View {
@@ -709,12 +733,17 @@ export default class LivePage extends Page {
 			div.c("live-card-body", () => {
 				div.c("live-card-head", () => {
 					// The icon its page's header shows (LivePage.icon_name): a link asks the page, a card is an item stored here.
+					// No fallback to the "stored inside its parent" dot here (P.stored.item): a card with neither an `icon`
+					// field nor a mapped emoji in its title shows no icon at all, rather than wasting a column on the dot.
 					$icon = span.c("live-icon live-card-icon");
+					let title_icon = null;
+					const paint = () => P.glyph($icon, item.get("icon") || title_icon);
 					if (item instanceof PageLink){
 						const fallback = P.link_icon(item, own);
 						P.glyph($icon, fallback);
-					} else this.bind(item, "icon", n => P.glyph($icon, n ?? P.stored.item));   // a link's: its page's own icon wins below, the same as its header
-					$title = new P.Heading({ tag: "h4", item, classes: "live-card-title", on_text: go });
+					} else this.bind(item, "icon", paint);
+					$title = new P.Heading({ tag: "h4", item, classes: "live-card-title", on_text: go,
+						strip_emoji: !(item instanceof PageLink), on_icon: n => { title_icon = n; paint(); } });
 				});
 				if (item instanceof PageLink && own.startsWith("/live/")){
 					const theirs = () => {
