@@ -325,9 +325,9 @@ export class List extends Item {
 	}
 
 	/* F7 (persistence-sync/design/fixes.md, "Adding an item that already has a parent"): `dest.ref(x)` LINKS an item some
-	   list already owns — a Ref, same file → {path}, another file → {url, path} — instead of re-parenting it the way
-	   `add(x)` still does (D13, 2026-11-02: switching `add()`'s own default is a later, separate merge, only once a census
-	   shows no caller relies on the move; see plan.md's decision 2). The real move stays one explicit call,
+	   list already owns — a Ref, same file → {path}, another file → {url, path} — instead of re-parenting it. `add(x)`
+	   above does the same thing on its own now (D13 flipped 2026-11-09, the owner's sign-off, census re-checked; see
+	   plan.md's decision 2): this is its explicit, equivalent form. The real move stays one explicit call,
 	   `item.move_to(dest)` (Item.js), which leaves a `moved_to` forward behind for any Ref to follow. */
 	ref(x){
 		// A Ref needs an address: an unattached item has none, and another file's item needs that file's url.
