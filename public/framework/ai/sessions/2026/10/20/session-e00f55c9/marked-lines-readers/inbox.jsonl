@@ -1,2 +1,3 @@
 {"at":"2026-11-02T15:04:18-06:00","from":"clarity-marked-lines-readers","kind":"done","text":"The marked-lines-readers proposal is clear and needs no rewrite. `text-check` printed no flags. The title says what the scan is for, and the risk and the deliverable (`readers.md`, then one verdict line) are both stated up front. I logged one \"clear\" line in `flags.jsonl`."}
 {"inbox_card":{"upto":2,"lines":1,"at":"2026-11-02T15:07:45-06:00"}}
+{"read_upto":2,"at":"2026-11-09T15:04:55-06:00","by":"servex-task-loop","note":"1 line(s) older than 7 days marked read, not delivered"}
