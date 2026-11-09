@@ -1,0 +1,222 @@
+[
+ {
+  "n": 21,
+  "id": "d-mw1huqjbca",
+  "asked": "Daily check-in card re-posting the wait of a voice mastermind: voice-dac4dccc, 'next voice question (latency probes 1-3 answered; nothing in flight)' (agent's words; its only option is 'noted')",
+  "asked_link": "public/framework/ai/sessions/2026/11/01/cards/voice-session-2026-11-01-17-10/page.jsonl:5",
+  "built": "nothing; the same card is re-posted each day (11-01, 11-02, 11-03) by the follow-up check-in",
+  "still_true": "Same text as item 29 (the task) and the other re-posts of this card (first posting is item 26); no owner line ever answered it, and its agent ended without landing on 11-03",
+  "verdict": "duplicate",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 22,
+  "id": "d-mw1hupqr07",
+  "asked": "Daily check-in card re-posting the wait of a voice mastermind: voice-9db2117d, 'next voice question (latency probe 1 answered)' (agent's words; its only option is 'noted')",
+  "asked_link": "public/framework/ai/sessions/2026/11/01/cards/voice-session-2026-11-01-17-08/page.jsonl:5",
+  "built": "nothing; the same card is re-posted each day (11-01, 11-02, 11-03) by the follow-up check-in",
+  "still_true": "Same text as item 28 (the task) and the other re-posts of this card (first posting is item 27); no owner line ever answered it, and its agent ended without landing on 11-03",
+  "verdict": "duplicate",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 23,
+  "id": "d-mw02cr59ki",
+  "asked": "Daily check-in card re-posting the wait of a voice mastermind: voice-dac4dccc, 'next voice question (latency probes 1-3 answered; nothing in flight)' (agent's words; its only option is 'noted')",
+  "asked_link": "public/framework/ai/sessions/2026/11/01/cards/voice-session-2026-11-01-17-10/page.jsonl:4",
+  "built": "nothing; the same card is re-posted each day (11-01, 11-02, 11-03) by the follow-up check-in",
+  "still_true": "Same text as item 29 (the task) and the other re-posts of this card (first posting is item 26); no owner line ever answered it, and its agent ended without landing on 11-03",
+  "verdict": "duplicate",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 24,
+  "id": "d-mw02cqkzqq",
+  "asked": "Daily check-in card re-posting the wait of a voice mastermind: voice-9db2117d, 'next voice question (latency probe 1 answered)' (agent's words; its only option is 'noted')",
+  "asked_link": "public/framework/ai/sessions/2026/11/01/cards/voice-session-2026-11-01-17-08/page.jsonl:4",
+  "built": "nothing; the same card is re-posted each day (11-01, 11-02, 11-03) by the follow-up check-in",
+  "still_true": "Same text as item 28 (the task) and the other re-posts of this card (first posting is item 27); no owner line ever answered it, and its agent ended without landing on 11-03",
+  "verdict": "duplicate",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 25,
+  "id": "2026~10~20~session-e00f55c9~dictation-v3",
+  "asked": "Run the dictation v3 mastermind (agent's words; no owner sentence found)",
+  "asked_link": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/session.jsonl:1",
+  "built": "Handover at dictation-v3/handover.md linked from ux/Dictate/readme.md; commits 4eee9b4208, d7be5c001e",
+  "still_true": "Its last log (11-02) says wrapped up for the night, nothing in flight; the agent ended and its child tasks were dropped as owner-stopped. A finished session is not a question for the owner",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 26,
+  "id": "d-mvymvidqro",
+  "asked": "Daily check-in card re-posting the wait of a voice mastermind: voice-dac4dccc, 'next voice question (latency probes 1-3 answered; nothing in flight)' (agent's words; its only option is 'noted')",
+  "asked_link": "public/framework/ai/sessions/2026/11/01/cards/voice-session-2026-11-01-17-10/page.jsonl:3",
+  "built": "nothing; the same card is re-posted each day (11-01, 11-02, 11-03) by the follow-up check-in",
+  "still_true": "Same text as item 29 (the task) and the other re-posts of this card (first posting is item 26); no owner line ever answered it, and its agent ended without landing on 11-03",
+  "verdict": "duplicate",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 27,
+  "id": "d-mvymvgfb9y",
+  "asked": "Daily check-in card re-posting the wait of a voice mastermind: voice-9db2117d, 'next voice question (latency probe 1 answered)' (agent's words; its only option is 'noted')",
+  "asked_link": "public/framework/ai/sessions/2026/11/01/cards/voice-session-2026-11-01-17-08/page.jsonl:3",
+  "built": "nothing; the same card is re-posted each day (11-01, 11-02, 11-03) by the follow-up check-in",
+  "still_true": "Same text as item 28 (the task) and the other re-posts of this card (first posting is item 27); no owner line ever answered it, and its agent ended without landing on 11-03",
+  "verdict": "duplicate",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 28,
+  "id": "2026~11~01~voice-9db2117d",
+  "asked": "A voice mastermind for voice session 17:08 (latency probe 1 answered), waiting on 'the next voice question' (agent's words)",
+  "asked_link": "public/framework/ai/sessions/2026/11/01/voice-9db2117d/session.jsonl:1",
+  "built": "nothing beyond the answered latency probe",
+  "still_true": "The agent ended 'without landing' on 11-03 and no new voice question has come since; it waits for an ask, not a decision. Items 22, 24, 27 are its daily re-posts",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 29,
+  "id": "2026~11~01~voice-dac4dccc",
+  "asked": "A voice mastermind for voice session 17:10 (latency probes 1-3 answered), waiting on 'the next voice question' (agent's words)",
+  "asked_link": "public/framework/ai/sessions/2026/11/01/voice-dac4dccc/session.jsonl:1",
+  "built": "nothing beyond the answered latency probes",
+  "still_true": "Same as item 28: agent ended without landing on 11-03; nothing in flight. Items 21, 23, 26 are its re-posts",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 30,
+  "id": "2026~10~25~session-e06424f1~task-mastermind-2",
+  "asked": "Continue the chat reader/roles/routing/chat-live work of a voice session (agent's words: 'a fresh child of voice session v-sq8y7db')",
+  "asked_link": "public/framework/ai/sessions/2026/10/25/session-e06424f1/task-mastermind-2/session.jsonl:227",
+  "built": "Doc branch worktree/dataflow-doc (1e5ca2866) with data-flow.md 22/22a; the commit is on no branch now, so not merged",
+  "still_true": "Its wait is 'idle under token conservation' on a doc-branch review; the agent was resumed and ended without landing on 10-27. The unmerged doc commit is the mastermind's own to-do, not an owner decision",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 31,
+  "id": "2026~10~20~session-e00f55c9~sessions-and-tasks~dictation-debug",
+  "asked": "Dictation: a Debug tab, the stall fixed, no flicker (card title, agent's words)",
+  "asked_link": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/session.jsonl:1",
+  "built": "Dictation work under ux/Dictate (4eee9b4208) and the dictation-v3 rebuild that followed",
+  "still_true": "The agent's last record line is a 10-30 auto 'dropped' for an overdue wake; the dictation line of work moved to dictation-v3 (item 25), itself wrapped up on 11-02",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 32,
+  "id": "2026~10~20~session-e00f55c9~core-page-page-class-js-to-250-lines-49",
+  "asked": "Page.class.js down to about 250 lines; its 49 forwarders become lazy parts, then retire. Steps 1-2 merged; step 2b (~$3) and step 3 (~$6-8) wait for the owner's pick (agent's words)",
+  "asked_link": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/session.jsonl:1",
+  "built": "Steps 1 and 2 merged; 2b and 3 not built",
+  "still_true": "core/Page/Page.class.js is still 755 lines today, so 2b and 3 were never built and no owner pick is logged. Step 3 is major surgery (ask first)",
+  "verdict": "still waiting",
+  "question": "Do you want Page.class.js trimmed to about 250 lines (step 2b about 3 dollars, then step 3 about 6 to 8 dollars), or left as it is?",
+  "confidence": "medium"
+ },
+ {
+  "n": 33,
+  "id": "core~Page~tasks~page-mastermind",
+  "asked": "core/Page: navigation, items and pages, tests, build order (plan.md v2) (agent's words)",
+  "asked_link": "public/framework/core/Page/tasks/page-mastermind/task.jsonl:1",
+  "built": "Many Page commits since; sub-tasks such as nav-rule and near-tests have records",
+  "still_true": "This is the page mastermind's whole-session root task, not one open question: its latest lines are 'dropped: owner stopped' for its minions (10-25) and the agent is gone. No single ask is waiting",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 34,
+  "id": "2026~10~20~session-e00f55c9~sessions-and-tasks~deputy~review-page",
+  "asked": "The owner's review page: one page per day, approve in chunks, leaks in red (card title)",
+  "asked_link": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/review-page/session.jsonl:1",
+  "built": "7a1216149b deputy: qf-3 landed (c2912efec); 88d652f8cd review records",
+  "still_true": "The minion's worktree landed (7a1216149b) and the deputy folder holds its review records; that agent is finished, so nothing waits on you",
+  "verdict": "done",
+  "question": "",
+  "confidence": "medium"
+ },
+ {
+  "n": 35,
+  "id": "d-mvd88hbokp",
+  "asked": "Budget pause: helper-layout-check-path reached its allowance ($16.92) and Servex asked 'Continue (+$5) or Stop' (Servex's words, 2026-10-17)",
+  "asked_link": "public/framework/ai/sessions/2026/10/16/cards/checkup-on-everything-the-voice-sessions/page.jsonl:60",
+  "built": "Commits by the helper (todo.md, layout-check task records) before the pause",
+  "still_true": "A pause from 2026-10-17 on a helper agent that has long since ended; the money is spent and the choice is moot. Budget caps are no longer stop-points (owner 2026-11-04: never stop an agent on spend)",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 36,
+  "id": "d-mvcul8augl",
+  "asked": "Budget pause: helper-readme-trim reached its allowance ($6.37) and Servex asked 'Continue (+$5) or Stop' (Servex's words, 2026-10-17)",
+  "asked_link": "public/framework/ai/sessions/2026/10/16/cards/checkup-on-everything-the-voice-sessions/page.jsonl:50",
+  "built": "One commit trimming Server/README.md and Server/doc/script-notes.md before the pause",
+  "still_true": "A pause from 2026-10-17 on a helper agent that has long since ended; the money is spent and the choice is moot. Budget caps are no longer stop-points (owner 2026-11-04: never stop an agent on spend)",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 37,
+  "id": "d-mvct5kwko9",
+  "asked": "Budget pause: helper-sheet-double-mount reached its allowance ($29.24) and Servex asked 'Continue (+$5) or Stop' (Servex's words, 2026-10-17)",
+  "asked_link": "public/framework/ai/sessions/2026/10/16/cards/voice-one-assistant-places-each-sentence/page.jsonl:39",
+  "built": "Commits on the sheet double-mount task (ext/drawer); records landed in 3fdd356102",
+  "still_true": "A pause from 2026-10-17 on a helper agent that has long since ended; the money is spent and the choice is moot. Budget caps are no longer stop-points (owner 2026-11-04: never stop an agent on spend)",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 38,
+  "id": "d-mvcs1ozy7k",
+  "asked": "Budget pause: helper-sheet-handoff-proof reached its allowance ($17.34) and Servex asked 'Continue (+$5) or Stop' (Servex's words, 2026-10-17)",
+  "asked_link": "public/framework/ai/sessions/2026/10/16/cards/voice-one-assistant-places-each-sentence/page.jsonl:35",
+  "built": "Commits to ext/drawer/doc/sheet.md and Servex/agents/session-smart.md",
+  "still_true": "A pause from 2026-10-17 on a helper agent that has long since ended; the money is spent and the choice is moot. Budget caps are no longer stop-points (owner 2026-11-04: never stop an agent on spend)",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 39,
+  "id": "d-mvcr9db0g4",
+  "asked": "Budget pause: helper-dictate-wide reached its allowance ($11.19) and Servex asked 'Continue (+$5) or Stop' (Servex's words, 2026-10-17)",
+  "asked_link": "public/framework/ai/sessions/2026/10/16/cards/voice-one-assistant-places-each-sentence/page.jsonl:33",
+  "built": "Commits to ux/Dictate/readme.md and the dictate-wide task record",
+  "still_true": "A pause from 2026-10-17 on a helper agent that has long since ended; the money is spent and the choice is moot. Budget caps are no longer stop-points (owner 2026-11-04: never stop an agent on spend)",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ },
+ {
+  "n": 40,
+  "id": "d-mvagf9n1qo",
+  "asked": "Budget pause: helper-past-work-pilot reached its allowance ($2.17) and Servex asked 'Continue (+$5) or Stop' (Servex's words, 2026-10-17)",
+  "asked_link": "public/framework/ai/sessions/2026/10/15/cards/voice-session-2026-10-16-19-06/page.jsonl:22",
+  "built": "Nothing produced before the pause; past-work was later built as its own system (past-work skill, indexing-past-work.md)",
+  "still_true": "A pause from 2026-10-17 on a helper agent that has long since ended; the money is spent and the choice is moot. Budget caps are no longer stop-points (owner 2026-11-04: never stop an agent on spend)",
+  "verdict": "stale",
+  "question": "",
+  "confidence": "high"
+ }
+]

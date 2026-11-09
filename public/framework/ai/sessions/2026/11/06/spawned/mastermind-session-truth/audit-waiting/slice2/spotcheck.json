@@ -1,0 +1,12 @@
+{
+ "note": "The mastermind's own verdicts on 2 of the 20 items, written before reading the Sonnet worker's results.json (slice 1 agreed 5/5, so slice 2 spot-checks 2).",
+ "by": "mastermind-session-truth (Opus)",
+ "verdicts": [
+  {"n": 32, "verdict": "still waiting", "confidence": "medium",
+   "question": "Should Page's callers reach its helpers directly (step 3, major surgery, ~$6-8), so Page.class.js can shrink toward ~250 lines?",
+   "why": "Steps 1 and 2 landed (7cb0be29c, e95342d62; 786 to 702 lines), but the file is back to 755 lines today. Step 2b (~$3, words and activate/deactivate) was not major surgery and should not have waited (law 5); step 3 is the real question. The task lives in core/Page/tasks/page-mastermind/task.jsonl:191 and is listed again under session e00f55c9, which handed it down."},
+  {"n": 35, "verdict": "stale", "confidence": "high",
+   "question": "",
+   "why": "A Continue/Stop budget pause from 2026-10-17 on helper-layout-check-path. Its task log says the work was already merged into michael/dev before the pause (layout-check-path/task.jsonl:27, 31, 35), and the agent has long ended, so neither button means anything today."}
+ ]
+}
