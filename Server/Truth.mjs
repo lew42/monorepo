@@ -3,7 +3,7 @@
 //   node Server/Truth.mjs [--write] [--root <repo>] [--label "baseline ..."]
 // --write appends ONE line to public/live/truth/truth.jsonl (of the repo it runs in). --root reads the sessions of another tree (read-only).
 // Sessions: SessionFolders.homes(); tasks: Task.replay(...).tally() / completion_score() (the same calls Server/session-query.mjs --report uses).
-// Twins: SessionConsolidate.check. Read-only: counts never write into the tree they read (the folder map stays in memory). Doc: public/live/truth/readme.md
+// Twins: SessionConsolidate.check. Fold: FoldAccounting (the twins-fold manifest against the moved-aside halves). Read-only: counts never write into the tree they read (the folder map stays in memory). Doc: public/live/truth/readme.md
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -73,7 +73,9 @@ export async function measure({ root = HERE, days = 7, now = new Date() } = {}){
 	} finally { [Task.resolver, Task.session_resolver, console.warn] = keep; }
 	const { default: SessionConsolidate } = await import("./SessionConsolidate.mjs");
 	const c = await SessionConsolidate.check(root), twins = c.count, flat = c.flat.length;
-	return { all, week, twins, flat, folders: folder_stats(store.root) };
+	const { default: FoldAccounting } = await import("./FoldAccounting.mjs"), fa = await FoldAccounting.at({ root });
+	const fold = fs.existsSync(fa.manifest) ? (({ totals, mismatches }) => ({ ...totals, mismatches: mismatches.map(x => ({ session: x.session, home: x.home, diffs: x.diffs.map(({ number, before, after, cause, half }) => ({ number, before, after, cause, half })) })) }))(fa.run()) : null;
+	return { all, week, twins, flat, folders: folder_stats(store.root), ...(fold ? { fold } : {}) };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
