@@ -2,6 +2,7 @@
 // Server/FoldAccounting.mjs — checks the twins fold (fold-manifest.json): nothing a moved-aside half knew was lost in the merged record. Read only.
 //   node Server/FoldAccounting.mjs [--write] [--root <repo>] [--manifest <file>]
 // Cost = the newest `summary.usd` in cache.jsonl (what AISession.summary_of reads); tasks = Session/Task replay tally().created of the record (what Truth.mjs reads).
+// A merged cost that is missing or 0 (a worktree has no cache.jsonl, they are not in git) is `unreadable`, never counted as lost.
 // A twin pair is two records of ONE session, so the halves are not added (that would count it twice): the merged value must be >= each half's.
 import fs from "node:fs";
 import path from "node:path";
@@ -33,7 +34,7 @@ export default class FoldAccounting {
 
 	/** run() -> { run, totals, mismatches }. Per session: each moved-aside half against the merged home. */
 	run(){
-		const m = JSON.parse(fs.readFileSync(this.manifest, "utf8")), tot = { sessions: 0, matching: 0, mismatched: 0, lost: 0, cost_before: 0, cost_after: 0, tasks_before: 0, tasks_after: 0 }, mismatches = [];
+		const m = JSON.parse(fs.readFileSync(this.manifest, "utf8")), tot = { sessions: 0, matching: 0, mismatched: 0, lost: 0, unreadable: 0, cost_before: 0, cost_after: 0, tasks_before: 0, tasks_after: 0 }, mismatches = [];
 		for (const g of Object.values(m.groups)){
 			if (!g.moved_aside) continue;
 			const home = path.join(this.root, g.home), cost_after = this.cost(home), tasks_after = this.tasks(home);
@@ -42,11 +43,11 @@ export default class FoldAccounting {
 				const half = path.join(g.moved_aside, dup); if (!fs.existsSync(half)) continue;
 				halves.push(half); const c = this.cost(half), t = this.tasks(half);
 				cost_before = Math.max(cost_before, c ?? 0); tasks_before = Math.max(tasks_before, t ?? 0);
-				if ((c ?? 0) > (cost_after ?? 0) + 1e-9) { const vh = this.summary(half)?.v ?? 0, vm = this.summary(home)?.v ?? 0; bad.push({ number: "cost", before: c, after: cost_after ?? 0, half, cause: vm > vh ? `reader: merged cache is v${vm}, half v${vh}` : "lost" }); }
+				if ((c ?? 0) > (cost_after ?? 0) + 1e-9) { const vh = this.summary(half)?.v ?? 0, vm = this.summary(home)?.v ?? 0; bad.push({ number: "cost", before: c, after: cost_after ?? 0, half, cause: !(cost_after > 0) ? "unreadable: merged cost is missing or 0" : vm > vh ? `reader: merged cache is v${vm}, half v${vh}` : "lost" }); }
 				if ((t ?? 0) > (tasks_after ?? 0)) bad.push({ number: "tasks", before: t, after: tasks_after ?? 0, half });
 			}
 			tot.sessions++; tot.cost_before += cost_before; tot.cost_after += Math.max(cost_after ?? 0, 0); tot.tasks_before += tasks_before; tot.tasks_after += tasks_after ?? 0;
-			if (bad.length){ tot.mismatched++; if (bad.some(b => b.cause !== undefined && !b.cause.startsWith("reader") || b.number === "tasks")) tot.lost++; mismatches.push({ session: g.session, home: g.home, diffs: bad }); } else tot.matching++;
+			if (bad.length){ tot.mismatched++; if (bad.some(b => b.cause === "lost" || b.number === "tasks")) tot.lost++; else if (bad.some(b => b.cause.startsWith("unreadable"))) tot.unreadable++; mismatches.push({ session: g.session, home: g.home, diffs: bad }); } else tot.matching++;
 		}
 		tot.cost_before = +tot.cost_before.toFixed(4); tot.cost_after = +tot.cost_after.toFixed(4);
 		return { run: m.run, totals: tot, mismatches };
