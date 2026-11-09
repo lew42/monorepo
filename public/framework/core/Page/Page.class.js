@@ -2,6 +2,7 @@ import { View, div, p, h1, h4, a, span, icon, is } from "../View/View.js";
 import PageFrame from "./Frame.js";
 import Item from "../Item/Item.js";
 import List from "../List/List.js";
+import { Pluggable } from "../Plugin/Plugin.js";
 import { track } from "../track/track.js";
 import ai_cost from "./weight/ai-cost.js";
 import PageWork from "./ai/PageWork.js";
@@ -31,12 +32,13 @@ const ALIAS = { surface: "card", wash: "tint" };
 
 const is_md = url => /\.md(\?|#|$)/i.test(url);
 
-export class Page extends Item {
+export class Page extends Pluggable(Item) {
 
-	// ════ EXTENSIONS, CODE-REGISTERED — Page.use(Ext) runs Ext.setup(page) on EVERY page ═══
-	// ⚠ Nobody calls it by default, so the loop below is empty for a page with no extensions. (doc/jsonl.md)
-	static _ext = [];
-	static use(Ext){ Page._ext.push(Ext); return Page; }
+	// ════ EXTENSIONS, CODE-REGISTERED — Page.use(Ext) (core/Plugin's Pluggable) runs Ext.attach/setup(page) on
+	// EVERY page, the moment the module that calls it loads. ⚠ Nobody calls it by default, so a page with no
+	// extensions reaches no plugin at all. (doc/jsonl.md) `Page._ext` is a read-only alias, for old readers: the
+	// extensions currently on class-wide (`Page.plugins` is the live, switchable list).
+	static get _ext(){ return [...this.records.values()].filter(rec => rec.on).map(rec => rec.plugin); }
 
 	// What a delta can call on any page, beside Item's. Cards, tabs and sub-pages are not methods: they are the lists `content`, `pages` and the keys of a delta.
 	static callable = {
@@ -57,7 +59,7 @@ export class Page extends Item {
 		Page.track(this);
 		this.naming();
 		this.declare();
-		Page._ext.forEach(Ext => Ext.setup?.(this));
+		Page.plugged(this);   // reaches every class-wide extension (Page.use(Ext)) — core/Plugin's Pluggable
 		this.initialize?.();
 	}
 
@@ -167,9 +169,11 @@ export class Page extends Item {
 	}
 
 	// ════ EXTENSIONS ═══
+	// A `{"ext": "Name"}` line (or a direct call): import it, then switch it on for THIS PAGE ONLY — `Page.available`
+	// records it class-wide but off, so no other page reaches it, and `toggle_plugin` turns it on just here (core/Plugin's Pluggable).
 	ext(name){
 		const ready = import(new URL(`./ext/${name}/${name}.js`, import.meta.url).href)
-			.then(({ default: Ext }) => Ext.setup?.(this))
+			.then(({ default: Ext }) => { Page.available(Ext); this.toggle_plugin(Page.records.get(Ext), true); })
 			.catch(error => console.error(`${this.log_label()} — ext("${name}") failed to load:`, error));
 		(this.ext_ready ??= []).push(ready);
 	}

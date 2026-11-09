@@ -1,4 +1,4 @@
-// core/Plugin: a class that is pluggable, and the class every plugin may extend. Readme: ./readme.md, design: ./doc/design-notes.md
+// core/Plugin: Pluggable(Base) gives any class on/off plugins; Plugin is also the class every plugin may extend. Readme: ./readme.md, design: ./doc/design-notes.md
 //   Host.use(A, B)    every new Host instance reaches A.attach(inst) and B.attach(inst)
 //   Host.unuse(A)     the hook comes off; live instances are told A.detach(inst)
 //   Host.plugins      a lazy List of rows (PluginEntry): name, enabled, config; switching a row on or off uses / unuses
@@ -8,25 +8,13 @@ import PluginEntry from "./PluginEntry.js";
 
 const own_events = Symbol.for("core.Plugin.events");
 
-export class Plugin extends Events(Object) {
-
-	// Same order the server's Events had: assign the args, announce "new", then instantiate().
-	// A constructor arg named `overrides` ({Name: {enabled?, config?}}, what inst.overrides gave) is loaded BEFORE the plugins attach,
-	// so a plugin this instance has off is never attached for a moment, and the others attach with this instance's own config.
-	constructor(...args){
-		super();
-		let start;
-		args = args.map(a => { if (!a || typeof a !== "object" || !("overrides" in a)) return a; const { overrides, ...rest } = a; start = overrides; return rest; });
-		this.assign(...args);
-		if (start) this.load_overrides(start);
-		this.constructor.emit("new", this);
-		this.instantiate();
-	}
-
-	assign(...args){ return Object.assign(this, ...args); }
-	instantiate(){ this.initialize(); }
-	initialize(){}
-	bubbles(){ return false; }   // a plugin host is not a tree; an Item's events still bubble
+/* A mixin — a function that takes a base class and returns a subclass — so ANY class can take plugins:
+   `class Host extends Pluggable(Base)`. Carries only the "takes plugins" half (fold-2, core/Plugin/readme.md):
+   a class-level "new" announcement (`static plugged(inst)`, called once per fresh instance — never the host's own
+   `assign`/`instantiate`/`initialize`/`bubbles`, which Item and Page already define their own way) and the
+   per-instance override bookkeeping. `Page extends Pluggable(Item)` (core/Page/Page.class.js) reuses this; `Plugin`,
+   below, is `Pluggable(Events(Object))` plus the OTHER half, "IS a plugin" (`attach`/`detach`/`defaults`/`fields`). */
+export const Pluggable = Base => class extends Base {
 
 	// Per-INSTANCE plugin switches: one row per class-level plugin, `enabled`/`config` unset until this instance
 	// overrides them (PluginEntry.get_one falls back to the class row's rec.on / rec.config while unset).
@@ -46,8 +34,8 @@ export class Plugin extends Events(Object) {
 	// instance's own wish is remembered so a later class-wide enable()/disable() never overrides it (see those).
 	toggle_plugin(rec, on){
 		(this._plugin_overrides ??= new Map()).set(rec, on);
-		if (on) Plugin.attach_instance(rec, this);
-		else Plugin.detach_instance(rec, this);
+		if (on) this.constructor.attach_instance(rec, this);
+		else this.constructor.detach_instance(rec, this);
 	}
 
 	// What this instance changed against the class: a plain {Name: {enabled?, config?}} that survives JSON, so it can be saved
@@ -91,15 +79,20 @@ export class Plugin extends Events(Object) {
 
 	reset_plugins(){ return this.load_overrides({}); }
 
-	// ── class-level events. "new" walks the class chain: parents' listeners first, then each subclass's own.
-	static get events(){
+	// ── class-level events, for the "new" announcement only (doc/design-notes.md, "Order"). "new" walks the class
+	// chain: parents' listeners first, then each subclass's own. A METHOD, not a `get events()` accessor: a Page
+	// subclass out there already owns a plain static field called `events` for its own, unrelated data
+	// (`RealPage.events = new Map()`, ai/cards/real.js) — a getter with no setter would make that assignment
+	// throw ("has only a getter") the moment Page itself became pluggable. `plugin_events()` is specific enough
+	// that nothing collides with it today (checked with a repo-wide grep, fold-2).
+	static plugin_events(){
 		if (!Object.hasOwn(this, own_events)) Object.defineProperty(this, own_events, { value: {}, writable: true });
 		return this[own_events];
 	}
-	static on(event, fn){ (this.events[event] ??= []).push(fn); return this; }
+	static on(event, fn){ (this.plugin_events()[event] ??= []).push(fn); return this; }
 	static off(event, fn){
-		const list = this.events[event];
-		if (list) this.events[event] = list.filter(l => l !== fn && l.fn !== fn);
+		const list = this.plugin_events()[event];
+		if (list) this.plugin_events()[event] = list.filter(l => l !== fn && l.fn !== fn);
 		return this;
 	}
 	static once(event, fn){
@@ -107,7 +100,7 @@ export class Plugin extends Events(Object) {
 		wrapper.fn = fn;
 		return this.on(event, wrapper);
 	}
-	static clear(event){ if (this.events[event]) this.events[event] = []; return this; }
+	static clear(event){ if (this.plugin_events()[event]) this.plugin_events()[event] = []; return this; }
 	static emit(event, ...args){
 		const chain = [];
 		for (let c = this; c && c !== Function.prototype; c = Object.getPrototypeOf(c)){
@@ -118,8 +111,14 @@ export class Plugin extends Events(Object) {
 		return this;
 	}
 
+	// A fresh instance reached its "new" moment: a host calls this once (Plugin's own constructor does, below;
+	// Page does the same — `Page.plugged(this)`, core/Page/Page.class.js). Never spelled out as
+	// `this.constructor.emit("new", this)` at the call site — this name says what it is, and never clashes with
+	// an Item's own instance `emit()` (core/Events/Events.js): one is a static call, the other an instance one.
+	static plugged(inst){ this.emit("new", inst); }
+
 	// ── a class that is PLUGGABLE
-	static hosts = [];   // every class that has used or listed a plugin, for a page that shows them live
+	static hosts = [];   // every class THIS mixin reached that has used or listed a plugin (Plugin's own page.js reads Plugin.hosts)
 	static store = new Map();   // saved on/config per row, key plugin.<Host>.<Plugin>; a page swaps in localStorage
 
 	static get records(){
@@ -151,12 +150,12 @@ export class Plugin extends Events(Object) {
 		let rec = this.records.get(p);
 		if (rec) return rec;
 		const name = p.name || "plugin", key = `plugin.${this.name}.${name}`;
-		const saved = Plugin.store.get(key), defaults = p.defaults ?? {};
+		const saved = this.store.get(key), defaults = p.defaults ?? {};
 		const { on: default_on = true, ...config_defaults } = defaults;
 		rec = { plugin: p, name, key, on: false, fn: null, live: new Set(), seen: new WeakSet(), attached: new WeakSet(), n: 0,
 			wanted: wanted_on ?? saved?.on ?? default_on, config: { ...config_defaults, ...saved?.config } };
 		this.records.set(p, rec);
-		if (!Plugin.hosts.includes(this)) Plugin.hosts.push(this);
+		if (!this.hosts.includes(this)) this.hosts.push(this);
 		if (this._list) this.add_row(rec);
 		if (Object.hasOwn(this, "_plugin_instances")) for (const ref of this._plugin_instances) { const inst = ref.deref(); if (inst) this.add_instance_row(inst, rec); }
 		return rec;
@@ -183,9 +182,9 @@ export class Plugin extends Events(Object) {
 	static detach_instance(rec, inst){
 		if (!rec.attached.has(inst)) return;
 		// Irreversible either way: no `detach` at all, OR a `Plugin` subclass with none of its OWN — it still
-		// inherits the base class's no-op `Plugin.detach` (:209), which IS a function, so `typeof` alone would
+		// inherits the base class's no-op `Plugin.detach` (below), which IS a function, so `typeof` alone would
 		// treat it as a real undo (review finding 2, 2026-11-03). Either way, stays "attached" so a later enable
-		// never runs attach twice.
+		// never runs attach twice. `Plugin.detach` is the one shared sentinel, whichever host is asking.
 		if (typeof rec.plugin.detach !== "function" || rec.plugin.detach === Plugin.detach) return;
 		rec.attached.delete(inst);
 		rec.plugin.detach(inst);
@@ -298,6 +297,30 @@ export class Plugin extends Events(Object) {
 		inst._plugins.add(row);
 		return row;
 	}
+};
+
+// The class every plugin may extend, and the ordinary pluggable host for anything that is not already an Item
+// (core/Page/Page.class.js is `Pluggable(Item)` instead, so an Item never pays for a class it has no use for —
+// doc/design-notes.md, "Cost"). `Plugin`'s own half, below, is "IS a plugin": `attach`/`detach`/`defaults`/`fields`.
+export class Plugin extends Pluggable(Events(Object)) {
+
+	// Same order the server's Events had: assign the args, announce "new", then instantiate().
+	// A constructor arg named `overrides` ({Name: {enabled?, config?}}, what inst.overrides gave) is loaded BEFORE the plugins attach,
+	// so a plugin this instance has off is never attached for a moment, and the others attach with this instance's own config.
+	constructor(...args){
+		super();
+		let start;
+		args = args.map(a => { if (!a || typeof a !== "object" || !("overrides" in a)) return a; const { overrides, ...rest } = a; start = overrides; return rest; });
+		this.assign(...args);
+		if (start) this.load_overrides(start);
+		this.constructor.plugged(this);
+		this.instantiate();
+	}
+
+	assign(...args){ return Object.assign(this, ...args); }
+	instantiate(){ this.initialize(); }
+	initialize(){}
+	bubbles(){ return false; }   // a plugin host is not a tree; an Item's events still bubble
 
 	// ── a class that IS a plugin. attach(instance): "this plugin attaches itself to that instance". setup is the old name.
 	static attach(instance){ return this.setup?.(instance); }
