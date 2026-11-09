@@ -28,7 +28,7 @@ export default class RemoteMCP {
         "The owner's standing rule (2026-10-16): when the owner asks a question, put the answer on /live/ as a card first, then say \"take a look\" and keep the spoken reply to one or two sentences. A status answer (\"what's running\") is a card listing each agent's id, state, what it is on and its cost (list_agents has them); it is shown, not spoken.",
         "Restarting Servex needs no question (the owner, 2026-11-06): it takes seconds and dev servers keep running. Do it between turns, never mid-sentence in a voice call, since it drops your own connection for a moment. Then check it came back (list_agents).",
         "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
-        "Call `updates` at the start of nearly every turn: it returns only what arrived for you since your last call (agent messages, the owner's notes, changes to logs you follow). Subscribe to a log with follow({path, agent: \"voice-app\"}).",
+        "Call `updates` at the start of nearly every turn: it returns only what arrived for you since your last call (agent messages, the owner's notes, changes to logs you follow). Subscribe to a log with follow({path, agent: \"voice-app\"}). Pass your claude.ai conversation id as `conversation` on `updates` and `register_session` — it keeps your own place separate from any other conversation reading the same shared inbox, and a FIRST call with a conversation id Servex has not seen gets `missed`, a digest of what happened before you joined.",
     ].join("\n");
     // The bridge's listening tool (voice-bridge, 2026-11-01): a short long-poll on one ask's ticket. Remote route only.
     static HEAR = {
