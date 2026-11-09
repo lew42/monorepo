@@ -67,6 +67,7 @@ The supervisor, watching `public/`, holding reloads, what a browser can ask, the
 ## More
 
 [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+- [`PromptRecords.mjs`](../public/framework/ext/Refine/doc/prompt-records.md) — the per-prompt record (sentences, parts, outcomes); the `live` process runs on Sonnet (`LIVE_MODEL`), `review` on Haiku; its parts brief is `ext/Refine/PartsBrief.js`; test `PromptRecords.live.test.mjs`
 - [`RefineQueue.mjs`](../public/framework/ext/Refine/doc/refine-queue.md) — refines the owner's past prompts, one Haiku call per prompt, N at once, onto each session page's Coverage tab (`public/framework/ext/Refine/doc/refine-queue.md`)
 
 - **Scripts census** (what every script under `Server/`, `Servex/`, `.claude/hooks/` is, who uses it, which are stale): [doc/scripts.md](doc/scripts.md)

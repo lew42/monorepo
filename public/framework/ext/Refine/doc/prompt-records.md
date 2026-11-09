@@ -34,7 +34,7 @@ A prompt's record lives in its session's own `prompts.jsonl` ([PromptLog](/frame
 | Step | Who | What it writes |
 |---|---|---|
 | sentences | code | `raw` and numbered `clean` lines, once per prompt |
-| parts | Haiku, one call per prompt, no context (`PARTS_BRIEF`) | a `parts` line, every outcome `open` |
+| parts | one call per prompt, no context (`PARTS_BRIEF`, file `ext/Refine/PartsBrief.js`); Sonnet in `live` (`LIVE_MODEL`), Haiku in `review` | a `parts` line, every outcome `open` |
 | outcomes | Haiku, one call per window of the session, with the condensed transcript and Read/Grep (`OUTCOMES_BRIEF`) | a `parts` line with outcomes and evidence |
 | file | node, through the item tool's `run_item` | a task on the session for each part still open, `source: {session, line, prompt, part}` (the transcript line, so the raw words are one click away); the part's outcome becomes `task`, and it settles when that task completes |
 | completion | code | nothing: `PromptRun.completion()` reads the lines |
