@@ -92,3 +92,5 @@
 {"at":"2026-11-09T01:01:06-06:00","from":"minion-audit-waiting-2","kind":"done","text":"Done. `results.json` for slice 2 is written beside the brief, uncommitted, and I'm idle. The tally is duplicate 6, stale 12, still waiting 1, done 1. The one open question is whether to trim Page.class.js (item 32)."}
 {"at":"2026-11-09T01:01:11-06:00","from":"minion-audit-waiting-2","kind":"stopped","text":"Done. `results.json` for slice 2 is written beside the brief, uncommitted, and I'm idle. The tally is duplicate 6, stale 12, still waiting 1, done 1. The one open question is whether to trim Page.class.js (item 32)."}
 {"read_upto":93,"at":"2026-11-09T01:04:53-06:00","by":"servex-task-loop"}
+{"at":"2026-11-09T01:37:37-06:00","from":"minion-audit-waiting-3","kind":"done","text":"Tally: 2 still waiting, 2 done, 16 stale, 0 duplicate."}
+{"read_upto":95,"at":"2026-11-09T01:39:53-06:00","by":"servex-task-loop"}

@@ -13,3 +13,4 @@
 {"pid_exit":31328,"ended":"2026-11-09T01:37:49-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"action":{"at":"2026-11-09T01:38:38-06:00","did":"edit","files":["public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/audit-waiting/slice3/cards.mjs"]},"by":"ledger","ts":"2026-11-09T07:38:38.974Z"}
 {"log":{"at":"2026-11-09T01:38:58-06:00","msg":"agent stopped with its task still open and no outcome logged; StaleClose will read it unclosed"},"by":"servex-close-loop"}
+{"log":{"at":"2026-11-09T01:44:58-06:00","heartbeat":"deliberate","msg":"minion-audit-waiting-3 its agent is not running: it was stopped on purpose by mastermind-session-truth at 2026-11-09T01:38:58-06:00; not revived."}}
