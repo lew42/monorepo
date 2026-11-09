@@ -61,7 +61,7 @@ export default new Page({
 					tr(() => { th("Folded sessions"); th("Matching"); th("Differ"); th("Lost"); th("Unreadable"); th("Cost before / after"); th("Tasks before / after"); });
 					tr(() => { td(n(f.sessions)); td(n(f.matching)); td(n(f.mismatched)); td(n(f.lost)); td(n(f.unreadable)); td(`${n(Math.round(f.cost_before))} / ${n(Math.round(f.cost_after))}`); td(`${n(f.tasks_before)} / ${n(f.tasks_after)}`); });
 				});
-				if (f.mismatches?.length) ul(() => { for (const x of f.mismatches) for (const d of x.diffs) li(() => { span(`${d.number} ${d.before} before, ${d.after} now (${d.cause ?? "tasks"}): `); a(x.session.slice(0, 8)).attr("href", "/" + x.home.replace(/^public\//, "") + "/"); span(` · moved-aside half: ${d.half}`); }); });
+				if (f.mismatches?.length) ul(() => { for (const x of f.mismatches) for (const d of x.diffs) li(() => { const v = x => d.number === "cost" ? "$" + (+x).toFixed(2) : x; span(`${d.number} ${v(d.before)} before, ${v(d.after)} now (${d.cause ?? "tasks"}): `); a(x.session.slice(0, 8)).attr("href", "/" + x.home.replace(/^public\//, "") + "/"); span(` · moved-aside half: ${d.half}`); }); });
 				p("Before = the larger of the moved-aside halves; after = the merged record. Command: node Server/FoldAccounting.mjs.");
 			}
 			h2("Trend: sessions with any task");
