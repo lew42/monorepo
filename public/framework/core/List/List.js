@@ -285,6 +285,14 @@ export class List extends Item {
 	// or, on replay, inside `x` itself. The options form wins when both are given.
 	add(x, opts = {}){
 		if (Array.isArray(x)) return x.map(each => this.add(each, opts)).at(-1);   // {"add":[a, b]} is two adds, in order
+
+		// D13 flipped (2026-11-09, the owner's sign-off, census re-checked: no live caller relies on the move):
+		// a live Item already parented SOMEWHERE ELSE gets a Ref instead of being re-parented. A Ref itself moves
+		// between lists freely (it is only ever a pointer); a plain object (replay, or a caller building fresh
+		// data) and an item with no parent yet are both unchanged below. `item.move_to(dest)` is still the one
+		// real move. core/Item/doc/ref.md, "Made by List.ref() and Chat.resurface".
+		if (x instanceof Item && !(x instanceof Ref) && x.parent && this.index_of(x) === -1) return this.ref(x);
+
 		const after = "after" in opts ? opts.after : (is_plain(x) ? x.after : undefined);
 		const before = this.length;
 		const made = this.insert(x, { after });
@@ -317,9 +325,9 @@ export class List extends Item {
 	}
 
 	/* F7 (persistence-sync/design/fixes.md, "Adding an item that already has a parent"): `dest.ref(x)` LINKS an item some
-	   list already owns — a Ref, same file → {path}, another file → {url, path} — instead of re-parenting it the way
-	   `add(x)` still does (D13, 2026-11-02: switching `add()`'s own default is a later, separate merge, only once a census
-	   shows no caller relies on the move; see plan.md's decision 2). The real move stays one explicit call,
+	   list already owns — a Ref, same file → {path}, another file → {url, path} — instead of re-parenting it. `add(x)`
+	   above does the same thing on its own now (D13 flipped 2026-11-09, the owner's sign-off, census re-checked; see
+	   plan.md's decision 2): this is its explicit, equivalent form. The real move stays one explicit call,
 	   `item.move_to(dest)` (Item.js), which leaves a `moved_to` forward behind for any Ref to follow. */
 	ref(x){
 		// A Ref needs an address: an unattached item has none, and another file's item needs that file's url.
