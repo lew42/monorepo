@@ -1,4 +1,4 @@
-// The dry run of "no silent endings" (Servex/OpenItems.js, off unless SERVEX_OPEN_ITEMS=on): walks the session store and says what the rule
+// The dry run of "no silent endings" (Servex/OpenItems.js, on unless SERVEX_OPEN_ITEMS=off): walks the session store and says what the rule
 // would file, writing nothing into the repo.
 //   node Servex/OpenItems.mjs --dry-run [--days 7] [--out <file>]
 // Counts: records read, nodes (a session or task) that are settled but scored under 1 or not at all, and how many closeout tasks would be
@@ -52,7 +52,7 @@ export function dry_run(files, root = path.resolve(path.dirname(fileURLToPath(im
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
 	const arg = (n, d) => { const i = process.argv.indexOf(n); return i < 0 ? d : process.argv[i + 1]; };
-	if (!process.argv.includes("--dry-run")){ console.log("usage: node Servex/OpenItems.mjs --dry-run [--days 7] [--out <file>]   (the filing itself is off unless SERVEX_OPEN_ITEMS=on)"); process.exit(0); }
+	if (!process.argv.includes("--dry-run")){ console.log("usage: node Servex/OpenItems.mjs --dry-run [--days 7] [--out <file>]   (the filing itself is on unless SERVEX_OPEN_ITEMS=off)"); process.exit(0); }
 	const days = Number(arg("--days", 7)), since = new Date(Date.now() - days * 864e5).toISOString().slice(0, 10);
 	const sessions = path.join(OpenItems.public_root, "framework/ai/sessions"), root = path.dirname(OpenItems.public_root);
 	const out = arg("--out", path.join(os.tmpdir(), "open-items-dry-run.json"));

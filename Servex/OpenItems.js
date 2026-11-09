@@ -13,13 +13,13 @@ import Session from "../public/framework/core/Session/Session.js";
  * It is called from the two low-level append functions of Servex (page_tools write_line, TaskLoop write_line): the item tool, the log
  * tool, Unclose, CloseLoop, TaskLoop.close_task and Dropped go through one of them (see "Known gaps" on after_write for the rest).
  *
- * PROPOSED, OFF BY DEFAULT (the owner, 2026-11-06: anything that changes what gets auto-filed is proposed with a dry-run first). Set the
- * environment variable SERVEX_OPEN_ITEMS=on to switch the filing on; with it unset, after_write() works out what it WOULD file, returns
- * those ids and writes nothing. To see what the rule would file over the session store before switching it on:
+ * ON BY DEFAULT since 2026-11-09 (proposed off with a dry run on 2026-11-06; switched on by voice-app under the owner's rule). Set the
+ * environment variable SERVEX_OPEN_ITEMS=off to switch the filing off; then after_write() works out what it WOULD file, returns
+ * those ids and writes nothing. (A default in code, not an env var, because a WMI relaunch of Servex does not keep our env.) To preview:
  *     node Servex/OpenItems.mjs --dry-run [--days 7] [--out <file>]      (counts, 5 examples, the full list in --out) */
 export default class OpenItems {
-	/** The switch: filing happens only with SERVEX_OPEN_ITEMS=on, read at every call. */
-	static get on(){ return process.env.SERVEX_OPEN_ITEMS === "on"; }
+	/** The switch: filing is on unless SERVEX_OPEN_ITEMS=off, read at every call. */
+	static get on(){ return process.env.SERVEX_OPEN_ITEMS !== "off"; }
 
 	static CLOSING = /"(stop|complete|finish|unclosed|closed_by|landed_at)"\s*:/;
 	static FILES = /(^|[\\/])(session|task)\.jsonl$/;

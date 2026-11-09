@@ -6,7 +6,7 @@ import path from "node:path";
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "open-items-"));
 process.env.SERVEX_PUBLIC = tmp;
-process.env.SERVEX_OPEN_ITEMS = "on";   // the filing is off by default; sections 1-8 test it switched on, section 9 the switch
+delete process.env.SERVEX_OPEN_ITEMS;   // the filing is on by default (2026-11-09); sections 1-8 test it on, section 9 the switch
 const [{ default: Test }, { default: OpenItems }, { default: Cards }, { default: AIIndex }, { default: Task }] = await Promise.all([
 	import("../public/framework/core/Test/Test.js"), import("./OpenItems.js"), import("./cards/Cards.js"), import("../Server/AIIndex.mjs"), import("../public/framework/core/Task/Task.js")]);
 
@@ -94,19 +94,20 @@ t.eq([...rec8._tasks].filter(x => Task.is_closeout(x)).length, 1, "close_task: o
 await loop.close_task({ dir: "2026/11/06/session-gggg7777", by: "t-open-items", why: "again" });
 t.eq([...OpenItems.replay(lines_of(path.join(path.dirname(f8), "task.jsonl")))._tasks].filter(x => Task.is_closeout(x)).length, 1, "close_task: a second close files no second one");
 
-// 9. The switch: off (the default) a close files nothing but after_write still says what it WOULD file; on, it files one. The dry run lists the same node.
+// 9. The switch: off (SERVEX_OPEN_ITEMS=off) a close files nothing but after_write still says what it WOULD file; on, it files one. The dry run lists the same node.
 const f9 = make("session-hhhh8888", [{ session: { id: "hhhh8888", kind: "vscode-tab", at: at(0) } }, { tasks: { add: { type: "Task", id: "left9", title: "Left 9" } }, ts: at(1) }]);
 const dry = await import("./OpenItems.mjs");
 const before9 = fs.readFileSync(f9, "utf8");
-delete process.env.SERVEX_OPEN_ITEMS;
-t.eq(OpenItems.on, false, "unset: the filing is off");
+process.env.SERVEX_OPEN_ITEMS = "off";
+t.eq(OpenItems.on, false, "=off: the filing is off");
 t.eq(append(f9, { stop: { why: "tab closed" }, ts: at(2) }), ["open-items"], "off: after_write returns what it WOULD file");
 t.eq(nested(f9).length, 0, "off: nothing was written (no closeout task in the record)");
 t.eq(fs.readFileSync(f9, "utf8"), before9 + JSON.stringify({ stop: { why: "tab closed" }, ts: at(2) }) + "\n", "off: the record holds only the close line that was appended");
 const rep = dry.dry_run([f9], tmp);
 t.eq([rep.records, rep.would_file, rep.list[0]?.id], [1, 1, "open-items"], "the dry run reports the same filing and writes nothing");
 t.eq(nested(f9).length, 0, "the dry run wrote nothing");
-process.env.SERVEX_OPEN_ITEMS = "on";
+delete process.env.SERVEX_OPEN_ITEMS;
+t.eq(OpenItems.on, true, "unset: the filing is on (the default)");
 t.eq(OpenItems.after_write(f9, { stop: { why: "tab closed" }, ts: at(3) }), ["open-items"], "on: the same close files one");
 t.eq(nested(f9).length, 1, "on: the closeout task is in the record");
 

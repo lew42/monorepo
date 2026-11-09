@@ -21,7 +21,7 @@ Every file at the top level of `Servex/`, one line each. Subfolders are one row,
 | [LogSweeper.js](./LogSweeper.js) | batches committed log writes: at most `max` paths per batch, idempotent (nothing changed → no commit) |
 | [MCP.js](./MCP.js) | the local `servex` MCP door at `/mcp`; hands every spawned agent its caller identity through `Agents.door()` |
 | [Monitor.js](./Monitor.js) | `class Monitor extends Events`: the process monitor — hot-CPU and low-RAM thresholds (`SERVEX_HOT_CPU`, `SERVEX_LOW_RAM_GB`) |
-| [OpenItems.js](./OpenItems.js) | after a closing line, a record closed under 100% gets one waiting-on-owner task listing what stayed open; proposed, off by default (`SERVEX_OPEN_ITEMS=on`) |
+| [OpenItems.js](./OpenItems.js) | after a closing line, a record closed under 100% gets one waiting-on-owner task listing what stayed open; on since 2026-11-09 (`SERVEX_OPEN_ITEMS=off` stops it) |
 | [OpenItems.mjs](./OpenItems.mjs) | the dry-run CLI for `OpenItems.js` (`node Servex/OpenItems.mjs --dry-run [--days 7]`) |
 | [Pool.js](./Pool.js) | `class Pool extends Events`: the quick-fix worktree pool, branched from `compliance/dev` even when this Servex runs from a worktree ([doc/pool.md](./doc/pool.md)) |
 | [PortRegistry.js](./PortRegistry.js) | `class PortRegistry extends Events`: the `{name: port}` map the reverse proxy holds live |
