@@ -2,6 +2,8 @@
 
 Eight mechanisms touch an owner's prompt, and they write to different files. This page lists them, says how they differ, and flags the overlaps. Verified against the code on 2026-10-24.
 
+**Step 2 of the one-refiner plan (built on a branch, live after merge and a Servex restart):** the parts brief moved to `ext/Refine/PartsBrief.js` and the `live` process runs on Sonnet. PromptTasks is on while the `prompt-tasks.off` file is absent (`node Servex/agents/PromptTasks.js on`). A prompt with two or more asks is matched to an open task first (`attach_to`); a single ask is filed as a new task with no match (a gap, not built).
+
 **Changed since (checked 2026-11-08):** the hook now writes through `Ask.write` (`Server/Ask.mjs`, one splitter that numbers sentences). PromptTasks (mechanism 2) is switched off by the `prompt-tasks.off` file in the Servex home, so no `parts` line or `source.part` task was written 11-01..08, and coverage is 0% on every channel. The plan to keep one refiner, with each mechanism's lesson: [/live/plan/one-refiner/](/live/plan/one-refiner/) (record: [inventory.json](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/one-refiner-plan/inventory.json)).
 
 ## The mechanisms
@@ -9,7 +11,7 @@ Eight mechanisms touch an owner's prompt, and they write to different files. Thi
 | # | Mechanism | Runs when | Model | Writes (exact file) | What it does |
 |---|---|---|---|---|---|
 | 1 | **Hook** [`.claude/hooks/prompt-relay.mjs`](/.claude/hooks/prompt-relay.mjs) | every prompt typed in the owner's own VS Code tab | none | `ai/sessions/<day>/<session>/page.jsonl`: one `Prompt` item (`page_add`) | Saves the raw words. No cleaning. Everything below hangs off this line. |
-| 2 | **PromptTasks, `live` process** [`Servex/agents/PromptTasks.js`](/Servex/agents/PromptTasks.js) + [`PromptRecords.mjs`](/Server/PromptRecords.mjs) | when `page_add` lands that `Prompt` (`hooks.prompted`), human turns of a VS Code tab only, prompts of 30+ characters | Haiku (`claude-haiku-5-5`), one call, no tools | session's `prompts.jsonl` (`raw`, `clean`, `parts` lines); each top-level ask becomes an `idle` task in the session's `session.jsonl`, at most 15 | **The one breakdown that feeds tasks.** Numbered sentences (code), then parts with kinds and cites (model). |
+| 2 | **PromptTasks, `live` process** [`Servex/agents/PromptTasks.js`](/Servex/agents/PromptTasks.js) + [`PromptRecords.mjs`](/Server/PromptRecords.mjs) | when `page_add` lands that `Prompt` (`hooks.prompted`), human turns of a VS Code tab only, prompts of 30+ characters | Sonnet (`claude-sonnet-5`, `PromptRecords.LIVE_MODEL`), one call, no tools; the parts brief is [ext/Refine/PartsBrief.js](/framework/ext/Refine/PartsBrief.js) | session's `prompts.jsonl` (`raw`, `clean`, `parts` lines); each top-level ask becomes an `idle` task in the session's `session.jsonl`, at most 15 | **The one breakdown that feeds tasks.** Numbered sentences (code), then parts with kinds and cites (model). |
 | 3 | **PromptRecords, `review` process** `node Server/PromptRecords.mjs <session> --process review` | by hand, after the fact | Haiku for parts; Haiku with Read/Grep for outcomes (one call per ~150k-character window of the session) | same `prompts.jsonl` (`parts` lines with outcomes); with `--file`, tasks in `session.jsonl` | Same parts step as 2, plus what came of each part. Asks and rules still open are filed. |
 | 4 | **RefineQueue** [`Server/RefineQueue.mjs`](/Server/RefineQueue.mjs) | by hand (`--days 7 --limit N`) | Haiku, one call per prompt | a `refined` card on the session page (`page_add`), `ext/Refine/queue/runs.jsonl` (cost) and `queue/asks.jsonl` (one line per ask) | The older breakdown of past prompts into cited cards (the Coverage tab's "refined" cards); no outcomes. |
 | 5 | **PromptAudit** [`Server/PromptAudit.mjs`](/Server/PromptAudit.mjs) | by hand (`--days 7`) | pass 1 Haiku per prompt; pass 2 Sonnet, one agent per session | `<session>/prompt-audit.jsonl`, `<session>/prompt-review.jsonl` | Sorts every prompt into tasks, questions, statements, updates, then judges each against what the session did. Files nothing. Its prompt filter (`PromptAudit.prompts`) is used by 2 and 3. |
@@ -26,7 +28,7 @@ owner types a prompt in a VS Code tab
   → hook (prompt-relay.mjs)         one Prompt item on the session's page.jsonl           THE one writer of the raw prompt
   → page_add fires hooks.prompted   (page_tools.js)
   → PromptTasks.prompted            only owner, only a human turn (turnOrigin), 30+ chars, switch on
-  → PromptRecords "live"            sentences (code) → parts (Haiku) → file
+  → PromptRecords "live"            sentences (code) → parts (Sonnet) → file
        prompts.jsonl                raw, clean sentences, parts {id, cites, kind, text, outcome, parts[]}
        session.jsonl                one task per top-level ask (source {session, line, prompt, part}), max 15
   → PromptRun (ext/Refine/PromptRun.js)  computes completion from the parts and those tasks' states
