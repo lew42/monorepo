@@ -285,6 +285,14 @@ export class List extends Item {
 	// or, on replay, inside `x` itself. The options form wins when both are given.
 	add(x, opts = {}){
 		if (Array.isArray(x)) return x.map(each => this.add(each, opts)).at(-1);   // {"add":[a, b]} is two adds, in order
+
+		// D13 flipped (2026-11-09, the owner's sign-off, census re-checked: no live caller relies on the move):
+		// a live Item already parented SOMEWHERE ELSE gets a Ref instead of being re-parented. A Ref itself moves
+		// between lists freely (it is only ever a pointer); a plain object (replay, or a caller building fresh
+		// data) and an item with no parent yet are both unchanged below. `item.move_to(dest)` is still the one
+		// real move. core/Item/doc/ref.md, "Made by List.ref() and Chat.resurface".
+		if (x instanceof Item && !(x instanceof Ref) && x.parent && this.index_of(x) === -1) return this.ref(x);
+
 		const after = "after" in opts ? opts.after : (is_plain(x) ? x.after : undefined);
 		const before = this.length;
 		const made = this.insert(x, { after });
