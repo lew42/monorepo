@@ -1,9 +1,12 @@
 # Follow-up: every task of the last 10 days
 
-945 tasks, flagged first. Summary: [follow-up.md](follow-up.md).
+957 tasks, flagged first. Summary: [follow-up.md](follow-up.md).
 
 | task | group | session | model | started | last log | step | state bucket | outcome | branch | agent | flags |
 |---|---|---|---|---|---|---|---|---|---|---|---|
+| [misfiled-agent-voice-app](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/conv-key/misfiled-agent-voice-app/) | - | - | - | 11-08 11:40 | 11-08 11:40 | 0/0 | stale | no | - | unknown | quiet |
+| [session-381d6428](/framework/ai/sessions/2026/11/05/session-381d6428/) | - | - | - | 11-05 20:27 | 11-08 05:13 | 0/0 | stale | no | - | unknown | quiet |
+| [cloud-voice-app-20261105](/framework/ai/sessions/2026/11/05/cloud-voice-app-20261105/) | - | - | - | 11-05 21:37 | 11-08 05:03 | 0/0 | stale | no | - | unknown | quiet |
 | [session-697c1014](/framework/ai/sessions/2026/11/04/session-697c1014/) | - | - | - | 11-05 04:46 | 11-07 05:35 | 0/0 | stale | no | - | unknown | quiet |
 | [session-2509f430](/framework/ai/sessions/2026/11/04/session-2509f430/) | - | - | - | 11-07 01:52 | 11-07 05:15 | 0/0 | stale | no | - | unknown | quiet |
 | [session-3895ec7f](/framework/ai/sessions/2026/11/04/session-3895ec7f/) | - | - | - | 11-07 01:52 | 11-07 05:15 | 0/0 | stale | no | - | unknown | quiet |
@@ -115,17 +118,26 @@
 | [session-e3fd9043](/framework/ai/sessions/2026/10/31/session-e3fd9043/) | - | - | - | 10-31 01:09 | 11-02 02:52 | 0/0 | stale | no | - | unknown | quiet |
 | [session-cb53aa0e](/framework/ai/sessions/2026/10/24/session-cb53aa0e/) | - | - | - | 11-02 02:43 | 11-02 02:43 | 0/0 | stale | no | - | unknown | quiet |
 | [cloud-voice-app-20261030](/framework/ai/sessions/2026/10/30/cloud-voice-app-20261030/) | - | - | - | 10-30 07:32 | 11-02 02:42 | 0/0 | stale | no | - | unknown | quiet |
-| [minion-rank-haiku](/framework/ai/sessions/2026/11/06/session-67a191a3/minion-rank-haiku/) | - | 7a139495 | haiku | 11-07 06:18 | 11-08 05:53 | 0/0 | stale | yes | - | stopped | ok |
-| [session-67a191a3](/framework/ai/sessions/2026/11/06/session-67a191a3/) | - | - | - | 11-07 04:38 | 11-08 05:53 | 0/0 | stale | no | - | unknown | ok |
-| [cloud-voice-app-20261107](/framework/ai/sessions/2026/11/07/cloud-voice-app-20261107/) | - | - | - | 11-07 06:24 | 11-08 05:43 | 0/0 | stale | no | - | unknown | ok |
-| [mastermind-page-design](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/) | - | 7caa4528 | opus-5-5 | 11-06 21:43 | 11-08 05:42 | 0/0 | waiting | yes | - | dormant | ok |
-| [cloud-voice-app-20261106](/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/) | - | voice-ap | - | 11-06 07:22 | 11-08 05:38 | 0/0 | stale | no | - | unknown | ok |
-| [session-381d6428](/framework/ai/sessions/2026/11/05/session-381d6428/) | - | - | - | 11-05 20:27 | 11-08 05:13 | 0/0 | stale | no | - | unknown | ok |
-| [cloud-voice-app-20261105](/framework/ai/sessions/2026/11/05/cloud-voice-app-20261105/) | - | - | - | 11-05 21:37 | 11-08 05:03 | 0/0 | stale | no | - | unknown | ok |
-| [session-20ad0991](/framework/ai/sessions/2026/11/06/session-20ad0991/) | - | - | - | 11-07 01:27 | 11-08 05:03 | 0/0 | stale | no | - | unknown | ok |
-| [mastermind-live-page](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/) | - | 67a191a3 | opus-5-5 | 11-06 07:51 | 11-07 09:57 | 0/0 | waiting | yes | merged | dormant | ok |
-| [mastermind-resources](/framework/ai/sessions/2026/11/06/spawned/mastermind-resources/) | - | 20564a34 | opus-5-5 | 11-07 03:18 | 11-07 09:22 | 0/0 | waiting | yes | - | dormant | ok |
-| [mastermind-session-truth](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/) | - | fb0203e4 | opus-5-5 | 11-07 03:32 | 11-07 08:13 | 0/0 | waiting | yes | - | dormant | ok |
+| [audit-waiting](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/audit-waiting/) | - | cbf13f56 | sonnet-5-5 | 11-09 06:02 | 11-09 06:04 | 0/0 | landed | yes | - | dormant | ok |
+| [conv-key](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/conv-key/) | - | - | - | 11-09 06:04 | 11-09 06:04 | 0/0 | stale | no | - | unknown | ok |
+| [mastermind-session-truth](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/) | - | fb0203e4 | opus-5-5 | 11-07 03:32 | 11-09 06:04 | 0/0 | waiting | yes | - | working | ok |
+| [cloud-voice-app-20261106](/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/) | - | voice-ap | - | 11-06 07:22 | 11-09 06:00 | 0/0 | stale | no | - | unknown | ok |
+| [cloud-voice-app-20261107](/framework/ai/sessions/2026/11/07/cloud-voice-app-20261107/) | - | - | - | 11-07 06:24 | 11-09 05:54 | 0/0 | stale | no | - | unknown | ok |
+| [mastermind-page-design](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/) | - | 7caa4528 | opus-5-5 | 11-06 21:43 | 11-09 05:44 | 0/0 | waiting | yes | - | dormant | ok |
+| [cloud-voice-app-20261108](/framework/ai/sessions/2026/11/08/cloud-voice-app-20261108/) | - | - | - | 11-08 10:28 | 11-09 05:36 | 0/0 | stale | no | - | unknown | ok |
+| [session-20ad0991](/framework/ai/sessions/2026/11/06/session-20ad0991/) | - | - | - | 11-07 01:27 | 11-09 05:11 | 0/0 | stale | no | - | unknown | ok |
+| [session-67a191a3](/framework/ai/sessions/2026/11/06/session-67a191a3/) | - | - | - | 11-07 04:38 | 11-09 05:11 | 0/0 | stale | no | - | unknown | ok |
+| [session-00c47a44](/framework/ai/sessions/2026/11/08/session-00c47a44/) | - | - | - | 11-08 11:39 | 11-09 05:11 | 0/0 | stale | no | - | unknown | ok |
+| [one-refiner-plan](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/one-refiner-plan/) | - | 3a7f5c7b | sonnet-5-5 | 11-08 16:29 | 11-08 16:37 | 0/0 | landed | yes | - | dormant | ok |
+| [mentions-plan](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/mentions-plan/) | - | b0154993 | sonnet-5 | 11-08 15:48 | 11-08 15:58 | 0/0 | landed | yes | - | stopped | ok |
+| [readme-maps-dictate](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/readme-maps-dictate/) | - | 29bb827a | sonnet-5 | 11-08 15:05 | 11-08 15:32 | 0/0 | stopped | yes | - | stopped | ok |
+| [readme-maps-servex](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/readme-maps-servex/) | - | 04470ab7 | sonnet-5 | 11-08 14:23 | 11-08 14:40 | 0/0 | landed | yes | - | dormant | ok |
+| [mastermind-resources](/framework/ai/sessions/2026/11/06/spawned/mastermind-resources/) | - | 20564a34 | opus-5-5 | 11-07 03:18 | 11-08 14:01 | 0/0 | waiting | yes | - | dormant | ok |
+| [pid-accounting](/framework/ai/sessions/2026/11/06/spawned/mastermind-resources/pid-accounting/) | - | 7e828521 | sonnet-5 | 11-08 13:03 | 11-08 13:24 | 0/0 | landed | yes | - | stopped | ok |
+| [readme-maps-sessions](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/readme-maps-sessions/) | - | 1acd3902 | sonnet-5-5 | 11-08 12:21 | 11-08 12:30 | 0/0 | landed | yes | - | stopped | ok |
+| [mastermind-ai](/framework/ai/sessions/2026/11/08/spawned/mastermind-ai/) | - | a4b7ac13 | sonnet-5-5 | 11-08 11:41 | 11-08 11:42 | 0/0 | landed | yes | - | dormant | ok |
+| [mastermind-live-page](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/) | - | 67a191a3 | opus-5-5 | 11-06 07:51 | 11-08 09:57 | 0/0 | waiting | yes | merged | dormant | ok |
+| [minion-rank-haiku](/framework/ai/sessions/2026/11/06/session-67a191a3/minion-rank-haiku/) | - | 7a139495 | haiku | 11-07 06:18 | 11-08 05:53 | 0/0 | stopped | yes | - | stopped | ok |
 | [live-r9](/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-r9/) | - | - | - | 11-07 07:50 | 11-07 07:50 | 0/0 | landed | yes | - | unknown | ok |
 | [mastermind-rank-sonnet](/framework/ai/sessions/2026/11/06/session-67a191a3/mastermind-rank-sonnet/) | - | a67d7f31 | sonnet | 11-07 06:18 | 11-07 07:34 | 0/0 | landed | yes | - | dormant | ok |
 | [servex-turn-on-windows-crash-dumps-for-n](/framework/ai/sessions/2026/11/06/spawned/mastermind-resources/servex-turn-on-windows-crash-dumps-for-n/) | - | mastermi | - | 11-07 06:12 | 11-07 06:12 | 0/0 | waiting | no | - | unknown | ok |
@@ -952,6 +964,8 @@
 
 ## Unworked tasks (open, untouched over 7 days)
 
+- [v3-messages](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v3-messages/): waiting, 2026-11-02
+- [v-15bsa90](/framework/ai/sessions/2026/11/01/v-15bsa90/): idle, 2026-11-02
 - [v-9dvbbrn](/framework/ai/sessions/2026/10/25/v-9dvbbrn/): idle, 2026-10-26
 - [module-folder-tasks-are-not-found-unless](/framework/ai/sessions/2026/10/25/v-9dvbbrn/module-folder-tasks-are-not-found-unless/): idle, 2026-10-26
 - [mobile-sheet-page-cannot-scroll-to-the-b](/framework/ai/sessions/2026/10/25/v-9dvbbrn/mobile-sheet-page-cannot-scroll-to-the-b/): idle, 2026-10-26

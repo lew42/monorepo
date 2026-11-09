@@ -2378,3 +2378,6 @@
 {"at":"2026-11-08T16:29:44.459Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/one-refiner-plan/requirements.md","verdict":"queued","kind":"proposal"}
 {"at":"2026-11-08T16:30:45.707Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/one-refiner-plan/requirements.md","verdict":"spawned","to":"clarity-one-refiner-plan"}
 {"at":"2026-11-08T12:00:00.000Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/one-refiner-plan/requirements.md","verdict":"rewrote","what":"text-check clean; Why paragraph (owner asks) split into 3 bold bullets","to":"requirements.md"}
+{"at":"2026-11-09T06:02:16.934Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/audit-waiting/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-09T06:03:18.186Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/audit-waiting/requirements.md","verdict":"spawned","to":"clarity-audit-waiting"}
+{"at":"2026-11-09T12:00:00.000Z","target":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/audit-waiting/requirements.md","verdict":"clear","what":"text-check clean; title, per-item fields and output are plain; only the Watch-for paragraph runs long (~85 words)","to":"flags.jsonl"}

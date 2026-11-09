@@ -27,28 +27,28 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-08 05:43 UTC, last 24 h)
+## NOW (computed 2026-11-09 05:41 UTC, last 24 h)
 
-**Pace:** Week: 25% used · 45% gone · 56% of pace (room to spend, 3 days 21 hours left)
+**Pace:** Week: 28% used · 59% gone · 48% of pace (room to spend, 2 days 21 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (0):**
-- none
+**Landed (1):**
+- [Feedback inbox (obvious): i-mw7rhgsnftl. Problem: A message headed "reply to: log agent-voice-app" reads as an](/framework/ai/sessions/2026/11/08/spawned/mastermind-ai/) (mastermind-ai)
 
 **Open, touched in the window (0):**
 - none
 
 **Latest commits on this branch:**
 ```
-e802563ac servex: log sweep (2 files)
-c0e1b168f servex: log sweep (8 files)
-3a397a4f3 servex: log sweep (3 files)
-1950e38ba servex: log sweep (8 files)
-70e73b633 servex: log sweep (2 files)
-ac5a9604d servex: log sweep (8 files)
-0285d770b servex: log sweep (2 files)
-149b2395c servex: log sweep (8 files)
+2960b99dc servex: log sweep (5 files)
+0124f5ba6 servex: log sweep (3 files)
+1fef796f2 servex: log sweep (5 files)
+865b2a7dc servex: log sweep (3 files)
+ce6f2c9f3 servex: log sweep (5 files)
+12702fa77 servex: log sweep (3 files)
+03b30052d servex: log sweep (5 files)
+00e261982 servex: log sweep (3 files)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
