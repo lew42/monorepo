@@ -215,13 +215,13 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     assert.equal((await call("whoami_test", {})).at(-1).text, "3 new updates for you: call updates.", "hint when behind");
     assert.equal((await up({ peek: true })).count, 3, "peek reads");
     assert.equal((await up({ peek: true })).count, 3, "peek does not advance");
-    const first = await up({});
+    const first = await up({ raw: true });
     assert.deepEqual(first.updates.map(u => u.text), ["m0", "m1", "m2"]); assert.equal(first.more, false);
     assert.equal((await up({})).count, 0, "cursor advanced");
     assert.equal((await call("whoami_test", {})).length, 1, "no hint when caught up");
     add(60);
-    const page1 = await up({}); assert.equal(page1.count, 50); assert.equal(page1.more, true, "capped at 50 with more");
-    const page2 = await up({}); assert.equal(page2.count, 10); assert.equal(page2.more, false); assert.equal(page2.updates[0].text, "m50", "second page continues");
+    const page1 = await up({ raw: true }); assert.equal(page1.count, 50); assert.equal(page1.more, true, "capped at 50 with more");
+    const page2 = await up({ raw: true }); assert.equal(page2.count, 10); assert.equal(page2.more, false); assert.equal(page2.updates[0].text, "m50", "second page continues");
     fs.appendFileSync(ext.file("voice-app"), '{"text":"half'); assert.equal((await up({})).count, 0, "an unfinished line waits");
     fs.writeFileSync(ext.file("voice-app"), ""); fs.writeFileSync(ext.cursor_file("voice-app"), "0");   // fresh inbox for the async-ask cases
     gw.target = undefined; gw.wait_ms = 600; slow_ms = 1500;
@@ -274,6 +274,91 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     assert.equal(swept.length, 1, "exactly one swept answer: a marker stops a second delivery, a stale file is skipped");
     assert.equal(swept[0].text, "written while Servex was down"); assert.equal(swept[0].reply_to, "feedbeef");
     assert.ok(fs.existsSync(path.join(rd, "feedbeef.delivered")), "delivery is marked");
+
+    // STEP 1 — one place per conversation (the owner, 2026-11-09): the cursor key is `conversation`, not just the caller
+    {
+        fs.writeFileSync(ext.file("voice-app"), ""); fs.writeFileSync(ext.cursor_file("voice-app"), "0");
+        fs.rmSync(ext.cursors_file("voice-app"), { force: true });
+        let c_next = 0;
+        const addc = n => { fs.appendFileSync(ext.file("voice-app"), Array.from({ length: n }, () => JSON.stringify({ from: "mastermind-a", text: "c" + (c_next++) })).join("\n") + "\n"); };
+        addc(2);   // c0, c1 — already in the inbox before either conversation key below has ever called
+        const a0 = await up({ conversation: "conv-a" });
+        assert.equal(a0.count, 0, "a BRAND NEW conversation key starts at now, not the backlog");
+        assert.ok(Array.isArray(a0.missed) && a0.missed.length === 1 && a0.missed[0].count === 2, "…but is told what it missed, digested (c0+c1, one sender)");
+        addc(1);   // c2
+        const a1 = await up({ conversation: "conv-a", raw: true });
+        assert.deepEqual(a1.updates.map(u => u.text), ["c2"], "conversation a now reads only what arrived after IT started");
+        const b0 = await up({ conversation: "conv-b" });
+        assert.equal(b0.count, 0, "conversation b is also new: it starts at now too, missing nothing conv-a already read");
+        addc(1);   // c3
+        const b1 = await up({ conversation: "conv-b", raw: true });
+        assert.deepEqual(b1.updates.map(u => u.text), ["c3"], "conversation b sees exactly what arrived after it started");
+        const a2 = await up({ conversation: "conv-a", raw: true });
+        assert.deepEqual(a2.updates.map(u => u.text), ["c3"], "conversation a's own place was never moved by b's read — it also gets c3, once, independently");
+    }
+    // STEP 3 — digest by default, `raw: true` for every line
+    {
+        fs.writeFileSync(ext.file("voice-app"), ""); fs.writeFileSync(ext.cursor_file("voice-app"), "0");
+        fs.rmSync(ext.cursors_file("voice-app"), { force: true });
+        // warm both keys on the still-empty inbox, so they are no longer "brand new" once the real lines below land —
+        // a brand-new key starts at now and would otherwise treat these lines as backlog it skips (step 1's own rule)
+        await up({ conversation: "conv-digest" }); await up({ conversation: "conv-raw" });
+        fs.appendFileSync(ext.file("voice-app"), [
+            { from: "minion-a", text: "first" }, { from: "minion-a", text: "second" }, { from: "minion-b", text: "hello" }
+        ].map(l => JSON.stringify(l)).join("\n") + "\n");
+        const d = await up({ conversation: "conv-digest" });
+        assert.equal(d.count, 3, "count is every raw line read, digest or not");
+        assert.equal(d.updates.length, 2, "updates holds the newest line per sender");
+        assert.deepEqual(d.updates.map(u => u.text).sort(), ["hello", "second"], "the newest per sender, not the first");
+        const senders = new Map(d.digest.map(r => [r.from, r]));
+        assert.equal(senders.get("minion-a").count, 2); assert.equal(senders.get("minion-a").latest.text, "second");
+        assert.equal(senders.get("minion-b").count, 1);
+        const r = await up({ raw: true, conversation: "conv-raw" });
+        assert.equal(r.updates.length, 3, "raw:true returns every line, uncompacted");
+    }
+    // STEP 2 — a followed log is read at `updates` time, not pushed to the inbox
+    {
+        const repo_root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
+        const follow_rel = "Servex/agents/tmp-follow-test.jsonl", follow_abs = path.join(repo_root, follow_rel);
+        fs.writeFileSync(follow_abs, JSON.stringify({ by: "minion-x", log: { msg: "step 1 done" } }) + "\n");
+        ext.servex.follow = { list: id => id === "voice-app" ? [{ agent: "voice-app", path: follow_rel }] : [] };
+        try {
+            const f0 = await up({ conversation: "conv-f", raw: true });
+            assert.equal(f0.count, 0, "a followed file's EXISTING content is not replayed on the first read of it");
+            fs.appendFileSync(follow_abs, JSON.stringify({ by: "minion-x", log: { msg: "step 2 done" } }) + "\n");
+            const before = fs.readFileSync(ext.file("voice-app"), "utf8");
+            const f1 = await up({ conversation: "conv-f", raw: true });
+            assert.equal(f1.count, 1, "the followed file's new line arrives through updates");
+            assert.equal(f1.updates[0].path, follow_rel); assert.equal(f1.updates[0].agent, "minion-x");
+            assert.equal(f1.updates[0].line.log.msg, "step 2 done");
+            assert.equal(fs.readFileSync(ext.file("voice-app"), "utf8"), before, "…and never lands in the inbox file itself (Follow.flush's own external skip)");
+            const f2 = await up({ conversation: "conv-f", raw: true });
+            assert.equal(f2.count, 0, "nothing left to read a second time");
+        } finally { fs.rmSync(follow_abs, { force: true }); delete ext.servex.follow; }
+    }
+    // STEP 5 — rotation: the already-read part moves to the archive, nothing unread is ever lost
+    {
+        fs.writeFileSync(ext.file("voice-app"), ""); fs.writeFileSync(ext.cursor_file("voice-app"), "0");
+        fs.rmSync(ext.cursors_file("voice-app"), { force: true });
+        const old1 = JSON.stringify({ from: "mastermind-a", text: "old one", at: "2025-01-15T09:00:00-05:00" }) + "\n";
+        const old2 = JSON.stringify({ from: "mastermind-a", text: "old two", at: "2025-01-15T09:05:00-05:00" }) + "\n";
+        fs.appendFileSync(ext.file("voice-app"), old1 + old2);
+        const r1 = await up({ conversation: "voice-app", raw: true }); assert.equal(r1.count, 2, "the caller's own key reads both old lines");
+        // a second conversation key, by hand, at a byte offset that has read only the FIRST old line — rotation must not outrun it
+        const map = ext.load_cursors("voice-app");
+        map["conv-r"] = { offset: Buffer.byteLength(old1, "utf8") };
+        ext.save_cursors("voice-app", map);
+        fs.appendFileSync(ext.file("voice-app"), JSON.stringify({ from: "x", text: "new one", at: new Date().toISOString() }) + "\n");
+        ext.deliver("voice-app", "trigger rotation", { from: "owner" });   // deliver() runs rotate() first: its first line is from last January
+        const archive_file = path.join(path.dirname(ext.file("voice-app")), "archive", "voice-app-2025-01.jsonl");
+        assert.ok(fs.existsSync(archive_file), "the already-read part moved to the archive (never deleted)");
+        const archived = fs.readFileSync(archive_file, "utf8").trim().split("\n").map(l => JSON.parse(l));
+        assert.deepEqual(archived.map(l => l.text), ["old one"], "only the line EVERY cursor had read — conv-r had not read old two yet");
+        const remaining = fs.readFileSync(ext.file("voice-app"), "utf8").trim().split("\n").map(l => JSON.parse(l));
+        assert.deepEqual(remaining.map(l => l.text), ["old two", "new one", "trigger rotation"], "nothing unread is lost");
+        const r2 = await up({ conversation: "conv-r", raw: true });
+        assert.deepEqual(r2.updates.map(u => u.text), ["old two", "new one", "trigger rotation"], "conv-r's rebased cursor reads exactly what it had not read yet — no replay, no gap");
+    }
 }
 // THE BRIDGE (voice-bridge, 2026-11-01): a fake agent streams through the host's real seam, agents.watch(event, agent)
 {

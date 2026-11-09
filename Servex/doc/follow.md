@@ -47,7 +47,7 @@ follow({ path: "public/framework" })
 
 ## A cloud agent: follow plus `updates`
 
-A cloud agent (the voice app) cannot receive messages, so point the follow at its inbox and let it pull: `follow({path, agent: "voice-app"})` appends each delta to that agent's inbox, and its `updates` tool returns only the lines after its own cursor. Details: [catch-up.md](../ext/remote/doc/catch-up.md).
+A cloud agent (the voice app) cannot receive messages, so point the follow at it and let it pull with `updates` instead: `follow({path, agent: "voice-app"})`. **A registered EXTERNAL agent's `.jsonl` follows are never pushed to its inbox (2026-11-09)** — `flush()` skips sending for a path with `agents.external.has(agent)`, and `updates` reads the followed file itself, from that caller/conversation's own byte offset, returning each line as `{agent, session, path, line}` instead of a text burst. A followed path that is NOT a `.jsonl` file still gets today's one-line "changed: …" note, since there is no line for `updates` to read in its place. Details: [catch-up.md](../ext/remote/doc/catch-up.md).
 
 ## Only what's new — never a replay
 

@@ -266,11 +266,14 @@ export default class RemoteMCP {
     }
 
     // catch-up.md item 1: when the cursor is behind, every other tool result says so in one line (nothing when nothing is new)
+    // the pending check uses the SAME key `updates` itself would default to with no explicit `conversation` — this connection's
+    // own voice session id (step 1, one place per conversation, 2026-11-09) — so the hint never disagrees with what updates() finds
     hint(tool, result, sid){
         try {
             if (tool === "updates" || !result?.content) return result;
             result = this.ride(result, sid);
-            const n = this.servex.external?.ensure?.(RemoteMCP.CALLER)?.pending?.(RemoteMCP.CALLER) ?? 0;
+            let v = null; try { v = this.voice_session(sid); } catch {}
+            const n = this.servex.external?.ensure?.(RemoteMCP.CALLER)?.pending?.(RemoteMCP.CALLER, v?.id ?? null) ?? 0;
             if (n > 0) return { ...result, content: [...result.content, { type: "text", text: `${n} new update${n === 1 ? "" : "s"} for you: call updates.` }] };
         } catch {}
         return result;
