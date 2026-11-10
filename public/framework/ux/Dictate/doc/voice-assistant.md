@@ -15,7 +15,7 @@ Your words: [requirements-17.md](/framework/ai/sessions/2026/10/13/session-730e8
 5. **The voice assistant answers with one placement**, written with the item tool into the session file:
 
 ```js
-item({ path: "<session file>", delta: { place: { re: "<the sentence's at>", to: "paragraph", where: "inside", edit: "nothing" } } })
+item({ path: "<session file>", call: "place", args: { re: "<the sentence's at>", to: "paragraph", where: "inside", edit: "nothing" } })
 ```
 
    - `to`: `same` (the default, and the answer whenever unsure) · `paragraph` · `card`

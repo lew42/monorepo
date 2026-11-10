@@ -99,10 +99,10 @@ ChatV2 does not use Prompt          // ⬜ it folds lines by hand (ChatV2Model.j
 The assistants never type into the file. They call `item({path: <the session's page>, delta})`, and the tool appends one line to `session.jsonl`.
 
 ```js
-item({delta: {tasks: {add: {type: "Prompt", id: "p-…", raw: ["…"]}}}})            // Servex does this one (PromptLines.add_prompt)
-item({delta: {"p-1": {title: "Order of the cards", text: "the cleaned version"}}}) // set a title/text
-item({delta: {"p-1": {tasks: {add: {title: "Show the life cycle"}}}}})             // a task under a Prompt; the answer carries its id
-item({delta: {"p-1": {"t-9": {complete: {}}}}})                                    // complete it: the change is the CHILD's
+item({call: "tasks.add", args: {type: "Prompt", id: "p-…", raw: ["…"]}})          // Servex does this one (PromptLines.add_prompt)
+item({set: {"p-1": {title: "Order of the cards", text: "the cleaned version"}}})  // set a title/text
+item({call: "p-1.tasks.add", args: {title: "Show the life cycle"}})               // a task under a Prompt; the answer carries its id
+item({call: "p-1.t-9.complete"})                                                  // complete it: the change is the CHILD's
 ```
 
 The last line is the nested form: `{"<prompt>":{"<task>":{"complete":{…}}}}`. `ChatV2Model.edit` (`ChatV2Model.js:38`, the `is_kid` branch at :44) hands it to the task inside the Prompt, so the box is checked; an old build stored it on the Prompt and the task stayed open. The same tool adds a Question (`{type:"Question", text, from:"p-…"}`) and answers it (`{"q-…":{answer:{text, by}}}`). What the smart seat may write: the "Chat v2" section of `Servex/agents/session-smart.md`.
