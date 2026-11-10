@@ -16,6 +16,7 @@ import WakePolicy from "./WakePolicy.js";
 import * as PromptLines from "./PromptLines.js";
 import ChatWriter from "./ChatWriter.js";
 import Ask from "../../Server/Ask.mjs";
+import TurnRefiner from "./TurnRefiner.js";
 import Session from "../../public/framework/core/Session/Session.js";   // plugins_of() replays a session's own session.jsonl; Servex must not import ux/ files
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -1305,7 +1306,7 @@ export default class Sessions {
 		/* With the fast seat off, code files the Question the voice assistant used to (one per "?" sentence, the same line shape). */
 		if (this.assistant_of(s) === "off" && /\?["'”’)]*$/.test(String(text).trim())) this.write(s, PromptLines.add_question(prompt, { id: "q-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6), text: String(text).trim() }, "servex"));
 		if (this.single_seat(s)) return this.single_say(s, line, { site, text, selection, floor });
-		this.refine(s, line).catch(e => this.servex?.say?.(`sessions: could not refine an utterance: ${e.message || e}`));
+		if (worth_refining(line)) TurnRefiner.refine(text, via, line.at, ask_line => this.write(s, ask_line)).then(r => { if (r.ok === false) this.servex?.say?.(`sessions: could not refine an utterance: ${r.why}`); });   // the one refiner (step 4); Sessions.refine (Echo clean+structure) is no longer called
 		if (line.thread){
 			(s.threaded ??= []).push(line.at);
 			if (s.threaded.length > 50) s.threaded.shift();

@@ -88,7 +88,7 @@ One refiner, the parts brief ([PartsBrief.js](/framework/ext/Refine/PartsBrief.j
 | Channel | Writes the words | Refines (parts / sections) |
 |---|---|---|
 | VS Code tab | prompt-relay (Prompt page_add) | `PromptTasks.run` -> `PromptRecords.parts_one` (only an owner's `vscode-tab`), plus Echo sections |
-| Web dictation | `Sessions.say` | `Sessions.refine` (Echo clean + structure) |
+| Web dictation | `Ask.write` in `Sessions.say` | `TurnRefiner.refine` (`Sessions.refine`, Echo clean + structure, is no longer called) |
 | Cloud voice | `Ask.write` in `RemoteMCP.record` | `TurnRefiner.refine` ([Servex/agents/TurnRefiner.js](/Servex/agents/TurnRefiner.js)) |
 
 `PromptRecords.parts_of(sentences, {model})` is the pure model call (`{subject, parts, usd}`, cites 0-based); `parts_one` wraps it and writes `prompts.jsonl`. `TurnRefiner.refine(text, via, re, put)` calls it for a turn that has no Prompt page, then `Ask.write` a second `refined` line with the same `re` and `sections` whose items cite sentence numbers (1-based). `Session.coverage()` counts those. A failure is returned, never thrown. Test: `Servex/agents/TurnRefiner.test.mjs`.
