@@ -1234,7 +1234,11 @@
          gone; re-declaring `--flow: var(--flow)` here would be a self-reference). */
 
     :where(.flow, blockquote) > * { margin-block: 0; }
-    :where(.flow, blockquote) > * + * { margin-block-start: var(--flow); }
+    /* `:not(.card)` (ui-kit step 4, 2026-11-09): `PageCard.View` renders
+       `"part-card card flow"`, so without this a card's own title-to-body gap was
+       `--flow` (this rule) instead of `.card`'s own `--gap` rule below — a card is
+       its own rhythm, on purpose; this rule should never reach inside one. */
+    :where(.flow, blockquote):not(.card) > * + * { margin-block-start: var(--flow); }
 
     /* the small headings take half again — the one pair one token can't say */
     :where(.flow, blockquote) > * + :is(h3, .h3, h4, .h4)
