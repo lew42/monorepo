@@ -365,6 +365,28 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
             assert.deepEqual(p2.updates.map(u => u.line.n), Array.from({ length: 10 }, (_, i) => i + 50), "lines 50..59, not one lost, not one repeated");
         } finally { fs.rmSync(follow_abs, { force: true }); delete ext.servex.follow; }
     }
+    // review note 3 — the inbox alone fills `cap` (budget 0 for the follow): `more` must still say true when a followed file has unread bytes
+    {
+        const repo_root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
+        const follow_rel = "Servex/agents/tmp-follow-zero-budget.jsonl", follow_abs = path.join(repo_root, follow_rel);
+        fs.writeFileSync(follow_abs, "");
+        ext.servex.follow = { list: id => id === "voice-app" ? [{ agent: "voice-app", path: follow_rel }] : [] };
+        try {
+            await up({ conversation: "conv-zero" });   // warm both the inbox key and the follow key while both are empty
+            fs.writeFileSync(ext.file("voice-app"), ""); fs.writeFileSync(ext.cursor_file("voice-app"), "0");
+            const map = ext.load_cursors("voice-app");
+            map["conv-zero"].offset = 0;   // so the inbox alone supplies the full cap below
+            ext.save_cursors("voice-app", map);
+            fs.appendFileSync(ext.file("voice-app"), JSON.stringify({ from: "x", text: "inbox line" }) + "\n");
+            fs.appendFileSync(follow_abs, JSON.stringify({ by: "minion-z", n: 0 }) + "\n");   // unread, but the inbox fills cap:1 first
+            const z = await up({ conversation: "conv-zero", raw: true, cap: 1 });
+            assert.equal(z.count, 1, "cap:1 is filled by the inbox line alone, none of the budget left for the follow");
+            assert.equal(z.more, true, "…but `more` still says true: the followed file has an unread line, not reading it does not mean there is none");
+            const z2 = await up({ conversation: "conv-zero", raw: true });
+            assert.equal(z2.count, 1, "and the next call reads it, untouched");
+            assert.equal(z2.updates[0].line.n, 0);
+        } finally { fs.rmSync(follow_abs, { force: true }); delete ext.servex.follow; }
+    }
     // STEP 5 — rotation: the already-read part moves to the archive, nothing unread is ever lost
     {
         fs.writeFileSync(ext.file("voice-app"), ""); fs.writeFileSync(ext.cursor_file("voice-app"), "0");

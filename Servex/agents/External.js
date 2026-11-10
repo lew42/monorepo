@@ -209,10 +209,16 @@ export default class External {
 	 * later one, once the budget is spent) still has bytes this key has not read.
 	 *
 	 * `state` is mutated in place (its `follows` map advances) — a peek passes a disposable copy instead of
-	 * the real cursor state, so a peek never moves anything, here or in the inbox offset above. */
+	 * the real cursor state, so a peek never moves anything, here or in the inbox offset above.
+	 *
+	 * A `budget` of 0 (the inbox's own share already filled `cap`) still runs the loop below instead of
+	 * short-circuiting: `out.length >= budget` is true from the first file with unread bytes, so `more`
+	 * comes back accurate — without this, the first call after the inbox alone fills the cap under-reported
+	 * `more` for one call (review finding, 2026-11-10); no line was ever lost, since the per-file offset is
+	 * only touched once bytes are actually read, but the hint lagged until the next `updates()`. */
 	followed_lines(id, state, budget = Infinity){
 		const follow = this.servex.follow;
-		if (typeof follow?.list !== "function" || budget <= 0) return { events: [], more: false };
+		if (typeof follow?.list !== "function") return { events: [], more: false };
 		state.follows ??= {};
 		const out = [];
 		let more = false;
@@ -432,13 +438,14 @@ export default class External {
 			inputSchema: { type: "object", properties: {
 				peek: { type: "boolean", description: "Read without marking the lines as seen." },
 				raw: { type: "boolean", description: "Every line instead of the one-per-sender digest." },
-				conversation: { type: "string", description: "Your claude.ai conversation id, if you know it: keeps your own place separate from any other conversation calling as the same agent." }
+				conversation: { type: "string", description: "Your claude.ai conversation id, if you know it: keeps your own place separate from any other conversation calling as the same agent." },
+				cap: { type: "number", description: "At most this many events this call. Default 50." }
 			} },
 			handler: (args = {}, ctx = {}) => {
 				if (!ctx.caller) return JSON.stringify({ ok: false, error: "updates needs a caller" });
 				try {
 					this.ensure(ctx.caller);
-					return JSON.stringify(this.updates(ctx.caller, { peek: !!args.peek, raw: !!args.raw, conversation: args.conversation || ctx.session?.id || null }));
+					return JSON.stringify(this.updates(ctx.caller, { peek: !!args.peek, raw: !!args.raw, conversation: args.conversation || ctx.session?.id || null, ...(Number.isFinite(args.cap) ? { cap: args.cap } : {}) }));
 				} catch (e){ return JSON.stringify({ ok: false, error: String(e.message || e) }); }
 			}
 		});

@@ -1076,6 +1076,7 @@ export class Agents {
 			const dup_key = child.parent + ":" + child.id;
 			if (seen.get(dup_key) === stripped){ this._dup_done_skips = (this._dup_done_skips ?? 0) + 1; return; }
 			seen.set(dup_key, stripped);
+			if (seen.size > 500) seen.delete(seen.keys().next().value);   // bounded, oldest first — a long-lived Servex would otherwise grow this forever (review finding 4)
 		}
 		if (quiet && !note) return;   // a short ack after only followed lines: recorded in the inbox, but the parent is not woken; a landed task still tells it what it unblocks
 		if (this.closing) return;   // Servex is shutting down: the inbox has it; revive nobody
