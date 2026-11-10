@@ -1598,7 +1598,7 @@ async function run_item_now({ path: url, target, delta, read, get, set, call, ar
 	// beside it, session.jsonl: cost, span, children, counts (core/Session/readme.md, "What item() answers"). Writes still go to the page.
 	const routed = SESSION_ROUTE.exec(String(url ?? "")), dated = DATED_SESSION.exec(String(url ?? ""));
 	const session_url = (routed && !/^\d{4}$/.test(routed[1])) || (dated && !(dated[2] ?? "").replace(/\//g, ""));   // /sessions/<id>/ or the dated folder itself, never a subpage
-	if (session_url && !at.target.length && path.basename(at.file) === "page.jsonl" && (delta === undefined || (is_plain(delta) && Object.keys(delta).length && Object.keys(delta).every(k => SESSION_QUERIES.includes(k))))){
+	if (session_url && !at.target.length && path.basename(at.file) === "page.jsonl" && is_read){
 		const dir = path.dirname(at.file), record = path.join(dir, "session.jsonl");
 		// An older folder has no record yet (page.jsonl, cache.jsonl, index.json only): a query asks for it, so it gets the one-line record a tab gets, never a `{"summary":{}}` line in the page.
 		if (!fs.existsSync(record) && !fs.existsSync(path.join(dir, "task.jsonl")) && SessionRecord.is_session_dir(dir) && delta !== undefined){
