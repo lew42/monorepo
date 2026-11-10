@@ -61,3 +61,11 @@
 {"review":{"at":"2026-11-09T18:21:44-06:00","answer":{"n":3,"reply":"fixed: yes. The MVP starts now on a demo host, class DemoPage extends Plugin, in /live/demos/plugins/; the same plugins attach to Page after fold step 2. Brief: ../plugins-mvp/requirements.md."}}}
 {"review":{"at":"2026-11-09T18:21:44-06:00","answer":{"n":4,"reply":"kept: full screen under /live/ stays marked untested; the /live/demos/instant/ demo will test it."}}}
 {"log":{"at":"2026-11-09T18:21:44-06:00","msg":"Plan fixed from the review (all four answered above). MVP is its own task: plugins-mvp (minion-plugins-mvp, worktree plugins-mvp)."}}
+{"pid":32324,"cmd":"C:\\Code\\lew42\\monorepo\\Servex\\node_modules\\@anthropic-ai\\claude-agent-sdk-win32-x64\\claude.exe --output-format stream-json --verbose --input-format stream-json --effort medium --model claude-haiku-4-5-20251001 --resume=d15c680f-b4ca-4a00-9266-faff543a778a --disallowedTools mcp__servex__page_call,mcp","why":"claude.exe","agent":"minion-templates-past-work","session":"d15c680f-b4ca-4a00-9266-faff543a778a","started":"2026-11-09T18:29:51-06:00","by":"servex"}
+{"log":{"at":"2026-11-09T18:29:51-06:00","heartbeat":"check","msg":"status check sent to minion-templates-past-work"}}
+{"pid":53744,"cmd":"node C:\\Code\\lew42\\worktrees\\item-docs-switch/.claude/hooks/ledger.mjs session-start","why":"child of claude.exe","agent":"minion-templates-past-work","session":"d15c680f-b4ca-4a00-9266-faff543a778a","started":"2026-11-09T18:29:54-06:00","ppid":32324,"seen":"sample","by":"servex"}
+{"pid_exit":53744,"ended":"2026-11-09T18:30:09-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid":41964,"cmd":"node C:\\Code\\lew42\\worktrees\\item-docs-switch/.claude/hooks/ledger.mjs stop","why":"child of claude.exe","agent":"minion-templates-past-work","session":"d15c680f-b4ca-4a00-9266-faff543a778a","started":"2026-11-09T18:30:11-06:00","ppid":32324,"seen":"sample","by":"servex"}
+{"log":{"at":"2026-11-09T18:30:26-06:00","heartbeat":"answered","msg":"Done and idle. Task closed with findings.md written and finish line logged. Ready to return worktree."}}
+{"pid_exit":41964,"ended":"2026-11-09T18:30:30-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":32324,"ended":"2026-11-09T18:30:37-06:00","code":null,"signal":"SIGKILL","by":"servex"}

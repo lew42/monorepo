@@ -1,0 +1,251 @@
+diff --git a/Servex/agents/item-verbs.test.mjs b/Servex/agents/item-verbs.test.mjs
+new file mode 100644
+index 000000000..10d4cb323
+--- /dev/null
++++ b/Servex/agents/item-verbs.test.mjs
+@@ -0,0 +1,78 @@
++/* The three verbs (item-tool plan, merge 1, /live/plan/item-tool/): get/set/call beside today's delta/read. Each
++ * becomes exactly what the old shape would have written, so this only proves the TRANSLATION and its refusals —
++ * item_tool.test.mjs and item-read.test.mjs already prove the write path itself. `node Servex/agents/item-verbs.test.mjs` */
++import assert from "node:assert";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { run_item } from "./page_tools.js";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
++const REL = "public/framework/ai/sessions/2026/10/16/.item-verbs-test-" + process.pid;
++const DIR = path.join(ROOT, REL), FILE = path.join(DIR, "task.jsonl");
++const URL = "/" + REL.slice("public/".length) + "/";
++let n = 0;
++const ok = (c, m) => { assert.ok(c, m); n++; };
++const strip = line => { const { ts, ...rest } = line ?? {}; return rest; };   // compare shape, not the clock
++
++fs.mkdirSync(DIR, { recursive: true });
++fs.writeFileSync(FILE, JSON.stringify({ assign: { slug: "fixture", title: "Fixture" } }) + "\n");
++try {
++	// 1. get equals read: the same path, the same answer, on a real child.
++	let r = await run_item({ path: URL, delta: { tasks: { add: { title: "Child one" } } } }, { caller: "t" });
++	const kid = r.ids[0];
++	const via_read = await run_item({ path: URL, read: `tasks.${kid}` }, { caller: "t" });
++	const via_get = await run_item({ path: URL, get: `tasks.${kid}` }, { caller: "t" });
++	ok(JSON.stringify(via_get) === JSON.stringify(via_read), "get: \"a.b\" answers exactly what read: \"a.b\" answers");
++
++	// 2. set writes the same line as the equivalent delta.
++	const PDIR = path.join(DIR, "page"), PFILE = path.join(PDIR, "page.jsonl"), PURL = URL + "page/";
++	fs.mkdirSync(PDIR); fs.writeFileSync(PFILE, JSON.stringify({ title: "A page" }) + "\n");
++	const via_delta = await run_item({ path: PURL, delta: { title: "Plans" } }, { caller: "t" });
++	fs.writeFileSync(PFILE, JSON.stringify({ title: "A page" }) + "\n");   // reset, so `set` writes the same first line
++	const via_set = await run_item({ path: PURL, set: { title: "Plans" } }, { caller: "t" });
++	ok(via_set.ok && JSON.stringify(strip(via_set.line)) === JSON.stringify(strip(via_delta.line)), "set: {title} writes the same line as delta: {title}");
++
++	// 3. call writes the same line shape as the equivalent delta (tasks.add, with args) — node stamps type/id on
++	// a new task either way, so compare with the id and ts stripped, the one thing the verb itself contributes.
++	const strip_id = line => { const { ts, ...rest } = line ?? {}; if (rest.tasks?.add) { const { id, title, ...fields } = rest.tasks.add; rest.tasks = { add: fields }; } return rest; };
++	const via_delta2 = await run_item({ path: URL, delta: { tasks: { add: { title: "Same shape" } } } }, { caller: "t" });
++	const via_call = await run_item({ path: URL, call: "tasks.add", args: { title: "Same shape too" } }, { caller: "t" });
++	ok(via_call.ok && via_delta2.ok && JSON.stringify(strip_id(via_call.line)) === JSON.stringify(strip_id(via_delta2.line)), "call: \"tasks.add\" args:{…} writes the same line shape as delta: {tasks:{add:{…}}}");
++
++	// 4. call with no args: {"start":{}}.
++	let started = await run_item({ path: URL, call: "start" }, { caller: "t" });
++	ok(started.ok && started.line?.start !== undefined && JSON.stringify(started.line.start) === "{}", "call: \"start\" with no args writes {start:{}}");
++
++	// 5. set with a dotted key reaches inside a list: checked at its last step, so a field of a task is allowed.
++	const dotted = await run_item({ path: URL, set: { [`tasks.${kid}.priority`]: 2 } }, { caller: "t" });
++	ok(dotted.ok && JSON.stringify(dotted.line?.tasks?.[kid]) === JSON.stringify({ priority: 2 }), "set: {\"tasks.<id>.priority\": 2} writes {tasks:{<id>:{priority:2}}}");
++
++	// ---- refusals ----
++	const before = fs.readFileSync(FILE, "utf8");
++	r = await run_item({ path: URL, get: "tasks", set: { title: "x" } }, { caller: "t" });
++	ok(r.ok === false && /only one of/.test(r.why) && /get/.test(r.why) && /set/.test(r.why), "more than one verb in one call is refused");
++
++	r = await run_item({ path: URL, get: "tasks", args: { x: 1 } }, { caller: "t" });
++	ok(r.ok === false && /`args` is only for `call`/.test(r.why), "`args` without `call` is refused");
++
++	r = await run_item({ path: URL, set: { start: {} } }, { caller: "t" });
++	ok(r.ok === false && /"start" is a method; use call: "start"/.test(r.why), "set with a key that names a method is refused, naming the fix");
++
++	r = await run_item({ path: URL, set: { tasks: {} } }, { caller: "t" });
++	ok(r.ok === false && /"tasks" is a list/.test(r.why), "set with a key that names a child list is refused");
++
++	r = await run_item({ path: URL, call: "tasks.nonsense_verb" }, { caller: "t" });
++	ok(r.ok === false && /"nonsense_verb" is not a method/.test(r.why) && /Known methods:/.test(r.why), "call whose last step is not a method is refused, listing the real ones");
++
++	r = await run_item({ path: URL, call: "completion" }, { caller: "t" });
++	ok(r.ok === false && /"completion" only reads; use get/.test(r.why), "call on a query is refused, pointed at get");
++
++	// None of the refusals above wrote anything.
++	ok(before === fs.readFileSync(FILE, "utf8"), "the refusals wrote nothing (file unchanged across all of them)");
++
++	console.log(`item-verbs: ${n} checks passed`);
++} finally {
++	fs.rmSync(DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
++}
++process.exit(0);
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 6cd58041d..a7316a3ea 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -464,7 +464,8 @@ function apply_pages(at, pages, url){
+  * class code a browser would use. Only Task can be imported in node (Page touches the DOM,
+  * Page touches the DOM), so Task and Session get the key refusals. */
+ const ITEM_PATH = { type: "string", description: "The item's url, e.g. a task folder \"/framework/ai/sessions/…/<slug>/\" (task.jsonl there wins over page.jsonl) or a page. Omit = your own session page." };
+-const ITEM_DESCRIPTION = "THE ITEM TOOL: `item({path, delta})`. `delta` is ONE log line, the exact object Item.set(delta) takes: a key naming a method calls it with the value as its arguments (`{\"start\":{}}`, `{\"wait\":{\"on\":\"owner\"}}`), a key naming a child walks into it (`{\"tasks\":{\"add\":{\"title\":\"x\"}}}`), any other key assigns. `\"a.b\": v` is shorthand for `{a:{b:v}}`. A read-only method name (get, find, toJSON, walk, root, contains, member, locate) as a key is refused: use `read` instead. No `delta` = the current state. `item({path, read:\"a.b.c\"})` reads one dotted path with NO write (never with `delta`); see the `read` parameter. The first call per class also returns `instructions`; `{\"help\":{}}` returns them again.";
++const ITEM_DESCRIPTION = "THE ITEM TOOL: `item({path, delta})`. Prefer the verbs: `get` reads, `set` changes fields, `call` runs a method; `delta` and `read` still work, below."
++	+ " `delta` is ONE log line, the exact object Item.set(delta) takes: a key naming a method calls it with the value as its arguments (`{\"start\":{}}`, `{\"wait\":{\"on\":\"owner\"}}`), a key naming a child walks into it (`{\"tasks\":{\"add\":{\"title\":\"x\"}}}`), any other key assigns. `\"a.b\": v` is shorthand for `{a:{b:v}}`. A read-only method name (get, find, toJSON, walk, root, contains, member, locate) as a key is refused: use `read` instead. No `delta` = the current state. `item({path, read:\"a.b.c\"})` reads one dotted path with NO write (never with `delta`); see the `read` parameter. The first call per class also returns `instructions`; `{\"help\":{}}` returns them again.";
+ 
+ // improvements.jsonl: a folder's proposed fixes and moves, one nested Task each (Servex/agents/roles/mastermind.md, "Improvements").
+ const FILE_CLASS = { "task.jsonl": "Task", "session.jsonl": "Session", "page.jsonl": "Page", "improvements.jsonl": "Improvements" };
+@@ -1226,6 +1227,30 @@ function cap_read(value){
+ 	}
+ 	return { truncated: true, hint: "read a deeper path for less", preview: JSON.stringify(value).slice(0, READ_CAP) };
+ }
++/* THE THREE VERBS (item-tool plan, merge 1, /live/plan/item-tool/): `get`/`set`/`call` each become exactly what today's
++ * `delta`/`read` would have been, so everything below this function — validation, the write, replay — never sees a
++ * difference. Returns {delta, read} (one of the two undefined) or {why} to refuse before anything is touched. */
++function verbs_to_delta({ delta, read, get, set, call, args }){
++	const vals = { delta, read, get, set, call }, given = Object.keys(vals).filter(k => vals[k] !== undefined);
++	if (given.length > 1) return { why: `only one of ${given.join(", ")} in one call. Nothing was written.` };
++	if (args !== undefined && call === undefined) return { why: "`args` is only for `call`. Nothing was written." };
++	if (get !== undefined){
++		if (typeof get !== "string") return { why: "`get` must be a dotted path (a string), the same as `read`. Nothing was written." };
++		return { read: get };
++	}
++	if (set !== undefined){
++		if (!is_plain(set)) return { why: "`set` must be an object of fields to change, e.g. {\"title\": \"Plans\"}. Nothing was written." };
++		return { delta: set };
++	}
++	if (call !== undefined){
++		if (typeof call !== "string" || !call.trim()) return { why: "`call` must be a dotted path to a method, e.g. \"tasks.add\". Nothing was written." };
++		const parts = hops(call), method = parts.pop();
++		if (!method) return { why: "`call` must be a dotted path to a method, e.g. \"tasks.add\". Nothing was written." };
++		return { delta: nest(parts, { [method]: args !== undefined ? args : {} }) };
++	}
++	return { delta, read };   // neither given: today's delta/read, unchanged
++}
++
+ // A delta that only reads is refused before anything is written (requirements.md item 2): `get`/`find`/`toJSON`/`walk`/`root`/
+ // `contains`/`member`/`locate` as a KEY, at any depth — the item tool's own write-only contract, not a method allowlist.
+ const READ_ONLY_KEYS = new Set(["get", "find", "toJSON", "walk", "root", "contains", "member", "locate"]);
+@@ -1530,7 +1555,11 @@ async function card_at(file){
+ 	return { file: up, hops };
+ }
+ 
+-async function run_item_now({ path: url, target, delta, read } = {}, ctx = {}, alias = false){
++async function run_item_now({ path: url, target, delta, read, get, set, call, args } = {}, ctx = {}, alias = false){
++	const used_verb = get !== undefined ? "get" : set !== undefined ? "set" : call !== undefined ? "call" : null;
++	const verbs = verbs_to_delta({ delta, read, get, set, call, args });
++	if (verbs.why) return { ok: false, why: verbs.why };
++	({ delta, read } = verbs);
+ 	url ??= own_page(ctx);
+ 	delta = unmark_delta(delta);
+ 	let caller_log = ctx.caller_log ?? null;
+@@ -1574,6 +1603,33 @@ async function run_item_now({ path: url, target, delta, read } = {}, ctx = {}, a
+ 	const state = () => tasky ? task_state(Class, root()) : !fs.existsSync(at.file) ? null : paged || !Class ? page_text(Class ? root : null, at.file, url) : root().toJSON();
+ 	const extra = async () => alias ? {} : { ...(first_time() ? { instructions: await instructions_for(kind, Class) } : {}), state: state() };
+ 
++	// SET/CALL (merge 1): a key or method name that doesn't belong, checked against the resolved class's own callable
++	// surface (surface_of) and its lists — the same data `instructions.methods` gives, never a hardcoded list.
++	if (used_verb === "set" && Class){
++		const node = at.target.length ? node_at(live_or_refuse(), at.target) : live_or_refuse();
++		// A dotted key ("tasks.x.priority") is checked at its LAST step, on the node its prefix reaches; a prefix that
++		// does not resolve is left to today's write path, which refuses or creates exactly as the same delta would.
++		for (const key of Object.keys(delta)){
++			const parts = hops(key), last = parts.pop();
++			const at_node = parts.length ? walk(node, parts) : node;
++			if (parts.length && at_node === undefined) continue;
++			const methods = new Set(surface_of(at_node?.constructor ?? Class).map(m => m.name));
++			const lists = at_node && typeof at_node.lists === "function" ? at_node.lists() : {};
++			if (lists[last]) return { ok: false, why: `"${key}" is a list; use call: "${key}.add" (or another of its verbs) to change it, set a field inside it with a dotted key ("${key}.<id>.<field>"), or get: "${key}" to read it. Nothing was written.` };
++			if (methods.has(last)) return { ok: false, why: `"${key}" is a method; use call: "${key}". Nothing was written.` };
++		}
++	}
++	if (used_verb === "call" && Class){
++		const parts = hops(call), method = parts.at(-1), parent = parts.slice(0, -1);
++		const base = at.target.length ? node_at(live_or_refuse(), at.target) : live_or_refuse();
++		const node = parent.length ? walk(base, parent) : base;
++		if (parent.length && node === undefined) return { ok: false, why: `no such path: "${parent.join(".")}". Nothing was written.` };
++		const owner = node?.constructor ?? Class;
++		if (owner?.queries?.includes(method)) return { ok: false, why: `"${method}" only reads; use get. Nothing was written.` };
++		const methods = surface_of(owner).map(m => m.name);
++		if (!methods.includes(method)) return { ok: false, why: `"${method}" is not a method on "${[...at.target, ...parent].join(".") || "this item"}". Known methods: ${methods.join(", ") || "(none)"}. Nothing was written.` };
++	}
++
+ 	// READ: `item({path, read:"a.b.c"})` writes nothing. It replays the SAME live root a write uses and walks the dotted
+ 	// path one get() per step (walk_path reuses `hop`, the write path's own walker). Never together with `delta`.
+ 	if (read !== undefined){
+@@ -1840,7 +1896,12 @@ export function page_tools(resolve_log = null){
+ 			async (args, ctx = {}) => JSON.stringify(await run_item(args, { resolve_log, ...ctx }, true))),
+ 
+ 		tool("item", ITEM_DESCRIPTION,
+-			{ path: ITEM_PATH, delta: { type: "object", description: "ONE JSONL line, exactly what Item.set(delta) takes and the log holds. Omit it to read the current state. {\"help\":{}} returns the instructions again." },
++			{ path: ITEM_PATH,
++				get: { type: "string", description: "Read a dotted path, e.g. \"tasks.link-dot.state\" — never writes, same answer as `read` (below)." },
++				set: { type: "object", description: "Change plain fields, e.g. {\"title\": \"Plans\"}. Writes one log line, the same as the equivalent `delta`. Refused if a key names a method (use `call`) or a child list (use `call: \"<list>.add\"` or `get`)." },
++				call: { type: "string", description: "A dotted path to a method, e.g. \"tasks.add\" or \"tasks.link-dot.complete\". Writes one log line, the same as the equivalent `delta`. Refused if the last step is not a method, or is a query (use `get`)." },
++				args: { description: "The method's argument, for `call` only (e.g. {title: \"x\"}). Omit for a method that takes none, e.g. call: \"start\"." },
++				delta: { type: "object", description: "ONE JSONL line, exactly what Item.set(delta) takes and the log holds. Omit it to read the current state. {\"help\":{}} returns the instructions again." },
+ 				read: { type: "string", description: "A dotted path to read with NO write, e.g. \"content.today\" (never together with `delta`). Answers {ok:true, read, value}: an Item as its data with every List inside replaced by {total, rows:[{id,type,title}]}; a List as that same rows shape; a query the class lists (help's \"queries\": completion_score, tally, cost, …) is CALLED and answers its value, still with no write; anything else as the plain value. Capped near 4 KB (then `truncated:true`). A path that does not resolve answers {ok:false, why:\"no such path: <the first missing step>\", here:[the ids or keys that exist at the last good step]}." } },
+ 			[],
+ 			async (args, ctx = {}) => JSON.stringify(await run_item(args, { resolve_log, ...ctx }))),
+diff --git a/Servex/doc/item-tool.md b/Servex/doc/item-tool.md
+index 5b6e0ef74..b64a00e6d 100644
+--- a/Servex/doc/item-tool.md
++++ b/Servex/doc/item-tool.md
+@@ -2,6 +2,8 @@
+ 
+ `item({path, delta})` in `Servex/agents/page_tools.js`: `page_set` generalised to any Item class. `delta` is one log line, the object `Item.set()` takes. A key naming a method calls it, a key naming a child walks into it, anything else assigns (`set_one` in `core/Item/Item.js`; there is no second apply).
+ 
++**The three verbs** (merge 1 of the plan at [/live/plan/item-tool/](/live/plan/item-tool/)): `get`, `set` and `call` sit beside `delta` and `read`. Each becomes exactly the `delta`/`read` a caller would have written — `verbs_to_delta()` at the top of `run_item_now` — so everything below is unchanged: `item({path, get:"a.b"})` = `read:"a.b"`; `item({path, set:{title:"x"}})` = `delta:{title:"x"}`; `item({path, call:"tasks.add", args:{title:"x"}})` = `delta:{tasks:{add:{title:"x"}}}`; `item({path, call:"start"})` = `delta:{start:{}}`. A `set` key that names a method or a list, or a `call` whose last step isn't a method (or is a query), is refused by name, checked against `surface_of(Class)` and `node.lists()` — the same data `instructions.methods` comes from. More than one of `delta`/`read`/`get`/`set`/`call` in one call is refused. Full detail and the AI-facing version: [core/Page/doc/ai-api.md](/framework/core/Page/doc/ai-api.md), "The three verbs". Test: `node Servex/agents/item-verbs.test.mjs`.
++
+ - **Which log:** a url's folder holds `task.jsonl` (Task), else `session.jsonl` (Session, `core/Session/Session.js`), else `page.jsonl` (Page). `task.jsonl` beside a `page.jsonl` means a task folder. A `class` key on line 1 wins when `Item.types` registers that name (`class_for`); an unknown name falls back to the file's own class.
+ - **`path` is a site-absolute URL, never a repo-relative one with `public/` on the front** (seen 2026-11-07, item-validate): `item({path: "/framework/ai/sessions/…/", delta})`, not `item({path: "public/framework/ai/sessions/…/", delta})`. A `path` that starts with `public/` resolves against `PUBLIC` the same way a correct one does, so it lands at `public/public/…` instead — a folder git already ignores (`.gitignore:256`, `public/public/`), so the call still answers `{ok:true, line:{…}, size:{…}}` and LOOKS like it landed, but the real `session.jsonl` (or `page.jsonl`) a reviewer or a fresh agent reads never gets the line. Found when a minion's own "log" calls through `mcp__local__item` left no trace in its task's `session.jsonl`; `public/public/` held the misdirected writes instead (removed, nothing of value was in it). The safe route when unsure: `node .claude/hooks/append.mjs <absolute-path-to-task.jsonl-or-session.jsonl> <lines.json>`, which takes a real filesystem path, never a URL.
+ - **One live root per file, for any class** (2026-10-28, build I): every file is replayed once into `Item.Store.for(url)`, and each write is one line applied to that live root (`try_line`), then appended. A page write no longer replays the whole page: `page_set`, `page_add`, `page_call` and `page_log` all go through `run_item`, and a page's answer is drawn from the live `Page` (`page_picture`). Measured on the 1167 `page.jsonl` files in git: 1137 draw exactly as the old text replay, 19 differ cosmetically (an untyped item, a nested data card flattened, a title a line set now shows, one order), 11 need a browser to replay (their writes were already refused; reads fall back to the text replay). At most 1000 live roots are kept (`LIVE_CAP`; the least recently used go cold and replay on their next call). A browser's raw page line (`record_lines`) advances a warm page the same way; one node's Page cannot apply is still written and the warm root dropped (a task line is refused instead).
+diff --git a/Servex/readme.md b/Servex/readme.md
+index 50b7de91e..a07001425 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -43,7 +43,7 @@ class Servex {
+ 
+ | Folder or file | What |
+ |---|---|
+-| `agents/` | `Agents.js` (`spawn` → `open_task` → SDK `query()`), `tools.js` (the in-process tools incl. `spawn_agent`), `roles.js` (role → its readme in [`roles/`](agents/roles/readme.md), skills and posture), `Dispatcher.js`, `ChatWriter.js` (V1 `{chat}` lines to `session.messages`; tests `ChatWriter.move.test.mjs`, `ChatWriter.order.test.mjs`), `Sessions.js` (a voice session's fast and smart seats; the fast seat is the voice assistant by default, `session-assistant.txt` = `voice`/`fast`/`off`; both have `parent: "sessions"` so their turn-ends reach `Sessions.hire()`, and `nest_agents` in `page_tools.js` files the fast seat's cost under the smart seat of the same `parent_session`, test `seat-cost.test.mjs`), `ChatWriter.js` (mirrors each `{chat}` line `Sessions.write()` makes into the session's real chat list, `session.messages` and `session.sentences`, and, through the item tool, a `{place}` improve as that sentence's cleaned text, in place, and a new-topic `{place}` as one List `move` line; tests `chat-messages.test.mjs`, `ChatWriter.move.test.mjs`: [core/Session/Chat](/framework/core/Session/Chat/readme.md)), `WakePolicy.js` (when a voice session's smart seat is woken; test `WakePolicy.test.mjs`: [wake-policy](/framework/ux/Dictate/doc/wake-policy.md)), `page_tools.js` (item, page_set/page_add/page_call/page_read/page_log/page_note; `item` also answers **queries** with no write, e.g. `item({path, delta:{"summary":{}}})`: [doc/item-tool.md](doc/item-tool.md)), `inbox.js`, `claims.js`, `directory.js` |
++| `agents/` | `Agents.js` (`spawn` → `open_task` → SDK `query()`), `tools.js` (the in-process tools incl. `spawn_agent`), `roles.js` (role → its readme in [`roles/`](agents/roles/readme.md), skills and posture), `Dispatcher.js`, `ChatWriter.js` (V1 `{chat}` lines to `session.messages`; tests `ChatWriter.move.test.mjs`, `ChatWriter.order.test.mjs`), `Sessions.js` (a voice session's fast and smart seats; the fast seat is the voice assistant by default, `session-assistant.txt` = `voice`/`fast`/`off`; both have `parent: "sessions"` so their turn-ends reach `Sessions.hire()`, and `nest_agents` in `page_tools.js` files the fast seat's cost under the smart seat of the same `parent_session`, test `seat-cost.test.mjs`), `ChatWriter.js` (mirrors each `{chat}` line `Sessions.write()` makes into the session's real chat list, `session.messages` and `session.sentences`, and, through the item tool, a `{place}` improve as that sentence's cleaned text, in place, and a new-topic `{place}` as one List `move` line; tests `chat-messages.test.mjs`, `ChatWriter.move.test.mjs`: [core/Session/Chat](/framework/core/Session/Chat/readme.md)), `WakePolicy.js` (when a voice session's smart seat is woken; test `WakePolicy.test.mjs`: [wake-policy](/framework/ux/Dictate/doc/wake-policy.md)), `page_tools.js` (item, page_set/page_add/page_call/page_read/page_log/page_note; `item` takes `get`/`set`/`call` beside `delta`/`read`, and also answers **queries** with no write, e.g. `item({path, delta:{"summary":{}}})` or `item({path, get:"summary"})`: [doc/item-tool.md](doc/item-tool.md)), `inbox.js`, `claims.js`, `directory.js` |
+ | `asks/`, `cards/` | the asks ledger (`Asks.js`), cards (`Cards.js`, writes `ai/cards.jsonl`) |
+ | `ext/` | `remote/` (voice-app door), `openrouter/` (non-Anthropic models), `refine/`, `local/`, `recite/` (recite-server, text to speech: [ext/recite/readme.md](ext/recite/readme.md)) |
+ | `ErrorLine.js` | a tool call that throws writes `{"error","where":"file:line","tool","agent"}` into the calling agent's session log (test `ErrorLine.test.mjs`; [doc/tool-process.md](doc/tool-process.md)) |
+diff --git a/public/framework/core/Page/doc/ai-api.md b/public/framework/core/Page/doc/ai-api.md
+index a3ad4e2a8..4afc9628e 100644
+--- a/public/framework/core/Page/doc/ai-api.md
++++ b/public/framework/core/Page/doc/ai-api.md
+@@ -2,6 +2,21 @@
+ 
+ An agent changes a page with **one tool, `page_set`**, and looks at it with **one tool, `page_read`**. Everything else is a delta: a small JSON object the agent picks itself.
+ 
++## The three verbs
++
++The `item` tool (below, and every example on this page) now takes `get`, `set` and `call` beside `delta` and `read` — the plan at [/live/plan/item-tool/](/live/plan/item-tool/), merge 1. `get` reads (never writes, the same answer as `read`), `set` changes plain fields, `call` runs a method. Each becomes exactly the `delta` a caller would have written, so the log, validation and replay never see a difference; `delta` and `read` still work.
++
++```js
++item({ path, get: "tasks.link-dot.state" })   // same as read: "…" — no write, same answer shape
++item({ path, set: { title: "Plans" } })       // → delta {title: "Plans"}; one line
++item({ path, set: { "tasks.x.priority": 2 } }) // dotted keys allowed (the existing a.b shorthand)
++item({ path, call: "tasks.add", args: { title: "x" } })      // → delta {tasks: {add: {title: "x"}}}
++item({ path, call: "tasks.link-dot.complete", args: { outcome: "…" } }) // → {tasks: {"link-dot": {complete: {…}}}}
++item({ path, call: "start" })                               // no args → {start: {}}
++```
++
++A `set` key that names a method or a child list is refused (`"start" is a method; use call: "start"`); a `call` whose last step is not a method, or is a query, is refused too (`"completion" only reads; use get`). More than one of `delta`/`read`/`get`/`set`/`call` in one call is refused.
++
+ ## The model: a page is a log of deltas
+ 
+ ```
+@@ -48,7 +63,7 @@ The tool stamps `id`, `by` and `ts` for you, and answers `{ok, ids, line, size}`
+ 
+ ## Asking without writing: queries
+ 
+-`page_set` changes, but a class can also list **queries**: methods and getters that only read (`static queries` on the class, `Item.describe().queries`). With the item tool, a delta whose keys are all queries is answered and **writes no line**: `item({path, delta:{"summary":{}}})` answers `{ok, answer:{summary:{…}}}`. `item({path, delta:{"progress":{},"cost":{}}})` asks two at once; `target:["a"]` asks the child `a`. A delta that mixes a query with a change is refused (send two calls). There is no separate `get` key. Detail and the list for Task and Session folders: [Servex/doc/item-tool.md](/Servex/doc/item-tool.md).
++`page_set` changes, but a class can also list **queries**: methods and getters that only read (`static queries` on the class, `Item.describe().queries`). With the item tool, a delta whose keys are all queries is answered and **writes no line**: `item({path, delta:{"summary":{}}})` answers `{ok, answer:{summary:{…}}}`. `item({path, delta:{"progress":{},"cost":{}}})` asks two at once; `target:["a"]` asks the child `a`. A delta that mixes a query with a change is refused (send two calls). The `get` verb (above) is the plain way to ask for one: `item({path, get:"summary"})`. Detail and the list for Task and Session folders: [Servex/doc/item-tool.md](/Servex/doc/item-tool.md).
+ 
+ A bad line is refused before it is written: a `_` key, a `part-*` type nobody registered (`core/Page/parts/kinds.js` is the one list), or a line that would not replay. The answer says why and `Nothing was written.` Detail: [Servex/doc/item-tool.md](/Servex/doc/item-tool.md), "A real Page".
+ 

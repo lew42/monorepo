@@ -1,0 +1,324 @@
+diff --git a/public/framework/core/Plugin/readme.md b/public/framework/core/Plugin/readme.md
+index 0b27fcd4ff..bc0066b9d1 100644
+--- a/public/framework/core/Plugin/readme.md
++++ b/public/framework/core/Plugin/readme.md
+@@ -45,3 +45,4 @@ Badge.make_default(b);                             // "Make default": b's overri
+ 
+ - [doc/design-notes.md](./doc/design-notes.md) — events vs extension vs mixins, ordering, cost, debugging, names considered.
+ - [doc/investigation.md](./doc/investigation.md) — what existed before this, and who used it.
++- [/live/demos/plugins/](/live/demos/plugins/) — the MVP demo: a page as a tree of plugins, with a saved switch.
+diff --git a/public/live/demos/page.jsonl b/public/live/demos/page.jsonl
+index b2af2d46a6..3cb2d64760 100644
+--- a/public/live/demos/page.jsonl
++++ b/public/live/demos/page.jsonl
+@@ -20,3 +20,6 @@
+ {"file":"code-card/page.jsonl"}
+ {"content":{"add":{"id":"codecard1","type":"part-link","path":"./code-card/","title":"Code card — js, json and css, highlighted"}},"ts":"2026-11-06T23:30:00.000Z","by":"minion-code-card"}
+ {"file":"ref/"}
++{"file":"ref/page.js"}
++{"file":"plugins/"}
++{"file":"plugins/page.js"}
+diff --git a/public/live/demos/plugins/Badge.js b/public/live/demos/plugins/Badge.js
+new file mode 100644
+index 0000000000..58b073b28e
+--- /dev/null
++++ b/public/live/demos/plugins/Badge.js
+@@ -0,0 +1,23 @@
++// A plugin that is ALSO pluggable: Badge.use(Count) makes a plugin of a plugin (core/Plugin/PluginEntry.js:25-33,
++// "row.plugins" and "active"). Badge.attach(inst) runs on the DemoPage instance; it makes the badge element, then
++// makes a real `new Badge(...)` instance to hold it, so Badge's own plugins (Count) attach the normal way.
++import { Plugin } from "../../../framework/core/Plugin/Plugin.js";
++import Count from "./Count.js";
++
++export class Badge extends Plugin {
++	static attach(inst){
++		inst.el.style.position = inst.el.style.position || "relative";
++		const el = document.createElement("span");
++		Object.assign(el.style, { position: "absolute", top: "-.6em", right: "-.6em", background: "var(--prime, #6366f1)", color: "#fff",
++			borderRadius: "999px", minWidth: "1.4em", height: "1.4em", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: ".75em" });
++		inst.el.appendChild(el);
++		inst._badge = new Badge({ el });
++	}
++	static detach(inst){
++		inst._badge?.el.remove();
++		inst._badge = null;
++	}
++}
++Badge.use(Count);
++
++export default Badge;
+diff --git a/public/live/demos/plugins/Border.js b/public/live/demos/plugins/Border.js
+new file mode 100644
+index 0000000000..ddbd12166f
+--- /dev/null
++++ b/public/live/demos/plugins/Border.js
+@@ -0,0 +1,7 @@
++// A plugin: draws a border on the host's box.
++export class Border {
++	static attach(inst){ inst.el.style.border = "3px solid var(--prime, #6366f1)"; inst.el.style.borderRadius = "8px"; }
++	static detach(inst){ inst.el.style.border = ""; inst.el.style.borderRadius = ""; }
++}
++
++export default Border;
+diff --git a/public/live/demos/plugins/Count.js b/public/live/demos/plugins/Count.js
+new file mode 100644
+index 0000000000..2cb6feceef
+--- /dev/null
++++ b/public/live/demos/plugins/Count.js
+@@ -0,0 +1,7 @@
++// A sub-plugin of Badge: adds a number to the badge it attaches to (Badge.use(Count)).
++export class Count {
++	static attach(badge){ badge.el.textContent = "1"; }
++	static detach(badge){ badge.el.textContent = ""; }
++}
++
++export default Count;
+diff --git a/public/live/demos/plugins/DemoPage.js b/public/live/demos/plugins/DemoPage.js
+new file mode 100644
+index 0000000000..e32f2398d8
+--- /dev/null
++++ b/public/live/demos/plugins/DemoPage.js
+@@ -0,0 +1,10 @@
++// The host: one box element its plugins change. See readme.md for the shape of the whole demo.
++import { Plugin } from "../../../framework/core/Plugin/Plugin.js";
++import Border from "./Border.js";
++import Badge from "./Badge.js";
++import Wide from "./Wide.js";
++
++export class DemoPage extends Plugin {}
++DemoPage.use(Border, Badge).available(Wide);   // Wide is known but off until switched on
++
++export default DemoPage;
+diff --git a/public/live/demos/plugins/DemoPage.test.mjs b/public/live/demos/plugins/DemoPage.test.mjs
+new file mode 100644
+index 0000000000..aec22918a2
+--- /dev/null
++++ b/public/live/demos/plugins/DemoPage.test.mjs
+@@ -0,0 +1,60 @@
++// One DemoPage, its three plugins, a sub-plugin, and the overrides round trip. Node: no DOM, so a tiny FakeEl stands in.
++// Run: node public/live/demos/plugins/DemoPage.test.mjs
++import { test } from "../../../framework/core/Test/Test.js";
++import { Plugin } from "../../../framework/core/Plugin/Plugin.js";
++
++class FakeEl {
++	constructor(){ this.style = {}; this.kids = []; this.parentNode = null; this._text = ""; }
++	get textContent(){ return this._text; }
++	set textContent(v){ this._text = String(v); }
++	appendChild(k){ k.parentNode = this; this.kids.push(k); return k; }
++	remove(){ this.parentNode?.kids && (this.parentNode.kids = this.parentNode.kids.filter(k => k !== this)); this.parentNode = null; }
++}
++globalThis.document ??= { createElement: () => new FakeEl() };
++
++Plugin.store = new Map();
++const { default: DemoPage } = await import("./DemoPage.js");
++const { default: Border } = await import("./Border.js");
++const { default: Badge } = await import("./Badge.js");
++const { default: Wide } = await import("./Wide.js");
++
++const make = (overrides) => new DemoPage({ el: new FakeEl(), ...(overrides && { overrides }) });
++
++test("Border and Badge are on by default; Wide is known but off", t => {
++	const d = make();
++	t.ok(d.el.style.border, "Border attached: the box has a border");
++	t.ok(d.el.kids.length === 1, "Badge attached: one child element, the badge");
++	t.ok(!d.el.style.width, "Wide is off by default: never attached, so never touched the box");
++});
++
++test("toggling Wide for this instance only widens the box, and undoes cleanly", t => {
++	const d = make();
++	d.plugins.set({ Wide: { enabled: true } });
++	t.eq(d.el.style.width, "100%", "Wide attached");
++	d.plugins.set({ Wide: { enabled: false } });
++	t.eq(d.el.style.width, "", "Wide detached, cleanly");
++});
++
++test("Badge's own sub-plugin Count writes a number on the badge, and the row is inactive while Badge is off", t => {
++	const d = make();
++	t.eq(d._badge.el.textContent, "1", "Count attached to the real Badge instance behind the badge element");
++	const badge_row = [...d.plugins].find(r => r.get("name") === "Badge");
++	const count_row = [...badge_row.plugins].find(r => r.get("name") === "Count");
++	t.ok(count_row.active, "Count's row is active while Badge is on");
++	d.plugins.set({ Badge: { enabled: false } });
++	count_row.up = badge_row;   // row.plugins (not read again here) is what normally sets this on draw
++	t.ok(!count_row.active, "Count's row reads inactive once its parent, Badge, is off");
++});
++
++test("overrides round-trips through load_overrides: what this instance changed, and only that", t => {
++	const d = make();
++	d.plugins.set({ Wide: { enabled: true }, Border: { enabled: false } });
++	const saved = d.overrides;
++	t.eq(saved, { Wide: { enabled: true }, Border: { enabled: false } }, "overrides is plain JSON of just the changes");
++	const e = make(saved);
++	t.eq(e.el.style.width, "100%", "a fresh instance loaded with the same overrides: Wide on");
++	t.ok(!e.el.style.border, "…and Border off: the override is loaded before Border ever attaches, so it never touches the box");
++	e.reset_plugins();
++	t.eq(e.overrides, {}, "reset_plugins drops every override");
++	t.ok(e.el.style.border, "…back to the class default: Border on again");
++});
+diff --git a/public/live/demos/plugins/Wide.js b/public/live/demos/plugins/Wide.js
+new file mode 100644
+index 0000000000..7607afa6d5
+--- /dev/null
++++ b/public/live/demos/plugins/Wide.js
+@@ -0,0 +1,7 @@
++// A plugin: makes the host's box full width. Known but off by default (DemoPage.available(Wide)).
++export class Wide {
++	static attach(inst){ inst.el.style.width = "100%"; }
++	static detach(inst){ inst.el.style.width = ""; }
++}
++
++export default Wide;
+diff --git a/public/live/demos/plugins/files.jsonl b/public/live/demos/plugins/files.jsonl
+new file mode 100644
+index 0000000000..80024cbade
+--- /dev/null
++++ b/public/live/demos/plugins/files.jsonl
+@@ -0,0 +1,10 @@
++{"file":"DemoPage.js"}
++{"file":"Border.js"}
++{"file":"Count.js"}
++{"file":"Badge.js"}
++{"file":"Wide.js"}
++{"file":"page.js"}
++{"file":"DemoPage.test.mjs"}
++{"file":"DemoPage.test.mjs.tmp.48704.74643a0b5b43"}
++{"file":"DemoPage.test.mjs.tmp.48704.74643a0b5b43","gone":true}
++{"file":"readme.md"}
+diff --git a/public/live/demos/plugins/page.js b/public/live/demos/plugins/page.js
+new file mode 100644
+index 0000000000..bfb808ab32
+--- /dev/null
++++ b/public/live/demos/plugins/page.js
+@@ -0,0 +1,91 @@
++import { Page, md, div, span, label, input, button, pre, code } from "/app.js";
++import DemoPage from "./DemoPage.js";
++import { JSONL } from "/framework/ext/JSONL/JSONL.js";
++import { RecordWriter } from "/framework/core/Item/RecordWriter.js";
++
++// This page's own page.jsonl is NOT the routing kind (readme.md): it is one plain data file, the single source of
++// truth for the one switch a reader can save. A line here is `{"overrides": {...}}`, the plain object `inst.overrides`
++// gives (core/Plugin/Plugin.js). The item tool writing the same line also reaches this reader, so an open tab redraws.
++const FILE_URL = new URL("./page.jsonl", import.meta.url).pathname;
++
++let overrides = {}, demo = null, redraw = () => {};
++const jsonl = new JSONL({ url: FILE_URL });
++jsonl.read = entries => {
++	for (const o of entries) if (o && typeof o.overrides === "object") overrides = o.overrides;
++};
++// Resolved before this page's own content() builds its DOM (same reason as /live/demos/ref/page.js): `overrides` is
++// already the saved value by the time `new DemoPage({overrides})` runs, so the first draw already shows it.
++await jsonl.live(() => { demo?.load_overrides(overrides); redraw(); });
++
++// A worktree's own page answers RecordWriter's one entry point "stubbed" (page_tools.js: "another checkout"), so the
++// line never lands there — the same case core/Item/Store.js#flush falls back for: send the ones not taken straight
++// through this page's own dev server (Outbox, the wire half of FsFile.append).
++const save = async () => {
++	if (!demo) return;
++	const { rest } = await RecordWriter.post(FILE_URL, { lines: [{ overrides: demo.overrides }] });
++	if (!rest.length) return;
++	const { default: Outbox } = await import("/framework/core/Item/Outbox.js");
++	await Outbox.shared().send(FILE_URL, rest, { item: true });
++};
++
++export default new Page({
++	meta: import.meta,
++	title: "Plugins",
++	description: "A page is a tree of plugins. Flip a switch; the page changes now and after a reload.",
++	icon: "extension",
++
++	content(){
++		md("**This page is a tree of plugins.** Flip a switch; the page changes now and after a reload.");
++
++		const el = document.createElement("div");
++		el.className = "card";
++		Object.assign(el.style, { minHeight: "6em", minWidth: "10em", display: "flex", alignItems: "center", justifyContent: "center" });
++		el.textContent = "hello";
++		demo = new DemoPage({ el, overrides });
++
++		let $panel;
++		const toggle = (row, checked) => { row.set({ enabled: checked }); save(); draw(); };
++
++		const sub_row = row => label.c("flex v-center gap", () => {
++			const box = input().attr("type", "checkbox");
++			box.el.checked = !!row.get("enabled");
++			box.el.disabled = !row.up?.active;
++			box.el.addEventListener("change", e => toggle(row, e.target.checked));
++			span(row.get("name"));
++		}).style("marginLeft", "1.6em").style("opacity", row.active ? "1" : ".5");
++
++		const top_row = row => div.c("flow", () => {
++			label.c("flex v-center gap", () => {
++				const box = input().attr("type", "checkbox");
++				box.el.checked = !!row.get("enabled");
++				box.el.addEventListener("change", e => toggle(row, e.target.checked));
++				span(row.get("name"));
++			});
++			row.plugins?.forEach(sub_row);
++		});
++
++		// A braced body, never a concise one: List#forEach returns the List itself (chaining), and a concise
++		// arrow's return value is auto-appended by View (append_fn) — the list would draw itself as a debug tree.
++		const draw = () => { $panel.empty(() => { demo.plugins.forEach(top_row); }); };
++
++		div.c("flex wrap gap", () => {
++			div.c("card pad flow", () => {
++				$panel = div.c("flow");
++				button.c("btn prim").text("Reset").attr("type", "button").click(() => { demo.reset_plugins(); save(); draw(); });
++			}).style("flex", "1 1 16em");
++			div.c("flex v gap", () => {
++				span.c("muted", "Live result");
++				div.c("surface pad").el.appendChild(el);
++			}).style("flex", "1 1 16em");
++		});
++		draw();
++		redraw = draw;
++
++		md("## What you just did");
++		pre(() => code(`page.plugins.set({Wide: {enabled: true}});   // this instance only\npage.overrides;                               // {Wide: {enabled: true}}\npage.reset_plugins();                         // back to the class defaults`)).attr("style", "white-space: pre-wrap; word-break: break-word");
++
++		md.details(import.meta, "readme.md", "Readme");
++	},
++
++	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", () => span.c("h4", "A tree of plugins"))); },
++});
+diff --git a/public/live/demos/plugins/page.jsonl b/public/live/demos/plugins/page.jsonl
+new file mode 100644
+index 0000000000..a731c73064
+--- /dev/null
++++ b/public/live/demos/plugins/page.jsonl
+@@ -0,0 +1,2 @@
++{"overrides":{"Wide":{"enabled":true}},"by":"owner","ts":"2026-11-10T00:35:40.931Z"}
++{"overrides":{},"by":"owner","ts":"2026-11-10T00:35:44.242Z"}
+diff --git a/public/live/demos/plugins/readme.md b/public/live/demos/plugins/readme.md
+new file mode 100644
+index 0000000000..ef03a07dc6
+--- /dev/null
++++ b/public/live/demos/plugins/readme.md
+@@ -0,0 +1,27 @@
++# Plugins demo — a page is a tree of plugins, toggleable
++
++**What it shows:** [/live/demos/plugins/](/live/demos/plugins/) is the MVP for the owner's idea ([/live/plan/plugins/](/live/plan/plugins/)): "every page is just a collection of plugins, and plugins can have plugins… a tree of plugins… toggleable." One box (`DemoPage`, a [core/Plugin](/framework/core/Plugin/) host) with three plugins; a tree panel beside it with a checkbox per plugin, nested for a plugin's own plugin. A switch is saved, so it survives a reload.
++
++## Files
++
++- `DemoPage.js` — `class DemoPage extends Plugin`, the host. Its one box element (`inst.el`) is what the plugins change.
++- `Border.js`, `Wide.js` — plain plugins: `static attach(inst)` / `static detach(inst)` on the box.
++- `Badge.js` — a plugin that is **also** pluggable (`Badge.use(Count)`, a plugin of a plugin). `Badge.attach(inst)` draws the badge element, then makes a real `new Badge({el})` to hold it, so Badge's own plugins attach the normal way.
++- `Count.js` — Badge's own plugin: writes a number onto the badge.
++- `page.js` — the page: the box, the tree panel (one row per `demo.plugins`, nested rows from `row.plugins`), a Reset button, and the "what you just did" code block.
++- `page.jsonl` — **not** a routing file (this page is a `page.js` page): one plain data file, the single source of truth for the saved switch. One line, `{"overrides": {...}}`, the plain object `demo.overrides` gives.
++- `DemoPage.test.mjs` — the core test (`node public/live/demos/plugins/DemoPage.test.mjs`).
++
++## How the switch is saved
++
++A checkbox calls `row.set({enabled})`, which flips the plugin on the live box; then the page calls `RecordWriter.post(FILE_URL, {lines: [{overrides: demo.overrides}]})` (`core/Item/RecordWriter.js`) to append one line to this page's own `page.jsonl`. On load, `page.js` reads that file (`JSONL`, `ext/JSONL/JSONL.js`) for the last `overrides` line and passes it to `new DemoPage({overrides})` before the first draw. The same file is kept live (`jsonl.live(...)`): a line the item tool writes there reaches every open tab too, so it redraws with no reload.
++
++## Watch out
++
++- `Badge` is a plugin of `DemoPage` AND a `Plugin` host of its own; its sub-plugin (`Count`) attaches to the real `new Badge({el})` instance `Badge.attach` makes internally, not to the `DemoPage` instance.
++- The sub-plugin's checkbox toggles the CLASS-level row (`Badge.enable`/`disable`), not a per-`DemoPage`-instance override — there is one `Count` setting shared by every demo box, which is enough for this MVP.
++
++## More
++
++- [core/Plugin](/framework/core/Plugin/) — the system this demo shows: `Host.use`, `inst.plugins`, `inst.overrides`.
++- [/live/demos/](/live/demos/) — every demo on this page.

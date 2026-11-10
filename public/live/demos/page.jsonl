@@ -25,3 +25,6 @@
 {"file":"cards/"}
 {"file":"instant/page.jsonl"}
 {"content":{"add":{"type":"part-link","id":"link-instant","path":"./instant/","title":"Instant page changes"}},"by":"pages.add","ts":"2026-11-10T00:22:05.007Z"}
+{"content":{"add":"{\"type\":\"part-link\",\"path\":\"./cards/\",\"title\":\"Card styles — five list/card variants, side by side\"}"},"by":"minion-card-styles","ts":"2026-11-10T00:24:03.979Z"}
+{"content":{"add":{"id":"plugins-a-page-is-a-tree-of-plugins-togg","type":"part-link","path":"./plugins/","title":"Plugins — a page is a tree of plugins, toggleable","by":"minion-minion-plugins-mvp","ts":"2026-11-10T00:29:10.226Z"}},"by":"minion-minion-plugins-mvp","ts":"2026-11-10T00:29:10.227Z"}
+{"content":{"remove":"plugins-a-page-is-a-tree-of-plugins-togg"},"by":"mastermind-page-design","ts":"2026-11-10T00:43:12.893Z"}

@@ -1,0 +1,199 @@
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/plan.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/plan.md
+index 02aa81b49..e69a97584 100644
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/plan.md
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/plan.md
+@@ -27,6 +27,8 @@ The brief: [requirements.md](requirements.md). The owner's words: [../night-2026
+    - `Item.adopt_slot` (`core/Item/Item.js:362`) is called only from `set_one()` during a line replay (always a fresh hydrate) and `Item.restore()`'s own walk — never from a caller handing it an item already parented elsewhere.
+ 
+    **Conclusion: no caller anywhere in `public/framework` or `Servex` relies on `add()`'s move side-effect for an item it got from somewhere else.** Flipping `add()`'s default later looks safe on this evidence, but stays the owner's decision, not assumed from a grep.
++
++   **Done, 2026-11-09** (minion `list-add-ref`, under the owner's "make the best decision… as long as it's not destructive"): census re-run on that day's code, same conclusion (no live caller relies on the move); `List.add()` now makes a Ref for a live Item already parented elsewhere, same as `ref()`. [core/Item/doc/ref.md](/framework/core/Item/doc/ref.md), [core/List/readme.md](/framework/core/List/readme.md).
+ 3. **Step 3 writes Refs for every session record**, not only voice sessions: when a task or child session is created at a session's root, Servex appends `{"messages":{"add":{"type":"Ref","path"|"url",…,"by":"servex","at":…}}}` right after the line that created it. Alt: voice sessions only (fewer lines; but then an agent session's chat has no children). Nested subtasks get no Ref.
+ 4. **Prompt upgrade lives on `Prompt`**, no new Card class: a Prompt gains `kind` (`"task"|"request"|"question"`; absent = a plain prompt) and `items: List` (sub-items, each `{title, sentences:[ids]}`, or a Ref). A Prompt with a `kind` is drawn as a card: title → items → raw text. Alt: `class Card extends Prompt` (synthesis has a Card); wins when an agent-made card with no owner sentences needs its own fields (image, rows).
+ 5. **The raw prompt is rebuilt, never stored:** `Prompt.raw` joins its sentences' `text` in order, by the same rule Whisper's chunks were joined (one space, no trimming of the sentence's own text). Checked against V1's `{chat}` owner lines of real `v-u48msei`.
+diff --git a/public/framework/core/Item/doc/ref.md b/public/framework/core/Item/doc/ref.md
+index ee3e26be2..184edcc70 100644
+--- a/public/framework/core/Item/doc/ref.md
++++ b/public/framework/core/Item/doc/ref.md
+@@ -35,6 +35,10 @@ A move to another file leaves `{moved_to: {url, path}}` at the old place: `item.
+ 
+ **`list.ref(x)` (`core/List/List.js`, chat-model step 2, `persistence-sync/design/fixes.md` "Adding an item that already has a parent", F7): links an item any list already holds, instead of moving it.** Same file: `{path}` (`Item.Store.address(x, x.root())`); another file: `{url: x.root().store.url, path}`. It builds that Ref and `add()`s it — so it answers the new Ref, never `x` itself. The one way to really move an item is still `item.move_to(dest)` (above).
+ 
++**`list.add(x)` makes that same Ref on its own (flipped 2026-11-09, the owner's sign-off, under "make the best decision… as long as it's not destructive"): when `x` is a live Item already parented to a List other than this one, `add(x)` returns `this.ref(x)` instead of re-parenting it.** `ref()` stays the explicit, equivalent call. Unchanged: an item with no parent yet, an item already in this same list, a plain object (so replay — which always hands `add()` plain JSON, never a live Item — never turns a line into a Ref), and `move_to(dest)` (it reaches `List.move` directly, never `add()`, so it still really moves). Click-through demo: [/live/demos/ref/](/live/demos/ref/) — one item in two lists, edit it in one, watch the other change.
++
++Superseded: the 2026-11-02 rewording below, kept as history — it reverted the original F7 build because the owner had not signed off and no census had been checked; both are now done.
++
+ **Reworded 2026-11-02 (vscode-mastermind; CLAUDE.md "ask before" a core API's meaning changes): `list.add(x)`'s OWN default is unchanged.** The original F7 plan had `add()` itself switch to a Ref whenever `x` already belonged to another list — built, then reverted the same day, because that is a change to what every existing caller of `add()` means, and the owner had not signed off on it. `ref()` is the explicit, additive way to get the same Ref today; `add()` keeps re-parenting an owned item exactly as it does on `compliance/dev` (the pre-existing gap: the item's `parent` moves, but the first list still lists it too) until a census of every caller (`public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/plan.md`, decision 2) is checked against the owner and `add()`'s default is flipped as its own, separate merge.
+ 
+ **`Chat.resurface(message)`** (`core/Session/Chat/Chat.js`, the owner, 2026-11-01): reading an old message again should put it back at the bottom of the conversation, but the log itself is never rewritten — the original line stays exactly where it was said. `resurface` calls `this.ref(message)` to add a same-file Ref at the bottom of `session.messages`, then sets `resurfaced: <the new Ref's id>` on the original, so a view can dim the original or draw an arrow from it to the Ref. Two lines (the Ref's `add`, the original's `set`), but written with no `await` between them: `Store.append` (`core/Item/Store.js`) queues both in the same tick and flushes them in ONE microtask, so they travel in one network write — a crash can only lose both, never leave the Ref without its mark (or vice versa). A true cross-line atomic guarantee (one line, not two) would need `Item.as_call`, which is built for a single item's own, deterministic verb; `resurface` touches two different items (the list and the original message), so it is documented here instead of forced into that shape.
+diff --git a/public/framework/core/List/List.js b/public/framework/core/List/List.js
+index 8d96410d5..3f7770a5e 100644
+--- a/public/framework/core/List/List.js
++++ b/public/framework/core/List/List.js
+@@ -285,6 +285,14 @@ export class List extends Item {
+ 	// or, on replay, inside `x` itself. The options form wins when both are given.
+ 	add(x, opts = {}){
+ 		if (Array.isArray(x)) return x.map(each => this.add(each, opts)).at(-1);   // {"add":[a, b]} is two adds, in order
++
++		// D13 flipped (2026-11-09, the owner's sign-off, census re-checked: no live caller relies on the move):
++		// a live Item already parented SOMEWHERE ELSE gets a Ref instead of being re-parented. A Ref itself moves
++		// between lists freely (it is only ever a pointer); a plain object (replay, or a caller building fresh
++		// data) and an item with no parent yet are both unchanged below. `item.move_to(dest)` is still the one
++		// real move. core/Item/doc/ref.md, "Made by List.ref() and Chat.resurface".
++		if (x instanceof Item && !(x instanceof Ref) && x.parent && this.index_of(x) === -1) return this.ref(x);
++
+ 		const after = "after" in opts ? opts.after : (is_plain(x) ? x.after : undefined);
+ 		const before = this.length;
+ 		const made = this.insert(x, { after });
+diff --git a/public/framework/core/List/List.test.mjs b/public/framework/core/List/List.test.mjs
+index f3b87d701..312f01b64 100644
+--- a/public/framework/core/List/List.test.mjs
++++ b/public/framework/core/List/List.test.mjs
+@@ -101,25 +101,33 @@ try {
+ 		t.eq(add_line?.notes?.[0]?.data?.text, "before", "add: a child-list member's data is a snapshot too — a same-tick set() on IT does not rewrite the add line either");
+ 	}
+ 
+-	// F7 evidence (persistence-sync/design/fixes.md, "Adding an item that already has a parent") — plan.md decision 2,
+-	// reworded 2026-11-02: `add()`'s own default is UNCHANGED (still re-parents, as compliance/dev), so no existing caller
+-	// breaks; `list.ref(x)` is the new, explicit way to LINK an item some other list already owns, same file -> {path},
+-	// another file -> {url, path}. `item.move_to(dest)` stays the only real move.
++	// F7 (persistence-sync/design/fixes.md, "Adding an item that already has a parent") — plan.md decision 2, flipped
++	// 2026-11-09 (the owner's sign-off, census re-checked on today's code: no caller relies on the move): `add()`'s own
++	// default now makes a Ref for an item some OTHER list already owns, same file -> {path}, another file -> {url, path}.
++	// `ref()` stays the explicit form (same call, same answer). `item.move_to(dest)` stays the only real move.
+ 	{
+ 		const { default: RefClass } = await import("../Item/Ref.js");
+ 		const two = Item.hydrate({ id: "two-lists", kids: [{ id: "k1", title: "K1" }, { id: "k2", title: "K2" }], box: [] });
+ 		const k1 = two.kids.find("k1"), k2 = two.kids.find("k2");
+ 
+-		t.eq(two.box.add(k1), k1, "add()'s own default is unchanged (F7 evidence, plan.md decision 2): adding an already-owned item still hands back the item itself, never a Ref");
++		const added = two.box.add(k1);
++		t.ok(added instanceof RefClass, "add(): an item owned by ANOTHER list gives a Ref instead of re-parenting it");
++		t.eq(added.path, "kids.k1", "add(): the Ref's path is the item's own dotted address");
++		t.eq(two.kids.find("k1"), k1, "add(): the item never left its first list (A still holds it)");
++		t.eq(k1.parent, two, "add(): the item's own parent is unchanged (still A's owner)");
++		t.eq(two.box.length, 1, "add(): only the Ref landed in the second list");
+ 
+-		const ref = two.box.ref(k2);   // a second, untouched item, so this case never crosses the add() case above
+-		t.ok(ref instanceof RefClass, "ref(): links an item owned by ANOTHER list with a Ref, instead of moving it");
++		const ref = two.box.ref(k2);   // ref() is the same call, explicitly
++		t.ok(ref instanceof RefClass, "ref(): still links an item owned by ANOTHER list with a Ref");
+ 		t.eq(ref.path, "kids.k2", "ref(): the Ref's path is the item's own dotted address");
+ 		t.eq(two.kids.find("k2"), k2, "ref(): the item itself never left its first list");
+-		t.eq(two.box.length, 2, "ref(): the add() item and the Ref both landed in the second list");
++		t.eq(two.box.length, 2, "ref(): the add() Ref and the ref() Ref both landed in the second list");
++
++		t.eq(two.box.add({ id: "fresh" }).id, "fresh", "add(): a plain object (unparented, or replay data) is unchanged");
++		t.eq(two.box.add(new Item({ id: "loose" })).id, "loose", "add(): a live Item with no parent yet is unchanged");
+ 
+ 		const throws = fn => { try { fn(); return false; } catch { return true; } };
+-		t.ok(throws(() => two.box.ref(new Item({ id: "loose" }))), "ref(): an unattached item throws (it has no address to point at)");
++		t.ok(throws(() => two.box.ref(new Item({ id: "loose2" }))), "ref(): an unattached item throws (it has no address to point at)");
+ 		const other = Item.hydrate({ id: "no-store", kids: [{ id: "k9" }] });
+ 		t.ok(throws(() => two.box.ref(other.kids.find("k9"))), "ref(): an item in another tree with no store url throws");
+ 
+@@ -135,10 +143,19 @@ try {
+ 			storeB.attach(rootB);
+ 
+ 			const shared = rootA.kids.find("shared");
+-			const fref = rootB.box.ref(shared);
+-			t.ok(fref instanceof RefClass, "ref(): across files also makes a Ref");
+-			t.eq([fref.url, fref.path], ["/a/a.jsonl", "kids.shared"], "ref(): the Ref names the other file's url and the item's path there");
+-			t.eq(rootA.kids.find("shared"), shared, "ref(): and the item stayed in its own file");
++			const fref = rootB.box.add(shared);   // across files too: add() behaves exactly like ref()
++			t.ok(fref instanceof RefClass, "add(): across files also makes a Ref");
++			t.eq([fref.url, fref.path], ["/a/a.jsonl", "kids.shared"], "add(): the Ref names the other file's url and the item's path there");
++			t.eq(rootA.kids.find("shared"), shared, "add(): and the item stayed in its own file");
++
++			// move_to still really moves — never goes through add() with the item still parented.
++			const mover = Item.hydrate({ id: "mv", title: "Mover" });
++			rootA.kids.add(mover);
++			t.eq(rootA.kids.find("mv"), mover, "move_to setup: the mover starts in kids");
++			mover.move_to(rootB.box);
++			t.eq(rootA.kids.find("mv"), undefined, "move_to(): the item leaves its old list (a real move, not a Ref)");
++			t.eq(rootB.box.find("mv"), mover, "move_to(): and lands in the new one, itself — not a Ref to it");
++			t.eq(mover.parent, rootB, "move_to(): its own parent follows it");
+ 		} finally { fs.rmSync(DIR3, { recursive: true, force: true }); }
+ 	}
+ 
+diff --git a/public/framework/core/List/readme.md b/public/framework/core/List/readme.md
+index d3d4f5f26..90a9096ef 100644
+--- a/public/framework/core/List/readme.md
++++ b/public/framework/core/List/readme.md
+@@ -88,7 +88,7 @@ The words that find this module's past work (counts: `sessions N files · M comm
+ - **Old way (deprecated 2026-10-28):** `List#each(fn)` and `List#children` are the pre-rename aliases; use `forEach(fn)` and `items`. The mark is in `List.js`; `node Server/Deprecated.mjs` counts what still calls them.
+ - A member is named in a line by its id, bare or as `#id`; `list.member(id)` is `find(id)` (an Item's `member` searches its lists), and `{"add()": …}` calls the verb by the D13 spelling: [core/Item/doc/line-format.md](../Item/doc/line-format.md).
+ - **`add` writes an envelope** (fix 5, `/framework/research/2026/10/29/persistence-sync/design/fixes.md`): an Item member's own fields ride under `data`, and its child lists ride as their own top-level keys (`made.toJSON()`'s own shape) — never spread flat into the add payload, where a data field named `after` or `type` would collide with the list's own metadata and a child list would be lost silently.
+-- **`list.ref(item)` links an item ANOTHER list already owns** (F7, built 2026-11-01, reworded 2026-11-02, chat-model step 2): makes a Ref to it — same file `{path}`, another file `{url, path}` — and `add()`s that. **`add()`'s own default is unchanged** (still a silent re-parent, exactly as on `compliance/dev`): switching it is a separate, later, owner-approved merge, pending the census in [plan.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/plan.md) decision 2 finding no caller relies on the move. A caller that means to MOVE an owned item must call `item.move_to(dest)`, never `add()` or `ref()`: [`../Item/doc/ref.md`](../Item/doc/ref.md#made-by-listref-and-chatresurface).
++- **`list.ref(item)` links an item ANOTHER list already owns** (F7, built 2026-11-01, reworded 2026-11-02, flipped 2026-11-09): makes a Ref to it — same file `{path}`, another file `{url, path}` — and `add()`s that. **`add()`'s own default now does the same thing**, on its own, for any live Item already parented to a different list (the owner's sign-off, census re-checked finding no caller relies on the move: [plan.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/plan.md) decision 2). `ref()` stays as the explicit, equivalent call. A caller that means to MOVE an owned item must call `item.move_to(dest)`, never `add()` or `ref()`: [`../Item/doc/ref.md`](../Item/doc/ref.md#made-by-listref-and-chatresurface). Live demo, click-through: [/live/demos/ref/](/live/demos/ref/).
+ - **`List.View = DefaultView`** (2026-11-02, chat-model step 4, [ux/Content/Object/DefaultView.js](/framework/ux/Content/Object/DefaultView.js)): a bare List drawn with `view(list)` or `list.render()` updates on `add`/`remove`/`move`/`order`/`clear` keyed by member id — only the changed rows redraw, the rest just move. The wiring is a side effect of loading `DefaultView.js`: a page that never imports it still gets `undefined` from `list.render()`. A Ref member (above) draws as `RefView` (`DefaultView.ref_view()`), never a nested DefaultView. The keyed loop itself is `DefaultView.place(box, members, cache, make, update)`, ONE static helper (Law 6) — `DefaultView.reconcile()` calls it, and so does `ext/Chat/list/ChatList.js`'s own `paint()`, which keeps its own bubble `fill()` as `place()`'s `make`/`update` instead of running a second keyed loop. Test: `ux/Content/Object/list-view.test.mjs`.
+ - A saved `move` line replays: `move({id, after, from})` (the whole payload, as `set()` hands it) is the line form, and a cross-list `from` path is resolved from the Store's host.
+ - No reactive or derived lists — they leaked a listener per row; derive with `[...list].filter(…)`: [doc/decisions.md](./doc/decisions.md)
+diff --git a/public/live/demos/ref/files.jsonl b/public/live/demos/ref/files.jsonl
+new file mode 100644
+index 000000000..8f533756e
+--- /dev/null
++++ b/public/live/demos/ref/files.jsonl
+@@ -0,0 +1,2 @@
++{"file":"shots/"}
++{"file":"page.js"}
+diff --git a/public/live/demos/ref/page.js b/public/live/demos/ref/page.js
+new file mode 100644
+index 000000000..83f3a648c
+--- /dev/null
++++ b/public/live/demos/ref/page.js
+@@ -0,0 +1,54 @@
++import { Page, md, div, h3, h4, p, button, pre, code } from "/app.js";
++import Item from "/framework/core/Item/Item.js";
++import RefView from "/framework/core/Item/RefView.js";
++
++// One item, two places. List A owns it; List B holds a Ref to it (core/Item/doc/ref.md) — a pointer, never a copy.
++// Today's `add()` (List.js, flipped 2026-11-09) makes that Ref itself: `root.b.add(shared)` below needs no `.ref()` call.
++const root = Item.hydrate({ id: "ref-demo", a: [{ id: "shared", title: "One source of truth" }], b: [] });
++const shared = root.a.find("shared");
++const ref = root.b.add(shared);
++// Resolved up front, at module load (top-level await; the Router already awaits the whole module): a same-file Ref
++// resolves on the very next microtask, before the page's own content() builds its DOM — RefView's own lazy resolve()
++// would otherwise fire its "target" event before the row is attached to the document and never redraw (RefView.js,
++// `this.drawn && !this.el.isConnected` bails and unsubscribes). Pre-resolving means `ref.target` is already known by
++// the time `new RefView({ref})` runs, so its FIRST draw already shows the real row — no race, no missed event.
++await ref.resolve();
++
++const TITLES = ["One source of truth", "Edited from List A", "Still the same item", "Changed again, still one item"];
++let i = 0;
++
++export default new Page({
++	meta: import.meta,
++	title: "Ref demo",
++	description: "One item, two places: edit the title in List A and List B's Ref shows the change, no reload.",
++	icon: "link",
++	content(){
++		md("**One item, two places.** List A owns the item below; List B holds a [Ref](/framework/core/Item/doc/ref.md) to it — a pointer, never a copy. Press the button and watch BOTH cards change, because List B reads THROUGH the Ref to the same item, not a snapshot of it.");
++		let $titleA;
++		div.c("flex gap auto ref-demo-row", () => {
++			div.c("card pad flow ref-demo-card", () => {
++				h3("List A — owns the item");
++				$titleA = p.c("ref-demo-title", shared.get_one("title"));
++				button.c("btn prim").text("Edit the title").attr("type", "button").click(() => {
++					shared.set({ title: TITLES[++i % TITLES.length] });
++				});
++			});
++			div.c("card pad flow ref-demo-card", () => {
++				h3("List B — holds a Ref");
++				new RefView({ ref });   // already resolved (above); redraws live on the Ref's own "target" event if the target ever changes again
++				const stored = ref.toJSON();
++				p.c("muted ref-demo-source").text("what List B actually stores:");
++				pre(() => code(JSON.stringify({ type: stored.type, ...stored.data }))).attr("style", "white-space: pre-wrap; word-break: break-word");
++			});
++		});
++		// List A's own title redraws from the item it owns, directly; List B above redraws from the Ref, through resolve()
++		// and the "target" event — two different paths to the same change, so the demo proves the Ref, not just the item.
++		shared.on("change", (key, value) => { if (key === "title") $titleA.text(value); });
++
++		div.c("card pad flow", () => {
++			h4("How it works");
++			pre(() => code(`b.add(x)      // x already lives in a → b gets a Ref, a keeps x\nx.move_to(b)  // the real move`)).attr("style", "white-space: pre-wrap; word-break: break-word");
++			md("[core/Item/doc/ref.md](/framework/core/Item/doc/ref.md) — what a Ref is and how it resolves.");
++		});
++	},
++});
