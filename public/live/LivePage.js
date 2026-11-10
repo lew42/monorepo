@@ -727,7 +727,11 @@ export default class LivePage extends Page {
 		render(){
 			const { page, item } = this, P = page.constructor;
 			const own = item instanceof PageLink ? page.link_url(LivePage.path_of(item)) : page.url + item.id + "/";
-			let $title, $icon;
+			let $title, $icon, title_icon = null, their_icon = null;
+			const paint = () => {
+				if (item instanceof PageLink) return void P.glyph($icon, P.card_icon(item.get("icon") ?? title_icon ?? their_icon ?? P.link_icon(item, own)));
+				P.glyph($icon, item.get("icon") || title_icon);
+			};
 			const go = () => {
 				this.tc("live-entity", !!$title?.only);
 				$icon?.tc("is-hidden", !!$title?.only);   // "@Page" brings that thing's own icon in its mention
@@ -737,21 +741,18 @@ export default class LivePage extends Page {
 			div.c("live-card-body", () => {
 				div.c("live-card-head", () => {
 					// The icon its page's header shows (LivePage.icon_name): a link asks the page, a card is an item stored here.
-					// No fallback to the "stored inside its parent" dot here (P.stored.item): a card with neither an `icon`
-					// field nor a mapped emoji in its title shows no icon at all, rather than wasting a column on the dot.
+					// No fallback to the "stored inside its parent" dot here (P.stored.item, via P.card_icon): a card with
+					// neither an `icon` field, a mapped emoji in its title, nor (a link) a target page icon shows no icon at
+					// all, rather than wasting a column on the dot — the page header can still show it.
 					$icon = span.c("live-icon live-card-icon");
-					let title_icon = null;
-					const paint = () => P.glyph($icon, item.get("icon") || title_icon);
-					if (item instanceof PageLink){
-						P.glyph($icon, P.card_icon(P.link_icon(item, own)));
-					} else this.bind(item, "icon", paint);
+					if (item instanceof PageLink) paint(); else this.bind(item, "icon", paint);
 					$title = new P.Heading({ tag: "h4", item, classes: "live-card-title", on_text: go,
-						strip_emoji: !(item instanceof PageLink), on_icon: n => { title_icon = n; paint(); } });
+						strip_emoji: true, on_icon: n => { title_icon = n; paint(); } });
 				});
 				if (item instanceof PageLink && own.startsWith("/live/")){
 					const theirs = () => {
 						P.title_of(own).then(t => $title.fix(t)).catch(() => {});
-						P.icon_of(own).then(n => P.glyph($icon, P.card_icon(n ?? P.link_icon(item, own)))).catch(() => {});
+						P.icon_of(own).then(n => { their_icon = n; paint(); }).catch(() => {});
 					};
 					theirs();
 					P.on_meta(this, u => u === own, theirs);   // its page renames itself: the card follows
