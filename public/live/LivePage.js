@@ -737,7 +737,7 @@ export default class LivePage extends Page {
 				$icon?.tc("is-hidden", !!$title?.only);   // "@Page" brings that thing's own icon in its mention
 				this.$go?.attr("href", $title?.only ?? own).attr("aria-label", String(item.get("title") ?? item.id));
 			};
-			this.attr("id", item.id).attr("data-kind", item.constructor.name);
+			this.ac("card").attr("id", item.id).attr("data-kind", item.constructor.name);   // "live-card" comes from the class name (View.js); the kit's own frame is added here
 			div.c("live-card-body", () => {
 				div.c("live-card-head", () => {
 					// The icon its page's header shows (LivePage.icon_name): a link asks the page, a card is an item stored here.
