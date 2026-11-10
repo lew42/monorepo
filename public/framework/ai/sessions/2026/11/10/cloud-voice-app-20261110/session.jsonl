@@ -48,3 +48,6 @@
 {"tool_call":{"at":"2026-11-10T16:01:17.493Z","tool":"updates","args_hash":"44136fa355b3","caller":"voice-app"}}
 {"tool_call":{"at":"2026-11-10T16:01:18.494Z","tool":"shell","args_hash":"2d546cd97704","caller":"voice-app"}}
 {"log":{"at":"2026-11-10T10:08:42-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-10T10:18:42-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-10T10:23:42-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-10T10:33:42-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
