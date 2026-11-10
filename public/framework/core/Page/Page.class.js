@@ -726,7 +726,7 @@ export class Page extends Item {
 		// ⚠ The guard above is why the wait belongs here in core (no "Chaining cycle detected for promise"). (doc/decisions.md)
 		const walk = async () => {
 			// The last level only needs titles and icons: a still-unloaded child takes them from its listing line and imports nothing.
-			const navs = levels === 1 && Page.from_index && await Page.Index.navs(Page, this.url);
+			const navs = (levels === 1 && Page.from_index && await Page.Index.navs(Page, this.url)) || null;
 			return Promise.all([...this.children.keys()].map(name => this.nav_held(name, navs) ||
 				this.child(name, 0).then(child => child?.load_all_children(child.leaf ? 0 : levels - 1).loading)));
 		};
