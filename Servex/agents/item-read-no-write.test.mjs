@@ -11,10 +11,11 @@ import { run_item } from "./page_tools.js";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", ".."), SESSIONS = path.join(ROOT, "public/framework/ai/sessions");
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; };
-// Where a new folder would land: sessions/ itself and today's day folders (local and UTC), each listed with its files.
+// Where a new folder would land: sessions/ itself and today's day folders (local and UTC), each listed with its files. session-folders.json is
+// SessionFolders' own gitignored cache (written on its first refresh), not a session.
 const days = () => { const d = new Date(), f = (y, m, dd) => path.join(SESSIONS, String(y), String(m).padStart(2, "0"), String(dd).padStart(2, "0"));
 	return [SESSIONS, f(d.getFullYear(), d.getMonth() + 1, d.getDate()), f(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate())]; };
-const tree = () => days().map(dir => { try { return dir + ":" + fs.readdirSync(dir).sort().join(","); } catch { return dir + ": none"; } }).join("\n");
+const tree = () => days().map(dir => { try { return dir + ":" + fs.readdirSync(dir).filter(n => n !== "session-folders.json").sort().join(","); } catch { return dir + ": none"; } }).join("\n");
 
 const before = tree();
 const reads = [
@@ -28,8 +29,13 @@ for (const [what, args] of reads){
 	try { r = await run_item(args, { caller: "t" }); } catch (e) { threw = e; }
 	ok(!threw, `${what}: answers, never throws (${threw?.message})`);
 	ok(r && (r.ok !== undefined || r.why || r.value !== undefined), `${what}: an answer or a reason (${JSON.stringify(r)?.slice(0, 120)})`);
-	ok(tree() === before, `${what}: the sessions tree is unchanged`);
+	const t = tree();
+	ok(t === before, `${what}: the sessions tree is unchanged` + (t === before ? "" : `\nbefore ${before}\nafter  ${t}`));
 }
+// A non-uuid session that HAS a day folder (a cloud voice record) is found by its bare id, and read without a write.
+const voice = await run_item({ path: "/framework/ai/sessions/cloud-voice-app-20261106/", read: "id" }, { caller: "t" });
+ok(voice.ok !== false, "a non-uuid session with a folder is found by its bare id: " + JSON.stringify(voice).slice(0, 120));
+ok(tree() === before, "and reading it changes nothing");
 // A write to a name nobody has is still refused, and still makes nothing.
 const w = await run_item({ path: "/framework/ai/sessions/no-such-agent-xyz/", delta: { title: "x" } }, { caller: "t" });
 ok(w.ok === false && /nothing was created/.test(w.why), "a write to an unknown name is refused: " + w.why);
