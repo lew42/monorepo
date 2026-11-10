@@ -6,19 +6,20 @@ Work in a worktree (`take_worktree`, use its `path` and `url`). Commit by exact 
 
 ## A. Five card styles as variants of `ui/card`
 
-File: `public/framework/ui/card/page.js`. It already declares variants as `children: [demo.page("linked", linked, {...}), ...]` (around line 88). Add five, compact to large, each a `demo.page(name, fn, {note})` whose fn composes `.card`, `ui/row`, `ui/item`, `ui/tree` classes:
+File: `public/framework/ui/card/page.js`. It already declares variants as `children: [demo.page("linked", linked, {...}), ...]` (around line 88). Add six, compact to large, each a `demo.page(name, fn, {note})` whose fn composes `.card`, `ui/row`, `ui/item`, `ui/tree` classes:
 
 - `titled`: one card with an H3 title over body text (what /live/ cards are: title .9rem over .85rem body today, see `public/live/LivePage.css` `.live-card-*`).
 - `stack`: three cards stacked with zero gap (the `.flush-stack` pattern already exists; grep `flush-stack` in `public/framework/styles/`).
 - `tree-rows`: icon-and-name rows like a file tree (use `ui/item` and `ui/tree`; read their readmes).
 - `compact`: a compact list in one card (the existing `list` variant may already be this: reuse or rename it, don't duplicate).
 - `large`: today's large card (the top `card` specimen; reuse it).
+- `fit`: a short card that stays content-width inside a wide container, instead of stretching (gap found on /live/session/: a three-line card is ~1800px wide at 3440). Prefer an existing width word (grep `measure`, `fit`, `hug` in `framework.css`) before adding one; if you add one, it goes in the card rule's layer and the `note` says so. Shoot it at 3440 too.
 
 Starting point: the unmerged draft `git show draft/card-styles:public/live/demos/cards/page.js` (and `cards.css`). Take its markup ideas; do not copy its CSS file.
 
 **Rule: no page CSS.** The variants add no `<style>`, no `.css` file and no inline `style()` beyond what the existing variants already do. If a look truly needs CSS, add it once to the component's own css (`ui/row/row.js`, `ui/item/item.js`, or `public/framework/framework.css`'s card rule) in its layer, and say so in the variant's `note`.
 
-Check: `/framework/library/?at=ui/card` shows the five in the right rail; each opens full size in the middle. Shoot 400 and 1200 of `?at=ui/card/tree-rows` headless (`mcp__site__shot`) and read the shots yourself.
+Check: `/framework/library/?at=ui/card` shows the six in the right rail; each opens full size in the middle. Shoot 400 and 1200 of `?at=ui/card/tree-rows` headless and read the shots yourself (the `mcp__site__shot` tool may be disconnected; fall back to Playwright through `Server/Browser.mjs`, as `Server/smoke.mjs:34` does).
 
 ## B. Arrow keys in the library
 
