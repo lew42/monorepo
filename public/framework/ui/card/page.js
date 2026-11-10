@@ -201,7 +201,7 @@ export default new Page({
 
 		md("## Other card pages");
 
-		md("This is the one card page; the others below are a different thing sharing the word, or an earlier lab — linked, never deleted:\n\n- [`core/Page/card/`](/framework/core/Page/card/) — the earlier card lab (grounds, headers, nesting levels); superseded by the grounds shown above.\n- [`ux/Card/`](/framework/ux/Card/) — the AI board's own card page.\n- [`imagine/gallery/cards/`](/imagine/gallery/cards/)\n- [`imagine/vary/colstyles/cards/`](/imagine/vary/colstyles/cards/)\n- [`imagine/feeds/data/cards/`](/imagine/feeds/data/cards/)\n- [`ux/Dictate/variants/cards/`](/framework/ux/Dictate/variants/cards/)\n- [`blog/framework/class-cards/`](/blog/framework/class-cards/)\n- [`core/new/1/site/nav/cards/`](/framework/core/new/1/site/nav/cards/)");
+		md("This is the one card page; the others below are a different thing sharing the word, or an earlier lab — linked, never deleted:\n\n- [`core/Page/card/`](/framework/core/Page/card/) — the earlier card lab (grounds, headers, nesting levels); superseded by the grounds shown above.\n- [`ux/Card/`](/framework/ux/Card/) — the AI board's own card page.\n- `imagine/gallery/cards/` (not linked: its layout check fails on compliance/dev, see ai/todo.md)\n- [`imagine/vary/colstyles/cards/`](/imagine/vary/colstyles/cards/)\n- [`imagine/feeds/data/cards/`](/imagine/feeds/data/cards/)\n- [`ux/Dictate/variants/cards/`](/framework/ux/Dictate/variants/cards/)\n- [`blog/framework/class-cards/`](/blog/framework/class-cards/)\n- `core/new/1/site/nav/cards/` (not linked: an old sandbox that errors by design)");
 
 		md("Next: [Stat tiles](/framework/ui/stats/) — the same surface, four across, one token retuned.");
 	},
