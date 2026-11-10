@@ -22,7 +22,8 @@
  * drive root (`C:\`, `/c`, `C:/`), `~` / `$HOME`, `..`, or the repo root — `.` or no path at all
  * while `cwd` IS that root, or an absolute path naming it outright (`C:\Code\lew42\monorepo`,
  * `C:\Code\lew42\worktrees\<any>`). A named subfolder or a single file is always fine, as is
- * `git grep` / plain `grep` with no `-r`.
+ * `git grep` / plain `grep` with no `-r`. A heredoc's body and anything inside quotes are data,
+ * never a command (`shell_segments`), so a regex like `grep|rg|find` in a script passes.
  *
  * ALLOWS everything else: `node Server/worktree-up.mjs`, `worktree-down.mjs`, `merge.mjs`,
  * `smoke.mjs`, `node --test`, `node --check`, any other `node <script>.js` that isn't
@@ -33,6 +34,26 @@
  * FAILS OPEN: any error inside this hook lets the command through. */
 
 const SEGMENTS = /\|\||&&|[;|]/;
+
+/* The shell commands in `raw`, for the search check: a heredoc's body is data, not commands,
+ * and a `|`, `;` or `&&` inside quotes is text (a regex like `grep|rg|find` in a script body
+ * was refused as a bare `rg`, 2026-11-09), so neither splits a command. A newline does. */
+function shell_segments(raw) {
+	const body = raw.replace(/<<-?\s*(['"]?)(\w+)\1[^\n]*\n[\s\S]*?\n[ \t]*\2[ \t]*(?=\n|$)/g, m => m.slice(0, m.indexOf("\n")));
+	const out = [];
+	let cur = "", quote = null;
+	for (let i = 0; i < body.length; i++) {
+		const c = body[i];
+		if (quote) { if (c === quote) quote = null; cur += c; continue; }
+		if (c === '"' || c === "'") { quote = c; cur += c; continue; }
+		const two = body.slice(i, i + 2);
+		if (two === "&&" || two === "||") { out.push(cur); cur = ""; i++; continue; }
+		if (c === "|" || c === ";" || c === "\n") { out.push(cur); cur = ""; continue; }
+		cur += c;
+	}
+	out.push(cur);
+	return out;
+}
 
 /* Everything after `node` in its own command segment, minus node's own flags (`-x`, `--y`) and
  * any `VAR=val` env assignment that comes after it: the first token left is the script node is
@@ -152,7 +173,7 @@ process.stdin.on("data", d => (raw += d)).on("end", () => {
 		}
 
 		// Unscoped recursive search: checked on the RAW command, so a quoted pattern stays intact.
-		for (const segment of raw_cmd.split(SEGMENTS)) {
+		for (const segment of shell_segments(raw_cmd)) {
 			const hit = scope_violation(segment, cwd);
 			if (hit) {
 				process.stderr.write(scope_reason(hit));

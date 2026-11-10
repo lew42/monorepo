@@ -1,37 +1,321 @@
 {
-  "at": "2026-11-09T21:30:00Z",
-  "method": "A one-shot PowerShell process sample (same technique as Processes.js's own loop), run through this worktree's PATCHED Processes.js — read-only, no server touched, no restart of the live Servex.",
+  "at": "2026-11-10T01:34:46.313Z",
+  "method": "GET http://127.0.0.1:8090/api/processes (live Servex, unfixed code, read-only) for the registry's own worktree/agent view, plus one fresh sample through THIS worktree's patched Servex/Processes.js (its own loop(), one tick) for the new grouping — see this script's own header for why both sources are needed. Run with: node measure.mjs",
   "new_grouping": {
-    "dev servers": { "n": 35, "mb": 1039, "note": "35 PROCESSES (cmd+conhost+node x2 per server tree), not 35 servers — see real_servers below" },
-    "leftover shells": { "n": 15, "mb": 172 },
-    "tunnel": { "n": 8, "mb": 91 },
-    "whisper": { "n": 1, "mb": 6 },
-    "browsers": { "n": 3, "mb": 3 }
+    "dev servers": {
+      "n": 31,
+      "servers": 8,
+      "mb": 1048
+    },
+    "tunnel": {
+      "n": 8,
+      "mb": 92
+    },
+    "whisper": {
+      "n": 1,
+      "mb": 7
+    },
+    "browsers": {
+      "n": 3,
+      "mb": 3
+    },
+    "leftover shells": {
+      "n": 15,
+      "mb": 197
+    },
+    "other of ours": {
+      "n": 0,
+      "mb": 0
+    }
   },
-  "real_servers": {
-    "count_from_new_grouping": 8,
-    "how_counted": "roots of the 'dev servers' process trees, minus the port-80 gate (gate.mjs is not a per-project server)",
-    "list": [
-      { "project": "monorepo", "port": 3104, "worktree": "C:/Code/lew42/monorepo", "cmd_root_pid": 20816 },
-      { "project": "qf-1", "port": null, "worktree": "C:/Code/lew42/worktrees/qf-1", "cmd_root_pid": 53360, "pool_slot": true },
-      { "project": "qf-2", "port": 51788, "worktree": "C:/Code/lew42/worktrees/qf-2", "cmd_root_pid": 25424, "pool_slot": true },
-      { "project": "qf-3", "port": 49378, "worktree": "C:/Code/lew42/worktrees/qf-3", "cmd_root_pid": 5508, "pool_slot": true },
-      { "project": "qf-4", "port": 49381, "worktree": "C:/Code/lew42/worktrees/qf-4", "cmd_root_pid": 9500, "pool_slot": true },
-      { "project": "qf-5", "port": 53953, "worktree": "C:/Code/lew42/worktrees/qf-5", "cmd_root_pid": 12644, "pool_slot": true },
-      { "project": "qf-6", "port": 52596, "worktree": "C:/Code/lew42/worktrees/qf-6", "cmd_root_pid": 2636, "pool_slot": true },
-      { "project": "dev-server-count", "port": 60079, "worktree": "C:/Code/lew42/worktrees/dev-server-count", "cmd_root_pid": 36160, "pool_slot": false, "note": "this task's own worktree, started by node Server/worktree-up.mjs; actively used right now, not idle" }
-    ]
-  },
-  "count_from_list_servers_online": 1,
+  "real_servers": [
+    {
+      "pid": 20448,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 20484,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 20544,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 20816,
+      "project": "monorepo",
+      "port": 3104,
+      "cwd": "C:/Code/lew42/monorepo",
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 51708,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 52384,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 6712,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 53360,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 42204,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 55132,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 44856,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 9500,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 8256,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 27420,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 33336,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 12644,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 47660,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 28896,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 50008,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 5508,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 34936,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 9052,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 47784,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 2636,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 6544,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 37588,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 16420,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 25424,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 21724,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 52836,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    },
+    {
+      "pid": 23092,
+      "project": "(no procs/*.json record — see why_they_disagree)",
+      "port": null,
+      "cwd": null,
+      "worktree_state": null,
+      "worktree_why": null,
+      "pool_slot": false
+    }
+  ],
+  "count_from_new_grouping": 8,
+  "count_from_list_servers_online": null,
   "count_from_procs_json": 1,
   "counts_agree": false,
-  "why_they_disagree": "list_servers (Servex's own in-memory Process objects) and procs/*.json (the on-disk record Process.spawn_detached() writes) both only know about 'monorepo' — the one project whose Process instance persisted a restart-survival record. The 7 running worktree servers (qf-1..qf-6, dev-server-count) are real, live node run.js processes (confirmed by this sample) that Servex's own registry currently shows as status 'stopped': they most likely started under an EARLIER Servex process and survived a later Servex restart as parent-gone orphans, with no procs/<name>.json record of their own to be re-adopted from. The new process-table grouping is read-only and process-based, so it sees all 8; list_servers and procs/*.json are registry-based and currently under-count by 7. This is a pre-existing registry/reality gap in Worktrees/Process.js, not something this task's fix changes — logged for awareness, not fixed here (out of this brief's scope: deliverable 3 only asks about idle_enough()/stop_idle() skipping a worktree that SHOULD be stopped, and that gap is a separate, likely cause of such a skip if it ever happens — see idle_check below)."
-  ,
+  "why_they_disagree": "list_servers / procs/*.json (Process.spawn_detached()'s own restart-survival record) only know about the server(s) that persisted a record; a server running right now with no procs/*.json row is a real, live node run.js process that most likely started under an EARLIER Servex process and survived a later restart as a parent-gone orphan. This is a pre-existing Worktrees/Process.js registry gap, logged for awareness and out of this brief's scope (deliverable 3 is about idle_enough()/stop_idle() skipping a server that SHOULD stop, not about this count).",
   "idle_check": {
-    "what": "For each running worktree server above, whether Worktrees.idle_enough() would call it idle right now.",
-    "qf-1_through_qf-6": "Never evaluated: stop_idle() skips every /^qf-\\d+$/ name unconditionally (Worktrees.js:208) — these are quick-fix pool slots Pool.js manages on its own. Working as designed.",
-    "dev-server-count": "Not idle: this is the present task's own worktree, with a live agent (this session) working in it right now. idle_enough() would see its task un-paused, un-landed, with a live agent, and return null.",
-    "finding": "No idle (paused/landed/stopped) non-pool worktree currently holds a running server. page-index, refiner-step6 and runaway-search — three worktrees that WERE running earlier today per the brief's own 18:52 measurement — show status 'stopped' with no live process in this sample, i.e. stop_idle() already did its job for them. Nothing to fix on this pass (deliverable 3's 'fine outcome' case)."
-  },
-  "related_but_out_of_scope": "The status desync above (list_servers/procs/*.json showing 1 real server where 8 run) means that IF a non-pool worktree server ever becomes a parent-gone orphan across a Servex restart while its task is idle, stop_idle()'s own check (`runner.status !== \"stopped\"`) would skip it, since the registry already (wrongly) says 'stopped' — so it would never be asked to stop, and would linger exactly as the owner's ask worried. No such case was found live today, so no fix was made; worth a line in Worktrees.js's own doc/processes.md as a known gap for whoever next touches Process.js's restart-survival records."
+    "what": "For each real server above, the live worktree registry's own state and why (live.worktrees.items, from Worktrees.js's judge() — unmodified by this fix), read from the SAME /api/processes call, not recomputed by hand.",
+    "note": "pool_slot servers (qf-*) are never evaluated by stop_idle() (Worktrees.js's own /^qf-\\d+$/ skip) — Pool.js manages them."
+  }
 }

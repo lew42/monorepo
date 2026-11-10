@@ -1,0 +1,61 @@
+{
+ "at": "2026-11-10T01:33:12.837Z",
+ "group_processes": 59,
+ "group_mb": 1428,
+ "real_servers": 9,
+ "servers": [
+  {
+   "pid": 20544,
+   "mb": 43,
+   "where": "gate (port 80)"
+  },
+  {
+   "pid": 52384,
+   "mb": 33,
+   "where": "monorepo"
+  },
+  {
+   "pid": 55132,
+   "mb": 11,
+   "where": "worktrees/qf-1"
+  },
+  {
+   "pid": 27420,
+   "mb": 17,
+   "where": "worktrees/qf-4"
+  },
+  {
+   "pid": 28896,
+   "mb": 32,
+   "where": "worktrees/qf-5"
+  },
+  {
+   "pid": 9052,
+   "mb": 33,
+   "where": "worktrees/qf-3"
+  },
+  {
+   "pid": 37588,
+   "mb": 32,
+   "where": "worktrees/qf-6"
+  },
+  {
+   "pid": 4692,
+   "mb": 32,
+   "where": "worktrees/dev-server-count"
+  },
+  {
+   "pid": 52836,
+   "mb": 32,
+   "where": "worktrees/qf-2"
+  }
+ ],
+ "procs_json_live": 1,
+ "known": [
+  {
+   "name": "monorepo",
+   "pid": 20816
+  }
+ ],
+ "agree": false
+}
