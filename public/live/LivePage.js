@@ -836,7 +836,7 @@ export default class LivePage extends Page {
 			const row = (label, text) => div.c("ui-row live-settings-row", () => { span.c("live-settings-label", label); span.c("live-settings-value", text); });
 			// The class row, the Card/Saved-screen row: one box (the kit's `.card`), each row the kit's `.ui-row`,
 			// same move as the file list below — one list reads as one thing, not three separate boxes.
-			if (src || of.focus || of.screen) div.c("card", () => {
+			if (src || of.focus || of.screen) div.c("card live-settings-box", () => {
 				if (src){
 					const dir = src.replace(/[^/]+$/, ""), name = src.split("/").at(-1);
 					a.c("ui-row live-files-row live-settings-class", () => { icon("code"); span(name); span.c("live-settings-note", "draws this page"); }).href(dir + "settings/" + name + "/");
