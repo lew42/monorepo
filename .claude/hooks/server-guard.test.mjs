@@ -55,12 +55,18 @@ const BLOCK = [
 	// chained with another command
 	[`cd C:/Code/lew42/worktrees/qf-6 && node server.js`, MAIN],
 	[`node server.js; echo done`, MAIN],
+	// a real search after a heredoc, or on its own line, is still a command
+	["cat <<'EOF' > x.txt\nhello\nEOF\nfind / -name y", MAIN],
+	["echo start\nfind . -name y", MAIN],
 ];
 const ALLOW = [
 	// unscoped recursive search: a named subfolder, a single file, git grep anywhere, no -r
 	[`grep -rn pattern Servex/`, MAIN],
 	// a quoted "-r" is the pattern being searched for, not the recursive flag
 	[`grep -n "-r" file.txt`, MAIN],
+	// a heredoc body and a quoted regex are data: a "|rg|" inside them is never a bare rg
+	["node - <<'EOF'\nconst K = /^(grep|rg|du|find)$/;\nEOF", MAIN],
+	[`node -e "const K = /grep|rg|find/"`, MAIN],
 	[`grep -rln DayPromptsRefine Server/Processes.js`, MAIN],
 	[`find Servex/ -name "*.test.mjs"`, MAIN],
 	[`rg pattern Servex/`, MAIN],
