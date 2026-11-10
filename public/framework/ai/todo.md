@@ -144,6 +144,12 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 
 ## 3. Proposed by agents, not requested
 
+- **Session pages, the next weight** (2026-11-10, [before/after](/live/plan/index/), [review](sessions/2026/11/09/spawned/mastermind-page-index/build/review.md)):
+  - **Problem:** a session page still loads about 27 MB: `directory.json` 5.6 MB (`AISessionDetail`), `ai/index.json` 4 MB, `asks/undone.json` 1.9 MB (`UndoneAsksPage`), each fetched by a page that needs a slice.
+  - **Page index on by default** (`?index=1` today, cuts page.js 161 → 47): fix `Server/PageNav.mjs`'s first-literal title read (anchor it to the page's own options) and carry `card` / `class_card` on the nav line (`Previews.js`), then flip `Page.from_index` and run `node Server/PageNav.mjs --apply`.
+  - **Small:** `Server/plugins/PageIndex.js` caches an empty folder answer by mtime; one shared `DashState` per tab.
+  - **Live only after a dev server restart:** `/api/index` and the nav-carrying list lines (port 3104 was held by a server Servex did not start, 2026-11-10).
+
 - **The audit's top ten** half-finished tasks: two copies of the board, the health readout not
   in the dev bar, the dev bar's missing chat tab, ask-about-any-element, Make onto ux/Tree,
   the skill trims, two Editor bugs, the /layouts/shell/ hero, four AI 2 items, and a small-fix
