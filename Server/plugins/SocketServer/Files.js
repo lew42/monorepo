@@ -4,6 +4,7 @@ import crypto from "crypto";
 import Subpages from "../../../Servex/agents/Subpages.js";
 import ModuleMove from "../../ModuleMove.mjs";
 import PageFiles from "../PageFiles.js";
+import PageNav from "../../PageNav.mjs";
 import Tail from "./Tail.js";
 
 const PUBLIC = path.resolve("public");
@@ -238,7 +239,9 @@ export default class Files {
 		const [leaving, arriving] = forward ? [from_parent, to_parent] : [to_parent, from_parent];
 		const [leave_name, arrive_name] = forward ? [name, to_name] : [to_name, name];
 		new Subpages(leaving).append({ file: `${leave_name}/page.jsonl`, gone: true });
-		if (new Subpages(arriving).kind) new Subpages(arriving).append({ file: `${arrive_name}/page.jsonl` });
+		// The arriving line carries the page's nav, as PageFiles writes it, so the watcher has nothing to add after it (core/Page/doc/index-jsonl.md).
+		const nav = PageNav.of(path.join(arriving, arrive_name));
+		if (new Subpages(arriving).kind) new Subpages(arriving).append(Object.keys(nav).length ? { file: `${arrive_name}/page.jsonl`, nav } : { file: `${arrive_name}/page.jsonl` });
 	}
 
 	manifest_name(name){ return `${new Date().toISOString().replace(/[-:.]/g, "")}-${name.replace(/[^A-Za-z0-9_-]/g, "_")}-${crypto.randomBytes(2).toString("hex")}.json`; }
