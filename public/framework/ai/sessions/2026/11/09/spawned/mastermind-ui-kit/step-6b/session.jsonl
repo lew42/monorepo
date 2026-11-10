@@ -289,3 +289,4 @@
 {"review":{"at":"2026-11-09T21:39:10-06:00","answer":{"n":9,"reply":"noted: no action"}},"by":"mastermind-ui-kit","session":"22d5fc62-984d-4dba-b450-0d89daa07770"}
 {"complete":{"outcome":"/live/'s file list and settings rows now use the kit's .card and .ui-row; LivePage.css lost 14 declarations and gained 4 (net -10); ui/parts.js css() no longer breaks in node.","evidence":["merge 8c126dc28 on compliance/dev (commits ee6c0d2dc, 28338b97b, 06976a215, cc910bf73)","LayoutCheck /live/done/settings/ and /live/plan/ui-kit/settings/ at 400 and 1200: broken 0 before and after","LivePage.test 44 passed","review: 7 fixed, 2 noted","shots: step-6b/shots/settings-400-fixed.png, file-400-fixed.png"],"at":"2026-11-09T21:41:40-06:00"}}
 {"assign":{"closed_by":"mastermind-ui-kit","closed_at":"2026-11-09T21:41:40-06:00","closed_why":null}}
+{"log":{"at":"2026-11-09T21:42:17-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
