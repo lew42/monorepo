@@ -59,6 +59,7 @@ A session has exactly ONE folder: `public/framework/ai/sessions/YYYY/MM/DD/<fold
 ## Ask before
 
 - **Everything else: decide.** If git can revert it, make the best decision, do it in small merges, and say what you chose. Only destructive or irreversible steps (deleting, killing processes, force-pushing, spending past the budget) wait for the owner. (the owner, 2026-11-09: "make the best decision you can, as long as it's not destructive")
+- **An idea from the owner is a problem to solve, not a build order.** Plan first: a plan page with the MVP on top and the alternatives below, then a fresh reviewer who hasn't seen your reasoning checks the shape. If the owner doesn't answer, don't wait: build the MVP, demo it (a link where it works, on /live/done/), and build the next phase only if it's a priority and usage allows. He judges the demo. (the owner, 2026-11-09: "we're sometimes pulling the trigger too fast when we don't have the right shape yet")
 
 - Breaking a constraint: no build step (`public/` runs as-is; imports are real `.js` URLs), no server at runtime (production is static), no new npm dependency (`npx` and global tools are fine).
 - Major surgery (renaming a core API, moving a responsibility, anything with a dozen callers): since 2026-11-09, plan it, then decide it yourself in small revertible merges; ask only when it can't be undone with git.
