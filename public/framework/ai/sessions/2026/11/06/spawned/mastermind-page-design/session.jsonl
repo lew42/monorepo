@@ -2619,3 +2619,9 @@
 {"pid_exit":6676,"ended":"2026-11-10T06:15:31-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid_exit":32520,"ended":"2026-11-10T06:15:31-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"log":{"at":"2026-11-10T06:19:37-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T12:19:37.832Z"}
+{"log":{"at":"2026-11-10T16:57:17-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-10T22:57:17.502Z"}
+{"log":{"at":"2026-11-10T16:57:17-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T22:57:17.662Z"}
+{"log":{"at":"2026-11-10T16:57:17-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-10T22:57:17.893Z"}
+{"pid":35908,"cmd":"node C:\\Code\\lew42\\monorepo/.claude/hooks/ledger.mjs session-end","why":"child of claude.exe","agent":"mastermind-page-design","session":"7caa4528-8b66-43e8-88d1-d8e2270bc2d8","started":"2026-11-10T17:00:42-06:00","ppid":49076,"seen":"sample","by":"servex"}
+{"log":{"at":"2026-11-10T17:00:45-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T23:00:45.877Z"}
+{"pid_exit":35908,"ended":"2026-11-10T17:00:55-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
