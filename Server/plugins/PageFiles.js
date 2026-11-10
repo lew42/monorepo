@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import watch from "../watch.js";
+import PageNav from "../PageNav.mjs";
 
 /* EVERY FOLDER KEEPS ITS OWN FILE LIST, one JSON line per change, so a page gets its
  * folder's listing from one small file instead of the whole site's directory.json.
@@ -10,6 +11,12 @@ import watch from "../watch.js";
  *   {"file":"kid/page.js"}               a subfolder with a page.js
  *   {"file":"kid/"}                      a plain subfolder
  *   {"file":"photo.png","gone":true}     it disappeared
+ *   {"file":"kid/page.js","nav":{"title":"Kid","icon":"…","description":"…"}}
+ *                                        a subfolder's line also carries what a link or card needs, read from
+ *                                        text by Server/PageNav.mjs. A parent lists its children from these
+ *                                        lines instead of loading each child (core/Page/doc/index-jsonl.md).
+ *                                        A new line is written when the file OR the nav differs from the latest
+ *                                        line, so a session page.jsonl that grows a hundred lines writes none.
  *
  * WHICH FILE HOLDS THE LIST — `log_of(dir)`, the one place that decides:
  *   - A JSONL PAGE (no page.js, and its page.jsonl's line 1 is NOT a file line — every
@@ -161,7 +168,7 @@ export default class PageFiles {
         this.sync(dir, name);
         // page.js in a subfolder changes how the PARENT lists that subfolder, and where
         // the subfolder keeps its own list
-        if (name === "page.js") {
+        if (name === "page.js" || name === "readme.md") {
             this.sync(path.dirname(dir), path.basename(dir));
         }
     }
@@ -226,7 +233,7 @@ export default class PageFiles {
             if (!line.trim()) continue;
             let obj; try { obj = JSON.parse(line); } catch { continue; }
             if (typeof obj?.file !== "string") continue;
-            map.set(key_of(obj.file), { file: obj.file, gone: !!obj.gone });
+            map.set(key_of(obj.file), { file: obj.file, gone: !!obj.gone, nav: obj.nav });
         }
         return map;
     }
@@ -238,15 +245,44 @@ export default class PageFiles {
         this.write(dir, name, state ?? this.state(log), log);
     }
 
-    // The one append decision: a line only when the replayed state differs from the disk.
+    // The nav a subfolder's line should carry: undefined for a file, or a folder with nothing readable.
+    nav_of(dir, name) {
+        let stat; try { stat = fs.statSync(path.join(dir, name)); } catch { return undefined; }
+        if (!stat.isDirectory()) return undefined;
+        const nav = PageNav.of(path.join(dir, name));
+        return Object.keys(nav).length ? nav : undefined;
+    }
+
+    // The one append decision: a line only when the replayed state differs from the disk (the file, or the nav).
     write(dir, name, state, log) {
         const have = state.get(name);
         const want = this.desired(dir, name);
-        const line = want ? (have && !have.gone && have.file === want ? null : { file: want })
-                          : (have && !have.gone ? { file: have.file, gone: true } : null);
+        let line = null, nav;
+        if (want) {
+            nav = this.nav_of(dir, name);
+            const same = have && !have.gone && have.file === want && PageNav.same(have.nav, nav);
+            if (!same) line = nav ? { file: want, nav } : { file: want };
+        } else if (have && !have.gone) line = { file: have.file, gone: true };
         if (!line) return;
         this.append(log, line);
-        state.set(name, { file: line.file, gone: !!line.gone });
+        state.set(name, { file: line.file, gone: !!line.gone, nav });
+    }
+
+    /* The backfill (node Server/PageNav.mjs): catch every covered log under `dir` up, so its subfolder lines carry nav.
+     * A dry run counts the lines it would append and writes nothing. */
+    backfill_nav(dir, apply = false) {
+        let count = 0;
+        const real = PageFiles.prototype.append;
+        this.append = (log, obj) => { count++; if (apply) real.call(this, log, obj); };
+        try {
+            const walk = d => {
+                let entries; try { entries = fs.readdirSync(d, { withFileTypes: true }); } catch { return; }
+                if (entries.some(e => e.isFile() && (e.name === PAGE || e.name === LIST))) this.settle(d, false);
+                for (const e of entries) if (e.isDirectory() && covers(path.join(d, e.name))) walk(path.join(d, e.name));
+            };
+            walk(dir);
+        } finally { delete this.append; }
+        return count;
     }
 
     /* Everything in `dir` the log does not know yet (and everything it lists that is gone).

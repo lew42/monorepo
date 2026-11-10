@@ -15,7 +15,7 @@ register(pathToFileURL(path.join(ROOT, "Servex", "agents", "site-hooks.mjs")).hr
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "listing-live-"));
 const lines = list => list.map(x => JSON.stringify(x)).join("\n") + "\n";
-fs.writeFileSync(path.join(dir, "files.jsonl"), lines([{ file: "a.txt" }, { file: "b.txt" }, { file: "docs/readme.md" }, { file: "kid/page.jsonl" }]));
+fs.writeFileSync(path.join(dir, "files.jsonl"), lines([{ file: "a.txt" }, { file: "b.txt" }, { file: "docs/readme.md" }, { file: "kid/page.jsonl", nav: { title: "Kid", icon: "K", description: "d" } }]));
 
 // The one fake: a site url under /fake/ answers with the temp file.
 globalThis.fetch = async url => {
@@ -35,6 +35,8 @@ const live = await Page.Listing.live(Page, "/fake/", listing => seen.push(listin
 ok(live.listing.files.join() === "a.txt,b.txt", "files: " + live.listing.files);
 ok(live.listing.dirs.join() === "docs", "folder: " + live.listing.dirs);
 ok(live.listing.pages.get("kid") === "jsonl", "a child page is a page, not a file");
+
+ok(live.listing.navs.get("kid")?.title === "Kid" && live.listing.navs.size === 1, "a child's nav comes from its listing line");
 
 // 2. a tailed batch: one file added
 live.reader.read(live.reader.parse(lines([{ file: "c.txt" }])));

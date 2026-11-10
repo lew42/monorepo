@@ -11,6 +11,7 @@ import PageFilesTab from "./FilesTab.js";
 import PageChildren from "./Children.js";
 import PageLogReader from "./Reader.js";
 import PageListing from "./Listing.js";
+import PageIndex from "./Index.js";
 import PageLoad from "./Load.js";
 import PagePrefs from "./Prefs.js";
 import PageRelated from "./Related.js";
@@ -265,7 +266,12 @@ export class Page extends Pluggable(Item) {
 	// A jsonl page already loaded at `url` (jsonl() registers it): its lines, as a listing.
 	static page_listing(url){ return Page.Listing.page_listing(Page, url); }
 
+	// On: a parent shows its grandchildren from the `nav` on their listing lines, importing nothing (Index.js, doc/index-jsonl.md).
+	// Off by default until its titles and class-card surfaces match a loaded page (doc/index-jsonl.md, Status); `?index=1` turns it on.
+	static from_index = new URLSearchParams(globalThis.location?.search).get("index") === "1";
+
 	// ⚠ Folders inside a dated task folder get no log (PageFiles.js covers()): answer null at once. (doc/watch-out.md)
+
 	static UNLOGGED = /^\/framework\/ai\/\d{4}-\d\d-\d\d\/[^/]+\/[^/]+\//;
 
 	// The listing, only if it is already here — a loaded jsonl page, or a `listing()`
@@ -358,6 +364,7 @@ export class Page extends Pluggable(Item) {
 		page.naming();
 
 		const stub = this.pages.find(name);
+		page.nav_check(stub);
 		stub ? this.pages.replace(stub, page) : this.children.put(page);
 		return page;
 	}
@@ -699,9 +706,9 @@ export class Page extends Pluggable(Item) {
 	nav(){ return { url: this.url, label: this.label ?? this.title, icon: this.icon, card: this.card, description: this.description }; }
 
 	nav_for(name){
-		const child = this.children.get(name);
+		const child = this.children.get(name), held = !child && this.pages.find(name);   // held: a placeholder carrying the line's nav
 
-		return { ...child?.nav(), url: this.url + name + "/", label: child?.label ?? child?.title ?? name };
+		return { ...child?.nav(), ...(held?.indexed && { icon: held.icon, description: held.description }), url: this.url + name + "/", label: child?.label ?? child?.title ?? held?.title ?? name };
 	}
 
 	// ════ PREVIEWS ═══
@@ -723,12 +730,32 @@ export class Page extends Pluggable(Item) {
 		this.loaded = levels;
 
 		// ⚠ The guard above is why the wait belongs here in core (no "Chaining cycle detected for promise"). (doc/decisions.md)
-		const walk = () => Promise.all([...this.children.keys()].map(name =>
-			this.child(name, 0).then(child => child?.load_all_children(child.leaf ? 0 : levels - 1).loading)));
+		const walk = async () => {
+			// The last level only needs titles and icons: a still-unloaded child takes them from its listing line and imports nothing.
+			const navs = (levels === 1 && Page.from_index && await Page.Index.navs(Page, this.url)) || null;
+			return Promise.all([...this.children.keys()].map(name => this.nav_held(name, navs) ||
+				this.child(name, 0).then(child => child?.load_all_children(child.leaf ? 0 : levels - 1).loading)));
+		};
 
 		this.loading = this.child_source ? this.source_children().then(walk) : walk();
 
 		return this;
+	}
+
+	// True when a declared, unloaded child now carries its nav and needs no import. A child with no nav line returns false and loads as before.
+	nav_held(name, navs){
+		const held = navs && this.pages.find(name), nav = navs?.get(name);
+		if (!held?.stub || !nav) return false;
+		if (!held.indexed) Object.assign(held, { indexed: true, title: nav.title, icon: nav.icon, description: nav.description });
+		return true;
+	}
+
+	// The check (once per page): the nav a listing line gave while this page was a placeholder, against what the loaded page says.
+	nav_check(held){
+		if (!held?.indexed || this.nav_checked) return;
+		this.nav_checked = true;
+		const wrong = ["title", "icon", "description"].filter(key => held[key] !== undefined && held[key] !== this[key]);
+		if (wrong.length) console.warn(`page index: ${this.url} differs from its listing line in ${wrong.map(key => `${key} ("${held[key]}" vs "${this[key]}")`).join(", ")}`);
 	}
 
 	prefs(){ return this._helper("Prefs"); }
@@ -741,6 +768,7 @@ Item.register(Page, "Page");
 
 Page.Reader = PageLogReader;
 Page.Listing = PageListing;
+Page.Index = PageIndex;
 Page.Load = PageLoad;
 Page.Prefs = PagePrefs;
 Page.Jsonl = PageJsonl;

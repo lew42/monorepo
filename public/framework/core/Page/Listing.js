@@ -9,18 +9,22 @@ export default class PageListing {
 	files = [];
 	dirs = [];
 	pages = new Map();
+	navs = new Map();   // child name -> {title, icon, description} from the line's `nav` (Server/plugins/PageFiles.js)
 
 	// `page`: is this folder a jsonl page? Unknown (undefined) means "read line 1".
 	// `log`: the file the list came from ("files.jsonl" or "page.jsonl") — a real file there too.
 	static from(entries, page, log = "page.jsonl"){
 		const { CHILD, key_of } = this, latest = new Map();
-		for (const { file, gone } of entries){
+		const navs = new Map();
+		for (const { file, gone, nav } of entries){
 			if (typeof file !== "string") continue;
 			gone ? latest.delete(key_of(file)) : latest.set(key_of(file), file);
+			gone || !nav ? navs.delete(key_of(file)) : navs.set(key_of(file), nav);
 		}
 
 		const listing = new this();
 		listing.log = log;
+		listing.navs = navs;
 		listing.page = page ?? (!!entries[0] && typeof entries[0].file !== "string");   // line 1 builds a page; a listing-only log starts with a file line
 		latest.forEach((name, key) => {
 			const kind = name.match(CHILD)?.[2];

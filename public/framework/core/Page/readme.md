@@ -89,6 +89,7 @@ Also here: [audit/](audit/) (every page layout in use, most-used first) · [make
 | `Children.js` | the deprecated `page.children` shim (`Map`-shaped view over `page.pages`); remove once the census shows 0 live callers |
 | `Reader.js` | `PageLogReader extends Item.Store`: the `Item.Store` for one `page.jsonl`, one per url (`Reader.for`) |
 | `Listing.js`, `Listing.test.mjs` | `PageListing`: what `listing()` answers (files, dirs, pages, is-this-a-page, the source file) |
+| `Index.js` | `PageIndex`: a parent's children's title, icon and description from their listing lines (one `/api/index` request on the dev server); `Page.from_index`, off by default, `?index=1` switches it on ([doc/index-jsonl.md](doc/index-jsonl.md)) |
 | `Load.js` | `PageLoad`: the loading statics, each taking the class first; `Page` keeps one-line forwarders |
 | `Log.js` | a compat re-export, `PageLog` = `Page` (folded into `Page` 2026-10-03); still imported by `ai/cards/Tasks.js` and `ai/rail/groups.js` |
 | `Links.js` | where a clicked link opens, and the `.md`-file helpers it uses (`doc/open.md`) |

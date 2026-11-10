@@ -115,7 +115,11 @@ export default class Tree extends View {
 	 * too — that is what the await is for. */
 	static async nodes_of(page, names){
 		if (names) await Promise.all(names.map(name => page.child(name, 0)));   // only the pinned ones (below), not every child
-		else await page.load_all_children(1).loading;
+		else {
+			await page.load_all_children(1).loading;
+			// A row needs its page (is it a branch? a leaf?), which a placeholder carrying only its listing nav (Page.nav_held) cannot say.
+			await Promise.all([...page.children.keys()].filter(name => page.pages.find(name)?.stub).map(name => page.child(name, 0)));
+		}
 		return (names ?? [...page.children.keys()]).filter(name => page.children.has(name)).map(name => this.node_of(page, name));
 	}
 
