@@ -36,6 +36,10 @@ for (const [what, args] of reads){
 const voice = await run_item({ path: "/framework/ai/sessions/cloud-voice-app-20261106/", read: "id" }, { caller: "t" });
 ok(voice.ok !== false, "a non-uuid session with a folder is found by its bare id: " + JSON.stringify(voice).slice(0, 120));
 ok(tree() === before, "and reading it changes nothing");
+// A day-level folder that is not a session (spawned/, cards/) is never taken for one: a read there gives a reason.
+const cards = await run_item({ path: "/framework/ai/sessions/spawned/", delta: { summary: {} } }, { caller: "t" });
+ok(cards.ok === false && !/"summary"/.test(JSON.stringify(cards.answer ?? "")), "a folder that is not a session is not read as one: " + (cards.why ?? "").slice(0, 80));
+ok(tree() === before, "and nothing changed");
 // A write to a name nobody has is still refused, and still makes nothing.
 const w = await run_item({ path: "/framework/ai/sessions/no-such-agent-xyz/", delta: { title: "x" } }, { caller: "t" });
 ok(w.ok === false && /nothing was created/.test(w.why), "a write to an unknown name is refused: " + w.why);

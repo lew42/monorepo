@@ -7,4 +7,4 @@ Budget: $4. Asked by voice-app, 2026-11-10 11:45 UTC (found by live-page, filed 
 
 Check: opening `/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/` makes no POST that writes and no 500.
 
-Built in worktree `read-no-write`, commit f063d6098. Test: `node Servex/agents/item-read-no-write.test.mjs` (14 checks; it fails on the old code with the same throw).
+Built in worktree `read-no-write`, commit f063d6098. Test: `node Servex/agents/item-read-no-write.test.mjs` (now 18 checks; it fails on the old code with the same throw).

@@ -162,16 +162,7 @@ function has_transcript(uuid){
 
 /* A READ NEVER WRITES (2026-11-10): `create` is false for a read or a query (resolve's caller says which), so viewing a session page
  * (AICost's summary query) finds the folder that is there and makes none. A session id that is not a uuid (a cloud voice record,
- * "cloud-voice-app-20261110") is found by its day folder and never made here: SessionFolders.create takes only a uuid, and threw (a 500). */
-function named_day_folder(name){
-	const root = path.join(PUBLIC, "framework/ai/sessions"), nums = d => { try { return fs.readdirSync(d).filter(n => /^\d+$/.test(n)).sort().reverse(); } catch { return []; } };
-	for (const y of nums(root)) for (const m of nums(path.join(root, y))) for (const d of nums(path.join(root, y, m))){
-		const dir = path.join(root, y, m, d, name);
-		if (fs.existsSync(dir)) return dir;
-	}
-	return null;
-}
-
+ * "cloud-voice-app-20261110") is found by SessionFolders.named and never made here: SessionFolders.create takes only a uuid, and threw (a 500). */
 async function session_file(id, { create = true } = {}){
 	// A folder made here is named for the agent (its Servex id), not left as session-<id8> (brief: "sessions get a name").
 	let uuid = UUID.test(id) ? id : null, name = uuid ? null : id, agents = {};
@@ -183,8 +174,8 @@ async function session_file(id, { create = true } = {}){
 	if (!uuid && !create) uuid = id;   // a read may name a non-uuid session record directly (cloud-voice-app-20261106)
 	if (!uuid) return { why: `no session or Servex agent is called "${id}", so nothing was created${nearest(id, Object.keys(agents))} ${OMIT}` };
 	if (!UUID.test(uuid)){
-		// AISession's scan indexes uuids only, so a non-uuid record (a cloud voice session) is found as the day folder named exactly for its id.
-		const dir = /^[a-z0-9][a-z0-9-]{2,80}$/.test(uuid) ? named_day_folder(uuid) : null;
+		// SessionFolders.of holds uuids only; a non-uuid record (a cloud voice session) is its named() day folder, line 1 naming the id.
+		const dir = SessionFolders.at(path.join(PUBLIC, "framework/ai/sessions")).named(uuid);
 		if (dir) return path.join(dir, "page.jsonl");
 		return { why: `"${id}" names session "${uuid}", which has no folder; a session that is not a uuid is never given one here, so nothing was created. ${OMIT}` };
 	}
