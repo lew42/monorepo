@@ -101,25 +101,33 @@ try {
 		t.eq(add_line?.notes?.[0]?.data?.text, "before", "add: a child-list member's data is a snapshot too — a same-tick set() on IT does not rewrite the add line either");
 	}
 
-	// F7 evidence (persistence-sync/design/fixes.md, "Adding an item that already has a parent") — plan.md decision 2,
-	// reworded 2026-11-02: `add()`'s own default is UNCHANGED (still re-parents, as compliance/dev), so no existing caller
-	// breaks; `list.ref(x)` is the new, explicit way to LINK an item some other list already owns, same file -> {path},
-	// another file -> {url, path}. `item.move_to(dest)` stays the only real move.
+	// F7 (persistence-sync/design/fixes.md, "Adding an item that already has a parent") — plan.md decision 2, flipped
+	// 2026-11-09 (the owner's sign-off, census re-checked on today's code: no caller relies on the move): `add()`'s own
+	// default now makes a Ref for an item some OTHER list already owns, same file -> {path}, another file -> {url, path}.
+	// `ref()` stays the explicit form (same call, same answer). `item.move_to(dest)` stays the only real move.
 	{
 		const { default: RefClass } = await import("../Item/Ref.js");
 		const two = Item.hydrate({ id: "two-lists", kids: [{ id: "k1", title: "K1" }, { id: "k2", title: "K2" }], box: [] });
 		const k1 = two.kids.find("k1"), k2 = two.kids.find("k2");
 
-		t.eq(two.box.add(k1), k1, "add()'s own default is unchanged (F7 evidence, plan.md decision 2): adding an already-owned item still hands back the item itself, never a Ref");
+		const added = two.box.add(k1);
+		t.ok(added instanceof RefClass, "add(): an item owned by ANOTHER list gives a Ref instead of re-parenting it");
+		t.eq(added.path, "kids.k1", "add(): the Ref's path is the item's own dotted address");
+		t.eq(two.kids.find("k1"), k1, "add(): the item never left its first list (A still holds it)");
+		t.eq(k1.parent, two, "add(): the item's own parent is unchanged (still A's owner)");
+		t.eq(two.box.length, 1, "add(): only the Ref landed in the second list");
 
-		const ref = two.box.ref(k2);   // a second, untouched item, so this case never crosses the add() case above
-		t.ok(ref instanceof RefClass, "ref(): links an item owned by ANOTHER list with a Ref, instead of moving it");
+		const ref = two.box.ref(k2);   // ref() is the same call, explicitly
+		t.ok(ref instanceof RefClass, "ref(): still links an item owned by ANOTHER list with a Ref");
 		t.eq(ref.path, "kids.k2", "ref(): the Ref's path is the item's own dotted address");
 		t.eq(two.kids.find("k2"), k2, "ref(): the item itself never left its first list");
-		t.eq(two.box.length, 2, "ref(): the add() item and the Ref both landed in the second list");
+		t.eq(two.box.length, 2, "ref(): the add() Ref and the ref() Ref both landed in the second list");
+
+		t.eq(two.box.add({ id: "fresh" }).id, "fresh", "add(): a plain object (unparented, or replay data) is unchanged");
+		t.eq(two.box.add(new Item({ id: "loose" })).id, "loose", "add(): a live Item with no parent yet is unchanged");
 
 		const throws = fn => { try { fn(); return false; } catch { return true; } };
-		t.ok(throws(() => two.box.ref(new Item({ id: "loose" }))), "ref(): an unattached item throws (it has no address to point at)");
+		t.ok(throws(() => two.box.ref(new Item({ id: "loose2" }))), "ref(): an unattached item throws (it has no address to point at)");
 		const other = Item.hydrate({ id: "no-store", kids: [{ id: "k9" }] });
 		t.ok(throws(() => two.box.ref(other.kids.find("k9"))), "ref(): an item in another tree with no store url throws");
 
@@ -135,10 +143,19 @@ try {
 			storeB.attach(rootB);
 
 			const shared = rootA.kids.find("shared");
-			const fref = rootB.box.ref(shared);
-			t.ok(fref instanceof RefClass, "ref(): across files also makes a Ref");
-			t.eq([fref.url, fref.path], ["/a/a.jsonl", "kids.shared"], "ref(): the Ref names the other file's url and the item's path there");
-			t.eq(rootA.kids.find("shared"), shared, "ref(): and the item stayed in its own file");
+			const fref = rootB.box.add(shared);   // across files too: add() behaves exactly like ref()
+			t.ok(fref instanceof RefClass, "add(): across files also makes a Ref");
+			t.eq([fref.url, fref.path], ["/a/a.jsonl", "kids.shared"], "add(): the Ref names the other file's url and the item's path there");
+			t.eq(rootA.kids.find("shared"), shared, "add(): and the item stayed in its own file");
+
+			// move_to still really moves — never goes through add() with the item still parented.
+			const mover = Item.hydrate({ id: "mv", title: "Mover" });
+			rootA.kids.add(mover);
+			t.eq(rootA.kids.find("mv"), mover, "move_to setup: the mover starts in kids");
+			mover.move_to(rootB.box);
+			t.eq(rootA.kids.find("mv"), undefined, "move_to(): the item leaves its old list (a real move, not a Ref)");
+			t.eq(rootB.box.find("mv"), mover, "move_to(): and lands in the new one, itself — not a Ref to it");
+			t.eq(mover.parent, rootB, "move_to(): its own parent follows it");
 		} finally { fs.rmSync(DIR3, { recursive: true, force: true }); }
 	}
 

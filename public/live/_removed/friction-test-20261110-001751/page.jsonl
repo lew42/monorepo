@@ -1,0 +1,7 @@
+{"title":"Friction test (scratch)","description":"Scratch page for the friction review, 2026-11-09. Safe to delete.","by":"mastermind-friction","ts":"2026-11-10T00:07:59.996Z"}
+{"content":{"add":{"id":"c1","type":"part-card","title":"FT-1 A card","text":"First card, written by the item tool."}},"by":"mastermind-friction","ts":"2026-11-10T00:08:36.945Z"}
+{"content":{"add":{"id":"c2","type":"part-link","path":"./sub/","title":"FT-2 A sub-page link","text":"Opens a sub-page."}},"by":"mastermind-friction","ts":"2026-11-10T00:08:37.861Z"}
+{"content":{"c1":{"text":"FT-3 edited in place."}},"by":"mastermind-friction","ts":"2026-11-10T00:08:38.508Z"}
+{"file":"sub/page.jsonl"}
+{"content":{"add":{"id":"c5","type":"part-text","text":"FT-5 A paragraph with **markdown**, a [link](/live/), and a list:\n\n- one\n- two"}},"by":"mastermind-friction","ts":"2026-11-10T00:08:40.111Z"}
+{"content":{"add":{"id":"end","type":"part-text","text":"FT-END"}},"by":"mastermind-friction","ts":"2026-11-10T00:08:40.704Z"}

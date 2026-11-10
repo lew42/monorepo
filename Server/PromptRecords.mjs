@@ -26,12 +26,15 @@ import AIIndex from "./AIIndex.mjs";
 import RefineQueue from "./RefineQueue.mjs";
 import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
 import PromptLog from "../public/framework/ai/AISession/PromptLog.js";
+import PARTS_BRIEF from "../public/framework/ext/Refine/PartsBrief.js";
 import PromptRun from "../public/framework/ext/Refine/PromptRun.js";
 import Prompt from "../public/framework/core/Task/Prompt.js";
 import { prompt_delta, has_prompt } from "./PromptsToSession.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const HAIKU = "claude-haiku-5-5";
+/** The live process's model for the parts step and the match-to-open-task call; one line switches it back to HAIKU. */
+const LIVE_MODEL = "claude-sonnet-5";
 
 export default class PromptRecords {
 
@@ -41,23 +44,14 @@ export default class PromptRecords {
 
 	/** The processes: the same steps, different instructions and context. Measured on tab e00f55c9 (doc, "The experiment"). */
 	static PROCESSES = {
-		live:   { steps: ["sentences", "parts", "file"], parts: { model: HAIKU }, file: "proposals", file_kinds: ["ask"], file_cap: 15,
+		live:   { steps: ["sentences", "parts", "file"], parts: { model: LIVE_MODEL }, file: "proposals", file_kinds: ["ask"], file_cap: 15,
 		          why: "fast and blind: a prompt's asks become proposals before anything is done; no evidence search" },
 		review: { steps: ["sentences", "parts", "outcomes", "file"], parts: { model: HAIKU }, outcomes: { model: HAIKU, window_chars: 150_000, max_turns: 12 }, file: "open", file_kinds: ["ask", "rule"],
 		          why: "after the fact: parts need no context (recall 0.95-1.0 blind), outcomes read what the session did and confirm in the repo" },
 	};
 
-	/** The parts step's system prompt. The live and review processes share it: what a prompt says does not depend on what was done. */
-	static PARTS_BRIEF = `You break ONE prompt the owner of a web-framework repo dictated to an AI coding agent into parts. Dictation rambles and repeats; keep every want, lose nothing said. You cannot see the code.
-A part is a run of sentences with one meaning; cite them all by number. Every sentence is cited by exactly one part.
-- ask: something should happen. Give every ask the prompt really holds, as many as there are, and never merge two asks into one: better safe than sorry, include everything. When the owner's exact words carry a degree or a qualifier ("probably", "at least", "never"), or are unclear, quote them inside "text" in quotation marks so later agents can go back to the source. Nest an ask's own specific suggestions, numbers and sub-asks under it in "parts" (same shape). Never invent a fix the owner did not suggest.
-- rule: a standing direction for agents ("always", "never", "we don't want X", "the mastermind manages these"). It becomes a doc note, never a task; "file" is the doc it belongs in when obvious (CLAUDE.md, a module's readme.md), else "".
-- question: the owner wants an answer. idea: thinking aloud, a maybe, a hedge ("maybe", "I wonder"). conversation: narration, thanks, filler.
-When the owner corrects themselves, the later word wins: cite both sentences in one part.
-A bare follow-up ("make sure that is noted", "look into it", "let me know", "do that too") is never a part of its own: cite its sentence in the part it refers to (usually the one just before it), or nest it there.
-Answer with ONE JSON object and nothing else:
-{"subject": "a few of the owner's words", "parts": [{"cites": [0, 1], "kind": "ask|rule|question|idea|conversation", "text": "one line, the owner's names", "file": "", "module": "", "parts": []}]}
-"module": the site module or page a main part (ask, question, rule or idea) concerns when the prompt names one (ext/Refine, core/Task, ai/sessions), else "".`;
+	/** The parts step's system prompt: ext/Refine/PartsBrief.js. */
+	static PARTS_BRIEF = PARTS_BRIEF;
 
 	/** The outcomes step's system prompt. */
 	static OUTCOMES_BRIEF = `You judge what came of the owner's prompts in ONE session of AI coding agents working on a web-framework repo (cwd is the repo). The user message gives each prompt's parts (already found, each with an id) and the condensed record of what the session did (owner prompts, the agent's replies, one line per tool call; L<n> is the transcript line).
@@ -151,16 +145,22 @@ Answer at the end with ONE JSON object and nothing else after it:
 		return { text: result?.result || text, usd };
 	}
 
-	/** Step 2, model: one call per prompt, no context (blind recall measured 0.95-1.0 against an Opus reading). */
-	async parts_one(p){
-		const sentences = RefinedCard.sentences(p.text);
-		const r = await this.call(`The prompt, sentence by sentence:\n${sentences.map((s, i) => `${i}: ${s}`).join("\n")}`, { model: this.def.parts.model, system: PromptRecords.PARTS_BRIEF });
+	/** The parts of numbered sentences, nothing written: one model call, no context (blind recall measured 0.95-1.0 against an Opus reading).
+	 *  Cites are 0-based indexes into `sentences`. { subject, parts, usd }. Shared by parts_one and Servex/agents/TurnRefiner.js. */
+	static async parts_of(sentences, { model = LIVE_MODEL } = {}){
+		const r = await PromptRecords.ask(`The prompt, sentence by sentence:\n${sentences.map((s, i) => `${i}: ${s}`).join("\n")}`, { model, system: PromptRecords.PARTS_BRIEF });
 		const o = PromptAudit.json(r.text), ids = { n: 0 };
 		const clean = ps => (ps ?? []).filter(x => x?.text).map(x => ({ id: `a${++ids.n}`, cites: (x.cites ?? []).map(Number).filter(n => Number.isInteger(n) && n >= 0 && n < sentences.length),
 			kind: Prompt.KINDS.includes(x.kind) ? x.kind : "ask", text: String(x.text).trim(), ...(x.file ? { file: String(x.file) } : {}), ...(x.module ? { module: String(x.module) } : {}), ...(x.parts?.length ? { parts: clean(x.parts) } : {}),
 			outcome: x.kind === "conversation" ? { is: "no-action", why: "conversation" } : { is: "open" } }));
-		const parts = clean(o.parts);
-		await this.add({ prompt: this.rid(p), stage: "parts", process: this.process, step: "parts", subject: String(o.subject ?? ""), parts, model: this.def.parts.model, usd: +r.usd.toFixed(5) });
+		return { subject: String(o.subject ?? ""), parts: clean(o.parts), usd: r.usd };
+	}
+
+	/** Step 2, model: one call per prompt, no context. */
+	async parts_one(p){
+		const { subject, parts, usd } = await PromptRecords.parts_of(RefinedCard.sentences(p.text), { model: this.def.parts.model });
+		this.spent += usd;
+		await this.add({ prompt: this.rid(p), stage: "parts", process: this.process, step: "parts", subject, parts, model: this.def.parts.model, usd: +usd.toFixed(5) });
 		return parts;
 	}
 
@@ -234,7 +234,7 @@ Answer at the end with ONE JSON object and nothing else after it:
 		return r?.ok ? (r.ids?.[0] ?? null) : null;
 	}
 
-	/** One Haiku call, no tools: is this prompt more work on one of the open tasks? Its id, or null; a failure means no match. */
+	/** One call on the parts model (LIVE_MODEL in live), no tools: is this prompt more work on one of the open tasks? Its id, or null; a failure means no match. */
 	async attach_to(row, todo, open){
 		if (!open.length) return null;
 		try {

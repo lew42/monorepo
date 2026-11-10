@@ -1,5 +1,7 @@
 # Refine — speak one prompt and watch it refine (raw → clean → cards, with flags); plus a saved run shown as a ladder
 
+**The parts brief lives here:** [PartsBrief.js](PartsBrief.js) is the one system prompt that breaks a dictated prompt into parts; `Server/PromptRecords.mjs` imports it (`PromptRecords.PARTS_BRIEF`). The `live` process (PromptTasks) runs it on Sonnet, one named constant `LIVE_MODEL` in `PromptRecords.mjs`; the `review` process stays on Haiku. PromptTasks is on when the `prompt-tasks.off` file is absent from the Servex home (`node Servex/agents/PromptTasks.js on|off|status`, no restart). Test: `Server/PromptRecords.live.test.mjs`.
+
 **Prompt records (2026-10-23):** every owner prompt as parts with outcomes, and a computed completion; a prompt is complete when everything it asks is done or documented and no sentence was skipped. Live and review processes in `Server/PromptRecords.mjs`; shown on each session page's Coverage tab ([doc/prompt-records.md](doc/prompt-records.md)).
 
 **Also here: the refine queue** — every past owner prompt becomes a refined card on its session page's Coverage tab ([doc/refine-queue.md](doc/refine-queue.md), `Server/RefineQueue.mjs`).

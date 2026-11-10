@@ -2,6 +2,21 @@
 
 An agent changes a page with **one tool, `page_set`**, and looks at it with **one tool, `page_read`**. Everything else is a delta: a small JSON object the agent picks itself.
 
+## The three verbs
+
+The `item` tool (below, and every example on this page) now takes `get`, `set` and `call` beside `delta` and `read` — the plan at [/live/plan/item-tool/](/live/plan/item-tool/), merge 1. `get` reads (never writes, the same answer as `read`), `set` changes plain fields, `call` runs a method. Each becomes exactly the `delta` a caller would have written, so the log, validation and replay never see a difference; `delta` and `read` still work.
+
+```js
+item({ path, get: "tasks.link-dot.state" })   // same as read: "…" — no write, same answer shape
+item({ path, set: { title: "Plans" } })       // → delta {title: "Plans"}; one line
+item({ path, set: { "tasks.x.priority": 2 } }) // dotted keys allowed (the existing a.b shorthand)
+item({ path, call: "tasks.add", args: { title: "x" } })      // → delta {tasks: {add: {title: "x"}}}
+item({ path, call: "tasks.link-dot.complete", args: { outcome: "…" } }) // → {tasks: {"link-dot": {complete: {…}}}}
+item({ path, call: "start" })                               // no args → {start: {}}
+```
+
+A `set` key that names a method or a child list is refused (`"start" is a method; use call: "start"`); a `call` whose last step is not a method, or is a query, is refused too (`"completion" only reads; use get`). The tool's own verbs work through `call` too: `call: "help"`, `call: "place"`, `call: "pages.add"`. More than one of `delta`/`read`/`get`/`set`/`call` in one call is refused.
+
 ## The model: a page is a log of deltas
 
 ```
@@ -48,7 +63,7 @@ The tool stamps `id`, `by` and `ts` for you, and answers `{ok, ids, line, size}`
 
 ## Asking without writing: queries
 
-`page_set` changes, but a class can also list **queries**: methods and getters that only read (`static queries` on the class, `Item.describe().queries`). With the item tool, a delta whose keys are all queries is answered and **writes no line**: `item({path, delta:{"summary":{}}})` answers `{ok, answer:{summary:{…}}}`. `item({path, delta:{"progress":{},"cost":{}}})` asks two at once; `target:["a"]` asks the child `a`. A delta that mixes a query with a change is refused (send two calls). There is no separate `get` key. Detail and the list for Task and Session folders: [Servex/doc/item-tool.md](/Servex/doc/item-tool.md).
+`page_set` changes, but a class can also list **queries**: methods and getters that only read (`static queries` on the class, `Item.describe().queries`). With the item tool, a delta whose keys are all queries is answered and **writes no line**: `item({path, delta:{"summary":{}}})` answers `{ok, answer:{summary:{…}}}`. `item({path, delta:{"progress":{},"cost":{}}})` asks two at once; `target:["a"]` asks the child `a`. A delta that mixes a query with a change is refused (send two calls). The `get` verb (above) is the plain way to ask for one: `item({path, get:"summary"})`. Detail and the list for Task and Session folders: [Servex/doc/item-tool.md](/Servex/doc/item-tool.md).
 
 A bad line is refused before it is written: a `_` key, a `part-*` type nobody registered (`core/Page/parts/kinds.js` is the one list), or a line that would not replay. The answer says why and `Nothing was written.` Detail: [Servex/doc/item-tool.md](/Servex/doc/item-tool.md), "A real Page".
 

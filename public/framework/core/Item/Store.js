@@ -495,6 +495,60 @@ export class Store {
 		return host === "localhost" || host === "127.0.0.1" || !!host?.endsWith(".localhost") || host === Store.tunnel_host;
 	}
 
+	/* FILE LOADING (moved from Item.js, 2026-11-09): how an item's lines arrive and become an object is the Store's
+	   job, not Item's — a second store (a Durable Object, say) then never means editing Item. Item keeps `file_url()`
+	   and `load()` as one-line forwarders, and `class_for`/`root_from` as static forwarders, so no caller changes. */
+
+	/* page.items: an item whose data carries `file` and/or `path` keeps its own lines in a file beside the page, instead of
+	   a line in the page's own file (core/Item/readme.md and core/Page/doc/jsonl.md, "page.items"). Resolved against the folder of the LIST THAT HOLDS ME
+	   (`item.parent`, a list member's owner — List.adopt — never `root()`, which climbs past my own page to the whole
+	   page tree's top): `file` alone → `<folder><file>`; `path` alone → `<folder><path>/page.jsonl`; both → `<folder><path>/<file>`.
+	   null when embedded (a line in the page's own file, as before). */
+	static url_of(item){
+		const { file, path } = item.data ?? {};
+		if (!file && !path) return null;
+		const owner = item.parent, folder = String(owner?.jsonl_url ?? owner?.url ?? owner?.get_one?.("url") ?? "").replace(/[^/]*$/, "");
+		return folder + (path ? `${path}/${file ?? "page.jsonl"}` : file);
+	}
+
+	/** The live object this item's own data is on: itself when embedded, else the shared root `Item.open(url_of(item))` opens —
+	    one object per url (Store.for), so two pages that list the SAME file share it (never two copies drifting apart). Its
+	    class: the file's own line 1 `type`/`class`, else the class of the page that lists it (`item.parent`'s own class).
+	    Always a Promise, embedded too, so a caller can `.then()` every member alike. `Item` is passed in: Store.js must
+	    not import Item.js (the cycle Item.js's own header avoids — Item imports Store, so Store importing Item back
+	    would hit the TDZ). */
+	static load(item, Item){
+		const url = Store.url_of(item);
+		return url ? Item.open(url, item.parent?.constructor) : Promise.resolve(item);
+	}
+
+	// The class a file's root is, from its own lines (Item.open on a url nothing else names): line 1's registered `type` or
+	// `class`; a session's record ({"session":…} line 1, or a spawn's {"assign":{session_id, agent}}) is a Session, any other
+	// {"assign"} record a Task; else `fallback` (page.items: the class of the page that lists it) or, with none, a plain Item.
+	static class_for(Item, entries, fallback = Item){
+		const first = entries[0] ?? {}, a = entries.find(e => e?.assign)?.assign;
+		const named = Item.types.get(first.type ?? first.class);
+		if (named) return named;
+		if (first.session || (a && a.session_id && a.agent)) return Item.types.get("Session") ?? Item.types.get("Task") ?? Item;
+		if (a) return Item.types.get("Task") ?? Item;
+		return fallback ?? Item;
+	}
+
+	// The root a file's lines open as, and the lines still to replay onto it. An Item is line 1 itself (its fields), the
+	// rest replayed; a class with its own replay_new (Task, Session) builds its root from all the lines and replays them all.
+	// `Class` is the class asked for (Item.open's `this`, which may be a subclass); `Item` is passed in to compare
+	// against the base `replay_new` (Store.js must not import Item.js — see `load` above).
+	static root_from(Class, entries, Item){
+		if (Class.replay_new !== Item.replay_new) return { host: Class.replay_new(entries), rest: entries };
+		const first = entries[0];
+		// Line 1 is the item's own fields only when it carries the item's id (`{"id":"layer","x":24}`). A first line that is a change
+		// (`{"cards":{"add":…}}`, a Dated index row) has no id: the item starts empty and every line replays, as Item.replay does.
+		if (!(is_plain(first) && typeof first.id === "string")) return { host: new Class(), rest: entries };
+		const host = new Class(first);
+		for (const key of Object.keys(first)) if (key !== "id" && host.hook_for(key)) host.take(key, host.get_one(key));   // line 1's fields are a replayed line: their hooks run (the constructor cannot: the subclass is not built yet)
+		return { host, rest: entries.slice(1) };
+	}
+
 	// A hook a subclass extends — empty here. `PageLog.Reader`'s own `changed()` redraws the folder listing and
 	// the tab strip; its own `reset()` takes the other path (forgets what was read, so a REWRITTEN file replays
 	// clean from line 1 onto a cleared host) rather than this class's dedupe — doc/reset.md.

@@ -1,0 +1,173 @@
+diff --git a/Server/FoldAccounting.mjs b/Server/FoldAccounting.mjs
+new file mode 100644
+index 000000000..f6df3736d
+--- /dev/null
++++ b/Server/FoldAccounting.mjs
+@@ -0,0 +1,62 @@
++#!/usr/bin/env node
++// Server/FoldAccounting.mjs — checks the twins fold (fold-manifest.json): nothing a moved-aside half knew was lost in the merged record. Read only.
++//   node Server/FoldAccounting.mjs [--write] [--root <repo>] [--manifest <file>]
++// Cost = the newest `summary.usd` in cache.jsonl (what AISession.summary_of reads); tasks = Session/Task replay tally().created of the record (what Truth.mjs reads).
++// A twin pair is two records of ONE session, so the halves are not added (that would count it twice): the merged value must be >= each half's.
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++const HERE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++const MANIFEST = "public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/one-folder/fold-manifest.json";
++const lines_of = f => { try { return fs.readFileSync(f, "utf8").split("\n").filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); } catch { return []; } };
++const first_file = (dir, names) => names.map(n => path.join(dir, n)).find(f => fs.existsSync(f)) ?? null;
++
++export default class FoldAccounting {
++	constructor({ root = HERE, manifest = path.join(root, MANIFEST), Session, Task } = {}){ Object.assign(this, { root, manifest, Session, Task }); }
++
++	static async at(opts = {}){
++		const { default: Session } = await import("../public/framework/core/Session/Session.js");
++		const { default: Task } = await import("../public/framework/core/Task/Task.js");
++		return new FoldAccounting({ ...opts, Session, Task });
++	}
++
++	summary(dir){ let s = null; for (const o of lines_of(path.join(dir, "cache.jsonl"))) if (o.summary) s = o.summary; return s; }
++	cost(dir){ return this.summary(dir)?.usd ?? null; }
++
++	tasks(dir){
++		const file = first_file(dir, ["session.jsonl", "task.jsonl"]); if (!file) return null;
++		const lines = lines_of(file); if (!lines.length) return null;
++		const keep = console.warn; console.warn = () => {};
++		try { return (lines[0]?.session ? this.Session : this.Task).replay(lines).tally().created ?? 0; } catch { return null; } finally { console.warn = keep; }
++	}
++
++	/** run() -> { run, totals, mismatches }. Per session: each moved-aside half against the merged home. */
++	run(){
++		const m = JSON.parse(fs.readFileSync(this.manifest, "utf8")), tot = { sessions: 0, matching: 0, mismatched: 0, lost: 0, cost_before: 0, cost_after: 0, tasks_before: 0, tasks_after: 0 }, mismatches = [];
++		for (const g of Object.values(m.groups)){
++			if (!g.moved_aside) continue;
++			const home = path.join(this.root, g.home), cost_after = this.cost(home), tasks_after = this.tasks(home);
++			let cost_before = 0, tasks_before = 0; const bad = [], halves = [];
++			for (const dup of g.duplicates){
++				const half = path.join(g.moved_aside, dup); if (!fs.existsSync(half)) continue;
++				halves.push(half); const c = this.cost(half), t = this.tasks(half);
++				cost_before = Math.max(cost_before, c ?? 0); tasks_before = Math.max(tasks_before, t ?? 0);
++				if ((c ?? 0) > (cost_after ?? 0) + 1e-9) { const vh = this.summary(half)?.v ?? 0, vm = this.summary(home)?.v ?? 0; bad.push({ number: "cost", before: c, after: cost_after ?? 0, half, cause: vm > vh ? `reader: merged cache is v${vm}, half v${vh}` : "lost" }); }
++				if ((t ?? 0) > (tasks_after ?? 0)) bad.push({ number: "tasks", before: t, after: tasks_after ?? 0, half });
++			}
++			tot.sessions++; tot.cost_before += cost_before; tot.cost_after += Math.max(cost_after ?? 0, 0); tot.tasks_before += tasks_before; tot.tasks_after += tasks_after ?? 0;
++			if (bad.length){ tot.mismatched++; if (bad.some(b => b.cause !== undefined && !b.cause.startsWith("reader") || b.number === "tasks")) tot.lost++; mismatches.push({ session: g.session, home: g.home, diffs: bad }); } else tot.matching++;
++		}
++		tot.cost_before = +tot.cost_before.toFixed(4); tot.cost_after = +tot.cost_after.toFixed(4);
++		return { run: m.run, totals: tot, mismatches };
++	}
++}
++
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
++	const argv = process.argv.slice(2), arg = k => { const i = argv.indexOf(k); return i < 0 ? null : argv[i + 1]; };
++	const root = arg("--root") ? path.resolve(arg("--root")) : HERE;
++	const r = (await FoldAccounting.at({ root, ...(arg("--manifest") ? { manifest: path.resolve(arg("--manifest")) } : {}) })).run();
++	console.log(JSON.stringify(r.totals)); for (const x of r.mismatches.slice(0, 20)) console.log(JSON.stringify(x));
++	process.exit(r.totals.mismatched ? 1 : 0);
++}
+diff --git a/Server/FoldAccounting.test.mjs b/Server/FoldAccounting.test.mjs
+new file mode 100644
+index 000000000..611d3e253
+--- /dev/null
++++ b/Server/FoldAccounting.test.mjs
+@@ -0,0 +1,24 @@
++// FoldAccounting on a scratch tree: a kept cost matches, a lower merged cost is flagged (reader vs lost). `node Server/FoldAccounting.test.mjs`
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import FoldAccounting from "./FoldAccounting.mjs";
++
++const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "foldacc-")), ASIDE = path.join(ROOT, "aside");
++const cache = (rel, base, usd, v = 1) => { const d = path.join(base, rel); fs.mkdirSync(d, { recursive: true }); fs.writeFileSync(path.join(d, "cache.jsonl"), JSON.stringify({ summary: { v, usd } }) + "\n"); };
++try {
++	cache("s/ok", ROOT, 5); cache("s/session-ok", ASIDE, 5);
++	cache("s/recost", ROOT, 1, 2); cache("s/session-recost", ASIDE, 4, 1);
++	cache("s/lost", ROOT, 1); cache("s/session-lost", ASIDE, 4);
++	const group = n => ({ session: n, home: `s/${n}`, duplicates: [`s/session-${n}`], moved_aside: ASIDE });
++	fs.writeFileSync(path.join(ROOT, "m.json"), JSON.stringify({ run: "t", groups: { 0: group("ok"), 1: group("recost"), 2: group("lost") } }));
++	const r = (await FoldAccounting.at({ root: ROOT, manifest: path.join(ROOT, "m.json") })).run();
++	assert.equal(r.totals.sessions, 3);
++	assert.equal(r.totals.matching, 1);
++	assert.equal(r.totals.mismatched, 2);
++	assert.equal(r.totals.lost, 1, "only the same-version drop counts as lost");
++	assert.equal(r.totals.cost_before, 13);
++	assert.match(r.mismatches[0].diffs[0].cause, /^reader/);
++	console.log("FoldAccounting.test: ok");
++} finally { fs.rmSync(ROOT, { recursive: true, force: true }); }
+diff --git a/Server/Truth.mjs b/Server/Truth.mjs
+index 779813e87..038587cfc 100644
+--- a/Server/Truth.mjs
++++ b/Server/Truth.mjs
+@@ -3,7 +3,7 @@
+ //   node Server/Truth.mjs [--write] [--root <repo>] [--label "baseline ..."]
+ // --write appends ONE line to public/live/truth/truth.jsonl (of the repo it runs in). --root reads the sessions of another tree (read-only).
+ // Sessions: SessionFolders.homes(); tasks: Task.replay(...).tally() / completion_score() (the same calls Server/session-query.mjs --report uses).
+-// Twins: SessionConsolidate.check. Read-only: counts never write into the tree they read (the folder map stays in memory). Doc: public/live/truth/readme.md
++// Twins: SessionConsolidate.check. Fold: FoldAccounting (the twins-fold manifest against the moved-aside halves). Read-only: counts never write into the tree they read (the folder map stays in memory). Doc: public/live/truth/readme.md
+ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+@@ -73,7 +73,9 @@ export async function measure({ root = HERE, days = 7, now = new Date() } = {}){
+ 	} finally { [Task.resolver, Task.session_resolver, console.warn] = keep; }
+ 	const { default: SessionConsolidate } = await import("./SessionConsolidate.mjs");
+ 	const c = await SessionConsolidate.check(root), twins = c.count, flat = c.flat.length;
+-	return { all, week, twins, flat, folders: folder_stats(store.root) };
++	const { default: FoldAccounting } = await import("./FoldAccounting.mjs"), fa = await FoldAccounting.at({ root });
++	const fold = fs.existsSync(fa.manifest) ? (({ totals, mismatches }) => ({ ...totals, mismatches: mismatches.map(x => ({ session: x.session, home: x.home, diffs: x.diffs.map(({ number, before, after, cause, half }) => ({ number, before, after, cause, half })) })) }))(fa.run()) : null;
++	return { all, week, twins, flat, folders: folder_stats(store.root), ...(fold ? { fold } : {}) };
+ }
+ 
+ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index b243a8d05..e1831314d 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -43,6 +43,8 @@ A session folder is one of three kinds:
+ 
+ - **How true the record is:** [/live/truth/](/live/truth/) counts it daily by code (sessions with tasks, complete, unproven, twins); [its readme](/live/truth/readme.md).
+ 
++**The twins fold's originals (2026-11-06 run):** the pre-fold copies of the 1,410 folded sessions' second folders sit outside the repo in `%LOCALAPPDATA%/lew42/servex/moved-aside/2026-11-07T01-59-52-828Z/public/...` (mostly `cache.jsonl`), kept so the fold can be checked or undone; the plan and every step are in [fold-manifest.json](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/one-folder/fold-manifest.json). Check the accounting with `node Server/FoldAccounting.mjs` (also the "Twins fold" table on [/live/truth/](/live/truth/)).
++
+ ## How data gets in
+ 
+ | What | Writer (called from) |
+diff --git a/public/live/truth/page.js b/public/live/truth/page.js
+index bf98c974e..9de332c86 100644
+--- a/public/live/truth/page.js
++++ b/public/live/truth/page.js
+@@ -1,4 +1,4 @@
+-import { Page, View, div, h2, p, span, table, tr, th, td, ul, li } from "/app.js";
++import { Page, View, div, h2, p, span, table, tr, th, td, ul, li, a } from "/app.js";
+ import { JSONL } from "/framework/ext/JSONL/JSONL.js";
+ 
+ View.stylesheet(import.meta, "truth.css");
+@@ -53,6 +53,17 @@ export default new Page({
+ 					p(`Folders under the day folders: ${n(last.folders?.total)}. ${n(last.folders?.no_session_file)} hold no session file at all (${n(last.folders?.empty)} are empty). They are not sessions and are not in the table.`);
+ 				});
+ 			});
++			const f = last.fold;
++			if (f){
++				h2("Twins fold: nothing lost");
++				p(f.lost ? `${n(f.lost)} of ${n(f.sessions)} folded sessions lost cost or tasks in the merge.` : `All ${n(f.sessions)} folded sessions kept every cost and task of their moved-aside halves (${n(f.mismatched)} differ only because the cost was recomputed later).`);
++				table.c("truth-table", () => {
++					tr(() => { th("Folded sessions"); th("Matching"); th("Differ"); th("Lost"); th("Cost before / after"); th("Tasks before / after"); });
++					tr(() => { td(n(f.sessions)); td(n(f.matching)); td(n(f.mismatched)); td(n(f.lost)); td(`${n(Math.round(f.cost_before))} / ${n(Math.round(f.cost_after))}`); td(`${n(f.tasks_before)} / ${n(f.tasks_after)}`); });
++				});
++				if (f.mismatches?.length) ul(() => { for (const x of f.mismatches) for (const d of x.diffs) li(() => { span(`${d.number} ${d.before} before, ${d.after} now (${d.cause ?? "tasks"}): `); a(x.session.slice(0, 8)).attr("href", "/" + x.home.replace(/^public\//, "") + "/"); span(` · moved-aside half: ${d.half}`); }); });
++				p("Before = the larger of the moved-aside halves; after = the merged record. Command: node Server/FoldAccounting.mjs.");
++			}
+ 			h2("Trend: sessions with any task");
+ 			const top = Math.max(...runs.map(r => r.all.with_tasks / Math.max(1, r.all.sessions)));
+ 			div.c("truth-trend", () => {
+diff --git a/public/live/truth/readme.md b/public/live/truth/readme.md
+index ab1bb37c1..5a79e4aa4 100644
+--- a/public/live/truth/readme.md
++++ b/public/live/truth/readme.md
+@@ -7,3 +7,5 @@ The page draws `truth.jsonl`; each line is one run of `node Server/Truth.mjs --w
+ - The Baseline column is the newest line whose label starts with `baseline` (the first line is kept as written but is superseded). `Server/Truth.mjs` refuses to write a line whose parts do not add up (with_tasks + no_tasks, with_log + tag_only + transcript_only = sessions; needs_review = no_tasks; complete <= with_tasks; unproven <= done_tasks) and counts without writing into the tree it reads. `truth.jsonl` is committed by `Servex/LogSweeper.js` (ALLOW).
+ - **Counts use the real classes:** `SessionFolders.homes()`, `Task.replay`/`tally()`/`completion_score()`, as `Server/session-query.mjs --report` does. They differ from a sample of the costliest sessions because they cover every session id, most of which are transcript-only. The first baseline line wrongly counted only records with a log (328 of 11,861); the second line (label "corrected") fixes it.
+ - The second line is the baseline: the first counted wrongly (328 of 11,861 "with a record") and is kept as written, never edited.
++
++- **Twins fold table:** `measure()` adds `fold` (from `Server/FoldAccounting.mjs`, test `FoldAccounting.test.mjs`): `{sessions, matching, mismatched, lost, cost_before, cost_after, tasks_before, tasks_after, mismatches}`. It compares each moved-aside half (cost = newest `cache.jsonl` summary `usd`, tasks = replayed `tally().created`) with the merged record; before = the larger half (twins are one session, so halves are not added), a mismatch is a merged value below a half. `lost` = mismatches not explained by a newer cache version (a recost after the fold); 0 means nothing was lost. Absent when the repo has no fold manifest.

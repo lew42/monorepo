@@ -1,41 +1,46 @@
-# index.jsonl: a page's index, apart from the page (plan, the owner, 2026-11-01)
+# index.jsonl: a page's index, apart from the page (plan, the owner, 2026-11-01 and 2026-11-09)
 
-**The idea.** Every folder (or page) gets an `index.jsonl` that says what is in it, so other code can list, link, search and mention its pages without loading them. It grows out of `files.jsonl`, which already does half of this. Not built; this records the design and its open questions so the next agent starts from here. Source: the owner's dictation of 2026-11-01 (cloud session `e3fd9043`).
+**The idea.** Every folder's index (today its `files.jsonl`) carries one line per page inside it, with what a link or a preview card needs (title, icon, description). A parent then lists its children from that one small file instead of loading each child. The index is the quick version of a page; `page.js` / `page.jsonl` is the full version, loaded only when you open it. Plan page with the numbers: [/live/plan/index/](/live/plan/index/). Source prompts: cloud session `e3fd9043` (2026-11-01) and the voice call of 2026-11-09 ([its brief](/framework/ai/sessions/2026/11/09/spawned/mastermind-page-index/)).
 
-## What exists today
+## Why: what a page loads today (measured 2026-11-09)
 
-- `files.jsonl` per folder, one line per change (`{"file":"x.js"}`, `{"file":"sub/"}`, `{"file":"x","gone":true}`), written automatically by the dev server's watcher, `Server/plugins/PageFiles.js` (chokidar), and read by `core/Page/Listing.js` (`PageListing`). It is what a static host uses to find `page.jsonl` children (a missing line breaks the page there: [navigation.md](navigation.md)). The owner is fine with the watcher writing it: it scales with the tree and has caused no trouble.
-- `Dated` (`core/Item/Dated.js`) keeps a day index of pointer rows for collections filed by date.
-- Mentions (`ext/Mention/`): `@` and `#` style references that render as links, each namespace backed by some index.
-- Older questions on directory deltas and querying: [indexing-2026-10-08.md](indexing-2026-10-08.md).
-- What a parent loads without an index, measured 2026-11-06 (every child, 2 levels deep, every line; a wide folder is unbounded), and the proposal for when a card moves into its own folder: [recursive-pages.md](recursive-pages.md), sections 6 and 7.
+Every page imports its parents' children two levels deep (`load_all_children`, `Page.class.js:717`) so tabs, the sidebar and preview cards know their titles. Importing a child's `page.js` also imports its class, and a few constructors fetch data at once.
 
-## The proposal
+| url | requests | page.js imported | scripts | bytes | quiet after |
+|---|---:|---:|---:|---:|---:|
+| `/framework/` | 1078 | 139 | 711 | 5.7 MB | 2.4 s |
+| `/framework/ai/sessions/` | 1296 | 161 | 752 | 26.6 MB | 5–17 s |
+| one session page | 1322 | ~160 | ~750 | 28.6 MB | 6.4 s |
 
-1. **`index.jsonl` replaces `files.jsonl`.** The same automatic file and folder lines, plus a line for each page in the folder: its path (the hyphenated name), title, icon and a short description.
-2. **A page can live in three places**, and the index says which:
-   - embedded in its parent's `page.jsonl` (no file of its own);
-   - a peer file, `<name>.jsonl`, next to the parent's `page.jsonl`;
-   - its own folder, `<name>/page.jsonl` (with its own `index.jsonl`).
-   A line with no file or path means embedded. A remote or attached source is possible later.
-3. **Pages vs items.** `page.pages` holds sub-pages: they belong in navigation and show up automatically. Items are background data a page may load and render. The index lists pages; items only if there's a reason.
-4. **Big folders:** a long file list stays out of `page.jsonl`; that is what the index is for.
+Raw output and the script: [measure.mjs](/framework/ai/sessions/2026/11/09/spawned/mastermind-page-index/measure.mjs). The sessions grid itself reads one index per day already (`YYYY/MM/DD/index.json`, 62 KB today); its weight is the tree walk above plus three global files fetched more than once (`ai/index.json`, 4 MB, three or four times, by `ai/rail/DashState.js`).
 
-## What the index makes cheap
+## The MVP (built first; revised after the shape review of 2026-11-09)
 
-- **Links and previews without a full load.** A link needs only the icon, title and path.
-- **Search one level deep.** Text search over children's titles and descriptions reads their index lines, not the children.
-- **Autocomplete and mentions.** The index is the namespace a mention looks things up in.
-- **Auto-tagging.** While someone types or dictates (a prompt, a chat message, a post, a page), words that match an indexed path or title are upgraded to real references (paths are the ids), so it's clear what was meant and the reference can be indexed back. Notion doesn't do this automatically; the owner wants it. Two shapes: keep the text and let the mention patterns upgrade it when shown, or store the sentence as parts (text and reference objects). Start with the first.
+A fresh reviewer checked this plan against the code before anything was built ([its findings](/framework/ai/sessions/2026/11/09/spawned/mastermind-page-index/), log of 18:12). Three changes came out of it: the fields ride on the `files.jsonl` lines a parent already fetches, the existing "declared, not loaded" placeholder carries them, and the side rail's repeat fetch was fixed first.
 
-## Open questions
+0. **Done first:** `ai/rail/DashState.js` no longer refetches `ai/index.json` (4 MB) for each old line of its opening replay: 6 fetches per sessions-page open became 2 (commit `5d15d9652`).
+1. **The line.** The child's existing `files.jsonl` line gains the fields `page.nav()` gives (`Page.class.js:695`): `{"file":"core/page.js","nav":{"title":"Core","icon":"🧱","description":"…"}}`. Latest line per name wins, as today, so no new file and no new request: `child()` already fetches the folder's listing (`Page.listing`, `Listing.js`). A jsonl page keeps its list in its own `page.jsonl`, so its children's lines go there, as today. That is the preview: a card draws from `nav()`.
+2. **The writer.** The watcher that writes `files.jsonl` (`Server/plugins/PageFiles.js`) writes a new line when a child's `page.js`, `page.jsonl` or `readme.md` changes **and its fields differ** (session logs change many times a minute). Node can't import a `page.js` (it needs the DOM), so one class, `PageNav` (`Server/PageNav.mjs`), reads the fields from text: a `page.jsonl`'s own lines (exact), else literal `title:` / `icon:` / `description:` in `page.js` (52% of framework pages have a literal title), else the folder's `readme.md` heading ("Title — description"). A backfill writes every folder once (`node Server/PageNav.mjs`, dry run; `--apply` writes).
+3. **The aggregate (dev server).** `GET /api/index?dir=/framework/&depth=2` answers one JSON object: each child's name, kind and nav, and its own children's, built on request from the `files.jsonl` files and cached until one changes.
+4. **Static hosts.** No server, no build: the reader fetches the folder's `files.jsonl` and each child's (1 + N small files instead of N `page.js` and their classes), committed as they are today.
+5. **The reader.** `load_all_children` reads the nav lines first. A declared child that is still a placeholder (`{id, name, stub: true}`, `Children.js:25`) gets its nav fields put on that placeholder, and nothing is imported. `nav_for`, preview cards, tabs and the sidebar read a placeholder's fields where they read a page's. `add()` already replaces the placeholder with the real page when it is opened (`Page.class.js:356`). A child with no nav line loads as today. `Page.from_index = false` switches it off (the before/after toggle).
+6. **The check.** In the browser, a page that loads fully compares its `nav()` with its line and writes one console warning per difference, so a wrong reading is seen, not trusted.
 
-- **Index-only vs full load.** Can a `Page` instance exist from its index line alone and load its `page.jsonl` on demand? Which actions force the full load (render, preview, edit)? Is it one `Page` with a loaded / not-loaded state, or a lighter `PageIndex` class? A tree where some pages are fully loaded and some aren't needs clear lifecycle methods.
-- **When both exist,** loading `page.jsonl` may make the index redundant for that page.
-- **Previews in the index** would need the full page and its dependencies; keep them out at first.
-- **Must every folder have an index?** Probably not: without one you open the folder to see what's in it.
-- **References:** a backlink (the source is remembered, the copy is detached) vs a live extension (new deltas applied on top of the original, like a subclass). JSONL instances make the second harder than class inheritance; decide per use.
+Then measure the same three urls again and post before/after on [/live/done/](/live/done/).
 
-## Smallest first step
+## Decisions, and the alternatives
 
-Have the same watcher that writes `files.jsonl` also write the page lines (title, icon, description from `page.js` / `page.jsonl`) into `index.jsonl`, and teach `PageListing` to read it when present. Nothing else changes until that works.
+- **No file named `index.jsonl`.** The owner's name was taken: `ai/index.jsonl` (read as "the last line is the whole picture", `TaskStateLog.js`), the sessions store's day, month and year streams (`Server/AIIndexStream.mjs`, gitignored, so never on a static host) and `ext/Figma/index.jsonl` each assume their own line shape. The index is the `files.jsonl` the folder already has. *Alternative:* a new `pages.jsonl` per folder; it wins if the nav lines ever need their own writer or reader, at the cost of one more request per folder.
+- **Fields from text, not from running the page.** *Alternative:* the browser reports each page's real `nav()` to the dev server when it loads one (exact, no heuristics); worth adding once the check (6) shows how often the text reading is wrong.
+- **The aggregate is a query, not a committed file.** *Alternative:* the watcher also writes a depth-2 snapshot per folder, so a static host gets one request too; it costs a second write per change. Add it if static first loads are too slow.
+- **The placeholder, not a stub Page.** A whole `Page` marked `stub` would be hidden by the shim (`Children.js:13,53`: a stub reads as `null`) and skipped by `move()`.
+
+## Later (not in the MVP)
+
+- **Snapshot vs log.** A page with thousands of lines could keep a snapshot of its current state beside its log, so opening it replays one line, not all of them; the index line is the smallest snapshot (what a card needs). Same writer pattern, own file. Not built.
+- **Where a page lives:** embedded in its parent's `page.jsonl`, a peer `<name>.jsonl`, or its own folder; the index line can say which (a `file` field).
+- **What the index makes cheap:** search one level deep over titles and descriptions; autocomplete and mentions (`ext/Mention`) look names up in it; auto-tagging (words that match an indexed title or path become references while someone types).
+- **Pages vs items:** the index lists pages; items (background data) only with a reason.
+- **References:** a backlink (copy, source remembered) vs a live extension (new lines applied over the original).
+
+Older notes: what a parent loads, measured 2026-11-06: [recursive-pages.md](recursive-pages.md) §6–7; directory deltas: [indexing-2026-10-08.md](indexing-2026-10-08.md); the day index of dated collections: `core/Item/Dated.js`.

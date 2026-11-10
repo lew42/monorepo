@@ -139,6 +139,13 @@ check("turn: a hook-made content Prompt IS the turn: the refined line fills its 
 });
 check("turn: a refined line with no words and no turn writes nothing; one with no re is left alone", () => Session.replay([{ session: "e1" }, { refined: { re: T1, sentences: [] } }, { refined: { sentences: [{ n: 1, text: "x" }] } }]).tasks.length === 0);
 
+check("coverage: 3 sentences, a task citing 2 of them gives 2/3 and lists the uncited one; no prompts gives null", () => {
+	const s = Session.replay([{ session: { id: "cv1", kind: "voice", at: "2026-11-06T10:00:00Z" } },
+		{ refined: { v: 2, at: T1, re: T1, sentences: [{ n: 1, text: "One." }, { n: 2, text: "Two." }, { n: 3, text: "Three." }], sections: [{ id: "s", heading: "", items: [{ id: "i1", text: "Do", cites: [1, 2] }] }], via: "voice" } }]);
+	const c = s.coverage(), none = Session.replay([{ session: "cv2" }]).coverage();
+	return c.sentences === 3 && c.cited === 2 && Math.abs(c.ratio - 2 / 3) < 1e-9 && c.uncited.length === 1 && c.uncited[0].n === 3 && c.uncited[0].text === "Three." && none === null && s.summary().coverage.cited === 2;
+});
+
 process.exit(results.every(Boolean) ? 0 : 1);
 
 import Day from "./Day.js";

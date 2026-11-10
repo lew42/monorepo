@@ -56,6 +56,23 @@ export default class SessionStats extends View {
 		AICost.summary(base).then(({ summary }) => $v.text(summary ? Task.show(summary.completion) : "—")).catch(() => $v.text("—"));
 	}
 
+	/** "Coverage: 41 of 52 sentences placed in a task (79%)" from the item tool's `summary.coverage` (Session.coverage); the uncited sentences open one click down.
+	 *  No prompts (null) or no answer draws nothing: unknown is never shown as 0 or 100. */
+	static coverage($box, work){
+		const base = work.id ? AICost.session_url(work.id) : work.dir;
+		AICost.summary(base).then(({ summary }) => {
+			const c = summary?.coverage;
+			if (!c) return;
+			$box.empty(() => {
+				const word = c.uncited.length ? ` · ${c.uncited.length} not placed ▾` : "";
+				button.c("", `Coverage: ${c.cited} of ${c.sentences} sentences placed in a task (${Math.round(c.ratio * 100)}%)${word}`).attr("type", "button")
+					.attr("title", "How many of your sentences in this session some task cites (Session.coverage)")
+					.on("click", () => $box.el.querySelector(".sov-uncited")?.toggleAttribute("hidden"));
+				div.c("sov-uncited", () => c.uncited.forEach(u => div.c("", `${u.n}. ${u.text}`))).attr("hidden", "");
+			});
+		}).catch(() => {});
+	}
+
 	/** The running time into `$run`: the session index's wall and active time, else the Task's banked time. */
 	static running($run, work, root){
 		const own = SessionStats.elapsed(root.ms());   // the Task's banked time, only if the index has no row for this session
@@ -89,6 +106,7 @@ export default class SessionStats extends View {
 				div.c("sov-stat", () => { small.c("sov-k", "Score"); SessionStats.score(strong.c("sov-v", "…").attr("title", "The session's one completion score; \"needs review\" means nothing in it can be scored yet"), work); });
 				div.c("sov-stat", () => { small.c("sov-k", "Session tasks done"); SessionStats.tasks(strong.c("sov-v", "…").attr("title", "The session's own tasks (its log), dropped ones left out; Task folders done counts the folders on disk instead"), work); });
 			});
+			SessionStats.coverage(div.c("sov-coverage"), work);
 			if (part.counted.length) div.c("sov-bar", () => TaskView.draw_bar(part.counted.map(n => n.state), 12));
 			small.c("sov-caption", `Task folders: ${done} done · ${part.running} running · ${total - done - part.running} queued or waiting · ${part.dropped.length} dropped (not counted)`);   // one count each, so the parts add up to the total
 			const folders = root.folders ?? [work.dir];   // the session's folders, one per day it filed work under (SessionTree.load)

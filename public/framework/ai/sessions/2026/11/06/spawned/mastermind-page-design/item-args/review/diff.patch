@@ -1,0 +1,65 @@
+diff --git a/Servex/agents/item-verbs.test.mjs b/Servex/agents/item-verbs.test.mjs
+index 10d4cb323..f9100915c 100644
+--- a/Servex/agents/item-verbs.test.mjs
++++ b/Servex/agents/item-verbs.test.mjs
+@@ -40,6 +40,10 @@ try {
+ 	const via_call = await run_item({ path: URL, call: "tasks.add", args: { title: "Same shape too" } }, { caller: "t" });
+ 	ok(via_call.ok && via_delta2.ok && JSON.stringify(strip_id(via_call.line)) === JSON.stringify(strip_id(via_delta2.line)), "call: \"tasks.add\" args:{…} writes the same line shape as delta: {tasks:{add:{…}}}");
+ 
++	// 3b. args sent as JSON text (a client whose schema showed `args` as a string) is parsed, not used as the title.
++	const via_text = await run_item({ path: URL, call: "tasks.add", args: JSON.stringify({ title: "From text" }) }, { caller: "t" });
++	ok(via_text.ok && via_text.line?.tasks?.add?.title === "From text", "call with args as JSON text parses it: the task is titled \"From text\"");
++
+ 	// 4. call with no args: {"start":{}}.
+ 	let started = await run_item({ path: URL, call: "start" }, { caller: "t" });
+ 	ok(started.ok && started.line?.start !== undefined && JSON.stringify(started.line.start) === "{}", "call: \"start\" with no args writes {start:{}}");
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index c2886c5f8..7554fa2ab 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -1230,6 +1230,14 @@ function cap_read(value){
+ /* THE THREE VERBS (item-tool plan, merge 1, /live/plan/item-tool/): `get`/`set`/`call` each become exactly what today's
+  * `delta`/`read` would have been, so everything below this function — validation, the write, replay — never sees a
+  * difference. Returns {delta, read} (one of the two undefined) or {why} to refuse before anything is touched. */
++// A client whose schema shows `args` as a string sends the object as JSON text (seen 2026-11-09: `tasks.add` made a task
++// titled with the whole JSON). Text that parses to an object or array is that value; any other string stays a string
++// (`remove: "c1"` takes an id).
++function parse_args(args){
++	if (typeof args !== "string" || !/^\s*[[{]/.test(args)) return args;
++	try { const v = JSON.parse(args); return v !== null && typeof v === "object" ? v : args; } catch { return args; }
++}
++
+ function verbs_to_delta({ delta, read, get, set, call, args }){
+ 	const vals = { delta, read, get, set, call }, given = Object.keys(vals).filter(k => vals[k] !== undefined);
+ 	if (given.length > 1) return { why: `only one of ${given.join(", ")} in one call. Nothing was written.` };
+@@ -1246,7 +1254,7 @@ function verbs_to_delta({ delta, read, get, set, call, args }){
+ 		if (typeof call !== "string" || !call.trim()) return { why: "`call` must be a dotted path to a method, e.g. \"tasks.add\". Nothing was written." };
+ 		const parts = hops(call), method = parts.pop();
+ 		if (!method) return { why: "`call` must be a dotted path to a method, e.g. \"tasks.add\". Nothing was written." };
+-		return { delta: nest(parts, { [method]: args !== undefined ? args : {} }) };
++		return { delta: nest(parts, { [method]: args !== undefined ? parse_args(args) : {} }) };
+ 	}
+ 	return { delta, read };   // neither given: today's delta/read, unchanged
+ }
+@@ -1900,7 +1908,7 @@ export function page_tools(resolve_log = null){
+ 				get: { type: "string", description: "Read a dotted path, e.g. \"tasks.link-dot.state\" — never writes, same answer as `read` (below)." },
+ 				set: { type: "object", description: "Change plain fields, e.g. {\"title\": \"Plans\"}. Writes one log line, the same as the equivalent `delta`. Refused if a key names a method (use `call`) or a child list (use `call: \"<list>.add\"` or `get`)." },
+ 				call: { type: "string", description: "A dotted path to a method, e.g. \"tasks.add\" or \"tasks.link-dot.complete\". Writes one log line, the same as the equivalent `delta`. Refused if the last step is not a method, or is a query (use `get`)." },
+-				args: { description: "The method's argument, for `call` only (e.g. {title: \"x\"}). Omit for a method that takes none, e.g. call: \"start\"." },
++				args: { type: ["object", "array", "string", "number", "boolean"], description: "The method's argument, for `call` only (e.g. {title: \"x\"}). Omit for a method that takes none, e.g. call: \"start\"." },
+ 				delta: { type: "object", description: "ONE JSONL line, exactly what Item.set(delta) takes and the log holds. Omit it to read the current state. {\"help\":{}} returns the instructions again." },
+ 				read: { type: "string", description: "A dotted path to read with NO write, e.g. \"content.today\" (never together with `delta`). Answers {ok:true, read, value}: an Item as its data with every List inside replaced by {total, rows:[{id,type,title}]}; a List as that same rows shape; a query the class lists (help's \"queries\": completion_score, tally, cost, …) is CALLED and answers its value, still with no write; anything else as the plain value. Capped near 4 KB (then `truncated:true`). A path that does not resolve answers {ok:false, why:\"no such path: <the first missing step>\", here:[the ids or keys that exist at the last good step]}." } },
+ 			[],
+diff --git a/Servex/doc/item-tool.md b/Servex/doc/item-tool.md
+index b64a00e6d..882689d00 100644
+--- a/Servex/doc/item-tool.md
++++ b/Servex/doc/item-tool.md
+@@ -2,7 +2,7 @@
+ 
+ `item({path, delta})` in `Servex/agents/page_tools.js`: `page_set` generalised to any Item class. `delta` is one log line, the object `Item.set()` takes. A key naming a method calls it, a key naming a child walks into it, anything else assigns (`set_one` in `core/Item/Item.js`; there is no second apply).
+ 
+-**The three verbs** (merge 1 of the plan at [/live/plan/item-tool/](/live/plan/item-tool/)): `get`, `set` and `call` sit beside `delta` and `read`. Each becomes exactly the `delta`/`read` a caller would have written — `verbs_to_delta()` at the top of `run_item_now` — so everything below is unchanged: `item({path, get:"a.b"})` = `read:"a.b"`; `item({path, set:{title:"x"}})` = `delta:{title:"x"}`; `item({path, call:"tasks.add", args:{title:"x"}})` = `delta:{tasks:{add:{title:"x"}}}`; `item({path, call:"start"})` = `delta:{start:{}}`. A `set` key that names a method or a list, or a `call` whose last step isn't a method (or is a query), is refused by name, checked against `surface_of(Class)` and `node.lists()` — the same data `instructions.methods` comes from. More than one of `delta`/`read`/`get`/`set`/`call` in one call is refused. Full detail and the AI-facing version: [core/Page/doc/ai-api.md](/framework/core/Page/doc/ai-api.md), "The three verbs". Test: `node Servex/agents/item-verbs.test.mjs`.
++**The three verbs** (merge 1 of the plan at [/live/plan/item-tool/](/live/plan/item-tool/)): `get`, `set` and `call` sit beside `delta` and `read`. Each becomes exactly the `delta`/`read` a caller would have written — `verbs_to_delta()` at the top of `run_item_now` — so everything below is unchanged: `item({path, get:"a.b"})` = `read:"a.b"`; `item({path, set:{title:"x"}})` = `delta:{title:"x"}`; `item({path, call:"tasks.add", args:{title:"x"}})` = `delta:{tasks:{add:{title:"x"}}}`; `item({path, call:"start"})` = `delta:{start:{}}`. A `set` key that names a method or a list, or a `call` whose last step isn't a method (or is a query), is refused by name, checked against `surface_of(Class)` and `node.lists()` — the same data `instructions.methods` comes from. More than one of `delta`/`read`/`get`/`set`/`call` in one call is refused. `args` sent as JSON text (a client whose schema shows it as a string) is parsed first (`parse_args`); any other string stays a string. Full detail and the AI-facing version: [core/Page/doc/ai-api.md](/framework/core/Page/doc/ai-api.md), "The three verbs". Test: `node Servex/agents/item-verbs.test.mjs`.
+ 
+ - **Which log:** a url's folder holds `task.jsonl` (Task), else `session.jsonl` (Session, `core/Session/Session.js`), else `page.jsonl` (Page). `task.jsonl` beside a `page.jsonl` means a task folder. A `class` key on line 1 wins when `Item.types` registers that name (`class_for`); an unknown name falls back to the file's own class.
+ - **`path` is a site-absolute URL, never a repo-relative one with `public/` on the front** (seen 2026-11-07, item-validate): `item({path: "/framework/ai/sessions/…/", delta})`, not `item({path: "public/framework/ai/sessions/…/", delta})`. A `path` that starts with `public/` resolves against `PUBLIC` the same way a correct one does, so it lands at `public/public/…` instead — a folder git already ignores (`.gitignore:256`, `public/public/`), so the call still answers `{ok:true, line:{…}, size:{…}}` and LOOKS like it landed, but the real `session.jsonl` (or `page.jsonl`) a reviewer or a fresh agent reads never gets the line. Found when a minion's own "log" calls through `mcp__local__item` left no trace in its task's `session.jsonl`; `public/public/` held the misdirected writes instead (removed, nothing of value was in it). The safe route when unsure: `node .claude/hooks/append.mjs <absolute-path-to-task.jsonl-or-session.jsonl> <lines.json>`, which takes a real filesystem path, never a URL.

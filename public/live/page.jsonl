@@ -217,3 +217,20 @@
 {"content":{"add":{"id":"link-pids","path":"./pids/","title":"Process logging: is every process logged and ended?","type":"part-link"}},"by":"voice-app","ts":"2026-11-08T13:44:06.599Z"}
 {"file":"audit/page.jsonl"}
 {"content":{"add":{"type":"part-link","id":"link-audit","path":"./audit/","title":"Audit: what's waiting on you"}},"by":"pages.add","ts":"2026-11-09T06:02:53.409Z"}
+{"file":"done/page.jsonl"}
+{"content":{"add":{"id":"link-done","after":null,"path":"./done/","title":"What got done, Nov 6 to 9: one link each","type":"part-link"}},"by":"voice-app","ts":"2026-11-09T23:26:25.049Z"}
+{"file":"fs-audit/page.jsonl"}
+{"content":{"add":{"type":"part-link","id":"link-fs-audit","path":"./fs-audit/","title":"File-system audit"}},"by":"pages.add","ts":"2026-11-09T23:43:13.015Z"}
+{"content":{"add":{"id":"link-voice-session","after":null,"path":"/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/","text":"Every task, live: 24 of 33 done","title":"This voice chat's session","type":"part-link"}},"by":"voice-app","ts":"2026-11-09T23:43:26.971Z"}
+{"tab":{"name":"done","tab":true},"by":"mastermind-live-page","ts":"2026-11-09T23:45:38.944Z"}
+{"tab":{"name":"next","tab":true},"by":"mastermind-live-page","ts":"2026-11-09T23:45:39.311Z"}
+{"tab":{"name":"plan","tab":true},"by":"mastermind-live-page","ts":"2026-11-09T23:45:39.762Z"}
+{"file":"calibration/page.js"}
+{"save":{"name":"nov-6-9","title":"/live/ cards, Nov 6 to 9"},"by":"voice-app","ts":"2026-11-10T00:01:48.560Z"}
+{"content":{"add":[{"id":"this-session","path":"/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/","text":"A new, faster session view is being built","title":"Session cloud-voice-app-20261106 (this chat)","type":"part-link"},{"id":"done","path":"./done/","text":"One link per landed piece","title":"What got done","type":"part-link"},{"id":"now","text":"- **Session view:** a new, fast page for this session (live-page)\n- **Card styles:** 3 to 5 list and card layouts side by side (live-page)\n- **Page index:** index.jsonl so big folders load fast (new agent)\n- **Pages and templates:** make a page, add tabs or cards, instantly; keep what works as a template (page-design)\n- **Git hygiene:** why the tree stays dirty, and a plan (fs-audit)","title":"Now","type":"part-card"},{"id":"archive","path":"./nov-6-9/","text":"Everything that was on this page before","title":"Older cards (Nov 6 to 9)","type":"part-link"}]},"by":"voice-app","ts":"2026-11-10T00:01:55.076Z"}
+{"content":{"now":{"text":"**Goal:** beautiful, working streaming pages you drive by voice.\n\n1. **Session view:** a fast, readable page for this session (live-page, building)\n2. **Card styles:** 3 to 5 layouts side by side to pick from (live-page, building)\n3. **Friction:** the top 5 things that make pages feel broken, each with its smallest fix (friction, reviewing)\n4. **Page plugins:** a page as a tree of switchable plugins; this is where templates live (page-design, planning)\n5. **Page index:** big folders load fast (page-index, planning)\n\nPlans are reviewed, then the smallest working version is built and linked on What got done."}},"by":"voice-app","ts":"2026-11-10T00:06:48.159Z"}
+{"file":"friction-test/page.jsonl"}
+{"file":"friction-test/page.jsonl","gone":true}
+{"file":"_removed/"}
+{"file":"session/"}
+{"content":{"now":{"text":"**Goal:** beautiful, working streaming pages you drive by voice.\n\n1. **Session view:** a fast, readable page for this session (live-page, building)\n2. **UI kit:** one small set of parts every page uses; the [library](/framework/library/) becomes the template tree; layout checked by numbers on every merge (ui-kit, planning)\n3. **Friction:** the top 5 things that make pages feel broken (friction, reviewing)\n4. **Page plugins:** a page as a tree of switchable plugins (page-design, planning)\n5. **Page index:** big folders load fast (page-index, planning)"}},"by":"voice-app","ts":"2026-11-10T00:23:57.262Z"}

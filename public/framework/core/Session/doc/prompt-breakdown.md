@@ -5,7 +5,7 @@ What a prompt becomes, in one screen. Filing is `PromptRecords.file()` in `Serve
 ## The principles
 
 - **One prompt, one outcome task.** A prompt with two or more asks files ONE parent task (titled from the prompt's subject, `from: "owner"`, `idle`) and each ask is a subtask of it. A prompt with one ask files that ask as a plain root task, no wrapper.
-- **Same work attaches.** Before a parent is made, one Haiku call (`attach_to`, no tools) sees the prompt and the session's open root tasks. If the prompt is clearly more of one of them, the asks become subtasks of that task and no new parent is made. No match, or a failed call, means a new parent.
+- **Same work attaches.** Before a parent is made, one call on the parts model (Sonnet in `live`, `LIVE_MODEL`; `attach_to`, no tools) sees the prompt and the session's open root tasks. If the prompt is clearly more of one of them, the asks become subtasks of that task and no new parent is made. No match, or a failed call, means a new parent.
 - **Asks are never merged or lost.** Each ask stays its own subtask (past `file_cap` an ask stays an open part on the prompt's record). The owner's qualifiers ("a little", "only on the phone") stay in the ask's words.
 - **A task is an outcome, not a principle.** A rule ("always", "never") files as `Write down: …`, a doc note, and sits under the same parent when the prompt has one. A question is answered, not filed.
 - **Completion rolls up.** A parent cannot complete while a subtask is open, and its progress is the share of complete subtasks. `PromptRecords.task_state()` resolves a part's ref to a subtask the same way it resolves a root, so `Prompt.progress` counts a prompt's asks as before.

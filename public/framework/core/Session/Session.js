@@ -197,6 +197,35 @@ export default class Session extends Task {
 		return this;
 	}
 
+	/* COVERAGE (one-refiner step 3): how many of the owner's sentences in this session's prompts some task cites. A prompt's sentences are its
+	   stored paragraphs (or the shared splitter over its raw words); a sentence is cited by a `parts` entry (PromptRecords) or by the `cites`
+	   of a task below the prompt (refine_turn writes "a1 a2"). Returns {sentences, cited, ratio, uncited: [{prompt, n, text}]}, or null when the
+	   session has no prompt with words (unknown, never 0 or 1). Computed on read, never stored. */
+	coverage(){
+		const prompts = new Set(), Prompt = Item.types.get("Prompt");
+		const walk = list => { for (const t of list ?? []){ if (t instanceof Prompt) prompts.add(t); walk(t._tasks); } };
+		walk(this._tasks); for (const c of this._content ?? []) if (c instanceof Prompt && c.counts_toward_score) prompts.add(c);   // an old content Prompt (no `counted` flag) counts nowhere
+		const uncited = []; let sentences = 0;
+		const ids = new Set([...prompts].map(p => p.id)), filed = m => ids.has(m.prompt) || ids.has(Session.turn_id(m.at));   // the chat message's own Prompt task, already counted above
+		for (const p of prompts){
+			const own = p.sentences, all = own.length ? own : Prompt.split(p.get_one("text") ?? "").map((text, i) => ({ id: "a" + (i + 1), text }));   // a hook-made Prompt has only its text: the shared splitter
+			if (!all.length) continue;
+			const cited = new Set(), parts = ps => (ps ?? []).forEach(q => { (q.cites ?? []).forEach(n => cited.add(typeof n === "number" ? all[n]?.id : String(n))); parts(q.parts); });   // PromptRecords cites a 0-based index (parts_one numbers the sentences from 0); refine_turn cites ids
+			parts(p.parts);
+			const below = list => { for (const t of list ?? []){ String(t.get_one?.("cites") ?? "").split(/\s+/).filter(Boolean).forEach(n => cited.add(n)); below(t._tasks); } };
+			below(p._tasks);
+			all.forEach((s, i) => { sentences++; if (!cited.has(s.id)) uncited.push({ prompt: p.id, n: i + 1, text: s.text }); });
+		}
+		// A chat Prompt (the owner's dictation, session.messages) whose turn was never refined into a Prompt task: all its sentences are uncited.
+		for (const m of this._messages ?? []){
+			if (!m.sentence_items || m.get_one("by") !== "owner" || !m.at || filed(m)) continue;
+			m.sentence_items.forEach((x, i) => { sentences++; uncited.push({ prompt: m.id, n: i + 1, text: x.text }); });
+		}
+		return sentences ? { sentences, cited: sentences - uncited.length, ratio: (sentences - uncited.length) / sentences, uncited } : null;
+	}
+	static queries = [...Task.queries, "coverage"];
+	summary(){ return { ...super.summary(), coverage: this.coverage() }; }
+
 	// The folder every session of this kind lives under. Override in the subclass.
 	static root_url(){ return new URL("../../ai/sessions/", import.meta.url); }
 
