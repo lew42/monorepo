@@ -176,7 +176,11 @@ if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, "/")}` || proc
 	const widthsOpt = opt("widths");
 	const asJson = flag("json");
 	const doBaseline = flag("baseline");
-	const [base, ...urls] = argv;
+	const [base, ...rest] = argv;
+	// Git Bash (MSYS) rewrites "/x/" into "C:/Program Files/Git/x/" when this is run directly from a
+	// git-bash shell (never from merge.mjs's own spawnSync, which passes argv with no shell in between) —
+	// same fix as Server/smoke.mjs.
+	const urls = rest.map(p => { const m = /^[A-Za-z]:[\\/].*?[\\/]Git([\\/].*)$/i.exec(p); p = (m ? m[1] : p).replace(/\\/g, "/"); return p.startsWith("/") ? p : "/" + p; });
 	if (!base || !urls.length) {
 		console.error("usage: node Server/LayoutCheck.mjs <base url> <page url>... [--widths 400,1200] [--json] [--baseline]");
 		process.exit(2);
