@@ -1,0 +1,23 @@
+import Browser from "file:///C:/Code/lew42/worktrees/qf-3/Server/Browser.mjs";
+
+const browser = await Browser.browser();
+const page = await browser.newPage({ viewport: { width: 400, height: 900 } });
+const errs = [];
+page.on("console", msg => { if (msg.type() === "error") errs.push(msg.text()); });
+page.on("pageerror", e => errs.push("pageerror: " + e.message));
+const t0 = Date.now();
+await page.goto("http://qf-3.localhost/live/session/", { waitUntil: "networkidle" });
+await page.waitForTimeout(500);
+const svHtml = await page.evaluate(() => document.querySelector("main, .page")?.outerHTML?.slice(0, 3000) ?? document.body.innerHTML.slice(0, 1000));
+console.log("load ms:", Date.now() - t0);
+console.log("errs:", JSON.stringify(errs, null, 2));
+console.log("svHtml:", svHtml);
+await page.screenshot({ path: "shots/probe-400.png", fullPage: true });
+await page.setViewportSize({ width: 1200, height: 900 });
+await page.screenshot({ path: "shots/probe-1200.png", fullPage: true });
+await page.setViewportSize({ width: 400, height: 1400 });
+await page.click("summary:has-text('Place every sentence')");
+await page.waitForTimeout(200);
+await page.locator("text=Child sessions").scrollIntoViewIfNeeded();
+await page.screenshot({ path: "shots/probe-detail-400.png", fullPage: true });
+await Browser.close();
