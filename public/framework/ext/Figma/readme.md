@@ -63,13 +63,13 @@ Build lessons from these pages are in [use-figma.md, Traps](./doc/use-figma.md#t
 
 ## The icon system (mine, 2026-11-10)
 
-Page `Icons` (156:975, was `Cards · Icons`; always look pages up by id, they get renamed): `Page · Icons` (166:1383) with sections Icon, Icon frame, Icon item, Alignment test, Pill; masters at the canvas root at x -634 (kickers hidden: "Atom" and "Molecule" meant nothing; the owner reworked this page by hand and it is the model for the cleanup).
+Page `Icons` (156:975, was `Cards · Icons`; always look pages up by id, they get renamed): `Page · Icons` (166:1383) with sections Icon, Icon with a background, Icon item, Alignment test (the Pill moved to the Pills page); masters at the canvas root at x -634. voice-app's new base Icon and Icon Set (185:10062, 185:10067) will replace set 156:988; once it asks, everything is migrated and 156:988 deleted.
 
 - **Icon** (set 156:988): Size H1/H2/H3/H4/Body/Label, one text style each (`Icon/H1`…`Icon/Label`, Material Icons, line height = the text style's); glyph prop `Icon#156:0`. Every master uses it as an exposed nested instance (Kicker, card header, Panel, Icon button, Icon item, Pill, and voice-app's Chip, Tile, Nav item, Menu item, Toast, Search field).
-- **Icon frame** (set 162:1856, Small 28 / Medium 37 / Large 46): the small icon button. None, hover and selected are the Selection mode on the instance (Off, Hover, On), not variants. **Icon button** 21:126 stays the large (56) Button-mode version.
-- **Icon item** (set 162:11334): icon pinned to the top of the first line, Name FILL, so a long title wraps beside it. **Pill** (set 166:594): icon and label in a rounded Selection-coloured background, per size.
+- **Icon with a background** (2026-11-10: the Icon frame set was deleted; 9 on Icons and 5 on Panels became Icon instances): an Icon instance with a Selection `bg` fill, padding (Label +2, Body +4, H3 +6) and radius 4. Off, Hover and On is the Selection mode on the instance. **Icon button** 21:126 stays the large (56) Button-mode version.
+- **Icon item** (set 162:11334): icon pinned to the top of the first line, Name FILL, so a long title wraps beside it. The Pill has its own page, below.
 - **Alignment (tested):** a pinned-top row beats an inline glyph (the second line runs under the icon, and uppercase H4 breaks the ligature) and a centred icon (drifts to the middle of a wrapped block).
-- **Panel** header is a Label (fill) plus an `Actions` slot for Icon frame buttons; the footer is a Toolbar.
+- **Panel** header is a Label (fill) plus an `Actions` slot for icon-with-a-background buttons; the footer is a Toolbar.
 - **Swapping a master's own `Icon` text property for the nested Icon:** record every copy's value first (`setSharedPluginData`; `setPluginData` is not supported here), swap, write the values back, then delete the old property; a deleted property takes its copy values with it. A nested instance's glyph property cannot be bound to the parent's property.
 - Gaps: no Small text style (Label stands in), Material Icons has no Outlined weight, Kicker glyph is 14 px (Icon/H4).
 
@@ -81,17 +81,19 @@ Page `Panels` (170:569): the Panel master (153:1779, 400 wide) sits at the root 
 - **Hover rows, two kinds:** edge-to-edge (container padding 0, so the hover fill runs the full width, like Figma's Layers) and inset (container padding 8, row radius 6, so the hover floats with a gap at its left edge, like the three zones on Bars). Rows are Icon item instances whose fill is bound to `Selection` bg, modes Off, Hover, On.
 - **Master placement rule:** masters sit fully left of the page, x at most -(widest master + 160), never under the page.
 
-## The "Components, sets, variants, properties" page (2026-11-10)
+## The Pills page (mine, 2026-11-10)
 
-A "when to use what" explainer right after Icons (page `189:933`), eighteen columns left to right, each with live components and its words on the canvas: a plain copies, b main + instances, c copy of an instance, d nesting, e component set, f duplicated set, g base component, h modes, i the Content box, j variants don't share values, k the five property types on one Card set (VARIANT, TEXT, BOOLEAN, INSTANCE_SWAP, SLOT), l variants are separate mains (Pill Set padding per variant), m one change on the base and six follow (Before, After, Live), n pass-through (three ways), o a Size variable mode (collection "Size (demo, Pill)"), p a set holds only variants, q copy, duplicate, detach, wrap, r overrides are per property. Masters sit at the page root. The banner states the principle (owner: "write it big"): inside a component override freely; tokens for what the whole system shares, plain overrides for one-offs.
+Page `Pills` (210:14169, right after Icons): masters at the root at x -420 (Pill `185:9309`, Pill Set `185:9316`), `Page · Pills` with four sections. The Pill owns its background (Scheme `accent` fill, `on-accent` text and icon, radius bound to `round`); the Selection Hover mode was removed. Size is the one switch (Pill Set `Size`: Label, H4, Body, H3, H2, H1, each a wrapper around one Pill instance). Colour comes from the Scheme and Theme modes, not variants. Roles are named instances (Tag = H4, Badge = Label, Pill = Body), not variants. The old six-variant Pill set was deleted (no uses left).
 
-- **Pill Set** (`185:9316` on Icons, the owner's trial, finished 2026-11-10): six `Size` variants (Label, H4, Body, H3, H2, H1), each a HUG wrapper around one instance of the base Pill `185:9309`, overriding only text style, text, nested Icon Size and padding. Inheritance is proven in m: base gap 1 to 14 plus an outline moved all six, then reverted. The old Pill set `166:594` is untouched; it is still used in `Page · Icons` (the Pill sizes and states cards), by `168:9239` on Icons and by two instances on this page (`189:946`, `189:1029`).
-- **Every component set has the Figma-default look** (dashed #9747FF, vertical, padding 20; recipe in [use-figma.md, Traps](./doc/use-figma.md#traps)); the Icons masters are restacked in one column at x -634.
-- **Size mode verdict (o):** one mode sets text size, icon size, padding and gap through every child, but drives neither a text style nor a nested component's variant, so use it when Size must travel through many components; for one Pill keep Pill Set.
+## The "Components, sets, variants, properties" page (rewritten 2026-11-10)
 
+Page `189:933`, after the Icon library: walkthroughs, learn by doing. One `Page · 1920` instance at 0,0, one Section per lesson in its slot; each lesson is numbered steps (an arrow to each result), an image placeholder for a later Figma UI screenshot or video, and a "Try it on these" row of live instances. Lessons: 1 copies follow the master (master Note; the copy, override, copy-of-copy flow), 2 nesting (Boxed note holds a Note), 3 sets (Tag and Tag Set), 4 properties (one Card with VARIANT, TEXT, BOOLEAN, INSTANCE_SWAP, SLOT), 5 the Content box, 6 modes (Swatch under Scheme White, Light gray, Prime, Dark; plus the rule that a variable may alias a variable in another collection, so two modes can compound, pointing to the Sizing page). Masters sit at the root left of the page (x -540): Note, Boxed note, Tag, Tag Set, Card, Swatch.
+
+- **Naming:** a base component is `X`, its set is `X Set` (Pill and Pill Set, Tag and Tag Set, Icon and Icon Set).
+- **Every component set has the Figma-default look** (dashed #9747FF, vertical, padding 20; recipe in [use-figma.md, Traps](./doc/use-figma.md#traps)).
 - **Pill and Icon item have no TEXT property.** Each variant's text shows its own class (H1 to Label) and an instance is edited by typing over the text. Deleting the property wiped property-set text on existing instances (18 on Icons were retyped), so move text off a property only after reading the real nodes (see Traps in [use-figma.md](./doc/use-figma.md)).
-- The duplicate `Pill (copy · not linked)` (168:9214) is the exhibit for f, i and j: it still has `Label#166:0` bound on five variants and unbound on H2, and its radius is a number on some variants and the `round` variable on H1. The original Pill's six variants are all bound to `round`.
-- `Pill (wraps Icon item)` is the demo of rebuilding Pill as a wrapper around an Icon item instance; the live Pill is not rewired. A main's fill can resolve through an explicit variable mode (the Pill sets `Selection` to 159:0), so a copy must copy `explicitVariableModes` or its instances render with no fill.
+- A main's fill can resolve through an explicit variable mode, so a copy must copy `explicitVariableModes` or its instances render with no fill.
+- The collection `Resolution` is now `Scale` (same id 6:15); look collections up by id.
 
 ## The Page builder page (2026-11-09)
 
