@@ -61,3 +61,10 @@
 {"log":{"at":"2026-11-10T13:23:43-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
 {"log":{"at":"2026-11-10T13:28:47-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
 {"log":{"at":"2026-11-10T14:28:55-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"tool_call":{"at":"2026-11-10T21:06:03.460Z","tool":"spawn_agent","args_hash":"eecf62b0ce49","caller":"voice-app"}}
+{"task":"/framework/ai/sessions/2026/11/10/spawned/mastermind-figma-live/","type":"Session","spawn":{"role":"mastermind","model":"claude-sonnet-5-5","effort":"high","role_readme":"Servex/agents/roles/mastermind.md","session_id":"e5924ce1-124c-473b-828e-f1ad0ce7e469","agent":"mastermind-figma-live","at":"2026-11-10T15:06:03-06:00","placed":"top"},"by":"Servex","ts":"2026-11-10T21:06:03.500Z"}
+{"messages":{"add":{"type":"Ref","url":"/framework/ai/sessions/2026/11/10/spawned/mastermind-figma-live/","by":"servex","at":"2026-11-10T21:06:03.501Z"}},"by":"servex","ts":"2026-11-10T21:06:03.501Z"}
+{"spawned":{"at":"2026-11-10T21:06:07.766Z","agent":"mastermind-figma-live","task_dir":null,"caller":"voice-app"}}
+{"log":{"at":"2026-11-10T15:13:59-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"tool_call":{"at":"2026-11-10T21:16:45.601Z","tool":"send_to_agent","args_hash":"15a48fc0cc29","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-10T21:23:27.924Z","tool":"send_to_agent","args_hash":"c9384b705708","caller":"voice-app"}}
