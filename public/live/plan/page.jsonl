@@ -74,3 +74,6 @@
 {"content":{"add":{"id":"link-mentions","type":"part-link","path":"./mentions/","title":"Mentions: each module lists the prompts that name it"}},"by":"mastermind-session-truth","ts":"2026-11-08T16:00:45.996Z"}
 {"file":"one-refiner/page.jsonl"}
 {"content":{"add":{"type":"part-link","id":"link-one-refiner","path":"./one-refiner/","title":"One refiner: every sentence you say lands in a task"}},"by":"pages.add","ts":"2026-11-08T16:35:18.133Z"}
+{"file":"plugins/page.jsonl"}
+{"content":{"add":{"type":"part-link","id":"link-plugins","path":"./plugins/","title":"Plugins: a page is a tree of plugins"}},"by":"pages.add","ts":"2026-11-10T00:07:00.998Z"}
+{"content":{"add":{"id":"link-plugins","type":"part-link","path":"/live/plan/plugins/","title":"Plugins: a page is a tree of plugins","text":"Templates and instant page changes, as one system. Plan"}},"by":"mastermind-page-design","ts":"2026-11-10T00:07:01.979Z"}
