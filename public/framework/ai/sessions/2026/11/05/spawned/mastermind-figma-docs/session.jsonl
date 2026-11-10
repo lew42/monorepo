@@ -48,3 +48,11 @@
 {"commit":{"hash":"c3219c9fe1bd276942d75de0c192b1396113c095","what":"figma docs: Compact mode, Shell/Inset card modes, card parts and Section components, slot and grid traps","files":[".claude/skills/figma/SKILL.md","public/framework/ext/Figma/doc/use-figma.md"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-10T03:39:26.131Z"}
 {"pid_exit":17060,"ended":"2026-11-09T21:39:30-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"log":{"at":"2026-11-09T21:44:02-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T03:44:02.730Z"}
+{"log":{"at":"2026-11-09T21:48:43-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-10T03:48:43.528Z"}
+{"commit":{"hash":"398baed1414a4299a4a9dfcc0905a3b02562d2e2","what":"figma docs: standard widths, organisation plan, mode-on-drop, card-in-card slot order, stray scan, masonry, second consumer file","files":[".claude/skills/figma/SKILL.md","public/framework/ext/Figma/doc/use-figma.md"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-10T03:49:15.534Z"}
+{"log":{"at":"2026-11-09T21:52:52-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T03:52:52.340Z"}
+{"log":{"at":"2026-11-09T21:56:19-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-10T03:56:19.861Z"}
+{"commit":{"hash":"1968b1742730a7d9b5a6b3123d0491cdd107b3ea","what":"figma docs: masters minimal-config on family pages in boards, board trap, Index page, footer fill, Images (generate_image, Image/Avatar)","files":[".claude/skills/figma/SKILL.md","public/framework/ext/Figma/doc/use-figma.md"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-10T03:56:51.257Z"}
+{"log":{"at":"2026-11-09T22:00:47-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T04:00:47.010Z"}
+{"log":{"at":"2026-11-09T22:10:41-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-10T04:10:41.399Z"}
+{"log":{"at":"2026-11-09T22:14:44-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T04:14:44.471Z"}
