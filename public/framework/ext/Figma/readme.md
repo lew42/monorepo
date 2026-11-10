@@ -37,9 +37,21 @@ Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` ma
 - **Figma mastermind** (owner, 2026-10-13): one standing session owns the Figma work and keeps this folder's docs current (it took them over from the docs mastermind on 2026-11-09, after a lean audit: file-map, haiku-builds and mapping deleted, use-figma.md condensed to the design system file; git has the old text). Figma work needs no worktree; repo edits (docs, `tokens/`) still commit by path, and `tokens/` still goes through review and merge. Pages follow [doc/page-layout.md](./doc/page-layout.md) (one 1920 wrapper, auto layout, an Index page). Edit the main component, never the same override on every instance.
 - Screenshots over 600 KB are refused by `track.mjs`; the Figma screenshot URL is short-lived.
 
-## The Pages page (2026-11-09)
+## The design system file's page structure (2026-11-09)
 
-Page `Pages` (62:933) in the design system file follows the file's page convention: `Page · Pages` (71:555, a copy of `Page · 1920`) at (0,0) with the six section blocks as instances in its Content slot; `Page templates and examples` (71:800) below it, three 1920 template instances plus two examples; and `Main components` (71:518) left of x 0 holding the masters: `Page · Stack`, `Page · Sidebar`, `Page · Landing`, and `Block · Three cards / Photo cards / Split / Stats / Call to action / Gallery`. Templates are 1920 wide with a Content slot FILL up to 1600; blocks are 1600 wide. Build notes: [doc/use-figma.md](./doc/use-figma.md) (Traps) and [doc/troubleshooting.md](./doc/troubleshooting.md).
+- **Pages, in order:** UI (status, plan, one copy of each core piece; was `Index`), Page 1 (the owner's Drag and drop frame and My Card), Components, Cards, Layouts, Page builder (was `Pages`, mine), Images, Claude · Sandbox. This mastermind owns Page builder and any new page-builder pages; Cards, UI, Components, Layouts and Images belong to the cloud-chat agent (`voice-app`), so ask before touching them.
+- **Every page** has a `Page · 1920` copy at (0,0) and a `Main components` column left of x 0 holding the masters, each under a purple `Main component label` (`Colors/main-component`). A master cannot go inside a slot. Keep the wrapper around each master thin and named, so a whole page is easy to select.
+- **Root frames are 400, 1920 or 3440 wide** (owner); anything else nests inside one. Fewer one-off, non-component frames.
+- **Components page:** `Kicker` (h4 caps: section kickers, status, captions; was `Icon item`), a new `Icon item` (icon 24 + name, for list rows and menus; `Icon button` is the same without the name), and `Input`, `Select`, `Text area`, `Toggle`, `Checkbox`. Inputs are as tall as Button (2 × `btn-pad-y` + 24). Toggle off and Checkbox unchecked are overrides, not variants.
+- **Images page:** every portrait has an avatar row (40, 64, 96, 160, rounded square, ring). Avatar rings are outside strokes, so rows that hold them need `clipsContent = false`. Background removal is not possible from the MCP (Weave is not linked to the account); the owner does it in Figma (Actions → Remove background).
+
+## The Page builder page (2026-11-09)
+
+Page `Page builder` (62:933): `Page · Page builder` (71:555, a copy of `Page · 1920`) at (0,0) with the six blocks in its Content slot; `Templates and examples` (71:800) below it, a vertical stack of groups, each with a heading big enough to read at zoom-to-fit: `How to build a page` (77:1295, four steps with small visuals), `Drag and drop: before and after` (81:2113, an empty Landing template, then a filled one), `Templates` (71:801), `Examples` (71:862), `Compare widths` (75:982, the same three blocks at 400, 1920 and 3440 side by side; the one wide group); and `Main components` (71:518) left of x 0.
+
+- **Templates** (masters, each with a Content slot FILL up to 1600): `Template · Site`, `· App with sidebar`, `· Landing` (1920), `· Phone` (400, Resolution Mobile on the root, grids set to one column) and `· Mega` (3440, the sidebar stays Default and only the Main frame is Resolution Mega, slot max width 2880). Blocks: `Block · Three cards / Photo cards / Split / Stats / Call to action / Gallery`.
+- **A ground colour is a Scheme mode on the template**, not a copy per colour: duplicate a template and set Prime, White or Light gray. Cards inherit the ground and vanish on a Light gray, Dark or Prime ground, so set `Scheme = White` on each card instance there.
+- Not built yet: 1920×1080 fixed-height screens (halves, two or three columns, any ground on any ground), and the 1600 content area splitting into two 800 columns. Build notes: [doc/use-figma.md](./doc/use-figma.md) (Traps) and [doc/troubleshooting.md](./doc/troubleshooting.md).
 
 ## More
 
