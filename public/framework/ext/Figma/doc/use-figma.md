@@ -194,11 +194,20 @@ A worked example: `Kit · Slots vs components` (`238:30989`) builds the same car
 
 Design files have no live connectors (`ConnectorNode` is FigJam-only), so arrows are **layout pieces**: a connector frame between cards whose 2 px line FILLs it, an elbow made of two FILL halves with one or two stroke sides, a T piece (top bar of two halves + stem + stubs) for branch and merge. When a card grows, the stack reflows and the line stays joined; each case has a before/after pair on the page. Pieces: `DG Node`, `DG Line V`, `DG Line H`, `DG Turn`, `DG Fan`. Limit: a FILL stub under a short card in a HUG row is not re-measured by the plugin API, so those stubs are sized to the tallest card. Charts: bars FILL a row with data heights, stacked bar shares by `layoutGrow`, donut by `ellipse.arcData`, sparkline as a vector. For free-form charts, the MCP's `generate_diagram` makes FigJam diagrams instead.
 
+## Templates you drag into (owner's findings, 2026-11-09)
+
+- **Padding goes ON the slot (the default).** A slot inside a padded frame is a thin drop target: the blue box is the frame, and the slot only lights up near its edge. Put the padding on the `Content` slot itself (bound to `pad-x` / `pad-y`, gap to `gap`) and give the frame 0, so the whole area is the target. Card, Card body/header/footer (voice-app) and every Page builder template work this way. In a template whose height fills (App with sidebar, Mega) the slot is FILL × FILL; in a hugging one it hugs with `minHeight` 240. The slot's `maxWidth` includes its padding (1600 content = 1696), and the wrapper centres it.
+- **Full-bleed rows (advanced).** For sections that run edge to edge, use a copy with the slot's padding and gap at 0: `Template · App with sidebar · Full bleed` (88:1749). The block brings its own padding.
+- **A drag source carries an explicit Scheme mode.** A white card on a Light gray parent vanishes because surface resolves to the parent's mode. Templates have `Scheme = White` set on the component, and Card instances inside blocks have it set on each instance, so they look right wherever they land. A ground is then a mode you set on the instance.
+- **No dashed placeholders in a slot.** They sit in the way of the drop. Use `minHeight` on the slot itself on the component (a copy cannot override it), or nothing.
+- **Bind padding and gaps to `pad-x`, `pad-y`, `gap`, `section-pad-x/y`** wherever one fits, so a Mobile or Mega parent resizes them. The sidebar uses `pad-x` / `pad-y` (Default).
+- `Colors/light` and `Colors/dark` now show in the colour picker. The owner removed the default UI kits from the Claude November 2026 file one by one; team-wide, turn them off in team settings → libraries → UI kits.
+
 ## Traps
 
 - **`code` style can't load**: Figma has no Consolas, so `loadFontAsync` throws and the whole script aborts. Code text uses Cousine Bold by hand. The real fix is to change the style's font in Figma (the owner's file; ask first).
 - **`figma.combineAsVariants()` makes a real component set without the purple dashed border** Figma's UI adds, so it looks like a plain frame (2026-11-05). Add it in the script: `strokes` #9747FF, `dashPattern` [10, 5], `strokeWeight` 1, `cornerRadius` 5.
-- **Wrap rows don't grow their children**: in a `layoutWrap = "WRAP"` row, children stayed at their `minWidth`. Use a plain row with FILL children.
+- **Wrap rows grow their children only with FILL plus a `minWidth`** (verified 2026-11-09; children without FILL stay at their `minWidth`). A FILL child with no intrinsic height collapses in a stacked wrap row, so give an image `minHeight`.
 - **3440×1440 is wide, not tall**: v1 stacked its cards and overflowed the bottom; v2 moved them side by side (steps in a 2×2 grid, stacks across the width, type ramp in the rail) and fits.
 - A glyph outside Montserrat (↳ ✕ ⌕) falls back to Noto Sans Symbols2; any later edit to that frame needs that font loaded too, so load every font with `getRangeAllFontNames` first.
 - `getRangeAllFontNames(0, 0)` throws on an empty text (an empty Meta), so skip empty texts when loading fonts.
