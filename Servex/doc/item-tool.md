@@ -31,12 +31,12 @@
 
 ## Queries: ask without writing (2026-10-23)
 
-A **query** is a method or getter that only reads. A class lists them in `static queries` (`core/Item/Item.js`; `Item.describe()` returns them). A delta whose keys are ALL queries is answered at once and **writes no line**: `{ok, answer:{<key>:value}}`. The grammar is the same one ("a key naming a method calls it"): there is no `get` key. `target` walks into a child first (`target:["a"]`), then asks. A delta that mixes a query with a change (`{"cost":{},"title":"x"}`) is refused with `{ok:false, why}` and writes nothing: send two calls. The item tool holds one live replayed instance per file, so a query is a method call on memory (a 132-task session answers in about 135 ms).
+A **query** is a method or getter that only reads. A class lists them in `static queries` (`core/Item/Item.js`; `Item.describe()` returns them). A delta whose keys are ALL queries is answered at once and **writes no line**: `{ok, answer:{<key>:value}}`. The grammar is the same one ("a key naming a method calls it"). `target` walks into a child first (`target:["a"]`), then asks. A delta that mixes a query with a change (`{"cost":{},"title":"x"}`) is refused with `{ok:false, why}` and writes nothing: send two calls. The item tool holds one live replayed instance per file, so a query is a method call on memory (a 132-task session answers in about 135 ms). The `get` verb (below) also reaches a query, but caps the answer near 4 KB — use `delta` for one that can run long (`summary` on a busy session):
 
 ```
-item({path:"/framework/ai/sessions/2026/10/20/session-e00f55c9/", get:"summary"})
-item({path, delta:{"progress":{}, "cost":{}}})            // several queries in one call; get takes only one dotted path
-item({path, get:"a.progress"})                             // the same query, on the child "a"
+item({path:"/framework/ai/sessions/2026/10/20/session-e00f55c9/", delta:{"summary":{}}})
+item({path, delta:{"progress":{}, "cost":{}}})            // several queries in one call
+item({path, get:"a.progress"})                             // a small one: get is fine
 ```
 
 `Task.queries` = `progress`, `cost` (this folder's agents, USD), `total_cost` (plus every child that has a folder), `duration` (ms, from the start/stop lines), `children` (child **sessions**: tasks whose `path` folder holds a session record), `summary` (id, title, state, completion, progress, counts by state, the open tasks only as id/title/state, cost, duration, children). Cost is computed by `Task.cost_resolver`, which `Agents.js` wires; with no Agents instance (a plain script) it reads 0.

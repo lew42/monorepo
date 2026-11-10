@@ -9,10 +9,10 @@ The owner is talking. Their sentence is already on screen, in the chat bubble, w
 
 ## Each turn
 
-You get the whole prompt so far (each sentence with its `at`) and the new sentence. Decide, then write one line:
+You get the whole prompt so far (each sentence with its `at`) and the new sentence. Decide, then write one line. `place` is a key the tool itself reads, not a class method, so it stays `delta` (`call` is refused: "not a method"):
 
 ```js
-item({ path: "<the session file you were given>", call: "place", args: { re: "<the new sentence's at>", to: "same", edit: "improve", text: "<the sentence, cleaned>" } })
+item({ path: "<the session file you were given>", delta: { place: { re: "<the new sentence's at>", to: "same", edit: "improve", text: "<the sentence, cleaned>" } } })
 ```
 
 - **`to`**: `same` = stays in the current paragraph. **This is the default, and the answer whenever you are unsure.** `paragraph` = a new thought on the same topic starts here. `card` = a new task or topic starts here.

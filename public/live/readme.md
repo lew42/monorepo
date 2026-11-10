@@ -6,14 +6,14 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
 
 ## Start here (an agent with only this file)
 
-1. **Look:** `page_read({path: "/live/"})` gives the title, every card with its id, and the sub-pages. `item({path: "/live/", get: "content"})` (or `"screens"`, `"removed"`) lists one list as `{total, rows: [{id, type, title}]}` and writes nothing. `item({path: "/live/", call: "help"})` lists every verb and card type.
+1. **Look:** `page_read({path: "/live/"})` gives the title, every card with its id, and the sub-pages. `item({path: "/live/", get: "content"})` (or `"screens"`, `"removed"`) lists one list as `{total, rows: [{id, type, title}]}` and writes nothing. `item({path: "/live/", delta: {"help": {}}})` lists every verb and card type (`help` is handled by the tool itself, not a page method: `call` is refused).
 2. **New topic:** save what is there (`{"save": {"name": "…", "title": "…"}}`) or clear it (`{"content": {"clear": true}}`; nothing is lost, see *removed cards*).
 3. **Show:** one `item({path: "/live/", delta})` call per change, with a delta from the table below. Every open tab, the phone included, redraws within a second. **One idea per card, the picture first** (the owner, 2026-11-06): a card is a title and a line or two, or a code block, a light or a checklist; never a wall of bullets. Five points are five cards, or a sub-page with five cards.
 4. **Hear taps:** `follow({path: "public/live/page.jsonl", agent: "<your id>"})` once, then `updates` each turn (*A tap reaches the agents*).
 
 ## Showing things
 
-`item({path: "/live/", call: "help"})` prints all of this in about 2 KB: the page's verbs, the `content` list verbs and every card type with an example (`static example` on each card class, `card_types` on LivePage).
+`item({path: "/live/", delta: {"help": {}}})` prints all of this in about 2 KB: the page's verbs, the `content` list verbs and every card type with an example (`static example` on each card class, `card_types` on LivePage).
 
 | To… | delta (path `/live/`, or a sub-page's path) |
 |---|---|
