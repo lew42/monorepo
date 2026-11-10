@@ -315,3 +315,5 @@
 {"review":{"at":"2026-11-09T19:22:26-06:00","answer":{"n":6,"reply":"noted: inline style in titled (font sizes) and fit (--measure token) kept; step 5 (no-CSS count) and step 4 (kit tree from H1 up) take type sizes into the kit"}},"by":"mastermind-ui-kit","session":"22d5fc62-984d-4dba-b450-0d89daa07770"}
 {"review":{"at":"2026-11-09T19:22:26-06:00","answer":{"n":7,"reply":"fixed: library/readme.md notes the wrap-around"}},"by":"mastermind-ui-kit","session":"22d5fc62-984d-4dba-b450-0d89daa07770"}
 {"log":{"at":"2026-11-09T19:27:16-06:00","heartbeat":"refused","msg":"status check not sent to minion-uikit-cards-keys: its log says complete; only the merge is open"}}
+{"assign":{"closed_by":"mastermind-ui-kit","closed_at":"2026-11-09T19:38:54-06:00","closed_why":null}}
+{"log":{"at":"2026-11-09T19:39:16-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
