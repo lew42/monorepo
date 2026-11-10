@@ -88,6 +88,11 @@ check("a sentence no part cites keeps the prompt open", () => {
 	return p.uncovered.join() === "a2" && p.completion === 0.5 && p.state === "idle";
 });
 
+check("a numeric cite (PromptRecords, 0-based) maps to the sentence at that position", () => {
+	const p = make({ p1: { parts: [{ id: "x", cites: [0], kind: "ask", text: "do it", outcome: { is: "done", ref: "f" } }] } }).tasks.find("p1");
+	return p.uncovered.join() === "a2";
+});
+
 check("the Prompt is listed in the session and the owner can check it off", () => {
 	const p = make().tasks.find("p1");
 	p.check({ by: "owner" });
