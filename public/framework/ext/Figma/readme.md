@@ -63,7 +63,7 @@ Build lessons from these pages are in [use-figma.md, Traps](./doc/use-figma.md#t
 
 ## The icon system (mine, 2026-11-10)
 
-Page `Cards · Icons` (156:975): `Page · Icons` (166:1383) with sections Icon, Icon frame, Icon item, Alignment test, Pill; masters in the `Main components` column.
+Page `Icons` (156:975, was `Cards · Icons`; always look pages up by id, they get renamed): `Page · Icons` (166:1383) with sections Icon, Icon frame, Icon item, Alignment test, Pill; masters in the `Main components` column at x -1239 (kickers hidden: "Atom" and "Molecule" meant nothing).
 
 - **Icon** (set 156:988): Size H1/H2/H3/H4/Body/Label, one text style each (`Icon/H1`…`Icon/Label`, Material Icons, line height = the text style's); glyph prop `Icon#156:0`. Every master uses it as an exposed nested instance (Kicker, card header, Panel, Icon button, Icon item, Pill, and voice-app's Chip, Tile, Nav item, Menu item, Toast, Search field).
 - **Icon frame** (set 162:1856, Small 28 / Medium 37 / Large 46): the small icon button. None, hover and selected are the Selection mode on the instance (Off, Hover, On), not variants. **Icon button** 21:126 stays the large (56) Button-mode version.
@@ -72,6 +72,14 @@ Page `Cards · Icons` (156:975): `Page · Icons` (166:1383) with sections Icon, 
 - **Panel** header is a Label (fill) plus an `Actions` slot for Icon frame buttons; the footer is a Toolbar.
 - **Swapping a master's own `Icon` text property for the nested Icon:** record every copy's value first (`setSharedPluginData`; `setPluginData` is not supported here), swap, write the values back, then delete the old property; a deleted property takes its copy values with it. A nested instance's glyph property cannot be bound to the parent's property.
 - Gaps: no Small text style (Label stands in), Material Icons has no Outlined weight, Kicker glyph is 14 px (Icon/H4).
+
+## The Panels page (mine, 2026-11-10)
+
+Page `Panels` (170:569): `Main components` (169:10299, x -560) holds `Main · Panel` (Panel 153:1779, 400 wide); `Page · Panels` (170:570) has two sections.
+
+- **Panel stack:** the moved example, four Panel instances (Layout, Fill, Stroke, Effects) in a frame fixed 400 wide, hugging its height. If it ever renders collapsed, re-set the stack frame to HUG then FIXED and each panel to FIXED then FILL; node reads said 400 while the render showed ~100.
+- **Hover rows, two kinds:** edge-to-edge (container padding 0, so the hover fill runs the full width, like Figma's Layers) and inset (container padding 8, row radius 6, so the hover floats with a gap at its left edge, like the three zones on Bars). Rows are Icon item instances whose fill is bound to `Selection` bg, modes Off, Hover, On.
+- **Master column rule:** the `Main components` column sits fully left of the page, x at most -(column width + 160), never under the page.
 
 ## The Page builder page (2026-11-09)
 
