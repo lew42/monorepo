@@ -18,7 +18,14 @@ div.c("card", () => {
 
 That's it — no `pad`, no `flex v gap`, no `--gap` override. `.card` already does
 all three. Variants on the page: `linked` (a CTA), `media` (an image bled to the
-edge), `action` (a button row), `list` (a repeated row).
+edge), `action` (a button row), plus the five-style kit ([step 1 of the ui-kit
+plan](/live/plan/ui-kit/)) — `titled` (an H3 title over body text, today's /live/
+look), `stack` (three cards touching, one rounded group — `.flush-stack` in
+`framework.css`), `tree-rows` (a card framing `ui.item()`'s own tree), `compact`
+(a repeated row in one card — was named `list`), `large` (today's large card,
+repeated for comparison) — and `fit`, a width fix rather than a sixth style: the
+same card capped to its own content width (`.measure.start`) instead of
+stretching across a wide column.
 
 ## Watch out
 
