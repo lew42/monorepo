@@ -78,6 +78,7 @@ import MergeTests from "./MergeTests.mjs";
 import IgnoredImageLinks from "./IgnoredImageLinks.mjs";
 import { DEV_BRANCH } from "./dev-branch.mjs";
 import DevPublish from "./DevPublish.mjs";
+import OwnCSS from "./OwnCSS.mjs";
 
 const BASE = DEV_BRANCH;
 const argv = process.argv.slice(2);
@@ -89,6 +90,7 @@ const dryRun = bool("--dry-run");
 const gateOnly = bool("--gate-only");   // print the review gate's answer for this worktree's head and exit: no lock, no merge (the Merge page asks this of a branch that moved)
 const mainArg = flag("--main");
 const noReview = flag("--no-review");
+const ownCss = flag("--own-css");   // "why": merge a branch that adds CSS of its own outside the kit anyway (Server/doc/own-css.md)
 const noNav = flag("--no-nav");   // "why": merge an unlinked new page anyway (Server/doc/nav-check.md)
 const reviewDir = flag("--review-dir");   // the task dir to look in when it sits under a session older than the 4-day scan (a long-lived mastermind's tasks)
 const quick = bool("--quick");
@@ -579,6 +581,10 @@ try {
 		if (autoPages.length) console.log(`merge.mjs found ${autoPages.length} changed page(s) from the diff: ${autoPages.join(", ")}`);
 		shotsReminder(changed, autoPages, branch);
 		docsReminder(changed);
+		/* Own CSS (ui-kit step 5, 2026-11-10): a branch may not grow a page's own CSS outside the kit (Server/OwnCSS.mjs). */
+		let ownCssRefusal = OwnCSS.refusal(new OwnCSS(MAIN).added(BASE, branch));
+		if (ownCssRefusal && ownCss) { console.warn(`!!! --own-css: ${ownCss} — merging with new own CSS !!!
+${ownCssRefusal}`); ownCssRefusal = null; }
 		const ignoredPics = IgnoredImageLinks.find(dir, changed.filter(f => !deleted.has(f)));
 		if (ignoredPics.length) console.warn(IgnoredImageLinks.sentence(ignoredPics));
 		/* Visibility gate (the owner, 2026-10-12): a branch that touches ext/Figma may not leave a page.js no parent declares. */
@@ -718,6 +724,7 @@ try {
 		if (smoke.status !== 0) { console.error("smoke test failed; nothing merged"); code = 1; }
 		else if (testRefusal) { console.error(testRefusal); code = 1; }
 		else if (navRefusal) { console.error("merge.mjs refused: " + navRefusal); code = 1; }
+		else if (ownCssRefusal) { console.error("merge.mjs refused: " + ownCssRefusal); code = 1; }
 		else if (!changed.length) console.log(`nothing to land: ${branch} changes no file against ${BASE}`);
 		else if (!overlap.length) {
 			// prove the merge is clean BEFORE git merge touches anything
