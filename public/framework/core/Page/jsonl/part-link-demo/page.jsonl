@@ -6,3 +6,4 @@
 {"content":{"remove":"c2"}}
 {"content":{"add":{"type":"part-link","id":"c2","path":"./notes/","title":"Notes worth a page","after":"c1"}}}
 {"file":"promoted.jsonl"}
+{"file":"notes/page.jsonl","nav":{"title":"Notes worth a page","description":"This card grew into its own page, with its own url."}}

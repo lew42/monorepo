@@ -4,3 +4,6 @@
 {"file":"tabs/page.js"}
 {"file":"legacy/page.jsonl"}
 {"file":"legacy/"}
+{"file":"legacy/","nav":{"title":"Legacy Pager","description":"vendored"}}
+{"file":"mvp/page.js","nav":{"title":"MVP","description":"new Pager() + show() — live."}}
+{"file":"tabs/page.js","nav":{"title":"Tabs","description":"A Pager is a tab panel."}}

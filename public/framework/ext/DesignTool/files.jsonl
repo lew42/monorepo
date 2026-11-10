@@ -29,3 +29,12 @@
 {"file":"doc/"}
 {"file":"DesignScore.js"}
 {"file":"failures.jsonl"}
+{"file":"audit/page.js","nav":{"title":"Site audit","icon":"fact_check","description":"Every framework page, measured and ranked. Worst first, with a before/after for each fix."}}
+{"file":"diff/page.js","nav":{"title":"Site diff","icon":"difference","description":"One command that shoots the whole site twice and says what changed — pixels, console errors, sideways scroll."}}
+{"file":"journey/page.js","nav":{"title":"Journey","icon":"photo_library"}}
+{"file":"knowledge/page.js","nav":{"title":"Knowledge","icon":"menu_book","description":"What the tool has learned about layout — and about its own false positives."}}
+{"file":"library/page.js","nav":{"title":"Layout library","icon":"grid_view","description":"Every arrangement this site is built from, live and measured — and the don'ts beside them."}}
+{"file":"taste/page.js","nav":{"title":"Taste","icon":"tune","description":"Eleven ranges a good layout lands inside — GOOD, not BROKEN or OFF, and enough to rank two clean layouts against each other."}}
+{"file":"tests/page.js","nav":{"title":"Test corpus","description":"Twenty-three layouts with a declared verdict — fifteen broken on purpose, eight that should score clean."}}
+{"file":"vision/page.js","nav":{"title":"Vision browse","icon":"visibility","description":"Every screenshot a run took — prompt, model, tokens and feedback, with a box to ask more."}}
+{"file":"widths/page.js","nav":{"title":"Widths","icon":"straighten","description":"The width tier's bare /full/ urls, and the library arrangements they cite, read at 400/1280/1920/3440."}}

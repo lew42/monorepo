@@ -2,3 +2,6 @@
 {"file":"guide/page.js"}
 {"file":"overview/page.js"}
 {"file":"page.js"}
+{"file":"api/page.js","nav":{"title":"API reference"}}
+{"file":"guide/page.js","nav":{"title":"Guide"}}
+{"file":"overview/page.js","nav":{"title":"Overview"}}

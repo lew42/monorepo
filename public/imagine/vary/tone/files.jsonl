@@ -5,3 +5,8 @@
 {"file":"page.js"}
 {"file":"tone.css"}
 {"file":"up/page.js"}
+{"file":"alt/page.js","nav":{"title":"Depth 1","icon":"compare","description":"wash → tint → wash — no direction, just a beat."}}
+{"file":"down/page.js","nav":{"title":"Depth 1","icon":"swap_vert","description":"wash → a controlled color-mix of --ink, two steps darker — never --well."}}
+{"file":"flip/page.js","nav":{"title":"Depth 1","icon":"swap_horiz","description":"Light for two columns, then one hard flip to a dark step at depth 3."}}
+{"file":"live/page.js","nav":{"title":"Depth 1","icon":"tune","description":"One tree, one class swapped on click — no extra page.js per scheme."}}
+{"file":"up/page.js","nav":{"title":"Depth 1","icon":"layers","description":"wash → tint → surface — deeper columns read lighter."}}

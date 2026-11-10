@@ -9,3 +9,5 @@
 {"file":"shots/page.jsonl"}
 {"file":"shots/"}
 {"file":"adaptive.js"}
+{"file":"palette/page.js","nav":{"title":"Accent","icon":"palette","description":"Every color token this theme defines, what each paints, measured usage, and the seven real contrast failures."}}
+{"file":"sections/page.js","nav":{"title":"Sections","icon":"layers","description":"Every pairing of grounds, and every nesting."}}

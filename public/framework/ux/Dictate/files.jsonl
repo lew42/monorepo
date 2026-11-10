@@ -85,3 +85,10 @@
 {"file":"ChatStatus.test.mjs"}
 {"file":"mastermind.md"}
 {"file":"map.md"}
+{"file":"demo/page.js","nav":{"title":"Send modes","icon":"send","description":"Fake dictation you can watch: the same words, three ways of deciding when they are sent."}}
+{"file":"playground/page.js","nav":{"title":"Playground","icon":"science","description":"Press 🎤 and watch a whisper session become raw text, then a fast-assistant diff, then a clean live version."}}
+{"file":"surfaces/page.js","nav":{"title":"Voice and chat surfaces","icon":"dashboard","description":"Every place on the site that talks to an agent or shows what was said: where it is, what runs it, who answers, what it writes."}}
+{"file":"v1/page.js","nav":{"title":"Dictate — v1 Overview","icon":"mic","description":"The old Dictate Overview, kept reachable exactly as it was before the widget-first pass — the playground leads, the pipeline diagram and concept tiles come after it."}}
+{"file":"variants/page.js","nav":{"title":"Variants","icon":"grid_view","description":"Today's box (v1), the mobile prompt-cards flow, a compact one-line toolbar mic, and Parts — the same whisper pipeline rebuilt on audio/'s rolling-window transcriber."}}
+{"file":"VoiceChat/","nav":{"title":"VoiceChat"}}
+{"file":"workspace/page.js","nav":{"title":"Workspace","icon":"space_dashboard","description":"A dictation workspace where each sentence becomes an item you can see and move, while raw transcript stays beside it."}}

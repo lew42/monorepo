@@ -20,3 +20,13 @@
 {"file":"research-process-fast-assistants/page.jsonl"}
 {"file":"KeysTest.js"}
 {"file":"page.js"}
+{"file":"bigger/page.jsonl","nav":{"title":"Make it bigger"}}
+{"file":"capability-before-cost/page.jsonl","nav":{"title":"Capability before cost"}}
+{"file":"cards-and-logs-subdomain/page.jsonl","nav":{"title":"Worktree subdomains"}}
+{"file":"decisions-tab-screenshot/page.jsonl","nav":{"title":"Empty Decisions tab"}}
+{"file":"is-the-test-a-good-test/page.jsonl","nav":{"title":"Is the test a good test?"}}
+{"file":"lifecycle-reaper-stop/page.jsonl","nav":{"title":"Who stopped me? (an agent's message, swapped out)"}}
+{"file":"research-process-fast-assistants/page.jsonl","nav":{"title":"Fast assistants per context"}}
+{"file":"token-budget-bursts/page.jsonl","nav":{"title":"When to burn tokens"}}
+{"file":"unsupported-link/page.jsonl","nav":{"title":"Unsupported link"}}
+{"file":"whisper-segments/page.jsonl","nav":{"title":"Whisper's segments"}}

@@ -11,3 +11,13 @@
 {"file":"router/page.js"}
 {"file":"sections/page.js"}
 {"file":"styles.css"}
+{"file":"branding/page.js","nav":{"title":"Branding"}}
+{"file":"column-pager/page.js","nav":{"title":"ColumnPager","description":"The drill-down layout — you're looking at it."}}
+{"file":"components/page.js","nav":{"title":"Components","description":"Small assembled pieces — buttons, cards, nav items."}}
+{"file":"elements/page.js","nav":{"title":"Elements","description":"Raw HTML elements with only framework.css base styles."}}
+{"file":"layout/page.js","nav":{"title":"Layout","description":"The util layer — flex, gap, grid, and container queries."}}
+{"file":"page/page.js","nav":{"title":"Page","description":"The dormant unit of content — and a node in a tree."}}
+{"file":"pager/page.js","nav":{"title":"Pager","description":"A div.pager that shows one page and swaps it."}}
+{"file":"previews/page.js","nav":{"title":"Small","icon":"photo_size_select_large","description":"The same components at three wall scales — small, medium, large."}}
+{"file":"router/page.js","nav":{"title":"Router","description":"Opt-in no-reload navigation."}}
+{"file":"sections/page.js","nav":{"title":"Sections","description":"Full-width compositions — hero, feature grid, CTA."}}

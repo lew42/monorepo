@@ -28,3 +28,16 @@
 {"content":{"remove":"plugins-a-page-is-a-tree-of-plugins-togg"},"by":"mastermind-page-design","ts":"2026-11-10T00:43:12.893Z"}
 {"file":"cards/"}
 {"file":"cards/","gone":true}
+{"file":"code-card/page.jsonl","nav":{"title":"Code card"}}
+{"file":"columns/page.jsonl","nav":{"title":"Columns"}}
+{"file":"columns-page/page.jsonl","nav":{"title":"Columns"}}
+{"file":"instant/page.jsonl","nav":{"title":"Instant page changes","icon":"⚡","description":"A new page, tabs, a card and full width: each one item-tool call, shown live."}}
+{"file":"nav/page.jsonl","nav":{"title":"Nav"}}
+{"file":"nav-page/page.jsonl","nav":{"title":"Nav"}}
+{"file":"place/page.jsonl","nav":{"title":"Place"}}
+{"file":"place-fresh/page.jsonl","nav":{"title":"Place, fresh"}}
+{"file":"place-page/page.jsonl","nav":{"title":"Place"}}
+{"file":"previews/page.jsonl","nav":{"title":"Previews"}}
+{"file":"ref/page.js","nav":{"title":"One source of truth","icon":"link","description":"One item, two places: edit the title in List A and List B's Ref shows the change, no reload."}}
+{"file":"tabs/page.jsonl","nav":{"title":"Tabs"}}
+{"file":"tabs-page/page.jsonl","nav":{"title":"Tabs"}}

@@ -6,3 +6,4 @@
 {"file":"doc/page.jsonl"}
 {"file":"doc/"}
 {"file":"tasks/"}
+{"file":"study/page.js","nav":{"title":"Controls","icon":"toggle_on","description":"Every interactive control pattern the site actually uses — buttons, menus, panels, tabs, grips — shot in its states, and judged: one button, or five accidental ones?"}}

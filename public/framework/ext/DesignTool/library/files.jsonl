@@ -3,3 +3,4 @@
 {"file":"page.js"}
 {"file":"patterns.js"}
 {"file":"readme.md"}
+{"file":"bad/page.js","nav":{"title":"Bad layouts","icon":"report","description":"Ten fragile patterns, live-measured, each linking the library entry that replaces it."}}

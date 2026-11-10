@@ -13,3 +13,10 @@
 {"file":"youtube.js"}
 {"file":"shots/page.jsonl"}
 {"file":"shots/"}
+{"file":"chat/page.js","nav":{"title":"Chat","icon":"forum","description":"A chat replay keyed to timestamps — scrub back and the room replays, scrub forward and it catches up."}}
+{"file":"course/page.js","nav":{"title":"I never graduated from college","icon":"school","description":"Chapters as real pages: clicking one seeks the video, and the playhead crossing a boundary opens its page."}}
+{"file":"doc/page.js","nav":{"title":"YouTube notes","description":"The five working notes behind this module, each one a real url."}}
+{"file":"marks/page.js","nav":{"title":"Marks","icon":"playlist_add","description":"Watch, press M at each boundary, and copy out the cues array the other labs are hand-typed from."}}
+{"file":"panel/page.js","nav":{"title":"Control panel","icon":"tune","description":"Every exposed method as a labelled control, every event in a feed — the API explorer."}}
+{"file":"split/page.js","nav":{"title":"Split","icon":"vertical_split","description":"Video one side, a live form the other — fields light up and prefill as the talk reaches them."}}
+{"file":"yield/page.js","nav":{"title":"Yield","icon":"picture_in_picture","description":"At a cue the video shrinks to a corner and keeps playing, and the real interactive UI takes the stage."}}

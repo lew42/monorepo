@@ -171,3 +171,16 @@
 {"file":"public/","gone":true}
 {"file":"public/"}
 {"file":"public/","gone":true}
+{"file":"alex/page.js","nav":{"title":"Framework"}}
+{"file":"blog/page.js","nav":{"title":"Blog","description":"Notes on building a web framework with no build step."}}
+{"file":"fly/","nav":{"title":"fly"}}
+{"file":"framework/page.js","nav":{"title":"Framework","icon":"widgets","description":"A no-build, native-ESM web framework — read the code, get it."}}
+{"file":"imagine/page.js","nav":{"title":"Imagine","icon":"auto_awesome","description":"A place made of column pages — a team to run, a world to walk, and three trees of variations."}}
+{"file":"layouts/page.js","nav":{"title":"Layouts","icon":"dashboard","description":"Every layout named, defined and drawn at three widths."}}
+{"file":"live/page.jsonl","nav":{"title":"Live","icon":"⚡","description":"The screen voice Claude drives live with the item tool."}}
+{"file":"michael/page.js","nav":{"title":"Michael","description":"A live, categorized tour of the framework's essential styles."}}
+{"file":"notes/page.js","nav":{"title":"Notes","description":"Short working notes for the team, and the notebook pages behind them."}}
+{"file":"resume/page.js","nav":{"title":"Résumé","icon":"badge","description":"Design engineer — front-end developer and UI designer, 12+ years."}}
+{"file":"tasks/page.jsonl","nav":{"title":"Tasks","icon":"task_alt","description":"Every task a module keeps in its own tasks/ folder: the Inbox with its Tasks and Home chips on."}}
+{"file":"web/page.js","nav":{"title":"Web","icon":"language","description":"The guide — how to build things on the web, shown live."}}
+{"file":"websites/page.js","nav":{"title":"Websites","icon":"public","description":"Real sites, shot at four widths and tagged by their layout."}}

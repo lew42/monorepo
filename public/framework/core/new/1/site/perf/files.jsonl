@@ -10,3 +10,11 @@
 {"file":"prefetch.js"}
 {"file":"ui.js"}
 {"file":"walk/page.js"}
+{"file":"css/page.js","nav":{"title":":has() recalc"}}
+{"file":"hidden/page.js","nav":{"title":"Costs nobody looked at"}}
+{"file":"lazy/page.js","nav":{"title":"Laziness, verified"}}
+{"file":"mark/page.js","nav":{"title":"mark()'s two sweeps"}}
+{"file":"memo/page.js","nav":{"title":"The memoized view"}}
+{"file":"paint/page.js","nav":{"title":"First paint"}}
+{"file":"prefetch/page.js","nav":{"title":"Prefetch on hover"}}
+{"file":"walk/page.js","nav":{"title":"The serial walk"}}

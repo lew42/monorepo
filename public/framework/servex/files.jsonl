@@ -10,3 +10,5 @@
 {"file":"tasks/"}
 {"file":"improvements.jsonl"}
 {"file":"roles/page.js"}
+{"file":"lifecycle/page.js","nav":{"title":"Lifecycle","icon":"hourglass_bottom","description":"How much of what the system starts — tasks, servers, worktrees, agents — is left running instead of shut down."}}
+{"file":"roles/page.js","nav":{"title":"Roles","icon":"badge","description":"Every Servex role as an object: its properties and the agents in it now."}}

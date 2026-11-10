@@ -5,3 +5,4 @@
 {"file":"workspace/page.js"}
 {"file":"model.css"}
 {"file":"readme.md"}
+{"file":"workspace/page.js","nav":{"title":"A workspace page","icon":"dashboard","description":"The workspace kind, live: fills the screen, no padding, three panes that are not pages."}}

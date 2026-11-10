@@ -15,3 +15,6 @@
 {"file":"shots/"}
 {"file":"shots/page.jsonl"}
 {"file":"shots/"}
+{"file":"audit/page.js","nav":{"title":"Audit","icon":"compare","description":"Every page shot before and after, at 3440."}}
+{"file":"ceilings/page.js","nav":{"title":"Ceilings","icon":"vertical_align_top","description":"Three candidate spacing ceilings, shot on cms, paging and stream at 3440 — a token override on a scratch tab, never a framework.css edit. The owner picks."}}
+{"file":"nesting/page.js","nav":{"title":"Nesting","icon":"layers","description":"The same three-level content, drawn four ways — cards in cards in cards, two levels, a flat list, and a tree — with live readouts of how much room is left for the words."}}

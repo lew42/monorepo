@@ -1,3 +1,5 @@
 {"file":"left/page.js"}
 {"file":"page.js"}
 {"file":"right/page.js"}
+{"file":"left/page.js","nav":{"title":"Left"}}
+{"file":"right/page.js","nav":{"title":"Right"}}

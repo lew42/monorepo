@@ -19,3 +19,8 @@
 {"file":"questions.md"}
 {"file":"inbox.jsonl"}
 {"file":"tasks/"}
+{"file":"color/page.js","nav":{"title":"Color","icon":"palette","description":"Colour and contrast: tokens, ratios, light and dark."}}
+{"file":"content/page.js","nav":{"title":"Content","icon":"article","description":"The iceberg: level of detail, what is foundational, importance and prioritization."}}
+{"file":"layout/page.js","nav":{"title":"Layout","icon":"view_quilt","description":"Space: sizing, wrapping, spacing, flow, the approved layouts, 400 to 3440."}}
+{"file":"navigation/page.js","nav":{"title":"Navigation","icon":"explore","description":"The path: how links look, persistent or switching, transitions."}}
+{"file":"ui/page.js","nav":{"title":"UI","icon":"smart_button","description":"Buttons, toolbars, dropdowns, icons: states and targets."}}

@@ -6,3 +6,5 @@
 {"file":"doc/","gone":true}
 {"file":"doc/"}
 {"file":"doc/","gone":true}
+{"file":"guide/page.js","nav":{"title":"Writing a theme","icon":"school","description":"Two sample themes, both modes, and the ladder from token to rule."}}
+{"file":"lew42/page.js","nav":{"title":"Framework","icon":"text_format","description":"The house theme — Montserrat, one orange, and a sidebar that reads its ink from a token."}}

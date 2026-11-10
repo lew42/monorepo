@@ -10,3 +10,10 @@
 {"file":"text/page.js"}
 {"file":"doc/page.jsonl"}
 {"file":"doc/"}
+{"file":"code/page.js","nav":{"title":"Code","icon":"code","description":"A block and an inline are two boxes — and one padding was never going to fit both."}}
+{"file":"forms/page.js","nav":{"title":"Forms","icon":"check_box","description":"Controls, and the two `:not()` lists that deliberately disagree about what a button is."}}
+{"file":"lists/page.js","nav":{"title":"Lists","icon":"format_list_bulleted","description":"One declaration is the entire list stylesheet — and `dl` isn't in it."}}
+{"file":"media/page.js","nav":{"title":"Media","icon":"image","description":"One reset declaration covers five replaced elements — and misses two that have factories."}}
+{"file":"misc/page.js","nav":{"title":"Misc","icon":"more_horiz","description":"Disclosure, focus rings, the ligature trap, and the long list of elements with no rule at all."}}
+{"file":"table/page.js","nav":{"title":"Table","icon":"grid_on","description":"Four declarations make a table readable, and four more make it scroll itself."}}
+{"file":"text/page.js","nav":{"title":"Text","icon":"text_fields","description":"Six type levels, and the twenty inline elements the framework deliberately leaves alone."}}

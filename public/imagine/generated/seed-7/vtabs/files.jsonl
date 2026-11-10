@@ -1,3 +1,5 @@
 {"file":"page.js"}
 {"file":"prose/page.js"}
 {"file":"wall/page.js"}
+{"file":"prose/page.js","nav":{"title":"Atlas"}}
+{"file":"wall/page.js","nav":{"title":"Queue"}}

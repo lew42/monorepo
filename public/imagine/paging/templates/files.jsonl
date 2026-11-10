@@ -15,3 +15,15 @@
 {"file":"theming/page.js"}
 {"file":"ui/page.js"}
 {"file":"ux/page.js"}
+{"file":"blog/page.js","nav":{"title":"Blog","icon":"rss_feed","description":"One lead, then the wall of real posts."}}
+{"file":"columns/page.js","nav":{"title":"Columns","icon":"view_column","description":"Peers in a row you walk sideways."}}
+{"file":"decks/page.js","nav":{"title":"Decks","icon":"slideshow","description":"A screen cut into shares: 61.8 / 38.2."}}
+{"file":"layouts/page.js","nav":{"title":"Layouts","icon":"grid_view","description":"The arrangement, with nothing in it."}}
+{"file":"magazine/page.js","nav":{"title":"Magazine","icon":"auto_stories","description":"A cover, a contents, a reading column."}}
+{"file":"navigation/page.js","nav":{"title":"Navigation","icon":"alt_route","description":"The trail, and what a click does."}}
+{"file":"screens/page.js","nav":{"title":"Screens","icon":"fullscreen","description":"A click divides the screen, not replaces."}}
+{"file":"sections/page.js","nav":{"title":"Sections","icon":"view_agenda","description":"Bands that stack into a landing page."}}
+{"file":"shells/page.js","nav":{"title":"Shells","icon":"dashboard","description":"Chrome that outlives the page inside it."}}
+{"file":"theming/page.js","nav":{"title":"Theming","icon":"palette","description":"Five surfaces x three type scales, at once."}}
+{"file":"ui/page.js","nav":{"title":"UI","icon":"widgets","description":"Markup you copy - nineteen templates."}}
+{"file":"ux/page.js","nav":{"title":"UX","icon":"layers","description":"A class you extend, when there is state."}}

@@ -22,3 +22,13 @@
 {"file":"rung2-two-children/page.jsonl"}
 {"file":"rung2-two-children-primer/page.jsonl"}
 {"file":"weight.jsonl"}
+{"file":"broken-import/page.jsonl","nav":{"title":"Broken import"}}
+{"file":"broken-overflow/page.jsonl","nav":{"title":"Broken overflow"}}
+{"file":"fix-label/page.jsonl","nav":{"title":"Fix label"}}
+{"file":"h1-page/page.jsonl","nav":{"title":"H1 page"}}
+{"file":"keys-to-success/page.js","nav":{"title":"Keys to success","description":"The owner's own past prompts, scored: which keys to success did each model find, and which did it miss or invent?"}}
+{"file":"plan-views/page.jsonl","nav":{"title":"Plan views"}}
+{"file":"rung0-html-to-view/page.jsonl","nav":{"title":"Rung 0 — HTML to View helpers"}}
+{"file":"rung0-html-to-view-primer/page.jsonl","nav":{"title":"Rung 0 — HTML to View helpers (with primer)"}}
+{"file":"rung2-two-children/page.jsonl","nav":{"title":"Rung 2 — two children"}}
+{"file":"rung2-two-children-primer/page.jsonl","nav":{"title":"Rung 2 — two children (with primer)"}}

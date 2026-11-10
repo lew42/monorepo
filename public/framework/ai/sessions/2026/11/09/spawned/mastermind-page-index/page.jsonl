@@ -1,2 +1,5 @@
 {"inbox":{"id":"n-3tqeyyh1","from":"servex-task-loop","text":"Task spawned/mastermind-page-index is waiting on the owner since 2026-11-09T18:59:03-06:00: resume order from voice-app (paused 11-10 00:40 UTC). Page-index build is unmerged in worktree page-index (c31987ae9, 5269d0a50, 2447f1e58); the browser half is unproven; the next step is in build/session.jsonl. Status card: /live/plan/index/.","at":"2026-11-09T21:02:12.730-06:00"}}
 {"file":"session.jsonl"}
+{"file":"build/"}
+{"file":"inbox.jsonl"}
+{"file":"measure.mjs"}

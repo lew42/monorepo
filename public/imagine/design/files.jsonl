@@ -37,3 +37,17 @@
 {"file":"vocabulary/page.js"}
 {"file":"doc/page.jsonl"}
 {"file":"doc/"}
+{"file":"color/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /framework/styles/system/studies/color/."}}
+{"file":"controls/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /framework/ui/controls/study/."}}
+{"file":"journey/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /framework/ext/DesignTool/journey/."}}
+{"file":"layout/page.js","nav":{"title":"Layout","icon":"dashboard","description":"Every page-layout shape the site actually uses, which three are real page shells, and where 3440 is wasted."}}
+{"file":"lists/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /framework/styles/system/studies/lists/."}}
+{"file":"navigation/page.js","nav":{"title":"Navigation","icon":"explore","description":"Does the navigation stay still when a column opens? Today it moves up to 242px. One rule, side by side, that moves 0."}}
+{"file":"padding/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /framework/styles/system/studies/padding/."}}
+{"file":"scale/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /framework/styles/system/studies/scale/."}}
+{"file":"size/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /framework/styles/system/studies/size/."}}
+{"file":"spacing/page.js","nav":{"title":"Spacing","icon":"height","description":"Every /imagine/ realm's vertical spacing, measured box by box at 1280 and 3440 — the neighbour-ratio pairs with no legitimate reason, the cramped ranking, and one proposal that fixes all three."}}
+{"file":"system/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /framework/styles/system/studies/system/."}}
+{"file":"themes/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /framework/styles/system/studies/themes/."}}
+{"file":"type/page.js","nav":{"title":"h5/h6 = bold body, exactly","icon":"text_fields","description":"The site's typography as it actually ships — one live specimen sheet, the measure question settled with real numbers, and the one hierarchy step that silently collapses."}}
+{"file":"vocabulary/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /framework/styles/system/studies/vocabulary/."}}

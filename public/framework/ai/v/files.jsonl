@@ -6,3 +6,5 @@
 {"file":"NewVersion.js"}
 {"file":"Versions.js"}
 {"file":"new.js","gone":true}
+{"file":"2/page.js","nav":{"title":"AI v2","icon":"dashboard","description":"The run on one dense screen, written live."}}
+{"file":"3/page.js","nav":{"title":"AI v3","icon":"dashboard_customize","description":"What is going on, ranked by what matters — click a card for the whole thing."}}

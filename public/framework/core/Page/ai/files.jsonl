@@ -17,3 +17,4 @@
 {"file":"PageWork.js"}
 {"file":"log.jsonl"}
 {"file":"failures.jsonl"}
+{"file":"agents/page.js","nav":{"title":"The agents list, live","icon":"groups","description":"Every agent Servex is holding right now, and the shape of the object that holds them."}}

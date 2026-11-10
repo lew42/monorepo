@@ -2,3 +2,6 @@
 {"file":"page.js"}
 {"file":"taller-hero/page.js"}
 {"file":"wall-of-three/page.js"}
+{"file":"no-hero/page.js","nav":{"title":"No hero","description":"Home with the hero removed, so the wall of cards is the first thing under the bar."}}
+{"file":"taller-hero/page.js","nav":{"title":"Taller hero","description":"The same page with the hero given most of the fold — the bar above it and the wall below it are untouched."}}
+{"file":"wall-of-three/page.js","nav":{"title":"Wall of three","description":"The same six cards in three columns instead of six, so each card is twice as wide and carries twice the weight."}}

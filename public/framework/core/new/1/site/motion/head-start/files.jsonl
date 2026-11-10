@@ -2,3 +2,4 @@
 {"file":"head-start.js"}
 {"file":"page.js"}
 {"file":"slow/page.js"}
+{"file":"slow/page.js","nav":{"title":"Arrived after 700ms"}}

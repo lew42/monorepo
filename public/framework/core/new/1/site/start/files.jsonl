@@ -7,3 +7,10 @@
 {"file":"page.js"}
 {"file":"second/page.js"}
 {"file":"tree/page.js"}
+{"file":"cols/page.js","nav":{"title":"An arrangement"}}
+{"file":"files/page.js","nav":{"title":"Three files"}}
+{"file":"lazy/page.js","nav":{"title":"Lazy"}}
+{"file":"links/page.js","nav":{"title":"A link"}}
+{"file":"next/page.js","nav":{"title":"Where to go next"}}
+{"file":"second/page.js","nav":{"title":"A second page"}}
+{"file":"tree/page.js","nav":{"title":"A child page"}}

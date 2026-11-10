@@ -11,3 +11,11 @@
 {"file":"topbar/page.js"}
 {"file":"doc/"}
 {"file":"readme.md"}
+{"file":"crumbs/page.js","nav":{"title":"Breadcrumbs","icon":"⌂"}}
+{"file":"drawer/page.js","nav":{"title":"Drawer"}}
+{"file":"focus/page.js","nav":{"title":"Focus & inert"}}
+{"file":"marks/page.js","nav":{"title":"Active state"}}
+{"file":"palette/page.js","nav":{"title":"Jump to"}}
+{"file":"siblings/page.js","nav":{"title":"Prev / next"}}
+{"file":"sidebar/page.js","nav":{"title":"Sidebar nav"}}
+{"file":"topbar/page.js","nav":{"title":"Topbar"}}

@@ -39,3 +39,16 @@
 {"file":"tasks/"}
 {"file":"Recite/page.js"}
 {"file":"map.md"}
+{"file":"LevelMeter/page.js","nav":{"title":"LevelMeter (moved)","description":"LevelMeter moved to audio v1."}}
+{"file":"mic-to-text/page.js","nav":{"title":"mic-to-text (moved)","description":"mic-to-text moved to audio v1."}}
+{"file":"MicPicker/page.js","nav":{"title":"MicPicker (moved)","description":"MicPicker moved to audio v1."}}
+{"file":"MicStream/page.js","nav":{"title":"MicStream","icon":"mic","description":"Opens a microphone and hands out its live MediaStream, raw samples and a level — everything else in audio/ subscribes to one of these."}}
+{"file":"push-to-talk/page.js","nav":{"title":"push-to-talk (moved)","description":"push-to-talk moved to audio v1."}}
+{"file":"PushToTalk/page.js","nav":{"title":"PushToTalk (moved)","description":"PushToTalk moved to audio v1."}}
+{"file":"Recite/page.js","nav":{"title":"Recite","icon":"volume_up","description":"Reads the AI's replies aloud with a local voice: pause, back 10 s, restart, and it pauses when you talk."}}
+{"file":"Recorder/page.js","nav":{"title":"Recorder","icon":"fiber_manual_record","description":"Record, play back and save (download) one clip — MediaRecorder underneath."}}
+{"file":"sound-recorder/page.js","nav":{"title":"sound-recorder (moved)","description":"sound-recorder moved to audio v1."}}
+{"file":"Transcriber/page.js","nav":{"title":"Transcriber","icon":"subtitles","description":"An audio stream in, a text stream out — swappable engines: local Whisper, or Chrome's own recognizer."}}
+{"file":"v1/page.js","nav":{"title":"audio v1","icon":"settings_voice","description":"The six-class version of audio/, kept clickable for comparison — MicPicker, LevelMeter and PushToTalk are now absorbed into MicStream on the main page."}}
+{"file":"Voice/page.js","nav":{"title":"Voice","icon":"record_voice_over","description":"Text to speech — the browser's own SpeechSynthesis reads text out loud."}}
+{"file":"Whisper/page.js","nav":{"title":"Whisper","icon":"mic","description":"Every answer the speech server sends back, live: guesses that amend themselves, then the final."}}

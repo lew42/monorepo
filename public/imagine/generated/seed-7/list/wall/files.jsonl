@@ -2,3 +2,6 @@
 {"file":"prose/page.js"}
 {"file":"prose-2/page.js"}
 {"file":"tabs/page.js"}
+{"file":"prose/page.js","nav":{"title":"Digest"}}
+{"file":"prose-2/page.js","nav":{"title":"Roster"}}
+{"file":"tabs/page.js","nav":{"title":"Backlog"}}

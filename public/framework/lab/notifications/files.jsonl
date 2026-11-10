@@ -3,3 +3,5 @@
 {"file":"page.js"}
 {"file":"phone/page.js"}
 {"file":"report/page.js"}
+{"file":"phone/page.js","nav":{"title":"Phone checklist","icon":"smartphone","description":"Five steps to get notifications working on an Android phone, one screen."}}
+{"file":"report/page.js","nav":{"title":"Report","icon":"description","description":"What the notifications lab found, and what is left for the phone."}}

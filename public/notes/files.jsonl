@@ -97,3 +97,74 @@
 {"file":"inbox/"}
 {"file":"inbox/","gone":true}
 {"file":"inbox/"}
+{"file":"a-localhost-cdn/page.js","nav":{"title":"A localhost CDN","icon":"dns","description":"How the monorepo becomes a live site — and a local CDN that fetches versions from GitHub."}}
+{"file":"ai-research-list-ui-ux/page.js","nav":{"title":"AI research, and a list of UI/UX","icon":"science","description":"Generative search, annotated markdown, and the first two layouts to build."}}
+{"file":"an-element-browser/page.js","nav":{"title":"An element browser","icon":"<>","description":"Four tabs — Elements, Layout, Sections, Components — and the squeeze that needs container queries."}}
+{"file":"analyze-spacing-as-percent/page.js","nav":{"title":"Analyze the spacing as a percent","icon":"straighten","description":"Spacing and scale measured 0 → 1, relative to their relatives."}}
+{"file":"anchor-point-optional/page.js","nav":{"title":"Anchor point, optional","icon":"control_camera","description":"Position = anchor = origin, with an (x, y) that is ±1 per axis."}}
+{"file":"auth/page.js","nav":{"title":"Auth, accounts and teams","icon":"lock","description":"Design record — nothing built yet. GitHub OAuth, a signed cookie, D1, and why points are derived."}}
+{"file":"basketball-tower/page.js","nav":{"title":"Basketball tower","icon":"apartment","description":"A venue by floor, and $1/mo for 1 GB against $10/mo for 1 TB."}}
+{"file":"build-now-architect-later/page.js","nav":{"title":"Build now, architect later","icon":"construction","description":"npm workspaces, a loader that writes the import map — and the script-order trap underneath it."}}
+{"file":"column-vs-swap/page.js","nav":{"title":"Column vs swap","icon":"swap_horiz","description":"One page, two futures — and the note picks swap."}}
+{"file":"does-save-hold-up/page.js","nav":{"title":"Does .save() hold up?","icon":"save","description":"Thing, Thing.List, and a proxy that saves."}}
+{"file":"doodles/page.js","nav":{"title":"Doodles","description":"Twenty-three marks from the notebook, redrawn by hand as SVG — icons, decoration, a texture, one that draws itself."}}
+{"file":"drop-target-ux/page.js","nav":{"title":"Drop target UX","icon":"drag_indicator","description":"Four moments of a drag, and two different previews."}}
+{"file":"drop-then-rerender/page.js","nav":{"title":"Drop, then rerender","icon":"drag_indicator","description":"Drag, drop, rerender - the view is fine."}}
+{"file":"each-meme-is-a-community/page.js","nav":{"title":"Each meme is a community","icon":"diversity_3","description":"$10/mo, unlimited, a thousand points — and transfers are the hard part."}}
+{"file":"edge-selection/page.js","nav":{"title":"Edge selection","icon":"highlight_alt","description":"Click an edge to select, drag it to resize, and + fills the voids."}}
+{"file":"edit-mode-toolbar/page.js","nav":{"title":"Edit mode with a toolbar","icon":"build","description":"Browse normally, but with a toolbar — and the devbar goes to the bottom on mobile."}}
+{"file":"forgot-to-branch/page.js","nav":{"title":"Forgot to branch (repair)","icon":"call_split","description":"One repo or three, how two sites consume one framework — and one line about why any of it matters."}}
+{"file":"git-branch-names/page.js","nav":{"title":"Git branch names","icon":"account_tree","description":"Short-lived branches, named <yourname>/<branch>, and the preview url each one gets."}}
+{"file":"jsdelivr-or-your-own-cdn/page.js","nav":{"title":"jsDelivr, or your own CDN?","icon":"cloud_download","description":"Where a site's copy of the framework comes from — and the six objectives that outrank the question."}}
+{"file":"just-a-note/page.js","nav":{"title":"Maybe it's just a note","icon":"sticky_note_2","description":"A sub page without a page.js - like this one."}}
+{"file":"laws-rules-suggestions/page.js","nav":{"title":"Laws, rules, suggestions","icon":"gavel","description":"Three strengths of instruction, and how to make the site simpler."}}
+{"file":"layouts-need-fit/page.js","nav":{"title":"Layouts need fit","icon":"dashboard","description":"Cram large content into a small sidebar and it looks bad."}}
+{"file":"levels-and-points/page.js","nav":{"title":"Levels and points","icon":"military_tech","description":"User × meme × level — and how you avoid inflating your own currency."}}
+{"file":"links-that-dont-break/page.js","nav":{"title":"Links that don't break","icon":"link","description":"Ignorant routing, pg.link(), and the sentence that sizes the whole framework honestly."}}
+{"file":"load-but-dont-render/page.js","nav":{"title":"Load, but don't render","icon":"hourglass_empty","description":"A page can exist without being drawn — and three agents can answer the same prompt."}}
+{"file":"meeting-notes-are-ip/page.js","nav":{"title":"Meeting notes are IP","icon":"policy","description":"Read by many, revokable, and never shareable onward."}}
+{"file":"mobile-tabs-are-tricky/page.js","nav":{"title":"Mobile tabs are tricky","icon":"tab","description":"Tabs that don't fit, two-level documentation nav, and whether BACK should always work."}}
+{"file":"multi-column-contents/page.js","nav":{"title":"The problem with individual sidebars","icon":"view_column","description":"To share space they need one parent."}}
+{"file":"my-docs-are-bad/page.js","nav":{"title":"My docs are bad","icon":"menu_book","description":"A demo bar over a stage, a master/detail pair, and components you can track."}}
+{"file":"nested-rendering/page.js","nav":{"title":"Nested rendering","icon":"account_tree","description":"Who draws the nav — and the five status colours."}}
+{"file":"notebook-cooked/page.js","nav":{"title":"Notebook cooked","icon":"grid_view","description":"Eight wireframes, and every log entry as a new state hash."}}
+{"file":"one-video-everywhere/page.js","nav":{"title":"One video, everywhere","icon":"share","description":"One recording, six networks, braced with a question: auto post?"}}
+{"file":"oop-course-equals-freedom/page.js","nav":{"title":"OOP course + responsive web design = freedom","icon":"school","description":"Where the framework lives, one page for all the styles, and what the monorepo costs."}}
+{"file":"page-active-display/page.js","nav":{"title":"The rule that shows a page","icon":"css","description":".page.active { display: var(--page-display) } — and who hides the nav."}}
+{"file":"page-is-not-prose/page.js","nav":{"title":"page ≠ prose","icon":"format_align_left","description":"The lobotomized owl, an opt-in .prose class, and why a page is not a document."}}
+{"file":"page-nav-from-sub/page.js","nav":{"title":"Page nav should come from .sub","icon":"list","description":"Not the directory - and tabs on mobile."}}
+{"file":"page-previews-and-columns/page.js","nav":{"title":"Page previews, & columns","icon":"grid_view","description":"A card for every page — three shapes, and the question of what auto-renders."}}
+{"file":"parallel-generation/page.js","nav":{"title":"Parallel generation","icon":"grid_on","description":"Nine generations at once, and the column arithmetic underneath it."}}
+{"file":"perfectly-simple-syntax/page.js","nav":{"title":"Perfectly simple syntax?","icon":"code","description":"What a page constructor should take — and the day the basics were declared fine."}}
+{"file":"personal-specs/page.js","nav":{"title":"Personal specs","icon":"swipe","description":"Meme = button ⇒ interactive video, beside a page of hard questions."}}
+{"file":"property-screens/page.js","nav":{"title":"Iso, Grow, Max, Popout","icon":"open_in_full","description":"Four property screens, and reload keeps them."}}
+{"file":"readme-one-to-n/page.js","nav":{"title":"Readme 1 – N","icon":"list_alt","description":"A readme is a numbered index, and every doc it names has a page."}}
+{"file":"realtime-web-design/page.js","nav":{"title":"Build my platform? Realtime Web Design","icon":"rocket_launch","description":"One big json bundle, or the fs as the UI."}}
+{"file":"record-long-cut-to-60s/page.js","nav":{"title":"Record long, cut to 60s","icon":"movie_edit","description":"Record the long version, cut the garbage, then cut it to a minute."}}
+{"file":"redactions/page.js","nav":{"title":"Drop target UX","description":"Exactly what the notebook transcriptions left out, verbatim, each linked to its original photo."}}
+{"file":"right-click-hug-fill/page.js","nav":{"title":"Right click toggles hug and fill","icon":"compare_arrows","description":"Left+drag is manual, with smart snap."}}
+{"file":"right-people-not-many/page.js","nav":{"title":"The right people, not a lot","icon":"ads_click","description":"Two audience axes, and the money goes on the intersection."}}
+{"file":"scale-1920-to-3413/page.js","nav":{"title":"1920 to 3413","icon":"aspect_ratio","description":"16:9 stood up to 1920 tall is 3413 wide — the ultrawide, near enough."}}
+{"file":"short-minded/page.js","nav":{"title":"Short-minded","icon":"psychology_alt","description":"A hard morning, then per-module sessions, 3D web, and Full Swap."}}
+{"file":"shotgun-or-lav/page.js","nav":{"title":"Shotgun or lav","icon":"mic","description":"You cannot have both — and the lyric build-up is three steps."}}
+{"file":"sign-up-flow/page.js","nav":{"title":"Sign-up flow","icon":"login","description":"Four ways in — and only one of them ends nowhere."}}
+{"file":"simplify-my-website/page.js","nav":{"title":"I need to simplify my website","icon":"compress","description":"app.use(new Dev()), content is sections, and a homepage of four tiles."}}
+{"file":"split-responsive-viewer/page.js","nav":{"title":"Split responsive viewer","icon":"vertical_split","description":"Two viewports side by side, synced scroll — and the whole product list."}}
+{"file":"standardized-web-services/page.js","nav":{"title":"Better standardized web services","icon":"cloud","description":"Static hosting as a spec, and 3D memory."}}
+{"file":"starter-repo-vs-scaffolding/page.js","nav":{"title":"Starter repo vs scaffolding?","icon":"rocket_launch","description":"How a stranger starts a site with this framework — and why every path is case-insensitive."}}
+{"file":"straight-talk/page.js","nav":{"title":"Straight talk","icon":"campaign","description":"Memes to money to skills — and, on the facing page, the whole framework in three steps."}}
+{"file":"strengths-and-weaknesses/page.js","nav":{"title":"Strengths and weaknesses","icon":"balance","description":"Two empty boxes, drawn on the page — and a claim about held-back knowledge."}}
+{"file":"switch-or-transition/page.js","nav":{"title":"Switch or transition","icon":"swap_horiz","description":"A switcher, and the question of whether A→B should animate."}}
+{"file":"tabs-and-lazy-pages/page.js","nav":{"title":"Tabs, and lazy pages","icon":"tab","description":"Tabs add sub pages without being pages, and a link is what loads one."}}
+{"file":"tabs-vs-breadcrumbs/page.js","nav":{"title":"Tabs vs breadcrumbs","icon":"account_tree","description":"Show all at one level, or show the deep path — and why one of them feels jumpy."}}
+{"file":"team-note/page.js","nav":{"title":"Nice work, everyone","icon":"campaign","description":"Everything is merged and live. A note to the team."}}
+{"file":"tests-on-pages/page.js","nav":{"title":"Tests on pages","icon":"rule","description":"Define, render, preview — opt in to auto-run."}}
+{"file":"the-editor/page.js","nav":{"title":"The editor","icon":"edit_square","description":"A left sidebar of layers, a stage, and a viewport that becomes an emulator."}}
+{"file":"too-many-patterns-to-exemplify/page.js","nav":{"title":"There are too many patterns to exemplify?","icon":"checklist","description":"The content inventory a framework owes you — and the day the owner decided to make the calls."}}
+{"file":"topic-dbs-and-claims/page.js","nav":{"title":"Topic dbs and claims","icon":"storage","description":"A claim is a confidence, a statement and a topic — and it already runs."}}
+{"file":"type-slash-for-the-menu/page.js","nav":{"title":"Type / to activate the menu","icon":"keyboard","description":"Auto-state, a view list, and one hotkey."}}
+{"file":"visual-context/page.js","nav":{"title":"Visual context","icon":"hub","description":"Topic × complicating factors. Each topic has a spread."}}
+{"file":"walk-down-or-jump-to-topic/page.js","nav":{"title":"Walk down, or jump to topic?","icon":"route","description":"How a deep URL finds its page — and what happens if a page imports app too early."}}
+{"file":"we-think/page.js","nav":{"title":"We think","icon":"groups","description":"Where the mastermind skill came from — vote, write to the filesystem, don't pollute the prompt."}}
+{"file":"web-of-lies/page.js","nav":{"title":"Web of lies","icon":"forum","description":"Topics, questions, answers - claims or facts?"}}
+{"file":"what-is-openmike/page.js","nav":{"title":"What is OpenMike?","icon":"campaign","description":"Three drafts of one pitch, and 1,000 people to help launch."}}

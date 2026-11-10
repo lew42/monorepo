@@ -15,3 +15,6 @@
 {"file":"DefaultView.css"}
 {"file":"DefaultView.test.js"}
 {"file":"list-view.test.mjs"}
+{"file":"app/page.js","nav":{"title":"The App object","icon":"apps","description":"The one running App — its router, its page tree, its own settings — drawn live from window.app, not described."}}
+{"file":"instance-tree/page.js","nav":{"title":"InstanceTree","icon":"account_tree","description":"The running App and its pages as a live tree: class, title, children, the page you are on. Updates without a reload."}}
+{"file":"page/page.js","nav":{"title":"The Page object","icon":"description","description":"A real, live Page — /framework/core/Page/'s own instance — drawn as an item tree instead of described."}}

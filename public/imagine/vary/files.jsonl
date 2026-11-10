@@ -7,3 +7,7 @@
 {"file":"tone/page.js"}
 {"file":"shots/page.jsonl"}
 {"file":"shots/"}
+{"file":"colstyles/page.js","nav":{"title":"Colstyles","icon":"view_column","description":"The column render CONTROL answer — every hook live, then the same tree in four complete looks."}}
+{"file":"place/page.js","nav":{"title":"Place","icon":"compare_arrows","description":"Placement systems side by side — add a column, swap in place, or cycle a carousel."}}
+{"file":"scroll/page.js","nav":{"title":"Scroll","icon":"vertical_split","description":"The scrollbar situation — full-viewport, a padded inset, or a flush bleed."}}
+{"file":"tone/page.js","nav":{"title":"Tone","icon":"gradient","description":"Background hierarchy across columns — stepping, alternating, flipping, or picked live."}}

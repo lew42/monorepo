@@ -5,3 +5,7 @@
 {"file":"outline/page.js"}
 {"file":"page.js"}
 {"file":"ai/"}
+{"file":"demo/page.js","nav":{"title":"Demo","icon":"science","description":"A made-up two-phase plan drawn as nested tasks: three tasks at once, then two more that wait for them."}}
+{"file":"flow/page.js","nav":{"title":"Flow","icon":"schema","description":"Nested tasks as a node graph: the parent on the left, a column per phase, an arrow for every \"waits for\"."}}
+{"file":"lanes/page.js","nav":{"title":"Lanes","icon":"view_week","description":"Nested tasks as lanes: each phase a column, left to right, with \"then\" between; tasks in one column run at the same time."}}
+{"file":"outline/page.js","nav":{"title":"Outline","icon":"account_tree","description":"Nested tasks as an indented outline: every group of subtasks badged \"together\" or \"then\", the % at the end of each row."}}

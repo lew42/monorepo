@@ -5,3 +5,4 @@
 {"file":"sub/page.jsonl"}
 {"content":{"add":{"id":"c5","type":"part-text","text":"FT-5 A paragraph with **markdown**, a [link](/live/), and a list:\n\n- one\n- two"}},"by":"mastermind-friction","ts":"2026-11-10T00:08:40.111Z"}
 {"content":{"add":{"id":"end","type":"part-text","text":"FT-END"}},"by":"mastermind-friction","ts":"2026-11-10T00:08:40.704Z"}
+{"file":"sub/page.jsonl","nav":{"title":"FT-4 Sub page"}}

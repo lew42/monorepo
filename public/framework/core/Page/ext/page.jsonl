@@ -16,3 +16,4 @@
 {"note_state":{"id":"2026-09-30T16:01:00-05:00-minion-page-ext","state":"read","by":"owner","at":"2026-11-09T18:38:41.356-06:00"}}
 {"note_state":{"id":"2026-09-30T16:00:00-05:00-mastermind-inbox-ext","state":"read","by":"owner","at":"2026-11-09T18:38:41.356-06:00"}}
 {"file":"PluginsFixture/"}
+{"file":"Inbox/page.js","nav":{"title":"Inbox","icon":"inbox","description":"one ranked list of what wants the owner's attention, and the note box on every page"}}

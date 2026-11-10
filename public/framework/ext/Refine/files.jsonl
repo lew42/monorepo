@@ -88,3 +88,8 @@
 {"file":"failures.jsonl"}
 {"file":"screenshots/"}
 {"file":"PartsBrief.js"}
+{"file":"cleaner/page.js","nav":{"title":"Cleaner","description":"class Cleaner: raw dictation in, near-verbatim numbered sentences out. Instant plain function or the model."}}
+{"file":"ladder/page.js","nav":{"title":"Saved run (ladder)","icon":"fact_check","description":"The same pipeline on a long, finished dictation: raw → clean → structured → brief, with a coverage table."}}
+{"file":"runs/page.js","nav":{"title":"Refine runs by day","icon":"history","description":"The owner's past prompts, refined day by day in reverse, each ask scored on the 0.5 = not sure scale."}}
+{"file":"stages/","nav":{"title":"Refine stages","description":"the live stages of a voice prompt"}}
+{"file":"try/page.js","nav":{"title":"Try it","icon":"science","description":"Run the real clean() step against any model — local, cheap OpenRouter, or Haiku — and compare."}}

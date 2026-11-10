@@ -138,3 +138,22 @@
 {"file":"collision-check.mjs"}
 {"file":"collision-check.mjs","gone":true}
 {"file":"Page.plugins.test.mjs"}
+{"file":"Index.js"}
+{"file":"ai/page.js","nav":{"title":"The page-based AI system","icon":"mic","description":"Every page path is a context: its own session ids, its own fast assistant, its own manager."}}
+{"file":"audit/page.js","nav":{"title":"Page layouts in use","icon":"fact_check","description":"Every page on the site, sorted by the layout it uses: most-used first. Reuse one before you build one."}}
+{"file":"card/page.js","nav":{"title":"Cards","icon":"dashboard","description":"A card is a mini page: its own background, a title or header maybe, clickable or expandable, nested a few levels deep — and when there's a list of them, they're routed, real pages of their own."}}
+{"file":"content-shapes/page.js","nav":{"title":"Page content, every shape","icon":"view_list","description":"A function, a string, an address, parts in page.jsonl, or code and parts together: one child page each."}}
+{"file":"dynamic/page.js","nav":{"title":"Dynamic pages","icon":"dynamic_feed","description":"A url with no page.js and no folder saved for it, that still opens — because an ancestor page answered the name itself."}}
+{"file":"ext/page.jsonl","nav":{"title":"Extensions","icon":"extension","description":"a page.jsonl line turns a small piece of behavior on, by name"}}
+{"file":"generator/page.js","nav":{"title":"Generator","icon":"casino","description":"A seed is a page tree. Five block words, three width words, no filesystem."}}
+{"file":"jsonl/page.jsonl","nav":{"title":"page.jsonl","icon":"description","description":"A page with no page.js: one log file, read a line at a time."}}
+{"file":"layout/page.js","nav":{"title":"1. Around the page — navigation and the parent","icon":"route","description":"The layout system: navigation, the page's room, and inside the page."}}
+{"file":"make/page.js","nav":{"title":"Wiki","icon":"add_box","description":"Five ways to make a page, simplest first — the code, then what it produces, live."}}
+{"file":"navigation/page.js","nav":{"title":"Navigation","icon":"route","description":"Persistent vs switching, the levels that stack, the go-to pattern, and the alternatives."}}
+{"file":"old/page.js","nav":{"title":"Page — old docs","description":"The first page docs, kept while they are rewritten."}}
+{"file":"overview/","nav":{"title":"Page overview","description":"the palette: one card per building block, and every card is a picture"}}
+{"file":"parts/page.jsonl","nav":{"title":"Parts","icon":"view_agenda","description":"A page whose body is a list of parts stored in its own page.jsonl."}}
+{"file":"settings/page.jsonl","nav":{"title":"Settings","icon":"tune","description":"tabs that manage themselves, and a page's own nav switch"}}
+{"file":"Template/page.js","nav":{"title":"Template","icon":"dashboard_customize","description":"A page that renders many times. One BigCard, three clones, one live value."}}
+{"file":"tool/page.jsonl","nav":{"title":"Page tool","icon":"edit_note","description":"Agents change this page live: a path and a delta, one line appended to its page.jsonl."}}
+{"file":"weight/page.js","nav":{"title":"Weight","icon":"dashboard","description":"Each page's weight: 1 by default, raised by the pages that reference it, plus a manual adjustment. Heaviest sorts first."}}

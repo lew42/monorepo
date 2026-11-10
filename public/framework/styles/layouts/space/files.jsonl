@@ -15,3 +15,6 @@
 {"file":"doc/page.jsonl"}
 {"file":"doc/"}
 {"file":"tasks/"}
+{"file":"compose/page.js","nav":{"title":"Compose","icon":"space_dashboard","description":"The same generated layout as real panels — reroll any section on its own."}}
+{"file":"hunt/page.js","nav":{"title":"Hunt","icon":"search_insights","description":"Roll a hundred layouts, rate each at three widths, and read back which draws the good ones had in common."}}
+{"file":"words/page.js","nav":{"title":"Words","icon":"abc","description":"Every word the layout format accepts, and what each one looks like."}}

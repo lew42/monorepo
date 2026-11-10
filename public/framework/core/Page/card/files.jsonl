@@ -29,3 +29,9 @@
 {"file":"mini-pages/page.jsonl"}
 {"file":"doc/"}
 {"file":"depth.js"}
+{"file":"grounds/page.js","nav":{"title":"Grounds","icon":"palette","description":"Four backgrounds a card can sit on — default, light gray, dark, and the primary hue — and what happens when one sits on another."}}
+{"file":"headers/page.js","nav":{"title":"Headers & menus","icon":"view_agenda","description":"Six patterns for the top of a card: no title, a heading, an icon beside the title, a header bar with a ⋯ menu — then the same shapes made clickable, expandable, or both."}}
+{"file":"log/page.js","nav":{"title":"Log","icon":"terminal","description":"An object-oriented logger, rendered as nested cards — any object's own log, its methods as groups."}}
+{"file":"mini-pages/page.jsonl","nav":{"title":"Mini pages","icon":"auto_stories","description":"A card is a tiny page: its data is one line in this file, its url is real, and there is no folder for it anywhere on disk."}}
+{"file":"nesting/page.js","nav":{"title":"Nesting","icon":"layers","description":"Levels 1, 2 and 3 are boxes. Level 4 and deeper drop the box and become a plain heading at the same indentation — padding runs out before a reader's patience does."}}
+{"file":"scale/page.js","nav":{"title":"Scale","icon":"photo_size_select_large","description":"Small, default and large — the one --size knob framework.css already has, and what content actually fits at each."}}

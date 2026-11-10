@@ -3,3 +3,4 @@
 {"file":"page.js"}
 {"file":"readme.md"}
 {"file":"retire.mjs"}
+{"file":"labs-trees/page.js","nav":{"title":"Family tree","icon":"account_tree","description":"One seeded tree, drawn three ways in plain flex/grid CSS — a family tree, a flow chart, a brainstorm map. No canvas, no SVG, no coordinate math."}}

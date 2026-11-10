@@ -57,3 +57,8 @@
 {"file":"screenshots/"}
 {"file":"screenshots/","gone":true}
 {"file":"screenshots/"}
+{"file":"autolayout/page.js","nav":{"title":"Auto layout","icon":"view_column","description":"Four slides showing Figma auto layout: absolute text, vertical stack, and horizontal panes."}}
+{"file":"colors/page.js","nav":{"title":"Color Schemes","icon":"palette","description":"Figma's nested cards rebuilt in the real system: `.card` steps one notch darker inside itself, and the contrast number is read off the rendered pixels, not guessed."}}
+{"file":"guide/page.js","nav":{"title":"Figma guide","icon":"draw","description":"How Claude draws in Figma with use_figma, coded from the 3440-wide design it drew."}}
+{"file":"palette/page.js","nav":{"title":"White","icon":"palette"}}
+{"file":"tokens/page.js","nav":{"title":"Figma tokens","icon":"tune","description":"The Figma file's variables as opt-in --fig-* CSS: the same schemes, modes and spacing, coded."}}

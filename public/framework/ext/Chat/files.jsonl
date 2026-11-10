@@ -68,3 +68,9 @@
 {"file":"failures.jsonl"}
 {"file":"failures.jsonl","gone":true}
 {"file":"failures.jsonl"}
+{"file":"drill/page.js","nav":{"title":"Drill in","icon":"open_in_full","description":"Open a chat card as its own full-screen page: Back, paging one level deeper, and a url for every level."}}
+{"file":"list/page.js","nav":{"title":"Chat list","icon":"chat","description":"A session's real chat list (session.messages), drawn live: one bubble per message, in the list's order, from the list's lines alone."}}
+{"file":"panel/page.js","nav":{"title":"Chat Panel","icon":"chat","description":"The log, the composer and the mic as one component — the same widget in the desktop drawer and the mobile sheet, its height starting small and growing to a cap before it scrolls."}}
+{"file":"v1-2/page.js","nav":{"title":"Chat V1.2","icon":"forum","description":"V1's chat, drawn from session.messages, with a send cursor: one ✓ after the words the assistant has."}}
+{"file":"v2/page.js","nav":{"title":"Chat v2","icon":"forum","description":"A session's chat, read only: its prompts at the root, the assistant's replies, questions and tasks nested under each."}}
+{"file":"v3/page.js","nav":{"title":"Chat v3","icon":"forum","description":"A session's chat drawn from session.messages: prompts in list order, the replies that answer them (found by re.to) and the tasks/questions beside them."}}

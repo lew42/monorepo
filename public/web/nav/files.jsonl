@@ -12,3 +12,14 @@
 {"file":"sidebar/page.js"}
 {"file":"tabs/page.js"}
 {"file":"wall/page.js"}
+{"file":"bar/page.js","nav":{"title":"Orbit","icon":"rocket_launch"}}
+{"file":"crumbs/page.js","nav":{"title":"Archive","icon":"inventory_2"}}
+{"file":"doc/page.js","nav":{"title":"Docs","icon":"menu_book","description":"The study behind these nine patterns: does the page stay still when a column opens."}}
+{"file":"drawer/page.js","nav":{"title":"Pocket","icon":"inbox"}}
+{"file":"drill/page.js","nav":{"title":"Depot"}}
+{"file":"footer/page.js","nav":{"title":"Primer","icon":"auto_stories"}}
+{"file":"jumps/page.js","nav":{"title":"Drift"}}
+{"file":"links/page.js","nav":{"title":"Reader","icon":"menu_book"}}
+{"file":"rail/page.js","nav":{"title":"Console","icon":"dashboard"}}
+{"file":"sidebar/page.js","nav":{"title":"Atlas","icon":"map"}}
+{"file":"wall/page.js","nav":{"title":"Gallery","icon":"grid_view"}}

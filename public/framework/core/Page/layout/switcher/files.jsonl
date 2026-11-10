@@ -12,3 +12,13 @@
 {"file":"tree-styles/page.js"}
 {"file":"wide-app/page.js"}
 {"file":"wide-index/page.js"}
+{"file":"cmp-w-app/page.js","nav":{"title":"app.js","icon":"description","description":"Demo file for the switcher's wide comparison frame."}}
+{"file":"cmp-w-index/page.js","nav":{"title":"index.js","icon":"description","description":"Demo file for the switcher's wide comparison frame."}}
+{"file":"narrow-app/page.js","nav":{"title":"app.js","icon":"description","description":"Demo file for the switcher's narrow comparison frame."}}
+{"file":"narrow-index/page.js","nav":{"title":"index.js","icon":"description","description":"Demo file for the switcher's narrow comparison frame — real, scrollable source."}}
+{"file":"nav-home/page.js","nav":{"title":"Home","icon":"home","description":"Demo page for the switcher's left-nav skin."}}
+{"file":"nav-settings/page.js","nav":{"title":"Settings","icon":"settings","description":"Demo page for the switcher's left-nav skin."}}
+{"file":"tree-router/page.js","nav":{"title":"switcher.js","icon":"description","description":"The switcher pattern's own routing script, shown live in its file-tree skin."}}
+{"file":"tree-styles/page.js","nav":{"title":"switcher.css","icon":"description","description":"The switcher pattern's own stylesheet, shown live in its file-tree skin."}}
+{"file":"wide-app/page.js","nav":{"title":"app.js","icon":"description","description":"Demo file for the switcher's wide comparison frame."}}
+{"file":"wide-index/page.js","nav":{"title":"index.js","icon":"description","description":"Demo file for the switcher's wide comparison frame."}}

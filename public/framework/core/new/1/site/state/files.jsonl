@@ -6,3 +6,8 @@
 {"file":"state.css"}
 {"file":"store.js"}
 {"file":"stores/page.js"}
+{"file":"accident/page.js","nav":{"title":"The accidental store"}}
+{"file":"scroll/page.js","nav":{"title":"Scroll"}}
+{"file":"shared/page.js","nav":{"title":"Shared state"}}
+{"file":"stale/page.js","nav":{"title":"State that must not survive"}}
+{"file":"stores/page.js","nav":{"title":"Six stores"}}

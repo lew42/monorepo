@@ -1,3 +1,5 @@
 {"file":"eager/page.js"}
 {"file":"lazy/page.js"}
 {"file":"page.js"}
+{"file":"eager/page.js","nav":{"title":"Eager"}}
+{"file":"lazy/page.js","nav":{"title":"Lazy"}}

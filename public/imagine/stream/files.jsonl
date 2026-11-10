@@ -9,3 +9,7 @@
 {"file":"wire/page.js"}
 {"file":"data/page.jsonl"}
 {"file":"data/"}
+{"file":"blocks/page.js","nav":{"title":"Streaming blocks","icon":"view_agenda","description":"Prose, a colour token, a size word and the block list itself — all edited live over the same wire."}}
+{"file":"deck/page.js","nav":{"title":"Cover","icon":"co_present","description":"The presenter drives the slide; every other window follows, with no navigation."}}
+{"file":"doc/page.js","nav":{"title":"Stream notes","description":"The three working notes behind stream: the wire, Durable Objects, and the decisions record."}}
+{"file":"wire/page.js","nav":{"title":"Live wire","icon":"cable","description":"Type in one window, watch another window change. The latency is measured, not claimed."}}

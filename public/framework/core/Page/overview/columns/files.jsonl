@@ -4,3 +4,8 @@
 {"file":"panels/page.js"}
 {"file":"refs/page.js"}
 {"file":"uses/page.js"}
+{"file":"examples/page.js","nav":{"title":"Examples","description":"Appearance recipes for column pages."}}
+{"file":"finder/page.js","nav":{"title":"Finder","icon":"view_column","description":"The column shape at full page height — real urls, no box around it."}}
+{"file":"panels/page.js","nav":{"title":"Panels","icon":"splitscreen","description":"The viewport height split into two independent scrolling regions."}}
+{"file":"refs/page.js","nav":{"title":"Refs","icon":"hub","description":"A picker and a reader four levels apart, talking through this.topic()."}}
+{"file":"uses/page.js","nav":{"title":"Uses","icon":"apps","description":"Four real applications of the column shape — a docs tree, an inbox, a 3440 workbench, a split screen."}}

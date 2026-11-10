@@ -8,3 +8,4 @@
 {"file":"findings.json"}
 {"file":"taste.json"}
 {"file":"doc/"}
+{"file":"taste/page.js","nav":{"title":"Taste","icon":"auto_awesome","description":"The site ranked by rate() — what is GOOD, not what is broken. Same audit, the other axis."}}

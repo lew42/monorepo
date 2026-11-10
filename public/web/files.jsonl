@@ -2,3 +2,5 @@
 {"file":"nav/page.js"}
 {"file":"page.js"}
 {"file":"readme.md"}
+{"file":"layout/page.js","nav":{"title":"Layout","icon":"dashboard","description":"Seven principles of arranging a page — each one live, and most of them yours to push around."}}
+{"file":"nav/page.js","nav":{"title":"Navigation","icon":"explore","description":"Nine navigation patterns, live — and two studies in what moves when you click."}}

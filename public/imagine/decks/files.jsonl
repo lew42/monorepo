@@ -33,3 +33,13 @@
 {"file":"triptych/page.js"}
 {"file":"thumbs/page.jsonl"}
 {"file":"thumbs/"}
+{"file":"aside/page.js","nav":{"title":"Aside","icon":"crop_16_9","description":"70 / 30 — a stage and the aside that has to earn 1031px."}}
+{"file":"doc/page.js","nav":{"title":"Decks notes","description":"The measurements behind decks' nine cuts."}}
+{"file":"four/page.js","nav":{"title":"Four","icon":"grid_view","description":"2 x 2 — four peers, and the one that has to be heavier."}}
+{"file":"golden/page.js","nav":{"title":"Golden","icon":"view_column","description":"61.8 / 38.2 — a lead and its support, the workhorse cut."}}
+{"file":"half/page.js","nav":{"title":"Half","icon":"vertical_split","description":"50 / 50 — the only cut that says the two things are equal."}}
+{"file":"persist/page.js","nav":{"title":"Persistent","icon":"menu_open","description":"A rail that stays while the stage switches — the same four slides as Swap."}}
+{"file":"pitch/page.js","nav":{"title":"Cover","icon":"campaign","description":"Six slides about the framework — the deck the lab was for."}}
+{"file":"poster/page.js","nav":{"title":"Poster","icon":"dashboard","description":"20 / 60 / 20 — the best cut for a 3440: real rails, a real poster."}}
+{"file":"swap/page.js","nav":{"title":"Swap","icon":"swap_horiz","description":"The whole screen swaps per click — the same four slides as Persistent."}}
+{"file":"triptych/page.js","nav":{"title":"Triptych","icon":"view_agenda","description":"25 / 50 / 25 — the presenter's shape: place, statement, notes."}}

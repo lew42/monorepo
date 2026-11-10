@@ -8,3 +8,6 @@
 {"file":"stack/page.js"}
 {"file":"doc/page.jsonl"}
 {"file":"doc/"}
+{"file":"full/page.js","nav":{"title":"As one full screen","icon":"fullscreen","description":"The same section, sized to the screen: the middle scrolls."}}
+{"file":"nav/page.js","nav":{"title":"Sections with nav","icon":"alt_route","description":"A nav per section: switch the middle, or open a column."}}
+{"file":"stack/page.js","nav":{"title":"A stack of templates","icon":"view_day","description":"Twelve page shapes as repeating sections."}}

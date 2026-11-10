@@ -10,3 +10,11 @@
 {"file":"stream/page.js"}
 {"file":"trap/page.js"}
 {"file":"items.json"}
+{"file":"arrangements/page.js","nav":{"title":"Three arrangements"}}
+{"file":"inflight/page.js","nav":{"title":"In flight"}}
+{"file":"marking/page.js","nav":{"title":"Late links"}}
+{"file":"rule/page.js","nav":{"title":"The rule"}}
+{"file":"shapes/page.js","nav":{"title":"Two shapes"}}
+{"file":"states/page.js","nav":{"title":"Loading, empty, error"}}
+{"file":"stream/page.js","nav":{"title":"Batches"}}
+{"file":"trap/page.js","nav":{"title":"The trap"}}

@@ -1,3 +1,5 @@
 {"file":"badimport/page.js"}
 {"file":"boom/page.js"}
 {"file":"page.js"}
+{"file":"badimport/page.js","nav":{"title":"Unreachable"}}
+{"file":"boom/page.js","nav":{"title":"Unreachable"}}

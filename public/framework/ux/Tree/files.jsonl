@@ -18,3 +18,4 @@
 {"file":"doc/page.jsonl"}
 {"file":"doc/"}
 {"file":"tasks/"}
+{"file":"drag/page.js","nav":{"title":"Drag","description":"Three targets on every row — above it, inside it, below it — and one event."}}

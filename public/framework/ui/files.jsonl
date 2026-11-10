@@ -42,3 +42,34 @@
 {"file":"text/"}
 {"file":"failures.jsonl"}
 {"file":"text/page.js"}
+{"file":"accordion/page.js","nav":{"title":"Accordion","icon":"expand_more","description":"One at a time, with no JS — the exclusivity is an attribute you can see."}}
+{"file":"alert/page.js","nav":{"title":"Alerts","icon":"info","description":"A template plus six lines of CSS — a coloured edge that is one token."}}
+{"file":"avatar/page.js","nav":{"title":"Avatar","icon":"account_circle","description":"One class, sized by a token — and the circle, the ring and the overlap are all CSS."}}
+{"file":"background/page.js","nav":{"title":"Background","icon":"star","description":"A swappable layer behind your content — one div, ten kinds, no images."}}
+{"file":"badge/page.js","nav":{"title":"Badges","icon":"label","description":"A template plus four variant classes — the class name is the component."}}
+{"file":"card/page.js","nav":{"title":"Card","icon":"folder","description":"The one card page — a template, not a function. `div.c(\"card\", …)` and framework.css does the rest: padding, child spacing, radius, shadow."}}
+{"file":"controls/page.js","nav":{"title":"Controls","icon":"tune","description":"One box for every control — one height, one padding, one hairline, one corner."}}
+{"file":"crumbs/page.js","nav":{"title":"Breadcrumbs","icon":"chevron_right","description":"A template, not a function — a trail derives from where you are, not from typed pairs."}}
+{"file":"datagrid/page.js","nav":{"title":"Data grid (markup)","icon":"table_rows","description":"The plain CSS-grid markup a data grid is built from — a column is data, a row is data, no behaviour yet."}}
+{"file":"decision/page.js","nav":{"title":"Decision","icon":"alt_route","description":"The options as cards, the chosen one marked — a choice you can see."}}
+{"file":"dialog/page.js","nav":{"title":"Dialog","icon":"picture_in_picture","description":"Native <dialog> — the browser is the component, and the CSS is the trap."}}
+{"file":"field/page.js","nav":{"title":"Form field","icon":"input","description":"A template, not a function — the fourth thing your form needs is always different."}}
+{"file":"icon/page.js","nav":{"title":"Icon","icon":"description","description":"One frame, one button, one rail — three classes around the icon() the site already has, all sized in em so a bigger container scales everything together."}}
+{"file":"item/page.js","nav":{"title":"Item","icon":"folder","description":"One row: an optional icon, then a name. Put .item on anything and this is the layout, the right-side end and the tree — all at once."}}
+{"file":"kbd/page.js","nav":{"title":"Keys","icon":"keyboard","description":"keys() is the one function here — the box and the row are markup."}}
+{"file":"menu/page.js","nav":{"title":"Menu","icon":"arrow_drop_down_circle","description":"A <details> dropdown — the panel earns a selector, not a function."}}
+{"file":"pagination/page.js","nav":{"title":"Pagination","icon":"last_page","description":"A template, not a function — real buttons, and the caller holds the page number."}}
+{"file":"panel/page.js","nav":{"title":"Panel","icon":"crop_square","description":"A template plus a few rules — and `reverse`, the right-aligned action row nobody expects."}}
+{"file":"progress/page.js","nav":{"title":"Progress","icon":"donut_large","description":"A template, not a function — the component is <progress>, and the browser wrote it."}}
+{"file":"row/page.js","nav":{"title":"Row","icon":"view_list","description":"One line in a list, on its parent's ground: padding in its own em, a ground only on hover or when selected."}}
+{"file":"scale/page.js","nav":{"title":"Scale","icon":"photo_size_select_small","description":"Shrink a fixed mockup to fit a narrow box, in proportion — never reflow it."}}
+{"file":"section/page.js","nav":{"title":"Section","icon":"crop_free","description":"A subtle wrapper that shows its own class names on hover, so browsing the site teaches the class vocabulary."}}
+{"file":"stats/page.js","nav":{"title":"Stat tiles","icon":"bar_chart","description":"A template, not a function — a card wall with one token retuned."}}
+{"file":"table/page.js","nav":{"title":"Data table","icon":"table_chart","description":"A head row and a body — the base theme had already finished this one."}}
+{"file":"tags/page.js","nav":{"title":"Tag input","icon":"local_offer","description":"A template, plus the library's one opt-out of a base rule."}}
+{"file":"text/page.js","nav":{"title":"Text","icon":"text_fields","description":"The element the kit's tree starts from — headings, a paragraph, a list, a link, and the rhythm between them. No class, no page CSS."}}
+{"file":"timeline/page.js","nav":{"title":"Timeline","icon":"timeline","description":"Releases down a rail — one of three components that kept its function."}}
+{"file":"toolbar/page.js","nav":{"title":"Toolbar","icon":"tune","description":"A template, not a function — groups, a growing field, and why `flex-1` beats `split`."}}
+{"file":"tooltip/page.js","nav":{"title":"Tooltip","icon":"help_outline","description":"Three spans and a stylesheet — the CSS is the whole component."}}
+{"file":"tree/page.js","nav":{"title":"Tree","icon":"▣","description":"Icon + text rows, indented once per nesting level — a sidebar for layers, navigation, anything with children."}}
+{"file":"words/page.js","nav":{"title":"Config words","icon":"style","description":"Two classes on a section — every component inside re-skins, and no component knows."}}

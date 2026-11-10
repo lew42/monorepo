@@ -13,3 +13,15 @@
 {"file":"replace/page.js"}
 {"file":"tabs/page.js"}
 {"file":"ui.js"}
+{"file":"cards/page.js","nav":{"title":"preview()"}}
+{"file":"chain/page.js","nav":{"title":"chain()"}}
+{"file":"children/page.js","nav":{"title":"children"}}
+{"file":"cols/page.js","nav":{"title":"Columns"}}
+{"file":"container/page.js","nav":{"title":"container()"}}
+{"file":"dynamic/page.js","nav":{"title":"route()"}}
+{"file":"full/page.js","nav":{"title":"Full"}}
+{"file":"inline/page.js","nav":{"title":"Inline children"}}
+{"file":"links/page.js","nav":{"title":"A link"}}
+{"file":"naming/page.js","nav":{"title":"What a name costs"}}
+{"file":"replace/page.js","nav":{"title":"Replace"}}
+{"file":"tabs/page.js","nav":{"title":"Tabs"}}

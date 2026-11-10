@@ -18,3 +18,9 @@
 {"file":"sound-recorder/page.js"}
 {"file":"push-to-talk/page.js"}
 {"file":"mic-to-text/page.js"}
+{"file":"LevelMeter/page.js","nav":{"title":"LevelMeter","icon":"graphic_eq","description":"A live level bar for any MicStream."}}
+{"file":"mic-to-text/page.js","nav":{"title":"Mic → Whisper → text","icon":"transcribe","description":"MicStream + Transcriber.Whisper — the level, the growing guess, then the settled text."}}
+{"file":"MicPicker/page.js","nav":{"title":"MicPicker","icon":"settings_voice","description":"The microphone chooser — lists every audioinput device and remembers the pick with ux/Dictate's own storage key."}}
+{"file":"push-to-talk/page.js","nav":{"title":"Push-to-talk stream","icon":"record_voice_over","description":"Discord-style: hold to talk, and a listener panel hears it live — local only."}}
+{"file":"PushToTalk/page.js","nav":{"title":"PushToTalk","icon":"campaign","description":"Hold a button or a key to open a MicStream; release to close it."}}
+{"file":"sound-recorder/page.js","nav":{"title":"Sound recorder","icon":"album","description":"The same parts as any other recorder app: pick a mic, watch the level, record and save."}}

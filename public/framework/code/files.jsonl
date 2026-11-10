@@ -10,3 +10,8 @@
 {"file":"css/page.js"}
 {"file":"performance/page.js"}
 {"file":"tasks/"}
+{"file":"css/page.js","nav":{"title":"CSS","icon":"style","description":"Layers, where a declaration belongs, and how to name a class — the vocabulary itself lives at /framework/styles/."}}
+{"file":"dos-and-donts/page.js","nav":{"title":"Dos and don'ts","icon":"rule","description":"The traps that never throw — nothing here raises an error, so this list is the only thing that catches it — plus the house opinions on formatting and file size."}}
+{"file":"objects/page.js","nav":{"title":"Objects","icon":"hub","description":"Object-oriented design: every class ships a view of its own state — a chip, a row, a panel — so you can see what an instance knows."}}
+{"file":"patterns/page.js","nav":{"title":"Patterns","icon":"extension","description":"The shape of a module: assign-based classes, parts as static subclasses, the page shape, and how capturing works."}}
+{"file":"performance/page.js","nav":{"title":"Performance","icon":"speed","description":"Big data on a page without freezing the machine: draw only what's visible, one variable per drag, measure every load."}}

@@ -12,3 +12,17 @@
 {"file":"tim/page.js"}
 {"file":"urls/page.js"}
 {"file":"versus/page.js"}
+{"file":"a11y/page.js","nav":{"title":"Access — the register"}}
+{"file":"async/page.js","nav":{"title":"The Asynchronist — content that arrives late"}}
+{"file":"chrome/page.js","nav":{"title":"Chrome Wright — report"}}
+{"file":"content/page.js","nav":{"title":"Content-driven navigation — the Editor's report"}}
+{"file":"eric/page.js","nav":{"title":"Compound navigation — Eric"}}
+{"file":"forms/page.js","nav":{"title":"The Registrar — navigation when leaving costs something"}}
+{"file":"librarian/page.js","nav":{"title":"Librarian — the Layout Library"}}
+{"file":"motion/page.js","nav":{"title":"Motion — the Choreographer's report"}}
+{"file":"patterns/page.js","nav":{"title":"Applied IA — report"}}
+{"file":"perf/page.js","nav":{"title":"Cost — the measurements"}}
+{"file":"steve/page.js","nav":{"title":"Simple Steve — the floor, and what to delete"}}
+{"file":"tim/page.js","nav":{"title":"Technical Tim — defect & risk register"}}
+{"file":"urls/page.js","nav":{"title":"Cartographer — url design"}}
+{"file":"versus/page.js","nav":{"title":"The Comparativist — versus"}}

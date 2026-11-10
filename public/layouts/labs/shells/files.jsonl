@@ -16,3 +16,14 @@
 {"file":"shots/"}
 {"file":"shots/page.jsonl"}
 {"file":"shots/"}
+{"file":"both/page.js","nav":{"title":"Both rails","icon":"view_week","description":"Nav left, inspector right — and 26em of chrome before a word is read."}}
+{"file":"canvas/page.js","nav":{"title":"Canvas centre","icon":"brush","description":"The app-as-tool shape — chrome on four sides, a stage that owns the leftover."}}
+{"file":"columns/page.js","nav":{"title":"Library","icon":"view_column","description":"A full-height columns row as the content region — rail, footer, and a row that scrolls sideways."}}
+{"file":"doc/page.js","nav":{"title":"Docs","icon":"menu_book","description":"The long form for Shells — every measurement, what was rejected, and what is still open."}}
+{"file":"foot/page.js","nav":{"title":"Footer bar","icon":"view_stream","description":"No rail at all — the nav is a bar pinned to the floor of the app."}}
+{"file":"head-foot/page.js","nav":{"title":"Header + footer","icon":"view_agenda","description":"Two bars framing the page — identity above, state below."}}
+{"file":"inner-bar/page.js","nav":{"title":"Inner status bar","icon":"table_chart","description":"A footer INSIDE the content area — and how it stays the content's, not the app's."}}
+{"file":"inner-rail/page.js","nav":{"title":"Inner rail","icon":"layers","description":"A content area carrying its own rail — and the treatment that keeps it the area's."}}
+{"file":"left/page.js","nav":{"title":"Left rail","icon":"view_quilt","description":"The default app shape — nav on the reading edge, content beside it."}}
+{"file":"rail-foot/page.js","nav":{"title":"Sidebar + footer","icon":"view_module","description":"The two of them together — and the footer has to span under the rail."}}
+{"file":"right/page.js","nav":{"title":"Right rail","icon":"view_array","description":"The same nav on the far edge — and it stops reading as the way through."}}

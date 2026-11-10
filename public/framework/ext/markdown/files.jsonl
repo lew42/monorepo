@@ -8,3 +8,4 @@
 {"file":"readme.md"}
 {"file":"doc/page.jsonl"}
 {"file":"doc/"}
+{"file":"open/page.js","nav":{"title":"Where a link opens","icon":"call_split","description":"The same markdown link, opened three ways — because the page that holds it decides, not the link."}}
