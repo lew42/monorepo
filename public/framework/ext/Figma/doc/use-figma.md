@@ -205,6 +205,7 @@ Design files have no live connectors (`ConnectorNode` is FigJam-only), so arrows
 
 ## Traps
 
+- **Lay out a whole page as auto-layout containers** (owner, 2026-11-09): query every top-level node (position, size, how it grows) before moving anything; a container is a column of equal-width things or a row of equal-height things, so a column that mixes 400, 1600, 1920 and 3440 items leaves voids (split it into one column per width); size titles to the content (120 to 160 in a 1920 row). Instance `minHeight` cannot be overridden, so a fixed-height blank page is the instance set FIXED with its Body set FILL.
 - **A max width of 760 is for body and description text only**, never a big title: a 160px title capped at 760 wraps hard (2026-11-09). In the Section master the title hugs (no max width, no wrap), its `Label` frame has no max, and only the description keeps `maxWidth` 760 (with `minWidth` 760 so a short title does not narrow it).
 - **`code` style can't load**: Figma has no Consolas, so `loadFontAsync` throws and the whole script aborts. Code text uses Cousine Bold by hand. The real fix is to change the style's font in Figma (the owner's file; ask first).
 - **`figma.combineAsVariants()` makes a real component set without the purple dashed border** Figma's UI adds, so it looks like a plain frame (2026-11-05). Add it in the script: `strokes` #9747FF, `dashPattern` [10, 5], `strokeWeight` 1, `cornerRadius` 5.
