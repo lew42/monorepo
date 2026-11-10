@@ -205,6 +205,7 @@ Design files have no live connectors (`ConnectorNode` is FigJam-only), so arrows
 
 ## Traps
 
+- **A max width of 760 is for body and description text only**, never a big title: a 160px title capped at 760 wraps hard (2026-11-09). In the Section master the title hugs (no max width, no wrap), its `Label` frame has no max, and only the description keeps `maxWidth` 760 (with `minWidth` 760 so a short title does not narrow it).
 - **`code` style can't load**: Figma has no Consolas, so `loadFontAsync` throws and the whole script aborts. Code text uses Cousine Bold by hand. The real fix is to change the style's font in Figma (the owner's file; ask first).
 - **`figma.combineAsVariants()` makes a real component set without the purple dashed border** Figma's UI adds, so it looks like a plain frame (2026-11-05). Add it in the script: `strokes` #9747FF, `dashPattern` [10, 5], `strokeWeight` 1, `cornerRadius` 5.
 - **Wrap rows grow their children only with FILL plus a `minWidth`** (verified 2026-11-09; children without FILL stay at their `minWidth`). A FILL child with no intrinsic height collapses in a stacked wrap row, so give an image `minHeight`.
