@@ -18,7 +18,7 @@ What the design system file holds:
 1. **One author frame.** Everything Claude builds goes inside one top-level frame named `Claude · working area`, headed by a `smart_toy` icon (in the file's icon font: Material Symbols Rounded in Sept-2026, Material Icons in the design system file), an h1 "Claude" and a one-line context note. Claude edits only inside it.
 2. **Duplicate before editing.** To change something the owner made, duplicate it into Claude's frame and edit the copy. Never edit the owner's nodes in place.
 3. **Read before every edit.** Re-read the current page and nodes before each edit; never assume the owner hasn't changed something since the last read.
-4. **Explain on the canvas, not in chat.** Every group gets an on-canvas label (h4 kicker + h3 title + one plain-English line: what it is, why it exists, where it goes) and clear layer names (a bad name: "backdrop is review-only"). Chat replies stay short; the canvas carries the explanation. Claude answers a question by changing the design or adding a labelled note on the canvas, so the answer is self-evident; a quick answer is spoken. No long chat replies.
+4. **Explain on the canvas, not in chat.** Every group gets an on-canvas label (h4 kicker + h3 title + one plain-English line: what it is, why it exists, where it goes) and clear layer names (a bad name: "backdrop is review-only"). Chat replies stay short; the canvas carries the explanation. When the owner asks a question or for a status (owner, 2026-11-09, stronger), Claude answers on the canvas **visually**: show what works, what doesn't and how, with real components and small visuals, not text notes to read and not in chat. Text-only note cards were removed from the design system file for this reason. A quick answer is spoken. No long chat replies.
 5. **Normal auto-layout frames, never Sections** (see the skill).
 6. **Doc and repo edits from a cloud chat** go through a spawned local SDK agent, not the chat running shell commands itself.
 
@@ -146,6 +146,10 @@ Icons in the design system file (2026-11-05): they use the **Material Icons** fo
 
 Open: should Page wrap a Card instance (one extra layer, lets things sit outside the card) or be flat, the surface itself?
 
+#### Component or plain frame? (open, raised by the owner 2026-11-09; shown on the canvas)
+
+With padding, gap and colours tokenized, a container like a card may not need to be a component: a plain frame bound to the tokens is easier to edit (no slot to fill). Claude's suggestion, **not decided**: components for small repeated pieces that must stay in sync (Button, Icon button, a toolbar); plain frames for free-form containers. This puts the earlier "Card: a thin shell with one Content slot" choice in question.
+
 #### Modes over variants (owner, 2026-11-05)
 
 A colour or style switch is a **variable mode**, not a variant: `Scheme` for grounds, `Button` (Primary, Transparent) for button style. Use a variant only when a named setup changes many things at once. Why: variants don't inherit from each other, and making one variant a child of another means wrapping a component in an instance of another, which gets tricky. Removing the Style variant set from Button is the worked example.
@@ -157,11 +161,11 @@ A colour or style switch is a **variable mode**, not a variant: `Scheme` for gro
 
 #### Where masters go as the library grows (owner, 2026-11-05)
 
-Masters on the root canvas will sprawl. The likely fix is **one library page per component family**: the Assets panel groups library components by page, then top-level frame, so the library pages become the sections of the drag-and-drop toolbox ([builder.md](./builder.md)). Not built yet; the owner wants to see a consumer file first, and that drives the structure (see the consumer-file note above).
+Masters on the root canvas will sprawl. The likely fix is **one library page per component family**: the Assets panel groups library components by page, then top-level frame, so the library pages become the sections of the drag-and-drop toolbox ([builder.md](./builder.md)). Not built yet; the owner wants to see a consumer file first, and that drives the structure (see the consumer-file note above). A drag-and-drop test is on the canvas (2026-11-09): **A)** pieces loose on the root canvas (name labels show, purple for components, and they drift as you add more) against **B)** pieces in a toolbox frame (tidy, can match a column's width and mode, no labels). Not decided.
 
 #### Grid auto layout: equal-height cards that adapt (verified 2026-11-05)
 
-Set `frame.layoutMode = 'GRID'`, then `gridColumnCount` / `gridRowCount`, `gridColumnSizes = [{type:'FLEX', value:1}, …]` and `gridRowSizes = [{type:'HUG'}, …]`; bind `gridRowGap` / `gridColumnGap` to `gap`. The grid frame has a fixed width and HUG height; its children get `layoutSizingHorizontal` and `layoutSizingVertical` = `'FILL'`. Each row takes the tallest card's height and every card in it fills: making one card's text longer grew all three from 346 to 520. **Trap:** append the children *after* setting `layoutMode = 'GRID'`; children already in the frame kept one row each. Re-append them to re-flow. This replaces the "tallest hugs" and "fixed row" workarounds in [figma-layout.md](./figma-layout.md).
+Set `frame.layoutMode = 'GRID'`, then `gridColumnCount` / `gridRowCount`, `gridColumnSizes = [{type:'FLEX', value:1}, …]` and `gridRowSizes = [{type:'HUG'}, …]`; bind `gridRowGap` / `gridColumnGap` to `gap`. The grid frame has a fixed width and HUG height; its children get `layoutSizingHorizontal` and `layoutSizingVertical` = `'FILL'`. Each row takes the tallest card's height and every card in it fills: making one card's text longer grew all three from 346 to 520. **Trap:** append the children *after* setting `layoutMode = 'GRID'`; children already in the frame kept one row each. Re-append them to re-flow. **Second trap (2026-11-09):** a grid child that is a *wrapper* (caption + card) with the card set to FILL vertically collapses, because the HUG row measures the wrapper's content as near zero. Fix: give captions and cards their own grid rows (row 0 captions, row 1 cards, …), each child FILL; the cards then get full height and equal heights per row. This replaces the "tallest hugs" and "fixed row" workarounds in [figma-layout.md](./figma-layout.md).
 
 Removing boolean component properties (Show kicker, Show button) made every previously hidden layer visible again in all copies; re-hide or delete those layers afterwards.
 
