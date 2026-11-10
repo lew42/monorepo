@@ -36,7 +36,7 @@ export default new Page({
 function draw(data){
 	header_card(data);
 	h2("Tasks");
-	for (const group of SessionView.grouped(data.tasks)) if (group.tasks.length) group_item(group);
+	for (const group of SessionView.grouped(data.tasks)) if (group.tasks.length || group.key === "waiting") group_item(group);   // "Waiting on you (0)" says nothing is waiting, rather than leaving it unsaid (review note 7)
 	h2("Child sessions");
 	children_card(data.children);
 	h2("The owner's prompts");
@@ -58,6 +58,7 @@ function group_item(group){
 
 function task_detail(t){
 	div.c("flex v gap-25", () => {
+		p(t.title);   // the row truncates at phone width, so the full title opens with the detail (review finding 1)
 		if (t.why) p(`Why: ${t.why}`);
 		if (t.waiting) p(`Waiting on ${t.waiting.on ?? "?"}${t.waiting.what ? `: ${t.waiting.what}` : ""}`);
 		if (t.outcome) p(t.outcome);
