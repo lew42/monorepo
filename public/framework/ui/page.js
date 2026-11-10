@@ -7,11 +7,14 @@ import { Doc, md, code, ui } from "/app.js";
    ⚠ The owner's tree, not a flat alphabet (ui-kit step 4, 2026-11-09): elements first,
      then what's built from them. Was four bands of six/six/six/five (Surfaces, Data,
      Forms, Marks); now five bands of five/six/six/six/four, in the order a file tree
-     reads — smallest unit at the top. A band is its own grid and `auto-fit` stretches
-     it to fill the row, so an UNEVEN band draws wider cards than its neighbours at the
-     same wall width; that is accepted here (the owner's words asked for this order,
-     not for five equal piles) — if it ever reads as broken rather than as a
-     deliberately smaller shelf, that is the fix to make, not reverting the order. */
+     reads — smallest unit at the top. `.page-previews` is `auto-fill`, not `auto-fit`
+     (Page.css, "two children must not become two enormous cards"), so an uneven band
+     does NOT stretch its cards wider — Data's four just leave empty track on its last
+     row at some widths, same card size as every other band. Checked live at 1920:
+     `/framework/ui/` shows one labeled grid per band (Elements/Parts/Cards/Menus/Data);
+     `/framework/library/?at=ui&view=wall` is a DIFFERENT renderer (`Library/Rail.js`
+     `wall()`) that ignores bands entirely — one continuous grid, no labels, spans by
+     `optimalWidth` — so band membership has no visible effect there at all. */
 export const BANDS = {
 	Elements: "text icon badge kbd avatar",
 	Parts:    "row item tree controls field tags",
@@ -25,7 +28,7 @@ const names = Object.values(BANDS).flatMap(band => band.split(" "));
 export default new Doc({
 	meta: import.meta,
 	title: "UI",
-	description: "A tree, not a list — elements first, then what's built from them, in five bands. Four functions, the rest copy-paste templates.",
+	description: "A tree, not a list — elements first, then what's built from them, in five bands. Five functions, the rest copy-paste templates.",
 	icon: "widgets",
 
 	// ⚠ Required on a Doc that is ALSO a nav section. framework/page.js's sections()
@@ -98,9 +101,9 @@ export default new Doc({
 		   and a dialog on ~580px, which is the width each of them is actually used at. */
 		this.browse(BANDS, { "--column": "18em", "--gap": "var(--flow)" }).ac("bleed");
 
-		md("## Four functions, sixteen templates");
+		md("## Five functions, twenty-two templates");
 
-		md("Only [Data table](/framework/ui/table/), [Timeline](/framework/ui/timeline/), `keys()` on [Keys](/framework/ui/kbd/) and [Item](/framework/ui/item/) are functions, and each is a **loop** — the one thing markup cannot express. `item()`'s loop is the recursion down a tree of children. The other eighteen pages hand you the markup with a copy button: some ship a class or two of CSS beside it, several ship none at all.");
+		md("Only [Data table](/framework/ui/table/), [Timeline](/framework/ui/timeline/), `keys()` on [Keys](/framework/ui/kbd/), [Item](/framework/ui/item/) and [Datagrid](/framework/ui/datagrid/) are functions, and each is a **loop** — the one thing markup cannot express. `item()`'s loop is the recursion down a tree of children; `datagrid()`'s is the loop over columns and rows. The other twenty-two pages hand you the markup with a copy button: some ship a class or two of CSS beside it, several ship none at all.");
 
 		code.js(`import { ui } from "/app.js";
 

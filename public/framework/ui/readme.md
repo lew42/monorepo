@@ -2,38 +2,52 @@
 
 ## Index
 
-Every component here, and what you would use it for. Only `table`, `kbd`, `timeline` and `item` are functions; the rest are markup you copy.
+Every component here, in the tree's own order — elements first, then what's built from
+them — and what you would use it for. Five are functions (`table`, `timeline`, `keys`,
+`item`, `datagrid`); the rest are markup you copy.
 
 - [library](/framework/library/) — browse every component here at full size, with its variants beside it.
+
+**Elements**
 - [text](./text/) — `h1`–`h4`, a paragraph, a list, a link, and the flow rhythm between them: the element the tree starts from.
 - [icon](./icon/) — one frame, one button, one rail around the site's own `icon()`.
-- [accordion](./accordion/) — panels where one is open at a time, no JavaScript.
-- [alert](./alert/) — a callout box with a coloured left edge.
-- [avatar](./avatar/) — a circle holding initials or a photo, and a stacked ring of them.
-- [background](./background/) — a div behind your content: colour, pattern, tiled icons or a glow.
 - [badge](./badge/) — a small pill label.
-- [card](./card/) — the one card page: `.card`, its four grounds and nesting, live; links the other card pages ([card/readme.md](./card/readme.md)).
-- [controls](./controls/) — buttons, selects, fields and tabs drawn as one matching box.
-- [crumbs](./crumbs/) — the trail of links above a page.
-- [datagrid](./datagrid/) — the markup for a data-grid table: a CSS-grid box, a header and a body, no JavaScript needed to render; the resize/sort/filter/windowing behaviour is [`ext/DataGrid`](/framework/ext/DataGrid/).
-- [decision](./decision/) — a question, its options as cards, and the chosen one marked.
-- [dialog](./dialog/) — a modal popup using the browser's own `<dialog>`.
-- [field](./field/) — a label, an input and a hint (no readme yet).
-- [item](./item/) — one row: an optional icon, then a name.
 - [kbd](./kbd/) — keyboard-shortcut chips like Ctrl + K.
-- [menu](./menu/) — a dropdown menu; for close-on-pick use [`ux/Menu`](/framework/ux/Menu/).
-- [pagination](./pagination/) — a row of page buttons (no readme yet).
-- [panel](./panel/) — a titled box with a header and close button (no readme yet).
-- [progress](./progress/) — progress and meter bars (no readme yet).
+- [avatar](./avatar/) — a circle holding initials or a photo, and a stacked ring of them.
+
+**Parts**
 - [row](./row/) — one line in a list: padding, gap, a ground on hover (the card plan's `row`).
-- [stats](./stats/) — a grid of label-and-number tiles (no readme yet).
-- [table](./table/) — a head row and body built from arrays.
-- [tags](./tags/) — chips with a remove mark and an input (no readme yet).
-- [timeline](./timeline/) — a dated list of events (no readme yet).
-- [toolbar](./toolbar/) — a row of buttons and a search box (no readme yet).
-- [tooltip](./tooltip/) — a hover bubble, CSS only.
+- [item](./item/) — one row: an optional icon, then a name.
 - [tree](./tree/) — icon-and-text rows indented by depth; the behaviour lives in [`ux/Tree`](/framework/ux/Tree/).
-- [words](./words/) — `ui-contrast` and `ui-compact`, classes that re-skin a whole section; a config-word demo, not a tree component — appended outside the bands below, beside `background`/`scale`/`section`.
+- [controls](./controls/) — buttons, selects, fields and tabs drawn as one matching box.
+- [field](./field/) — a label, an input and a hint (no readme yet).
+- [tags](./tags/) — chips with a remove mark and an input (no readme yet).
+
+**Cards**
+- [card](./card/) — the one card page: `.card`, its four grounds and nesting, live; links the other card pages ([card/readme.md](./card/readme.md)).
+- [panel](./panel/) — a titled box with a header and close button (no readme yet).
+- [stats](./stats/) — a grid of label-and-number tiles (no readme yet).
+- [accordion](./accordion/) — panels where one is open at a time, no JavaScript.
+- [decision](./decision/) — a question, its options as cards, and the chosen one marked.
+- [alert](./alert/) — a callout box with a coloured left edge.
+
+**Menus**
+- [menu](./menu/) — a dropdown menu; for close-on-pick use [`ux/Menu`](/framework/ux/Menu/).
+- [toolbar](./toolbar/) — a row of buttons and a search box (no readme yet).
+- [crumbs](./crumbs/) — the trail of links above a page.
+- [pagination](./pagination/) — a row of page buttons (no readme yet).
+- [tooltip](./tooltip/) — a hover bubble, CSS only.
+- [dialog](./dialog/) — a modal popup using the browser's own `<dialog>`.
+
+**Data**
+- [table](./table/) — a head row and body built from arrays.
+- [timeline](./timeline/) — a dated list of events (no readme yet).
+- [progress](./progress/) — progress and meter bars (no readme yet).
+- [datagrid](./datagrid/) — the markup for a data-grid table: a CSS-grid box, a header and a body, no JavaScript needed to render; the resize/sort/filter/windowing behaviour is [`ext/DataGrid`](/framework/ext/DataGrid/).
+
+**Outside the tree** — a config word or a one-off, not a component ([page.js](./page.js)'s own comment says why)
+- [background](./background/) — a div behind your content: colour, pattern, tiled icons or a glow.
+- [words](./words/) — `ui-contrast` and `ui-compact`, classes that re-skin a whole section.
 - [doc](./doc/) — the tier's written record: [decisions.md](./doc/decisions.md), [record.md](./doc/record.md) (a docs folder, no readme).
 
 - Moved verbatim to [doc/readme-full-2026-10-12.md](./doc/readme-full-2026-10-12.md): detail.
@@ -47,7 +61,7 @@ ui.table(["module", "lines"], [["View", "641"], ["Page", "363"]]);
 ui.keys("Ctrl", "K");
 ```
 
-The other seventeen have nothing to import — open the component's page and copy the markup.
+The other twenty-two have nothing to import — open the component's page and copy the markup.
 
 - Moved verbatim to [doc/readme-full-2026-10-12.md](./doc/readme-full-2026-10-12.md): detail.
 
@@ -64,9 +78,11 @@ The other seventeen have nothing to import — open the component's page and cop
 - A tooltip bubble or a menu panel is out of flow, so any `overflow: hidden` ancestor (a
   `.demo` box, a stage screen) clips it — [doc/decisions.md](./doc/decisions.md)
 - The bands are Elements · Parts · Cards · Menus · Data (5 · 6 · 6 · 6 · 4), the owner's tree
-  order (elements first, then what's built from them), not an even split: a band is its own
-  `auto-fit` grid, so Data's four cards run a little wider than a six-card band at the same
-  wall width — accepted on purpose, ui-kit step 4, 2026-11-09 — [doc/decisions.md](./doc/decisions.md)
+  order (elements first, then what's built from them), not an even split — safe to be uneven
+  because `.page-previews` grids with `auto-fill`, not `auto-fit`, so a smaller band's cards
+  stay the same size as every other band's, never stretched to fill the row. That only applies
+  on `/framework/ui/` itself; the Library's `?view=wall` is a different renderer that ignores
+  bands — [doc/decisions.md](./doc/decisions.md)
 - `ui.timeline()` is a static dated list; [`ext/Timeline`](/framework/ext/Timeline/) is the
   zoomable axis that shares only the English name — [doc/decisions.md](./doc/decisions.md)
 - `parts.js` and every `<name>.js` import `core/View/View.js`, never `/app.js` — `app.js`
@@ -82,10 +98,10 @@ The other seventeen have nothing to import — open the component's page and cop
   per-component ladder and nine findings · `doc/method/` (API tab) · `doc/file/` (Files tab)
 - Elements — [text](/framework/ui/text/) · [icon](/framework/ui/icon/) · [badge](/framework/ui/badge/) · [kbd](/framework/ui/kbd/) · [avatar](/framework/ui/avatar/)
 - Parts — [row](/framework/ui/row/) · [item](/framework/ui/item/) · [tree](/framework/ui/tree/) · [controls](/framework/ui/controls/) · [field](/framework/ui/field/) · [tags](/framework/ui/tags/)
-- Cards — [card](/framework/ui/card/) · [panel](/framework/ui/panel/) · [stats](/framework/ui/stats/) · [accordion](/framework/ui/accordion/) · [decision](/framework/ui/decision/) · [alert](/framework/ui/alert/) — the options as cards, the chosen one marked; used by every task page's Decisions tab
+- Cards — [card](/framework/ui/card/) · [panel](/framework/ui/panel/) · [stats](/framework/ui/stats/) · [accordion](/framework/ui/accordion/) · [decision](/framework/ui/decision/) (the options as cards, the chosen one marked; used by every task page's Decisions tab) · [alert](/framework/ui/alert/)
 - Menus — [menu](/framework/ui/menu/) · [toolbar](/framework/ui/toolbar/) · [crumbs](/framework/ui/crumbs/) · [pagination](/framework/ui/pagination/) · [tooltip](/framework/ui/tooltip/) · [dialog](/framework/ui/dialog/)
 - Data — [table](/framework/ui/table/) · [timeline](/framework/ui/timeline/) · [progress](/framework/ui/progress/) · [datagrid](/framework/ui/datagrid/)
-- Files that matter: `ui.js` (three exports, eleven side-effect imports) · `parts.js` (`css()`, `component()`, `.ui-pill`) · `page.js` (`BANDS`, the wall) · `words/words.js` (the config words)
+- Files that matter: `ui.js` (five functions — `table`, `timeline`, `keys`, `item`, `datagrid` — plus `css`/`component` re-exports, fourteen side-effect imports for the markup-only components) · `parts.js` (`css()`, `component()`, `.ui-pill`) · `page.js` (`BANDS`, the wall) · `words/words.js` (the config words)
 - [`skill-suggestions.md`](./skill-suggestions.md) — what a future ui-design skill should carry, from the 2026-08-21 build
 
 ## Also here (readme audit, 2026-10-13)

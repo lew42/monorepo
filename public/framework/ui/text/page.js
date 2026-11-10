@@ -5,7 +5,7 @@ import { Page, md, demo, div, h1, h2, h3, h4, p, ul, ol, li, a } from "/app.js";
 // element: no class, no page CSS. `styles/elements/text/` already carries the full
 // inline-element reference (emphasis, semantic tags, blockquote, hr); this page is
 // the ui-tier entry — the smallest useful unit at the top of the kit's tree, so the
-// library wall's Elements band has something to link to (see B below).
+// library's Elements band has something to link to.
 const h1_ = () => h1("Page title");
 const h2_ = () => h2("Section title");
 const h3_ = () => h3("Sub-section title");
@@ -15,23 +15,29 @@ const para = () => p("Body copy, with ", "a run of text at the paragraph size.")
 const items = () => div.c("flex v gap", () => {
 	ul(() => { li("First item"); li("Second item"); li("Third item"); });
 	ol(() => { li("First step"); li("Second step"); li("Third step"); });
-}).style("--gap", "calc(var(--gap) * 0.8)");
+});
 
 const link = () => p("A link ", a("inside text").href("/framework/"), " keeps the body's colour and takes the accent as an underline.");
 
 // The rhythm between elements — not a new element, the `flow` spacing that already
-// applies to any run of blocks: a heading tighter to what follows it than a
-// paragraph is, a card no different from a paragraph (see C below).
+// applies to any run of blocks. Two transitions, side by side: one `h2` follows a
+// `p`, the other follows a `.card`. Measured headless at 400px: 63px above both —
+// `margin-block-start: var(--flow)` reads the NEXT element's own font-size, never
+// what came before it, so the two transitions were always equal. `framework.css`'s
+// `.flow` rule did need a fix, but for a different reason: `.card`'s OWN box is also
+// `.flow` (`PageCard.View` renders `"part-card card flow"`), so without `:not(.card)`
+// this same rule was reaching INSIDE every card and overriding its title-to-body
+// gap. See the task log for the full before/after.
 const flow = () => div.c("flow", () => {
-	h2("A section");
-	p("A paragraph under the heading, spaced by `--flow`.");
+	div.c("h4", "after a paragraph");
+	p("A paragraph, ahead of the next heading.");
+	h2("Same gap above this heading…");
+	div.c("h4", "after a card");
 	div.c("card", () => {
 		h3("A card");
-		p("The same spacing rule reaches a card as it reaches a paragraph.");
+		p("Its own body text.");
 	});
-	h2("A second section");
-	p("Another paragraph, so the rhythm repeats.");
-	ul(() => { li("A list"); li("closes the run."); });
+	h2("…as above this one.");
 });
 
 export default new Page({
@@ -42,13 +48,14 @@ export default new Page({
 	icon: "text_fields",
 
 	children: [
+		demo.page("h1", h1_, { note: "`h1` — 1.9em/900, `-0.015em` tracking. Size, weight and tracking only (`styles/elements/text/`)." }),
 		demo.page("h2", h2_, { note: "`h2` — 1.4em/700. Size and weight only; margins are rhythm and belong to whatever arranges the content (`styles/elements/text/`)." }),
 		demo.page("h3", h3_, { note: "`h3` — 1em/700." }),
 		demo.page("h4", h4_, { note: "`h4` — 0.8em/700, uppercase, tracked. The level `.h4` lends to a label that isn't literally a heading (a card's `div.c(\"h4 muted\", …)` eyebrow)." }),
 		demo.page("p", para, { note: "Body copy: `clamp(1rem, 0.68rem + 0.36vw, 1.25rem)`, line-height 1.5." }),
 		demo.page("li", items, { note: "`ul, ol { padding-left: 1.2em }` — the entire list stylesheet. Markers stay the browser's own." }),
 		demo.page("link", link, { note: "A link inside prose keeps the body's colour and underlines in the accent — scoped to text, not to every `a` (`styles/elements/text/`, \"links\")." }),
-		demo.page("flow", flow, { note: "Two headings, two paragraphs, a card and a list, in one column — the gap above an `h2` is the same whether a `p` or a `.card` came before it (fixed here, item C of this step: `framework.css`'s flow rule now reads `:is(p, .card, …)` instead of just the elements it used to list)." }),
+		demo.page("flow", flow, { note: "Two transitions into an `h2` — one after a `p`, one after a `.card` — measuring the same 63px at 400px: `--flow` reads the heading's own font-size, never its predecessor's. `framework.css`'s flow rule did change (`:not(.card)` on `.flow > * + *`), but to stop it reaching INSIDE a card and overriding its own title-to-body gap, not to change this reading." }),
 	],
 
 	content(){
