@@ -406,8 +406,8 @@ export function card_of(b){
 }
 
 /** One sticky-bottom scroll for every chat log; call `pin()` after drawing. See doc/notes.md#sticky-scroll */
-export function sticky_scroll(box, { observe = true } = {}){   // observe:false = the caller re-pins on a resize itself (ux/Dictate/Widget.js Thread.anchor)
-	let locked = true, last = 0;
+export function sticky_scroll(box, { observe = true, locked: start_locked = true } = {}){   // observe:false = the caller re-pins on a resize itself (ux/Dictate/Widget.js Thread.anchor); locked:false = open where it is, follow only once the reader reaches the bottom (/live/)
+	let locked = start_locked, last = 0;
 	// A fixed/sticky bar (the bottom toolbar) can sit over the box's bottom edge: the last line must land just above it, so the box grows tail room as tall as the overlap.
 	let tail = -1, tail_base = null;   // -1: the first make_room() always writes
 	const BREATH = 14;   // px of air between the last line and the bar / the box edge (the owner, 2026-10-25: not flush)
