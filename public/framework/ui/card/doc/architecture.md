@@ -21,7 +21,7 @@ The card page ([`page.js`](./page.js), live at [`/framework/ui/card/`](/framewor
 **Detail:** [styles architecture](/framework/styles/doc/architecture.md)
 
 ## Variants are words on the same card
-**Decided:** `linked`, `media`, `action` and `list` are the same `.card` with different content; the only extra styling is `media`'s one negative margin plus `overflow: hidden`.
+**Decided:** `linked`, `media`, `action`, `titled`, `stack`, `tree-rows`, `compact` (the five-style kit, [/live/plan/ui-kit/](/live/plan/ui-kit/)), `large` and `fit` are the same `.card` with different content; the only extra styling is `media`'s one negative margin plus `overflow: hidden`, `titled`'s two inline font sizes, `stack`'s `.flush-stack` (framework.css, `util` layer) and `fit`'s `.measure.start`.
 **Why:** the variant that needs more than `.card` should need one line, not a second component.
 **Instead:** a variant class per kind, or a compact/contrast rule per template.
 **Detail:** [page.js](./page.js)

@@ -142,6 +142,27 @@ export default class Library extends Page {
 		if (this.listening) return;
 		this.listening = true;
 		addEventListener("popstate", () => this.$mid?.el.isConnected && this.show(this.read()));
+		addEventListener("keydown", event => this.on_keydown(event));
+	}
+
+	// Left/Right step the left rail (siblings); Up/Down step the right rail
+	// (variants) — `this.current` is set by `show()` to the lists it just drew.
+	// Ignored while typing, and in wall view (no single item is "current" there).
+	on_keydown(event){
+		if (!this.current || this.mode === "wall" || !this.$mid?.el.isConnected) return;
+		if (event.target?.closest?.("input, textarea, [contenteditable]")) return;
+
+		const dir = { ArrowLeft: [-1, "siblings"], ArrowRight: [1, "siblings"], ArrowUp: [-1, "variants"], ArrowDown: [1, "variants"] }[event.key];
+		if (!dir) return;
+
+		const [step, which] = dir;
+		const list = this.current[which];
+		const i = list.findIndex(one => one.path === this.current.item.path);
+		const next = list[i === -1 ? (step > 0 ? 0 : list.length - 1) : (i + step + list.length) % list.length];
+		if (!next || next.path === this.current.item.path) return;
+
+		event.preventDefault();
+		this.go(next.path);
 	}
 
 	go(path, view = this.mode){
@@ -175,6 +196,7 @@ export default class Library extends Page {
 		const [siblings, variants, related] = await Promise.all([item.siblings(), item.variants(), collection.related(item)]);
 		if (epoch !== this.epoch) return;   // a newer click overtook this one
 
+		this.current = { item, siblings, variants };
 		this.$grid.el.classList.remove("is-wall");
 		this.collection_row(collection);
 		this.rail.draw(this.$left_list, [{ title: item.parent ? `${item.parent.title} — siblings` : collection.label, items: siblings }], item);

@@ -15,6 +15,7 @@ Open [/framework/library/](/framework/library/) (`?at=ui/card/media` is the url 
 - `Entry.js` — a page-shaped stand-in (title, icon, specimen, no children) for layouts and templates, which are not Pages.
 - `Item.js` — wraps one Page; its variants are the page's own `children`. `render()`: the page's `specimen`, else its `content()` (figma), else its `preview()` thumb with `zoom-*` removed.
 - `Rail.js` — a column of cards; each lays the item out at its `optimalWidth` and scales it with CSS `zoom`.
+- **Arrow keys** (`Library.on_keydown`): Left/Right step the left rail (siblings), Up/Down step the right rail (variants) — same url update as a click, so back and reload land on the same item. Wraps around at either end (past the last siblings back to the first, and back). Ignored while typing in a field.
 - `Stage.js` — the centre: width chips 400 · 1000 · 1920 · 3440, zoom-to-fit when wider than the column.
 - `PaddingContract.js` — `PaddingContract.check(root)`: an item marked `needs_parent_padding` touching an unpadded parent edge gets `.padding-misuse` (red) and one `console.error`.
 - [doc/decisions.md](doc/decisions.md) — decisions 1–7, 9–12, each with its alternative. [doc/tree.md](doc/tree.md) — decision 8, and what `Page` holds now.
