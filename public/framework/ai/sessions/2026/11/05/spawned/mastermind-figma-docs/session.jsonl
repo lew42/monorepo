@@ -38,3 +38,13 @@
 {"pid":29080,"cmd":"node C:\\Code\\lew42\\monorepo/.claude/hooks/ledger.mjs session-end","why":"child of claude.exe","agent":"mastermind-figma-docs","session":"47d615ff-14eb-41dd-a4da-099b49011d44","started":"2026-11-09T18:53:47-06:00","ppid":19064,"seen":"sample","by":"servex"}
 {"log":{"at":"2026-11-09T18:53:50-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T00:53:50.662Z"}
 {"pid_exit":29080,"ended":"2026-11-09T18:53:59-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"log":{"at":"2026-11-09T21:27:43-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-10T03:27:43.531Z"}
+{"log":{"at":"2026-11-09T21:27:43-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-10T03:27:43.605Z"}
+{"log":{"at":"2026-11-09T21:27:43-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T03:27:43.662Z"}
+{"commit":{"hash":"68a37501935caf46a26b5afbcc7dc998372f8005","what":"figma docs: Card modes, label style, _Claude frame, 10% black blocks, section-pad, card workflow and open width question","files":[".claude/skills/figma/SKILL.md","public/framework/ext/Figma/doc/use-figma.md"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-10T03:28:16.430Z"}
+{"log":{"at":"2026-11-09T21:32:59-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T03:32:59.100Z"}
+{"log":{"at":"2026-11-09T21:38:49-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-10T03:38:49.456Z"}
+{"pid":17060,"cmd":"","why":"child of claude.exe","agent":"mastermind-figma-docs","session":"47d615ff-14eb-41dd-a4da-099b49011d44","started":"2026-11-09T21:39:20-06:00","ppid":31120,"seen":"sample","by":"servex"}
+{"commit":{"hash":"c3219c9fe1bd276942d75de0c192b1396113c095","what":"figma docs: Compact mode, Shell/Inset card modes, card parts and Section components, slot and grid traps","files":[".claude/skills/figma/SKILL.md","public/framework/ext/Figma/doc/use-figma.md"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-10T03:39:26.131Z"}
+{"pid_exit":17060,"ended":"2026-11-09T21:39:30-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"log":{"at":"2026-11-09T21:44:02-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T03:44:02.730Z"}
