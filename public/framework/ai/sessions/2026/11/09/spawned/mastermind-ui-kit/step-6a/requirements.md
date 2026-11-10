@@ -1,8 +1,14 @@
 # Step 6a: LivePage's card onto the kit's `.card`
 
-Budget: $5, hard stop, review fixes included. Load the `minion` skill first, then `css` and `layout`. Card (the owner's words): `public/framework/ai/sessions/2026/11/09/cards/ui-kit-one-small-set-of-parts-every-page/`. Plan: [/live/plan/ui-kit/](/live/plan/ui-kit/), card 6. You own `public/live/LivePage.css` and `public/live/LivePage.js` for this step (live-page's mastermind is dormant; no coordination needed).
+- Budget: $5, hard stop, review fixes included.
+- Load the `minion` skill first, then `css` and `layout`.
+- Card (the owner's words): `public/framework/ai/sessions/2026/11/09/cards/ui-kit-one-small-set-of-parts-every-page/`. Plan: [/live/plan/ui-kit/](/live/plan/ui-kit/), card 6.
+- You own `public/live/LivePage.css` and `public/live/LivePage.js` for this step (live-page's mastermind is dormant).
 
-Work in a worktree (`take_worktree`, use its `path` and `url`). Commit by exact path after each working piece. Never kill or restart the dev server, never drive the owner's tabs, never `git stash` (diff, don't stash). Log as you go on this folder's `session.jsonl` with the `mcp__servex__log` tool (hand appends to .jsonl are blocked).
+Rules:
+- Work in a worktree (`take_worktree`, use its `path` and `url`). Commit by exact path after each working piece.
+- Never kill or restart the dev server, never drive the owner's tabs, never `git stash` (diff, don't stash).
+- Log as you go on this folder's `session.jsonl` with `mcp__servex__log` (hand appends to .jsonl are blocked).
 
 ## What the owner wants
 
