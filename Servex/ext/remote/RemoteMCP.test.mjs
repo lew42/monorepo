@@ -344,6 +344,30 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
             const f4 = await up({ conversation: "conv-f", raw: true });
             assert.equal(f4.count, 1, "the `decision` line is `other`-kind and dropped by worth_waking; only `complete` (state) survives");
             assert.equal(f4.updates[0].agent, "minion-child", "tagged as the CHILD being tailed, not the follower (\"voice-app\")");
+            // the truncated/replaced branch (External.js:200-ish): a followed file shrinks below the stored offset — catch up, resend nothing old
+            fs.writeFileSync(follow_abs, "");   // a fresh file, own conversation key below, so an earlier scenario's offset in this same file never interferes
+            ext.servex.follow = { list: id => id === "voice-app" ? [{ agent: "voice-app", path: follow_rel }] : [] };
+            await up({ conversation: "conv-trunc" });   // warm the key while the file is empty
+            fs.appendFileSync(follow_abs, JSON.stringify({ by: "minion-t", n: "a" }) + "\n" + JSON.stringify({ by: "minion-t", n: "b" }) + "\n");
+            const f5 = await up({ conversation: "conv-trunc", raw: true });
+            assert.equal(f5.count, 2, "both lines of the file arrive, bringing the offset up to its current end");
+            fs.writeFileSync(follow_abs, JSON.stringify({ by: "minion-t", n: "x" }) + "\n");   // truncated: shorter than the offset conv-trunc had reached
+            const f6 = await up({ conversation: "conv-trunc", raw: true });
+            assert.equal(f6.count, 0, "a shrunk file is never read from its old (now out-of-range) offset — nothing old is resent");
+            fs.appendFileSync(follow_abs, JSON.stringify({ by: "minion-t", n: "y" }) + "\n");
+            const f7 = await up({ conversation: "conv-trunc", raw: true });
+            assert.equal(f7.count, 1, "and a real new line appended after the truncation arrives normally");
+            assert.equal(f7.updates[0].line.n, "y", "not \"x\" — the catch-up point was the truncated file's new end, not its start");
+            // the half-written last line (the `nl === -1` break): an unfinished trailing line waits, arrives whole once the rest lands
+            fs.writeFileSync(follow_abs, ""); await up({ conversation: "conv-half" });   // warm a fresh key on the empty file
+            fs.appendFileSync(follow_abs, JSON.stringify({ by: "minion-h", text: "whole" }) + "\n" + '{"by":"minion-h","text":"cut off');   // no closing brace, no newline
+            const h0 = await up({ conversation: "conv-half", raw: true });
+            assert.equal(h0.count, 1, "only the complete line arrives; the unfinished trailing one waits");
+            assert.equal(h0.updates[0].line.text, "whole");
+            fs.appendFileSync(follow_abs, '"}' + "\n");   // the rest of the cut-off line lands
+            const h1 = await up({ conversation: "conv-half", raw: true });
+            assert.equal(h1.count, 1, "the line that was half-written arrives now, whole, not split and not lost");
+            assert.equal(h1.updates[0].line.text, "cut off");
         } finally { fs.rmSync(follow_abs, { force: true }); delete ext.servex.follow; }
     }
     // fix A — a followed burst bigger than the remaining budget: nothing lost, nothing repeated
