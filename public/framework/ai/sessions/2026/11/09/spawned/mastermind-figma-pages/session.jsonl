@@ -145,3 +145,4 @@
 {"log":{"at":"2026-11-10T01:03:58-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T07:03:58.462Z"}
 {"pid_exit":6096,"ended":"2026-11-10T01:03:58-06:00","code":0,"signal":null,"by":"servex"}
 {"pid_exit":42624,"ended":"2026-11-10T01:04:07-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"follow_up":{"n":2,"to":"voice-app","at":"2026-11-10T02:27:16-06:00"}}
