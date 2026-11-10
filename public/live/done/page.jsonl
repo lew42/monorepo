@@ -16,3 +16,4 @@
 {"content":{"add":{"id":"ui-kit-1","type":"part-link","path":"/framework/library/?at=ui/card","title":"UI kit: six card styles in the library, arrow keys to browse","by":"mastermind-ui-kit","ts":"2026-11-10T01:39:26.669Z"}},"by":"mastermind-ui-kit","ts":"2026-11-10T01:39:26.669Z"}
 {"content":{"add":{"id":"ui-kit-2","type":"part-link","path":"/framework/library/?at=ui/text","title":"UI kit: text elements first, the library as a tree"}},"by":"mastermind-ui-kit","ts":"2026-11-10T02:23:35.613Z"}
 {"content":{"add":{"id":"ui-kit-3","type":"part-link","path":"/live/plan/ui-kit/","title":"UI kit: /live/ cards are the kit's card now"}},"by":"mastermind-ui-kit","ts":"2026-11-10T03:21:23.381Z"}
+{"content":{"add":{"id":"ui-kit-4","type":"part-link","path":"/live/done/settings/","title":"UI kit: /live/ file lists and settings rows are the kit's rows","text":"One card, kit rows, 10 fewer CSS declarations"}},"by":"mastermind-ui-kit","ts":"2026-11-10T03:41:53.120Z"}

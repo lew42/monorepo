@@ -1,0 +1,139 @@
+diff --git a/.claude/skills/css/improvements.md b/.claude/skills/css/improvements.md
+index bd2761e778..7788571a60 100644
+--- a/.claude/skills/css/improvements.md
++++ b/.claude/skills/css/improvements.md
+@@ -12,3 +12,4 @@ A recurring line is a rule waiting to be written; the owner promotes.
+ - **`getComputedStyle().getPropertyValue("--x")` hands back the TOKEN TEXT, never a length** (layout-analysis, 2026-09-22). Rule 6 says to smoke-test and read a computed style back; rule 1's last line says to verify a word by reading a computed style rather than inferring it. Neither says that an unregistered custom property has no computed length, so `parseFloat(getPropertyValue("--gutter-x"))` is `NaN` → 0, and a probe reports every page's gutter as zero while looking like it worked. The ways out, in order: read the page's own resolved `gridTemplateColumns` (its px numbers are ground truth — but strip the LINE NAMES first, `[bleed-start] 41.6px …`, or the first "word" parses to 0); or size a scratch element with `width: var(--x)` and read its rect back — which is exact only for a percentage-free token, for the reason in the line above.
+ 2026-09-22 (ai2-master-detail round 2) . the skill's rule for a util-layer collision is "drop the utility from the markup, never fight it in the sheet" — and that advice is unavailable when the markup belongs to ANOTHER MODULE. I moved `ux/Dictate`'s info block (its own `div.c("ux-dictate-info flex v")`) into my composer as a popover and hid it with `display: none` in `@layer theme`; `.flex { display: flex }` in `@layer util` won, so the popover stayed laid out and invisible, `position: absolute` over the row below it, and swallowed every click on two buttons. The symptom is the expensive part: both buttons reported `checkVisibility() === true`, looked perfect in the screenshot, and `elementFromPoint` at their own centres returned `SPAN.ux-dictate-engine`; Playwright resolved the right element and then timed out after 30 s "attempting click action". Worth one line beside the existing util-layer warning: when you cannot edit the markup, hide with `visibility: hidden` + `pointer-events: none` instead — neither is a property any utility sets — and after hiding anything that overlaps, hit-test it (`document.elementFromPoint` at the centre of whatever is underneath), because `display` is the only one of the three that also stops taking clicks.
+ - 2026-09-22 (padding-law): **Two adjacent line-name brackets in `grid-template-columns` are a parse error, and the declaration is dropped in silence.** `... var(--gutter-x) [bleed-end] [toc-start] 15rem ...` is invalid; the names for one grid line must share ONE bracket — `[bleed-end toc-start]`. Nothing throws, `node --check` does not read CSS, the rule's other declarations still apply, and the page just keeps the template it had. It cost a full re-measure. After writing any `grid-template-columns`, read `getComputedStyle(el).gridTemplateColumns` back from the live page and count the tracks against what you typed.
++- 2026-11-09 (minion-uikit-liverows, step 6b): `ui/row/row.js`'s `css()` call writes straight to `document.head` with no node guard (unlike `View.stylesheet`, which checks `typeof document === "undefined"` first). Importing it at module scope in a class that is also replayed in node (the item tool replaying `page.jsonl`, e.g. LivePage.js) throws and silently falls back to a plain, behaviorless Page. Gate the import the same way the markdown import already is in LivePage.js: `if (typeof document !== "undefined") await import(...)`. Worth fixing in `ui/parts.js`'s `css()` itself so every `ui/*` module gets this for free.
+diff --git a/public/live/LivePage.css b/public/live/LivePage.css
+index c797213305..dedf17e50b 100644
+--- a/public/live/LivePage.css
++++ b/public/live/LivePage.css
+@@ -82,26 +82,36 @@
+ 	.live-tabs::after { right: 0; background: linear-gradient(to left, var(--live-floor), transparent); }
+ 	.live-tabs.more-left::before, .live-tabs.more-right::after { opacity: 1; }
+ 
+-	/* /<page>/settings/: label and value rows, then the folder's files, one under the other. */
++	/* /<page>/settings/: label and value rows, then the folder's files, one under the other. The box (background,
++	   radius) is the kit's `.card` (set in LivePage.js as `live-settings-box`); each row is the kit's `.ui-row`
++	   (padding, gap, hover ground) — these rules keep only what the kit doesn't: the label/value wrap and the
++	   bold, right-aligned note. */
+ 	.live-settings { display: flex; flex-direction: column; gap: var(--live-step); font-size: .9em; }
+-	.live-settings-row { display: flex; flex-wrap: wrap; gap: .2rem 1rem; padding: .5rem .75rem; background: var(--live-card); border-radius: .6rem; }
++	/* The rows carry the padding (.ui-row), so the box keeps only a sliver top and bottom, like .live-files-body, and no stacked gap between rows. */
++	.live-settings-box { padding: .25rem 0; }
++	.live-settings-box > * + *, .live-files-body > * + * { margin-block-start: 0; }
++	.live-settings-row { flex-wrap: wrap; gap: .2rem 1rem; }
+ 	.live-settings-label { min-width: 8rem; font-weight: 600; }
+ 	.live-settings-value { min-width: 0; overflow-wrap: anywhere; }
+ 	.live-settings-value a { color: inherit; }
+-	.live-settings-class { background: var(--live-card); border-radius: .6rem; font-weight: 600; }
++	.live-settings-class { font-weight: 600; }
+ 	.live-settings-note { margin-left: auto; font-size: .8em; font-weight: 400; opacity: .6; }
+-	/* LivePage.Files: one list, top to bottom (folders, then files); a file is its text, wrapped to the phone. */
++	/* LivePage.Files: one list, top to bottom (folders, then files); a file is its text, wrapped to the phone.
++	   The box is the kit's `.card` (background, radius — LivePage.js); each row is the kit's `.ui-row` (display,
++	   align, gap, padding). These rules keep only LivePage's own job: the divider between rows, the bold dir
++	   row, and the is-file case (a code file shown edge to edge, no box — the `.file()` method drops `.card`). */
+ 	.live-files { display: flex; flex-direction: column; gap: var(--live-step); }
+ 	.live-files-title { margin: var(--live-step) 0 0; font-size: .9em; opacity: .7; overflow-wrap: anywhere; text-transform: none; letter-spacing: normal; }
+ 	.live-files.is-file > .live-files-title { display: none; }
+-	.live-files-body { display: flex; flex-direction: column; background: var(--live-card); border-radius: .6rem; padding: .25rem 0; min-width: 0; }
+-	.live-files-row { display: flex; align-items: center; gap: .6em; padding: .55em .75rem; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
++	.live-files-body { display: flex; flex-direction: column; padding: .25rem 0; min-width: 0; }
++	.live-files-row { color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+ 	.live-files-row + .live-files-row { border-top: 1px solid light-dark(#0001, #fff1); }
+ 	.live-files-row.is-dir { font-weight: 600; }
+ 	.live-files-row .ui-icon, .live-files-row .icon { flex: none; opacity: .6; }
+ 	.live-files-said { padding: .55em .75rem; opacity: .7; }
+-		/* A file's page: the code alone, the full width, no card and no gutter (a phone needs the width). */
+-	.live-files.is-file > .live-files-body { background: none; border-radius: 0; padding: 0; margin-inline: calc(-1 * var(--live-pad-x)); }
++		/* A file's page: the code alone, the full width, no gutter (a phone needs the width); `.card` is already
++		   gone by the time this applies ($box.rc("card") in LivePage.js's `file()`). */
++	.live-files.is-file > .live-files-body { padding: 0; margin-inline: calc(-1 * var(--live-pad-x)); }
+ 	.live-files-body pre { margin: 0; font-size: .78em; overflow-x: hidden; }
+ 	.live-files.is-file pre { padding: .6rem .5rem; border-radius: 0; }   /* the code keeps its own colours and floor, edge to edge */
+ 	.live-files-body pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+diff --git a/public/live/LivePage.js b/public/live/LivePage.js
+index d345754e08..0ad568fad6 100644
+--- a/public/live/LivePage.js
++++ b/public/live/LivePage.js
+@@ -18,7 +18,10 @@ import { PART_TYPES } from "/framework/core/Page/parts/kinds.js";
+ View.stylesheet(import.meta, "LivePage.css");
+ 
+ // Markdown draws only in a browser; in node (the item tool builds this class to replay page.jsonl) nothing is drawn.
++// Same guard for ui/row's CSS (its css() writes to document.head with no node check of its own) — it is only needed
++// for the .ui-row class, drawn in a browser.
+ const { default: md } = typeof document === "undefined" ? { default: () => {} } : await import("/framework/ext/markdown/md.js");
++if (typeof document !== "undefined") await import("/framework/ui/row/row.js");   // .ui-row: the file-list and settings rows
+ 
+ /* /live/ — the screen voice Claude drives with the item tool: item({path: "/live/", delta}). readme.md lists every delta.
+  * The page IS page.jsonl: line 1 names this class, every later line is one set(). A data key is state (header, footer),
+@@ -830,13 +833,17 @@ export default class LivePage extends Page {
+ 			const { of, page } = this, folder = page.folder;
+ 			if (this.at) return void new LivePage.Files({ page, folder, at: this.at });   // one folder or file inside it
+ 			const src = LivePage.src_of(of.constructor);
+-			if (src){
+-				const dir = src.replace(/[^/]+$/, ""), name = src.split("/").at(-1);
+-				a.c("live-files-row live-settings-class", () => { icon("code"); span(name); span.c("live-settings-note", "draws this page"); }).href(dir + "settings/" + name + "/");
+-			}
+-			const row = (label, text) => div.c("live-settings-row", () => { span.c("live-settings-label", label); span.c("live-settings-value", text); });
+-			if (of.focus) row("Card", `id ${of.focus.id}, saved inside ${folder}page.jsonl`);
+-			else if (of.screen) row("Saved screen", `saved inside ${folder}page.jsonl`);
++			const row = (label, text) => div.c("ui-row live-settings-row", () => { span.c("live-settings-label", label); span.c("live-settings-value", text); });
++			// The class row, the Card/Saved-screen row: one box (the kit's `.card`), each row the kit's `.ui-row`,
++			// same move as the file list below — one list reads as one thing, not three separate boxes.
++			if (src || of.focus || of.screen) div.c("card live-settings-box", () => {
++				if (src){
++					const dir = src.replace(/[^/]+$/, ""), name = src.split("/").at(-1);
++					a.c("ui-row live-files-row live-settings-class", () => { icon("code"); span(name); span.c("live-settings-note", "draws this page"); }).href(dir + "settings/" + name + "/");
++				}
++				if (of.focus) row("Card", `id ${of.focus.id}, saved inside ${folder}page.jsonl`);
++				else if (of.screen) row("Saved screen", `saved inside ${folder}page.jsonl`);
++			});
+ 			new LivePage.Files({ page, folder, at: "" });
+ 			h4.c("live-settings-files-title", "What it is made of");
+ 			div.c("live-settings-inspect").append(import("/framework/ext/Inspect/ItemInspector.js").then(({ default: ItemInspector }) => new ItemInspector({ item: of })));
+@@ -852,7 +859,7 @@ export default class LivePage extends Page {
+ 		render(){
+ 			const { page, folder, at } = this, path = folder + at;
+ 			const name = at.split("/").filter(Boolean).at(-1), up = folder + at.replace(/[^/]+\/$/, "");
+-			this.$box = div.c("live-files-body", () => span.c("live-files-said", "Loading…"));
++			this.$box = div.c("card live-files-body", () => span.c("live-files-said", "Loading…"));
+ 			(async () => {
+ 				const listing = name ? await Page.listing(up).catch(() => null) : null;
+ 				if (name && (listing?.files.includes(name) || listing?.log === name)) return this.file(path.slice(0, -1));
+@@ -863,8 +870,8 @@ export default class LivePage extends Page {
+ 					const dirs = [...new Set([...here.pages.keys(), ...here.dirs.map(d => d.replace(/\/.*$/, ""))])].sort();
+ 					const files = [...new Set([...here.files, ...here.log ? [here.log] : []])].sort();   // the log (page.jsonl or files.jsonl) is a file here too
+ 					if (!dirs.length && !files.length) span.c("live-files-said", "Nothing in this folder yet.");
+-					dirs.forEach(d => a.c("live-files-row is-dir", () => { icon("folder"); span(d); }).href(page.url + d + "/"));
+-					files.forEach(f => a.c("live-files-row", () => { icon("description"); span(f); }).href(page.url + f + "/"));
++					dirs.forEach(d => a.c("ui-row live-files-row is-dir", () => { icon("folder"); span(d); }).href(page.url + d + "/"));
++					files.forEach(f => a.c("ui-row live-files-row", () => { icon("description"); span(f); }).href(page.url + f + "/"));
+ 				});
+ 			})().catch(e => this.$box.empty(() => span.c("live-files-said", "Could not read " + path + ": " + e.message)));
+ 		}
+@@ -874,6 +881,7 @@ export default class LivePage extends Page {
+ 			await import("/framework/ext/highlight/highlight.js");   // adds code.file to View's `code`
+ 			const block = await code.file(import.meta, url, { lang: /\.jsonl$/.test(url) ? "json" : undefined });
+ 			this.ac("is-file");
++			this.$box.rc("card");   // a file's code runs edge to edge, no box (LivePage.css .live-files.is-file)
+ 			LivePage.icon(this.page, "description");
+ 			this.$box.empty().el.append(block.el);
+ 			this.page.$raw?.href(url + "?raw").tc("is-empty", false);
+diff --git a/public/live/readme.md b/public/live/readme.md
+index 02a24702e1..0eab9ca12d 100644
+--- a/public/live/readme.md
++++ b/public/live/readme.md
+@@ -109,7 +109,7 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
+ 
+ ## Files
+ 
+-- [LivePage.js](LivePage.js): the page, its methods, and how it draws: View classes in the house style (core/View), as static parts a subclass can swap: `Head`, `Crumbs`, `Tabs`, `Settings`, `Files`, `Pages` (the link cards), `Focus`, `Main`, `Card`, `Block`, `Children` (a card's buttons), `Heading` and `Md` (markdown with mentions, `{ safe: true }`), `Foot`. Each takes `{page, item}` (or `{page, list}`); its CSS class comes from its name (`LiveCardView` draws `.live-card`, and also wears the kit's `.card` — framework.css, `/framework/library/?at=ui/card` — for its frame; `.live-card` itself keeps only its own job: the whole-card link feel and the chevron strip). [DesignPage](design/DesignPage.js) extends `Card` and `Block`, so keep those names and args. [LivePage.css](LivePage.css): the floor, blocks and cards, light and dark.
++- [LivePage.js](LivePage.js): the page, its methods, and how it draws: View classes in the house style (core/View), as static parts a subclass can swap: `Head`, `Crumbs`, `Tabs`, `Settings`, `Files`, `Pages` (the link cards), `Focus`, `Main`, `Card`, `Block`, `Children` (a card's buttons), `Heading` and `Md` (markdown with mentions, `{ safe: true }`), `Foot`. Each takes `{page, item}` (or `{page, list}`); its CSS class comes from its name (`LiveCardView` draws `.live-card`, and also wears the kit's `.card` — framework.css, `/framework/library/?at=ui/card` — for its frame; `.live-card` itself keeps only its own job: the whole-card link feel and the chevron strip). `Files`' body (the folder listing under `<page>/settings/`) and `Settings`' class/Card/Saved-screen rows wear the kit's `.card` for their box and the kit's `.ui-row` (`/framework/ui/row/`) for each row; LivePage.css keeps only the row divider, the bold dir row, and the is-file case (a code file shown edge to edge — `Files.file()` drops `.card`). [DesignPage](design/DesignPage.js) extends `Card` and `Block`, so keep those names and args. [LivePage.css](LivePage.css): the floor, blocks and cards, light and dark.
+ - [LiveLight.js](LiveLight.js), [LiveChecklist.js](LiveChecklist.js), [LiveButton.js](LiveButton.js), [LiveScreen.js](LiveScreen.js), [LiveCode.js](LiveCode.js): one type each, `class … extends Item`, registered as `live-light`, `live-checklist`, `live-button`, `live-screen`, `live-code`.
+ - [page.jsonl](page.jsonl): the log. Write it only through the item tool (or the page tools), never by hand.
+ - [sessions/](sessions/) and [archive/](archive/): the old views of past screens, which read v1's log. [doc/](doc/): the topic docs ([names.md](doc/names.md): name, id, slug and title compared; [page-features.md](doc/page-features.md)) and v1's notes.
