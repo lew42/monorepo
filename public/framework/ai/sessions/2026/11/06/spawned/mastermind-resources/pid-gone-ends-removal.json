@@ -1,0 +1,18 @@
+{
+	"at": "2026-11-10T01:42:10.230Z",
+	"apply": true,
+	"root": "C:/Code/lew42/worktrees",
+	"folders": [
+		{
+			"name": "pid-gone-ends",
+			"path": "C:/Code/lew42/worktrees/pid-gone-ends",
+			"files": 10713,
+			"ignored": 1,
+			"noise": 2492,
+			"in_git": 8220,
+			"unique": [],
+			"unique_count": 0,
+			"removed": true
+		}
+	]
+}
