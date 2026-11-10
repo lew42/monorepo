@@ -71,9 +71,11 @@ export default class PageNav {
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])){
 	const args = process.argv.slice(2), apply = args.includes("--apply");
 	const dir = path.resolve(args.find(a => !a.startsWith("--")) ?? "public");
-	const { default: PageFiles } = await import("./plugins/PageFiles.js");
-	const files = Object.create(PageFiles.prototype);
-	files.pending = new Map();
-	const count = files.backfill_nav(dir, apply);
-	console.log(`${apply ? "wrote" : "would write"} ${count} nav lines under ${dir}`);
+	// Not awaited: PageFiles imports this file, so waiting here would wait on itself.
+	import("./plugins/PageFiles.js").then(({ default: PageFiles }) => {
+		const files = Object.create(PageFiles.prototype);
+		files.pending = new Map();
+		const count = files.backfill_nav(dir, apply);
+		console.log(`${apply ? "wrote" : "would write"} ${count} nav lines under ${dir}`);
+	});
 }
