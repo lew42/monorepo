@@ -197,7 +197,7 @@ export default class ProcessRunner {
 			if (this.grace.delete(`${path.resolve(file)}#${ph.id}`)) continue;   // that turn began before this step was sent
 			const n = Number(ph.get_one("pulses")) || 0;
 			if (n < 1){
-				const line = `item({path: "${url}", delta: {"${ph.id}": {"complete": {"outcome": "…", "evidence": ["…"]}}}})`;
+				const line = `item({path: "${url}", call: "${ph.id}.complete", args: {"outcome": "…", "evidence": ["…"]}})`;
 				try { this.servex.agents.send(id, `The ${ph.id} step of ${url} is not recorded as complete. If it is done, record it: ${line}. If something blocks it, write {"${ph.id}": {"wait": {"on": "<who>", "what": "<what you need>"}}} with the same tool.`, { from: "process-runner" }); } catch {}
 				await this.write(file, { pulse: { step: ph.id, n: n + 1, agent: id } });
 			} else {
