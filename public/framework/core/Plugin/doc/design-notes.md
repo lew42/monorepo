@@ -19,7 +19,9 @@ Parents' plugins run before the subclass's; within one class, in `use` order. Th
 A plugin that runs on every new instance is invisible at the call site. Use it only where a class really is extended from outside (sockets, servers, pages), not for ordinary options. `Host.plugins` and `Plugin.hosts` list what is installed.
 
 ## Which plugin system
-Use `core/Plugin` (`Host.use(plugin)`, `attach`/`detach`) for anything new. `Page.use(Ext)` → `Ext.setup(page)` ([Page.class.js](../../Page/Page.class.js)) is the older page-only list and is left alone: it is global to `Page`, has no off switch and no list, and is still used by the page extensions (`core/Page/ext/Inbox`). Moving Page onto Plugin is a follow-up, not part of this build (a Page is an Item, which does not extend Plugin).
+**Current (fold-2, 2026-11-09):** `Page` is migrated. `class Page extends Pluggable(Item)` ([Page.class.js](../../Page/Page.class.js)) — `Page.use(Ext)` and `page.ext(name)` (a `{"ext": "Name"}` line) are the same `Pluggable` mechanism every other pluggable class uses, with a per-page on/off instead of only a class-wide one. `core/Page/ext/Inbox` needed no change: it only ever answers the same `setup(page)` call, however it is reached.
+
+Before fold-2, `Page.use(Ext)` → `Ext.setup(page)` was a bespoke page-only list, global to `Page`, with no off switch and no per-instance list — kept below for history, wording unchanged: "Use `core/Plugin` (`Host.use(plugin)`, `attach`/`detach`) for anything new. `Page.use(Ext)` → `Ext.setup(page)` is the older page-only list and is left alone: it is global to `Page`, has no off switch and no list, and is still used by the page extensions (`core/Page/ext/Inbox`). Moving Page onto Plugin is a follow-up, not part of this build (a Page is an Item, which does not extend Plugin)."
 
 ## Not done
 - The item tool cannot address `Host.plugins`: the list lives in memory and has no path. `.set({Glow: {enabled: false}})` in code works, and the rows are Items, so a page that mounts `Host.plugins` at a path would give the item tool a handle. Not built.
@@ -28,5 +30,5 @@ Use `core/Plugin` (`Host.use(plugin)`, `attach`/`detach`) for anything new. `Pag
 
 ## Choices
 - Row key `enabled`, not `on` (the plan said `on`): `Item.set` treats a bare key named like a method as a call, and `on` is `Events.on`. Alternative: `Item.bare_calls = false` (a global change).
-- `Page.use` is not migrated (the plan's Improved section): see "Which plugin system".
+- `Page.use` is migrated (fold-2, 2026-11-09): see "Which plugin system".
 - Names considered: `Plugin` (kept, the owner's), `Extension`, `Addon`.

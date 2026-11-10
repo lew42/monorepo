@@ -4,9 +4,9 @@
 
 **Read [`core/Item/readme.md`](/framework/core/Item/readme.md) first.** This readme assumes you know it.
 
-**One system with Item:** `Page extends Item`, so saving, replaying a log, `set(delta)` and `live()` tailing are the [Item readme](/framework/core/Item/readme.md)'s job; this readme covers what Page adds: a url, routing, parts, layout and the inbox.
+**One system with Item:** `Page extends Item` (through `Pluggable`, below), so saving, replaying a log, `set(delta)` and `live()` tailing are the [Item readme](/framework/core/Item/readme.md)'s job; this readme covers what Page adds: a url, routing, parts, layout and the inbox.
 
-`class Page extends Item` (`Page.class.js`, the small files beside it are its parts, listed in [doc/classes.md](doc/classes.md)). A page is built either from code (`page.js`) or from a log (`page.jsonl`); the Router finds it by walking the url one folder name at a time. Its demo and Docs: [/framework/core/Page/](/framework/core/Page/).
+`class Page extends Pluggable(Item)` (`Page.class.js`, the small files beside it are its parts, listed in [doc/classes.md](doc/classes.md)). `Pluggable` ([core/Plugin](/framework/core/Plugin/readme.md)) is what makes `Page.use(Ext)`, `page.ext(name)` and `Page.plugins` work — a page is built either from code (`page.js`) or from a log (`page.jsonl`); the Router finds it by walking the url one folder name at a time. Its demo and Docs: [/framework/core/Page/](/framework/core/Page/).
 
 **Direction (the owner, 2026-11-07):** every page is live by default. LivePage's header, breadcrumb, settings and card-pages fold into Page or into plugins, as a plan that waits for approval: [doc/live-by-default.md](doc/live-by-default.md).
 

@@ -1,7 +1,7 @@
 // core/Plugin: A.use(B, C), unuse, A.plugins (lazy List), toggle, config, sub-plugins, the server shim.
 // Run: node public/framework/core/Plugin/Plugin.test.mjs   (written before Plugin.js: it fails until the class exists)
 import { test } from "../Test/Test.js";
-import { Plugin } from "./Plugin.js";
+import { Plugin, Pluggable } from "./Plugin.js";
 import ServerEvents from "../../../../Server/Events.js";
 
 Plugin.store = new Map();   // saved config goes here, not to a browser
@@ -405,4 +405,24 @@ test("a constructor arg `overrides` is in place before the plugins attach: an of
 	t.eq(log, [["A", '{"size":7}']], "A attached once with size 7; B never attached, so never detached");
 	t.eq(inst.tag, "x", "the other args are still assigned");
 	t.eq(inst.overrides, { A: { config: { size: 7 } }, B: { enabled: false } }, "and the overrides read back");
+});
+
+// ── Pluggable(Base): any class takes plugins, not only Plugin's own subclasses (fold-2) ───────────
+test("Pluggable(SomeBase): a non-Plugin host takes plugins, a new instance reaches them, and a per-instance switch-off reads back in overrides", t => {
+	class SomeBase { constructor(args){ Object.assign(this, args); } }
+	class Host extends Pluggable(SomeBase) {
+		constructor(args){ super(args); Host.plugged(this); }   // what the host calls once per new instance — Page does the same
+	}
+	const seen = [];
+	class Glow { static attach(inst){ seen.push(["attach", inst.tag]); } static detach(inst){ seen.push(["detach", inst.tag]); } }
+
+	t.ok(Host.use(Glow) === Host, "use returns the class, same as a Plugin subclass");
+	const a = new Host({ tag: "a" });
+	t.eq(seen, [["attach", "a"]], "a fresh instance reaches the plugin");
+
+	const b = new Host({ tag: "b" });
+	b.toggle_plugin(Host.records.get(Glow), false);
+	t.eq(seen, [["attach", "a"], ["attach", "b"], ["detach", "b"]], "switching b off for itself detaches only b");
+	t.eq(b.overrides, { Glow: { enabled: false } }, "b's own override reads back");
+	t.eq(a.overrides, {}, "a never overrode anything");
 });

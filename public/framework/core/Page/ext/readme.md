@@ -37,6 +37,9 @@ you're not sure it's finished yet (`demo.js`, on this page, does this).
 
 ## Extensions so far
 
+- **PluginsFixture** (`./PluginsFixture/`) — not a real feature: a node-safe fixture (no DOM import) that
+  `core/Page/Page.plugins.test.mjs` turns on through `page.ext("PluginsFixture")`, to prove the mechanism works
+  without importing a browser-only extension like Inbox into a plain `node` test.
 - **Inbox** (`./Inbox/`, its own readme) — collects a page's own `{"inbox": {…}}`
   lines (any agent, or the owner, just appending a message) into `page.inbox`. Click
   through to it from this page's own file tree, below. The newer `{"note": {…}}` line
@@ -68,16 +71,18 @@ page's own `route()` ever runs, and the AI/AI2 rows read straight off disk, outs
 
 - The name in the jsonl line IS the folder and file name, spelled exactly the same:
   `{"ext": "Inbox"}` imports `core/Page/ext/Inbox/Inbox.js`.
-- Model: `Server/Events.js`'s `static use(plugin)` / `setup(instance)`, and
-  `Server/run.js`, which wires every server plugin the same way (dev-only; nothing
-  here imports it — this module keeps its own tiny copy).
+- This is [core/Plugin](/framework/core/Plugin/readme.md)'s `Pluggable`, not a tiny copy any more (fold-2, 2026-11-09):
+  `Page.use(Ext)` is `Pluggable`'s `use`, and a `{"ext": "Name"}` line (`page.ext(name)`) turns the plugin on for
+  THAT page only (`Page.available(Ext)` then `toggle_plugin(rec, true)`) — every other pluggable class on the site
+  (`Server/Events.js`'s subclasses included) works the same way.
 - `page.jsonl_lines` keeps every line, for the life of the page — the same tradeoff
   `this.listed` and `this.placed` (Log.js) already make. Fine for an ordinary page;
   a page whose log runs to many thousands of lines pays for that memory whether or
   not it uses an extension.
 
-Files: `Page.class.js` (`Page.use`, the constructor hook, the `render` emit) ·
-`Log.js` (`ext()`, `on`/`emit`, `jsonl_lines`) · `page.jsonl` + `demo.js` (this page,
+Files: `Page.class.js` (`ext()`, `Page._ext`, `Page.plugged(this)` in the constructor) ·
+`../../Plugin/Plugin.js` (`Pluggable`: `use`, `available`, `toggle_plugin`, the rest) ·
+`Log.js` (`on`/`emit`, `jsonl_lines`) · `page.jsonl` + `demo.js` (this page,
 the demo itself) · `paths.js` (the path-extensions table, above) ·
 `doc/path-extensions.md` (the full census).
 
