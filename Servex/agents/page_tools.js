@@ -1627,7 +1627,10 @@ async function run_item_now({ path: url, target, delta, read, get, set, call, ar
 			if (methods.has(last)) return { ok: false, why: `"${key}" is a method; use call: "${key}". Nothing was written.` };
 		}
 	}
-	if (used_verb === "call" && Class){
+	// Verbs the tool itself handles, not a class: `help`, `place` and `pages.add/rename/remove/promote` (apply_pages). A call
+	// on one of them is the same delta and passes straight through (the docs-switch review, 2026-11-09, found them refused).
+	const tool_verb = call && !at.target.length && (() => { const p = hops(call); return p.length === 1 ? ["help", "place"].includes(p[0]) : p.length === 2 && p[0] === "pages"; })();
+	if (used_verb === "call" && Class && !tool_verb){
 		const parts = hops(call), method = parts.at(-1), parent = parts.slice(0, -1);
 		const base = at.target.length ? node_at(live_or_refuse(), at.target) : live_or_refuse();
 		const node = parent.length ? walk(base, parent) : base;
