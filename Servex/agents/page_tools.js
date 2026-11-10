@@ -1227,6 +1227,14 @@ function cap_read(value){
 	}
 	return { truncated: true, hint: "read a deeper path for less", preview: JSON.stringify(value).slice(0, READ_CAP) };
 }
+// A client whose schema shows `args` as a string sends the object as JSON text (seen 2026-11-09: `tasks.add` made a task
+// titled with the whole JSON). Text that parses to an object or array is that value; any other string stays a string
+// (`remove: "c1"` takes an id).
+function parse_args(args){
+	if (typeof args !== "string" || !/^\s*[[{]/.test(args)) return args;
+	try { const v = JSON.parse(args); return v !== null && typeof v === "object" ? v : args; } catch { return args; }
+}
+
 /* THE THREE VERBS (item-tool plan, merge 1, /live/plan/item-tool/): `get`/`set`/`call` each become exactly what today's
  * `delta`/`read` would have been, so everything below this function — validation, the write, replay — never sees a
  * difference. Returns {delta, read} (one of the two undefined) or {why} to refuse before anything is touched. */
@@ -1246,7 +1254,7 @@ function verbs_to_delta({ delta, read, get, set, call, args }){
 		if (typeof call !== "string" || !call.trim()) return { why: "`call` must be a dotted path to a method, e.g. \"tasks.add\". Nothing was written." };
 		const parts = hops(call), method = parts.pop();
 		if (!method) return { why: "`call` must be a dotted path to a method, e.g. \"tasks.add\". Nothing was written." };
-		return { delta: nest(parts, { [method]: args !== undefined ? args : {} }) };
+		return { delta: nest(parts, { [method]: args !== undefined ? parse_args(args) : {} }) };
 	}
 	return { delta, read };   // neither given: today's delta/read, unchanged
 }
@@ -1619,7 +1627,10 @@ async function run_item_now({ path: url, target, delta, read, get, set, call, ar
 			if (methods.has(last)) return { ok: false, why: `"${key}" is a method; use call: "${key}". Nothing was written.` };
 		}
 	}
-	if (used_verb === "call" && Class){
+	// Verbs the tool itself handles, not a class: `help`, `place` and `pages.add/rename/remove/promote` (apply_pages). A call
+	// on one of them is the same delta and passes straight through (the docs-switch review, 2026-11-09, found them refused).
+	const tool_verb = call && !at.target.length && (() => { const p = hops(call); return p.length === 1 ? ["help", "place"].includes(p[0]) : p.length === 2 && p[0] === "pages"; })();
+	if (used_verb === "call" && Class && !tool_verb){
 		const parts = hops(call), method = parts.at(-1), parent = parts.slice(0, -1);
 		const base = at.target.length ? node_at(live_or_refuse(), at.target) : live_or_refuse();
 		const node = parent.length ? walk(base, parent) : base;
@@ -1844,7 +1855,8 @@ export function page_tools(resolve_log = null){
 				method: { type: "string", description: "The verb to call at the target — a method on whatever `target` resolves to: `add`, `remove`, `move`, `order`, or any method the item's own class defines." },
 				args: { description: "The method's one argument — an object for `add`, a string id for `remove`, etc. If it's a plain object, `by` and `ts` are stamped onto it." } },
 			["method"],
-			async ({ path: url, target, method, args }, ctx = {}) => {
+			async ({ path: url, target, method, args: raw }, ctx = {}) => {
+				const args = parse_args(raw);
 				url ??= own_page(ctx, resolve_log);
 				const at = await resolve(url, target, true);
 				if (!at || at.why) return not_a_page(url, at);
@@ -1900,7 +1912,7 @@ export function page_tools(resolve_log = null){
 				get: { type: "string", description: "Read a dotted path, e.g. \"tasks.link-dot.state\" — never writes, same answer as `read` (below)." },
 				set: { type: "object", description: "Change plain fields, e.g. {\"title\": \"Plans\"}. Writes one log line, the same as the equivalent `delta`. Refused if a key names a method (use `call`) or a child list (use `call: \"<list>.add\"` or `get`)." },
 				call: { type: "string", description: "A dotted path to a method, e.g. \"tasks.add\" or \"tasks.link-dot.complete\". Writes one log line, the same as the equivalent `delta`. Refused if the last step is not a method, or is a query (use `get`)." },
-				args: { description: "The method's argument, for `call` only (e.g. {title: \"x\"}). Omit for a method that takes none, e.g. call: \"start\"." },
+				args: { type: ["object", "array", "string", "number", "boolean"], description: "The method's argument, for `call` only (e.g. {title: \"x\"}). Omit for a method that takes none, e.g. call: \"start\"." },
 				delta: { type: "object", description: "ONE JSONL line, exactly what Item.set(delta) takes and the log holds. Omit it to read the current state. {\"help\":{}} returns the instructions again." },
 				read: { type: "string", description: "A dotted path to read with NO write, e.g. \"content.today\" (never together with `delta`). Answers {ok:true, read, value}: an Item as its data with every List inside replaced by {total, rows:[{id,type,title}]}; a List as that same rows shape; a query the class lists (help's \"queries\": completion_score, tally, cost, …) is CALLED and answers its value, still with no write; anything else as the plain value. Capped near 4 KB (then `truncated:true`). A path that does not resolve answers {ok:false, why:\"no such path: <the first missing step>\", here:[the ids or keys that exist at the last good step]}." } },
 			[],

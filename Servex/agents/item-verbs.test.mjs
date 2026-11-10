@@ -40,6 +40,10 @@ try {
 	const via_call = await run_item({ path: URL, call: "tasks.add", args: { title: "Same shape too" } }, { caller: "t" });
 	ok(via_call.ok && via_delta2.ok && JSON.stringify(strip_id(via_call.line)) === JSON.stringify(strip_id(via_delta2.line)), "call: \"tasks.add\" args:{…} writes the same line shape as delta: {tasks:{add:{…}}}");
 
+	// 3b. args sent as JSON text (a client whose schema showed `args` as a string) is parsed, not used as the title.
+	const via_text = await run_item({ path: URL, call: "tasks.add", args: JSON.stringify({ title: "From text" }) }, { caller: "t" });
+	ok(via_text.ok && via_text.line?.tasks?.add?.title === "From text", "call with args as JSON text parses it: the task is titled \"From text\"");
+
 	// 4. call with no args: {"start":{}}.
 	let started = await run_item({ path: URL, call: "start" }, { caller: "t" });
 	ok(started.ok && started.line?.start !== undefined && JSON.stringify(started.line.start) === "{}", "call: \"start\" with no args writes {start:{}}");
@@ -47,6 +51,12 @@ try {
 	// 5. set with a dotted key reaches inside a list: checked at its last step, so a field of a task is allowed.
 	const dotted = await run_item({ path: URL, set: { [`tasks.${kid}.priority`]: 2 } }, { caller: "t" });
 	ok(dotted.ok && JSON.stringify(dotted.line?.tasks?.[kid]) === JSON.stringify({ priority: 2 }), "set: {\"tasks.<id>.priority\": 2} writes {tasks:{<id>:{priority:2}}}");
+
+	// 6. verbs the tool handles itself pass through `call`, the same as their delta (the docs-switch review found them refused).
+	const help = await run_item({ path: PURL, call: "help" }, { caller: "t" }), help_d = await run_item({ path: PURL, delta: { help: {} } }, { caller: "t" });
+	ok(help.ok === help_d.ok && !!help.instructions === !!help_d.instructions && !/is not a method/.test(help.why ?? ""), "call: \"help\" answers like delta: {help: {}}");
+	const sub = await run_item({ path: PURL, call: "pages.add", args: { name: "notes", title: "Notes" } }, { caller: "t" });
+	ok(sub.ok && fs.existsSync(path.join(PDIR, "notes", "page.jsonl")), "call: \"pages.add\" makes the subpage, like delta: {pages: {add}}");
 
 	// ---- refusals ----
 	const before = fs.readFileSync(FILE, "utf8");
