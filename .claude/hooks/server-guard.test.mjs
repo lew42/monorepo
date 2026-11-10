@@ -59,6 +59,8 @@ const BLOCK = [
 const ALLOW = [
 	// unscoped recursive search: a named subfolder, a single file, git grep anywhere, no -r
 	[`grep -rn pattern Servex/`, MAIN],
+	// a quoted "-r" is the pattern being searched for, not the recursive flag
+	[`grep -n "-r" file.txt`, MAIN],
 	[`grep -rln DayPromptsRefine Server/Processes.js`, MAIN],
 	[`find Servex/ -name "*.test.mjs"`, MAIN],
 	[`rg pattern Servex/`, MAIN],

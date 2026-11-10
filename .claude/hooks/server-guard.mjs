@@ -72,14 +72,17 @@ const ROOT_LIKE = /^([A-Za-z]:[\\/]?|\/[A-Za-z]?\/?|~|\$HOME|\.\.)$/;
 // This repo's own root, main checkout or any worktree — an absolute path naming it outright.
 const REPO_ROOT = /^[A-Za-z]:\/code\/lew42\/(monorepo|worktrees\/[^/]+)\/?$/i;
 
-/* Tokenize one shell segment, keeping a quoted "pattern with spaces" as one token. */
+/* Tokenize one shell segment, keeping a quoted "pattern with spaces" as one token.
+ * Each token remembers whether it was quoted: a quoted "-r" is a pattern, never a flag. */
 function tokens_of(segment) {
 	const out = [];
 	const re = /"([^"]*)"|'([^']*)'|(\S+)/g;
 	let m;
-	while ((m = re.exec(segment))) out.push(m[1] ?? m[2] ?? m[3]);
+	while ((m = re.exec(segment))) out.push({ text: m[1] ?? m[2] ?? m[3], quoted: m[3] === undefined });
 	return out;
 }
+
+function is_flag(t) { return !t.quoted && t.text.startsWith("-"); }
 
 function norm_path(p) { return p.replace(/\\/g, "/").replace(/\/+$/, "") + "/"; }
 
@@ -95,13 +98,13 @@ function unscoped_root(root, cwd) {
 /* `grep`/`egrep`/`fgrep` need an explicit recursive flag; `find` and `rg` always walk. */
 function is_recursive(exe, rest) {
 	if (/^(find|rg)(\.exe)?$/i.test(exe)) return true;
-	return rest.some(t => t === "--recursive" || (/^-[A-Za-z]+$/.test(t) && t.includes("r")));
+	return rest.some(t => is_flag(t) && (t.text === "--recursive" || (/^-[A-Za-z]+$/.test(t.text) && t.text.includes("r"))));
 }
 
 /* `find <path> ...`: the path is the first non-flag operand (or none: "."). `grep`/`rg`:
  * PATTERN first, so any path operand comes after it. */
 function search_root(exe, rest) {
-	const positional = rest.filter(t => !t.startsWith("-"));
+	const positional = rest.filter(t => !is_flag(t)).map(t => t.text);
 	if (/^find(\.exe)?$/i.test(exe)) return positional[0];
 	return positional[1]; // pattern is positional[0]
 }
@@ -109,7 +112,7 @@ function search_root(exe, rest) {
 /* One shell segment: the search-scope violation it names, or null. */
 function scope_violation(segment, cwd) {
 	const tokens = tokens_of(segment);
-	const exe = (tokens[0] ?? "").replace(/^.*[\\/]/, "");
+	const exe = (tokens[0]?.text ?? "").replace(/^.*[\\/]/, "");
 	if (!SEARCH_EXE.test(exe)) return null;
 	const rest = tokens.slice(1);
 	if (!is_recursive(exe, rest)) return null;
