@@ -18,10 +18,8 @@ import { PART_TYPES } from "/framework/core/Page/parts/kinds.js";
 View.stylesheet(import.meta, "LivePage.css");
 
 // Markdown draws only in a browser; in node (the item tool builds this class to replay page.jsonl) nothing is drawn.
-// Same guard for ui/row's CSS (its css() writes to document.head with no node check of its own) — it is only needed
-// for the .ui-row class, drawn in a browser.
 const { default: md } = typeof document === "undefined" ? { default: () => {} } : await import("/framework/ext/markdown/md.js");
-if (typeof document !== "undefined") await import("/framework/ui/row/row.js");   // .ui-row: the file-list and settings rows
+import "/framework/ui/row/row.js";   // .ui-row: the file-list and settings rows (ui/parts.js css() adds nothing in node)
 
 /* /live/ — the screen voice Claude drives with the item tool: item({path: "/live/", delta}). readme.md lists every delta.
  * The page IS page.jsonl: line 1 names this class, every later line is one set(). A data key is state (header, footer),
