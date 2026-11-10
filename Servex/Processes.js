@@ -28,8 +28,17 @@ import Lineage from "./Lineage.js";
  *   servex          Servex itself, its supervisor, and its other children
  *   session <pid>   a Claude Code session Servex did not start (a VS Code tab),
  *                   and everything under it
- *   dev servers     the detached servers Servex started (procs/*.json, gate.mjs)
- *                   and any process from this repo or a worktree whose parent is gone
+ *   dev servers     the detached servers Servex started (procs/*.json, gate.mjs) and a
+ *                   parent-gone node of ours running the main site's run.js, a
+ *                   worktree's server.js, or the gate — a REAL server, counted once
+ *   tunnel          a parent-gone Tunnel.mjs or cloudflared (ext/remote's tunnel)
+ *   whisper         a parent-gone whisper-server (ux/Dictate's local engine)
+ *   browsers        a parent-gone Playwright chromium (ms-playwright cache, or a
+ *                   Playwright --user-data-dir)
+ *   leftover shells a parent-gone cmd/bash/powershell/conhost that is not a waiter
+ *                   and wraps none of the above (ask: "count only real servers",
+ *                   2026-11-09 — these used to inflate "dev servers")
+ *   other of ours   anything else of ours whose parent is gone
  *   orphans         a leftover of ours: a waiter (bash, tail, grep, sleep …) whose
  *                   parent is gone and whose command line points at this repo,
  *                   Claude's own dirs, or Git for Windows' own bin. Reaped once
@@ -50,15 +59,39 @@ import Lineage from "./Lineage.js";
  * game only when idle AND RAM is tight; see its own file for the rule. */
 
 // Names that are ours when their parent chain leads to us.
-const OUR_KINDS = /^(claude|node|bash|sh|tail|grep|sleep|git|cmd|conhost|powershell|cat|head|sed|awk|timeout|find|python|whisper-server|npm|npx)\.exe$/i;
+const OUR_KINDS = /^(claude|node|bash|sh|tail|grep|sleep|git|cmd|conhost|powershell|cat|head|sed|awk|timeout|find|python|whisper-server|npm|npx|cloudflared|chrome|chromium)\.exe$/i;
 // Leftovers that do nothing on their own: safe to end once their parent is gone.
 const WAITERS = /^(bash|sh|tail|grep|sleep|cat|head|sed|awk|timeout|find)\.exe$/i;
-// A command line that points into this system: the repo, a worktree, Claude's temp dirs and shell snapshots.
-const OUR_PATHS = /lew42|[\\/]\.claude[\\/]|[\\/]Temp[\\/]claude[\\/]|shell-snapshots/i;
+// A command line that points into this system: the repo, a worktree, Claude's temp dirs, shell snapshots, and Playwright's own cache.
+const OUR_PATHS = /lew42|[\\/]\.claude[\\/]|[\\/]Temp[\\/]claude[\\/]|shell-snapshots|ms-playwright/i;
 // Git for Windows' own tools (tail, grep, sleep …): nobody else starts these here, so one whose parent is gone is a leftover.
 const GIT_TOOLS = /[\\/]Git[\\/](usr[\\/])?bin[\\/]/i;
 const ours_cmd = p => OUR_PATHS.test(p.cmd) || (WAITERS.test(p.name ?? "") && GIT_TOOLS.test(p.cmd));
 const SESSION = /--(?:resume|session-id)[= ]"?([0-9a-f-]{36})/i;
+
+// A real server: a node.exe running the main site's run.js, a worktree's own server.js, or the port-80 gate.
+const SERVER_FILE = /[\\/]Server[\\/]run\.js\b|\bserver\.js\b|\bgate\.mjs\b/i;
+const TUNNEL_CMD = /Tunnel\.mjs|cloudflared/i;
+const WHISPER_CMD = /whisper-server/i;
+const PLAYWRIGHT_CMD = /ms-playwright|--user-data-dir[= ].*playwright/i;
+const SHELL_NAME = /^(cmd|bash|powershell|conhost)\.exe$/i;
+
+/* A parent-gone process that is not a waiter: what kind it really is, by looking at
+ * its whole subtree (members), not just its own name — a shell that only wraps a
+ * real server still counts as that server (ask: "count only real servers"). */
+function classify_leftover(members){
+	if (members.some(m => /node\.exe$/i.test(m.name ?? "") && SERVER_FILE.test(m.cmd ?? "")))
+		return { key: "dev servers", kind: "servers", label: "Dev servers" };
+	if (members.some(m => TUNNEL_CMD.test(m.cmd ?? "")))
+		return { key: "tunnel", kind: "tunnel", label: "Tunnel" };
+	if (members.some(m => WHISPER_CMD.test(m.cmd ?? "")))
+		return { key: "whisper", kind: "whisper", label: "Whisper" };
+	if (members.some(m => /^(chrome|chromium)\.exe$/i.test(m.name ?? "") && PLAYWRIGHT_CMD.test(m.cmd ?? "")))
+		return { key: "browsers", kind: "browsers", label: "Browsers (Playwright)" };
+	if (members.some(m => SHELL_NAME.test(m.name ?? "")))
+		return { key: "leftover shells", kind: "shells", label: "Leftover shells" };
+	return { key: "other of ours", kind: "other-ours", label: "Other of ours" };
+}
 
 export default class Processes extends Events {
 
@@ -216,13 +249,17 @@ export default class Processes extends Events {
 			}
 		// 4. the detached servers Servex started
 		for (const pid of this.detached()) if (procs.has(pid)){ meet("dev servers", { kind: "servers", label: "Dev servers" }); claim(pid, "dev servers"); }
-		// 5. whatever is ours but whose parent is gone
+		// 5. whatever is ours but whose parent is gone: a real server stays "dev servers",
+		// everything else gets its own group by kind (classify_leftover, above) -- a
+		// parent-gone cloudflared, chromium, whisper-server or bare shell is never counted
+		// as a dev server just because its command line points at this repo.
 		for (const p of procs.values()){
 			if (group.has(p.pid) || parent(p) || !OUR_KINDS.test(p.name ?? "") || !ours_cmd(p)) continue;
-			const waiter = WAITERS.test(p.name) && tree(p.pid, kids).every(x => /^conhost.exe$/i.test(procs.get(x)?.name ?? "") || WAITERS.test(procs.get(x)?.name ?? ""))   // a console host ends with its process;
-			const key = waiter ? "orphans" : "dev servers";
-			meet(key, waiter ? { kind: "orphans", label: "Orphans (parent gone)" } : { kind: "servers", label: "Dev servers" });
-			claim(p.pid, key);
+			const members = tree(p.pid, kids).map(x => procs.get(x)).filter(Boolean);
+			const waiter = WAITERS.test(p.name) && members.every(m => /^conhost.exe$/i.test(m.name ?? "") || WAITERS.test(m.name ?? ""));   // a console host ends with its process;
+			const info = waiter ? { key: "orphans", kind: "orphans", label: "Orphans (parent gone)" } : classify_leftover(members);
+			meet(info.key, { kind: info.kind, label: info.label });
+			claim(p.pid, info.key);
 		}
 
 		const ours = { n: 0, mb: 0, cpu: 0 }, other = { n: 0, mb: 0, cpu: 0 }, names = new Map();
