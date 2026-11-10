@@ -8,6 +8,13 @@ import PluginEntry from "./PluginEntry.js";
 
 const own_events = Symbol.for("core.Plugin.events");
 
+// ONE store and ONE hosts list, shared by every `Pluggable(Base)` call (review finding 1, fold-2): a static field
+// declared inside the mixin body would instead give each `Pluggable(X)` its own copy, so `Page.store` and
+// `Plugin.store` would silently diverge (core/Plugin/page.js reads only `Plugin.store`/`Plugin.hosts`, and would
+// never see Page's saved plugins or Page itself). The getter/setter pair below (not a plain static field) is what
+// lets `Plugin.store = local` (page.js, Plugin.test.mjs) keep working: it writes through to this one object.
+const shared = { store: new Map(), hosts: [] };
+
 /* A mixin — a function that takes a base class and returns a subclass — so ANY class can take plugins:
    `class Host extends Pluggable(Base)`. Carries only the "takes plugins" half (fold-2, core/Plugin/readme.md):
    a class-level "new" announcement (`static plugged(inst)`, called once per fresh instance — never the host's own
@@ -117,9 +124,12 @@ export const Pluggable = Base => class extends Base {
 	// an Item's own instance `emit()` (core/Events/Events.js): one is a static call, the other an instance one.
 	static plugged(inst){ this.emit("new", inst); }
 
-	// ── a class that is PLUGGABLE
-	static hosts = [];   // every class THIS mixin reached that has used or listed a plugin (Plugin's own page.js reads Plugin.hosts)
-	static store = new Map();   // saved on/config per row, key plugin.<Host>.<Plugin>; a page swaps in localStorage
+	// ── a class that is PLUGGABLE. One shared `hosts`/`store` for every `Pluggable(Base)` host (see `shared`, above) —
+	// `Plugin.store = local` (page.js) or `Plugin.store = new Map()` (tests) still works: it goes through this setter.
+	static get hosts(){ return shared.hosts; }   // every class any Pluggable host has used or listed a plugin on
+	static set hosts(v){ shared.hosts = v; }
+	static get store(){ return shared.store; }   // saved on/config per row, key plugin.<Host>.<Plugin>; a page swaps in localStorage
+	static set store(v){ shared.store = v; }
 
 	static get records(){
 		if (!Object.hasOwn(this, "_records")) Object.defineProperty(this, "_records", { value: new Map(), writable: true });

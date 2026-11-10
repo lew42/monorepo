@@ -130,6 +130,8 @@ export class Inbox {
 	// calling this — it forwards to Compact's own hook (today's `DrawerInbox.setup`,
 	// unchanged below): collecting a page's `{"inbox": {…}}` jsonl lines into
 	// `page.inbox` is Compact's job, not the rail's, so only Compact needs to answer it.
+	// The call still arrives the same way after fold-2 (Page.plugged(this) → core/Plugin's
+	// Pluggable, not a bespoke Page loop); nothing here changed.
 	static setup(page){ return Inbox.Compact.setup(page); }
 }
 
@@ -142,7 +144,9 @@ export class Inbox {
  *     `new Inbox.Compact({ page }).view()`.
  *  2. THE EXTENSION (`static setup`, called by `Inbox.setup` above) — turned on by a
  *     `{"ext": "Inbox"}` page.jsonl line, or `Page.use(Inbox)` for every page. See
- *     core/Page/ext/readme.md and core/Page/ext/Inbox/readme.md for the rest.
+ *     core/Page/ext/readme.md and core/Page/ext/Inbox/readme.md for the rest. Both are
+ *     core/Plugin's `Pluggable` after fold-2 (Page extends Pluggable(Item)); checked —
+ *     this class needed no change, since it only ever reacts to the same `setup(page)` call.
  *
  *  Takes `{ page }`, same as `Inbox.Rail` (deliverable 3, the restructure's own brief) — a
  *  LATER task builds the actual Overview-dashboard tile on top of this class (a denser

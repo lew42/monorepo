@@ -19,10 +19,18 @@ const ok = (cond, msg) => { assert.ok(cond, msg); checks++; };
 
 // ---- 1. Page.use(X) reaches every new page ----
 {
+	const { Plugin } = await import("../Plugin/Plugin.js");
 	class X { static attach(page){ page.used_seen = true; } }
 	Page.use(X);
 	const page = new Page({ title: "use-test" });
 	ok(page.used_seen === true, "Page.use(X) reaches a freshly built page");
+
+	// review finding 1 (2026-11-09): hosts/store must be ONE shared value across every Pluggable(Base) call,
+	// not a static field per mixin call — else core/Plugin/page.js (which reads only Plugin.store/Plugin.hosts)
+	// would never see Page's saved plugins or Page itself.
+	ok(Page.store === Plugin.store, "Page.store and Plugin.store are the same Map, not two separate copies");
+	ok(Plugin.hosts.includes(Page), "Page shows up in Plugin.hosts once it has used a plugin");
+
 	Page.unuse(X);   // leave Page as this file found it, for the checks below
 }
 
