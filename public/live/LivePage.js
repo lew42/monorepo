@@ -658,7 +658,7 @@ export default class LivePage extends Page {
 				for (const [id, $row] of [...rows]) if (!seen.has(id)){ $row.el.remove(); rows.delete(id); }
 				list.items.forEach(item => {
 					if (rows.has(item.id)) return;
-					let $row; this.append(() => $row = div.c("live-card live-item"));   // framed like a card; the chevron opens it whole (child())
+					let $row; this.append(() => $row = div.c("card live-card live-item"));   // framed like a card; the chevron opens it whole (child())
 					rows.set(item.id, $row);
 					item.load().then(obj => $row.append(() => {
 						div.c("live-card-body", () => {
@@ -737,7 +737,7 @@ export default class LivePage extends Page {
 				$icon?.tc("is-hidden", !!$title?.only);   // "@Page" brings that thing's own icon in its mention
 				this.$go?.attr("href", $title?.only ?? own).attr("aria-label", String(item.get("title") ?? item.id));
 			};
-			this.attr("id", item.id).attr("data-kind", item.constructor.name);
+			this.ac("card").attr("id", item.id).attr("data-kind", item.constructor.name);   // "live-card" comes from the class name (View.js); the kit's own frame is added here
 			div.c("live-card-body", () => {
 				div.c("live-card-head", () => {
 					// The icon its page's header shows (LivePage.icon_name): a link asks the page, a card is an item stored here.
@@ -914,7 +914,7 @@ export default class LivePage extends Page {
 	static Tasks = class LiveTasksView extends View {
 		render(){
 			const { page } = this, list = page.tasks;
-			this.ac("live-card live-tasks");
+			this.ac("card live-card live-tasks");
 			const $title = h4.c("live-card-title live-tasks-title"), $rows = div.c("live-tasks-rows");
 			const count = () => {
 				const all = [...list], done = all.filter(t => t.state === "complete").length;
@@ -936,7 +936,7 @@ export default class LivePage extends Page {
 			const { page } = this, P = page.constructor;
 			const group = (label, list) => list.length && div.c("live-pages-group", () => {
 				h4.c("live-pages-label", label);
-				list.forEach(c => div.c("live-card live-page-card", () => {
+				list.forEach(c => div.c("card live-card live-page-card", () => {
 					div.c("live-card-body", () => {
 						div.c("live-card-head", () => {
 							span.c("live-icon live-card-icon", () => P.glyph(null, P.card_icon(c.icon)));
