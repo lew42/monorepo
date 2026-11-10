@@ -119,3 +119,10 @@
 {"review":{"at":"2026-11-09T18:24:16-06:00","answer":{"n":6,"reply":"fixed in 667dfe65d: TurnRefiner.refine returns early when PromptTasks.off() and when free memory is under SERVEX_MIN_FREE_MB (the floor Echo.call checks)"}}}
 {"review":{"at":"2026-11-09T18:24:16-06:00","answer":{"n":7,"reply":"declined for now: the only caller today is in Servex (RemoteMCP). If the hook or Server/ needs it in step 6, it moves to Server/TurnRefiner.mjs then, by script"}}}
 {"review":{"at":"2026-11-09T18:24:16-06:00","answer":{"n":8,"reply":"noted: Servex is restarted after the merge"}}}
+{"complete":{"outcome":"Cloud voice and web dictation both refine through TurnRefiner right after Ask.write (one parts refiner, parts_of split from parts_one); docs updated. NOT done: Coverage line shots at 400/1200 with coverage>0 and the live update (stats bar did not draw headless; cause unconfirmed). Branch unmerged; Sessions tests could not run in the worktree (no node_modules).","evidence":["commit adde899b5, 667dfe65d, 5b4a30d43 on the refiner-step4 branch","node Servex/agents/TurnRefiner.test.mjs prints ok","scratch cloud-voice turn: 0 to 4 of 4 sentences cited, $0.008"],"at":"2026-11-09T18:24:25-06:00"}}
+{"assign":{"closed_by":"mastermind-refiner-step4","closed_at":"2026-11-09T18:24:25-06:00","closed_why":null}}
+{"log":{"at":"2026-11-09T18:24:46-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-11-09T18:25:23-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T00:25:23.024Z"}
+{"pid_exit":49428,"ended":"2026-11-09T18:25:23-06:00","code":0,"signal":null,"by":"servex"}
+{"review":{"at":"2026-11-09T18:26:13-06:00","answer":{"n":1,"reply":"fixed in 5b4a30d43 (supersedes the earlier decline): Sessions.say calls TurnRefiner.refine after Ask.write with the same re (line.at); Sessions.refine (Echo clean+structure) is no longer called and is moved aside in step 6"}}}
+{"review":{"at":"2026-11-09T18:26:13-06:00","answer":{"n":2,"reply":"fixed after the merge: the parent restarts Servex, runs Sessions.test.mjs in the main tree and proves a web-dictation turn gets cited > 0 (logged on t21)"}}}
