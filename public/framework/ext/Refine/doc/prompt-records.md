@@ -77,6 +77,18 @@ Measured on the way: the SDK's `total_cost_usd` on a **resumed** session is cumu
 ## Not built yet
 
 - ⬜ The browser counts a `task` outcome as open; it does not yet resolve the task's state (node does, in `--summary`).
-- ⬜ Whisper/Dictate and the cloud voice agent as sources of the `live` process (today: VS Code tabs).
+- ⬜ Whisper/Dictate as a source of the `live` process (cloud voice is refined by TurnRefiner, see above).
 - ⬜ A session's completion counting its prompts, not only its tasks.
 - ⬜ A step rewrites the whole parts list (a later line wins), so each step adds about 0.5 MB to a long session's `prompts.jsonl`; writing only the outcomes that changed, keyed by part id, would keep it small.
+
+## Channels and the turn refiner
+
+One refiner, the parts brief ([PartsBrief.js](/framework/ext/Refine/PartsBrief.js)), runs on every channel that carries an owner turn:
+
+| Channel | Writes the words | Refines (parts / sections) |
+|---|---|---|
+| VS Code tab | prompt-relay (Prompt page_add) | `PromptTasks.run` -> `PromptRecords.parts_one` (only an owner's `vscode-tab`), plus Echo sections |
+| Web dictation | `Sessions.say` | `Sessions.refine` (Echo clean + structure) |
+| Cloud voice | `Ask.write` in `RemoteMCP.record` | `TurnRefiner.refine` ([Servex/agents/TurnRefiner.js](/Servex/agents/TurnRefiner.js)) |
+
+`PromptRecords.parts_of(sentences, {model})` is the pure model call (`{subject, parts, usd}`, cites 0-based); `parts_one` wraps it and writes `prompts.jsonl`. `TurnRefiner.refine(text, via, re, put)` calls it for a turn that has no Prompt page, then `Ask.write` a second `refined` line with the same `re` and `sections` whose items cite sentence numbers (1-based). `Session.coverage()` counts those. A failure is returned, never thrown. Test: `Servex/agents/TurnRefiner.test.mjs`.
