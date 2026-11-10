@@ -1227,9 +1227,6 @@ function cap_read(value){
 	}
 	return { truncated: true, hint: "read a deeper path for less", preview: JSON.stringify(value).slice(0, READ_CAP) };
 }
-/* THE THREE VERBS (item-tool plan, merge 1, /live/plan/item-tool/): `get`/`set`/`call` each become exactly what today's
- * `delta`/`read` would have been, so everything below this function — validation, the write, replay — never sees a
- * difference. Returns {delta, read} (one of the two undefined) or {why} to refuse before anything is touched. */
 // A client whose schema shows `args` as a string sends the object as JSON text (seen 2026-11-09: `tasks.add` made a task
 // titled with the whole JSON). Text that parses to an object or array is that value; any other string stays a string
 // (`remove: "c1"` takes an id).
@@ -1238,6 +1235,9 @@ function parse_args(args){
 	try { const v = JSON.parse(args); return v !== null && typeof v === "object" ? v : args; } catch { return args; }
 }
 
+/* THE THREE VERBS (item-tool plan, merge 1, /live/plan/item-tool/): `get`/`set`/`call` each become exactly what today's
+ * `delta`/`read` would have been, so everything below this function — validation, the write, replay — never sees a
+ * difference. Returns {delta, read} (one of the two undefined) or {why} to refuse before anything is touched. */
 function verbs_to_delta({ delta, read, get, set, call, args }){
 	const vals = { delta, read, get, set, call }, given = Object.keys(vals).filter(k => vals[k] !== undefined);
 	if (given.length > 1) return { why: `only one of ${given.join(", ")} in one call. Nothing was written.` };
@@ -1852,7 +1852,8 @@ export function page_tools(resolve_log = null){
 				method: { type: "string", description: "The verb to call at the target — a method on whatever `target` resolves to: `add`, `remove`, `move`, `order`, or any method the item's own class defines." },
 				args: { description: "The method's one argument — an object for `add`, a string id for `remove`, etc. If it's a plain object, `by` and `ts` are stamped onto it." } },
 			["method"],
-			async ({ path: url, target, method, args }, ctx = {}) => {
+			async ({ path: url, target, method, args: raw }, ctx = {}) => {
+				const args = parse_args(raw);
 				url ??= own_page(ctx, resolve_log);
 				const at = await resolve(url, target, true);
 				if (!at || at.why) return not_a_page(url, at);
