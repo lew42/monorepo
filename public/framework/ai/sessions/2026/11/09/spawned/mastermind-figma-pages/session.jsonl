@@ -136,3 +136,12 @@
 {"log":{"at":"2026-11-10T00:42:54-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-10T06:42:54.992Z"}
 {"log":{"at":"2026-11-10T00:46:30-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T06:46:30.584Z"}
 {"pid_exit":39980,"ended":"2026-11-10T00:46:30-06:00","code":0,"signal":null,"by":"servex"}
+{"pid":6096,"cmd":"C:\\Code\\lew42\\monorepo\\Servex\\node_modules\\@anthropic-ai\\claude-agent-sdk-win32-x64\\claude.exe --output-format stream-json --verbose --input-format stream-json --effort high --model claude-sonnet-5-5 --resume=c20f231f-b967-4909-96c8-e9a721be474e --disallowedTools mcp__servex__page_call,mcp__servex__","why":"claude.exe","agent":"mastermind-figma-pages","session":"c20f231f-b967-4909-96c8-e9a721be474e","started":"2026-11-10T00:59:04-06:00","by":"servex"}
+{"log":{"at":"2026-11-10T00:59:09-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-10T06:59:09.032Z"}
+{"commit":{"hash":"4b88f3aa8aeb342b9604805dafc400fdd169c320","what":"figma docs: card system pages and components (voice-app) and its build lessons","files":["public/framework/ext/Figma/doc/use-figma.md","public/framework/ext/Figma/readme.md"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-10T07:00:17.763Z"}
+{"pid":25908,"cmd":"node C:\\Code\\lew42\\monorepo/.claude/hooks/ledger.mjs stop","why":"child of claude.exe","agent":"mastermind-figma-pages","session":"c20f231f-b967-4909-96c8-e9a721be474e","started":"2026-11-10T01:00:22-06:00","ppid":6096,"seen":"sample","by":"servex"}
+{"pid_exit":25908,"ended":"2026-11-10T01:00:34-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid":42624,"cmd":"node C:\\Code\\lew42\\monorepo/.claude/hooks/ledger.mjs session-end","why":"child of claude.exe","agent":"mastermind-figma-pages","session":"c20f231f-b967-4909-96c8-e9a721be474e","started":"2026-11-10T01:03:55-06:00","ppid":6096,"seen":"sample","by":"servex"}
+{"log":{"at":"2026-11-10T01:03:58-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T07:03:58.462Z"}
+{"pid_exit":6096,"ended":"2026-11-10T01:03:58-06:00","code":0,"signal":null,"by":"servex"}
+{"pid_exit":42624,"ended":"2026-11-10T01:04:07-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
