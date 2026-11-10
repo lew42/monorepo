@@ -15,3 +15,9 @@
 {"log":"Job 3 done in Figma: Cards · Icons page 166:1383 (Icon, Icon frame, Icon item, Alignment test, Pill); fixed Icon item Label glyph style; sent ids to voice-app. Docs update still to do.","by":"mastermind-figma-live","ts":"2026-11-10T21:41:51.593Z"}
 {"commit":{"hash":"120d32a7a7bda2a91bd09e4a92dc9f7046c9af9f","what":"figma: document the icon system (Icon, Icon frame, Icon item, Pill)","files":["public/framework/ext/Figma/readme.md"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-10T21:42:04.782Z"}
 {"log":{"at":"2026-11-10T15:47:10-06:00","heartbeat":"refused","msg":"status check not sent to mastermind-figma-live: a wake costs about $3.52 and it has spent $9.90 of $10.00"}}
+{"log":{"at":"2026-11-10T15:53:59-06:00","msg":"task-loop status ask 1: asked mastermind-figma-live","ask":1}}
+{"log":"Job 3 reported to voice-app; readme updated (120d32a7a). Idle, waiting for the next Figma job; task stays open.","by":"mastermind-figma-live","ts":"2026-11-10T21:54:05.728Z"}
+{"log":{"at":"2026-11-10T16:04:00-06:00","msg":"task-loop status ask 1: asked mastermind-figma-live","ask":1}}
+{"log":"Still idle after Job 3 (landed, readme 120d32a7a). No new job from voice-app; waiting.","by":"mastermind-figma-live","ts":"2026-11-10T22:04:06.848Z"}
+{"log":{"at":"2026-11-10T16:14:00-06:00","msg":"task-loop status ask 1: asked mastermind-figma-live","ask":1}}
+{"log":"Idle, waiting for the next Figma job from voice-app; nothing in flight.","by":"mastermind-figma-live","ts":"2026-11-10T22:14:07.420Z"}
