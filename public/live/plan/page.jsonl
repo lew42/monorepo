@@ -81,3 +81,5 @@
 {"content":{"add":{"type":"part-link","id":"link-index","path":"./index/","title":"Plan: page indexes"}},"by":"pages.add","ts":"2026-11-10T00:10:12.075Z"}
 {"file":"friction/page.jsonl"}
 {"content":{"add":{"type":"part-link","id":"link-friction","path":"./friction/","title":"Friction: the top 5"}},"by":"pages.add","ts":"2026-11-10T00:16:46.338Z"}
+{"file":"ui-kit/page.jsonl"}
+{"content":{"add":{"type":"part-link","id":"link-ui-kit","path":"./ui-kit/","title":"Plan: one UI kit"}},"by":"pages.add","ts":"2026-11-10T00:28:37.436Z"}
