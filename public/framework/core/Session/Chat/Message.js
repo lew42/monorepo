@@ -23,7 +23,7 @@ export class Message extends Item {
 	get at(){ return this.get_one("at") ?? null; }
 	get text(){ return this.get_one("text") ?? ""; }
 	/** "A card with an icon and a title" (ask3-cards-by-id) is just a Message with these two fields set — no separate Card class
-	    (Law 6): `item({delta:{messages:{add:{icon,title}}}})` makes one, and setting `title` on any existing message (a Reply, a
+	    (Law 6): `item({call:"messages.add", args:{icon,title}})` makes one, and setting `title` on any existing message (a Reply, a
 	    plain Message) "upgrades" it into a card the same way. One Material Symbols name. */
 	get icon(){ return this.get_one("icon") ?? null; }
 	/** A short heading. `Prompt.title` overrides this with its own getter — same field, same meaning. */
