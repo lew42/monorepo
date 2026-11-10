@@ -200,6 +200,22 @@ try {
 		} finally { fs.rmSync(itemsDir, { recursive: true, force: true }); }
 	}
 
+	// Friction #3: page_read and the item tool must count the same cards on /live/ (a LivePage replays its `save`; plain Page does not).
+	{
+		const md = await read_page({ path: "/live/" });
+		const shown = (md.match(/^- \[[^\]]+\] \(/gm) ?? []).length;
+		const item = JSON.parse(await tools.item.handler({ path: "/live/", read: "content" }, {}));
+		ok(item.ok && shown === item.value.total, `page_read counts ${shown} cards on /live/, the item tool ${item.value?.total}`);
+		// page_read runs first here, so a plain-Page root would be cached for both tools: also prove the `save` lines were replayed.
+		const log = fs.readFileSync(path.join(ROOT, "public/live/page.jsonl"), "utf8").trim().split("\n").map(l => { try { return JSON.parse(l); } catch { return {}; } });
+		const last_save = log.map(l => !!l.save).lastIndexOf(true);
+		if (last_save >= 0){
+			const after = JSON.stringify(log.slice(last_save + 1));
+			const stale = [...md.matchAll(/^- \[([^\]]+)\] \(/gm)].map(m => m[1]).filter(id => !after.includes(JSON.stringify(id)));
+			ok(!stale.length, `page_read shows only cards added since the last save; stale: ${stale.slice(0, 3)}`);
+		}
+	}
+
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });
 }

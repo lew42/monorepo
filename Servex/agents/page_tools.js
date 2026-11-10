@@ -1960,7 +1960,7 @@ export function page_tools(resolve_log = null){
 				const file = at.file;
 				if (!fs.existsSync(file)) return JSON.stringify({ ok: false, why: `no page.jsonl at "${url}" yet` });
 
-				const Page = await page_class();   // the page's live root (one per file, shared with item()), else the text replay
+				const Page = await class_for(class_of(file), file) ?? await page_class();   // the page's own class, as item() resolves it (a LivePage replays its `save`), else plain Page
 				return page_text(Page ? () => live_root(Page, file) : null, file, url, format === "html" ? "html" : "markdown");
 			}),
 	];
