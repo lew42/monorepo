@@ -18,7 +18,10 @@ import { PART_TYPES } from "/framework/core/Page/parts/kinds.js";
 View.stylesheet(import.meta, "LivePage.css");
 
 // Markdown draws only in a browser; in node (the item tool builds this class to replay page.jsonl) nothing is drawn.
+// Same guard for ui/row's CSS (its css() writes to document.head with no node check of its own) — it is only needed
+// for the .ui-row class, drawn in a browser.
 const { default: md } = typeof document === "undefined" ? { default: () => {} } : await import("/framework/ext/markdown/md.js");
+if (typeof document !== "undefined") await import("/framework/ui/row/row.js");   // .ui-row: the file-list and settings rows
 
 /* /live/ — the screen voice Claude drives with the item tool: item({path: "/live/", delta}). readme.md lists every delta.
  * The page IS page.jsonl: line 1 names this class, every later line is one set(). A data key is state (header, footer),
@@ -830,13 +833,17 @@ export default class LivePage extends Page {
 			const { of, page } = this, folder = page.folder;
 			if (this.at) return void new LivePage.Files({ page, folder, at: this.at });   // one folder or file inside it
 			const src = LivePage.src_of(of.constructor);
-			if (src){
-				const dir = src.replace(/[^/]+$/, ""), name = src.split("/").at(-1);
-				a.c("live-files-row live-settings-class", () => { icon("code"); span(name); span.c("live-settings-note", "draws this page"); }).href(dir + "settings/" + name + "/");
-			}
-			const row = (label, text) => div.c("live-settings-row", () => { span.c("live-settings-label", label); span.c("live-settings-value", text); });
-			if (of.focus) row("Card", `id ${of.focus.id}, saved inside ${folder}page.jsonl`);
-			else if (of.screen) row("Saved screen", `saved inside ${folder}page.jsonl`);
+			const row = (label, text) => div.c("ui-row live-settings-row", () => { span.c("live-settings-label", label); span.c("live-settings-value", text); });
+			// The class row, the Card/Saved-screen row: one box (the kit's `.card`), each row the kit's `.ui-row`,
+			// same move as the file list below — one list reads as one thing, not three separate boxes.
+			if (src || of.focus || of.screen) div.c("card", () => {
+				if (src){
+					const dir = src.replace(/[^/]+$/, ""), name = src.split("/").at(-1);
+					a.c("ui-row live-files-row live-settings-class", () => { icon("code"); span(name); span.c("live-settings-note", "draws this page"); }).href(dir + "settings/" + name + "/");
+				}
+				if (of.focus) row("Card", `id ${of.focus.id}, saved inside ${folder}page.jsonl`);
+				else if (of.screen) row("Saved screen", `saved inside ${folder}page.jsonl`);
+			});
 			new LivePage.Files({ page, folder, at: "" });
 			h4.c("live-settings-files-title", "What it is made of");
 			div.c("live-settings-inspect").append(import("/framework/ext/Inspect/ItemInspector.js").then(({ default: ItemInspector }) => new ItemInspector({ item: of })));
@@ -852,7 +859,7 @@ export default class LivePage extends Page {
 		render(){
 			const { page, folder, at } = this, path = folder + at;
 			const name = at.split("/").filter(Boolean).at(-1), up = folder + at.replace(/[^/]+\/$/, "");
-			this.$box = div.c("live-files-body", () => span.c("live-files-said", "Loading…"));
+			this.$box = div.c("card live-files-body", () => span.c("live-files-said", "Loading…"));
 			(async () => {
 				const listing = name ? await Page.listing(up).catch(() => null) : null;
 				if (name && (listing?.files.includes(name) || listing?.log === name)) return this.file(path.slice(0, -1));
@@ -863,8 +870,8 @@ export default class LivePage extends Page {
 					const dirs = [...new Set([...here.pages.keys(), ...here.dirs.map(d => d.replace(/\/.*$/, ""))])].sort();
 					const files = [...new Set([...here.files, ...here.log ? [here.log] : []])].sort();   // the log (page.jsonl or files.jsonl) is a file here too
 					if (!dirs.length && !files.length) span.c("live-files-said", "Nothing in this folder yet.");
-					dirs.forEach(d => a.c("live-files-row is-dir", () => { icon("folder"); span(d); }).href(page.url + d + "/"));
-					files.forEach(f => a.c("live-files-row", () => { icon("description"); span(f); }).href(page.url + f + "/"));
+					dirs.forEach(d => a.c("ui-row live-files-row is-dir", () => { icon("folder"); span(d); }).href(page.url + d + "/"));
+					files.forEach(f => a.c("ui-row live-files-row", () => { icon("description"); span(f); }).href(page.url + f + "/"));
 				});
 			})().catch(e => this.$box.empty(() => span.c("live-files-said", "Could not read " + path + ": " + e.message)));
 		}
@@ -874,6 +881,7 @@ export default class LivePage extends Page {
 			await import("/framework/ext/highlight/highlight.js");   // adds code.file to View's `code`
 			const block = await code.file(import.meta, url, { lang: /\.jsonl$/.test(url) ? "json" : undefined });
 			this.ac("is-file");
+			this.$box.rc("card");   // a file's code runs edge to edge, no box (LivePage.css .live-files.is-file)
 			LivePage.icon(this.page, "description");
 			this.$box.empty().el.append(block.el);
 			this.page.$raw?.href(url + "?raw").tc("is-empty", false);
