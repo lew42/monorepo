@@ -1,0 +1,135 @@
+diff --git a/public/framework/ai/AISession/SessionOverview.css b/public/framework/ai/AISession/SessionOverview.css
+index 2d93f7152..32a0c5ebc 100644
+--- a/public/framework/ai/AISession/SessionOverview.css
++++ b/public/framework/ai/AISession/SessionOverview.css
+@@ -8,6 +8,10 @@
+ 	.sov-k { color: color-mix(in srgb, var(--ink) 60%, transparent); text-transform: uppercase; font-size: .7em; letter-spacing: .06em; }
+ 	.sov-v { font-size: 1.3rem; line-height: 1.2; overflow-wrap: anywhere; }
+ 	.sov-link { cursor: pointer; text-decoration: underline dotted color-mix(in srgb, var(--ink) 40%, transparent); text-underline-offset: .2em; }   /* the cost line opens the Cost tab */
++	.sov-coverage:empty { display: none; }
++	.sov-coverage button { all: unset; cursor: pointer; font-size: .9em; text-decoration: underline dotted color-mix(in srgb, var(--ink) 40%, transparent); text-underline-offset: .2em; }
++	.sov-uncited { margin-top: .4em; font-size: .85em; max-height: 14em; overflow: auto; display: flex; flex-direction: column; gap: .25em; }
++	.sov-uncited[hidden] { display: none; }
+ 	.sov-bar .task-bar, .sov-card .task-bar { margin: 0; width: 100%; max-width: none; display: flex; }
+ 	.sov-bar .task-seg { flex: 1 1 0; }
+ 	.sov-bar .task-meter, .sov-card .task-meter { flex: 1 1 auto; width: auto; height: .45em; }
+diff --git a/public/framework/ai/AISession/SessionStats.js b/public/framework/ai/AISession/SessionStats.js
+index def72d586..4a210c7a9 100644
+--- a/public/framework/ai/AISession/SessionStats.js
++++ b/public/framework/ai/AISession/SessionStats.js
+@@ -56,6 +56,23 @@ export default class SessionStats extends View {
+ 		AICost.summary(base).then(({ summary }) => $v.text(summary ? Task.show(summary.completion) : "—")).catch(() => $v.text("—"));
+ 	}
+ 
++	/** "Coverage: 41 of 52 sentences placed in a task (79%)" from the item tool's `summary.coverage` (Session.coverage); the uncited sentences open one click down.
++	 *  No prompts (null) or no answer draws nothing: unknown is never shown as 0 or 100. */
++	static coverage($box, work){
++		const base = work.id ? AICost.session_url(work.id) : work.dir;
++		AICost.summary(base).then(({ summary }) => {
++			const c = summary?.coverage;
++			if (!c) return;
++			$box.empty(() => {
++				const word = c.uncited.length ? ` · ${c.uncited.length} not placed ▾` : "";
++				button.c("", `Coverage: ${c.cited} of ${c.sentences} sentences placed in a task (${Math.round(c.ratio * 100)}%)${word}`).attr("type", "button")
++					.attr("title", "How many of your sentences in this session some task cites (Session.coverage)")
++					.on("click", () => $box.el.querySelector(".sov-uncited")?.toggleAttribute("hidden"));
++				div.c("sov-uncited", () => c.uncited.forEach(u => div.c("", `${u.n}. ${u.text}`))).attr("hidden", "");
++			});
++		}).catch(() => {});
++	}
++
+ 	/** The running time into `$run`: the session index's wall and active time, else the Task's banked time. */
+ 	static running($run, work, root){
+ 		const own = SessionStats.elapsed(root.ms());   // the Task's banked time, only if the index has no row for this session
+@@ -89,6 +106,7 @@ export default class SessionStats extends View {
+ 				div.c("sov-stat", () => { small.c("sov-k", "Score"); SessionStats.score(strong.c("sov-v", "…").attr("title", "The session's one completion score; \"needs review\" means nothing in it can be scored yet"), work); });
+ 				div.c("sov-stat", () => { small.c("sov-k", "Session tasks done"); SessionStats.tasks(strong.c("sov-v", "…").attr("title", "The session's own tasks (its log), dropped ones left out; Task folders done counts the folders on disk instead"), work); });
+ 			});
++			SessionStats.coverage(div.c("sov-coverage"), work);
+ 			if (part.counted.length) div.c("sov-bar", () => TaskView.draw_bar(part.counted.map(n => n.state), 12));
+ 			small.c("sov-caption", `Task folders: ${done} done · ${part.running} running · ${total - done - part.running} queued or waiting · ${part.dropped.length} dropped (not counted)`);   // one count each, so the parts add up to the total
+ 			const folders = root.folders ?? [work.dir];   // the session's folders, one per day it filed work under (SessionTree.load)
+diff --git a/public/framework/ai/doc/prompt-refinement-map.md b/public/framework/ai/doc/prompt-refinement-map.md
+index f4c49fe2e..6194c6486 100644
+--- a/public/framework/ai/doc/prompt-refinement-map.md
++++ b/public/framework/ai/doc/prompt-refinement-map.md
+@@ -4,6 +4,8 @@ Eight mechanisms touch an owner's prompt, and they write to different files. Thi
+ 
+ **Step 2 of the one-refiner plan (built on a branch, live after merge and a Servex restart):** the parts brief moved to `ext/Refine/PartsBrief.js` and the `live` process runs on Sonnet. PromptTasks is on while the `prompt-tasks.off` file is absent (`node Servex/agents/PromptTasks.js on`). A prompt with two or more asks is matched to an open task first (`attach_to`); a single ask is filed as a new task with no match (a gap, not built).
+ 
++**Step 3 of the one-refiner plan (built on a branch, live after merge and a Servex restart):** `session.coverage()` (`core/Session/Session.js`) counts the owner's sentences in a session and how many a task cites; the session page shows it as one line under the stats (`ai/AISession/SessionStats.js`), with the uncited sentences one click down. It is the number the next steps move. It counts sentences with the browser splitter (`core/Task/sentences.js`), which does not redact or quick-clean, so it reads about 8% higher than the study's `Ask.split` count (131 against 121 on session 5132a480).
++
+ **Changed since (checked 2026-11-08):** the hook now writes through `Ask.write` (`Server/Ask.mjs`, one splitter that numbers sentences). PromptTasks (mechanism 2) is switched off by the `prompt-tasks.off` file in the Servex home, so no `parts` line or `source.part` task was written 11-01..08, and coverage is 0% on every channel. The plan to keep one refiner, with each mechanism's lesson: [/live/plan/one-refiner/](/live/plan/one-refiner/) (record: [inventory.json](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/one-refiner-plan/inventory.json)).
+ 
+ ## The mechanisms
+diff --git a/public/framework/core/Session/Session.js b/public/framework/core/Session/Session.js
+index f7e0064f5..0a24dee32 100644
+--- a/public/framework/core/Session/Session.js
++++ b/public/framework/core/Session/Session.js
+@@ -197,6 +197,35 @@ export default class Session extends Task {
+ 		return this;
+ 	}
+ 
++	/* COVERAGE (one-refiner step 3): how many of the owner's sentences in this session's prompts some task cites. A prompt's sentences are its
++	   stored paragraphs (or the shared splitter over its raw words); a sentence is cited by a `parts` entry (PromptRecords) or by the `cites`
++	   of a task below the prompt (refine_turn writes "a1 a2"). Returns {sentences, cited, ratio, uncited: [{prompt, n, text}]}, or null when the
++	   session has no prompt with words (unknown, never 0 or 1). Computed on read, never stored. */
++	coverage(){
++		const prompts = new Set(), Prompt = Item.types.get("Prompt");
++		const walk = list => { for (const t of list ?? []){ if (t instanceof Prompt) prompts.add(t); walk(t._tasks); } };
++		walk(this._tasks); for (const c of this._content ?? []) if (c instanceof Prompt && c.counts_toward_score) prompts.add(c);   // an old content Prompt (no `counted` flag) counts nowhere
++		const uncited = []; let sentences = 0;
++		const ids = new Set([...prompts].map(p => p.id)), filed = m => ids.has(m.prompt) || ids.has(Session.turn_id(m.at));   // the chat message's own Prompt task, already counted above
++		for (const p of prompts){
++			const own = p.sentences, all = own.length ? own : Prompt.split(p.get_one("text") ?? "").map((text, i) => ({ id: "a" + (i + 1), text }));   // a hook-made Prompt has only its text: the shared splitter
++			if (!all.length) continue;
++			const cited = new Set(), parts = ps => (ps ?? []).forEach(q => { (q.cites ?? []).forEach(n => cited.add(String(n))); parts(q.parts); });
++			parts(p.parts);
++			const below = list => { for (const t of list ?? []){ String(t.get_one?.("cites") ?? "").split(/\s+/).filter(Boolean).forEach(n => cited.add(n)); below(t._tasks); } };
++			below(p._tasks);
++			all.forEach((s, i) => { sentences++; if (!cited.has(s.id)) uncited.push({ prompt: p.id, n: i + 1, text: s.text }); });
++		}
++		// A chat Prompt (the owner's dictation, session.messages) whose turn was never refined into a Prompt task: all its sentences are uncited.
++		for (const m of this._messages ?? []){
++			if (!m.sentence_items || m.get_one("by") !== "owner" || !m.at || filed(m)) continue;
++			m.sentence_items.forEach((x, i) => { sentences++; uncited.push({ prompt: m.id, n: i + 1, text: x.text }); });
++		}
++		return sentences ? { sentences, cited: sentences - uncited.length, ratio: (sentences - uncited.length) / sentences, uncited } : null;
++	}
++	static queries = [...Task.queries, "coverage"];
++	summary(){ return { ...super.summary(), coverage: this.coverage() }; }
++
+ 	// The folder every session of this kind lives under. Override in the subclass.
+ 	static root_url(){ return new URL("../../ai/sessions/", import.meta.url); }
+ 
+diff --git a/public/framework/core/Session/Session.test.mjs b/public/framework/core/Session/Session.test.mjs
+index 0ddbbda68..9163dd6ae 100644
+--- a/public/framework/core/Session/Session.test.mjs
++++ b/public/framework/core/Session/Session.test.mjs
+@@ -139,6 +139,13 @@ check("turn: a hook-made content Prompt IS the turn: the refined line fills its
+ });
+ check("turn: a refined line with no words and no turn writes nothing; one with no re is left alone", () => Session.replay([{ session: "e1" }, { refined: { re: T1, sentences: [] } }, { refined: { sentences: [{ n: 1, text: "x" }] } }]).tasks.length === 0);
+ 
++check("coverage: 3 sentences, a task citing 2 of them gives 2/3 and lists the uncited one; no prompts gives null", () => {
++	const s = Session.replay([{ session: { id: "cv1", kind: "voice", at: "2026-11-06T10:00:00Z" } },
++		{ refined: { v: 2, at: T1, re: T1, sentences: [{ n: 1, text: "One." }, { n: 2, text: "Two." }, { n: 3, text: "Three." }], sections: [{ id: "s", heading: "", items: [{ id: "i1", text: "Do", cites: [1, 2] }] }], via: "voice" } }]);
++	const c = s.coverage(), none = Session.replay([{ session: "cv2" }]).coverage();
++	return c.sentences === 3 && c.cited === 2 && Math.abs(c.ratio - 2 / 3) < 1e-9 && c.uncited.length === 1 && c.uncited[0].n === 3 && c.uncited[0].text === "Three." && none === null && s.summary().coverage.cited === 2;
++});
++
+ process.exit(results.every(Boolean) ? 0 : 1);
+ 
+ import Day from "./Day.js";
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index a220f89f3..f64e3fce7 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -147,6 +147,8 @@ A session's `tasks` is the one list of everything to be done: prompts, tasks and
+ 
+ **Recompute only what changed.** A child record's parsed lines are kept by file and reused while the file keeps the same size and modified time (`lines_of` in `page_tools.js`, used by the node resolver). So a read re-reads and re-parses only the child files that changed. Every replay still builds fresh task objects from those lines, because a kept object would have the parent's lines addressed to it (`{"<child id>":{…}}`) applied again on each re-replay; the parent's totals (progress, completion, counts) are added up on every read from the children it holds. Time to answer `{"summary":{}}` on session-e00f55c9 (101 child records) right after one child file changed, measured back to back in the same conditions: about 140-285 ms without the cache, 76-99 ms with it. Keeping whole child objects measured 12-20 ms when the machine was quiet, but was dropped for the double-apply bug; it could return if a parent line that addresses a child evicted that child's entry. The cache holds at most 4000 files. Test: `node Servex/agents/ref-cache.test.mjs` (it builds a scratch tree in the OS temp folder: `SERVEX_PUBLIC` points the item tool's `public/` at it).
+ 
++**Coverage** (`session.coverage()`, in `summary().coverage`): `{sentences, cited, ratio, uncited:[{prompt,n,text}]}` for the owner's sentences in the session (Prompt tasks, counted hook Prompts, and chat messages with no Prompt task yet); a sentence is cited when a Prompt part or a task's `cites` names it. `null` when there are no prompts. The session page draws it under the stats bar.
++
+ **Completion at once, for any session.** `item({path: "/framework/ai/sessions/YYYY/MM/DD/<folder>/", delta: {"completion": {}}})`, answers `{ok: true, answer: {completion: {...}}}`: the tally of its tasks' current states (`Task.tally`: done, total, stopped, finished without proof) and the one number, `Task.completion_score()`. It only reads and writes nothing. It works for a past session too, as long as its folder holds a record; a folder with no record is refused. The same number is printed by `node Server/session-query.mjs --report <agent id | session id | folder name>` (also `--recent N`, `--root <repo>`), with prompts, tasks created/finished/stopped/open, finishes without proof, unlinked children and cost. On session-e00f55c9 (2026-11-04): 64.8%.
+ 
+ **The one formula** (`Task.completion_score`, [Task readme](../Task/readme.md)): a task scores 1 if the owner checked it; otherwise the mean of its parts' scores, recursing to any depth; a task with no parts scores 1 if complete, else 0. Parts are its subtasks that are not stopped, each child session (nested in this session's folder, one part each) and each counted owner prompt. Why this one, when e00f55c9 showed three numbers: 299 of 527 top-level parts complete is 56.7% because a half-finished part counts 0; 299 of 599 is 49.9% because it also counts stopped parts; finished/created (571/1196, 47.7%) counts every nested task flat. The mean credits partial progress and leaves dropped work out, and a parent can only reach 1 when everything under it does.
