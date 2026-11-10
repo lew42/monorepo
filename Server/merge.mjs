@@ -595,6 +595,26 @@ try {
 		const smoke = skipSmoke ? { status: 0, stdout: "", stderr: "" }
 			: run("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "smoke.mjs"), dir, ...paths, ...smokePages, ...(mainArg ? ["--main", MAIN] : [])], MAIN);
 		console.log(smoke.stdout + smoke.stderr);
+		/* Layout check (report only, never refuses a merge — Server/LayoutCheck.mjs): the same
+		 * pages smoke just loaded, measured with analyze() + PaddingContract.check() at the
+		 * widths widthsFor() picks for this change (never fewer than 400 and 1200). Skipped
+		 * under --skip-smoke/--quick (same reasoning as smoke itself: no worktree server to
+		 * measure, or no page-shaped diff worth it). */
+		if (smoke.status === 0 && !skipSmoke && !quick && smokePages.length) {
+			const lcBase = worktreeBase(dir);
+			if (!lcBase) console.log("layout check: no worktree server found for " + dir + " — skipped");
+			else {
+				const { nameStatus: lcNameStatus, numstat: lcNumstat } = diffStat(MAIN, `${BASE}...${branch}`);
+				const lcPatches = splitPatch(git(MAIN, "diff", "--no-renames", `${BASE}...${branch}`).stdout);
+				const lcWithPatch = lcNameStatus.map(x => ({ ...x, patch: lcPatches.get(x.f) || "" }));
+				const lcWidths = [...new Set([400, 1200, ...widthsFor(lcWithPatch, lcNumstat, smokePages)])].sort((a, b) => a - b);
+				const t0 = Date.now();
+				const lc = run("node", [path.join(path.dirname(fileURLToPath(import.meta.url)), "LayoutCheck.mjs"), lcBase, ...smokePages, "--widths", lcWidths.join(",")], MAIN);
+				console.log(lc.stdout + lc.stderr);
+				const perPage = (Date.now() - t0) / (smokePages.length * lcWidths.length);
+				if (perPage > 3000) console.log(`layout check: slow — ~${Math.round(perPage)}ms per page×width`);
+			}
+		}
 		/* Tests (core/Test): every test that covers the diff runs on the branch; a failing one is run on the merge base too (Server/MergeTests.mjs). Only pass-on-base, fail-on-branch refuses. */
 		let testRefusal = null, navRefusal = null;
 		if (smoke.status === 0 && !skipTests && !dryRun) {
