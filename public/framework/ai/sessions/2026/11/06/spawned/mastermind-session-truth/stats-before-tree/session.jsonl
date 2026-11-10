@@ -99,3 +99,4 @@
 {"log":{"at":"2026-11-09T18:54:13-06:00","heartbeat":"refused","msg":"status check not sent to mastermind-mastermind-stats-before-tree: a wake costs about $0.17 and it has spent $2.43 of $2.00"}}
 {"pid_exit":15628,"ended":"2026-11-09T18:54:50-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid_exit":51960,"ended":"2026-11-09T18:55:00-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"stop":{"at":"2026-11-09T19:57:06-06:00","why":"dropped: owner mastermind-mastermind-stats-before-tree is dormant and the task is untouched"}}

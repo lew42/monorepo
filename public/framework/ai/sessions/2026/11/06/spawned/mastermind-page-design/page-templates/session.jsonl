@@ -69,3 +69,4 @@
 {"log":{"at":"2026-11-09T18:30:26-06:00","heartbeat":"answered","msg":"Done and idle. Task closed with findings.md written and finish line logged. Ready to return worktree."}}
 {"pid_exit":41964,"ended":"2026-11-09T18:30:30-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid_exit":32324,"ended":"2026-11-09T18:30:37-06:00","code":null,"signal":"SIGKILL","by":"servex"}
+{"stop":{"at":"2026-11-09T19:33:51-06:00","why":"dropped: owner minion-templates-past-work is stopped"}}

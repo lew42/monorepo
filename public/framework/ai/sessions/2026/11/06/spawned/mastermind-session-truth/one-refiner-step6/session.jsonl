@@ -48,3 +48,4 @@
 {"pid_exit":19024,"ended":"2026-11-09T18:50:01-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid_exit":44488,"ended":"2026-11-09T18:50:25-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid_exit":56024,"ended":"2026-11-09T18:50:25-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"stop":{"at":"2026-11-09T19:52:06-06:00","why":"dropped: owner mastermind-mastermind-refiner-step6 is stopped"}}

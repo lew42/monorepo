@@ -115,3 +115,4 @@
 {"pid_exit":31368,"ended":"2026-11-09T18:37:43-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid":22152,"cmd":"node C:\\Code\\lew42\\worktrees\\plugins-mvp/.claude/hooks/ledger.mjs session-end","why":"child of claude.exe","agent":"minion-minion-plugins-mvp","session":"5e62b132-06d9-4063-bd1b-9d35aee85b21","started":"2026-11-09T18:37:39-06:00","ppid":37460,"seen":"sample","by":"servex"}
 {"pid_exit":22152,"ended":"2026-11-09T18:37:53-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"stop":{"at":"2026-11-09T19:38:51-06:00","why":"dropped: owner minion-minion-plugins-mvp is stopped"}}

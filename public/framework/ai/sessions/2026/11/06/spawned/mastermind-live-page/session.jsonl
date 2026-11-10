@@ -2075,3 +2075,21 @@
 {"pid_exit":19764,"ended":"2026-11-09T19:33:35-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid":33024,"cmd":"\"C:\\Users\\mike\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe\" --type=renderer --noerrdialogs --user-data-dir=\"C:\\Users\\mike\\AppData\\Local\\Temp\\playwright_chromiumdev_profile-YwGbOT\" --no-pre-read-main-dll --start-stack-profiler --no-sandbox --disable-back-forward-cache --disable-","why":"child of claude.exe","agent":"mastermind-live-page","session":"67a191a3-a596-4fb1-8fc8-04ba4b22a7b2","started":"2026-11-09T19:33:33-06:00","ppid":30880,"seen":"sample","by":"servex"}
 {"pid":55144,"cmd":"\"C:\\Users\\mike\\AppData\\Local\\ms-playwright\\chromium-1234\\chrome-win64\\chrome.exe\" --type=renderer --noerrdialogs --user-data-dir=\"C:\\Users\\mike\\AppData\\Local\\Temp\\playwright_chromiumdev_profile-YwGbOT\" --no-pre-read-main-dll --no-sandbox --disable-back-forward-cache --disable-background-timer-thrott","why":"child of claude.exe","agent":"mastermind-live-page","session":"67a191a3-a596-4fb1-8fc8-04ba4b22a7b2","started":"2026-11-09T19:33:34-06:00","ppid":30880,"seen":"sample","by":"servex"}
+{"pid_exit":49840,"ended":"2026-11-09T19:33:47-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":39604,"ended":"2026-11-09T19:33:47-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":46052,"ended":"2026-11-09T19:33:47-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":13652,"ended":"2026-11-09T19:33:47-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":7728,"ended":"2026-11-09T19:33:47-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":53864,"ended":"2026-11-09T19:33:47-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":30880,"ended":"2026-11-09T19:33:47-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":12160,"ended":"2026-11-09T19:33:47-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":27948,"ended":"2026-11-09T19:33:47-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":30176,"ended":"2026-11-09T19:33:47-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":41952,"ended":"2026-11-09T19:33:47-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":4232,"ended":"2026-11-09T19:33:47-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":33024,"ended":"2026-11-09T19:33:47-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":55144,"ended":"2026-11-09T19:33:47-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"commit":{"hash":"26ed5c1314bb68a178b8de2f8f65529dc0e6cf59","what":"core/new sketch: proposals.js skips the live core Router it never patched (router.scroll_to_hash is not a function)","files":["public/framework/core/new/1/site/urls/proposals.js"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-10T01:33:49.721Z"}
+{"commit":{"hash":"23e615776b4b0866955d7daef75411d77b709ae1","what":"core/new: improvement — retire or quarantine the stale site sketch pages","files":["public/framework/core/new/improvements.jsonl"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-10T01:34:04.050Z"}
+{"log":{"at":"2026-11-09T19:36:08-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T01:36:08.531Z"}
+{"pid_exit":46364,"ended":"2026-11-09T19:36:08-06:00","code":0,"signal":null,"by":"servex"}

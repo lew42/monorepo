@@ -317,3 +317,8 @@
 {"log":{"at":"2026-11-09T19:27:16-06:00","heartbeat":"refused","msg":"status check not sent to minion-uikit-cards-keys: its log says complete; only the merge is open"}}
 {"assign":{"closed_by":"mastermind-ui-kit","closed_at":"2026-11-09T19:38:54-06:00","closed_why":null}}
 {"log":{"at":"2026-11-09T19:39:16-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"pid":52880,"cmd":"C:\\WINDOWS\\System32\\where.exe git","why":"child of claude.exe","agent":"minion-uikit-cards-keys","session":"1428d904-accb-4cce-85ee-d6f0235488ca","started":"2026-11-09T19:47:18-06:00","ppid":50660,"seen":"sample","by":"servex"}
+{"pid_exit":52880,"ended":"2026-11-09T19:47:34-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":30204,"ended":"2026-11-10T01:47:01.280Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}
+{"pid_exit":52972,"ended":"2026-11-10T01:47:01.280Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}
+{"pid_exit":31908,"ended":"2026-11-10T01:47:01.280Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}
