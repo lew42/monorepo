@@ -183,7 +183,7 @@
 	:is(.live-children, .live-buttons).is-empty { display: none; }
 	/* A mention in running text (a title, a card's text, the header) is a word with a small icon, not a padded chip
 	   (ui/item's .item pads .3em .6em and frames the icon at 1.3em, which doubled the line height on a phone). */
-	.live-page .mention.item.inline { padding: 0 .1em; gap: .2em; vertical-align: baseline; }
+	.live-page .mention.item.inline { padding: .12em .15em; gap: .2em; vertical-align: baseline; }   /* a little air top and bottom: its text never touches its dark chip (smoke "text touching its box") */
 	.live-page .mention .item-icon { width: 1em; font-size: 1em; }
 	.live-head .mention .item-name { overflow: visible; }
 

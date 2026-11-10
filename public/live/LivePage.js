@@ -311,7 +311,7 @@ export default class LivePage extends Page {
 	follow(){
 		const box = this.$scroll?.el;
 		if (!box || typeof document === "undefined" || this.settings_of || this.at) return;   // settings and a file read from the top
-		import("/framework/ext/Chat/Chat.js").then(({ sticky_scroll }) => { this.scroll = sticky_scroll(box); this.scroll.pin(); })
+		import("/framework/ext/Chat/Chat.js").then(({ sticky_scroll }) => { this.scroll = sticky_scroll(box, { locked: false }); })   // opens at the top; follows only after the reader scrolls to the bottom
 			.catch(e => console.warn("LivePage: no scroll lock (" + e.message + ")"));
 	}
 
@@ -472,11 +472,16 @@ export default class LivePage extends Page {
 	// A text in markdown with mentions, kept in step with one key of an item: new LivePage.Md({ item, key: "text" }).
 	static Md = class LiveMdView extends View {
 		render(){
-			this.bind(this.item, this.key, function(t){
-				const has = t != null && t !== "";
+			const empty = v => v == null || v === "";
+			const show = function(){   // `key`'s value, else `fallback`'s (a card's `description`, else its `text`)
+				let t = this.item.get?.(this.key);
+				if (empty(t) && this.fallback) t = this.item.get?.(this.fallback);
+				const has = !empty(t);
 				this.tc("is-empty", !has).empty(() => { if (has) md(String(t), { safe: true }); });
 				LivePage.label_tables(this.el);
-			});
+			};
+			this.bind(this.item, this.key, show);
+			if (this.fallback) this.bind(this.item, this.fallback, show);
 		}
 	};
 
@@ -777,11 +782,11 @@ export default class LivePage extends Page {
 			const { page, item, url } = this, P = page.constructor, list = item?.preview?.on ? item.preview : null, drawn = new Map();
 			this.ac("live-preview");
 			const $list = div.c("live-preview-list");
-			const $text = new P.Md({ item, key: "description", classes: "live-card-text live-preview-text" });
+			const $text = new P.Md({ item, key: "description", fallback: "text", classes: "live-card-text live-preview-text" });
 			const $theirs = div.c("live-card-text live-preview-text is-empty");
 			let theirs = null;
 			const draw = () => {
-				const members = (list?.items ?? []).filter(i => !i.transient), own = item?.get?.("description");
+				const members = (list?.items ?? []).filter(i => !i.transient), own = item?.get?.("description") || item?.get?.("text");
 				DefaultView.place($list.el, members, drawn, it => P.safely(page, "preview", () => new P.Block({ page, item: it, capture: false }), it));
 				$list.tc("is-empty", !members.length);
 				$text.tc("is-hidden", members.length > 0);
