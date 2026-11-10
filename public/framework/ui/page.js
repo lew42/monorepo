@@ -4,14 +4,20 @@ import { Doc, md, code, ui } from "/app.js";
    it so no component is named twice.
    ⚠ Order is editorial, not alphabetical: a reader landing here meets `card`,
      `toolbar`, `table` and `dialog` long before `kbd`.
-   ⚠ Six, six, six and five — the sizes are load-bearing. A band is its own grid and
-     `auto-fit` stretches it to fill the row, so at 3440 a band of three would draw
-     three cards a thousand pixels wide. Even bands mean even cards. */
+   ⚠ The owner's tree, not a flat alphabet (ui-kit step 4, 2026-11-09): elements first,
+     then what's built from them. Was four bands of six/six/six/five (Surfaces, Data,
+     Forms, Marks); now five bands of five/six/six/six/four, in the order a file tree
+     reads — smallest unit at the top. A band is its own grid and `auto-fit` stretches
+     it to fill the row, so an UNEVEN band draws wider cards than its neighbours at the
+     same wall width; that is accepted here (the owner's words asked for this order,
+     not for five equal piles) — if it ever reads as broken rather than as a
+     deliberately smaller shelf, that is the fix to make, not reverting the order. */
 export const BANDS = {
-	Surfaces: "card toolbar panel stats accordion decision",
-	Data:     "table timeline tree progress pagination crumbs",
-	Forms:    "controls field dialog tags menu tooltip",
-	Marks:    "badge alert avatar kbd words",
+	Elements: "text icon badge kbd avatar",
+	Parts:    "row item tree controls field tags",
+	Cards:    "card panel stats accordion decision alert",
+	Menus:    "menu toolbar crumbs pagination tooltip dialog",
+	Data:     "table timeline progress datagrid",
 };
 
 const names = Object.values(BANDS).flatMap(band => band.split(" "));
@@ -19,7 +25,7 @@ const names = Object.values(BANDS).flatMap(band => band.split(" "));
 export default new Doc({
 	meta: import.meta,
 	title: "UI",
-	description: "Twenty-two in four bands — the control grammar, four functions, eighteen copy-paste templates.",
+	description: "A tree, not a list — elements first, then what's built from them, in five bands. Four functions, the rest copy-paste templates.",
 	icon: "widgets",
 
 	// ⚠ Required on a Doc that is ALSO a nav section. framework/page.js's sections()
@@ -28,22 +34,19 @@ export default new Doc({
 	leaf: true,
 
 	// Real directories, real urls — Router.child() resolves each from <name>/page.js.
-	// ⚠ `background` is appended here, NOT added to BANDS above: it would make
-	// Surfaces seven and break the "six, six, six, five" the browse() wall's own
-	// grid math depends on. It still routes and still shows up in this page's own
-	// nav — background-layer task, 2026-09-19, ai/sessions/2026/09/19/background-layer/.
-	// `section` is appended the same way, for the same reason — section-variants task,
-	// 2026-09-28. `scale` too: a config word, not a component that belongs in a
-	// band's own grid — 2026-09-28. `item` too, for a different reason: it is a real
-	// component with its own band-worthy card, but it landed the same day the bands
-	// were declared even and adding a fifth to any of them breaks that — item-ui
-	// task, 2026-09-29. `icon` too, the same reason: a real, band-worthy component
-	// (three classes around the site's existing icon()) appended rather than
-	// inserted into Marks, which is already five — icon-system task, 2026-09-30.
-	// `datagrid` too, same reason again: it would make Data seven — data-grid
-	// task, 2026-10-03. The full behaviour (resize, sort, filter, windowing) built
-	// on top of this markup is `ext/DataGrid`, which has its own page.
-	children: names.join(" ") + " background scale section item icon datagrid row",
+	// ⚠ `background`, `section` and `scale` are appended here, NOT added to BANDS
+	// above: each is a config word or a one-off, not a component that belongs in a
+	// band's own grid — background-layer task, 2026-09-19; section-variants task,
+	// 2026-09-28; scale, same day. `words` moved out here too (ui-kit step 4,
+	// 2026-11-09): it is the same kind of page as `scale`/`section` — a demo of
+	// applying a config word (`ui-contrast`/`ui-compact`), not a tree component —
+	// so it left the old Marks band rather than take a seat in the new tree.
+	// `item`, `icon`, `datagrid` and `row` used to be appended for the same reason
+	// (landed the day the old bands were declared even, and a fifth or seventh
+	// member would have broken that); the new tree (above) has room for all four as
+	// real band members — Parts (`row`, `item`) and Elements (`icon`) and Data
+	// (`datagrid`) — so they moved back into BANDS instead of staying appended.
+	children: names.join(" ") + " background scale section words",
 
 	/* Overview · API · Docs · Files, and nothing else. Doc's own bar() lists every
 	   declared child between the Overview and the reference sections, which is right

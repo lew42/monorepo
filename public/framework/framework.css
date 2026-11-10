@@ -1234,10 +1234,24 @@
          gone; re-declaring `--flow: var(--flow)` here would be a self-reference). */
 
     :where(.flow, blockquote) > * { margin-block: 0; }
-    :where(.flow, blockquote) > * + * { margin-block-start: var(--flow); }
+    /* ⚠ `:not(.card)` (ui-kit step 4, 2026-11-09): `PageCard.View` renders its box as
+       `"part-card card flow"` — a card that is ALSO a flow, so its own title-to-text
+       rhythm was caught by both this rule (`var(--flow)`, ~2x bigger) and `.card`'s own
+       `:where(.card) > * + * { margin-block-start: var(--gap) }` (styles below, this
+       file). Same zero specificity, same layer — whichever is textually LAST in the
+       layer wins, which was this rule, by accident: a card's title sat `--flow` away
+       from its body instead of the tighter `--gap` the card itself declares. Found
+       looking for the opposite symptom (a heading after a card reading too CLOSE on
+       `/live/session/` at 400px) while building `ui/text/`'s `flow` demo (step 4 of
+       /live/plan/ui-kit/); that exact reading didn't reproduce in isolation (a bare
+       `h2` after a `.card`, both direct children of one outer `.flow`, measured the
+       same margin-top an `h2` gets anywhere — font-size-driven, not neighbour-driven),
+       but this real, provable collision was sitting in the same two rules the bug
+       pointed at, so it's fixed here rather than left for the next reader to retrip. */
+    :where(.flow, blockquote):not(.card) > * + * { margin-block-start: var(--flow); }
 
     /* the small headings take half again — the one pair one token can't say */
-    :where(.flow, blockquote) > * + :is(h3, .h3, h4, .h4)
+    :where(.flow, blockquote):not(.card) > * + :is(h3, .h3, h4, .h4)
         { margin-block-start: calc(var(--flow) * 1.5); }
 
     /* The page title is the one heading that isn't a section break. A real
