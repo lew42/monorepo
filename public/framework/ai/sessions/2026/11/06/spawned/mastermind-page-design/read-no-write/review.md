@@ -1,0 +1,19 @@
+verdict: fix
+1. [fix] The new test `Servex/agents/item-read-no-write.test.mjs` is listed only in `core/Session/doc/identity.md:56`; the item tool's own test list (`Servex/doc/item-tool.md:55`) and `Servex/agents/readme.md` don't mention it, so someone looking at the item tool won't find it. Add it to item-tool.md:55 next to `page_tools.test.mjs`.
+2. [fix] The task folder holds only `requirements.md` and `review/diff.patch`. There is no `task.jsonl`, no outcome and no evidence for the brief's own Check (opening `/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/` gives no writing POST and no 500), and the folder is untracked in git. A fresh agent can't tell whether that Check was ever run or whether the work has landed. Log the Check's result and commit the folder.
+3. [note] Both asks are met in code. `session_file` takes `{create}`, `run_item_now` passes `create:false` for a read or a SESSION_QUERIES delta (`page_tools.js:1592`), and a non-uuid id is looked up by the scan and never created. `AICost.session_url` now asks `AISession.page_url` (`AICost.js:171`), and AISession is already imported. I ran both tests in the worktree: `item-read-no-write: 14 checks pass` and `page_tools: 44 checks passed`.
+4. [note] There is a simpler way: `is_read` at `page_tools.js:1592` is the same expression the session-record branch repeats at `page_tools.js:1601` (`delta === undefined || …every(k => SESSION_QUERIES.includes(k))`). Line 1601 could use `is_read` (it also checks `Object.keys(delta).length`, so the two behave the same).
+5. [note] "A read never writes" is broader than what was built. A `summary` query on an older folder with no `session.jsonl` still writes a one-line record (`page_tools.js` just after 1601; documented in `core/Session/readme.md:133`). That is deliberate and creates no folder, so requirement 1 holds. But the test only watches folder listings (sessions/ and today's day folders), not the files inside an existing session folder. The cloud-voice-app-20261106 folder already has a `session.jsonl`, so viewing it writes nothing.
+6. [note] Every read of an unknown non-uuid name sets `AISession.scanned = false` and rescans all sessions (`session_file`, the new `!UUID.test(uuid)` branch). Any typo'd or unknown route now pays for a full scan. A cheaper path would try `page_url` first and rescan only when it misses.
+7. [note] `AICost.session_url` is a cache key, and it now changes value once the index names the session (bare id before, dated url after). The list and the session page can therefore cache under two keys and ask twice, which goes against the comment at `AICost.js:169`. `ai/AITask/readme.md:21` also still calls it only "the cost-summary key" and doesn't say it is now the dated url.
+8. [note] The worktree `C:/Code/lew42/worktrees/read-no-write` has 158 uncommitted `files.jsonl` changes, dated 05:46, before the commit. Clear them before merging so they don't get swept in. The change in `page_tools.js` also needs a Servex restart before the Check can pass on the live site.
+
+## Requirements
+- 1 "A read must never create a folder; a bad id gets a reason, not a 500. Test that a read leaves the tree unchanged." — yes. `session_file(…,{create:false})`; the test passes 14 checks, including a non-uuid id and an unknown uuid.
+- 2 "AICost.ask … ask by the dated folder url (AISession.page_url)" — yes, `AICost.js:171`.
+- Check "opening …cloud-voice-app-20261106/ makes no POST that writes and no 500" — not shown. The task folder records no run (finding 2); from the code, that folder has `session.jsonl`, so the query only reads.
+- Class page for a new or changed class — n/a (no new class; `AICost` gained no state).
+
+## Words
+- The comments and the identity.md line are plain and say why (the 500, the non-uuid voice record) — yes.
+- The commit message names what changed and the test — yes.
