@@ -265,7 +265,10 @@ export default class Processes extends Events {
 				claim(p.pid, key);
 			}
 		// 4. the detached servers Servex started
-		for (const pid of this.detached()) if (procs.has(pid)){ meet("dev servers", { kind: "servers", label: "Dev servers" }); claim(pid, "dev servers"); }
+		// `servers` counts server TREES (one per root claimed here), `n` counts processes:
+		// one server is a cmd, a conhost and two nodes, so n alone read 35 for 8 servers.
+		const serve = pid => { if (group.has(pid)) return; const g = meet("dev servers", { kind: "servers", label: "Dev servers" }); g.servers = (g.servers ?? 0) + 1; claim(pid, "dev servers"); };
+		for (const pid of this.detached()) if (procs.has(pid)) serve(pid);
 		// 5. whatever is ours but whose parent is gone: a real server stays "dev servers",
 		// everything else gets its own group by kind (classify_leftover, above) -- a
 		// parent-gone cloudflared, chromium, whisper-server or bare shell is never counted
@@ -276,6 +279,7 @@ export default class Processes extends Events {
 			const leaf = m => /^conhost.exe$/i.test(m.name ?? "") || WAITERS.test(m.name ?? "") || is_search(m);   // a console host ends with its process;
 			const waiter = (WAITERS.test(p.name) || is_search(p)) && members.every(leaf);
 			const info = waiter ? { key: "orphans", kind: "orphans", label: "Orphans (parent gone)" } : classify_leftover(members);
+			if (info.key === "dev servers") { serve(p.pid); continue; }
 			meet(info.key, { kind: info.kind, label: info.label });
 			claim(p.pid, info.key);
 		}
@@ -462,8 +466,10 @@ export default class Processes extends Events {
 		const s = this.now;
 		if (!s) return "Processes: no sample yet (the first comes 10 s after Servex starts).";
 		const gb = mb => (mb / 1024).toFixed(1);
+		const dev = s.groups.find(g => g.key === "dev servers");
 		const top = s.groups.filter(g => g.kind === "task").slice(0, 3).map(g => `${g.label} ${gb(g.mb)} GB`).join(", ");
 		return `Ours ${gb(s.ours.mb)} GB in ${s.ours.n} processes, everything else ${gb(s.other.mb)} GB, ${gb(s.free_mb)} GB free.`
+			+ (dev?.servers ? ` ${dev.servers} dev server${dev.servers === 1 ? "" : "s"} (${gb(dev.mb)} GB).` : "")
 			+ (top ? ` Top tasks: ${top}.` : "")
 			+ (s.orphans.length ? ` ${s.orphans.length} orphaned process${s.orphans.length === 1 ? "" : "es"}.` : "")
 			+ (s.sessions?.stale ? ` ${s.sessions.stale} VS Code conversation${s.sessions.stale === 1 ? "" : "s"} idle over ${this.stale_h} h (${gb(s.sessions.stale_mb)} GB): close them in VS Code.` : "")

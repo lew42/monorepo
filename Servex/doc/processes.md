@@ -58,7 +58,7 @@ Every 10 seconds Servex reads every process on the machine. It sorts each one in
 | **front desk** | the assistants, managers and session agents |
 | **Servex** | Servex itself, the node that supervises it, and its other children |
 | **Claude Code session** | a claude.exe Servex did not start (a VS Code tab) and its shells |
-| **dev servers** | the servers Servex started detached, and a parent-gone node of ours running the main site's `run.js`, a worktree's `server.js`, or the gate — a REAL server. Nothing else counts here (2026-11-09: these used to inflate "dev servers" with everything below) |
+| **dev servers** | the servers Servex started detached, and a parent-gone node of ours running the main site's `run.js`, a worktree's `server.js`, or the gate — a REAL server. Its `servers` field counts servers (one per tree); `n` counts processes, about four per server (cmd, conhost, two nodes), and the health line prints `servers`. Nothing else counts here (2026-11-09: these used to inflate "dev servers" with everything below) |
 | **tunnel** | a parent-gone `Tunnel.mjs` or `cloudflared` |
 | **whisper** | a parent-gone `whisper-server` |
 | **browsers** | a parent-gone Playwright chromium (its cache path, or a Playwright `--user-data-dir`) |

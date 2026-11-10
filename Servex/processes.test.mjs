@@ -60,6 +60,8 @@ ok(of(402) === "session 400", "a Git Bash tool whose Windows parent is gone stay
 ok(of(500) === "dev servers" && of(501) === "dev servers", "a detached dev server and its child");
 ok(of(600) === "orphans" && of(601) === "orphans", "a tail|grep whose parents are gone is an orphan");
 ok(of(602) === "dev servers", "a parentless node of ours is shown, never called an orphan");
+ok(by("dev servers").servers === 2 && by("dev servers").n === 3, "dev servers counts server trees (2), not processes (3)");
+ok(p.line().includes(" 2 dev servers ("), "the health line says the real server count");
 ok(!of(700) && !of(701), "chrome and a stranger's tail are not ours");
 ok(of(800) === "tunnel", "a parent-gone cloudflared is its own group, not a dev server");
 ok(of(801) === "whisper", "a parent-gone whisper-server is its own group, not a dev server");
