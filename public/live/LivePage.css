@@ -59,7 +59,12 @@
 	.live-crumb[aria-current] { opacity: 1; font-weight: 600; }
 	.live-crumb-sep { opacity: .4; }
 	.live-head-row { display: flex; align-items: center; gap: .5rem; }
-	.live-title { margin: 0; font-size: 1.05rem; line-height: 1.25; height: 1.25em; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	/* Doubled on purpose, same reason as .live-card-title below: visiting any /live/ page dynamic-imports
+	   archive/'s and sessions/' page.js for their title (meta_of), which pulls in v1's Live.css globally; its
+	   .live-heading (same layer, same 0,1,0 specificity, loaded after this sheet) was winning by source order
+	   alone, rendering the H1 at v1's 1.5em (24px) instead of this rule's fixed 1.05rem (16.8px) — a card title
+	   then only has to clear 24px, not the real, smaller H1 size, to look "smaller". */
+	.live-title.live-title { margin: 0; font-size: 1.05rem; line-height: 1.25; height: 1.25em; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.live-ms { font-size: .7em; opacity: .55; font-variant-numeric: tabular-nums; white-space: nowrap; }
 	.live-version { flex: none; width: auto; font: inherit; font-size: .75em; color: inherit; background: var(--live-card); border: 1px solid light-dark(#0002, #fff3); border-radius: .4em; padding: .15em .3em; }
 	.live-sub, .live-foot-text { opacity: .8; }
@@ -145,7 +150,7 @@
 	.live-card-go::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
 	/* A small corner mark, not a reserved column: the card keeps extra room only at the BOTTOM (one strip, not a
 	   whole right side), so text uses the card's full width and the chevron still never sits under it. */
-	.live-card:has(> .live-card-go) { padding-bottom: 2rem; }
+	.live-card:has(> .live-card-go) { padding-bottom: 1.5rem; }
 	.live-card-chevron { position: absolute; right: .75rem; bottom: .6rem; font-size: 1.1rem; line-height: 1; opacity: .45; pointer-events: none; }
 	.live-card :is(a:not(.live-card-go), button, input, select, label, pre, .live-code-wrap, table) { position: relative; z-index: 1; }   /* tapped, or swiped sideways, on their own */
 	/* A code block inside a card (LivePage.Preview's own members): page padding, card padding and the chevron would
@@ -178,8 +183,15 @@
 	.live-foot-removed { color: inherit; opacity: .7; }
 	/* .live-title (the page's h1) is fixed at 1.05rem, not the page's own growing em (LivePage.css above), so a card
 	   title has to be fixed too to stay clearly smaller at every width: 0.8rem reuses the framework's h4 level
-	   (framework.css's six-level type scale), as rem instead of em, rather than inventing a new number. */
-	.live-card-title { margin: 0; font-size: .8rem; line-height: 1.25; text-transform: none; letter-spacing: normal; }
+	   (framework.css's six-level type scale), as rem instead of em, rather than inventing a new number.
+	   The doubled selector is not a typo: visiting ANY /live/ page dynamic-imports archive/'s and sessions/'s
+	   page.js just to read their title (LivePage.pages_of → meta_of), and those extend the OLD v1 Live, whose
+	   Live.css registers globally (View.stylesheet adopts it site-wide, never scoped to v1's own pages) with its
+	   own single-class .live-card-title and .live-heading rules, same layer, same specificity, loaded after this
+	   sheet — so by plain source order THEY win, not this rule (styles/doc/layout-system.md documents the same
+	   trap). .live-card-title.live-card-title is specificity (0,2,0), which beats a single class regardless of
+	   load order, without touching v1's own files. */
+	.live-card-title.live-card-title { margin: 0; font-size: .8rem; line-height: 1.25; text-transform: none; letter-spacing: normal; }
 	.live-card-text, .live-sub, .live-foot-text { line-height: 1.45; }
 	:is(.live-card-text, .live-sub, .live-foot-text) .md > * { --flow: var(--live-step); }   /* the markdown inside is .flow, which spaces by --flow (set on every element): one step here too */
 	:is(.live-card-text, .live-sub, .live-foot-text) > * { margin: 0; }

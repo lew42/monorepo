@@ -461,8 +461,10 @@ export default class LivePage extends Page {
 	// the title has no leading emoji, or has one this table does not know (kept as it is: the author's own choice).
 	static icon_of_title(title){
 		if (typeof title !== "string") return null;
+		// A key with no variation selector (⚙, U+2699) still matches a title that carries one (⚙️, +U+FE0F): drop
+		// a leftover U+FE0F too, or it reads as a blank before the title (2026-11-09, the owner's phone).
 		for (const [emoji, icon] of Object.entries(this.emoji_icons))
-			if (title.startsWith(emoji)) return { icon, title: title.slice(emoji.length).replace(/^\s+/, "") };
+			if (title.startsWith(emoji)) return { icon, title: title.slice(emoji.length).replace(/^[️\s]+/, "") };
 		return null;
 	}
 
