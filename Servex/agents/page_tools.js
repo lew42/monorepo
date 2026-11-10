@@ -1230,6 +1230,14 @@ function cap_read(value){
 /* THE THREE VERBS (item-tool plan, merge 1, /live/plan/item-tool/): `get`/`set`/`call` each become exactly what today's
  * `delta`/`read` would have been, so everything below this function — validation, the write, replay — never sees a
  * difference. Returns {delta, read} (one of the two undefined) or {why} to refuse before anything is touched. */
+// A client whose schema shows `args` as a string sends the object as JSON text (seen 2026-11-09: `tasks.add` made a task
+// titled with the whole JSON). Text that parses to an object or array is that value; any other string stays a string
+// (`remove: "c1"` takes an id).
+function parse_args(args){
+	if (typeof args !== "string" || !/^\s*[[{]/.test(args)) return args;
+	try { const v = JSON.parse(args); return v !== null && typeof v === "object" ? v : args; } catch { return args; }
+}
+
 function verbs_to_delta({ delta, read, get, set, call, args }){
 	const vals = { delta, read, get, set, call }, given = Object.keys(vals).filter(k => vals[k] !== undefined);
 	if (given.length > 1) return { why: `only one of ${given.join(", ")} in one call. Nothing was written.` };
@@ -1246,7 +1254,7 @@ function verbs_to_delta({ delta, read, get, set, call, args }){
 		if (typeof call !== "string" || !call.trim()) return { why: "`call` must be a dotted path to a method, e.g. \"tasks.add\". Nothing was written." };
 		const parts = hops(call), method = parts.pop();
 		if (!method) return { why: "`call` must be a dotted path to a method, e.g. \"tasks.add\". Nothing was written." };
-		return { delta: nest(parts, { [method]: args !== undefined ? args : {} }) };
+		return { delta: nest(parts, { [method]: args !== undefined ? parse_args(args) : {} }) };
 	}
 	return { delta, read };   // neither given: today's delta/read, unchanged
 }
@@ -1900,7 +1908,7 @@ export function page_tools(resolve_log = null){
 				get: { type: "string", description: "Read a dotted path, e.g. \"tasks.link-dot.state\" — never writes, same answer as `read` (below)." },
 				set: { type: "object", description: "Change plain fields, e.g. {\"title\": \"Plans\"}. Writes one log line, the same as the equivalent `delta`. Refused if a key names a method (use `call`) or a child list (use `call: \"<list>.add\"` or `get`)." },
 				call: { type: "string", description: "A dotted path to a method, e.g. \"tasks.add\" or \"tasks.link-dot.complete\". Writes one log line, the same as the equivalent `delta`. Refused if the last step is not a method, or is a query (use `get`)." },
-				args: { description: "The method's argument, for `call` only (e.g. {title: \"x\"}). Omit for a method that takes none, e.g. call: \"start\"." },
+				args: { type: ["object", "array", "string", "number", "boolean"], description: "The method's argument, for `call` only (e.g. {title: \"x\"}). Omit for a method that takes none, e.g. call: \"start\"." },
 				delta: { type: "object", description: "ONE JSONL line, exactly what Item.set(delta) takes and the log holds. Omit it to read the current state. {\"help\":{}} returns the instructions again." },
 				read: { type: "string", description: "A dotted path to read with NO write, e.g. \"content.today\" (never together with `delta`). Answers {ok:true, read, value}: an Item as its data with every List inside replaced by {total, rows:[{id,type,title}]}; a List as that same rows shape; a query the class lists (help's \"queries\": completion_score, tally, cost, …) is CALLED and answers its value, still with no write; anything else as the plain value. Capped near 4 KB (then `truncated:true`). A path that does not resolve answers {ok:false, why:\"no such path: <the first missing step>\", here:[the ids or keys that exist at the last good step]}." } },
 			[],

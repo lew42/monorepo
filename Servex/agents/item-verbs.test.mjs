@@ -40,6 +40,10 @@ try {
 	const via_call = await run_item({ path: URL, call: "tasks.add", args: { title: "Same shape too" } }, { caller: "t" });
 	ok(via_call.ok && via_delta2.ok && JSON.stringify(strip_id(via_call.line)) === JSON.stringify(strip_id(via_delta2.line)), "call: \"tasks.add\" args:{…} writes the same line shape as delta: {tasks:{add:{…}}}");
 
+	// 3b. args sent as JSON text (a client whose schema showed `args` as a string) is parsed, not used as the title.
+	const via_text = await run_item({ path: URL, call: "tasks.add", args: JSON.stringify({ title: "From text" }) }, { caller: "t" });
+	ok(via_text.ok && via_text.line?.tasks?.add?.title === "From text", "call with args as JSON text parses it: the task is titled \"From text\"");
+
 	// 4. call with no args: {"start":{}}.
 	let started = await run_item({ path: URL, call: "start" }, { caller: "t" });
 	ok(started.ok && started.line?.start !== undefined && JSON.stringify(started.line.start) === "{}", "call: \"start\" with no args writes {start:{}}");
