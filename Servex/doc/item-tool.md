@@ -34,9 +34,9 @@
 A **query** is a method or getter that only reads. A class lists them in `static queries` (`core/Item/Item.js`; `Item.describe()` returns them). A delta whose keys are ALL queries is answered at once and **writes no line**: `{ok, answer:{<key>:value}}`. The grammar is the same one ("a key naming a method calls it"): there is no `get` key. `target` walks into a child first (`target:["a"]`), then asks. A delta that mixes a query with a change (`{"cost":{},"title":"x"}`) is refused with `{ok:false, why}` and writes nothing: send two calls. The item tool holds one live replayed instance per file, so a query is a method call on memory (a 132-task session answers in about 135 ms).
 
 ```
-item({path:"/framework/ai/sessions/2026/10/20/session-e00f55c9/", delta:{"summary":{}}})
-item({path, delta:{"progress":{}, "cost":{}}})            // several queries in one call
-item({path, target:["a"], delta:{"progress":{}}})          // the same, on the child "a"
+item({path:"/framework/ai/sessions/2026/10/20/session-e00f55c9/", get:"summary"})
+item({path, delta:{"progress":{}, "cost":{}}})            // several queries in one call; get takes only one dotted path
+item({path, get:"a.progress"})                             // the same query, on the child "a"
 ```
 
 `Task.queries` = `progress`, `cost` (this folder's agents, USD), `total_cost` (plus every child that has a folder), `duration` (ms, from the start/stop lines), `children` (child **sessions**: tasks whose `path` folder holds a session record), `summary` (id, title, state, completion, progress, counts by state, the open tasks only as id/title/state, cost, duration, children). Cost is computed by `Task.cost_resolver`, which `Agents.js` wires; with no Agents instance (a plain script) it reads 0.
@@ -57,7 +57,7 @@ Tests: `item_tool.test.mjs` (a query writes no line, a mixed delta is refused, t
 
 ## Reading a path, with no write (2026-11-06)
 
-`item({path, read:"a.b.c"})` answers that one dotted path and writes NOTHING — never together with `delta` (refused). It replays the file's live root (the same `live_root(Class, file)` a write uses — a read never costs a second replay once the root is warm) and walks the path one `get()` per step, the exact walker a write's `target` already uses (`hop`/`walk` in `page_tools.js`).
+`item({path, get:"a.b.c"})` (`read` still works) answers that one dotted path and writes NOTHING — never together with `delta`/`set`/`call` (refused). It replays the file's live root (the same `live_root(Class, file)` a write uses — a read never costs a second replay once the root is warm) and walks the path one `get()` per step, the exact walker a write's `target` already uses (`hop`/`walk` in `page_tools.js`).
 
 - **An Item** answers its `toJSON()`, but every List it owns is replaced with rows (below), never the raw members.
 - **A List** answers `{total, rows:[{id, type, title}]}` — `title` is `title ?? label ?? text`, cut to 80 characters. Drill into one row by reading its id (`"content.<id>"`).

@@ -52,7 +52,7 @@ Your session folder is a task list. Use the `item` tool with `path` set to your 
 | add a subtask | `{"<task id>":{"tasks":{"add":{"title":"…"}}}}` |
 | start or finish one | `{"<task id>":{"start":{}}}`, `{"<task id>":{"complete":{"outcome":"…"}}}` (a subtask: nest one more id) |
 | start a process | `{"tasks":{"add":{"title":"…","process":"investigate","brief":"<path>"}}}` (it gets its own folder, and node starts phase 1) |
-| stop it | `item({path: "<process url>", delta: {"stop":{"why":"…"}}})` |
+| stop it | `item({path: "<process url>", call: "stop", args: {"why":"…"}})` |
 | read it | `item({path})`, with no delta |
 
 What the check showed (session `cloud-voice-session-system-test`):
