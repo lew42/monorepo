@@ -1575,6 +1575,10 @@
 {"file":"process-test-9808/","gone":true}
 {"file":"process-test-33864/"}
 {"file":"process-test-33864/","gone":true}
+{"file":"prompt-tasks-test-21180/"}
+{"file":"prompt-tasks-test-21180/","gone":true}
+{"file":"index.json.tmp"}
+{"file":"index.json.tmp","gone":true}
 {"file":"recordings/","gone":true}
 {"file":"usage.json","gone":true}
 {"file":"openrouter-usage.json","gone":true}
@@ -1591,7 +1595,3 @@
 {"file":"index.json","gone":true}
 {"file":"index.jsonl","gone":true}
 {"file":"failures.jsonl","gone":true}
-{"file":"prompt-tasks-test-21180/"}
-{"file":"prompt-tasks-test-21180/","gone":true}
-{"file":"index.json.tmp"}
-{"file":"index.json.tmp","gone":true}
