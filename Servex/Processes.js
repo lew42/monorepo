@@ -39,10 +39,15 @@ import Lineage from "./Lineage.js";
  *                   and wraps none of the above (ask: "count only real servers",
  *                   2026-11-09 — these used to inflate "dev servers")
  *   other of ours   anything else of ours whose parent is gone
- *   orphans         a leftover of ours: a waiter (bash, tail, grep, sleep …) whose
- *                   parent is gone and whose command line points at this repo,
- *                   Claude's own dirs, or Git for Windows' own bin. Reaped once
- *                   idle past `reap_after_ms` (10 min).
+ *   orphans         a leftover of ours: a waiter (bash, tail, grep, find, rg, du,
+ *                   xargs, ls, sleep …) whose parent is gone and whose command line
+ *                   points at this repo, Claude's own dirs, or Git for Windows' own
+ *                   bin. Reaped once idle past `reap_after_ms` (10 min), OR, for a
+ *                   search kind (grep/egrep/fgrep/find/rg/du/xargs/ls, or a `git
+ *                   grep`/`git log -S` invocation), once it has averaged at least
+ *                   `burn_core_pct` of one core over `burn_window_ms` — a runaway
+ *                   recursive search left spinning a fan after its shell is gone
+ *                   (runaway-search, 2026-11-09). Never node, never an app.
  *   (everything else is "other": the owner's apps, never touched)
  *
  * Kept: the latest snapshot (`this.now`), an hour of 10-second points
@@ -59,14 +64,21 @@ import Lineage from "./Lineage.js";
  * game only when idle AND RAM is tight; see its own file for the rule. */
 
 // Names that are ours when their parent chain leads to us.
-const OUR_KINDS = /^(claude|node|bash|sh|tail|grep|sleep|git|cmd|conhost|powershell|cat|head|sed|awk|timeout|find|python|whisper-server|npm|npx|cloudflared|chrome|chromium)\.exe$/i;
+const OUR_KINDS = /^(claude|node|bash|sh|tail|grep|egrep|fgrep|rg|du|xargs|ls|sleep|git|cmd|conhost|powershell|cat|head|sed|awk|timeout|find|python|whisper-server|npm|npx|cloudflared|chrome|chromium)\.exe$/i;
 // Leftovers that do nothing on their own: safe to end once their parent is gone.
-const WAITERS = /^(bash|sh|tail|grep|sleep|cat|head|sed|awk|timeout|find)\.exe$/i;
+const WAITERS = /^(bash|sh|tail|grep|egrep|fgrep|rg|du|xargs|ls|sleep|cat|head|sed|awk|timeout|find)\.exe$/i;
 // A command line that points into this system: the repo, a worktree, Claude's temp dirs, shell snapshots, and Playwright's own cache.
 const OUR_PATHS = /lew42|[\\/]\.claude[\\/]|[\\/]Temp[\\/]claude[\\/]|shell-snapshots|ms-playwright/i;
 // Git for Windows' own tools (tail, grep, sleep …): nobody else starts these here, so one whose parent is gone is a leftover.
 const GIT_TOOLS = /[\\/]Git[\\/](usr[\\/])?bin[\\/]/i;
 const ours_cmd = p => OUR_PATHS.test(p.cmd) || (WAITERS.test(p.name ?? "") && GIT_TOOLS.test(p.cmd));
+
+// A search-kind name (the "burning" rule, deliverable 1): a recursive or file-walking
+// search, never node, never an app. Plain `git.exe` runs everything, so it only counts
+// when the command line itself is a read-only search (`git grep`, `git log -S...`).
+const SEARCH_KINDS = /^(grep|egrep|fgrep|find|rg|du|xargs|ls)\.exe$/i;
+const GIT_SEARCH_CMD = /\bgit(\.exe)?\b[^|&;]*\b(grep\b|log\b[^|&;]*-S\b)/i;
+const is_search = p => SEARCH_KINDS.test(p.name ?? "") || (/^git\.exe$/i.test(p.name ?? "") && GIT_SEARCH_CMD.test(p.cmd ?? ""));
 const SESSION = /--(?:resume|session-id)[= ]"?([0-9a-f-]{36})/i;
 
 // A real server: a node.exe running the main site's run.js, a worktree's own server.js, or the port-80 gate.
@@ -99,6 +111,9 @@ export default class Processes extends Events {
 		this.every ??= Number(process.env.SERVEX_PROCESSES_EVERY_MS) || 10000;
 		this.keep ??= 360;                                   // one hour at 10 s
 		this.reap_after_ms ??= Number(process.env.SERVEX_REAP_ORPHANS_MS) || 10 * 60000;
+		this.burn_core_pct ??= Number(process.env.SERVEX_BURN_CORE_PCT) || 25;     // % of ONE core, averaged
+		this.burn_window_ms ??= Number(process.env.SERVEX_BURN_WINDOW_MS) || 2 * 60000;
+		this.burn_samples = Math.max(1, Math.round(this.burn_window_ms / this.every));
 		this.reaping ??= process.env.SERVEX_REAP_ORPHANS !== "0";
 		this.stale_h ??= Number(process.env.SERVEX_STALE_SESSION_H) || 2;
 		this.procs = new Map();        // pid -> { pid, ppid, name, mb, cpu_s, born, cmd, cpu, idle_since }
@@ -167,9 +182,11 @@ export default class Processes extends Events {
 			const same = prev && prev.born === born;
 			const cpu = same && dt > 0 ? Math.max(0, round(100 * (cpu_s - prev.cpu_s) / dt / this.cores, 1)) : 0;
 			const busy = !same || cpu_s - prev.cpu_s > 0.05;
+			const cpu_hist = (same ? [...(prev.cpu_hist ?? []), cpu] : [cpu]).slice(-this.burn_samples);
 			next.set(pid, { pid, ppid, name, mb, cpu_s, born, cpu,
 				cmd: cmd ?? (same ? prev.cmd : null) ?? "",
-				idle_since: busy ? at : prev.idle_since });
+				idle_since: busy ? at : prev.idle_since,
+				cpu_hist });
 		}
 		this.procs = next;
 		this.cost = typeof self === "number" ? self : null;
@@ -256,7 +273,8 @@ export default class Processes extends Events {
 		for (const p of procs.values()){
 			if (group.has(p.pid) || parent(p) || !OUR_KINDS.test(p.name ?? "") || !ours_cmd(p)) continue;
 			const members = tree(p.pid, kids).map(x => procs.get(x)).filter(Boolean);
-			const waiter = WAITERS.test(p.name) && members.every(m => /^conhost.exe$/i.test(m.name ?? "") || WAITERS.test(m.name ?? ""));   // a console host ends with its process;
+			const leaf = m => /^conhost.exe$/i.test(m.name ?? "") || WAITERS.test(m.name ?? "") || is_search(m);   // a console host ends with its process;
+			const waiter = (WAITERS.test(p.name) || is_search(p)) && members.every(leaf);
 			const info = waiter ? { key: "orphans", kind: "orphans", label: "Orphans (parent gone)" } : classify_leftover(members);
 			meet(info.key, { kind: info.kind, label: info.label });
 			claim(p.pid, info.key);
@@ -376,21 +394,43 @@ export default class Processes extends Events {
 
 	/* ── orphans ──────────────────────────────────────────────────────── */
 
-	/* End an orphan only when all of this holds: a waiter kind (never node, never
-	 * an app), its parent gone, its command line ours, and not a whisker of CPU
-	 * for `reap_after_ms`. One line on the `processes` log for each. */
+	/* End an orphan two ways (runaway-search, 2026-11-09): a waiter kind (never
+	 * node, never an app), its parent gone, its command line ours, and either
+	 * `idle_since` past `reap_after_ms` with no CPU at all (why: "idle", as
+	 * before), OR a search kind (`is_search`, above) that has averaged at least
+	 * `burn_core_pct` of one core over `burn_window_ms` (why: "burning") — a
+	 * recursive search still walking the tree after its shell is gone. One line
+	 * on the `processes` log for each, same shape either way. */
 	reap(){
 		const at = Date.now();
 		for (const o of this.now?.orphans ?? []){
 			const p = this.procs.get(o.pid);
-			if (!p || !WAITERS.test(p.name) || !ours_cmd(p) || !p.idle_since || at - p.idle_since < this.reap_after_ms) continue;
-			let ok = true; try { process.kill(p.pid); } catch (e) { ok = e.code === "ESRCH"; }
-			const entry = { type: "reaped", at: stamp(), pid: p.pid, name: p.name, mb: p.mb, idle_min: Math.round((at - p.idle_since) / 60000), cmd: String(p.cmd).slice(0, 200), ok };
-			this.reaped.push(entry);
-			if (this.reaped.length > 50) this.reaped.shift();
-			this.procs.delete(p.pid);
-			this.log(entry);
+			if (!p || !ours_cmd(p)) continue;
+			if (WAITERS.test(p.name) && p.idle_since && at - p.idle_since >= this.reap_after_ms){
+				this.kill(p, "idle", { idle_min: Math.round((at - p.idle_since) / 60000) });
+				continue;
+			}
+			const cpu_avg = this.burn_avg(p);
+			if (cpu_avg !== null && cpu_avg >= this.burn_core_pct) this.kill(p, "burning", { cpu_avg });
 		}
+	}
+
+	/* The average % of ONE core over the last `burn_samples` ticks (`burn_window_ms`), or
+	 * null until a full window of samples has been seen — never on a process new this tick. */
+	burn_avg(p){
+		if (!is_search(p)) return null;
+		const hist = p.cpu_hist ?? [];
+		if (hist.length < this.burn_samples) return null;
+		return round(hist.reduce((a, b) => a + b, 0) / hist.length * this.cores, 1);
+	}
+
+	kill(p, why, extra = {}){
+		let ok = true; try { process.kill(p.pid); } catch (e) { ok = e.code === "ESRCH"; }
+		const entry = { type: "reaped", at: stamp(), why, pid: p.pid, name: p.name, mb: p.mb, ...extra, cmd: String(p.cmd).slice(0, 200), ok };
+		this.reaped.push(entry);
+		if (this.reaped.length > 50) this.reaped.shift();
+		this.procs.delete(p.pid);
+		this.log(entry);
 	}
 
 	/* ── what is kept ─────────────────────────────────────────────────── */
