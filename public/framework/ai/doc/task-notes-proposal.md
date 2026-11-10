@@ -17,7 +17,7 @@
 **1. A note is a content card added through the item tool, to the task that it belongs to.** One call, no new verb:
 
 ```
-item({ path: "<task folder url>", delta: { "content": { "add": { "type": "part-text", "kind": "finding", "text": "A file READ fires fs.watch on Windows; the page reloads itself.", "source": "<prompt or file link>" } } } })
+item({ path: "<task folder url>", call: "content.add", args: { "type": "part-text", "kind": "finding", "text": "A file READ fires fs.watch on Windows; the page reloads itself.", "source": "<prompt or file link>" } })
 ```
 
 - `kind` is one of `note`, `decision`, `finding`, `question`. `decision` also carries `why` and `alternative`, matching the rule that the best decision is made and the alternative named (law 5).

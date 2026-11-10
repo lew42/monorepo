@@ -42,7 +42,7 @@ Agents.spawn(spec)                Servex/agents/Agents.js   makes a SESSION: def
   → open_task(task, {session_id, agent, model})             open_task() writes line 1 {assign:{session_id, agent, …}}
                                                             before the agent's first turn; past-work.md beside it
 TaskDirs.dir({slug, session_id, parent})   Server/TaskDirs.mjs   the one path builder; `--new <slug>` makes a TASK folder
-item({path, delta:{tasks:{add:{title}}}})  Servex/agents/page_tools.js   a TASK in <module>/tasks/<slug>/ + a pointer line
+item({path, call:"tasks.add", args:{title}}) Servex/agents/page_tools.js   a TASK in <module>/tasks/<slug>/ + a pointer line
 State.mjs → ai/index.json                  Server/AIIndex.mjs   the one reader of both; the Inbox draws it
 ```
 
