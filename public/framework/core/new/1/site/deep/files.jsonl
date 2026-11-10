@@ -13,3 +13,15 @@
 {"file":"race/page.js"}
 {"file":"scale/page.js"}
 {"file":"state/page.js"}
+{"file":"alias/page.js","nav":{"title":"A child named after a property"}}
+{"file":"chrome/page.js","nav":{"title":"Open #3 — full covers, it does not remove"}}
+{"file":"edges/page.js","nav":{"title":"Four edges nobody had looked at"}}
+{"file":"errors/page.js","nav":{"title":"Failing at depth"}}
+{"file":"gap/page.js","nav":{"title":"Open #2 — a page's own .app"}}
+{"file":"history/page.js","nav":{"title":"Back and forward at depth"}}
+{"file":"nav/page.js","nav":{"title":"Open #6 — a nav that is derived AND lazy"}}
+{"file":"nesting/page.js","nav":{"title":"Deep nesting"}}
+{"file":"orphan/page.js","nav":{"title":"Open #5 — activate() on its own"}}
+{"file":"race/page.js","nav":{"title":"Open #4 — racing navigations"}}
+{"file":"scale/page.js","nav":{"title":"Scale"}}
+{"file":"state/page.js","nav":{"title":"State across navigation"}}

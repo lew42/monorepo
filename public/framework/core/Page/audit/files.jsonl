@@ -8,3 +8,6 @@
 {"file":"readme.md"}
 {"file":"sheets/"}
 {"file":"failures.jsonl"}
+{"file":"design/page.js","nav":{"title":"The design pass: nine main pages at four widths","icon":"straighten","description":"The main pages measured at 400, 1200, 1920 and 3440: tab rows, the tab bar's share of the screen, padding and wraps."}}
+{"file":"priority/page.js","nav":{"title":"The main pages, and their layouts","icon":"leaderboard","description":"The site's most-linked pages, heaviest first, each with the layout it uses."}}
+{"file":"reuse/page.js","nav":{"title":"Why pages drift, and how reuse becomes the default","icon":"recycling","description":"A page drifts when nothing hands it an existing layout at the moment it is made. Four changes fix that."}}

@@ -27,7 +27,7 @@ export default class AIIndex {
 	static QUIET_MIN = 5;       // a working agent with no line for this long is marked ⚠
 	static BEAT = 60000;        // a quiet picture is still appended once a minute, so the page knows the writer is alive
 	static REWALK = 600000;     // a full walk of both stores every ten minutes, under the fs.watch ticks
-	static KEEP = 200;          // index.jsonl is cut back to this many lines when it passes twice that
+	static KEEP = 10;           // index.jsonl is cut back to this many lines when it passes twice that: every open replays the whole file, and readers need only the last line (400 lines were 267 MB, 2026-11-10)
 
 	static WAKE_MIN = 250;      // an fs.watch change wakes the loop after this many ms (a debounce), not at the next 5 s tick
 
@@ -355,8 +355,8 @@ export default class AIIndex {
 			timing: { ms: +(performance.now() - t0).toFixed(1), full: walked, files: all.length } };
 	}
 
-	/** The line the dashboard tails: its old keys, plus the bucket counts and the check (never the whole task list). */
-	static stream_line(s){ const { tasks, sessions, agents, cards, asks, ...line } = s; return line; }
+	/** The line the dashboard tails: its old keys, plus the bucket counts and the check (never the whole task list, nor open_nested: 622 KB a line, read only from index.json). */
+	static stream_line(s){ const { tasks, sessions, agents, cards, asks, open_nested, ...line } = s; return line; }
 	/** The picture without its clock, to tell whether anything changed. Cards and asks: their bucket counts and newest change. */
 	static sig(s){
 		const newest = rows => (rows ?? []).reduce((a, r) => r.when && r.when > a ? r.when : a, "");

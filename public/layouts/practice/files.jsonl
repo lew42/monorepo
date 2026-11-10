@@ -9,3 +9,7 @@
 {"file":"workbench/page.js"}
 {"file":"shots/page.jsonl"}
 {"file":"shots/"}
+{"file":"catalog/page.js","nav":{"title":"Catalog","icon":"grid_view","description":"A hero with a fold budget, a wall of twelve cards that has no hole at any width, and a footer of real links — bands all the way down."}}
+{"file":"doc/page.js","nav":{"title":"Docs","icon":"article","description":"What was settled while building the three, what was measured, and what was left."}}
+{"file":"reader/page.js","nav":{"title":"Reader","icon":"menu_book","description":"An article at the measure with a rail beside it — and on a wide screen the leftover spent on contents, figures and notes instead of left grey."}}
+{"file":"workbench/page.js","nav":{"title":"Workbench","icon":"dashboard","description":"A rail, a wall of 24 tiles and a panel that answers — three regions at 3440, two at 1280, one at 400, and a nav that never moves."}}

@@ -6,3 +6,4 @@
 {"file":"readme.md"}
 {"file":"WorkerHost/"}
 {"file":"doc/"}
+{"file":"notifications/page.js","nav":{"title":"Notifications","icon":"notifications_active","description":"Web notifications from a plain Android Chrome tab: what works, live."}}

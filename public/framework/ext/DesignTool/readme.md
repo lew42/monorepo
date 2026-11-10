@@ -32,6 +32,10 @@ sweep("/framework/", { from: 360, to: 3440 });           // → the widths where
 - A rule that fires on the common case is wrong — six of thirteen needed a guard: [knowledge/false-positives.md](./knowledge/false-positives.md)
 - A headless sweep that "hangs in `analyze()`" is Chrome wedging after ~85–110 navigations — recycle the context every ~40: [doc/decisions.md](./doc/decisions.md)
 
+## Merge check
+
+Every branch's changed pages are measured with `analyze()` + `PaddingContract.check()` at merge time, headless, no screenshots — `Server/LayoutCheck.mjs`, run by `merge.mjs` right after the smoke run. It never refuses a merge; it only prints a table and one summary line, same as a smoke warning. Read a line as `<url> <width> BROKEN <n> OFF <m> — new BROKEN: <k> <top finding>`: BROKEN is `analyze()`'s high-severity findings plus any `PaddingContract` misuse (always a real bug); OFF is the `med`/`low` polish tier; "new BROKEN" is how many of today's BROKEN findings are not in `Server/layout-baseline.jsonl` (written by `--baseline`) — a brand new problem, not one already known about. `node Server/LayoutCheck.mjs <base url> <page url>...` to run it by hand.
+
 ## More
 - [What the layout work taught us](./doc/learned.md) — measured facts, what keeps breaking, what to do next
 - [`knowledge/`](./knowledge/) — the lessons, one file each: ratios, thresholds, false positives, blind spots, bounds, widescreen, characters per line, alignment vs padding, ideal ranges, responsive

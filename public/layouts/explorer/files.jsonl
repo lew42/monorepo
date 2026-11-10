@@ -3,3 +3,4 @@
 {"file":"page.js"}
 {"file":"readme.md"}
 {"file":"explorer.json"}
+{"file":"doc/page.js","nav":{"title":"Docs","icon":"menu_book","description":"How the explorer is built, and how to add a layout to it."}}

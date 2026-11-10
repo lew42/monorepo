@@ -2,3 +2,6 @@
 {"file":"overview/page.js"}
 {"file":"page.js"}
 {"file":"settings/page.js"}
+{"file":"activity/page.js","nav":{"title":"Activity","icon":"timeline","description":"A deliberately long panel."}}
+{"file":"overview/page.js","nav":{"title":"Overview","icon":"dashboard","description":"The panel you arrive on."}}
+{"file":"settings/page.js","nav":{"title":"Settings","icon":"settings","description":"A short panel, for contrast."}}

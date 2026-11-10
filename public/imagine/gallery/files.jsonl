@@ -8,3 +8,6 @@
 {"file":"readme.md"}
 {"file":"doc/page.jsonl"}
 {"file":"doc/"}
+{"file":"answers/page.js","nav":{"title":"1 · The leaf","icon":"help","description":"no href"}}
+{"file":"cards/page.js","nav":{"title":"Cards","icon":"wallpaper","description":"Previews on the wash instead of on a white card — the restyle, side by side."}}
+{"file":"lists/page.js","nav":{"title":"Lists","icon":"list","description":"Curated lists of every building block, shape and layout the site has."}}

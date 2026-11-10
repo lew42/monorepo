@@ -15,3 +15,12 @@
 {"file":"swap/page.js"}
 {"file":"shots/page.jsonl"}
 {"file":"shots/"}
+{"file":"board/page.js","nav":{"title":"Dashboard front","icon":"dashboard","description":"Recent, topics, series and about as regions of one grid — four ways into the same eight posts."}}
+{"file":"deck/page.js","nav":{"title":"Deck front","icon":"slideshow","description":"The latest post as a full screen, nav slid away. Beautiful, and one click short of the brief."}}
+{"file":"dig/page.js","nav":{"title":"Dynamic rail","icon":"account_tree","description":"One rail, three contents: sections, then posts, then this post's parts — each one a class the Router already built."}}
+{"file":"doc/page.js","nav":{"title":"Blogx notes","description":"The measurements behind blogx's eight verdicts."}}
+{"file":"finder/page.js","nav":{"title":"Blogx Notes","icon":"view_column","description":"The blog browsed as the tree it is — sections, posts, parts, each a column opening to the right."}}
+{"file":"front/page.js","nav":{"title":"Magazine front","icon":"newspaper","description":"Hero + wall + two rails. The extra width of a wide monitor buys more posts, never a wider one."}}
+{"file":"parts/page.js","nav":{"title":"Parts as columns","icon":"view_week","description":"A four-part post read side by side — part two opens to the right of part one, and 3440 holds all four."}}
+{"file":"rail/page.js","nav":{"title":"Two-level rail","icon":"list","description":"Sections over posts, with active and in-path both derived from the url — never computed, never stale."}}
+{"file":"swap/page.js","nav":{"title":"Parts in place","icon":"swap_horiz","description":"One four-part post, one persistent strip, and a region that swaps — the nav is drawn once and never rebuilt."}}

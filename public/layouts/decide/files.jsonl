@@ -11,3 +11,8 @@
 {"file":"servex/page.js"}
 {"file":"shoot.mjs"}
 {"file":"short/page.js"}
+{"file":"amount/page.js","nav":{"title":"A little content, or a lot","icon":"density_medium","description":"Preview cards against a page with a left nav."}}
+{"file":"centred/page.js","nav":{"title":"The fix: centre the title","icon":"vertical_align_center","description":"The short title column, vertically centred."}}
+{"file":"equal/page.js","nav":{"title":"Three equal columns","icon":"view_week","description":"Three columns that end at the same height."}}
+{"file":"servex/page.js","nav":{"title":"Worked example: Servex","icon":"quiz","description":"The five questions, asked of /framework/servex/."}}
+{"file":"short/page.js","nav":{"title":"One short column","icon":"view_week","description":"The same row, with one short column."}}

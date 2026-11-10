@@ -13,7 +13,26 @@ ui.table(["module", "lines"], [["View", "641"], ["Page", "363"]]);
 ui.keys("Ctrl", "K");
 ```
 
-## Four bands, most useful first (2026-08-17)
+## Five bands, the tree order (2026-11-09, supersedes "Four bands" below)
+
+**The owner's words:** *"starting from H1s, H2s, Ps, LIs, then cards, pages,
+menus… a tree of templates… a file tree is really an item tree."* `BANDS`
+(`page.js`) is now `Elements` (`text` `icon` `badge` `kbd` `avatar`) · `Parts`
+(`row` `item` `tree` `controls` `field` `tags`) · `Cards` (`card` `panel`
+`stats` `accordion` `decision` `alert`) · `Menus` (`menu` `toolbar` `crumbs`
+`pagination` `tooltip` `dialog`) · `Data` (`table` `timeline` `progress`
+`datagrid`) — 5 · 6 · 6 · 6 · 4, elements first, then what's built from them,
+not an even split. `text` is new ([ui/text/](/framework/ui/text/)); `item`,
+`icon`, `datagrid` and `row` moved in from the old appended list below; `words`
+moved out to it (a config-word demo, not a tree component).
+
+**"The sizes are load-bearing" (below) is also superseded.** `.page-previews`
+grids with `auto-fill`, not `auto-fit` (`core/Page/Page.css`, "two children
+must not become two enormous cards"), so an uneven band's cards never stretch
+— checked live, 1920px, `/framework/ui/`. The five/six/six/six/four split
+carries no layout risk the way five/five/five/four was once guarded against.
+
+## Four bands, most useful first (2026-08-17) — superseded by the tree above
 
 **Question.** the owner: *"organized, and starting with the most useful versions,
 and organizing variants from there. If I click a basic card, I could see
@@ -32,10 +51,13 @@ The order is editorial, not alphabetical: a reader meets `card`, `toolbar`,
 | Forms | `field` `dialog` `tags` `menu` `tooltip` | taking a value, and the box, the picker and the hint around one |
 | Marks | `badge` `alert` `avatar` `kbd` | small labelled marks — a status pill, a warning, a person, a keystroke |
 
-**The sizes are load-bearing, and that is the one surprise.** A band is its own
-grid and `auto-fit` stretches it to fill the row, so a band of three at 3440
-draws three cards a thousand pixels wide — a toolbar with a 700px search field
-in it. Five, five, five and four is what makes the cards even. It also killed
+⚠ **Superseded 2026-11-09 (see above): this grid is `auto-fill`, not `auto-fit`,
+so the stretch described next does not happen.** Kept for the history below.
+
+**The sizes are load-bearing, and that is the one surprise.**
+A band is its own grid and `auto-fit` stretches it to fill the row, so a band of
+three at 3440 draws three cards a thousand pixels wide — a toolbar with a 700px
+search field in it. Five, five, five and four is what makes the cards even. It also killed
 the cleaner-sounding five-band cut (Surfaces · Data · Forms · Navigation ·
 Marks), whose two bands of three measured worse than the compromise in the
 membership of `crumbs` and `tooltip`.

@@ -33,3 +33,5 @@
 {"file":"types/"}
 {"file":"types/page.jsonl"}
 {"content":{"add":{"id":"types-link","type":"part-link","path":"./types/","title":"Part types","text":"One part of each of the six types."}}}
+{"file":"example/page.jsonl","nav":{"title":"Item readme, as parts"}}
+{"file":"types/page.jsonl","nav":{"title":"Part types","icon":"view_agenda","description":"One part of each of the six types a page.jsonl line can add."}}

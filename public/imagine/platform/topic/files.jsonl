@@ -1,2 +1,3 @@
 {"file":"async/page.js"}
 {"file":"page.js"}
+{"file":"async/page.js","nav":{"title":"Async","icon":"sync","description":"A subtopic that graduated: one word, and its own subtree finds it instead of JavaScript."}}

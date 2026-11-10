@@ -17,3 +17,17 @@
 {"file":"wall/page.js"}
 {"file":"doc/page.jsonl"}
 {"file":"doc/"}
+{"file":"add/page.js","nav":{"title":"Manual"}}
+{"file":"catalog/page.js","nav":{"title":"Parts"}}
+{"file":"children/page.js","nav":{"title":"Web","icon":"palette"}}
+{"file":"dashboard/page.js","nav":{"title":"Admin"}}
+{"file":"deep/page.js","nav":{"title":"Handbook","icon":"code"}}
+{"file":"docs/page.js","nav":{"title":"Docs","icon":"article"}}
+{"file":"labels/page.js","nav":{"title":"Guide","icon":"code"}}
+{"file":"landing/page.js","nav":{"title":"Nimbus"}}
+{"file":"page/page.js","nav":{"title":"Hello"}}
+{"file":"route/page.js","nav":{"title":"Wiki"}}
+{"file":"shapes/page.js","nav":{"title":"Studio","icon":"code"}}
+{"file":"site/page.js","nav":{"title":"Acme","icon":"language"}}
+{"file":"strip/page.js","nav":{"title":"Feed"}}
+{"file":"wall/page.js","nav":{"title":"Shelf"}}

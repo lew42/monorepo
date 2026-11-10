@@ -3,3 +3,5 @@
 {"file":"class-body/"}
 {"file":"class-body/page.jsonl"}
 {"file":"both/page.jsonl"}
+{"file":"both/page.jsonl","nav":{"title":"Code and a line"}}
+{"file":"class-body/page.jsonl","nav":{"title":"Class body"}}

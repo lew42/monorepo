@@ -30,3 +30,7 @@
 {"file":"live/page.jsonl"}
 {"file":"live/page.jsonl"}
 {"file":"part-link-demo/page.jsonl"}
+{"file":"child/page.jsonl","nav":{"title":"jsonl's own child","icon":"description","description":"Linked automatically because its parent's file line named child/page.jsonl — no probe needed."}}
+{"file":"full/page.jsonl","nav":{"title":"page.jsonl, in full","icon":"data_object","description":"Every line the format knows: files, a placed note, a linked child, a removed file."}}
+{"file":"live/page.jsonl","nav":{"title":"Page tools","icon":"bolt","description":"Built with the four page tools (page_add, page_set, page_log, page_read) while this tab watches — no reload."}}
+{"file":"part-link-demo/page.jsonl","nav":{"title":"part-link demo","icon":"link","description":"Three cards built through the page tools; one promoted to its own child page."}}

@@ -57,3 +57,23 @@
 {"file":"failures.jsonl"}
 {"file":"failures.jsonl","gone":true}
 {"file":"failures.jsonl"}
+{"file":"App/page.js","nav":{"title":"App","icon":"widgets","description":"Boot, and the one container pages mount into."}}
+{"file":"Events/","nav":{"title":"Events","description":"on / off / once / clear / emit, a mixin everything else builds on"}}
+{"file":"Item/page.js","nav":{"title":"Doc","icon":"data_object","description":"A persistent node: an id, a `data` bag, a parent; any list it gives itself."}}
+{"file":"Layout/page.js","nav":{"title":"Layout","icon":"view_quilt","description":"Thirty arrangements you can browse, each proven at seven widths."}}
+{"file":"List/page.js","nav":{"title":"List","icon":"code","description":"The ordered collection that announces every change — add/remove/move/order by id, never an index."}}
+{"file":"new/page.js","nav":{"title":"core/new","icon":"science","description":"The design proof for what's now core/App, core/Page and core/Router. None of it is imported."}}
+{"file":"Page/page.js","nav":{"title":"Page","icon":"description","description":"A node: a url, some content, and children."}}
+{"file":"Plugin/page.js","nav":{"title":"Plugin","icon":"extension","description":"A class that takes plugins: Host.use(A, B), each plugin attaches to every new instance, and Host.plugins is a live list you can switch on and off."}}
+{"file":"Property/page.js","nav":{"title":"Property","icon":"tune","description":"One live value. Two spans bound to it update together; unbinding drops the listener."}}
+{"file":"Role/","nav":{"title":"Role: one Servex role as an object"}}
+{"file":"Router/page.js","nav":{"title":"Router","icon":"alt_route","description":"Everything between a url changing and the DOM reflecting it."}}
+{"file":"Search/page.js","nav":{"title":"Search","icon":"search","description":"The site's corpus and its one search box — open here, press / anywhere on this page."}}
+{"file":"Section/page.js","nav":{"title":"Section","icon":"view_agenda","description":"A page inside a page: an empty box that picks an approved layout."}}
+{"file":"Session/page.js","nav":{"title":"Session","icon":"history","description":"A record in its own dated folder (YYYY/MM/DD/slug/) with a page.jsonl; AISession extends it."}}
+{"file":"Settings/page.js","nav":{"title":"Settings","icon":"tune","description":"A plain settings store between data and UI: defaults, one instance's own overrides, a change event, a save policy, and a row-per-field view."}}
+{"file":"Shell/page.js","nav":{"title":"Shell","icon":"dashboard_customize","description":"Five optional regions around a CSS grid — header, left, right, footer, main. Wrap any page in one; put a Shell inside a Shell's main and they nest."}}
+{"file":"Sidebar/page.js","nav":{"title":"Framework","icon":"flag","description":"A brand over a tree of links, resizable by its own edge. Not owned by any layout — any page can render one."}}
+{"file":"Task/page.js","nav":{"title":"Task","icon":"checklist","description":"A DOM-free unit of work — id, title, a state machine, a computed duration and progress, a List of subtasks."}}
+{"file":"Test/page.js","nav":{"title":"Test","icon":"fact_check","description":"Is it passing? The latest run of every node test, failures first."}}
+{"file":"View/page.js","nav":{"title":"View","icon":"image","description":"A chainable wrapper over a DOM element, with capturing."}}

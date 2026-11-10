@@ -15,3 +15,4 @@
 {"file":"WhisperDemo.css"}
 {"file":"WhisperDemo.js"}
 {"file":"improvements.jsonl"}
+{"file":"log/page.js","nav":{"title":"Whisper log","icon":"receipt_long","description":"Every step between the microphone and the page: Whisper's answers, then what Dictate, the composer and Refine did with each."}}

@@ -9,3 +9,11 @@
 {"file":"release/page.js"}
 {"file":"ui.js"}
 {"file":"view-transitions/page.js"}
+{"file":"arrangements/page.js","nav":{"title":"Motion per arrangement"}}
+{"file":"baseline/page.js","nav":{"title":"The naive transition"}}
+{"file":"direction/page.js","nav":{"title":"Deeper or back"}}
+{"file":"discrete/page.js","nav":{"title":"@starting-style"}}
+{"file":"head-start/page.js","nav":{"title":"A head start on the import"}}
+{"file":"reduced/page.js","nav":{"title":"Reduced motion"}}
+{"file":"release/page.js","nav":{"title":"deactivate()"}}
+{"file":"view-transitions/page.js","nav":{"title":"View Transitions"}}

@@ -50,15 +50,20 @@ A session has exactly ONE folder: `public/framework/ai/sessions/YYYY/MM/DD/<fold
 - **Mind the token burn:** let a script read and calculate, batch tool calls, no session replays or long audits unless asked, keep sessions short.
 - **Context size:** keep a working agent rather than switching for context size alone; compact around 300k. Decisions go in the module's docs as they are made ([doc/context.md](doc/context.md)).
 - **No hard fences between roles:** a capable agent just does the job; the mastermind is the one that decides and splits work.
+- **A small job goes to a fresh, capped agent:** spawn it with `budget_usd` (Servex enforces that), Sonnet unless it needs Opus. Never revive a long-running, big-context mastermind for a few-line fix: a "$4" fix that way cost $108 (page-design, 2026-11-10), and a cap written in a message is not enforced.
 
 ## Explaining to the owner
 
 - **Show an API as JavaScript or pseudocode** (`page.tabs.add({name: "today"})`), not as a JSON delta, unless the owner asks what the delta looks like. Say which object the call operates on (`page`, `page.items`, a card). (the owner, 2026-11-06)
+- **Context first, detail on demand.** Open with the thing the owner already knows (the class, the session id with its icon, the page) and link it; one level of detail per click. Never name something that exists without a link to it (`https://monorepo.lew42.com/...`). Show, don't tell: a link to where it works beats a paragraph. Headings and bullets, no filler, no caveats about past mistakes unless they change what happens next. (the owner, 2026-11-09)
 
 ## Ask before
 
+- **Everything else: decide.** If git can revert it, make the best decision, do it in small merges, and say what you chose. Only destructive or irreversible steps (deleting, killing processes, force-pushing, spending past the budget) wait for the owner. (the owner, 2026-11-09: "make the best decision you can, as long as it's not destructive")
+- **An idea from the owner is a problem to solve, not a build order.** Plan first: a plan page with the MVP on top and the alternatives below, then a fresh reviewer who hasn't seen your reasoning checks the shape. If the owner doesn't answer, don't wait: build the MVP, demo it (a link where it works, on /live/done/), and build the next phase only if it's a priority and usage allows. He judges the demo. (the owner, 2026-11-09: "we're sometimes pulling the trigger too fast when we don't have the right shape yet")
+
 - Breaking a constraint: no build step (`public/` runs as-is; imports are real `.js` URLs), no server at runtime (production is static), no new npm dependency (`npx` and global tools are fine).
-- Major surgery: renaming a core API, moving a responsibility, anything with a dozen callers.
+- Major surgery (renaming a core API, moving a responsibility, anything with a dozen callers): since 2026-11-09, plan it, then decide it yourself in small revertible merges; ask only when it can't be undone with git.
 
 ## Where to look
 

@@ -1,5 +1,7 @@
 # Icons in Figma: one `Icon` component, a dropdown of glyphs (2026-10-13)
 
+**Status (2026-11-09):** this describes the Sept-2026 file's `Icon` set. The design system file (`hbolzQ3Xnc78rhxAPj8xK2`) draws icons with the `Icon item` component (an icon plus an optional label, a chip or tile in Components) and the Material Icons font; its rules are in [use-figma.md](./use-figma.md#componentize-almost-everything-that-has-a-name-owner-2026-11-09-later). The glyph-name identity, the Icons-vs-Symbols trap and the handoff to code below hold for both files.
+
 File `QYN0G2URSBHYH5I06MOjxU`, page `DS · 1.1 Icons` (`163:20989`). Material Symbols Rounded is a font, so an icon is a text layer holding a ligature name (`arrow_forward`).
 
 ## The shape

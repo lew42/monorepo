@@ -3,3 +3,6 @@
 {"file":"padding/page.js"}
 {"file":"page.js"}
 {"file":"scrollbars/page.js"}
+{"file":"backgrounds/page.js","nav":{"title":"Backgrounds","icon":"format_color_fill","description":"Transparent (--wash) vs --tint vs --surface, and whether a child column matches its parent or the ambient fill."}}
+{"file":"padding/page.js","nav":{"title":"Padding","icon":"grid_view","description":"A padded grid vs a flush one (0 gap, 0 padding) inside a column."}}
+{"file":"scrollbars/page.js","nav":{"title":"Rail","icon":"vertical_split","description":"A scrollbar is a decision — an accidental one breaks the column boundary; a deliberate one doesn't."}}

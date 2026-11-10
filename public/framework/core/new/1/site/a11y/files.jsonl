@@ -10,3 +10,12 @@
 {"file":"skip/page.js"}
 {"file":"tabs/page.js"}
 {"file":"ui.js"}
+{"file":"announce/page.js","nav":{"title":"Announcement"}}
+{"file":"audit/page.js","nav":{"title":"The sweep, live"}}
+{"file":"current/page.js","nav":{"title":"aria-current"}}
+{"file":"focus/page.js","nav":{"title":"Focus after navigation"}}
+{"file":"headings/page.js","nav":{"title":"Headings and landmarks"}}
+{"file":"inert/page.js","nav":{"title":"Open #3 — full covers the chrome"}}
+{"file":"motion/page.js","nav":{"title":"Motion, contrast, target size"}}
+{"file":"skip/page.js","nav":{"title":"Skip links"}}
+{"file":"tabs/page.js","nav":{"title":"Tabs, or links?"}}

@@ -74,3 +74,22 @@
 {"content":{"add":{"id":"link-mentions","type":"part-link","path":"./mentions/","title":"Mentions: each module lists the prompts that name it"}},"by":"mastermind-session-truth","ts":"2026-11-08T16:00:45.996Z"}
 {"file":"one-refiner/page.jsonl"}
 {"content":{"add":{"type":"part-link","id":"link-one-refiner","path":"./one-refiner/","title":"One refiner: every sentence you say lands in a task"}},"by":"pages.add","ts":"2026-11-08T16:35:18.133Z"}
+{"file":"plugins/page.jsonl"}
+{"content":{"add":{"type":"part-link","id":"link-plugins","path":"./plugins/","title":"Plugins: a page is a tree of plugins"}},"by":"pages.add","ts":"2026-11-10T00:07:00.998Z"}
+{"content":{"add":{"id":"link-plugins","type":"part-link","path":"/live/plan/plugins/","title":"Plugins: a page is a tree of plugins","text":"Templates and instant page changes, as one system. Plan"}},"by":"mastermind-page-design","ts":"2026-11-10T00:07:01.979Z"}
+{"file":"index/page.jsonl"}
+{"content":{"add":{"type":"part-link","id":"link-index","path":"./index/","title":"Plan: page indexes"}},"by":"pages.add","ts":"2026-11-10T00:10:12.075Z"}
+{"file":"friction/page.jsonl"}
+{"content":{"add":{"type":"part-link","id":"link-friction","path":"./friction/","title":"Friction: the top 5"}},"by":"pages.add","ts":"2026-11-10T00:16:46.338Z"}
+{"file":"ui-kit/page.jsonl"}
+{"content":{"add":{"type":"part-link","id":"link-ui-kit","path":"./ui-kit/","title":"Plan: one UI kit"}},"by":"pages.add","ts":"2026-11-10T00:28:37.436Z"}
+{"file":"fold/page.jsonl","nav":{"title":"LivePage into Page: the plan","icon":"🧩","description":"Where LivePage's 1,220 lines go: into Page, into reusable views, or into plugins. Approved 2026-11-09; building in small merges."}}
+{"file":"friction/page.jsonl","nav":{"title":"Friction: the top 5","icon":"🪨","description":"What makes streaming pages and session pages feel broken, measured, each with its smallest fix and its owner."}}
+{"file":"index/page.jsonl","nav":{"title":"Plan: page indexes","icon":"🗂️","description":"Load a folder's children from one small index file instead of every child page."}}
+{"file":"item-tool/page.jsonl","nav":{"title":"One item tool: get, set, call","icon":"🔧","description":"A plan to replace the five page tools, and about 40 Servex tools, with one item tool and three verbs. Study only; waits for your yes."}}
+{"file":"mentions/page.jsonl","nav":{"title":"Mentions: each module lists the prompts that name it","icon":"🏷️","description":"A plan, not built: a prompt that names Page is tagged Page, and the Page module lists those prompts. Waits for your yes."}}
+{"file":"one-refiner/page.jsonl","nav":{"title":"One refiner: every sentence you say lands in a task","icon":"🧭","description":"A plan, not built: keep one of the 8 prompt refiners, write down what each one does well, and place every sentence into a task on all three channels. Waits for your yes."}}
+{"file":"plugins/page.jsonl","nav":{"title":"Plugins: a page is a tree of plugins","icon":"🧩","description":"Templates, instant page changes and the gear page, as one plugin system. Plan; the MVP is built after a fresh review."}}
+{"file":"questions/page.jsonl","nav":{"title":"Open questions, in full","icon":"❓","description":"The five open design questions, each with its options, pros and cons."}}
+{"file":"today/page.jsonl","nav":{"title":"How it works today","icon":"🔧","description":"The page system as it stands: the classes, where data lives, urls, the item tool, what to keep and what to simplify."}}
+{"file":"ui-kit/page.jsonl","nav":{"title":"Plan: one UI kit","icon":"🧱","description":"A small set of parts every page and card is built from, browsed as a tree in the library, checked at merge without screenshots."}}

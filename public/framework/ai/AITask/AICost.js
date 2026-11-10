@@ -166,8 +166,9 @@ export default class AICost {
 		return AICost.asking.get(base);
 	}
 
-	/** A session's summary url by its id: the list and the session page both ask by it, so they share one cached answer. */
-	static session_url = id => "/framework/ai/sessions/" + id + "/";
+	/** A session's summary url by its id: the list and the session page both ask by it, so they share one cached answer. It is the dated
+	 *  folder (AISession.page_url) once the index has named it: a bare-id route made Servex look the id up, and once made a folder on a view. */
+	static session_url = id => AISession.page_url(id, "/framework/ai/sessions/" + id + "/");
 
 	/** The link to a session's page: its one dated folder once the index has named it. `session_url` is only the cost-summary key, never a link. */
 	static session_href = id => AISession.page_url(id, AICost.session_url(id));

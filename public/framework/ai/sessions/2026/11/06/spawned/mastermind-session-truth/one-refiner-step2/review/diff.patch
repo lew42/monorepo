@@ -1,0 +1,152 @@
+diff --git a/Server/PromptRecords.live.test.mjs b/Server/PromptRecords.live.test.mjs
+new file mode 100644
+index 000000000..bbff0cb44
+--- /dev/null
++++ b/Server/PromptRecords.live.test.mjs
+@@ -0,0 +1,26 @@
++// The live refiner path with the model call stubbed: the brief comes from ext/Refine/PartsBrief.js and the model is Sonnet.
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import assert from "node:assert/strict";
++import PromptRecords from "./PromptRecords.mjs";
++import PARTS_BRIEF from "../public/framework/ext/Refine/PartsBrief.js";
++
++const folder = fs.mkdtempSync(path.join(os.tmpdir(), "live-refine-"));
++const calls = [];
++PromptRecords.ask = async (prompt, opts) => { calls.push({ prompt, ...opts }); return { text: '{"subject":"login","parts":[{"cites":[0],"kind":"ask","text":"Fix the login page.","parts":[]}]}', usd: 0.001 }; };
++
++const pr = new PromptRecords("11111111-2222-3333-4444-555555555555", { process: "live", folder, by: "test" });
++const p = { uuid: "22222222-2222-3333-4444-555555555555", text: "Fix the login page. It is broken.", line: 1, at: "2026-11-09T00:00:00Z" };
++await pr.sentences([p]);
++const parts = await pr.parts_one(p);
++
++assert.equal(PromptRecords.PARTS_BRIEF, PARTS_BRIEF, "the brief is the one in ext/Refine/PartsBrief.js");
++assert.equal(calls[0].system, PARTS_BRIEF, "the model call gets that brief");
++assert.equal(calls[0].model, PromptRecords.PROCESSES.live.parts.model);
++assert.equal(calls[0].model, "claude-sonnet-5", "live parts run on Sonnet");
++assert.equal(PromptRecords.PROCESSES.review.parts.model, "claude-haiku-5-5", "review stays on Haiku");
++assert.equal(parts.length, 1);
++assert.equal(parts[0].kind, "ask");
++fs.rmSync(folder, { recursive: true, force: true });
++console.log("PromptRecords.live.test: ok");
+diff --git a/Server/PromptRecords.mjs b/Server/PromptRecords.mjs
+index cddd5e3a4..ace58b3f1 100644
+--- a/Server/PromptRecords.mjs
++++ b/Server/PromptRecords.mjs
+@@ -26,12 +26,15 @@ import AIIndex from "./AIIndex.mjs";
+ import RefineQueue from "./RefineQueue.mjs";
+ import RefinedCard from "../public/framework/ext/Refine/RefinedCard.js";
+ import PromptLog from "../public/framework/ai/AISession/PromptLog.js";
++import PARTS_BRIEF from "../public/framework/ext/Refine/PartsBrief.js";
+ import PromptRun from "../public/framework/ext/Refine/PromptRun.js";
+ import Prompt from "../public/framework/core/Task/Prompt.js";
+ import { prompt_delta, has_prompt } from "./PromptsToSession.mjs";
+ 
+ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+ const HAIKU = "claude-haiku-5-5";
++/** The live process's model for the parts step and the match-to-open-task call; one line switches it back to HAIKU. */
++const LIVE_MODEL = "claude-sonnet-5";
+ 
+ export default class PromptRecords {
+ 
+@@ -41,23 +44,14 @@ export default class PromptRecords {
+ 
+ 	/** The processes: the same steps, different instructions and context. Measured on tab e00f55c9 (doc, "The experiment"). */
+ 	static PROCESSES = {
+-		live:   { steps: ["sentences", "parts", "file"], parts: { model: HAIKU }, file: "proposals", file_kinds: ["ask"], file_cap: 15,
++		live:   { steps: ["sentences", "parts", "file"], parts: { model: LIVE_MODEL }, file: "proposals", file_kinds: ["ask"], file_cap: 15,
+ 		          why: "fast and blind: a prompt's asks become proposals before anything is done; no evidence search" },
+ 		review: { steps: ["sentences", "parts", "outcomes", "file"], parts: { model: HAIKU }, outcomes: { model: HAIKU, window_chars: 150_000, max_turns: 12 }, file: "open", file_kinds: ["ask", "rule"],
+ 		          why: "after the fact: parts need no context (recall 0.95-1.0 blind), outcomes read what the session did and confirm in the repo" },
+ 	};
+ 
+-	/** The parts step's system prompt. The live and review processes share it: what a prompt says does not depend on what was done. */
+-	static PARTS_BRIEF = `You break ONE prompt the owner of a web-framework repo dictated to an AI coding agent into parts. Dictation rambles and repeats; keep every want, lose nothing said. You cannot see the code.
+-A part is a run of sentences with one meaning; cite them all by number. Every sentence is cited by exactly one part.
+-- ask: something should happen. Give every ask the prompt really holds, as many as there are, and never merge two asks into one: better safe than sorry, include everything. When the owner's exact words carry a degree or a qualifier ("probably", "at least", "never"), or are unclear, quote them inside "text" in quotation marks so later agents can go back to the source. Nest an ask's own specific suggestions, numbers and sub-asks under it in "parts" (same shape). Never invent a fix the owner did not suggest.
+-- rule: a standing direction for agents ("always", "never", "we don't want X", "the mastermind manages these"). It becomes a doc note, never a task; "file" is the doc it belongs in when obvious (CLAUDE.md, a module's readme.md), else "".
+-- question: the owner wants an answer. idea: thinking aloud, a maybe, a hedge ("maybe", "I wonder"). conversation: narration, thanks, filler.
+-When the owner corrects themselves, the later word wins: cite both sentences in one part.
+-A bare follow-up ("make sure that is noted", "look into it", "let me know", "do that too") is never a part of its own: cite its sentence in the part it refers to (usually the one just before it), or nest it there.
+-Answer with ONE JSON object and nothing else:
+-{"subject": "a few of the owner's words", "parts": [{"cites": [0, 1], "kind": "ask|rule|question|idea|conversation", "text": "one line, the owner's names", "file": "", "module": "", "parts": []}]}
+-"module": the site module or page a main part (ask, question, rule or idea) concerns when the prompt names one (ext/Refine, core/Task, ai/sessions), else "".`;
++	/** The parts step's system prompt: ext/Refine/PartsBrief.js. */
++	static PARTS_BRIEF = PARTS_BRIEF;
+ 
+ 	/** The outcomes step's system prompt. */
+ 	static OUTCOMES_BRIEF = `You judge what came of the owner's prompts in ONE session of AI coding agents working on a web-framework repo (cwd is the repo). The user message gives each prompt's parts (already found, each with an id) and the condensed record of what the session did (owner prompts, the agent's replies, one line per tool call; L<n> is the transcript line).
+diff --git a/public/framework/ai/doc/prompt-refinement-map.md b/public/framework/ai/doc/prompt-refinement-map.md
+index bab2d0b41..5c2769291 100644
+--- a/public/framework/ai/doc/prompt-refinement-map.md
++++ b/public/framework/ai/doc/prompt-refinement-map.md
+@@ -2,6 +2,8 @@
+ 
+ Eight mechanisms touch an owner's prompt, and they write to different files. This page lists them, says how they differ, and flags the overlaps. Verified against the code on 2026-10-24.
+ 
++**Step 2 of the one-refiner plan (built on a branch, live after merge and a Servex restart):** the parts brief moved to `ext/Refine/PartsBrief.js` and the `live` process runs on Sonnet. PromptTasks is on while the `prompt-tasks.off` file is absent (`node Servex/agents/PromptTasks.js on`). A prompt with two or more asks is matched to an open task first (`attach_to`); a single ask is filed as a new task with no match (a gap, not built).
++
+ **Changed since (checked 2026-11-08):** the hook now writes through `Ask.write` (`Server/Ask.mjs`, one splitter that numbers sentences). PromptTasks (mechanism 2) is switched off by the `prompt-tasks.off` file in the Servex home, so no `parts` line or `source.part` task was written 11-01..08, and coverage is 0% on every channel. The plan to keep one refiner, with each mechanism's lesson: [/live/plan/one-refiner/](/live/plan/one-refiner/) (record: [inventory.json](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/one-refiner-plan/inventory.json)).
+ 
+ ## The mechanisms
+@@ -9,7 +11,7 @@ Eight mechanisms touch an owner's prompt, and they write to different files. Thi
+ | # | Mechanism | Runs when | Model | Writes (exact file) | What it does |
+ |---|---|---|---|---|---|
+ | 1 | **Hook** [`.claude/hooks/prompt-relay.mjs`](/.claude/hooks/prompt-relay.mjs) | every prompt typed in the owner's own VS Code tab | none | `ai/sessions/<day>/<session>/page.jsonl`: one `Prompt` item (`page_add`) | Saves the raw words. No cleaning. Everything below hangs off this line. |
+-| 2 | **PromptTasks, `live` process** [`Servex/agents/PromptTasks.js`](/Servex/agents/PromptTasks.js) + [`PromptRecords.mjs`](/Server/PromptRecords.mjs) | when `page_add` lands that `Prompt` (`hooks.prompted`), human turns of a VS Code tab only, prompts of 30+ characters | Haiku (`claude-haiku-5-5`), one call, no tools | session's `prompts.jsonl` (`raw`, `clean`, `parts` lines); each top-level ask becomes an `idle` task in the session's `session.jsonl`, at most 15 | **The one breakdown that feeds tasks.** Numbered sentences (code), then parts with kinds and cites (model). |
++| 2 | **PromptTasks, `live` process** [`Servex/agents/PromptTasks.js`](/Servex/agents/PromptTasks.js) + [`PromptRecords.mjs`](/Server/PromptRecords.mjs) | when `page_add` lands that `Prompt` (`hooks.prompted`), human turns of a VS Code tab only, prompts of 30+ characters | Sonnet (`claude-sonnet-5`, `PromptRecords.LIVE_MODEL`), one call, no tools; the parts brief is [ext/Refine/PartsBrief.js](/framework/ext/Refine/PartsBrief.js) | session's `prompts.jsonl` (`raw`, `clean`, `parts` lines); each top-level ask becomes an `idle` task in the session's `session.jsonl`, at most 15 | **The one breakdown that feeds tasks.** Numbered sentences (code), then parts with kinds and cites (model). |
+ | 3 | **PromptRecords, `review` process** `node Server/PromptRecords.mjs <session> --process review` | by hand, after the fact | Haiku for parts; Haiku with Read/Grep for outcomes (one call per ~150k-character window of the session) | same `prompts.jsonl` (`parts` lines with outcomes); with `--file`, tasks in `session.jsonl` | Same parts step as 2, plus what came of each part. Asks and rules still open are filed. |
+ | 4 | **RefineQueue** [`Server/RefineQueue.mjs`](/Server/RefineQueue.mjs) | by hand (`--days 7 --limit N`) | Haiku, one call per prompt | a `refined` card on the session page (`page_add`), `ext/Refine/queue/runs.jsonl` (cost) and `queue/asks.jsonl` (one line per ask) | The older breakdown of past prompts into cited cards (the Coverage tab's "refined" cards); no outcomes. |
+ | 5 | **PromptAudit** [`Server/PromptAudit.mjs`](/Server/PromptAudit.mjs) | by hand (`--days 7`) | pass 1 Haiku per prompt; pass 2 Sonnet, one agent per session | `<session>/prompt-audit.jsonl`, `<session>/prompt-review.jsonl` | Sorts every prompt into tasks, questions, statements, updates, then judges each against what the session did. Files nothing. Its prompt filter (`PromptAudit.prompts`) is used by 2 and 3. |
+@@ -26,7 +28,7 @@ owner types a prompt in a VS Code tab
+   → hook (prompt-relay.mjs)         one Prompt item on the session's page.jsonl           THE one writer of the raw prompt
+   → page_add fires hooks.prompted   (page_tools.js)
+   → PromptTasks.prompted            only owner, only a human turn (turnOrigin), 30+ chars, switch on
+-  → PromptRecords "live"            sentences (code) → parts (Haiku) → file
++  → PromptRecords "live"            sentences (code) → parts (Sonnet) → file
+        prompts.jsonl                raw, clean sentences, parts {id, cites, kind, text, outcome, parts[]}
+        session.jsonl                one task per top-level ask (source {session, line, prompt, part}), max 15
+   → PromptRun (ext/Refine/PromptRun.js)  computes completion from the parts and those tasks' states
+diff --git a/public/framework/core/Session/doc/prompt-tasks.md b/public/framework/core/Session/doc/prompt-tasks.md
+index b400d5a6b..e66e23b2d 100644
+--- a/public/framework/core/Session/doc/prompt-tasks.md
++++ b/public/framework/core/Session/doc/prompt-tasks.md
+@@ -8,7 +8,7 @@
+ 
+ 1. **The prompt is logged.** `.claude/hooks/prompt-relay.mjs` (the UserPromptSubmit hook) adds it as a `Prompt` item to the session's card page, `public/framework/ai/YYYY/MM/DD/session-<id8>/page.jsonl`, through Servex's `page_add` tool.
+ 2. **Servex hears it.** `page_add` calls `hooks.prompted` (`Servex/agents/page_tools.js`) for a `Prompt` item. Servex hands it to `PromptTasks` (`Servex/agents/PromptTasks.js`), which works through prompts one at a time. It skips prompts under 30 characters, `/commands`, any prompt whose `page_add` caller is not `owner`, and any session whose record does not start with `{"session":{"kind":"vscode-tab","id":…}}`. It also skips a turn you did not type: the tab's transcript stamps each user turn with `turnOrigin`, and only `"human"` is refined (a scheduled CronCreate check-in is `"scheduled"`; no line found = refined as before). So only what you type in your own VS Code tabs counts; an SDK agent's prompt never does.
+-3. **The prompt's record starts, and one cheap call splits it** (since 2026-10-23; before, `RefineQueue.one()` brief v3 filed one flat task per sentence, directions included). The `live` process of `Server/PromptRecords.mjs` writes the raw text and numbered sentences into the session's `prompts.jsonl`, then one Haiku call (`PARTS_BRIEF`) splits the prompt into parts: 1 to 3 main asks with their details nested, rules, questions, ideas, conversation ([prompt records](/framework/ext/Refine/doc/prompt-records.md)).
++3. **The prompt's record starts, and one cheap call splits it** (since 2026-10-23; before, `RefineQueue.one()` brief v3 filed one flat task per sentence, directions included). The `live` process of `Server/PromptRecords.mjs` writes the raw text and numbered sentences into the session's `prompts.jsonl`, then one Sonnet call (`PARTS_BRIEF`, now in [ext/Refine/PartsBrief.js](/framework/ext/Refine/PartsBrief.js); the model is `LIVE_MODEL` in `Server/PromptRecords.mjs`, one line back to Haiku) splits the prompt into parts: 1 to 3 main asks with their details nested, rules, questions, ideas, conversation ([prompt records](/framework/ext/Refine/doc/prompt-records.md)).
+ 4. **Each top-level ask is filed as an open task** (rules and questions stay on the record; nested details go in the description) in the session's own record, `public/framework/ai/sessions/YYYY/MM/DD/session-<id8>/session.jsonl` (same day and folder name as the card page), through the item tool with caller `prompt-tasks`:
+    `{"tasks":{"add":{"title","state":"idle","from":"owner","source":{"session","line","prompt","part"},"description","module_hint"}}}`. Routed a prompt's tasks yourself? `node Server/PromptRecords.mjs <session> --handled <prompt id> --to <task path>` completes its open ones as "routed to …" and marks the prompt handled.
+    It lives in the session. No module folder is made until someone starts it and it moves home.
+diff --git a/public/framework/ext/Refine/PartsBrief.js b/public/framework/ext/Refine/PartsBrief.js
+new file mode 100644
+index 000000000..67614c7e4
+--- /dev/null
++++ b/public/framework/ext/Refine/PartsBrief.js
+@@ -0,0 +1,11 @@
++/** The parts brief: the one system prompt the refiner reads to break a dictated prompt into parts (Server/PromptRecords.mjs imports it; the live and review processes share it). */
++export default `You break ONE prompt the owner of a web-framework repo dictated to an AI coding agent into parts. Dictation rambles and repeats; keep every want, lose nothing said. You cannot see the code.
++A part is a run of sentences with one meaning; cite them all by number. Every sentence is cited by exactly one part.
++- ask: something should happen. Give every ask the prompt really holds, as many as there are, and never merge two asks into one: better safe than sorry, include everything. When the owner's exact words carry a degree or a qualifier ("probably", "at least", "never"), or are unclear, quote them inside "text" in quotation marks so later agents can go back to the source. Nest an ask's own specific suggestions, numbers and sub-asks under it in "parts" (same shape). Never invent a fix the owner did not suggest.
++- rule: a standing direction for agents ("always", "never", "we don't want X", "the mastermind manages these"). It becomes a doc note, never a task; "file" is the doc it belongs in when obvious (CLAUDE.md, a module's readme.md), else "".
++- question: the owner wants an answer. idea: thinking aloud, a maybe, a hedge ("maybe", "I wonder"). conversation: narration, thanks, filler.
++When the owner corrects themselves, the later word wins: cite both sentences in one part.
++A bare follow-up ("make sure that is noted", "look into it", "let me know", "do that too") is never a part of its own: cite its sentence in the part it refers to (usually the one just before it), or nest it there.
++Answer with ONE JSON object and nothing else:
++{"subject": "a few of the owner's words", "parts": [{"cites": [0, 1], "kind": "ask|rule|question|idea|conversation", "text": "one line, the owner's names", "file": "", "module": "", "parts": []}]}
++"module": the site module or page a main part (ask, question, rule or idea) concerns when the prompt names one (ext/Refine, core/Task, ai/sessions), else "".`;
+diff --git a/public/framework/ext/Refine/readme.md b/public/framework/ext/Refine/readme.md
+index 25fa3d85b..6e99239cc 100644
+--- a/public/framework/ext/Refine/readme.md
++++ b/public/framework/ext/Refine/readme.md
+@@ -1,5 +1,7 @@
+ # Refine — speak one prompt and watch it refine (raw → clean → cards, with flags); plus a saved run shown as a ladder
+ 
++**The parts brief lives here:** [PartsBrief.js](PartsBrief.js) is the one system prompt that breaks a dictated prompt into parts; `Server/PromptRecords.mjs` imports it (`PromptRecords.PARTS_BRIEF`). The `live` process (PromptTasks) runs it on Sonnet, one named constant `LIVE_MODEL` in `PromptRecords.mjs`; the `review` process stays on Haiku. PromptTasks is on when the `prompt-tasks.off` file is absent from the Servex home (`node Servex/agents/PromptTasks.js on|off|status`, no restart). Test: `Server/PromptRecords.live.test.mjs`.
++
+ **Prompt records (2026-10-23):** every owner prompt as parts with outcomes, and a computed completion; a prompt is complete when everything it asks is done or documented and no sentence was skipped. Live and review processes in `Server/PromptRecords.mjs`; shown on each session page's Coverage tab ([doc/prompt-records.md](doc/prompt-records.md)).
+ 
+ **Also here: the refine queue** — every past owner prompt becomes a refined card on its session page's Coverage tab ([doc/refine-queue.md](doc/refine-queue.md), `Server/RefineQueue.mjs`).

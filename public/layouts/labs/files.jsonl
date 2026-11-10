@@ -8,3 +8,9 @@
 {"file":"shells/page.js"}
 {"file":"trees/page.js"}
 {"file":"trees/"}
+{"file":"blogx/page.js","nav":{"title":"Blogx","icon":"newspaper","description":"Eight blog shells, judged at 3440 first. Above-the-fold fronts, left rails, and two ways to read a four-part post."}}
+{"file":"decks/page.js","nav":{"title":"Decks","icon":"slideshow","description":"Presentational layouts — cutting a screen, and what belongs in each piece."}}
+{"file":"mag/page.js","nav":{"title":"Magazine","icon":"auto_stories","description":"Issue 01, The Column — a small magazine built out of the column program's own words."}}
+{"file":"screens/page.js","nav":{"title":"Screens","icon":"fullscreen","description":"Full-screen experiences — how navigation transforms a whole screen."}}
+{"file":"sections/page.js","nav":{"title":"Sections","icon":"view_agenda","description":"Multi-column bands that fill a wide screen."}}
+{"file":"shells/page.js","nav":{"title":"Shells","icon":"dashboard","description":"App shell layouts — rails, bars, a canvas, and chrome inside chrome."}}

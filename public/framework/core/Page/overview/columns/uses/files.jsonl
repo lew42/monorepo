@@ -4,3 +4,7 @@
 {"file":"split/page.js"}
 {"file":"uses.css"}
 {"file":"workbench/page.js"}
+{"file":"docs/page.js","nav":{"icon":"menu_book","description":"Five levels of documentation — a rail, a chapter with in-place tabs, a member list, one full-width reader."}}
+{"file":"inbox/page.js","nav":{"title":"Inbox","icon":"inbox","description":"Previews left, the message right — and a read/unread count that crosses three page boundaries through one ref."}}
+{"file":"split/page.js","nav":{"title":"Split","icon":"horizontal_split","description":"The viewport height in two — a columns tree above, a console below that reacts to it through one shared ref."}}
+{"file":"workbench/page.js","nav":{"title":"Workbench","icon":"dashboard","description":"The 3440 exemplar — two, three and four columns of real content side by side, and one that claims the screen."}}

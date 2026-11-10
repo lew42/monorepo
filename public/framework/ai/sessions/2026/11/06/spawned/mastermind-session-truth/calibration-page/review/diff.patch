@@ -1,0 +1,141 @@
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/calibration/live-page-2026-11-07.jsonl b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/calibration/live-page-2026-11-07.jsonl
+new file mode 100644
+index 000000000..ee2fed72a
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/calibration/live-page-2026-11-07.jsonl
+@@ -0,0 +1,7 @@
++{"title":"Prompt calibration: what the record misses","icon":"🎯","description":"Four of your voice prompts, refined by Haiku and Sonnet: the asks and questions no task holds yet.","class":"/live/LivePage.js"}
++{"content":{"add":{"id":"dlkgoxa6","type":"part-text","text":"Four of your voice prompts from the 11-06 cloud session were checked against the 24 tasks on the voice app's record. **Sonnet did it better and cheaper than Haiku** (about $0.03 a prompt). Below is what no task holds yet. Nothing here has been filed: each card is a suggestion. Full results: [calibration/results.md](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/calibration/results.md)."}},"by":"mastermind-session-truth","ts":"2026-11-07T06:28:45.793Z"}
++{"content":{"add":{"id":"fix-the-page-error-after-reload","type":"part-card","title":"🐛 Fix the page error after reload","text":"**Suggested task** (#114, \"your agents broke my page\"). After \"page out of date, reload\", the page threw a JavaScript error (\"P is not a function\"). The rule half (worktree, smoke test, merge only when ready) is already in agents.md. The error itself has no task."}},"by":"mastermind-session-truth","ts":"2026-11-07T06:28:47.586Z"}
++{"content":{"add":{"id":"page-storage-and-loading-at-scale","type":"part-card","title":"📄 Page storage and loading at scale","text":"**Suggested task** (#95). Converge pages on one storage system: embedded first, then a sub-page with its own folder past a threshold. Study how loading scales.\n\n**Question:** when a parent page loads, does it load and replay every child page and delta?\n\n**Suggested task:** a page index (`index.jsonl` with icon, title and preview) loaded one level deep. You said you had asked before, so past work should be searched first."}},"by":"mastermind-session-truth","ts":"2026-11-07T06:28:49.871Z"}
++{"content":{"add":{"id":"page-settings-with-a-files-tab","type":"part-card","title":"⚙️ Page settings with a Files tab","text":"**Suggested task** (#116). Any page gets a settings screen. Its Files tab lists the page's folders and files and opens a file with syntax highlighting.\n\n**Suggested task:** breadcrumbs exactly mirror `window.location.pathname`.\n\n**Note, not a task:** you said not to build the toolbar and debug ideas yet."}},"by":"mastermind-session-truth","ts":"2026-11-07T06:28:51.774Z"}
++{"content":{"add":{"id":"plan-first-and-say-who-else-is-editing","type":"part-card","title":"🧠 Plan first, and say who else is editing","text":"**Suggested task** (#116). A plan is the simplified class architecture. It is amended as decisions change, and then the build goes ahead without waiting for approval. (Close to the Plan idea in core/Task, written down but not built.)\n\n**Suggested task:** the live-page docs warn that several agents may edit at once, so never assume the state is what you last saw.\n\n**Question:** can the item tool read one property (`page.content`)? It can now: `item({path, read: \"content\"})`."}},"by":"mastermind-session-truth","ts":"2026-11-07T06:28:54.476Z"}
++{"content":{"add":{"id":"already-held-by-a-task","type":"part-card","title":"✅ Already held by a task","text":"#27 (\"why we haven't been completing our sessions\") is fully covered by close-with-proof and past-work-audit. Both models agreed."}},"by":"mastermind-session-truth","ts":"2026-11-07T06:28:55.524Z"}
+diff --git a/public/live/calibration/calibration.css b/public/live/calibration/calibration.css
+new file mode 100644
+index 000000000..8b0709abb
+--- /dev/null
++++ b/public/live/calibration/calibration.css
+@@ -0,0 +1,16 @@
++@layer base, theme, site, util;
++@layer site {
++	.calib { display: grid; gap: 1.5em; max-width: 90em; }
++	.calib h2 { font-size: 1.15em; margin: 0; }
++	.calib h3 { font-size: 1em; margin: .6em 0 .2em; }
++	.calib-prompt { display: grid; gap: .4em; padding-top: 1em; border-top: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
++	.calib-note, .calib-id, .calib-none, .calib-foot { opacity: .7; font-size: .9em; }
++	.calib p, .calib li { max-width: 45em; }
++	.calib-words { white-space: pre-wrap; }
++	.calib details > summary { cursor: pointer; font-weight: 600; }
++	.calib-models { display: grid; gap: 1em; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22em), 1fr)); }
++	.calib-model { display: grid; align-content: start; gap: .2em; }
++	.calib-model ul { margin: 0 0 .4em; padding-left: 1.2em; }
++	.calib-label { display: block; margin-top: .4em; }
++	.calib-model > h3 { margin: 0; padding: .3em .6em; border-radius: .4em; background: color-mix(in srgb, currentColor 8%, transparent); }
++}
+diff --git a/public/live/calibration/page.js b/public/live/calibration/page.js
+new file mode 100644
+index 000000000..730204b4b
+--- /dev/null
++++ b/public/live/calibration/page.js
+@@ -0,0 +1,87 @@
++import { Page, View, div, h2, h3, p, span, ul, li, a, details, summary, b } from "/app.js";
++
++View.stylesheet(import.meta, "calibration.css");
++
++/* /live/calibration/: the first prompt-refinement test (2026-11-07). Four of the owner's prompts from the cloud chat, each refined by
++ * Sonnet and by Haiku on the same instructions. This page reads the real files (inputs/*.txt, outputs/<model>-<n>.json) and draws them;
++ * the verdicts are the judge's (results.md). Nothing here is typed by hand except those four verdict lines. */
++const RUN = "/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/calibration/";
++const SESSION = "/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/";
++const TURNS = 162; // owner turns in the cloud transcript 8849dcc6 (node Server/ClaudeCodeTranscript.mjs <file> --json, 2026-11-09)
++const PROMPTS = [
++	{ n: 27, about: "why sessions don't complete", verdict: "Both models placed every sentence under existing tasks (close-with-proof, past-work-audit). Nothing missing." },
++	{ n: 95, about: "page storage, loading and indexing", verdict: "Sonnet found 4 asks that cover every sentence; Haiku split them finer. No task holds page storage, parent loading or the page index yet." },
++	{ n: 114, about: "\"your agents broke my page\"", verdict: "Only Sonnet split out the page error itself (\"P is not a function\"). The worktree rule is already in agents.md, so 0% overstates the gap." },
++	{ n: 116, about: "autonomy, the live page, page settings", verdict: "Sonnet grouped 89 sentences into 9 asks against Haiku's 15. No task holds the page settings screen, breadcrumbs or plan-first." },
++];
++const MODELS = ["sonnet", "haiku"];
++
++// The input file: "PROMPT #n (…)" then "[k] sentence" lines, then CONTEXT and TASKS ALREADY FILED ("- id [state]: title").
++const parse = txt => {
++	const [head] = txt.split(/^CONTEXT /m), tasks = new Map();
++	const sentences = [...head.matchAll(/^\[(\d+)\] (.*)$/gm)].map(m => ({ k: +m[1], text: m[2] }));
++	for (const m of txt.matchAll(/^- ([\w-]+) \[(\w+)\]: (.*)$/gm)) tasks.set(m[1], { state: m[2], title: m[3].split(" — ")[0] });
++	return { sentences, tasks };
++};
++const get = (url, as) => fetch(url).then(r => r.ok ? r[as]() : Promise.reject(new Error(`${url}: ${r.status}`)));
++
++export default new Page({
++	meta: import.meta,
++	title: "Prompt calibration",
++	description: "Four of your cloud-chat prompts, refined by Sonnet and by Haiku: what went in, what came out, which won.",
++	icon: "tune",
++
++	content(){
++		const $out = div.c("calib wide");
++		$out.empty(() => p("Loading the four prompts…"));
++		Promise.all(PROMPTS.map(x => Promise.all([get(`${RUN}inputs/p${x.n}.txt`, "text"), ...MODELS.map(m => get(`${RUN}outputs/${m}-${x.n}.json`, "json"))])
++			.then(([txt, ...outs]) => ({ ...x, ...parse(txt), outs: Object.fromEntries(MODELS.map((m, i) => [m, outs[i]])) }))))
++			.then(rows => $out.empty(() => draw(rows)), e => $out.empty(() => p(`Could not load the run's files: ${e.message}`)));
++	},
++});
++
++function draw(rows){
++	p(() => {
++		span("A model test from 11-07: four of your prompts from the ");
++		a("cloud chat's session record").attr("href", SESSION);
++		span(" were each refined by Sonnet and by Haiku, then checked against the tasks already on that record. Sonnet did it better, at about $0.03 a prompt against Haiku's $0.10. Full write-up: ");
++		a("results.md").attr("href", RUN + "results.md");
++		span(".");
++	});
++	for (const r of rows) prompt(r);
++	p.c("calib-foot", `Only 4 of the chat's ${TURNS} prompts were checked: this was a model test. The full review is the retro run, after the one refiner lands.`);
++}
++
++function prompt(r){
++	div.c("calib-prompt", () => {
++		h2(`Prompt #${r.n} of ${TURNS}: ${r.about}`);
++		p.c("calib-note", "Its place among your turns in that chat, not a task number.");
++		const words = r.sentences.map(s => s.text).join(" ");
++		if (r.sentences.length > 6) details(() => { summary(`Your words (${r.sentences.length} sentences)`); p.c("calib-words", words); });
++		else { h3("Your words"); p.c("calib-words", words); }
++		div.c("calib-models", () => { for (const m of MODELS) model(r, m); });
++		h3("Verdict");
++		p(r.verdict);
++	});
++}
++
++function model(r, m){
++	const out = r.outs[m], res = out.result ?? {}, cov = res.coverage ?? [];
++	const matched = [...new Set(cov.map(c => c.task).filter(Boolean))];
++	div.c("calib-model", () => {
++		h3(m === "sonnet" ? "Sonnet" : "Haiku");
++		section("Tasks it matched", matched, id => {
++			const t = r.tasks.get(id);
++			a(t ? t.title : id).attr("href", SESSION);
++			span.c("calib-id", ` ${id}${t ? ", " + t.state : ""}`);
++		});
++		section("New asks it found", (res.uncovered ?? []).filter(u => u.suggest !== "question"), u => span(`${u.suggest === "note" ? "Note: " : ""}${u.title}`));
++		section("Questions", res.questions ?? [], q => span(q.text));
++	});
++}
++
++function section(title, items, row){
++	b.c("calib-label", `${title} (${items.length})`);
++	if (items.length) ul(() => { for (const x of items) li(() => row(x)); });
++	else p.c("calib-none", "None.");
++}
+diff --git a/public/live/calibration/page.jsonl b/public/live/calibration/page.jsonl
+deleted file mode 100644
+index ee2fed72a..000000000
+--- a/public/live/calibration/page.jsonl
++++ /dev/null
+@@ -1,7 +0,0 @@
+-{"title":"Prompt calibration: what the record misses","icon":"🎯","description":"Four of your voice prompts, refined by Haiku and Sonnet: the asks and questions no task holds yet.","class":"/live/LivePage.js"}
+-{"content":{"add":{"id":"dlkgoxa6","type":"part-text","text":"Four of your voice prompts from the 11-06 cloud session were checked against the 24 tasks on the voice app's record. **Sonnet did it better and cheaper than Haiku** (about $0.03 a prompt). Below is what no task holds yet. Nothing here has been filed: each card is a suggestion. Full results: [calibration/results.md](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/calibration/results.md)."}},"by":"mastermind-session-truth","ts":"2026-11-07T06:28:45.793Z"}
+-{"content":{"add":{"id":"fix-the-page-error-after-reload","type":"part-card","title":"🐛 Fix the page error after reload","text":"**Suggested task** (#114, \"your agents broke my page\"). After \"page out of date, reload\", the page threw a JavaScript error (\"P is not a function\"). The rule half (worktree, smoke test, merge only when ready) is already in agents.md. The error itself has no task."}},"by":"mastermind-session-truth","ts":"2026-11-07T06:28:47.586Z"}
+-{"content":{"add":{"id":"page-storage-and-loading-at-scale","type":"part-card","title":"📄 Page storage and loading at scale","text":"**Suggested task** (#95). Converge pages on one storage system: embedded first, then a sub-page with its own folder past a threshold. Study how loading scales.\n\n**Question:** when a parent page loads, does it load and replay every child page and delta?\n\n**Suggested task:** a page index (`index.jsonl` with icon, title and preview) loaded one level deep. You said you had asked before, so past work should be searched first."}},"by":"mastermind-session-truth","ts":"2026-11-07T06:28:49.871Z"}
+-{"content":{"add":{"id":"page-settings-with-a-files-tab","type":"part-card","title":"⚙️ Page settings with a Files tab","text":"**Suggested task** (#116). Any page gets a settings screen. Its Files tab lists the page's folders and files and opens a file with syntax highlighting.\n\n**Suggested task:** breadcrumbs exactly mirror `window.location.pathname`.\n\n**Note, not a task:** you said not to build the toolbar and debug ideas yet."}},"by":"mastermind-session-truth","ts":"2026-11-07T06:28:51.774Z"}
+-{"content":{"add":{"id":"plan-first-and-say-who-else-is-editing","type":"part-card","title":"🧠 Plan first, and say who else is editing","text":"**Suggested task** (#116). A plan is the simplified class architecture. It is amended as decisions change, and then the build goes ahead without waiting for approval. (Close to the Plan idea in core/Task, written down but not built.)\n\n**Suggested task:** the live-page docs warn that several agents may edit at once, so never assume the state is what you last saw.\n\n**Question:** can the item tool read one property (`page.content`)? It can now: `item({path, read: \"content\"})`."}},"by":"mastermind-session-truth","ts":"2026-11-07T06:28:54.476Z"}
+-{"content":{"add":{"id":"already-held-by-a-task","type":"part-card","title":"✅ Already held by a task","text":"#27 (\"why we haven't been completing our sessions\") is fully covered by close-with-proof and past-work-audit. Both models agreed."}},"by":"mastermind-session-truth","ts":"2026-11-07T06:28:55.524Z"}

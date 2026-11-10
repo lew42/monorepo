@@ -22,32 +22,10 @@
 		initial-value: 0px;
 	}
 
-	/* ── THE FLUSH STACK (the owner's name, design/layout/doc/rules.md) ──
-	   Rows touching: no padding, no gap, one box. Only the stack's OUTER corners round
-	   (`--flush-radius`, square by default); the rows inside stay square, so rounded rows
-	   never meet in pinched notches. Any list can wear it. */
-	.flush-stack {
-		display: flex;
-		flex-direction: column;
-		gap: 0;
-		padding: 0;
-		border-radius: var(--flush-radius, 0);
-	}
-
-	.flush-stack > * {
-		margin: 0;
-		border-radius: 0;
-	}
-
-	.flush-stack > :first-child {
-		border-start-start-radius: var(--flush-radius, 0);
-		border-start-end-radius: var(--flush-radius, 0);
-	}
-
-	.flush-stack > :last-child {
-		border-end-start-radius: var(--flush-radius, 0);
-		border-end-end-radius: var(--flush-radius, 0);
-	}
+	/* THE FLUSH STACK moved to `framework.css`'s `util` layer (2026-11-09) — it had
+	   no Inbox-specific dependency, and `ui/card/page.js`'s `stack` variant needed
+	   the same rule. `@layer util` beats this `@layer theme` regardless of
+	   specificity, so moving it changed nothing here. */
 
 	/* ── the page ──
 	   THE PAGE ITSELF DOES NOT SCROLL: a band on top (the title and tabs), the shell taking

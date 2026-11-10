@@ -1,0 +1,243 @@
+diff --git a/.claude/hooks/server-guard.mjs b/.claude/hooks/server-guard.mjs
+index 30a991a31..d8b2a3cfd 100644
+--- a/.claude/hooks/server-guard.mjs
++++ b/.claude/hooks/server-guard.mjs
+@@ -22,7 +22,8 @@
+  * drive root (`C:\`, `/c`, `C:/`), `~` / `$HOME`, `..`, or the repo root — `.` or no path at all
+  * while `cwd` IS that root, or an absolute path naming it outright (`C:\Code\lew42\monorepo`,
+  * `C:\Code\lew42\worktrees\<any>`). A named subfolder or a single file is always fine, as is
+- * `git grep` / plain `grep` with no `-r`.
++ * `git grep` / plain `grep` with no `-r`. A heredoc's body and anything inside quotes are data,
++ * never a command (`shell_segments`), so a regex like `grep|rg|find` in a script passes.
+  *
+  * ALLOWS everything else: `node Server/worktree-up.mjs`, `worktree-down.mjs`, `merge.mjs`,
+  * `smoke.mjs`, `node --test`, `node --check`, any other `node <script>.js` that isn't
+@@ -34,6 +35,26 @@
+ 
+ const SEGMENTS = /\|\||&&|[;|]/;
+ 
++/* The shell commands in `raw`, for the search check: a heredoc's body is data, not commands,
++ * and a `|`, `;` or `&&` inside quotes is text (a regex like `grep|rg|find` in a script body
++ * was refused as a bare `rg`, 2026-11-09), so neither splits a command. A newline does. */
++function shell_segments(raw) {
++	const body = raw.replace(/<<-?\s*(['"]?)(\w+)\1[^\n]*\n[\s\S]*?\n[ \t]*\2[ \t]*(?=\n|$)/g, m => m.slice(0, m.indexOf("\n")));
++	const out = [];
++	let cur = "", quote = null;
++	for (let i = 0; i < body.length; i++) {
++		const c = body[i];
++		if (quote) { if (c === quote) quote = null; cur += c; continue; }
++		if (c === '"' || c === "'") { quote = c; cur += c; continue; }
++		const two = body.slice(i, i + 2);
++		if (two === "&&" || two === "||") { out.push(cur); cur = ""; i++; continue; }
++		if (c === "|" || c === ";" || c === "\n") { out.push(cur); cur = ""; continue; }
++		cur += c;
++	}
++	out.push(cur);
++	return out;
++}
++
+ /* Everything after `node` in its own command segment, minus node's own flags (`-x`, `--y`) and
+  * any `VAR=val` env assignment that comes after it: the first token left is the script node is
+  * actually about to run. Quotes around it are stripped so `'server.js'` still resolves. */
+@@ -152,7 +173,7 @@ process.stdin.on("data", d => (raw += d)).on("end", () => {
+ 		}
+ 
+ 		// Unscoped recursive search: checked on the RAW command, so a quoted pattern stays intact.
+-		for (const segment of raw_cmd.split(SEGMENTS)) {
++		for (const segment of shell_segments(raw_cmd)) {
+ 			const hit = scope_violation(segment, cwd);
+ 			if (hit) {
+ 				process.stderr.write(scope_reason(hit));
+diff --git a/.claude/hooks/server-guard.test.mjs b/.claude/hooks/server-guard.test.mjs
+index 565f662df..1ed25368c 100644
+--- a/.claude/hooks/server-guard.test.mjs
++++ b/.claude/hooks/server-guard.test.mjs
+@@ -55,12 +55,18 @@ const BLOCK = [
+ 	// chained with another command
+ 	[`cd C:/Code/lew42/worktrees/qf-6 && node server.js`, MAIN],
+ 	[`node server.js; echo done`, MAIN],
++	// a real search after a heredoc, or on its own line, is still a command
++	["cat <<'EOF' > x.txt\nhello\nEOF\nfind / -name y", MAIN],
++	["echo start\nfind . -name y", MAIN],
+ ];
+ const ALLOW = [
+ 	// unscoped recursive search: a named subfolder, a single file, git grep anywhere, no -r
+ 	[`grep -rn pattern Servex/`, MAIN],
+ 	// a quoted "-r" is the pattern being searched for, not the recursive flag
+ 	[`grep -n "-r" file.txt`, MAIN],
++	// a heredoc body and a quoted regex are data: a "|rg|" inside them is never a bare rg
++	["node - <<'EOF'\nconst K = /^(grep|rg|du|find)$/;\nEOF", MAIN],
++	[`node -e "const K = /grep|rg|find/"`, MAIN],
+ 	[`grep -rln DayPromptsRefine Server/Processes.js`, MAIN],
+ 	[`find Servex/ -name "*.test.mjs"`, MAIN],
+ 	[`rg pattern Servex/`, MAIN],
+diff --git a/Servex/Processes.js b/Servex/Processes.js
+index 6e9cfc631..9496ff781 100644
+--- a/Servex/Processes.js
++++ b/Servex/Processes.js
+@@ -28,8 +28,17 @@ import Lineage from "./Lineage.js";
+  *   servex          Servex itself, its supervisor, and its other children
+  *   session <pid>   a Claude Code session Servex did not start (a VS Code tab),
+  *                   and everything under it
+- *   dev servers     the detached servers Servex started (procs/*.json, gate.mjs)
+- *                   and any process from this repo or a worktree whose parent is gone
++ *   dev servers     the detached servers Servex started (procs/*.json, gate.mjs) and a
++ *                   parent-gone node of ours running the main site's run.js, a
++ *                   worktree's server.js, or the gate — a REAL server, counted once
++ *   tunnel          a parent-gone Tunnel.mjs or cloudflared (ext/remote's tunnel)
++ *   whisper         a parent-gone whisper-server (ux/Dictate's local engine)
++ *   browsers        a parent-gone Playwright chromium (ms-playwright cache, or a
++ *                   Playwright --user-data-dir)
++ *   leftover shells a parent-gone cmd/bash/powershell/conhost that is not a waiter
++ *                   and wraps none of the above (ask: "count only real servers",
++ *                   2026-11-09 — these used to inflate "dev servers")
++ *   other of ours   anything else of ours whose parent is gone
+  *   orphans         a leftover of ours: a waiter (bash, tail, grep, find, rg, du,
+  *                   xargs, ls, sleep …) whose parent is gone and whose command line
+  *                   points at this repo, Claude's own dirs, or Git for Windows' own
+@@ -55,11 +64,11 @@ import Lineage from "./Lineage.js";
+  * game only when idle AND RAM is tight; see its own file for the rule. */
+ 
+ // Names that are ours when their parent chain leads to us.
+-const OUR_KINDS = /^(claude|node|bash|sh|tail|grep|egrep|fgrep|rg|du|xargs|ls|sleep|git|cmd|conhost|powershell|cat|head|sed|awk|timeout|find|python|whisper-server|npm|npx)\.exe$/i;
++const OUR_KINDS = /^(claude|node|bash|sh|tail|grep|egrep|fgrep|rg|du|xargs|ls|sleep|git|cmd|conhost|powershell|cat|head|sed|awk|timeout|find|python|whisper-server|npm|npx|cloudflared|chrome|chromium)\.exe$/i;
+ // Leftovers that do nothing on their own: safe to end once their parent is gone.
+ const WAITERS = /^(bash|sh|tail|grep|egrep|fgrep|rg|du|xargs|ls|sleep|cat|head|sed|awk|timeout|find)\.exe$/i;
+-// A command line that points into this system: the repo, a worktree, Claude's temp dirs and shell snapshots.
+-const OUR_PATHS = /lew42|[\\/]\.claude[\\/]|[\\/]Temp[\\/]claude[\\/]|shell-snapshots/i;
++// A command line that points into this system: the repo, a worktree, Claude's temp dirs, shell snapshots, and Playwright's own cache.
++const OUR_PATHS = /lew42|[\\/]\.claude[\\/]|[\\/]Temp[\\/]claude[\\/]|shell-snapshots|ms-playwright/i;
+ // Git for Windows' own tools (tail, grep, sleep …): nobody else starts these here, so one whose parent is gone is a leftover.
+ const GIT_TOOLS = /[\\/]Git[\\/](usr[\\/])?bin[\\/]/i;
+ const ours_cmd = p => OUR_PATHS.test(p.cmd) || (WAITERS.test(p.name ?? "") && GIT_TOOLS.test(p.cmd));
+@@ -72,6 +81,30 @@ const GIT_SEARCH_CMD = /\bgit(\.exe)?\b[^|&;]*\b(grep\b|log\b[^|&;]*-S\b)/i;
+ const is_search = p => SEARCH_KINDS.test(p.name ?? "") || (/^git\.exe$/i.test(p.name ?? "") && GIT_SEARCH_CMD.test(p.cmd ?? ""));
+ const SESSION = /--(?:resume|session-id)[= ]"?([0-9a-f-]{36})/i;
+ 
++// A real server: a node.exe running the main site's run.js, a worktree's own server.js, or the port-80 gate.
++const SERVER_FILE = /[\\/]Server[\\/]run\.js\b|\bserver\.js\b|\bgate\.mjs\b/i;
++const TUNNEL_CMD = /Tunnel\.mjs|cloudflared/i;
++const WHISPER_CMD = /whisper-server/i;
++const PLAYWRIGHT_CMD = /ms-playwright|--user-data-dir[= ].*playwright/i;
++const SHELL_NAME = /^(cmd|bash|powershell|conhost)\.exe$/i;
++
++/* A parent-gone process that is not a waiter: what kind it really is, by looking at
++ * its whole subtree (members), not just its own name — a shell that only wraps a
++ * real server still counts as that server (ask: "count only real servers"). */
++function classify_leftover(members){
++	if (members.some(m => /node\.exe$/i.test(m.name ?? "") && SERVER_FILE.test(m.cmd ?? "")))
++		return { key: "dev servers", kind: "servers", label: "Dev servers" };
++	if (members.some(m => TUNNEL_CMD.test(m.cmd ?? "")))
++		return { key: "tunnel", kind: "tunnel", label: "Tunnel" };
++	if (members.some(m => WHISPER_CMD.test(m.cmd ?? "")))
++		return { key: "whisper", kind: "whisper", label: "Whisper" };
++	if (members.some(m => /^(chrome|chromium)\.exe$/i.test(m.name ?? "") && PLAYWRIGHT_CMD.test(m.cmd ?? "")))
++		return { key: "browsers", kind: "browsers", label: "Browsers (Playwright)" };
++	if (members.some(m => SHELL_NAME.test(m.name ?? "")))
++		return { key: "leftover shells", kind: "shells", label: "Leftover shells" };
++	return { key: "other of ours", kind: "other-ours", label: "Other of ours" };
++}
++
+ export default class Processes extends Events {
+ 
+ 	initialize(){
+@@ -232,15 +265,23 @@ export default class Processes extends Events {
+ 				claim(p.pid, key);
+ 			}
+ 		// 4. the detached servers Servex started
+-		for (const pid of this.detached()) if (procs.has(pid)){ meet("dev servers", { kind: "servers", label: "Dev servers" }); claim(pid, "dev servers"); }
+-		// 5. whatever is ours but whose parent is gone
++		// `servers` counts server TREES (one per root claimed here), `n` counts processes:
++		// one server is a cmd, a conhost and two nodes, so n alone read 35 for 8 servers.
++		const serve = pid => { if (group.has(pid)) return; const g = meet("dev servers", { kind: "servers", label: "Dev servers" }); g.servers = (g.servers ?? 0) + 1; claim(pid, "dev servers"); };
++		for (const pid of this.detached()) if (procs.has(pid)) serve(pid);
++		// 5. whatever is ours but whose parent is gone: a real server stays "dev servers",
++		// everything else gets its own group by kind (classify_leftover, above) -- a
++		// parent-gone cloudflared, chromium, whisper-server or bare shell is never counted
++		// as a dev server just because its command line points at this repo.
+ 		for (const p of procs.values()){
+ 			if (group.has(p.pid) || parent(p) || !OUR_KINDS.test(p.name ?? "") || !ours_cmd(p)) continue;
+-			const leaf = x => /^conhost.exe$/i.test(procs.get(x)?.name ?? "") || WAITERS.test(procs.get(x)?.name ?? "") || is_search(procs.get(x) ?? {});   // a console host ends with its process;
+-			const waiter = (WAITERS.test(p.name) || is_search(p)) && tree(p.pid, kids).every(leaf);
+-			const key = waiter ? "orphans" : "dev servers";
+-			meet(key, waiter ? { kind: "orphans", label: "Orphans (parent gone)" } : { kind: "servers", label: "Dev servers" });
+-			claim(p.pid, key);
++			const members = tree(p.pid, kids).map(x => procs.get(x)).filter(Boolean);
++			const leaf = m => /^conhost.exe$/i.test(m.name ?? "") || WAITERS.test(m.name ?? "") || is_search(m);   // a console host ends with its process;
++			const waiter = (WAITERS.test(p.name) || is_search(p)) && members.every(leaf);
++			const info = waiter ? { key: "orphans", kind: "orphans", label: "Orphans (parent gone)" } : classify_leftover(members);
++			if (info.key === "dev servers") { serve(p.pid); continue; }
++			meet(info.key, { kind: info.kind, label: info.label });
++			claim(p.pid, info.key);
+ 		}
+ 
+ 		const ours = { n: 0, mb: 0, cpu: 0 }, other = { n: 0, mb: 0, cpu: 0 }, names = new Map();
+@@ -425,8 +466,10 @@ export default class Processes extends Events {
+ 		const s = this.now;
+ 		if (!s) return "Processes: no sample yet (the first comes 10 s after Servex starts).";
+ 		const gb = mb => (mb / 1024).toFixed(1);
++		const dev = s.groups.find(g => g.key === "dev servers");
+ 		const top = s.groups.filter(g => g.kind === "task").slice(0, 3).map(g => `${g.label} ${gb(g.mb)} GB`).join(", ");
+ 		return `Ours ${gb(s.ours.mb)} GB in ${s.ours.n} processes, everything else ${gb(s.other.mb)} GB, ${gb(s.free_mb)} GB free.`
++			+ (dev?.servers ? ` ${dev.servers} dev server${dev.servers === 1 ? "" : "s"} (${gb(dev.mb)} GB).` : "")
+ 			+ (top ? ` Top tasks: ${top}.` : "")
+ 			+ (s.orphans.length ? ` ${s.orphans.length} orphaned process${s.orphans.length === 1 ? "" : "es"}.` : "")
+ 			+ (s.sessions?.stale ? ` ${s.sessions.stale} VS Code conversation${s.sessions.stale === 1 ? "" : "s"} idle over ${this.stale_h} h (${gb(s.sessions.stale_mb)} GB): close them in VS Code.` : "")
+diff --git a/Servex/doc/processes.md b/Servex/doc/processes.md
+index dab1e9215..95788da75 100644
+--- a/Servex/doc/processes.md
++++ b/Servex/doc/processes.md
+@@ -58,7 +58,12 @@ Every 10 seconds Servex reads every process on the machine. It sorts each one in
+ | **front desk** | the assistants, managers and session agents |
+ | **Servex** | Servex itself, the node that supervises it, and its other children |
+ | **Claude Code session** | a claude.exe Servex did not start (a VS Code tab) and its shells |
+-| **dev servers** | the servers Servex started detached, and any process from this repo or a worktree whose parent is gone |
++| **dev servers** | the servers Servex started detached, and a parent-gone node of ours running the main site's `run.js`, a worktree's `server.js`, or the gate — a REAL server. Its `servers` field counts servers (one per tree); `n` counts processes, about four per server (cmd, conhost, two nodes), and the health line prints `servers`. Nothing else counts here (2026-11-09: these used to inflate "dev servers" with everything below) |
++| **tunnel** | a parent-gone `Tunnel.mjs` or `cloudflared` |
++| **whisper** | a parent-gone `whisper-server` |
++| **browsers** | a parent-gone Playwright chromium (its cache path, or a Playwright `--user-data-dir`) |
++| **leftover shells** | a parent-gone `cmd`/`bash`/`powershell`/`conhost` that is not a waiter and wraps none of the above |
++| **other of ours** | anything else of ours whose parent is gone |
+ | **orphans** | a leftover waiter of ours (bash, tail, grep, sleep …) whose parent is gone |
+ | *other* | everything else: Chrome, VS Code, Windows. Counted, never touched. |
+ 
+@@ -162,7 +167,7 @@ The monitor checks that PID every 10 seconds. An agent that says `working` or `i
+ ## Orphans: flagged, and ours reaped
+ 
+ - **Flagged:** a process of our kinds whose parent is gone, and whose command line points into this repo, a worktree, Claude's own folders, or Git for Windows' own tools.
+-- **Reaped idle** after 10 minutes with no CPU (`SERVEX_REAP_ORPHANS_MS`), and only if it is a waiter: bash, sh, tail, grep, egrep, fgrep, rg, du, xargs, ls, sleep, cat, head, sed, awk, timeout or find. A node process with no parent is shown under dev servers, never killed. `SERVEX_REAP_ORPHANS=0` only flags.
++- **Reaped idle** after 10 minutes with no CPU (`SERVEX_REAP_ORPHANS_MS`), and only if it is a waiter: bash, sh, tail, grep, egrep, fgrep, rg, du, xargs, ls, sleep, cat, head, sed, awk, timeout or find. A node process with no parent is never a waiter, so it is never reaped: it lands in "dev servers" (a real server) or "other of ours" (`classify_leftover`, `Processes.js`), either way shown, never killed. `SERVEX_REAP_ORPHANS=0` only flags.
+ - **Reaped burning** (2026-11-09, `runaway-search`): a search kind — grep, egrep, fgrep, find, rg, du, xargs, ls, or a `git grep` / `git log -S...` invocation — never node, never an app — whose parent is gone and that has averaged at least `SERVEX_BURN_CORE_PCT` (default 25) of ONE core over the last `SERVEX_BURN_WINDOW_MS` (default 2 minutes), from the per-pid 10-second CPU samples `take()` already keeps (`cpu_hist`). This is what catches a recursive search started by an agent whose shell is gone: it keeps walking the tree and spinning a fan long after nobody is waiting on it. The idle rule above is unchanged and runs independently.
+ - **Every reap** writes one line to the `processes` log and shows under `reaped`, `{type: "reaped", why: "idle" | "burning", pid, name, mb, cmd, ok, idle_min | cpu_avg}`.
+ 
+diff --git a/Servex/processes.test.mjs b/Servex/processes.test.mjs
+index f33ecc44c..12dd9797d 100644
+--- a/Servex/processes.test.mjs
++++ b/Servex/processes.test.mjs
+@@ -38,7 +38,11 @@ const rows = [
+ 	[601, 56, "grep.exe", 5, 0, 700, GIT + "grep.exe --line-buffered prompt"],                 // its partner, Git's parent gone too
+ 	[602, 57, "node.exe", 50, 0, 700, "node C:\\Code\\lew42\\worktrees\\qf-4\\Server\\run.js"], // ours, parent gone, not a waiter
+ 	[700, 1, "chrome.exe", 400, 9, 100, "chrome.exe"],
+-	[701, 1, "tail.exe", 5, 0, 100, "C:\\cygwin\\bin\\tail.exe -f C:\\other.log"]              // the owner's own: never ours
++	[701, 1, "tail.exe", 5, 0, 100, "C:\\cygwin\\bin\\tail.exe -f C:\\other.log"],             // the owner's own: never ours
++	[800, 950, "cloudflared.exe", 40, 1, 700, "C:\\Code\\lew42\\monorepo\\node_modules\\.bin\\cloudflared.exe tunnel run --token x"], // parent gone: a tunnel, not a dev server
++	[801, 951, "whisper-server.exe", 90, 2, 700, "C:\\Users\\x\\AppData\\Local\\lew42\\whisper\\bin\\whisper-server.exe --port 8178"], // parent gone: whisper, not a dev server
++	[802, 952, "chrome.exe", 300, 4, 700, "C:\\Users\\x\\AppData\\Local\\ms-playwright\\chromium-1148\\chrome-win\\chrome.exe --headless --user-data-dir=C:\\temp\\pw"], // parent gone: a Playwright browser, not a dev server
++	[803, 953, "cmd.exe", 5, 0, 700, "cmd /c echo lew42 done"]                                 // parent gone: a leftover shell, not a dev server
+ ];
+ const msys = [[10, 1, 401], [11, 10, 402], [20, 18, 600], [21, 19, 601]];   // Git: 402's parent is 401; 600/601's parents are gone
+ 
+@@ -56,7 +60,13 @@ ok(of(402) === "session 400", "a Git Bash tool whose Windows parent is gone stay
+ ok(of(500) === "dev servers" && of(501) === "dev servers", "a detached dev server and its child");
+ ok(of(600) === "orphans" && of(601) === "orphans", "a tail|grep whose parents are gone is an orphan");
+ ok(of(602) === "dev servers", "a parentless node of ours is shown, never called an orphan");
++ok(by("dev servers").servers === 2 && by("dev servers").n === 3, "dev servers counts server trees (2), not processes (3)");
++ok(p.line().includes(" 2 dev servers ("), "the health line says the real server count");
+ ok(!of(700) && !of(701), "chrome and a stranger's tail are not ours");
++ok(of(800) === "tunnel", "a parent-gone cloudflared is its own group, not a dev server");
++ok(of(801) === "whisper", "a parent-gone whisper-server is its own group, not a dev server");
++ok(of(802) === "browsers", "a parent-gone Playwright chromium is its own group, not a dev server");
++ok(of(803) === "leftover shells", "a parent-gone cmd with no real server under it is its own group, not a dev server");
+ ok(s.orphans.map(o => o.pid).sort().join() === "600,601", "the orphan list");
+ ok(by("task 2026-09-30/process-monitor").mb === 556, "a task's RAM is the sum of its processes");
+ ok(s.ours.mb + s.other.mb === rows.reduce((t, r) => t + r[3], 0), "ours + other = everything");

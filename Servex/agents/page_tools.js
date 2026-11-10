@@ -91,7 +91,7 @@ const FLAT_SESSION = /^framework\/ai\/sessions\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]
 const DATED_SESSION = /^\/?framework\/ai\/sessions\/(\d{4}\/\d{2}\/\d{2}\/[^/]+)(\/.*)?$/;
 const OMIT = "Omit `path` to mean your own page.";
 
-async function resolve(url, target = [], item = false){
+async function resolve(url, target = [], item = false, { create = true } = {}){
 	// No path and no agent id (a VS Code tab): "your own page" has no meaning, and the site's root page is never the answer.
 	if (url == null || url === "") return { why: "no `path` was given and this caller has no Servex agent id, so there is no \"own page\" to write to; nothing was written. A VS Code tab passes its session folder, the dated path the SessionStart hook printed: /framework/ai/sessions/YYYY/MM/DD/<folder>/." };
 	const hit = SESSION_ROUTE.exec(String(url ?? ""));
@@ -99,7 +99,7 @@ async function resolve(url, target = [], item = false){
 	// A uuid never counts: a stray flat sessions/<uuid>/ folder must not keep catching writes (one folder per session).
 	const plain = hit && !UUID.test(hit[1]) && fs.existsSync(path.resolve(PUBLIC, "framework/ai/sessions", hit[1]));
 	if (hit && !/^\d{4}$/.test(hit[1])){
-		const file = await session_file(hit[1]);
+		const file = await session_file(hit[1], { create });
 		if (file?.why && !plain) return file;
 		if (!file && !plain) return { why: `no session or Servex agent is called "${hit[1]}", so nothing was created. ${OMIT}` };
 		if (file && !file.why){
@@ -160,7 +160,10 @@ function has_transcript(uuid){
 	try { return fs.readdirSync(root).some(d => fs.existsSync(path.join(root, d, uuid + ".jsonl"))); } catch { return false; }
 }
 
-async function session_file(id){
+/* A READ NEVER WRITES (2026-11-10): `create` is false for a read or a query (resolve's caller says which), so viewing a session page
+ * (AICost's summary query) finds the folder that is there and makes none. A session id that is not a uuid (a cloud voice record,
+ * "cloud-voice-app-20261110") is found by SessionFolders.named and never made here: SessionFolders.create takes only a uuid, and threw (a 500). */
+async function session_file(id, { create = true } = {}){
 	// A folder made here is named for the agent (its Servex id), not left as session-<id8> (brief: "sessions get a name").
 	let uuid = UUID.test(id) ? id : null, name = uuid ? null : id, agents = {};
 	try {
@@ -168,10 +171,21 @@ async function session_file(id){
 		if (!uuid) uuid = agents[id]?.session_id ?? null;
 		else name = Object.entries(agents).find(([, a]) => a?.session_id === uuid)?.[0] ?? null;
 	} catch {}
+	if (!uuid && !create) uuid = id;   // a read may name a non-uuid session record directly (cloud-voice-app-20261106)
 	if (!uuid) return { why: `no session or Servex agent is called "${id}", so nothing was created${nearest(id, Object.keys(agents))} ${OMIT}` };
+	if (!UUID.test(uuid)){
+		// SessionFolders.of holds uuids only; a non-uuid record (a cloud voice session) is its named() day folder, line 1 naming the id.
+		const dir = SessionFolders.at(path.join(PUBLIC, "framework/ai/sessions")).named(uuid);
+		if (dir) return path.join(dir, "page.jsonl");
+		return { why: `"${id}" names session "${uuid}", which has no folder; a session that is not a uuid is never given one here, so nothing was created. ${OMIT}` };
+	}
 	// A spawned agent's record sits inside its parent's folder (SessionFolders.claim): that folder, not the thin day-level one, is where its tasks and log live.
 	const folders = SessionFolders.at(path.join(PUBLIC, "framework/ai/sessions")), rec = folders.record_of(uuid);
 	if (rec && rec !== folders.of(uuid) && ["session.jsonl", "task.jsonl"].some(f => fs.existsSync(path.join(rec, f)))) return path.join(rec, "page.jsonl");
+	if (!create){
+		const dir = folders.of(uuid);
+		return dir ? path.join(dir, "page.jsonl") : { why: `session ${uuid} has no folder yet, and a read never makes one. ${OMIT}` };
+	}
 	const slug = /^[a-z0-9][a-z0-9-]{2,60}$/.test(name ?? "") ? `${name}-${uuid.slice(0, 8)}` : undefined;
 	const { default: AISession } = await import("../../public/framework/ai/AISession/AISession.js");
 	if (!AISession.days.has(uuid)) AISession.scanned = false;   // a long-lived Servex: a folder made since the last scan must be found, never doubled
@@ -1227,6 +1241,14 @@ function cap_read(value){
 	}
 	return { truncated: true, hint: "read a deeper path for less", preview: JSON.stringify(value).slice(0, READ_CAP) };
 }
+// A client whose schema shows `args` as a string sends the object as JSON text (seen 2026-11-09: `tasks.add` made a task
+// titled with the whole JSON). Text that parses to an object or array is that value; any other string stays a string
+// (`remove: "c1"` takes an id).
+function parse_args(args){
+	if (typeof args !== "string" || !/^\s*[[{]/.test(args)) return args;
+	try { const v = JSON.parse(args); return v !== null && typeof v === "object" ? v : args; } catch { return args; }
+}
+
 /* THE THREE VERBS (item-tool plan, merge 1, /live/plan/item-tool/): `get`/`set`/`call` each become exactly what today's
  * `delta`/`read` would have been, so everything below this function — validation, the write, replay — never sees a
  * difference. Returns {delta, read} (one of the two undefined) or {why} to refuse before anything is touched. */
@@ -1246,7 +1268,7 @@ function verbs_to_delta({ delta, read, get, set, call, args }){
 		if (typeof call !== "string" || !call.trim()) return { why: "`call` must be a dotted path to a method, e.g. \"tasks.add\". Nothing was written." };
 		const parts = hops(call), method = parts.pop();
 		if (!method) return { why: "`call` must be a dotted path to a method, e.g. \"tasks.add\". Nothing was written." };
-		return { delta: nest(parts, { [method]: args !== undefined ? args : {} }) };
+		return { delta: nest(parts, { [method]: args !== undefined ? parse_args(args) : {} }) };
 	}
 	return { delta, read };   // neither given: today's delta/read, unchanged
 }
@@ -1565,7 +1587,8 @@ async function run_item_now({ path: url, target, delta, read, get, set, call, ar
 	let caller_log = ctx.caller_log ?? null;
 	try { caller_log ??= ctx.resolve_log?.(ctx.caller) ?? null; } catch { caller_log = null; }   // a broken resolver never breaks the call
 	if (target !== undefined) target = hops(target);   // a dotted target is its hops: the line is still written nested
-	let at = await resolve(url, target, true);
+	const is_read = delta === undefined || (is_plain(delta) && Object.keys(delta).length > 0 && Object.keys(delta).every(k => SESSION_QUERIES.includes(k)));
+	let at = await resolve(url, target, true, { create: !is_read });
 	if (!at || at.why) return { ok: false, why: at?.why ?? `"${url}" is not a page under public/` };
 	const card = await card_at(at.file);
 	if (card) at = { file: card.file, target: [...card.hops, ...at.target] };
@@ -1573,7 +1596,7 @@ async function run_item_now({ path: url, target, delta, read, get, set, call, ar
 	// beside it, session.jsonl: cost, span, children, counts (core/Session/readme.md, "What item() answers"). Writes still go to the page.
 	const routed = SESSION_ROUTE.exec(String(url ?? "")), dated = DATED_SESSION.exec(String(url ?? ""));
 	const session_url = (routed && !/^\d{4}$/.test(routed[1])) || (dated && !(dated[2] ?? "").replace(/\//g, ""));   // /sessions/<id>/ or the dated folder itself, never a subpage
-	if (session_url && !at.target.length && path.basename(at.file) === "page.jsonl" && (delta === undefined || (is_plain(delta) && Object.keys(delta).length && Object.keys(delta).every(k => SESSION_QUERIES.includes(k))))){
+	if (session_url && !at.target.length && path.basename(at.file) === "page.jsonl" && is_read){
 		const dir = path.dirname(at.file), record = path.join(dir, "session.jsonl");
 		// An older folder has no record yet (page.jsonl, cache.jsonl, index.json only): a query asks for it, so it gets the one-line record a tab gets, never a `{"summary":{}}` line in the page.
 		if (!fs.existsSync(record) && !fs.existsSync(path.join(dir, "task.jsonl")) && SessionRecord.is_session_dir(dir) && delta !== undefined){
@@ -1619,7 +1642,10 @@ async function run_item_now({ path: url, target, delta, read, get, set, call, ar
 			if (methods.has(last)) return { ok: false, why: `"${key}" is a method; use call: "${key}". Nothing was written.` };
 		}
 	}
-	if (used_verb === "call" && Class){
+	// Verbs the tool itself handles, not a class: `help`, `place` and `pages.add/rename/remove/promote` (apply_pages). A call
+	// on one of them is the same delta and passes straight through (the docs-switch review, 2026-11-09, found them refused).
+	const tool_verb = call && !at.target.length && (() => { const p = hops(call); return p.length === 1 ? ["help", "place"].includes(p[0]) : p.length === 2 && p[0] === "pages"; })();
+	if (used_verb === "call" && Class && !tool_verb){
 		const parts = hops(call), method = parts.at(-1), parent = parts.slice(0, -1);
 		const base = at.target.length ? node_at(live_or_refuse(), at.target) : live_or_refuse();
 		const node = parent.length ? walk(base, parent) : base;
@@ -1844,7 +1870,8 @@ export function page_tools(resolve_log = null){
 				method: { type: "string", description: "The verb to call at the target — a method on whatever `target` resolves to: `add`, `remove`, `move`, `order`, or any method the item's own class defines." },
 				args: { description: "The method's one argument — an object for `add`, a string id for `remove`, etc. If it's a plain object, `by` and `ts` are stamped onto it." } },
 			["method"],
-			async ({ path: url, target, method, args }, ctx = {}) => {
+			async ({ path: url, target, method, args: raw }, ctx = {}) => {
+				const args = parse_args(raw);
 				url ??= own_page(ctx, resolve_log);
 				const at = await resolve(url, target, true);
 				if (!at || at.why) return not_a_page(url, at);
@@ -1900,7 +1927,7 @@ export function page_tools(resolve_log = null){
 				get: { type: "string", description: "Read a dotted path, e.g. \"tasks.link-dot.state\" — never writes, same answer as `read` (below)." },
 				set: { type: "object", description: "Change plain fields, e.g. {\"title\": \"Plans\"}. Writes one log line, the same as the equivalent `delta`. Refused if a key names a method (use `call`) or a child list (use `call: \"<list>.add\"` or `get`)." },
 				call: { type: "string", description: "A dotted path to a method, e.g. \"tasks.add\" or \"tasks.link-dot.complete\". Writes one log line, the same as the equivalent `delta`. Refused if the last step is not a method, or is a query (use `get`)." },
-				args: { description: "The method's argument, for `call` only (e.g. {title: \"x\"}). Omit for a method that takes none, e.g. call: \"start\"." },
+				args: { type: ["object", "array", "string", "number", "boolean"], description: "The method's argument, for `call` only (e.g. {title: \"x\"}). Omit for a method that takes none, e.g. call: \"start\"." },
 				delta: { type: "object", description: "ONE JSONL line, exactly what Item.set(delta) takes and the log holds. Omit it to read the current state. {\"help\":{}} returns the instructions again." },
 				read: { type: "string", description: "A dotted path to read with NO write, e.g. \"content.today\" (never together with `delta`). Answers {ok:true, read, value}: an Item as its data with every List inside replaced by {total, rows:[{id,type,title}]}; a List as that same rows shape; a query the class lists (help's \"queries\": completion_score, tally, cost, …) is CALLED and answers its value, still with no write; anything else as the plain value. Capped near 4 KB (then `truncated:true`). A path that does not resolve answers {ok:false, why:\"no such path: <the first missing step>\", here:[the ids or keys that exist at the last good step]}." } },
 			[],

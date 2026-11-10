@@ -3,3 +3,7 @@
 {"file":"page.js"}
 {"file":"swap/page.js"}
 {"file":"takeover/page.js"}
+{"file":"expand/page.js","nav":{"title":"Expand","icon":"expand_more","description":"A click opens BELOW, in place. Nothing else moves and the url never changes."}}
+{"file":"launch/page.js","nav":{"title":"Launch","icon":"chevron_right","description":"A click opens a new column to the RIGHT. The page you clicked from stays exactly where it was."}}
+{"file":"swap/page.js","nav":{"title":"Swap","icon":"swap_horiz","description":"A click replaces what is in the box. The box keeps its exact place on screen."}}
+{"file":"takeover/page.js","nav":{"title":"Takeover","icon":"open_in_full","description":"One child fills the screen; everything behind it collapses into the trail above."}}

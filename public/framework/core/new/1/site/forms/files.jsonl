@@ -14,3 +14,11 @@
 {"file":"this_file.js"}
 {"file":"unload/page.js"}
 {"file":"wizard/page.js"}
+{"file":"autosave/page.js","nav":{"title":"Autosave"}}
+{"file":"exit/page.js","nav":{"title":"The unguarded exit"}}
+{"file":"guard/page.js","nav":{"title":"A guard, from outside"}}
+{"file":"optimistic/page.js","nav":{"title":"Optimistic, across a navigation"}}
+{"file":"submit/page.js","nav":{"title":"Submit, then navigate"}}
+{"file":"survives/page.js","nav":{"title":"What survives today"}}
+{"file":"unload/page.js","nav":{"title":"beforeunload"}}
+{"file":"wizard/page.js","nav":{"title":"A wizard whose steps are urls"}}

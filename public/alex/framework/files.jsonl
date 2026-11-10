@@ -8,3 +8,6 @@
 {"file":"view/page.js"}
 {"file":"core/page.jsonl"}
 {"file":"core/"}
+{"file":"app/page.js","nav":{"title":"App"}}
+{"file":"core/","nav":{"title":"Alex's Page + Router","description":"archived for reference"}}
+{"file":"view/page.js","nav":{"title":"View"}}

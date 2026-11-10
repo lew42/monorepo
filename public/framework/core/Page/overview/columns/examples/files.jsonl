@@ -1,3 +1,5 @@
 {"file":"grids/page.js"}
 {"file":"looks/page.js"}
 {"file":"page.js"}
+{"file":"grids/page.js","nav":{"title":"Grids","description":"Grid-column pairings — a grid opening a detail column, and the backgrounds inside one."}}
+{"file":"looks/page.js","nav":{"title":"Looks","icon":"palette","description":"Backgrounds, padding, seams, scrollbars — one variable at a time."}}

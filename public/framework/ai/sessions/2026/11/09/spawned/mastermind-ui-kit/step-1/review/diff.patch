@@ -1,0 +1,253 @@
+diff --git a/public/framework/framework.css b/public/framework/framework.css
+index 47d98dd204..402d3a133b 100644
+--- a/public/framework/framework.css
++++ b/public/framework/framework.css
+@@ -1035,6 +1035,37 @@
+        see styles/rules/readme.md. */
+     .measure.start { margin-inline: 0; }
+ 
++    /* ── THE FLUSH STACK (the owner's name, design/layout/doc/rules.md) ──
++       Rows touching: no padding, no gap, one box. Only the stack's OUTER corners
++       round (`--flush-radius`, square by default); the rows inside stay square, so
++       rounded rows never meet in pinched notches. Any list can wear it.
++       Moved here from `ux/Inbox/Inbox.css` (2026-11-09) — it has no dependency on
++       anything Inbox-specific, and a sitewide utility belongs in the one sitewide
++       stylesheet, not in the one component that happened to need it first; see
++       `ui/card/page.js`'s `stack` variant for a second caller. */
++    .flush-stack {
++        display: flex;
++        flex-direction: column;
++        gap: 0;
++        padding: 0;
++        border-radius: var(--flush-radius, 0);
++    }
++
++    .flush-stack > * {
++        margin: 0;
++        border-radius: 0;
++    }
++
++    .flush-stack > :first-child {
++        border-start-start-radius: var(--flush-radius, 0);
++        border-start-end-radius: var(--flush-radius, 0);
++    }
++
++    .flush-stack > :last-child {
++        border-end-start-radius: var(--flush-radius, 0);
++        border-end-end-radius: var(--flush-radius, 0);
++    }
++
+     /* `table-equal` — columns split evenly instead of by content, on the table
+        ABOVE's `width: max-content` shrink-wrap. `md()` puts the class straight on
+        a table that is the WHOLE markdown block, but wraps it in a div (still
+diff --git a/public/framework/library/Library.js b/public/framework/library/Library.js
+index 4e1c4d1e8c..45c5ec38a0 100644
+--- a/public/framework/library/Library.js
++++ b/public/framework/library/Library.js
+@@ -142,6 +142,27 @@ export default class Library extends Page {
+ 		if (this.listening) return;
+ 		this.listening = true;
+ 		addEventListener("popstate", () => this.$mid?.el.isConnected && this.show(this.read()));
++		addEventListener("keydown", event => this.on_keydown(event));
++	}
++
++	// Left/Right step the left rail (siblings); Up/Down step the right rail
++	// (variants) — `this.current` is set by `show()` to the lists it just drew.
++	// Ignored while typing, and in wall view (no single item is "current" there).
++	on_keydown(event){
++		if (!this.current || this.mode === "wall" || !this.$mid?.el.isConnected) return;
++		if (event.target?.closest?.("input, textarea, [contenteditable]")) return;
++
++		const dir = { ArrowLeft: [-1, "siblings"], ArrowRight: [1, "siblings"], ArrowUp: [-1, "variants"], ArrowDown: [1, "variants"] }[event.key];
++		if (!dir) return;
++
++		const [step, which] = dir;
++		const list = this.current[which];
++		const i = list.findIndex(one => one.path === this.current.item.path);
++		const next = list[i === -1 ? (step > 0 ? 0 : list.length - 1) : (i + step + list.length) % list.length];
++		if (!next || next.path === this.current.item.path) return;
++
++		event.preventDefault();
++		this.go(next.path);
+ 	}
+ 
+ 	go(path, view = this.mode){
+@@ -175,6 +196,7 @@ export default class Library extends Page {
+ 		const [siblings, variants, related] = await Promise.all([item.siblings(), item.variants(), collection.related(item)]);
+ 		if (epoch !== this.epoch) return;   // a newer click overtook this one
+ 
++		this.current = { item, siblings, variants };
+ 		this.$grid.el.classList.remove("is-wall");
+ 		this.collection_row(collection);
+ 		this.rail.draw(this.$left_list, [{ title: item.parent ? `${item.parent.title} — siblings` : collection.label, items: siblings }], item);
+diff --git a/public/framework/library/readme.md b/public/framework/library/readme.md
+index 3ff1071636..4bc84f3596 100644
+--- a/public/framework/library/readme.md
++++ b/public/framework/library/readme.md
+@@ -15,6 +15,7 @@ Open [/framework/library/](/framework/library/) (`?at=ui/card/media` is the url
+ - `Entry.js` — a page-shaped stand-in (title, icon, specimen, no children) for layouts and templates, which are not Pages.
+ - `Item.js` — wraps one Page; its variants are the page's own `children`. `render()`: the page's `specimen`, else its `content()` (figma), else its `preview()` thumb with `zoom-*` removed.
+ - `Rail.js` — a column of cards; each lays the item out at its `optimalWidth` and scales it with CSS `zoom`.
++- **Arrow keys** (`Library.on_keydown`): Left/Right step the left rail (siblings), Up/Down step the right rail (variants) — same url update as a click, so back and reload land on the same item. Ignored while typing in a field.
+ - `Stage.js` — the centre: width chips 400 · 1000 · 1920 · 3440, zoom-to-fit when wider than the column.
+ - `PaddingContract.js` — `PaddingContract.check(root)`: an item marked `needs_parent_padding` touching an unpadded parent edge gets `.padding-misuse` (red) and one `console.error`.
+ - [doc/decisions.md](doc/decisions.md) — decisions 1–7, 9–12, each with its alternative. [doc/tree.md](doc/tree.md) — decision 8, and what `Page` holds now.
+diff --git a/public/framework/ui/card/page.js b/public/framework/ui/card/page.js
+index 270c0035d8..00af0f7149 100644
+--- a/public/framework/ui/card/page.js
++++ b/public/framework/ui/card/page.js
+@@ -1,4 +1,4 @@
+-import { Page, md, demo, div, h3, p, a, span, button } from "/app.js";
++import { Page, md, demo, div, h3, p, a, span, button, ui } from "/app.js";
+ 
+ // The template, verbatim — rendered on the stage AND printed as the source, so the
+ // code on the page is the code that ran. One class, `card` — framework.css's own
+@@ -50,6 +50,50 @@ const list = () => div.c("card", () => {
+ 		}));
+ });
+ 
++// The five-style kit (step 1 of the ui-kit plan, /live/plan/ui-kit/, cards 1–2):
++// one small set of card looks, so a style can be picked by sight instead of built
++// from scratch per page. `titled` matches today's /live/ card exactly — title
++// .9rem over body .85rem, `LivePage.css` `.live-card-title`/`.live-card-text` —
++// an inline `style()` on each, the same way `media` above overrides one rule
++// inline rather than adding a class for it.
++const titled = () => div.c("card", () => {
++	h3("Weekly sync").style("font-size", ".9rem");
++	p("Notes from the stand-up, synced to the board.").style("font-size", ".85rem");
++});
++
++// `stack`: three cards touching, one rounded group — `.flush-stack`
++// (framework.css, the owner's name for it) squares every inner corner and
++// rounds only the outside, so three cards never meet in a pinched notch.
++const stack = () => div.c("flush-stack", () => {
++	div.c("card", () => { h3("Design review"); p("Two comments open."); });
++	div.c("card", () => { h3("Build passing"); p("Last run finished 4 minutes ago."); });
++	div.c("card", () => { h3("Deploy queued"); p("Starts after the next merge to main."); });
++});
++
++// `tree-rows`: a card as a frame around `ui.item()`'s own tree — no new
++// markup, the same folder shape `ui/item/`'s top exhibit already draws.
++const tree_rows = () => div.c("card", () => {
++	ui.item({
++		icon: "folder", name: "card", open: true, children: [
++			{ icon: "description", name: "page.js", href: "/framework/ui/card/", end: "arrow" },
++			{ icon: "description", name: "readme.md", end: "menu" },
++		],
++	});
++	ui.item({ icon: "description", name: "card.css", end: "arrow" });
++});
++
++// `fit`: the same card, capped to its own content width instead of
++// stretching across a wide column — `.measure` (framework.css) already
++// declares `--measure` and caps `max-width` to it; `.start` is the one
++// modifier that drops the centring margin so the box hugs the left edge
++// like any other card, and `--measure` is retuned smaller than its 34em
++// default because a card's content is shorter than a reading column's.
++// No new class: this is the width word the brief asked to grep for.
++const fit = () => div.c("card measure start", () => {
++	h3("Short note");
++	p("Three lines, capped to its own width — not stretched edge to edge of a wide column.");
++}).style("--measure", "22em");
++
+ // The words matrix: the SAME card, four times, with a class appended and
+ // nothing else — proof that a template needs no compact or contrast rule of
+ // its own.
+@@ -94,8 +138,23 @@ export default new Page({
+ 		demo.page("action", action, {
+ 			note: "A button ROW, not a link — `flex v-center gap` is `toolbar`'s own group syntax, dropped into a card's footer. `.prim` marks the one action that matters and the second button is free, same as `linked`'s CTA is free above it." }),
+ 
+-		demo.page("list", list, {
+-			note: "Three rows, one `.forEach`, zero new markup. `flex v-center split gap` lands the label and its timestamp at opposite ends with nothing measuring the distance — the same row `alert`'s action variant uses, without the icon. A card became a feed by looping, not by growing a stylesheet." }),
++		demo.page("titled", titled, {
++			note: "What /live/ cards already look like today — an `<h3>` title at `.9rem` over `.85rem` body text, both set inline (`LivePage.css`'s own `.live-card-title`/`.live-card-text` sizes). No new class: two `style()` calls, the same move `media` above makes for its image." }),
++
++		demo.page("stack", stack, {
++			note: "Three cards touching, as one rounded group — `.flush-stack` (framework.css) squares every inner corner and rounds only the outside, so stacked cards never meet in a pinched notch. The owner's own name for the pattern." }),
++
++		demo.page("tree-rows", tree_rows, {
++			note: "A card framing `ui.item()`'s own tree — the same icon-and-name row `ui/item/`'s top exhibit draws, nested to any depth with no script (the browser's `<details>`/`<summary>`). Zero new markup for the rows themselves." }),
++
++		demo.page("compact", list, {
++			note: "Three rows, one `.forEach`, zero new markup. `flex v-center split gap` lands the label and its timestamp at opposite ends with nothing measuring the distance — the same row `alert`'s action variant uses, without the icon. A card became a feed by looping, not by growing a stylesheet. (Was named `list`; renamed to match the five-style kit — same function, same spot in the rail.)" }),
++
++		demo.page("large", card, {
++			note: "Today's large card — the specimen at the top of this page, repeated here so it sits side by side with the compact styles above for comparison." }),
++
++		demo.page("fit", fit, {
++			note: "Capped to its own content width (`.measure.start`, `--measure: 22em`) instead of stretching across a wide column — the gap found on /live/session/, where a three-line card ran ~1800px wide at 3440." }),
+ 	],
+ 
+ 	content(){
+@@ -126,6 +185,10 @@ export default new Page({
+ 
+ 		md("A **card** always paints its own background and pads itself. A [Section](/framework/core/Section/) does neither — it's a band, and its parent decides both. Full writeup: [`styles/doc/architecture.md`](/framework/styles/doc/architecture.md).");
+ 
++		md("## Five card styles, so a look can be picked by sight");
++
++		md("[titled](titled/) · [stack](stack/) · [tree-rows](tree-rows/) · [compact](compact/) · [large](large/) — one small set of card looks (step 1 of [the ui-kit plan](/live/plan/ui-kit/)), so a page reaches for an existing style instead of inventing a sixth. [fit](fit/) sits beside them: not a sixth style but a width fix, for a card whose content is short in a wide column.");
++
+ 		md("## Four variants, not six");
+ 
+ 		md("An avatar-and-name row and a centered empty state were both built and cut here already, twice — `ui/doc/record.md` §7 and §10, and its own rule is not to reopen a written verdict with no new evidence. A `stat` card isn't below either: [Stat tiles](/framework/ui/stats/) already says the tile *is* the card, one token retuned, and a second page would be a second home for the same three lines.");
+diff --git a/public/framework/ui/card/readme.md b/public/framework/ui/card/readme.md
+index 93211234ad..3ae463b253 100644
+--- a/public/framework/ui/card/readme.md
++++ b/public/framework/ui/card/readme.md
+@@ -18,7 +18,14 @@ div.c("card", () => {
+ 
+ That's it — no `pad`, no `flex v gap`, no `--gap` override. `.card` already does
+ all three. Variants on the page: `linked` (a CTA), `media` (an image bled to the
+-edge), `action` (a button row), `list` (a repeated row).
++edge), `action` (a button row), plus the five-style kit ([step 1 of the ui-kit
++plan](/live/plan/ui-kit/)) — `titled` (an H3 title over body text, today's /live/
++look), `stack` (three cards touching, one rounded group — `.flush-stack` in
++`framework.css`), `tree-rows` (a card framing `ui.item()`'s own tree), `compact`
++(a repeated row in one card — was named `list`), `large` (today's large card,
++repeated for comparison) — and `fit`, a width fix rather than a sixth style: the
++same card capped to its own content width (`.measure.start`) instead of
++stretching across a wide column.
+ 
+ ## Watch out
+ 
+diff --git a/public/framework/ux/Inbox/Inbox.css b/public/framework/ux/Inbox/Inbox.css
+index b50523d2f1..c8f0a5d644 100644
+--- a/public/framework/ux/Inbox/Inbox.css
++++ b/public/framework/ux/Inbox/Inbox.css
+@@ -22,32 +22,10 @@
+ 		initial-value: 0px;
+ 	}
+ 
+-	/* ── THE FLUSH STACK (the owner's name, design/layout/doc/rules.md) ──
+-	   Rows touching: no padding, no gap, one box. Only the stack's OUTER corners round
+-	   (`--flush-radius`, square by default); the rows inside stay square, so rounded rows
+-	   never meet in pinched notches. Any list can wear it. */
+-	.flush-stack {
+-		display: flex;
+-		flex-direction: column;
+-		gap: 0;
+-		padding: 0;
+-		border-radius: var(--flush-radius, 0);
+-	}
+-
+-	.flush-stack > * {
+-		margin: 0;
+-		border-radius: 0;
+-	}
+-
+-	.flush-stack > :first-child {
+-		border-start-start-radius: var(--flush-radius, 0);
+-		border-start-end-radius: var(--flush-radius, 0);
+-	}
+-
+-	.flush-stack > :last-child {
+-		border-end-start-radius: var(--flush-radius, 0);
+-		border-end-end-radius: var(--flush-radius, 0);
+-	}
++	/* THE FLUSH STACK moved to `framework.css`'s `util` layer (2026-11-09) — it had
++	   no Inbox-specific dependency, and `ui/card/page.js`'s `stack` variant needed
++	   the same rule. `@layer util` beats this `@layer theme` regardless of
++	   specificity, so moving it changed nothing here. */
+ 
+ 	/* ── the page ──
+ 	   THE PAGE ITSELF DOES NOT SCROLL: a band on top (the title and tabs), the shell taking

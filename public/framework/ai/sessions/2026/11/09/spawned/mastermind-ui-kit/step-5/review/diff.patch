@@ -1,0 +1,205 @@
+diff --git a/Server/OwnCSS.mjs b/Server/OwnCSS.mjs
+new file mode 100644
+index 000000000..3951766d7
+--- /dev/null
++++ b/Server/OwnCSS.mjs
+@@ -0,0 +1,93 @@
++// node Server/OwnCSS.mjs --census [--top N] [--json]   every page's own CSS, most first (report only)
++// node Server/OwnCSS.mjs --diff <base> <branch>        the files a branch grows own CSS in; exit 1 if any
++//
++// A page should build from the kit (framework.css, styles/, ui/, and the core/ext/ux classes), not
++// add CSS of its own (the owner's ui-kit plan, step 5: /live/plan/ui-kit/). "Own CSS" is a CSS
++// declaration (`prop: value`) in a .css file outside the kit, or inside a css(`…`) literal in a .js
++// file outside it; a page.js or page.css counts wherever it sits. merge.mjs runs --diff and refuses
++// a branch that adds declarations, unless --own-css "why" (logged in the merge output).
++// Detail: Server/doc/own-css.md
++import fs from "node:fs";
++import path from "node:path";
++import { spawnSync } from "node:child_process";
++
++export default class OwnCSS {
++	static KIT = ["public/framework/framework.css", "public/framework/styles/", "public/framework/ui/",
++		"public/framework/core/", "public/framework/ext/", "public/framework/ux/"];
++	static SKIP = /(^|\/)(node_modules|archive|shots|sessions)\//;
++
++	/* Is this repo path part of the kit (allowed to hold CSS)? A page's own file never is. */
++	static is_kit(f){
++		if (/(^|\/)page\.(js|css)$/.test(f)) return false;
++		return this.KIT.some(k => f === k || f.startsWith(k));
++	}
++
++	/* Does this repo path count at all: a .css, or a .js that could hold a css(`…`) literal, under public/? */
++	static counts(f){
++		return f.startsWith("public/") && /\.(css|js|mjs)$/.test(f) && !this.SKIP.test(f) && !this.is_kit(f);
++	}
++
++	/* The number of declarations in a file's text. */
++	static count(text, f){
++		if (/\.css$/.test(f)) return this.declarations(text);
++		let n = 0;
++		for (const m of text.matchAll(/\bcss\(\s*`([^`]*)`/g)) n += this.declarations(m[1]);
++		return n;
++	}
++
++	/* `prop: value` pairs that end in ; or } — a selector (`a:hover {`) ends in { and never matches. */
++	static declarations(css){
++		const bare = css.replace(/\/\*[\s\S]*?\*\//g, "");
++		return [...bare.matchAll(/(?:^|[{;])\s*-{0,2}[a-zA-Z][\w-]*\s*:\s*[^;{}]+(?=[;}])/g)].length;
++	}
++
++	constructor(repo = process.cwd()){ this.repo = repo; }
++
++	git(...args){ return spawnSync("git", args, { cwd: this.repo, encoding: "utf8", maxBuffer: 1 << 28 }).stdout ?? ""; }
++
++	/* Every page folder's own CSS: [{dir, files, declarations}], most first. Reads the files on disk. */
++	census(){
++		const by = new Map();
++		for (const f of this.git("ls-files", "public").split("\n").filter(f => f && this.constructor.counts(f))) {
++			let n = 0;
++			try { n = this.constructor.count(fs.readFileSync(path.join(this.repo, f), "utf8"), f); } catch { continue; }
++			if (!n) continue;
++			const dir = path.posix.dirname(f), row = by.get(dir) ?? { dir, files: 0, declarations: 0 };
++			row.files++; row.declarations += n; by.set(dir, row);
++		}
++		return [...by.values()].sort((a, b) => b.declarations - a.declarations);
++	}
++
++	/* The files <head> grows own CSS in against <base>: [{file, before, after}]. */
++	added(base, head){
++		const files = this.git("diff", "--name-only", "--no-renames", "--diff-filter=AM", `${base}...${head}`).split("\n").filter(f => f && this.constructor.counts(f));
++		const mb = this.git("merge-base", base, head).trim();
++		const at = (rev, f) => { const r = spawnSync("git", ["show", `${rev}:${f}`], { cwd: this.repo, encoding: "utf8", maxBuffer: 1 << 26 }); return r.status === 0 ? r.stdout : ""; };
++		return files.map(file => ({ file, before: this.constructor.count(at(mb, file), file), after: this.constructor.count(at(head, file), file) }))
++			.filter(r => r.after > r.before);
++	}
++
++	/* The merge refusal for added(), or null. */
++	static refusal(rows){
++		if (!rows.length) return null;
++		return `${rows.length} file(s) add CSS of their own instead of using the kit (Server/doc/own-css.md):\n`
++			+ rows.map(r => `  ${r.file}: ${r.before} → ${r.after} declaration(s)`).join("\n")
++			+ `\nUse a kit class (framework.css, ui/), move the rule into the kit, or merge anyway with --own-css "why".`;
++	}
++}
++
++if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname.replace(/^\/(\w:)/, "$1"))) {
++	const argv = process.argv.slice(2), own = new OwnCSS();
++	if (argv[0] === "--diff") {
++		const rows = own.added(argv[1], argv[2]), why = OwnCSS.refusal(rows);
++		console.log(why ?? `OwnCSS: ${argv[2]} adds no CSS of its own.`);
++		process.exit(why ? 1 : 0);
++	}
++	const rows = own.census(), top = Number(argv[argv.indexOf("--top") + 1]) || 30;
++	if (argv.includes("--json")) console.log(JSON.stringify(rows));
++	else {
++		const total = rows.reduce((s, r) => s + r.declarations, 0);
++		console.log(`OwnCSS census: ${total} declaration(s) in ${rows.length} folder(s) outside the kit; top ${Math.min(top, rows.length)}:`);
++		for (const r of rows.slice(0, top)) console.log(`  ${String(r.declarations).padStart(5)}  ${r.dir}  (${r.files} file${r.files > 1 ? "s" : ""})`);
++	}
++}
+diff --git a/Server/OwnCSS.test.mjs b/Server/OwnCSS.test.mjs
+new file mode 100644
+index 000000000..16fc6c59b
+--- /dev/null
++++ b/Server/OwnCSS.test.mjs
+@@ -0,0 +1,16 @@
++// node Server/OwnCSS.test.mjs: counting, the kit line, and the refusal (no git)
++import assert from "node:assert";
++import OwnCSS from "./OwnCSS.mjs";
++
++assert.strictEqual(OwnCSS.declarations("a:hover { color: red; padding: 0 }"), 2);
++assert.strictEqual(OwnCSS.declarations("/* x: y; */ @media (max-width: 600px) { .a { --k: 1em } }"), 1);
++assert.strictEqual(OwnCSS.count("css(`.b { margin: 0; }`); const x = { a: 1 };", "public/live/x.js"), 1);
++assert.strictEqual(OwnCSS.count("const s = 'color: red;';", "public/live/x.js"), 0);
++assert.ok(OwnCSS.is_kit("public/framework/ui/row/row.css"));
++assert.ok(!OwnCSS.is_kit("public/framework/ui/row/page.js"));
++assert.ok(OwnCSS.counts("public/live/LivePage.css"));
++assert.ok(!OwnCSS.counts("public/framework/framework.css"));
++assert.ok(!OwnCSS.counts("public/framework/ai/sessions/2026/x.css"));
++assert.strictEqual(OwnCSS.refusal([]), null);
++assert.match(OwnCSS.refusal([{ file: "public/live/LivePage.css", before: 3, after: 5 }]), /3 → 5/);
++console.log("OwnCSS.test.mjs: ok");
+diff --git a/Server/doc/own-css.md b/Server/doc/own-css.md
+new file mode 100644
+index 000000000..a6fd8cb79
+--- /dev/null
++++ b/Server/doc/own-css.md
+@@ -0,0 +1,27 @@
++# OwnCSS — a page uses the kit, it does not add CSS of its own
++
++A page should be built from the kit: `framework.css`, `styles/`, `ui/`, and the `core/`, `ext/` and `ux/` classes. Writing new CSS for a page instead is what keeps every page looking slightly different. `Server/OwnCSS.mjs` counts that CSS and stops it from growing. This is step 5 of the [ui-kit plan](/live/plan/ui-kit/).
++
++## What counts as "own CSS"
++
++One **declaration** (`prop: value`) in either place:
++
++- a `.css` file outside the kit;
++- a `css(\`…\`)` literal in a `.js` file outside the kit.
++
++A `page.js` or `page.css` counts wherever it sits, inside the kit folders too. Session folders, `archive/`, `shots/` and `node_modules` are skipped.
++
++## Where it runs
++
++| Where | How | Result |
++|---|---|---|
++| `merge.mjs` | for every file the branch adds or changes | a file whose declaration count goes **up** refuses the merge and is listed with its before and after counts; `--own-css "why"` merges anyway, with a loud warning in the output |
++| by hand, on one branch | `node Server/OwnCSS.mjs --diff compliance/dev <branch>` | exit 0, or 1 with the list |
++| the census | `node Server/OwnCSS.mjs --census [--top N] [--json]` | every folder's own CSS, most first; report only |
++
++Only growth is refused. The 15,130 declarations that existed on 2026-11-10 stay until someone moves them into the kit. A branch that shrinks a file's CSS always passes.
++
++## Watch out
++
++- The count is a regex, not a CSS parser. A `prop: value` that ends in `;` or `}` counts; a selector such as `a:hover {` ends in `{`, so it never matches. Across `public/live/LivePage.css` the census found 484 declarations, against 500 semicolons in the file.
++- A rule moved from a page into `ui/` is a net gain for the page and passes. That move is exactly the fix the refusal asks for.
+diff --git a/Server/merge.mjs b/Server/merge.mjs
+index a412dcce4..8edb939b7 100644
+--- a/Server/merge.mjs
++++ b/Server/merge.mjs
+@@ -78,6 +78,7 @@ import MergeTests from "./MergeTests.mjs";
+ import IgnoredImageLinks from "./IgnoredImageLinks.mjs";
+ import { DEV_BRANCH } from "./dev-branch.mjs";
+ import DevPublish from "./DevPublish.mjs";
++import OwnCSS from "./OwnCSS.mjs";
+ 
+ const BASE = DEV_BRANCH;
+ const argv = process.argv.slice(2);
+@@ -89,6 +90,7 @@ const dryRun = bool("--dry-run");
+ const gateOnly = bool("--gate-only");   // print the review gate's answer for this worktree's head and exit: no lock, no merge (the Merge page asks this of a branch that moved)
+ const mainArg = flag("--main");
+ const noReview = flag("--no-review");
++const ownCss = flag("--own-css");   // "why": merge a branch that adds CSS of its own outside the kit anyway (Server/doc/own-css.md)
+ const noNav = flag("--no-nav");   // "why": merge an unlinked new page anyway (Server/doc/nav-check.md)
+ const reviewDir = flag("--review-dir");   // the task dir to look in when it sits under a session older than the 4-day scan (a long-lived mastermind's tasks)
+ const quick = bool("--quick");
+@@ -579,6 +581,10 @@ try {
+ 		if (autoPages.length) console.log(`merge.mjs found ${autoPages.length} changed page(s) from the diff: ${autoPages.join(", ")}`);
+ 		shotsReminder(changed, autoPages, branch);
+ 		docsReminder(changed);
++		/* Own CSS (ui-kit step 5, 2026-11-10): a branch may not grow a page's own CSS outside the kit (Server/OwnCSS.mjs). */
++		let ownCssRefusal = OwnCSS.refusal(new OwnCSS(MAIN).added(BASE, branch));
++		if (ownCssRefusal && ownCss) { console.warn(`!!! --own-css: ${ownCss} — merging with new own CSS !!!
++${ownCssRefusal}`); ownCssRefusal = null; }
+ 		const ignoredPics = IgnoredImageLinks.find(dir, changed.filter(f => !deleted.has(f)));
+ 		if (ignoredPics.length) console.warn(IgnoredImageLinks.sentence(ignoredPics));
+ 		/* Visibility gate (the owner, 2026-10-12): a branch that touches ext/Figma may not leave a page.js no parent declares. */
+@@ -718,6 +724,7 @@ try {
+ 		if (smoke.status !== 0) { console.error("smoke test failed; nothing merged"); code = 1; }
+ 		else if (testRefusal) { console.error(testRefusal); code = 1; }
+ 		else if (navRefusal) { console.error("merge.mjs refused: " + navRefusal); code = 1; }
++		else if (ownCssRefusal) { console.error("merge.mjs refused: " + ownCssRefusal); code = 1; }
+ 		else if (!changed.length) console.log(`nothing to land: ${branch} changes no file against ${BASE}`);
+ 		else if (!overlap.length) {
+ 			// prove the merge is clean BEFORE git merge touches anything
+diff --git a/Server/readme.md b/Server/readme.md
+index 4035cdcf9..b4504b6e1 100644
+--- a/Server/readme.md
++++ b/Server/readme.md
+@@ -59,6 +59,7 @@ The owner-facing server also starts `whisper-server` for dictation on its own 
+ - `node Server/DoneCheck.mjs [--dry|--list]` — Haiku check of completed owner asks, "marked done, not done" ([completion](../public/framework/core/Task/doc/completion.md)).
+ - `node Server/CloseoutWalk.mjs <session> [--dry|--apply|--counts]` — walks a session's open owner asks to done, stopped, or deferred with a home (same doc).
+ - `node Server/NavCheck.mjs <worktree>` — the click test: every page a branch adds must have an `a[href]` on its parent page, loaded headless; `merge.mjs` runs it and refuses an unlinked page, `--no-nav "why"` overrides ([`doc/nav-check.md`](./doc/nav-check.md)).
++- `node Server/OwnCSS.mjs --census` — every page's own CSS outside the kit, most first; `merge.mjs` refuses a branch that adds declarations to a page's own CSS, `--own-css "why"` overrides ([`doc/own-css.md`](./doc/own-css.md)).
+ - `node Server/LayoutCheck.mjs <base url> <page url>... [--widths 400,1200] [--json] [--baseline]` — a numeric layout check, no screenshots: `analyze()` + `PaddingContract.check()` headless per page×width, BROKEN (high-severity) vs OFF (polish) counts and the top 3 findings; `merge.mjs` runs it on the changed pages right after the smoke run and only ever reports (never refuses a merge).
+ - `node Server/Tunnel.mjs up|down|status` — the Cloudflare tunnel: `servex.lew42.com` (the voice app's `/mcp/remote`) and `monorepo.lew42.com` (the site from anywhere, through `SiteGateway.mjs`, behind a key cookie); `node Server/TunnelNamed.mjs setup` sets its hosts and DNS ([tunnel doc](../Servex/ext/remote/doc/tunnel.md)).
+ - [`git-hooks/`](./git-hooks/) — the git hooks every worktree shares, versioned here with a small installer: they log each commit (and a `Session:` trailer) to the session that made it.

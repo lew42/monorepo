@@ -33,7 +33,11 @@ checked before anything is written (the owner, 2026-09-30).
   project on first request); an agent that wants to see a page hits the worktree's URL or calls
   `start_server`, never starts one by hand. Grew out of
   [node-reap](/framework/ai/sessions/2026/10/02/node-reap/) finding 26 of these left running, ~1.2 GB.
-  Fails open. Test: `node .claude/hooks/server-guard.test.mjs`.
+  Also refuses an **unscoped recursive search** (2026-11-09, `runaway-search`): `grep -r`/`-R`/
+  `--recursive`, `find`, or `rg` whose root is `/`, a drive root, `~`/`$HOME`, `..`, or this repo's
+  own root (`.` or no path while `cwd` is the main checkout or a worktree root, or that root named
+  outright). A named subfolder, a single file, `git grep`, and a plain non-recursive `grep` all
+  pass. Fails open. Test: `node .claude/hooks/server-guard.test.mjs`.
 
 Old lines are never judged; the logs are append-only. Design and proof:
 [validated-writes](/framework/ai/sessions/2026/09/30/proposal-flow/validated-writes/).

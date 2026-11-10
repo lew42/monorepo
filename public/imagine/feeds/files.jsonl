@@ -10,3 +10,6 @@
 {"file":"shots/page.jsonl"}
 {"file":"doc/"}
 {"file":"shots/"}
+{"file":"data/page.js","nav":{"title":"Data","icon":"table_chart","description":"Twenty buildings, one data.json — a wall, a tree and a table, filtered together."}}
+{"file":"live/page.js","nav":{"title":"Live","icon":"cloud","description":"Current weather, five cities, one keyless fetch — Open-Meteo. Auto-refreshes; pause any time."}}
+{"file":"video/page.js","nav":{"title":"Steve Jobs' 2005 Stanford Commencement Address","icon":"smart_display","description":"Five classic talks — a picker rail, and a poster that only becomes an iframe once you click it."}}

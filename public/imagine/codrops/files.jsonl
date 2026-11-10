@@ -13,3 +13,15 @@
 {"file":"sticky-stack/page.js"}
 {"file":"type-shuffle/page.js"}
 {"file":"warp-cursor/page.js"}
+{"file":"circle-reveal/page.js","nav":{"title":"Circle reveal","icon":"vignette","description":"Click a tile: a circle wipes out from your click and covers the stage with its detail."}}
+{"file":"expand-menu/page.js","nav":{"title":"New In","description":"Click Menu: the pill bar grows in place into a full nav panel."}}
+{"file":"grid-hover/page.js","nav":{"title":"Grid item hover effect","icon":"grid_view","description":"Hover a card: the image zooms and four clipped corners fade in with its info."}}
+{"file":"grid-zoom/page.js","nav":{"title":"Masses","icon":"zoom_in","description":"Click a tile: it scales up to become the detail image beside its text."}}
+{"file":"layer-reveal/page.js","nav":{"title":"Layer reveal","icon":"auto_awesome","description":"Click Reveal: staggered bars wipe up the stage, opening onto a mosaic."}}
+{"file":"line-hover/page.js","nav":{"title":"Menu hover effects","icon":"menu","description":"Six CSS-only underline animations for a nav — hover any word."}}
+{"file":"make-way/page.js","nav":{"title":"Make way","icon":"blur_on","description":"Hover a tile: it grows, and every other tile leans away to make room."}}
+{"file":"scroll-bend/page.js","nav":{"title":"Scroll-based letter bend","icon":"swipe_vertical","description":"Each heading reads its own scroll speed every frame and bows its middle letters away from it."}}
+{"file":"shape-swap/page.js","nav":{"title":"Far from Venice","description":"Click the arrows: an iris wipe swaps the slide in place."}}
+{"file":"sticky-stack/page.js","nav":{"title":"The Algorithm","icon":"layers","description":"Scroll a bounded stage: each panel pins, then dims and shrinks as the next one covers it."}}
+{"file":"type-shuffle/page.js","nav":{"title":"Type shuffle","icon":"text_fields","description":"Three buttons, three ways the same phrase can scramble into place."}}
+{"file":"warp-cursor/page.js","nav":{"title":"Warp cursor","icon":"blur_circular","description":"Move the mouse inside the box: a trailing ring follows it and warps on the highlighted words."}}

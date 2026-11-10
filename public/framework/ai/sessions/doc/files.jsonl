@@ -75,3 +75,4 @@
 {"file":"one-folder.md"}
 {"file":"finding.md"}
 {"file":"finding.md","gone":true}
+{"file":"variants/page.js","nav":{"title":"Session view: three variants","icon":"view_column","description":"The session detail view three ways (inline, drop-down, two panes) on real 2026-10-20 sessions. A prototype for choosing; see views-plan.md."}}

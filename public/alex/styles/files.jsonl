@@ -10,3 +10,8 @@
 {"file":"grid/page.js"}
 {"file":"html/page.js"}
 {"file":"page.js"}
+{"file":"bem/page.js","nav":{"title":"BEM"}}
+{"file":"flex/page.js","nav":{"title":"Flex"}}
+{"file":"forms/page.js","nav":{"title":"Forms"}}
+{"file":"grid/page.js","nav":{"title":"Grid"}}
+{"file":"html/page.js","nav":{"title":"HTML basics"}}

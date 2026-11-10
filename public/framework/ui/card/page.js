@@ -1,4 +1,4 @@
-import { Page, md, demo, div, h3, p, a, span, button } from "/app.js";
+import { Page, md, demo, div, h3, p, a, span, button, ui } from "/app.js";
 
 // The template, verbatim — rendered on the stage AND printed as the source, so the
 // code on the page is the code that ran. One class, `card` — framework.css's own
@@ -50,6 +50,50 @@ const list = () => div.c("card", () => {
 		}));
 });
 
+// The five-style kit (step 1 of the ui-kit plan, /live/plan/ui-kit/, cards 1–2):
+// one small set of card looks, so a style can be picked by sight instead of built
+// from scratch per page. `titled` matches today's /live/ card exactly — title
+// .9rem over body .85rem, `LivePage.css` `.live-card-title`/`.live-card-text` —
+// an inline `style()` on each, the same way `media` above overrides one rule
+// inline rather than adding a class for it.
+const titled = () => div.c("card", () => {
+	h3("Weekly sync").style("font-size", ".9rem");
+	p("Notes from the stand-up, synced to the board.").style("font-size", ".85rem");
+});
+
+// `stack`: three cards touching, one rounded group — `.flush-stack`
+// (framework.css, the owner's name for it) squares every inner corner and
+// rounds only the outside, so three cards never meet in a pinched notch.
+const stack = () => div.c("flush-stack", () => {
+	div.c("card", () => { h3("Design review"); p("Two comments open."); });
+	div.c("card", () => { h3("Build passing"); p("Last run finished 4 minutes ago."); });
+	div.c("card", () => { h3("Deploy queued"); p("Starts after the next merge to main."); });
+});
+
+// `tree-rows`: a card as a frame around `ui.item()`'s own tree — no new
+// markup, the same folder shape `ui/item/`'s top exhibit already draws.
+const tree_rows = () => div.c("card", () => {
+	ui.item({
+		icon: "folder", name: "card", open: true, children: [
+			{ icon: "description", name: "page.js", href: "/framework/ui/card/", end: "arrow" },
+			{ icon: "description", name: "readme.md", end: "menu" },
+		],
+	});
+	ui.item({ icon: "description", name: "card.css", end: "arrow" });
+});
+
+// `fit`: the same card, capped to its own content width instead of
+// stretching across a wide column — `.measure` (framework.css) already
+// declares `--measure` and caps `max-width` to it; `.start` is the one
+// modifier that drops the centring margin so the box hugs the left edge
+// like any other card, and `--measure` is retuned smaller than its 34em
+// default because a card's content is shorter than a reading column's.
+// No new class: this is the width word the brief asked to grep for.
+const fit = () => div.c("card measure start", () => {
+	h3("Short note");
+	p("Three lines, capped to its own width — not stretched edge to edge of a wide column.");
+}).style("--measure", "22em");
+
 // The words matrix: the SAME card, four times, with a class appended and
 // nothing else — proof that a template needs no compact or contrast rule of
 // its own.
@@ -94,8 +138,23 @@ export default new Page({
 		demo.page("action", action, {
 			note: "A button ROW, not a link — `flex v-center gap` is `toolbar`'s own group syntax, dropped into a card's footer. `.prim` marks the one action that matters and the second button is free, same as `linked`'s CTA is free above it." }),
 
-		demo.page("list", list, {
-			note: "Three rows, one `.forEach`, zero new markup. `flex v-center split gap` lands the label and its timestamp at opposite ends with nothing measuring the distance — the same row `alert`'s action variant uses, without the icon. A card became a feed by looping, not by growing a stylesheet." }),
+		demo.page("titled", titled, {
+			note: "What /live/ cards already look like today — an `<h3>` title at `.9rem` over `.85rem` body text, both set inline (`LivePage.css`'s own `.live-card-title`/`.live-card-text` sizes). No new class: two `style()` calls, the same move `media` above makes for its image." }),
+
+		demo.page("stack", stack, {
+			note: "Three cards touching, as one rounded group — `.flush-stack` (framework.css) squares every inner corner and rounds only the outside, so stacked cards never meet in a pinched notch. The owner's own name for the pattern." }),
+
+		demo.page("tree-rows", tree_rows, {
+			note: "A card framing `ui.item()`'s own tree — the same icon-and-name row `ui/item/`'s top exhibit draws, nested to any depth with no script (the browser's `<details>`/`<summary>`). Zero new markup for the rows themselves." }),
+
+		demo.page("compact", list, {
+			note: "Three rows, one `.forEach`, zero new markup. `flex v-center split gap` lands the label and its timestamp at opposite ends with nothing measuring the distance — the same row `alert`'s action variant uses, without the icon. A card became a feed by looping, not by growing a stylesheet. (Was named `list`; renamed to match the five-style kit — same function, same spot in the rail.)" }),
+
+		demo.page("large", card, {
+			note: "Today's large card — the specimen at the top of this page, repeated here so it sits side by side with the compact styles above for comparison." }),
+
+		demo.page("fit", fit, {
+			note: "Capped to its own content width (`.measure.start`, `--measure: 22em`) instead of stretching across a wide column — the gap found on /live/session/, where a three-line card ran ~1800px wide at 3440." }),
 	],
 
 	content(){
@@ -126,7 +185,11 @@ export default new Page({
 
 		md("A **card** always paints its own background and pads itself. A [Section](/framework/core/Section/) does neither — it's a band, and its parent decides both. Full writeup: [`styles/doc/architecture.md`](/framework/styles/doc/architecture.md).");
 
-		md("## Four variants, not six");
+		md("## Five card styles, so a look can be picked by sight");
+
+		md("[titled](titled/) · [stack](stack/) · [tree-rows](tree-rows/) · [compact](compact/) · [large](large/) — one small set of card looks (step 1 of [the ui-kit plan](/live/plan/ui-kit/)), so a page reaches for an existing style instead of inventing a sixth. [fit](fit/) sits beside them: not a sixth style but a width fix, for a card whose content is short in a wide column.");
+
+		md("## Two shapes stay cut");
 
 		md("An avatar-and-name row and a centered empty state were both built and cut here already, twice — `ui/doc/record.md` §7 and §10, and its own rule is not to reopen a written verdict with no new evidence. A `stat` card isn't below either: [Stat tiles](/framework/ui/stats/) already says the tile *is* the card, one token retuned, and a second page would be a second home for the same three lines.");
 
@@ -138,7 +201,7 @@ export default new Page({
 
 		md("## Other card pages");
 
-		md("This is the one card page; the others below are a different thing sharing the word, or an earlier lab — linked, never deleted:\n\n- [`core/Page/card/`](/framework/core/Page/card/) — the earlier card lab (grounds, headers, nesting levels); superseded by the grounds shown above.\n- [`ux/Card/`](/framework/ux/Card/) — the AI board's own card page.\n- [`imagine/gallery/cards/`](/imagine/gallery/cards/)\n- [`imagine/vary/colstyles/cards/`](/imagine/vary/colstyles/cards/)\n- [`imagine/feeds/data/cards/`](/imagine/feeds/data/cards/)\n- [`ux/Dictate/variants/cards/`](/framework/ux/Dictate/variants/cards/)\n- [`blog/framework/class-cards/`](/blog/framework/class-cards/)\n- [`core/new/1/site/nav/cards/`](/framework/core/new/1/site/nav/cards/)");
+		md("This is the one card page; the others below are a different thing sharing the word, or an earlier lab — linked, never deleted:\n\n- [`core/Page/card/`](/framework/core/Page/card/) — the earlier card lab (grounds, headers, nesting levels); superseded by the grounds shown above.\n- [`ux/Card/`](/framework/ux/Card/) — the AI board's own card page.\n- `imagine/gallery/cards/` (not linked: its layout check fails on compliance/dev, see ai/todo.md)\n- [`imagine/vary/colstyles/cards/`](/imagine/vary/colstyles/cards/)\n- [`imagine/feeds/data/cards/`](/imagine/feeds/data/cards/)\n- [`ux/Dictate/variants/cards/`](/framework/ux/Dictate/variants/cards/)\n- [`blog/framework/class-cards/`](/blog/framework/class-cards/)\n- `core/new/1/site/nav/cards/` (not linked: an old sandbox that errors by design)");
 
 		md("Next: [Stat tiles](/framework/ui/stats/) — the same surface, four across, one token retuned.");
 	},

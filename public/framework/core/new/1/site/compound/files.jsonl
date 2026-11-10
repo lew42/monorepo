@@ -11,3 +11,13 @@
 {"file":"three-layers/page.js"}
 {"file":"tree-from-route/page.js"}
 {"file":"two-bars/page.js"}
+{"file":"columns-in-full/page.js","nav":{"title":"Columns in full"}}
+{"file":"crumbs/page.js","nav":{"title":"Crumbs"}}
+{"file":"drilling-tabs/page.js","nav":{"title":"Drilling tabs"}}
+{"file":"master-detail/page.js","nav":{"title":"Master / detail"}}
+{"file":"overlay/page.js","nav":{"title":"Overlay"}}
+{"file":"steps/page.js","nav":{"title":"Steps"}}
+{"file":"tabs-in-a-column/page.js","nav":{"title":"Tabs in a column"}}
+{"file":"three-layers/page.js","nav":{"title":"Three layers"}}
+{"file":"tree-from-route/page.js","nav":{"title":"Tree from route()"}}
+{"file":"two-bars/page.js","nav":{"title":"Two bars"}}

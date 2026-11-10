@@ -114,3 +114,44 @@
 {"file":"inbox.jsonl"}
 {"file":"tasks/"}
 {"file":"Inspect/page.js"}
+{"file":"AITask/page.js","nav":{"title":"AITask (moved)","icon":"smart_toy","description":"Moved to ai/AITask on 2026-10-13: it renders agent task logs, so it lives with the AI system."}}
+{"file":"Ask/page.js","nav":{"title":"Ask","icon":"forum","description":"Chat with a Claude Code session from the browser — one socket message, one headless CLI turn."}}
+{"file":"catalog/page.js","nav":{"title":"Catalog","icon":"view_sidebar","description":"previews() as a persistent rail beside the region the children mount in — the mechanism behind every Doc Overview tab."}}
+{"file":"Chat/page.js","nav":{"title":"Chat","icon":"chat","description":"A scrolling chat log that follows new messages while you are at the bottom, and holds still once you scroll up."}}
+{"file":"Classify/page.js","nav":{"title":"Classify","icon":"grid_view","description":"A light overlay that outlines a container's columns and names the CSS classes that build them."}}
+{"file":"Collab/page.js","nav":{"title":"Collab","icon":"forum","description":"One collaboration run, live: members through phases to a vote, every decision the owner can overrule, and the model scoreboard."}}
+{"file":"CSSDoc/","nav":{"title":"CSSDoc","description":"every CSS rule that lands on one element, read out of the live CSSOM"}}
+{"file":"DataGrid/page.js","nav":{"title":"DataGrid","icon":"grid_on","description":"A table that resizes, sorts and filters itself, and stays fast even with thousands of rows."}}
+{"file":"demo/page.js","nav":{"title":"Demo","icon":"play_circle","description":"Show the code, then run it — from one source. Four doors."}}
+{"file":"depth/page.js","nav":{"title":"Depth","icon":"layers","description":"A page becomes a 3D scene; layers drift against each other as you scroll."}}
+{"file":"DesignTool/page.js","nav":{"title":"DesignTool","icon":"straighten","description":"Measures a layout and scores it. Ratios, not eyeballs — and no AI at runtime."}}
+{"file":"Doc/page.js","nav":{"title":"Doc","icon":"menu_book","description":"A module as a page: its files, its members, its notes — each one a real url backed by a .md you wrote."}}
+{"file":"Draggable/page.js","nav":{"title":"Draggable","icon":"drag_indicator","description":"Grab a node and drop it somewhere else — reorder, cross-list and nest on one code path."}}
+{"file":"drawer/page.js","nav":{"title":"Drawer","icon":"view_sidebar","description":"The right rail — one per document, opened by the ✦ on every page or by anything else, shut only by its own ✕."}}
+{"file":"Dropdown/page.js","nav":{"title":"Dropdown","icon":"view_agenda","description":"One choice out of a list — a trigger showing its picture and its name, and a list that opens in the top layer, so nothing can clip it."}}
+{"file":"editor/page.js","nav":{"title":"Editor","icon":"design_services","description":"A drag-and-drop builder on this stack and nothing else — the prototype the whole thing points at."}}
+{"file":"ErrorLog/page.js","nav":{"title":"ErrorLog","icon":"bug_report","description":"A UI error becomes one log line a session can follow."}}
+{"file":"Figma/page.js","nav":{"title":"Figma","icon":"design_services","description":"Figma files we track, as previews you can browse; every design in them can become a framework page."}}
+{"file":"files/page.js","nav":{"title":"Files","icon":"folder_open","description":"A tree of real files, and the one you clicked — plain, resizable columns, no panels."}}
+{"file":"filesystem/page.js","nav":{"title":"File system","icon":"folder_open","description":"The DATA behind every file on the site: FsFile and Dir — a path, a name, a parent, and the operations to read, write, render and link one. ext/files, next door, is the browsing widget built on these."}}
+{"file":"grip/page.js","nav":{"title":"Grip","icon":"drag_handle","description":"A rail's resize edge — a strip inside the edge it drags and a pill that rides your pointer. Shared by the drawer, the dev rail and the Playground's two columns."}}
+{"file":"highlight/page.js","nav":{"title":"Highlight","icon":"code","description":"Syntax highlighting bolted onto the code element — code.js(), code.fn(), and every markdown fence."}}
+{"file":"Inspect/page.js","nav":{"title":"Inspect","icon":"search","description":"See what any Item is made of — its lists, its callable methods, its saved fields — and replay a folder's page.jsonl on a slider."}}
+{"file":"JSONL/page.js","nav":{"title":"JSONL","icon":"table_rows","description":"Append-only .jsonl logs, assembled back into object state by replaying one verb per line."}}
+{"file":"layout/page.js","nav":{"title":"Layout","icon":"tune","description":"A toolbar over anything, and a drawer that pushes the page over to make room."}}
+{"file":"markdown/page.js","nav":{"title":"Markdown","icon":"article","description":"Markdown as a View addon — md(), view.md(), md.file() — plus a fence that can name its file."}}
+{"file":"Mention/page.js","nav":{"title":"Mention","icon":"alternate_email","description":"`#Page` and `@owner` become a small icon + the word, wherever the site renders written content."}}
+{"file":"Omnibox/page.js","nav":{"title":"Omnibox","icon":"search","description":"Moved into core on 2026-09-06 — the search box is core/Search, mounted once for the whole site."}}
+{"file":"Panel/page.js","nav":{"title":"Panel","icon":"dashboard_customize","description":"Chrome for arranging: divide, drag, align and fill any region — and it survives a reload."}}
+{"file":"panel2/page.js","nav":{"title":"Panel2","icon":"view_column","description":"The standard UI area: a header toolbar, a main region, an optional footer, and a sidebar on either side that becomes a drawer on a narrow screen."}}
+{"file":"Query/page.js","nav":{"title":"Fix Sessions grid","icon":"manage_search","description":"A query as plain JSON, run over items in memory: filter, sort, one page, and totals over every match."}}
+{"file":"Refine/page.js","nav":{"title":"Refine","icon":"fact_check","description":"Speak one prompt: see it cleaned instantly, then refined into an outline with a clarity score per sentence."}}
+{"file":"Research/page.js","nav":{"title":"Research","icon":"biotech","description":"A research topic as an append-only log — minions write it while they dig, the page renders it live."}}
+{"file":"Saver/page.js","nav":{"title":"Hello","icon":"save","description":"Where a document goes. Three methods, one write queue, four backends."}}
+{"file":"Session/page.js","nav":{"title":"Session","icon":"record_voice_over","description":"One ✦ press is one voice session: it starts on this page, follows you as you move, and a fast and a smart assistant answer every line."}}
+{"file":"Shots/page.js","nav":{"title":"Shots","icon":"compare","description":"Shoot a page at the widths its template needs, keep the rounds, diff each one against the last, and judge with a click — the owner's dev bar Screenshots tab and this page share the same view."}}
+{"file":"sprawl/page.js","nav":{"title":"Sprawl","icon":"view_column","description":"A wall of big blocks whose columns balance themselves — no tall column left standing over short ones."}}
+{"file":"System/page.js","nav":{"title":"System","description":"a generic container for anything we keep in order"}}
+{"file":"tabs/page.js","nav":{"title":"Tabs","icon":"tab","description":"A bar of links and the panel they fill — one ext, patched onto every Page."}}
+{"file":"Timeline/page.js","nav":{"title":"Timeline","icon":"view_timeline","description":"A general-purpose h/v timeline — CSS-variable positioning and zoom, greedy lane packing, window bands."}}
+{"file":"toc/page.js","nav":{"title":"Toc","icon":"toc","description":"This page's own headings, as a nav, with the current one marked."}}

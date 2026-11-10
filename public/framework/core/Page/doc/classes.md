@@ -20,7 +20,7 @@ class List extends Item                  // core/List/List.js:53: an ordered set
   items                                  // the array of members
   add() insert() move() remove() find(id)   // by id, never by position
 
-class Page extends Item                  // Page.class.js:32: an Item with a url
+class Page extends Pluggable(Item)        // Page.class.js:32: an Item with a url, and takes plugins (core/Plugin, fold-2)
   name, url                              // "hello", "/framework/hello/" (:249-252); chain() walks to the root
   pages    = new List({ name: "pages" })     // :112  THE child pages (each one a Page)
   children = new PageChildren(this)          // :114  a Map view over pages: children.get("hello")
@@ -40,7 +40,7 @@ class Page extends Item                  // Page.class.js:32: an Item with a url
 `Page` is the class; the other files in `core/Page/` are its parts, attached to it as static members or used by it.
 
 ```js
-class Page extends Item                       // Page.class.js:32
+class Page extends Pluggable(Item)             // Page.class.js:32, Pluggable from core/Plugin/Plugin.js
   Page.Reader   = PageLogReader extends Item.Store   // Reader.js:4
   Page.Jsonl    = PageJsonl                  // loader behind page.jsonl
   Page.Listing  = PageListing                // what listing() answers

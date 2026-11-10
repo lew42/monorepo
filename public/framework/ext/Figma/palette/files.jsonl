@@ -19,3 +19,11 @@
 {"file":"hero/page.js"}
 {"file":"sedhctxg5"}
 {"file":"sedhctxg5","gone":true}
+{"file":"collab/page.js","nav":{"title":"AI Collaboration","icon":"forum","description":"Compact footer, expanded composer and a full review conversation."}}
+{"file":"controls/page.js","nav":{"title":"Controls","icon":"toggle_on","description":"Forms, buttons, toggles, chips, badges and progress bars on each base."}}
+{"file":"features/page.js","nav":{"title":"Feature Cards & Lists","icon":"view_agenda","description":"Feature cards and lists on each of the three approved bases."}}
+{"file":"hero/page.js","nav":{"title":"Hero & Navigation","icon":"web","description":"Nav, hero content and footer in three compositions: nav+hero+footer, split hero and a settings layout."}}
+{"file":"pricing/page.js","nav":{"title":"Pricing & Dashboard","icon":"payments","description":"Pricing cards and a dashboard on the approved solid bases."}}
+{"file":"tasks/page.js","nav":{"title":"Task Management","icon":"task_alt","description":"Task cards, progress patterns and priority treatments."}}
+{"file":"timeline/page.js","nav":{"title":"Timeline & Task Detail","icon":"schedule","description":"A 15-minute timeline and a structured task detail card."}}
+{"file":"typography/page.js","nav":{"title":"Typography","icon":"text_fields","description":"The six type styles on the three approved bases."}}

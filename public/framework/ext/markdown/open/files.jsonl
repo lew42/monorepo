@@ -4,3 +4,4 @@
 {"file":"gamma.md"}
 {"file":"page.js"}
 {"file":"readme.md"}
+{"file":"columns/page.js","nav":{"title":"Columns","icon":"view_column","description":"A columns tree: a doc opens as the column after the one you clicked in."}}

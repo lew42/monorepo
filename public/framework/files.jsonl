@@ -194,3 +194,28 @@
 {"file":"failures.jsonl"}
 {"file":"zz-item-tool-test-44836/"}
 {"file":"zz-item-tool-test-44836/","gone":true}
+{"file":"ai/page.js","nav":{"title":"AI","icon":"smart_toy","description":"The AI system: who does the work, how it is tracked, and how it lands."}}
+{"file":"audio/page.js","nav":{"title":"audio","icon":"mic","description":"Three building blocks for anything with a microphone — MicStream, Recorder, Transcriber — shown here working together."}}
+{"file":"audit/page.js","nav":{"title":"Audit","icon":"fact_check","description":"Every framework module read end to end by its own agent, 2026-08-15 — what the docs were, what they are, and what to do next."}}
+{"file":"catalog/page.js","nav":{"title":"Catalog","description":"every page with a demo as a live preview, plus every class card"}}
+{"file":"code/page.js","nav":{"title":"Code","icon":"extension","description":"The code in this framework — HTML, CSS, JS: how it's written, what to never do, and how a class shows its own state."}}
+{"file":"core/page.js","nav":{"title":"Core","icon":"dashboard","description":"The core classes. Five are an element you can point at in the inspector; four are not."}}
+{"file":"design/page.js","nav":{"title":"Design","icon":"view_quilt","description":"Everything that goes into making anything new: layout, color, navigation, content and UI."}}
+{"file":"dev/page.js","nav":{"title":"Dev","icon":"terminal","description":"Local-only tooling: live reload."}}
+{"file":"ext/page.js","nav":{"title":"Ext","icon":"extension","description":"Opt-in addons. They may extend core; core never depends on them."}}
+{"file":"faq/page.js","nav":{"title":"FAQ","icon":"help","description":"Short answers, code first — the questions people actually hit, in the order they hit them."}}
+{"file":"lab/page.js","nav":{"title":"Lab","icon":"science","description":"Small experiments with browser features, each a live demo."}}
+{"file":"library/page.js","nav":{"title":"Library","description":"browse everything we built in three columns: siblings, the chosen item at full size, its variants"}}
+{"file":"log/","nav":{"title":"log","description":"how objects write down what they do (ideas, not built)"}}
+{"file":"old/page.js","nav":{"title":"Framework (old)","icon":"widgets","description":"The framework homepage before the 2026-10-02 sprawl rebuild — kept for reference, not deleted."}}
+{"file":"research/page.js","nav":{"title":"Research","icon":"travel_explore","description":"Live research topics — the minions dig, the report moves while you read it."}}
+{"file":"sandbox/page.js","nav":{"title":"Sandbox","icon":"science","description":"Scratch pages other systems use to practice on."}}
+{"file":"servex/page.js","nav":{"title":"Servex","icon":"hub","description":"The always-on process that runs the agents and the dev servers."}}
+{"file":"sources/page.js","nav":{"title":"Sources","icon":"folder_open","description":"A library of web pages fetched once, saved as markdown, and cited by url — so no agent re-fetches the same page twice."}}
+{"file":"start/page.js","nav":{"title":"Start","icon":"flag","description":"Three files, no build step, a working site."}}
+{"file":"styles/page.js","nav":{"title":"Style library","icon":"palette","description":"Every token, ground, class and layout the CSS ships, shown live. How to write CSS is next door at Code: CSS; what a thing should look like is Design."}}
+{"file":"tasks/","nav":{"title":"Framework tasks: what is asked for and not done yet"}}
+{"file":"ui/page.js","nav":{"title":"UI","icon":"widgets","description":"A tree, not a list — elements first, then what's built from them, in five bands. Five functions, the rest copy-paste templates."}}
+{"file":"util/page.js","nav":{"title":"Util","icon":"handyman","description":"Small, dependency-free helpers. Plain functions, no classes, no state."}}
+{"file":"ux/page.js","nav":{"title":"UX","icon":"layers","description":"The behavior tier — ui/ hands you markup, ux/ hands you a class you can extend."}}
+{"file":"versus/page.js","nav":{"title":"Versus","icon":"balance","description":"What it refuses, what that buys, what it costs — and the column where React wins."}}

@@ -4,3 +4,6 @@
 {"file":"page.js"}
 {"file":"rule-one/page.js"}
 {"file":"sitemap.css"}
+{"file":"canonical/page.js","nav":{"title":"Canonical audit"}}
+{"file":"links/page.js","nav":{"title":"Link checker"}}
+{"file":"rule-one/page.js","nav":{"title":"Rule 1, three times"}}

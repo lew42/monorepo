@@ -14,6 +14,20 @@ let failed = 0, passed = 0;
 const ok = (cond, what) => { cond ? passed++ : failed++; console.log(`${cond ? "pass" : "FAIL"}  ${what}`); };
 
 const BLOCK = [
+	// unscoped recursive search: the repo root, named explicitly or left to default to cwd
+	[`grep -rln DayPromptsRefine .`, MAIN],
+	[`grep -rln DayPromptsRefine`, MAIN],
+	[`grep -rln DayPromptsRefine .`, WT],
+	[`grep -r pattern C:\\Code\\lew42\\monorepo`, MAIN],
+	[`grep --recursive pattern C:/Code/lew42/worktrees/qf-6`, MAIN],
+	[`find . -name "*.tmp"`, MAIN],
+	[`find / -name "*.tmp"`, MAIN],
+	[`rg pattern`, MAIN],
+	[`rg pattern ..`, WT],
+	[`grep -rn pattern ~`, MAIN],
+	[`grep -rn pattern $HOME`, MAIN],
+	[`grep -rn pattern /c`, MAIN],
+	[`grep -rn pattern C:\\`, MAIN],
 	// node server.js, every path form, from main and from a worktree
 	[`node server.js`, MAIN],
 	[`node server.js`, WT],
@@ -41,8 +55,26 @@ const BLOCK = [
 	// chained with another command
 	[`cd C:/Code/lew42/worktrees/qf-6 && node server.js`, MAIN],
 	[`node server.js; echo done`, MAIN],
+	// a real search after a heredoc, or on its own line, is still a command
+	["cat <<'EOF' > x.txt\nhello\nEOF\nfind / -name y", MAIN],
+	["echo start\nfind . -name y", MAIN],
 ];
 const ALLOW = [
+	// unscoped recursive search: a named subfolder, a single file, git grep anywhere, no -r
+	[`grep -rn pattern Servex/`, MAIN],
+	// a quoted "-r" is the pattern being searched for, not the recursive flag
+	[`grep -n "-r" file.txt`, MAIN],
+	// a heredoc body and a quoted regex are data: a "|rg|" inside them is never a bare rg
+	["node - <<'EOF'\nconst K = /^(grep|rg|du|find)$/;\nEOF", MAIN],
+	[`node -e "const K = /grep|rg|find/"`, MAIN],
+	[`grep -rln DayPromptsRefine Server/Processes.js`, MAIN],
+	[`find Servex/ -name "*.test.mjs"`, MAIN],
+	[`rg pattern Servex/`, MAIN],
+	[`git grep -n DayPromptsRefine`, MAIN],
+	[`git grep -n DayPromptsRefine -- Servex/`, MAIN],
+	[`grep DayPromptsRefine Servex/Processes.js`, MAIN],
+	[`grep -n pattern .`, MAIN],                               // no -r: never a recursive walk
+	[`grep -rn pattern .`, "C:/Code/lew42/worktrees/qf-6/Servex"],   // cwd is a subfolder, not a root
 	// the real fixes for starting a server
 	[`node Server/worktree-up.mjs server-guard`, MAIN],
 	[`node Server/worktree-down.mjs qf-6`, MAIN],

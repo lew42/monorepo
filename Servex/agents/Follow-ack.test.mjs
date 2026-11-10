@@ -56,5 +56,30 @@ real.wake_parent(child, "done", { quiet: true });
 assert.equal(sent.length, 0, "quiet: the parent is not messaged");
 real.wake_parent({ ...child, woke: false }, "done");
 assert.equal(sent.length, 1, "not quiet: the parent is messaged");
+
+// step 4 (one place per conversation, 2026-11-09): a REPEATED "done" to an EXTERNAL parent is not re-sent
+real.external = { has: id => id === "voice-app" };
+sent.length = 0;
+const ext_child = { id: "mastermind-e", parent: "voice-app", last_text: "nothing changed", cost: 1 };
+real.wake_parent({ ...ext_child, woke: false }, "done");
+assert.equal(sent.length, 1, "the FIRST done to an external parent is sent");
+real.wake_parent({ ...ext_child, woke: false }, "done");
+assert.equal(sent.length, 1, "the SAME done again is skipped, not re-sent");
+real.wake_parent({ ...ext_child, last_text: "something new happened", woke: false }, "done");
+assert.equal(sent.length, 2, "a genuinely different done still goes through");
+assert.equal(real._dup_done_skips, 1, "the skip is counted on the host, not logged per occurrence");
+// the skip is ONLY the message — the task-dir inbox.jsonl line still happens, same as any other "done" (fix E: an earlier version's early `return` dropped it too)
+const task_dir = fs.mkdtempSync(path.join(dir, "task-"));
+fs.writeFileSync(path.join(task_dir, "task.jsonl"), "{}\n");
+const parent_dir = path.dirname(task_dir);
+real.task_dir_of = id => id === "voice-app" ? parent_dir : null;
+const inbox_file = path.join(parent_dir, "inbox.jsonl");
+const dup_child = { id: "mastermind-i", parent: "voice-app", last_text: "same inbox text", cost: 1, task: { dir: task_dir } };
+real.wake_parent({ ...dup_child, woke: false }, "done");
+const after_first = fs.readFileSync(inbox_file, "utf8").trim().split("\n").length;
+real.wake_parent({ ...dup_child, woke: false }, "done");   // the duplicate: message skipped, but the inbox line must still append
+const after_second = fs.readFileSync(inbox_file, "utf8").trim().split("\n").length;
+assert.equal(after_second, after_first + 1, "a duplicate done still appends to the task's own inbox.jsonl — only the SEND to the parent is skipped");
+
 console.log("Follow-ack: ok");
 process.exit(0);

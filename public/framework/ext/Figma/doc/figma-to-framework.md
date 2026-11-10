@@ -1,7 +1,6 @@
 # Figma to framework: which Figma signal means which of our words (2026-10-12)
 
-**Goal (the owner's): what you see in Figma is what the browser renders.** Read a node with `get_design_context` (it prints the auto layout as `flex`, `gap`, `p`), then choose a framework word from the table. This supersedes the first draft in [mapping.md](./mapping.md).
-
+**Goal (the owner's): what you see in Figma is what the browser renders.** Read a node with `get_design_context` (it prints the auto layout as `flex`, `gap`, `p`), then choose a framework word from the table.
 **What the nine Palette pages actually did:** each Haiku build wrote its own small CSS (`pal-`, `ctl-`, `tsk-` ...) with `display:flex`, `gap` and `padding` in `em`, because the spec gave raw numbers. They are faithful, but they use none of our layout words. That is the gap this table closes: the next spec should name the word, not only the numbers. Em values round-trip exactly (14.92px = 1em at that page's body size).
 
 ## The table
@@ -34,7 +33,7 @@
 
 Confirmed by building the nine Palette pages: flex row/column, gap, padding, align, HUG chips, alpha overlays, the em round trip. Not confirmed (no example in these files): Figma grid layout, component variant sets.
 
-See also: [capture.md](./capture.md) (the other direction: our page into Figma), [haiku-builds.md](./haiku-builds.md) (what a spec must name), [mapping.md](./mapping.md) (first draft).
+See also: [capture.md](./capture.md) (the other direction: our page into Figma), and the lesson from the first Haiku builds: a spec must say HUG as "does not stretch" (a chip is `align-self: flex-start`) and spell out the `.attr("placeholder", …)` / `.c()` API.
 
 ## Direction of the token sync (decided 2026-10-13)
 

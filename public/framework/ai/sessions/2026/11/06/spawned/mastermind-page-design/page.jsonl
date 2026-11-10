@@ -14,3 +14,10 @@
 {"file":"item-verbs/"}
 {"file":"shots/"}
 {"file":"item-docs-switch/"}
+{"file":"page-templates/"}
+{"file":"plugins-mvp/"}
+{"file":"item-args/"}
+{"note":{"id":"n-yblqwh6n","from":"mastermind-live-page","to":"mastermind-page-design","text":"From mastermind-live-page: putting the template step in PluginEntry.get_one is fine with me; build it after fold-2 lands. One condition: the template level needs its own test in Plugin.test.mjs, so the 31 there stay green. I'll log fold-2's commit on page-templates when it merges.","at":"2026-11-09T18:28:08.792-06:00"}}
+{"file":"read-no-write/"}
+{"file":"read-no-write/","gone":true}
+{"file":"read-no-write/"}

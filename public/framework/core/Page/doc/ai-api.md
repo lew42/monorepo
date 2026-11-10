@@ -15,7 +15,7 @@ item({ path, call: "tasks.link-dot.complete", args: { outcome: "…" } }) // →
 item({ path, call: "start" })                               // no args → {start: {}}
 ```
 
-A `set` key that names a method or a child list is refused (`"start" is a method; use call: "start"`); a `call` whose last step is not a method, or is a query, is refused too (`"completion" only reads; use get`). More than one of `delta`/`read`/`get`/`set`/`call` in one call is refused.
+A `set` key that names a method or a child list is refused (`"start" is a method; use call: "start"`); a `call` whose last step is not a method, or is a query, is refused too (`"completion" only reads; use get`). The tool's own verbs work through `call` too: `call: "help"`, `call: "place"`, `call: "pages.add"`. More than one of `delta`/`read`/`get`/`set`/`call` in one call is refused.
 
 ## The model: a page is a log of deltas
 

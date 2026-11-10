@@ -7,3 +7,9 @@
 {"file":"rail/page.js"}
 {"file":"variants.css"}
 {"file":"walkthrough/page.js"}
+{"file":"a/page.js","nav":{"title":"A — today","icon":"view_sidebar"}}
+{"file":"b/page.js","nav":{"title":"B — one level down","icon":"view_sidebar"}}
+{"file":"c/page.js","nav":{"title":"C — short name","icon":"view_sidebar"}}
+{"file":"d/page.js","nav":{"title":"D — breadcrumb","icon":"view_sidebar"}}
+{"file":"rail/page.js","nav":{"title":"Who owns the rail?","icon":"view_sidebar"}}
+{"file":"walkthrough/page.js","nav":{"title":"The section element","icon":"slideshow","description":"A walkthrough of the section element, four variants of the top of the rail (A–D), plus who owns the rail, and the floating page."}}

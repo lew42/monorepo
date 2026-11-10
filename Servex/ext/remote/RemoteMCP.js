@@ -6,6 +6,7 @@ import express from "express";
 import TaskDirs from "../../../Server/TaskDirs.mjs";
 import DatedFiles from "../../../Server/DatedFiles.mjs";
 import Ask from "../../../Server/Ask.mjs";
+import TurnRefiner from "../../agents/TurnRefiner.js";
 
 /* The remote MCP endpoint (POST /mcp/remote), behind a bearer token. It serves the SAME tool registry every local Claude
  * session gets (`servex.mcp`, read live, never copied) plus `ask_mastermind` on top; calls run as caller "voice-app".
@@ -28,7 +29,7 @@ export default class RemoteMCP {
         "The owner's standing rule (2026-10-16): when the owner asks a question, put the answer on /live/ as a card first, then say \"take a look\" and keep the spoken reply to one or two sentences. A status answer (\"what's running\") is a card listing each agent's id, state, what it is on and its cost (list_agents has them); it is shown, not spoken.",
         "Restarting Servex needs no question (the owner, 2026-11-06): it takes seconds and dev servers keep running. Do it between turns, never mid-sentence in a voice call, since it drops your own connection for a moment. Then check it came back (list_agents).",
         "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
-        "Call `updates` at the start of nearly every turn: it returns only what arrived for you since your last call (agent messages, the owner's notes, changes to logs you follow). Subscribe to a log with follow({path, agent: \"voice-app\"}).",
+        "Call `updates` at the start of nearly every turn: it returns only what arrived for you since your last call (agent messages, the owner's notes, changes to logs you follow). Subscribe to a log with follow({path, agent: \"voice-app\"}). Pass your claude.ai conversation id as `conversation` on `updates` and `register_session` — it keeps your own place separate from any other conversation reading the same shared inbox, and a FIRST call with a conversation id Servex has not seen gets `missed`, a digest of what happened before you joined.",
     ].join("\n");
     // The bridge's listening tool (voice-bridge, 2026-11-01): a short long-poll on one ask's ticket. Remote route only.
     static HEAR = {
@@ -266,11 +267,14 @@ export default class RemoteMCP {
     }
 
     // catch-up.md item 1: when the cursor is behind, every other tool result says so in one line (nothing when nothing is new)
+    // the pending check uses the SAME key `updates` itself would default to with no explicit `conversation` — this connection's
+    // own voice session id (step 1, one place per conversation, 2026-11-09) — so the hint never disagrees with what updates() finds
     hint(tool, result, sid){
         try {
             if (tool === "updates" || !result?.content) return result;
             result = this.ride(result, sid);
-            const n = this.servex.external?.ensure?.(RemoteMCP.CALLER)?.pending?.(RemoteMCP.CALLER) ?? 0;
+            let v = null; try { v = this.voice_session(sid); } catch {}
+            const n = this.servex.external?.ensure?.(RemoteMCP.CALLER)?.pending?.(RemoteMCP.CALLER, v?.id ?? null) ?? 0;
             if (n > 0) return { ...result, content: [...result.content, { type: "text", text: `${n} new update${n === 1 ? "" : "s"} for you: call updates.` }] };
         } catch {}
         return result;
@@ -284,7 +288,8 @@ export default class RemoteMCP {
         try {
             if (text) fs.appendFileSync(abs, JSON.stringify({ owner_words: { at, words: text, caller: RemoteMCP.CALLER } }) + "\n");
             // the same words as numbered sentences, split by code with secrets withheld (Server/Ask.mjs): the line the voice model writes, `re` = the words line's `at`
-            if (text) Ask.write(text, "voice", at, line => fs.appendFileSync(abs, JSON.stringify(line) + "\n"));
+            // then the one refiner (TurnRefiner: the parts brief) adds the sections that cite them, in the background
+            if (text){ const put = line => fs.appendFileSync(abs, JSON.stringify(line) + "\n"); Ask.write(text, "voice", at, put); TurnRefiner.refine(text, "voice", at, put).then(r => { if (r.ok === false) console.error("remote-mcp: turn refine:", r.why); }); }
             const hash = crypto.createHash("sha256").update(JSON.stringify(call.args ?? {})).digest("hex").slice(0, 12);
             fs.appendFileSync(abs, JSON.stringify({ tool_call: { at, tool, args_hash: hash, caller: RemoteMCP.CALLER } }) + "\n");
         } catch (e) { console.error("remote-mcp: voice log write failed:", e.message); }

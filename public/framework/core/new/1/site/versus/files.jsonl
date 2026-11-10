@@ -9,3 +9,11 @@
 {"file":"ui.js"}
 {"file":"verdict/page.js"}
 {"file":"versus.css"}
+{"file":"container/page.js","nav":{"title":"container() vs the alternatives"}}
+{"file":"council/page.js","nav":{"title":"The council, synthesised"}}
+{"file":"css/page.js","nav":{"title":"Two classes vs a layout tier"}}
+{"file":"field/page.js","nav":{"title":"vs the field"}}
+{"file":"lineage/page.js","nav":{"title":"vs new/0 and starter"}}
+{"file":"lines/page.js","nav":{"title":"265 lines, taken seriously"}}
+{"file":"pager/page.js","nav":{"title":"vs the Pager tier"}}
+{"file":"verdict/page.js","nav":{"title":"The verdict"}}

@@ -33,3 +33,18 @@
 {"file":"words.js"}
 {"file":"made/page.jsonl"}
 {"file":"made/"}
+{"file":"arrangement/page.js","nav":{"title":"Arrangement","icon":"view_quilt","description":"Where the page's other parts sit around the box."}}
+{"file":"build/page.js","nav":{"title":"Build","icon":"construction","description":"The builder is part of Make now — one screen, with the tree and the live page."}}
+{"file":"content/page.js","nav":{"title":"Content","icon":"article","description":"What is in the box — one of eight kinds, or the address of anything you like."}}
+{"file":"critique/page.js","nav":{"title":"Research","icon":"rate_review","description":"Every /imagine/ realm, shot at 1280 and 3440 and ranked worst-first — column ratio, alignment and nesting against the viewport."}}
+{"file":"cross/page.js","nav":{"title":"Cross","icon":"compare_arrows","description":"Two words at once: pick which crosses which, and every pair is a real page."}}
+{"file":"doc/page.js","nav":{"title":"Docs","icon":"menu_book","description":"The long form — the mechanisms, the decisions, persistence, templates."}}
+{"file":"inventory/page.js","nav":{"title":"Inventory","icon":"inventory_2","description":"What already matches icon · page · children · navigation — one row per thing, in the paging vocabulary."}}
+{"file":"library/page.js","nav":{"title":"Library","icon":"collections_bookmark","description":"Twelve whole pages, already configured. Pick one from the dropdown."}}
+{"file":"make/page.js","nav":{"title":"Make","icon":"add_circle_outline","description":"One screen for making pages: the tree, the page itself, and everything it says."}}
+{"file":"mechanisms/page.js","nav":{"title":"Mechanisms","icon":"alt_route","description":"The four things a click can do, against the same four children."}}
+{"file":"navigation/page.js","nav":{"title":"Navigation","icon":"swipe_left","description":"Stable or dynamic: does the click move what you were reading?"}}
+{"file":"room/page.js","nav":{"title":"Room","icon":"width_wide","description":"How much of the screen the box gets."}}
+{"file":"skin/page.js","nav":{"title":"Skin","icon":"palette","description":"The colours and the type size."}}
+{"file":"stage/page.js","nav":{"title":"Stage","icon":"crop_square","description":"The box a click changes the inside of. It never moves."}}
+{"file":"templates/page.js","nav":{"title":"Templates","icon":"dashboard_customize","description":"Eleven whole-page shapes the rest of this site already ships, each drawn by its own real code."}}

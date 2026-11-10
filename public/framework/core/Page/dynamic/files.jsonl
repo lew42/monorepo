@@ -8,3 +8,4 @@
 {"file":"page.js"}
 {"file":"readme.md"}
 {"file":"weight.jsonl"}
+{"file":"example/page.js","nav":{"title":"Example","icon":"widgets","description":"Three items, one template, zero page.js files below this line."}}

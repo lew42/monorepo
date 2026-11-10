@@ -1,0 +1,7 @@
+verdict: fix
+1. [fix] Requirement 4 (check on real data) has no numbers in the task folder. `plan.md` has only the one 131-vs-121 comparison (session 5132a480); the five newest sessions with prompts, and their agreement with `../one-refiner-plan/coverage.mjs`, are not written anywhere a fresh agent can find (no task log, `session.jsonl` is a process log).
+2. [fix] Requirement "Page change: take shots at 400 and 1200" is unmet: the task folder has no `shots/` directory, so the coverage line and its one-click-down list were never shown in a screenshot (`SessionStats.js:59-74`, `SessionOverview.css`).
+3. [fix] `public/framework/ai/AISession/readme.md` is not touched, though the diff adds a new drawn element (`SessionStats.coverage`, `.sov-coverage`, `.sov-uncited`) to that module. Document it there (what it draws, where it reads from).
+4. [note] The count reads ~8% above the study's `Ask.split` count (browser `sentences.js` vs server splitter), so it does not agree with `coverage.mjs`; the refinement map says so (`prompt-refinement-map.md`, step 3 paragraph), which is acceptable, but requirement 4 asked to "say why not" per session, not for one.
+5. [note] The test (`Session.test.mjs:142`) covers the replay path with a `refined` record; the Prompt-task / chat-message branch (`Session.js:93-96`) and the `parts`-based citation branch are untested, and it is one dense `check` line.
+6. [note] `Session.js:99-100` adds `static queries` plus a `summary()` override; fine and small, and the "no prompts returns null" behaviour is right (`Session.js:97`).

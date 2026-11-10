@@ -10,12 +10,17 @@ The owner said yes on 2026-11-09 (relayed by voice-app). The plan is at [/live/p
 - `page.ext(name)` at `Page.class.js:170`, which imports `./ext/<name>/<name>.js` and runs `Ext.setup(page)`;
 - a `{"ext": "Inbox"}` page.jsonl line, which reaches `ext(name)`.
 
-`core/Plugin/Plugin.js` already does all of this with on/off, per class and per instance (`inst.plugins`, `inst.overrides`, `toggle_plugin`, `Host.make_default`). Read `core/Plugin/readme.md` and `core/Plugin/doc/design-notes.md` first.
+`core/Plugin/Plugin.js` already does all of this with on/off, per class and per instance (`inst.plugins`, `inst.overrides`, `toggle_plugin`, `Host.make_default`). Read [core/Plugin/readme.md](/framework/core/Plugin/readme.md) and `core/Plugin/doc/design-notes.md` first.
 
 ## The change
 
-1. **In `core/Plugin/Plugin.js`, add `export const Pluggable = Base => class extends Base { … }`**, carrying the plugin parts only: the statics (`use`, `unuse`, `available`, `records`, `record`, `plugins`, `enable`, `disable`, `make_default` and the helpers they need) and the instance parts (`plugins`, `overrides`, `load_overrides`, `reset_plugins`, `toggle_plugin`). Then `class Plugin extends Pluggable(Events(Object))` keeps today's constructor, so **every existing Plugin user is unchanged** (`Server/Events.js` is a subclass; find the rest with `git grep -n "core/Plugin/Plugin.js" -- public Server Servex`).
-2. ⚠ **Name collisions.** Item and Page already have instance methods named `assign`, `instantiate`, `initialize` and `bubbles`, and maybe static `on` or `emit`. The mixin must not bring any name that Item or Page already has. Before writing, list the names with a node script and log the overlap. Plugin's class-level "new" announcement (`this.constructor.emit("new", this)`) must not clash with Item's events: give the mixin its own call, for example a static `plugged(inst)` that a host calls once per new instance.
+1. **In [Plugin.js](/framework/core/Plugin/Plugin.js), add `export const Pluggable = Base => class extends Base { … }`.** A mixin is a function that takes a base class and returns a subclass, so several can stack on one base.
+   - Pluggable carries only the plugin parts: the statics (`use`, `unuse`, `available`, `records`, `record`, `plugins`, `enable`, `disable`, `make_default` and the helpers they need) and the instance parts (`plugins`, `overrides`, `load_overrides`, `reset_plugins`, `toggle_plugin`).
+   - `class Plugin extends Pluggable(Events(Object))` keeps today's constructor, so every existing Plugin user is unchanged (`Server/Events.js` is a subclass; find the rest with `git grep -n "core/Plugin/Plugin.js" -- public Server Servex`).
+2. ⚠ **Name collisions**, as a checklist:
+   - [ ] Run a node script that lists the names [Item](/framework/core/Item/Item.js) and [Page.class.js](/framework/core/Page/Page.class.js) already have (`assign`, `instantiate`, `initialize`, `bubbles`, any static `on`/`emit`). Log the overlap.
+   - [ ] `Pluggable` brings none of those names.
+   - [ ] Plugin's `this.constructor.emit("new", this)` is replaced by a mixin-only static `plugged(inst)`, which a host calls once per new instance.
 3. **In `core/Page/Page.class.js`, write `class Page extends Pluggable(Item)`.** Where `Page._ext.forEach(...)` runs (line 60), announce the new page to the plugin system instead.
    - `Page.use(Ext)` becomes the mixin's `use`. Keep `Page._ext` as a read-only alias (a getter listing the enabled plugins) for old readers.
    - `page.ext(name)` keeps its import, then switches that plugin on **for this page only**: record it on Page as available (off class-wide), then `this.toggle_plugin(rec, true)`. The `{"ext": …}` line goes through `ext(name)` as before.

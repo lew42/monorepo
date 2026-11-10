@@ -1,3 +1,5 @@
 {"file":"one/page.js"}
 {"file":"page.js"}
 {"file":"two/page.js"}
+{"file":"one/page.js","nav":{"title":"One"}}
+{"file":"two/page.js","nav":{"title":"Two"}}

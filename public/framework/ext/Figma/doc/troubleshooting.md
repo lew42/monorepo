@@ -2,6 +2,12 @@
 
 One dated entry per problem: what happened, why, the fix. Read this only when something goes wrong; the everyday recipe is [use-figma.md](use-figma.md).
 
+## 2026-11-09 · A block instance in a Section slot came out 100 px wide and 2700 px tall
+
+**What:** six block instances dropped into a Section instance's `Content` slot with `layoutSizingHorizontal = 'FILL'` rendered 100 px wide, so their cards stacked and the page was 9000 px tall.
+**Why:** the Section instance's own slot HUGs (100 px) until it is told to fill, so FILL on a child fills nothing.
+**Fix:** set the slot itself to `layoutSizingHorizontal = 'FILL'`, then the children (the page went to 3343 px).
+
 ## 2026-10-20 · An empty slot is 100 px tall in the main component
 
 **What:** `Card / Session` and `Card / Project` ran ~300 px tall with nothing in them, and the project's accent edge ran far past its content.

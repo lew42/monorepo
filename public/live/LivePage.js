@@ -19,6 +19,7 @@ View.stylesheet(import.meta, "LivePage.css");
 
 // Markdown draws only in a browser; in node (the item tool builds this class to replay page.jsonl) nothing is drawn.
 const { default: md } = typeof document === "undefined" ? { default: () => {} } : await import("/framework/ext/markdown/md.js");
+import "/framework/ui/row/row.js";   // .ui-row: the file-list and settings rows (ui/parts.js css() adds nothing in node)
 
 /* /live/ — the screen voice Claude drives with the item tool: item({path: "/live/", delta}). readme.md lists every delta.
  * The page IS page.jsonl: line 1 names this class, every later line is one set(). A data key is state (header, footer),
@@ -310,7 +311,7 @@ export default class LivePage extends Page {
 	follow(){
 		const box = this.$scroll?.el;
 		if (!box || typeof document === "undefined" || this.settings_of || this.at) return;   // settings and a file read from the top
-		import("/framework/ext/Chat/Chat.js").then(({ sticky_scroll }) => { this.scroll = sticky_scroll(box); this.scroll.pin(); })
+		import("/framework/ext/Chat/Chat.js").then(({ sticky_scroll }) => { this.scroll = sticky_scroll(box, { locked: false }); })   // opens at the top; follows only after the reader scrolls to the bottom
 			.catch(e => console.warn("LivePage: no scroll lock (" + e.message + ")"));
 	}
 
@@ -427,6 +428,8 @@ export default class LivePage extends Page {
 	// A title, in markdown with mentions, kept in step with the item: new LivePage.Heading({ tag: "h4", item }).
 	// `only` is the url when the whole title is one mention ("@Page"), so a card can become that thing's card.
 	// `fix(t)` shows t instead from then on (a link card shows the title its page gives itself).
+	// `strip_emoji: true` + `on_icon(name)`: a title that starts with a mapped emoji (LivePage.emoji_icons) is shown
+	// without it, and `on_icon` is told the Material name (or null); an emoji not in the map is left alone.
 	static Heading = class LiveHeadingView extends View {
 		render(){
 			this.bind(this.item, this.key ?? "title", function(t){ this.show(this.fixed ?? t); });
@@ -434,6 +437,12 @@ export default class LivePage extends Page {
 		fix(t){ if (t) this.show(this.fixed = t); }
 		show(t){
 			t ??= this.fallback;
+			let icon = null;
+			if (this.strip_emoji && t){
+				const found = LivePage.icon_of_title(t);
+				if (found){ icon = found.icon; t = found.title; }
+			}
+			this.on_icon?.(icon);
 			this.tc("is-empty", !t).empty();
 			if (t) this.md(String(t), { safe: true });
 			const one = this.el.children.length === 1 && this.el.firstElementChild.matches("a.mention") ? this.el.firstElementChild : null;
@@ -442,14 +451,37 @@ export default class LivePage extends Page {
 		}
 	};
 
+	// Emoji seen in /live/ titles today, mapped to a Material icon name (git grep every page.jsonl under /live/, 2026-11-09):
+	// an author who wants a different look sets its own `icon` field instead (that wins, and skips this table entirely).
+	static emoji_icons = {
+		"🐛": "bug_report", "📄": "description", "🎯": "target", "✅": "check_circle", "⚠️": "warning",
+		"💡": "lightbulb", "🔧": "build", "📌": "push_pin", "📊": "bar_chart", "❓": "help",
+		"🔁": "repeat", "💤": "bedtime", "⚙": "settings", "🧠": "psychology",
+	};
+	// A title's leading emoji, mapped: { icon, title (with the emoji and its following space dropped) }, or null when
+	// the title has no leading emoji, or has one this table does not know (kept as it is: the author's own choice).
+	static icon_of_title(title){
+		if (typeof title !== "string") return null;
+		// A key with no variation selector (⚙, U+2699) still matches a title that carries one (⚙️, +U+FE0F): drop
+		// a leftover U+FE0F too, or it reads as a blank before the title (2026-11-09, the owner's phone).
+		for (const [emoji, icon] of Object.entries(this.emoji_icons))
+			if (title.startsWith(emoji)) return { icon, title: title.slice(emoji.length).replace(/^[️\s]+/, "") };
+		return null;
+	}
+
 	// A text in markdown with mentions, kept in step with one key of an item: new LivePage.Md({ item, key: "text" }).
 	static Md = class LiveMdView extends View {
 		render(){
-			this.bind(this.item, this.key, function(t){
-				const has = t != null && t !== "";
+			const empty = v => v == null || v === "";
+			const show = function(){   // `key`'s value, else `fallback`'s (a card's `description`, else its `text`)
+				let t = this.item.get?.(this.key);
+				if (empty(t) && this.fallback) t = this.item.get?.(this.fallback);
+				const has = !empty(t);
 				this.tc("is-empty", !has).empty(() => { if (has) md(String(t), { safe: true }); });
 				LivePage.label_tables(this.el);
-			});
+			};
+			this.bind(this.item, this.key, show);
+			if (this.fallback) this.bind(this.item, this.fallback, show);
 		}
 	};
 
@@ -480,6 +512,8 @@ export default class LivePage extends Page {
 		return this.meta_of(url).then(m => m.icon ?? null);
 	}
 	// A link card's icon before its page answers: the link's own, else a file for a .jsonl url, else a folder.
+	// A card never shows the "stored inside its parent" dot (it wastes a column); the page header still may.
+	static card_icon(name){ return name === this.stored.item ? null : name; }
 	static link_icon(link, url){ return link.get("icon") ?? (/\.jsonl\/?$/.test(url) ? this.stored.file : this.stored.folder); }
 	static icon(page, name){
 		if (!page.$icon) return void this.glyph(null, name);
@@ -630,7 +664,7 @@ export default class LivePage extends Page {
 				for (const [id, $row] of [...rows]) if (!seen.has(id)){ $row.el.remove(); rows.delete(id); }
 				list.items.forEach(item => {
 					if (rows.has(item.id)) return;
-					let $row; this.append(() => $row = div.c("live-card live-item"));   // framed like a card; the chevron opens it whole (child())
+					let $row; this.append(() => $row = div.c("card live-card live-item"));   // framed like a card; the chevron opens it whole (child())
 					rows.set(item.id, $row);
 					item.load().then(obj => $row.append(() => {
 						div.c("live-card-body", () => {
@@ -699,27 +733,32 @@ export default class LivePage extends Page {
 		render(){
 			const { page, item } = this, P = page.constructor;
 			const own = item instanceof PageLink ? page.link_url(LivePage.path_of(item)) : page.url + item.id + "/";
-			let $title, $icon;
+			let $title, $icon, title_icon = null, their_icon = null;
+			const paint = () => {
+				if (item instanceof PageLink) return void P.glyph($icon, P.card_icon(item.get("icon") ?? title_icon ?? their_icon ?? P.link_icon(item, own)));
+				P.glyph($icon, item.get("icon") || title_icon);
+			};
 			const go = () => {
 				this.tc("live-entity", !!$title?.only);
 				$icon?.tc("is-hidden", !!$title?.only);   // "@Page" brings that thing's own icon in its mention
 				this.$go?.attr("href", $title?.only ?? own).attr("aria-label", String(item.get("title") ?? item.id));
 			};
-			this.attr("id", item.id).attr("data-kind", item.constructor.name);
+			this.ac("card").attr("id", item.id).attr("data-kind", item.constructor.name);   // "live-card" comes from the class name (View.js); the kit's own frame is added here
 			div.c("live-card-body", () => {
 				div.c("live-card-head", () => {
 					// The icon its page's header shows (LivePage.icon_name): a link asks the page, a card is an item stored here.
+					// No fallback to the "stored inside its parent" dot here (P.stored.item, via P.card_icon): a card with
+					// neither an `icon` field, a mapped emoji in its title, nor (a link) a target page icon shows no icon at
+					// all, rather than wasting a column on the dot — the page header can still show it.
 					$icon = span.c("live-icon live-card-icon");
-					if (item instanceof PageLink){
-						const fallback = P.link_icon(item, own);
-						P.glyph($icon, fallback);
-					} else this.bind(item, "icon", n => P.glyph($icon, n ?? P.stored.item));   // a link's: its page's own icon wins below, the same as its header
-					$title = new P.Heading({ tag: "h4", item, classes: "live-card-title", on_text: go });
+					if (item instanceof PageLink) paint(); else this.bind(item, "icon", paint);
+					$title = new P.Heading({ tag: "h4", item, classes: "live-card-title", on_text: go,
+						strip_emoji: true, on_icon: n => { title_icon = n; paint(); } });
 				});
 				if (item instanceof PageLink && own.startsWith("/live/")){
 					const theirs = () => {
 						P.title_of(own).then(t => $title.fix(t)).catch(() => {});
-						P.icon_of(own).then(n => P.glyph($icon, n ?? P.link_icon(item, own))).catch(() => {});
+						P.icon_of(own).then(n => { their_icon = n; paint(); }).catch(() => {});
 					};
 					theirs();
 					P.on_meta(this, u => u === own, theirs);   // its page renames itself: the card follows
@@ -743,11 +782,11 @@ export default class LivePage extends Page {
 			const { page, item, url } = this, P = page.constructor, list = item?.preview?.on ? item.preview : null, drawn = new Map();
 			this.ac("live-preview");
 			const $list = div.c("live-preview-list");
-			const $text = new P.Md({ item, key: "description", classes: "live-card-text live-preview-text" });
+			const $text = new P.Md({ item, key: "description", fallback: "text", classes: "live-card-text live-preview-text" });
 			const $theirs = div.c("live-card-text live-preview-text is-empty");
 			let theirs = null;
 			const draw = () => {
-				const members = (list?.items ?? []).filter(i => !i.transient), own = item?.get?.("description");
+				const members = (list?.items ?? []).filter(i => !i.transient), own = item?.get?.("description") || item?.get?.("text");
 				DefaultView.place($list.el, members, drawn, it => P.safely(page, "preview", () => new P.Block({ page, item: it, capture: false }), it));
 				$list.tc("is-empty", !members.length);
 				$text.tc("is-hidden", members.length > 0);
@@ -797,13 +836,17 @@ export default class LivePage extends Page {
 			const { of, page } = this, folder = page.folder;
 			if (this.at) return void new LivePage.Files({ page, folder, at: this.at });   // one folder or file inside it
 			const src = LivePage.src_of(of.constructor);
-			if (src){
-				const dir = src.replace(/[^/]+$/, ""), name = src.split("/").at(-1);
-				a.c("live-files-row live-settings-class", () => { icon("code"); span(name); span.c("live-settings-note", "draws this page"); }).href(dir + "settings/" + name + "/");
-			}
-			const row = (label, text) => div.c("live-settings-row", () => { span.c("live-settings-label", label); span.c("live-settings-value", text); });
-			if (of.focus) row("Card", `id ${of.focus.id}, saved inside ${folder}page.jsonl`);
-			else if (of.screen) row("Saved screen", `saved inside ${folder}page.jsonl`);
+			const row = (label, text) => div.c("ui-row live-settings-row", () => { span.c("live-settings-label", label); span.c("live-settings-value", text); });
+			// The class row, the Card/Saved-screen row: one box (the kit's `.card`), each row the kit's `.ui-row`,
+			// same move as the file list below — one list reads as one thing, not three separate boxes.
+			if (src || of.focus || of.screen) div.c("card live-settings-box", () => {
+				if (src){
+					const dir = src.replace(/[^/]+$/, ""), name = src.split("/").at(-1);
+					a.c("ui-row live-files-row live-settings-class", () => { icon("code"); span(name); span.c("live-settings-note", "draws this page"); }).href(dir + "settings/" + name + "/");
+				}
+				if (of.focus) row("Card", `id ${of.focus.id}, saved inside ${folder}page.jsonl`);
+				else if (of.screen) row("Saved screen", `saved inside ${folder}page.jsonl`);
+			});
 			new LivePage.Files({ page, folder, at: "" });
 			h4.c("live-settings-files-title", "What it is made of");
 			div.c("live-settings-inspect").append(import("/framework/ext/Inspect/ItemInspector.js").then(({ default: ItemInspector }) => new ItemInspector({ item: of })));
@@ -819,7 +862,7 @@ export default class LivePage extends Page {
 		render(){
 			const { page, folder, at } = this, path = folder + at;
 			const name = at.split("/").filter(Boolean).at(-1), up = folder + at.replace(/[^/]+\/$/, "");
-			this.$box = div.c("live-files-body", () => span.c("live-files-said", "Loading…"));
+			this.$box = div.c("card live-files-body", () => span.c("live-files-said", "Loading…"));
 			(async () => {
 				const listing = name ? await Page.listing(up).catch(() => null) : null;
 				if (name && (listing?.files.includes(name) || listing?.log === name)) return this.file(path.slice(0, -1));
@@ -830,8 +873,8 @@ export default class LivePage extends Page {
 					const dirs = [...new Set([...here.pages.keys(), ...here.dirs.map(d => d.replace(/\/.*$/, ""))])].sort();
 					const files = [...new Set([...here.files, ...here.log ? [here.log] : []])].sort();   // the log (page.jsonl or files.jsonl) is a file here too
 					if (!dirs.length && !files.length) span.c("live-files-said", "Nothing in this folder yet.");
-					dirs.forEach(d => a.c("live-files-row is-dir", () => { icon("folder"); span(d); }).href(page.url + d + "/"));
-					files.forEach(f => a.c("live-files-row", () => { icon("description"); span(f); }).href(page.url + f + "/"));
+					dirs.forEach(d => a.c("ui-row live-files-row is-dir", () => { icon("folder"); span(d); }).href(page.url + d + "/"));
+					files.forEach(f => a.c("ui-row live-files-row", () => { icon("description"); span(f); }).href(page.url + f + "/"));
 				});
 			})().catch(e => this.$box.empty(() => span.c("live-files-said", "Could not read " + path + ": " + e.message)));
 		}
@@ -841,6 +884,7 @@ export default class LivePage extends Page {
 			await import("/framework/ext/highlight/highlight.js");   // adds code.file to View's `code`
 			const block = await code.file(import.meta, url, { lang: /\.jsonl$/.test(url) ? "json" : undefined });
 			this.ac("is-file");
+			this.$box.rc("card");   // a file's code runs edge to edge, no box (LivePage.css .live-files.is-file)
 			LivePage.icon(this.page, "description");
 			this.$box.empty().el.append(block.el);
 			this.page.$raw?.href(url + "?raw").tc("is-empty", false);
@@ -881,7 +925,7 @@ export default class LivePage extends Page {
 	static Tasks = class LiveTasksView extends View {
 		render(){
 			const { page } = this, list = page.tasks;
-			this.ac("live-card live-tasks");
+			this.ac("card live-card live-tasks");
 			const $title = h4.c("live-card-title live-tasks-title"), $rows = div.c("live-tasks-rows");
 			const count = () => {
 				const all = [...list], done = all.filter(t => t.state === "complete").length;
@@ -903,10 +947,10 @@ export default class LivePage extends Page {
 			const { page } = this, P = page.constructor;
 			const group = (label, list) => list.length && div.c("live-pages-group", () => {
 				h4.c("live-pages-label", label);
-				list.forEach(c => div.c("live-card live-page-card", () => {
+				list.forEach(c => div.c("card live-card live-page-card", () => {
 					div.c("live-card-body", () => {
 						div.c("live-card-head", () => {
-							span.c("live-icon live-card-icon", () => P.glyph(null, c.icon));
+							span.c("live-icon live-card-icon", () => P.glyph(null, P.card_icon(c.icon)));
 							h4.c("live-card-title", c.title);
 						});
 						if (c.description) div.c("live-preview", () => div.c("live-card-text live-preview-text", () => md(String(c.description), { safe: true })));   // its page's own description

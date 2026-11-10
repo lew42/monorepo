@@ -6,3 +6,7 @@
 {"file":"v2/page.js"}
 {"file":"weight.jsonl"}
 {"file":"switcher/page.js"}
+{"file":"floating/page.js","nav":{"title":"Floating page","icon":"flip_to_front","description":"A page that floats in a gray well, with its own tab nav on the left."}}
+{"file":"switcher/page.js","nav":{"title":"Switcher","icon":"view_sidebar","description":"One routed list-switches-content pattern, in three skins, that collapses to a mobile dropdown with no change to how the active item is decided."}}
+{"file":"v1/page.js","nav":{"title":"Layout (v1)","icon":"dashboard_customize","description":"Choosing a layout: standard, split, columns, floating page, top-down shape."}}
+{"file":"v2/page.js","nav":{"title":"Layout (v2)","icon":"dashboard_customize","description":"The layout hub: the five shapes, how to choose one, and every layout page on the site."}}

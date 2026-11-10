@@ -18,3 +18,14 @@
 {"file":"doc/page.jsonl"}
 {"file":"doc/"}
 {"file":"weight.jsonl"}
+{"file":"built/page.jsonl","nav":{"title":"Built from lines","icon":"view_list","description":"A page made only of page.jsonl lines: some prose and three content modules."}}
+{"file":"catalog/page.js","nav":{"title":"Card catalog","icon":"dashboard","description":"Every kind of box on the site, drawn live, so you can see where two of them are really the same card."}}
+{"file":"Concepts/page.js","nav":{"title":"Concepts","icon":"dns","description":"What a page is made of: its core concepts as linked icon tiles."}}
+{"file":"Decision/page.js","nav":{"title":"Decision","icon":"rule","description":"A decision card: every option with its caveat, one chosen, changeable."}}
+{"file":"Disclosure/page.js","nav":{"title":"Disclosure","icon":"expand_circle_down","description":"A title that opens into a section, in three stacking styles."}}
+{"file":"Object/page.js","nav":{"title":"Object","icon":"data_object","description":"One default view for any object: a row with its icon, id, class and counts; open it to see its data, live."}}
+{"file":"plan/page.js","nav":{"title":"Card plan","icon":"call_merge","description":"75 kinds of box become 36: the plan."}}
+{"file":"Question/page.js","nav":{"title":"Question","icon":"help","description":"A question card: an ask, a text field, and the latest answer beneath."}}
+{"file":"Quotation/page.js","nav":{"title":"Quotation","icon":"format_quote","description":"One prompt of yours as a quotation: the words, the time, and where it was said."}}
+{"file":"Spend/page.js","nav":{"title":"Spend","icon":"bar_chart","description":"Dollars over time as a bar chart that fills any width: when was the money spent?"}}
+{"file":"structure/page.js","nav":{"title":"Models","icon":"hub","description":"Icon cards, sections and outlines: words drawn as a picture."}}

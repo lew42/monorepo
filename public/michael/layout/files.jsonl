@@ -3,3 +3,7 @@
 {"file":"gap/page.js"}
 {"file":"grid/page.js"}
 {"file":"page.js"}
+{"file":"containers/page.js","nav":{"title":"Containers","description":"Container queries — respond to the parent's width, not the viewport."}}
+{"file":"flex/page.js","nav":{"title":"Flex","description":"flex and its modifiers: wrap, auto, three, v, split, centering."}}
+{"file":"gap/page.js","nav":{"title":"Gap","description":"gap and gap-2em — spacing without margins."}}
+{"file":"grid/page.js","nav":{"title":"Grid","description":"grid.auto and grid.three — responsive columns with no media queries."}}

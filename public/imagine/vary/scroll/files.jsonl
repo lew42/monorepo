@@ -3,3 +3,6 @@
 {"file":"padded/page.js"}
 {"file":"page.js"}
 {"file":"scroll.css"}
+{"file":"flush/page.js","nav":{"title":"Flush bleed","icon":"vertical_split","description":"The same scroll region, `bleed` to the column's real edge instead of boxed in the padding."}}
+{"file":"full/page.js","nav":{"title":"Full-viewport","icon":"crop_free","description":"One column claims the whole row — its scrollbar reads as an ordinary page scrolling."}}
+{"file":"padded/page.js","nav":{"title":"Padded inset","icon":"crop_square","description":"The bad pattern — a scroll region boxed inside the column's own padding."}}

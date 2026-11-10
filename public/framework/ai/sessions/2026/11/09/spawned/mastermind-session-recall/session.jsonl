@@ -40,3 +40,12 @@
 {"log":{"at":"2026-11-09T17:12:06-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-09T23:12:06.316Z"}
 {"log":{"at":"2026-11-09T17:12:07-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
 {"pid_exit":12636,"ended":"2026-11-09T17:12:15-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid":53852,"cmd":"C:\\WINDOWS\\System32\\reg.exe query HKLM\\SOFTWARE\\Policies\\ClaudeCode /v Settings","why":"child of claude.exe","agent":"mastermind-session-recall","session":"67467713-ff1d-45fc-b626-6335bba83c1e","started":"2026-11-09T18:04:59-06:00","ppid":16500,"seen":"sample","by":"servex"}
+{"pid":8388,"cmd":"C:\\WINDOWS\\System32\\reg.exe query HKCU\\SOFTWARE\\Policies\\ClaudeCode /v Settings","why":"child of claude.exe","agent":"mastermind-session-recall","session":"67467713-ff1d-45fc-b626-6335bba83c1e","started":"2026-11-09T18:04:59-06:00","ppid":16500,"seen":"sample","by":"servex"}
+{"log":{"at":"2026-11-09T18:05:04-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-10T00:05:04.824Z"}
+{"log":{"at":"2026-11-09T18:05:05-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T00:05:05.624Z"}
+{"log":{"at":"2026-11-09T18:05:05-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-10T00:05:05.689Z"}
+{"log":{"at":"2026-11-09T18:05:09-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-10T00:05:09.471Z"}
+{"pid_exit":53852,"ended":"2026-11-09T18:05:10-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":8388,"ended":"2026-11-09T18:05:10-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":20536,"ended":"2026-11-10T00:04:29.344Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}

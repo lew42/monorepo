@@ -11,3 +11,7 @@
 {"file":"tools/page.jsonl"}
 {"file":"site/"}
 {"file":"tools/"}
+{"file":"doc/page.js","nav":{"title":"Docs","icon":"menu_book","description":"How the corpus is built — the record's contract, the tools, the decisions."}}
+{"file":"patterns/page.js","nav":{"title":"Patterns","icon":"bar_chart","description":"What 47 real sites actually do, counted at 1920 and at 400."}}
+{"file":"tag/page.js","nav":{"title":"Tags","icon":"sell","description":"One page per tag — every site that shares a layout, a technique or a breakpoint."}}
+{"file":"tools/","nav":{"title":"tools","description":"the three Node scripts that fill the corpus"}}

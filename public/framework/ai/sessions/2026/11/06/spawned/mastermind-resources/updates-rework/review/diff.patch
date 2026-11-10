@@ -1,0 +1,862 @@
+diff --git a/Servex/Follow.js b/Servex/Follow.js
+index 410fcb7a6..0d2421e03 100644
+--- a/Servex/Follow.js
++++ b/Servex/Follow.js
+@@ -340,6 +340,19 @@ export default class Follow {
+ 			this.rescope();
+ 			return;
+ 		}
++		/* STEP 2 (one place per conversation, 2026-11-09) — an EXTERNAL agent
++		 * (a cloud voice call, through `External`) no longer gets a jsonl delta
++		 * pushed as an inbox message: its `updates` tool reads the followed
++		 * files itself, from its own cursor (`External.followed_lines`), so the
++		 * SAME bytes delivered here would otherwise show up twice. A directory
++		 * change that is not a `.jsonl` file still gets today's one-line note —
++		 * there is no line for `updates` to read instead, only a changed path. */
++		if (this.agents.external?.has?.(agent)){
++			const other = items.filter(i => !i.lines);
++			if (!other.length) return;
++			try { this.agents.send(agent, this.message(other), { from: "servex-follow" }); } catch {}
++			return;
++		}
+ 		try { this.agents.send(agent, this.message(items), { from: "servex-follow" }); } catch {}
+ 	}
+ 
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index b67574310..e24f38aa5 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -28,6 +28,7 @@ import { turn_costs } from "./turn-costs.js";
+ import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
+ import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
+ import { server as sdk_server } from "./tools.js";   // cycle with tools.js is fine: used only at call time
++import { strip_marks } from "./mark-strip.js";
+ const MAIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");   // Servex runs from the main tree
+ import { page_tools, move_item, task_origin } from "./page_tools.js";
+ import { handoff_note } from "./handoff-note.js";
+@@ -1057,6 +1058,26 @@ export class Agents {
+ 		const next = kind === "done" && child.task?.dir && task_landed(child.task.dir) ? next_briefs(child.task.dir) : [];
+ 		const note = next.length ? `\n\nNext: ${next.map(n => `${n.dir}${n.brief ? ` (brief ${n.brief})` : ""}`).join("; ")}. Its \`after\` edge is met; start it.` : "";
+ 		this.inbox(child, kind, text);
++		/* STEP 4 (one place per conversation, 2026-11-09) — an external parent (a cloud voice call) that
++		 * already heard this child say "done, nothing changed" does not need to hear it again: hundreds of
++		 * identical "Idle and blocked, no change since …" lines were the single biggest source of inbox noise
++		 * (catch-up.md, measured 2026-11-09). Compared AFTER stripping timestamps and ids, so only a REALLY
++		 * identical report is skipped — any new word, or a non-empty `note` (a sibling just unblocked), still
++		 * goes through. The skip is counted on the host (`this._dup_done_skips`), never logged per occurrence:
++		 * a count, not a line.
++		 *
++		 * SKIPS ONLY THE MESSAGE TO THE PARENT (fix E, review 2026-11-09): the task-dir inbox.jsonl line above
++		 * still happens exactly as for any other "done" — a duplicate report is still real news to the TASK
++		 * record, even when the parent has already heard it. An earlier version returned before that line ran,
++		 * and silently dropped it too. */
++		if (kind === "done" && !fork && !note && this.external?.has?.(child.parent)){
++			const stripped = strip_marks(body);
++			const seen = (this._done_seen ??= new Map());
++			const dup_key = child.parent + ":" + child.id;
++			if (seen.get(dup_key) === stripped){ this._dup_done_skips = (this._dup_done_skips ?? 0) + 1; return; }
++			seen.set(dup_key, stripped);
++			if (seen.size > 500) seen.delete(seen.keys().next().value);   // bounded, oldest first — a long-lived Servex would otherwise grow this forever (review finding 4)
++		}
+ 		if (quiet && !note) return;   // a short ack after only followed lines: recorded in the inbox, but the parent is not woken; a landed task still tells it what it unblocks
+ 		if (this.closing) return;   // Servex is shutting down: the inbox has it; revive nobody
+ 		child.parent = this.holder(child.parent);   // a child of a retired mastermind-servex-N reports to the live one
+diff --git a/Servex/agents/External.js b/Servex/agents/External.js
+index d4aa5fd8c..f61e41f80 100644
+--- a/Servex/agents/External.js
++++ b/Servex/agents/External.js
+@@ -1,6 +1,11 @@
+ import fs from "node:fs";
+ import path from "node:path";
++import { fileURLToPath } from "node:url";
+ import { place, stamp } from "../home.js";
++import Follow from "../Follow.js";
++
++// Servex/agents/External.js -> up two is the repo root (where public/ and Servex/ live)
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+ 
+ /* EXTERNAL AGENTS — a VS Code tab, a terminal, or any Claude session Servex
+  * did not spawn can become an agent other agents can message, even though
+@@ -104,6 +109,7 @@ export default class External {
+ 	 * relies on. Returns an agent-shaped stand-in so `send_to_agent`'s
+ 	 * `card(agents.send(...))` has a `.card()` to call, same as a real one. */
+ 	deliver(id, text, note = {}){
++		this.rotate(id);
+ 		const line = { from: note.from ?? null, text, reply_to: note.reply_to ?? null, at: stamp() };
+ 		fs.appendFileSync(this.file(id), JSON.stringify(line) + "\n");
+ 		this.touch(id);
+@@ -114,30 +120,283 @@ export default class External {
+ 	/* Make `id` addressable if it is not yet (the remote door's caller, "voice-app", has no tab to register itself). */
+ 	ensure(id){ if (!this.has(id)) this.register({ id, session_id: id }); return this; }
+ 
++	// legacy single-cursor file, kept so a caller with no `conversation` key reads where it always did
+ 	cursor_file(id){ return place("logs", "inbox", `${id}.cursor`); }
++	// one place per caller, one entry per conversation key: {key: {offset, at, follows: {<file>: offset}}} —
++	// beside the legacy cursor file (not `place()` directly), so a test that overrides `cursor_file`/`file` to
++	// a scratch dir gets this redirected too, with no second override to remember.
++	cursors_file(id){ return path.join(path.dirname(this.cursor_file(id)), `${id}.cursors.json`); }
++
++	load_cursors(id){ try { return JSON.parse(fs.readFileSync(this.cursors_file(id), "utf8")); } catch { return {}; } }
++	save_cursors(id, map){ const f = this.cursors_file(id); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, JSON.stringify(map, null, 1)); }
++
++	legacy_offset(id){ try { return Number(fs.readFileSync(this.cursor_file(id), "utf8")) || 0; } catch { return 0; } }
++
++	/* One row per sender: its latest line and how many arrived — the "digest" shape `updates` returns by default
++	 * (catch-up.md, "Not built" item 1). `from` for an inbox line, `agent` for a followed one. */
++	digest(events){
++		const by = new Map();
++		for (const e of events){
++			const who = e.from ?? e.agent ?? "unknown";
++			const row = by.get(who) ?? { from: who, count: 0, latest: null };
++			row.count++;
++			row.latest = e.text !== undefined ? { text: e.text, at: e.at ?? null } : { line: e.line ?? e, at: e.line?.at ?? null };
++			by.set(who, row);
++		}
++		return [...by.values()];
++	}
++
++	// every .jsonl file at `rel` (a file) or under it (a directory), never node_modules/.git — a WALK, only used as the
++	// fallback below when there is no live Follow to ask instead (fix C: a directory walked on every `updates` call,
++	// for a module with thousands of files, was the actual cost this was built to cut)
++	walk_jsonl_files(rel){
++		const abs = path.join(ROOT, rel);
++		let stat; try { stat = fs.statSync(abs); } catch { return []; }
++		if (stat.isFile()) return abs.endsWith(".jsonl") ? [abs] : [];
++		const out = [], stack = [abs];
++		while (stack.length){
++			const at = stack.pop();
++			let entries; try { entries = fs.readdirSync(at, { withFileTypes: true }); } catch { continue; }
++			for (const e of entries){
++				if (e.name === "node_modules" || e.name === ".git") continue;
++				const full = path.join(at, e.name);
++				if (e.isDirectory()) stack.push(full);
++				else if (e.name.endsWith(".jsonl")) out.push(full);
++			}
++		}
++		return out;
++	}
++
++	/* The files one `follow` subscription covers, WITHOUT walking the tree again: a single file is just itself
++	 * (cheap either way); a directory reuses the `.jsonl` files `Follow` already tracks under it (`follow.offsets`,
++	 * populated as Follow's own chokidar watcher sees each file — the SAME set `follow.js`'s own burst delivery
++	 * reads from). Only a test double with no live `Follow` (no `.offsets` map) falls back to a real walk. */
++	followed_files(sub){
++		const abs = path.join(ROOT, sub.path);
++		let stat; try { stat = fs.statSync(abs); } catch { return []; }
++		if (stat.isFile()) return abs.endsWith(".jsonl") ? [abs] : [];
++		const offsets = this.servex.follow?.offsets;
++		if (!(offsets instanceof Map)) return this.walk_jsonl_files(sub.path);
++		const prefix = abs + path.sep;
++		return [...offsets.keys()].filter(f => f === abs || f.startsWith(prefix));
++	}
++
++	// one followed line passes a sub's own filters (fix B): `of` (a parent tailing a child) keeps only state/pointer
++	// lines, `skip_by`/`heard` drop the agent's own lines — the SAME static helpers Follow.flush applies to a pushed burst
++	passes_filters(sub, raw_text){
++		if (sub.of && !Follow.worth_waking([raw_text]).length) return false;
++		if ((sub.skip_by || sub.heard) && !Follow.without([raw_text], sub.skip_by, sub.heard).length) return false;
++		return true;
++	}
++
++	rel_path(abs){ return path.relative(ROOT, abs).split(path.sep).join("/"); }
++
++	// best-effort: a session id folder name out of a sessions/YYYY/MM/DD/<folder>/... path; null for anything else
++	session_of_path(rel){ return /sessions\/\d{4}\/\d{2}\/\d{2}\/([^/]+)\//.exec(rel)?.[1] ?? null; }
++
++	/* STEP 2 — follows read the logs, not the inbox. For an external caller, `follow` still records the
++	 * subscription (Follow.js), but delivers nothing to the inbox (Follow.flush's own external check); the
++	 * lines live only in the followed files themselves. Here, at `updates` time, each followed file is read
++	 * from THIS conversation key's own byte offset (`state.follows[rel]`), independent of Follow's own
++	 * change-detection offsets. A key's first read of a file starts at the file's CURRENT END (no backlog
++	 * replay), same rule as a brand-new conversation key over the inbox itself.
++	 *
++	 * `budget` (fix A) caps how many EVENTS this call returns — never how many bytes it reads: inside one file
++	 * it reads line by line and stops exactly at a line boundary once the budget is spent, so the per-file
++	 * offset only ever advances past lines actually handed back. Without this, a 60-line burst with a 50-line
++	 * budget would have `jsonl_files`' old whole-file read move the offset past all 60 while returning only 50
++	 * — the other 10 gone forever, never re-read. Returns `{events, more}`; `more` is true when this file (or a
++	 * later one, once the budget is spent) still has bytes this key has not read.
++	 *
++	 * `state` is mutated in place (its `follows` map advances) — a peek passes a disposable copy instead of
++	 * the real cursor state, so a peek never moves anything, here or in the inbox offset above.
++	 *
++	 * A `budget` of 0 (the inbox's own share already filled `cap`) still runs the loop below instead of
++	 * short-circuiting: `out.length >= budget` is true from the first file with unread bytes, so `more`
++	 * comes back accurate — without this, the first call after the inbox alone fills the cap under-reported
++	 * `more` for one call (review finding, 2026-11-10); no line was ever lost, since the per-file offset is
++	 * only touched once bytes are actually read, but the hint lagged until the next `updates()`. */
++	followed_lines(id, state, budget = Infinity){
++		const follow = this.servex.follow;
++		if (typeof follow?.list !== "function") return { events: [], more: false };
++		state.follows ??= {};
++		const out = [];
++		let more = false;
++		for (const sub of follow.list(id)){
++			for (const file of this.followed_files(sub)){
++				const rel = this.rel_path(file);
++				let size; try { size = fs.statSync(file).size; } catch { continue; }
++				let prev = state.follows[rel];
++				if (prev == null){ state.follows[rel] = size; continue; }   // first read of this file for this key: starts at now
++				if (size < prev){ state.follows[rel] = size; continue; }    // the file was truncated/replaced: catch up, resend nothing
++				if (size === prev) continue;                                // nothing new here
++				if (out.length >= budget){ more = true; continue; }         // budget already spent this call: note there is more, read it next time
++				const buf = Buffer.alloc(size - prev), fd = fs.openSync(file, "r");
++				try { fs.readSync(fd, buf, 0, buf.length, prev); } finally { fs.closeSync(fd); }
++				let pos = 0, consumed = 0;
++				while (pos < buf.length && out.length < budget){
++					const nl = buf.indexOf(10, pos);
++					if (nl === -1) break;   // an unfinished trailing line waits for next time
++					const raw_text = buf.toString("utf8", pos, nl).trim();
++					pos = nl + 1;
++					consumed = pos;
++					if (!raw_text) continue;
++					if (!this.passes_filters(sub, raw_text)) continue;   // filtered out, but its bytes are still consumed — never re-delivered
++					let line; try { line = JSON.parse(raw_text); } catch { line = { raw: raw_text }; }
++					out.push({ agent: sub.of ?? line.by ?? null, session: this.session_of_path(rel), path: rel, line, at: line.at ?? null });
++				}
++				state.follows[rel] = prev + consumed;
++				if (pos < buf.length) more = true;   // bytes left unread in this file: the budget ran out, or the last line was unfinished
++			}
++		}
++		return { events: out, more };
++	}
+ 
+-	/* The `updates` tool: the inbox lines after this caller's cursor, newest last, at most `cap`. `peek` leaves the cursor. Cursor = a byte offset
+-	 * in `logs/inbox/<id>.cursor`; a first call starts at 0 (the whole backlog, capped), later calls only what was appended. Doc: Servex/ext/remote/doc/catch-up.md */
+-	updates(id, { peek = false, cap = 50 } = {}){
+-		const file = this.file(id), cur = this.cursor_file(id);
+-		let offset = 0; try { offset = Number(fs.readFileSync(cur, "utf8")) || 0; } catch {}
++	/* The `updates` tool: everything that arrived for this caller/conversation since its own cursor, oldest
++	 * first, at most `cap`. `peek` leaves the cursor in place.
++	 *
++	 * ONE PLACE PER CONVERSATION (the owner, 2026-11-09): the cursor key is `conversation` (a claude.ai
++	 * conversation id, passed by RemoteMCP as the tool call's `ctx.session.id`) or, with none, the caller
++	 * itself — today's behaviour. Every key's place is one entry in `<id>.cursors.json`; the OLD single
++	 * `<id>.cursor` file is still read as the caller-key's own entry, so nothing already in flight jumps.
++	 * A BRAND NEW key starts at "now" (the inbox's current end), not at the backlog: it gets `missed`, a
++	 * digest of what happened between the caller's own shared cursor and now, capped to the last 24h — so a
++	 * second mastermind that only just started talking to this voice session is told what it missed, without
++	 * replaying raw lines it never subscribed to.
++	 *
++	 * By default the return is a DIGEST (catch-up.md, "Not built" item 1): `updates` holds the latest line per
++	 * sender, and `digest` lists every sender with its count and latest line — so hundreds of repeated "done,
++	 * idle" lines from one agent cost one row, not one line each. `raw: true` returns every line, as before. */
++	updates(id, { peek = false, cap = 50, conversation = null, raw = false } = {}){
++		const key = conversation || id, file = this.file(id);
+ 		let buf = Buffer.alloc(0); try { buf = fs.readFileSync(file); } catch {}
+-		if (offset > buf.length) offset = 0;   // the inbox was replaced; start over
+-		const lines = [], end = buf.lastIndexOf(10) + 1;   // only complete lines
+-		let pos = offset;
+-		while (pos < end && lines.length < cap){
++		const end = buf.lastIndexOf(10) + 1;   // only complete lines
++		const map = this.load_cursors(id);
++		let state = map[key], missed;
++		if (!state){
++			if (key === id) state = { offset: this.legacy_offset(id) };   // the caller's own key: pick up the legacy single cursor
++			else {
++				const shared = Math.min(map[id]?.offset ?? this.legacy_offset(id), end);
++				const between = this.read_range(buf, shared, end).filter(l => { const t = Date.parse(l.at ?? ""); return !Number.isFinite(t) || Date.now() - t < 86400000; });
++				missed = this.digest(between);   // a brand new key gets what it missed, even an empty list, so its shape never surprises a reader
++				state = { offset: end };   // and starts reading fresh from now, not the backlog
++			}
++		}
++		if ((state.offset ?? 0) > buf.length) state.offset = 0;   // the inbox was replaced; start over
++		const all_new = this.read_range(buf, state.offset ?? 0, end);   // every unread inbox line, uncapped, so `more` can be exact
++		const lines = all_new.slice(0, cap);
++		// a peek must not move ANY cursor, including the per-file ones `followed_lines` advances — read against a disposable copy
++		const follow_state = peek ? { follows: { ...(state.follows ?? {}) } } : state;
++		// the remaining budget after the inbox's own share (fix A) — followed_lines stops at a line boundary once it is spent, so nothing it reads is ever dropped
++		const { events: followed, more: followed_more } = this.followed_lines(id, follow_state, Math.max(0, cap - lines.length));
++		const events = [...lines, ...followed];
++		const more = all_new.length > lines.length || followed_more;
++		if (!peek){
++			state.offset = this.advance(buf, state.offset ?? 0, lines.length);
++			state.at = stamp();
++			map[key] = state;
++			this.save_cursors(id, map);
++		}
++		const result = { count: events.length, more, updates: raw ? events : this.latest_per_sender(events) };
++		if (!raw) result.digest = this.digest(events);
++		if (missed) result.missed = missed;
++		return result;
++	}
++
++	// every complete line between two byte offsets, parsed; `cap` stops early (used for the live read, not `missed`, which wants them all within 24h)
++	read_range(buf, from, to, cap = Infinity){
++		const lines = [];
++		let pos = from;
++		while (pos < to && lines.length < cap){
+ 			const nl = buf.indexOf(10, pos), text = buf.toString("utf8", pos, nl).trim();
+ 			pos = nl + 1;
+ 			if (!text) continue;
+ 			try { lines.push(JSON.parse(text)); } catch { lines.push({ raw: text }); }
+ 		}
+-		const more = pos < end;
+-		if (!peek && pos !== offset){ fs.mkdirSync(path.dirname(cur), { recursive: true }); fs.writeFileSync(cur, String(pos)); }
+-		return { count: lines.length, more, updates: lines };
++		return lines;
+ 	}
+ 
+-	/* How many inbox lines sit after the cursor (the "N new updates" hint). */
+-	pending(id){ return this.updates(id, { peek: true, cap: Infinity }).count; }
++	// the byte offset after reading `count` lines starting at `from` — re-walks the buffer so partial pages (cap) advance exactly as far as they read
++	advance(buf, from, count){
++		let pos = from, seen = 0;
++		while (seen < count){
++			const nl = buf.indexOf(10, pos);
++			if (nl === -1) break;
++			const text = buf.toString("utf8", pos, nl).trim();
++			pos = nl + 1;
++			if (text) seen++;
++		}
++		return pos;
++	}
++
++	// `updates` without `raw` holds only the newest line per sender, so a reader using `updates[].text` the old way still works
++	latest_per_sender(events){
++		const by = new Map();
++		for (const e of events) by.set(e.from ?? e.agent ?? "unknown", e);
++		return [...by.values()];
++	}
++
++	/* How many events (inbox + followed) sit after this key's cursor (the "N new updates" hint). */
++	pending(id, conversation = null){ return this.updates(id, { peek: true, cap: Infinity, conversation }).count; }
++
++	// the first line of a file, without reading the whole thing (fix D) — grows its read window only as far as it needs to find a newline
++	first_line(file){
++		let fd, size;
++		try { size = fs.statSync(file).size; if (!size) return null; fd = fs.openSync(file, "r"); } catch { return null; }
++		try {
++			for (let want = 4096; ; want *= 4){
++				const n = Math.min(want, size), buf = Buffer.alloc(n);
++				fs.readSync(fd, buf, 0, n, 0);
++				const nl = buf.indexOf(10);
++				if (nl !== -1) return buf.toString("utf8", 0, nl).trim();
++				if (n >= size) return buf.toString("utf8").trim();   // the whole file is one line (or has none)
++			}
++		} finally { try { fs.closeSync(fd); } catch {} }
++	}
++
++	// ms since `at` was last updated — Infinity (always "stale") for a cursor with no timestamp at all
++	age_ms(at){ const t = Date.parse(at ?? ""); return Number.isFinite(t) ? Date.now() - t : Infinity; }
++
++	/* STEP 5 — rotation. Called before every append: when the inbox's first line is from an earlier calendar
++	 * month than now, the already-read portion moves to `logs/inbox/archive/<id>-<YYYY-MM>.jsonl` (appended,
++	 * never overwritten), and every cursor is rebased to the shorter file. Only reads the whole file once it
++	 * has already decided, from the first line alone, that a rotation is actually due (fix D) — the common
++	 * case (every other call, all month) costs one small read, not the whole inbox.
++	 *
++	 * A STALE cursor (fix D) — one `updates()` has not touched in 7+ days, the legacy `.cursor` file counted
++	 * by its own mtime — does not PIN the rotation: it is rebased to 0 instead of to its true remaining
++	 * distance, so a conversation nobody has resumed in a week cannot hold the whole inbox hostage forever.
++	 * Whatever that stale cursor had not read yet is still in the archive, not lost, just no longer live;
++	 * [catch-up.md](ext/remote/doc/catch-up.md) says so. */
++	rotate(id){
++		const STALE_MS = 7 * 86400000;
++		const file = this.file(id);
++		let parsed; try { parsed = JSON.parse(this.first_line(file) ?? ""); } catch { return; }
++		const at = Date.parse(parsed?.at ?? "");
++		if (!Number.isFinite(at)) return;
++		const first_date = new Date(at), now = new Date();
++		if (first_date.getUTCFullYear() === now.getUTCFullYear() && first_date.getUTCMonth() === now.getUTCMonth()) return;
++		let buf; try { buf = fs.readFileSync(file); } catch { return; }   // a rotation is actually due: now the whole file is read, once
++		if (!buf.length) return;
++		const map = this.load_cursors(id);
++		const fresh = [];
++		// the legacy key only still matters for a caller that has never gone through `updates()` yet (no entry in `map`)
++		if (!map[id]){
++			let mtime = 0; try { mtime = fs.statSync(this.cursor_file(id)).mtimeMs; } catch {}
++			if (Date.now() - mtime < STALE_MS) fresh.push(this.legacy_offset(id));
++		}
++		for (const s of Object.values(map)) if (this.age_ms(s.at) < STALE_MS) fresh.push(s.offset ?? 0);
++		const keep_from = fresh.length ? Math.min(buf.length, ...fresh) : buf.length;   // nobody fresh is reading: archive everything
++		if (keep_from <= 0) return;
++		const ym = `${first_date.getUTCFullYear()}-${String(first_date.getUTCMonth() + 1).padStart(2, "0")}`;
++		const archive = path.join(path.dirname(file), "archive", `${id}-${ym}.jsonl`);
++		fs.mkdirSync(path.dirname(archive), { recursive: true });
++		fs.appendFileSync(archive, buf.subarray(0, keep_from));
++		fs.writeFileSync(file, buf.subarray(keep_from));
++		fs.writeFileSync(this.cursor_file(id), String(Math.max(0, this.legacy_offset(id) - keep_from)));
++		for (const k of Object.keys(map)) map[k].offset = Math.max(0, (map[k].offset ?? 0) - keep_from);
++		this.save_cursors(id, map);
++	}
+ 
+ 	touch(id){
+ 		const rows = this.reg().read();
+@@ -175,11 +434,19 @@ export default class External {
+ 	tool(){
+ 		this.servex.mcp.tool({
+ 			name: "updates",
+-			description: "What arrived for you since your last call, and nothing else: the lines in your inbox (follow deltas, messages from agents, the owner's notes), oldest first, at most 50 (`more: true` means call again). Call it at the start of nearly every turn. `peek: true` reads without moving your place. Subscribe to a log with `follow({path, agent: \"<your id>\"})`.",
+-			inputSchema: { type: "object", properties: { peek: { type: "boolean", description: "Read without marking the lines as seen." } } },
++			description: "What arrived for you since your last call: a digest (one row per sender — agent messages, follow deltas, the owner's notes — with its latest line and how many arrived), oldest change first, at most 50 senders (`more: true` means call again). Call it at the start of nearly every turn. `peek: true` reads without moving your place. `raw: true` returns every line instead of the digest. Pass your claude.ai conversation id as `conversation` so your own place is kept separately from any other conversation reading the same inbox. Subscribe to a log with `follow({path, agent: \"<your id>\"})` — its lines are read here too, not pushed to your inbox.",
++			inputSchema: { type: "object", properties: {
++				peek: { type: "boolean", description: "Read without marking the lines as seen." },
++				raw: { type: "boolean", description: "Every line instead of the one-per-sender digest." },
++				conversation: { type: "string", description: "Your claude.ai conversation id, if you know it: keeps your own place separate from any other conversation calling as the same agent." },
++				cap: { type: "number", description: "At most this many events this call. Default 50." }
++			} },
+ 			handler: (args = {}, ctx = {}) => {
+ 				if (!ctx.caller) return JSON.stringify({ ok: false, error: "updates needs a caller" });
+-				try { this.ensure(ctx.caller); return JSON.stringify(this.updates(ctx.caller, { peek: !!args.peek })); } catch (e){ return JSON.stringify({ ok: false, error: String(e.message || e) }); }
++				try {
++					this.ensure(ctx.caller);
++					return JSON.stringify(this.updates(ctx.caller, { peek: !!args.peek, raw: !!args.raw, conversation: args.conversation || ctx.session?.id || null, ...(Number.isFinite(args.cap) ? { cap: args.cap } : {}) }));
++				} catch (e){ return JSON.stringify({ ok: false, error: String(e.message || e) }); }
+ 			}
+ 		});
+ 		this.servex.mcp.tool({
+diff --git a/Servex/agents/Follow-ack.test.mjs b/Servex/agents/Follow-ack.test.mjs
+index b0be74593..a556ad0e6 100644
+--- a/Servex/agents/Follow-ack.test.mjs
++++ b/Servex/agents/Follow-ack.test.mjs
+@@ -56,5 +56,30 @@ real.wake_parent(child, "done", { quiet: true });
+ assert.equal(sent.length, 0, "quiet: the parent is not messaged");
+ real.wake_parent({ ...child, woke: false }, "done");
+ assert.equal(sent.length, 1, "not quiet: the parent is messaged");
++
++// step 4 (one place per conversation, 2026-11-09): a REPEATED "done" to an EXTERNAL parent is not re-sent
++real.external = { has: id => id === "voice-app" };
++sent.length = 0;
++const ext_child = { id: "mastermind-e", parent: "voice-app", last_text: "nothing changed", cost: 1 };
++real.wake_parent({ ...ext_child, woke: false }, "done");
++assert.equal(sent.length, 1, "the FIRST done to an external parent is sent");
++real.wake_parent({ ...ext_child, woke: false }, "done");
++assert.equal(sent.length, 1, "the SAME done again is skipped, not re-sent");
++real.wake_parent({ ...ext_child, last_text: "something new happened", woke: false }, "done");
++assert.equal(sent.length, 2, "a genuinely different done still goes through");
++assert.equal(real._dup_done_skips, 1, "the skip is counted on the host, not logged per occurrence");
++// the skip is ONLY the message — the task-dir inbox.jsonl line still happens, same as any other "done" (fix E: an earlier version's early `return` dropped it too)
++const task_dir = fs.mkdtempSync(path.join(dir, "task-"));
++fs.writeFileSync(path.join(task_dir, "task.jsonl"), "{}\n");
++const parent_dir = path.dirname(task_dir);
++real.task_dir_of = id => id === "voice-app" ? parent_dir : null;
++const inbox_file = path.join(parent_dir, "inbox.jsonl");
++const dup_child = { id: "mastermind-i", parent: "voice-app", last_text: "same inbox text", cost: 1, task: { dir: task_dir } };
++real.wake_parent({ ...dup_child, woke: false }, "done");
++const after_first = fs.readFileSync(inbox_file, "utf8").trim().split("\n").length;
++real.wake_parent({ ...dup_child, woke: false }, "done");   // the duplicate: message skipped, but the inbox line must still append
++const after_second = fs.readFileSync(inbox_file, "utf8").trim().split("\n").length;
++assert.equal(after_second, after_first + 1, "a duplicate done still appends to the task's own inbox.jsonl — only the SEND to the parent is skipped");
++
+ console.log("Follow-ack: ok");
+ process.exit(0);
+diff --git a/Servex/agents/doc/external.md b/Servex/agents/doc/external.md
+index 171c169cc..ee6709641 100644
+--- a/Servex/agents/doc/external.md
++++ b/Servex/agents/doc/external.md
+@@ -43,6 +43,45 @@ Servex's own agents: a registry row that is not external, a running agent, or a
+ minted id in `layers.json`. Otherwise a message to that agent would land in a file instead of
+ waking it. The error says so and suggests `vscode-<your task>`.
+ 
++## `updates`: one place per conversation (2026-11-09)
++
++The inbox file is shared by every caller using the same id (every cloud voice chat calls as
++`voice-app`), so `updates(id, {conversation, peek, cap, raw})` keeps a SEPARATE reading position per
++conversation, not one shared cursor:
++
++- **The cursor key** is `conversation` (pass a claude.ai conversation id) → else `ctx.session.id`
++  (the voice session `RemoteMCP` already resolved for this call) → else the bare caller — today's
++  original single-cursor behaviour. Every key's place is one entry in `logs/inbox/<id>.cursors.json`
++  (`cursors_file(id)`, `{key: {offset, at, follows: {<file>: offset}}}`); the legacy single
++  `<id>.cursor` file (`legacy_offset(id)`) is still read as the caller-key's own first value, so an
++  upgrade never jumps anyone's place.
++- **A BRAND NEW key starts at "now"** (the inbox's current end), never the backlog, so a second
++  mastermind joining a voice session's conversation is not handed a wall of lines meant for someone
++  else. Its first answer carries `missed`: a digest of what happened between the shared cursor and
++  now, capped to the last 24h.
++- **Digest by default.** `updates` returns `{count, more, updates, digest}`: `count` is every raw
++  event actually read (so paging stays exact), `digest` is one row per sender
++  (`{from, count, latest}`, `digest(events)`), and `updates` itself holds only the newest line per
++  sender unless `raw: true` asks for every line.
++- **Follows are read here, not pushed to the inbox.** `followed_lines(id, state, budget)` reads each
++  file a `follow({path, agent: id})` subscription covers, from THIS key's own byte offset — separate
++  from `Follow.js`'s own change-detection offsets — and returns `{agent, session, path, line}` per
++  line (`agent` is `sub.of ?? line.by ?? null`, applying the same `skip_by`/`heard`/`worth_waking`
++  filters a pushed burst would). `budget` (the cap left after the inbox's own share) stops it at a
++  line boundary, so a burst bigger than the cap pages across calls instead of losing or repeating
++  lines. `followed_files(sub)` reuses the `.jsonl` files `Follow` already tracks under a directory
++  (`follow.offsets`) rather than walking the tree again on every call; `walk_jsonl_files` is only the
++  fallback for a test double with no live `Follow`.
++- **Rotation.** `deliver()` calls `rotate(id)` first: `first_line(file)` is a small bounded read that
++  decides, from the inbox's own first line alone, whether a rotation is even due (the common case —
++  same month — costs nothing more). Once a month, the part every FRESH cursor (`age_ms(s.at) <
++  7 days`; a cursor stale 7+ days no longer pins it) has already read moves to
++  `logs/inbox/archive/<id>-<YYYY-MM>.jsonl` (appended, never overwritten); the live file keeps only
++  what some fresh cursor has not read, and every cursor rebases to the shorter file.
++
++Tests: `RemoteMCP.test.mjs`'s "updates" block (steps 1, 2, 3, 5 and the budget/staleness fixes), and
++`mark-strip.test.mjs` for step 4 below.
++
+ ## The one line in `Agents.send()`
+ 
+ ```js
+@@ -66,6 +105,18 @@ An external id is never in `live`, so `send()`'s first branch always falls throu
+ session `wake()` could reopen — checking `external.has(id)` before `wake()` is what keeps a real
+ send to a real external agent from ever reaching `wake()`'s "never got a session" throw.
+ 
++## No duplicate "done" to an external parent
++
++`Agents.wake_parent` (`Agents.js`, not this file's own fence, but the one place this matters) skips
++re-sending a "done" report to a registered EXTERNAL parent when it is a byte-for-byte repeat of the
++same child's last one to that parent, after stripping timestamps and ids (`mark-strip.js`'s
++`strip_marks`) — and only when the report carries no "Next:" note (a sibling unblocking is always
++new information). The skip drops only the MESSAGE; the task-dir `inbox.jsonl` line still writes,
++same as any other "done". The skip is counted on the host (`this._dup_done_skips`), never logged
++per occurrence. `strip_marks` lives in its own file, `mark-strip.js`, so it is testable with no
++`@anthropic-ai/claude-agent-sdk` import (`Agents.js`'s own first line) in the way. Test:
++`mark-strip.test.mjs` (the pure function) and `Follow-ack.test.mjs` (the real `wake_parent`).
++
+ ## Policy: an external id messages, it does not spawn
+ 
+ `policy.js` reads a registered external id as `kind: "external"`. Any agent may message one, and
+@@ -88,6 +139,12 @@ not here.
+ 
+ ## Files
+ 
+-`External.js` (the class) · `External.test.mjs` (fakes `cards`/`mcp`/`log`, but a REAL `Agents`
+-host with a scratch registry dir, so the test proves the actual `send()` hook) · the one line in
+-[`Agents.js`](../Agents.js)'s `send()` · the one install line in [`Servex.js`](../../Servex.js).
++`External.js` (the class: registration, the inbox, `updates`/`cursors_file`/`followed_lines`/
++`rotate`) · `External.test.mjs` (fakes `cards`/`mcp`/`log`, but a REAL `Agents` host with a scratch
++registry dir, so the test proves the actual `send()` hook) · [`mark-strip.js`](../mark-strip.js)
++(`strip_marks`, its own file so it tests without the SDK import) · `mark-strip.test.mjs` · the one
++line in [`Agents.js`](../Agents.js)'s `send()`, and the duplicate-done check in its `wake_parent` ·
++the one install line in [`Servex.js`](../../Servex.js). The `updates`/follow/rotation mechanics are
++also proved by `Servex/ext/remote/RemoteMCP.test.mjs` (the remote door's own test) and
++`Follow-ack.test.mjs`; the fuller account of what the voice door does with `updates` is
++[`Servex/ext/remote/doc/catch-up.md`](../../ext/remote/doc/catch-up.md).
+diff --git a/Servex/agents/map.md b/Servex/agents/map.md
+index 358653c7b..6a075e929 100644
+--- a/Servex/agents/map.md
++++ b/Servex/agents/map.md
+@@ -20,7 +20,8 @@ Every file at the top level of `Servex/agents/`, one line each. Model: [core/Ite
+ | [WakePolicy.js](./WakePolicy.js) | when a voice session's smart seat is woken — a question that ends asking wakes it, a mid-dictation "?" does not |
+ | [Wakeups.js](./Wakeups.js) | wake-ups that survive a restart: the `wake_me` tool, instead of a sleep/background shell alive in the agent's own process |
+ | [Respawn.js](./Respawn.js) | the standing system architect gets a fresh session about once a day, never mid-task, same id ([doc/lifecycle.md](../doc/lifecycle.md)) |
+-| [External.js](./External.js) | registers a VS Code tab (`vscode-<id8>`, `kind: "external"`); `send_to_agent` to it appends to its inbox file, read on its next turn |
++| [External.js](./External.js) | registers a VS Code tab or a cloud voice chat (`kind: "external"`); `send_to_agent` appends to its inbox file; `updates(id, {conversation, raw})` reads it back with one cursor per conversation, a digest by default, followed `.jsonl` lines merged in (not pushed), and monthly rotation ([doc/external.md](./doc/external.md)) |
++| [mark-strip.js](./mark-strip.js) | `strip_marks(text)`: blanks timestamps/uuids/hex ids so `Agents.wake_parent` can tell a REPEATED "done" report from a new one; its own file so it tests without the Claude SDK import `Agents.js` needs |
+ | [Fixer.js](./Fixer.js) (+ [fixer.md](./fixer.md)) | the fast path from "fix this" to a live edit; never edits a page itself — the actual edit/commit is elsewhere |
+ | [Echo.js](./Echo.js) (+ [echo.md](./echo.md)) | the prompt-refinement pipeline |
+ | [Hitl.js](./Hitl.js) | the smart assistant's two small-model calls for human-in-the-loop checks |
+@@ -52,7 +53,7 @@ Every file at the top level of `Servex/agents/`, one line each. Model: [core/Ite
+ | [single-voice-assistant.md](./single-voice-assistant.md) | the one agent of a voice session whose setting is `single` |
+ | [inbox.jsonl](./inbox.jsonl), [page.jsonl](./page.jsonl), [failures.jsonl](./failures.jsonl) | this folder's own module inbox, page-as-log data, and layout-check failures — one row |
+ | [groups.fixture.json](./groups.fixture.json) | fixture data for [groups.test.mjs](./groups.test.mjs) (the lobby's word-grouping) |
+-| `*.test.mjs` | `ChatWriter.move.test.mjs`, `ChatWriter.order.test.mjs`, `Dispatcher-task.test.mjs`, `External.test.mjs`, `Follow-ack.test.mjs`, `ModuleInbox.test.mjs`, `PromptLines.say.test.mjs`, `PromptLines.test.mjs`, `Question-dedupe.test.mjs`, `Sessions.mastermind.test.mjs`, `Sessions.plugins.test.mjs`, `Sessions.single.test.mjs`, `Sessions.test.mjs`, `WakePolicy.test.mjs`, `awaken-race.test.mjs`, `card-messages.test.mjs`, `chat-messages.test.mjs`, `child-follow.test.mjs`, `child-links.test.mjs`, `close-loop.test.mjs`, `compact-before-sleep.test.mjs`, `compact-nudge.test.mjs`, `context-alert.test.mjs`, `cost.test.mjs`, `crash-revive.test.mjs`, `fixer.test.mjs`, `global.test.mjs`, `groups.test.mjs`, `handoff-route.test.mjs`, `handover.test.mjs`, `honest-completion.test.mjs`, `item-backbone.test.mjs`, `item-generic.test.mjs`, `item-local.test.mjs`, `item-read.test.mjs`, `item_tool.test.mjs`, `landing-check.test.mjs`, `layers.test.mjs`, `log-tool.test.mjs`, `one-writer.test.mjs`, `open-task.test.mjs`, `page_tools.test.mjs`, `path-mastermind.test.mjs`, `policy.test.mjs`, `prompt-tasks.test.mjs`, `readme-chain.test.mjs`, `ref-cache.test.mjs`, `requests.test.mjs`, `respawn.test.mjs`, `revive-skip.test.mjs`, `revive-sweep.test.mjs`, `role-system.test.mjs`, `roles.test.mjs`, `say-tools.test.mjs`, `seat-cost.test.mjs`, `send-alias.test.mjs`, `session-entries.test.mjs`, `session-query-record.test.mjs`, `session-route-tasks.test.mjs`, `session-state.test.mjs`, `session_tasks.test.mjs`, `single-brief.test.mjs`, `skill-tool.test.mjs`, `spawn-parent.test.mjs`, `spawn-worktree.test.mjs`, `task-origin.test.mjs`, `turn-costs.test.mjs`, `verb-note.test.mjs`, `voice-backfill.test.mjs`, `wakeups.test.mjs` |
++| `*.test.mjs` | `ChatWriter.move.test.mjs`, `ChatWriter.order.test.mjs`, `Dispatcher-task.test.mjs`, `External.test.mjs`, `Follow-ack.test.mjs`, `ModuleInbox.test.mjs`, `PromptLines.say.test.mjs`, `PromptLines.test.mjs`, `Question-dedupe.test.mjs`, `Sessions.mastermind.test.mjs`, `Sessions.plugins.test.mjs`, `Sessions.single.test.mjs`, `Sessions.test.mjs`, `WakePolicy.test.mjs`, `awaken-race.test.mjs`, `card-messages.test.mjs`, `chat-messages.test.mjs`, `child-follow.test.mjs`, `child-links.test.mjs`, `close-loop.test.mjs`, `compact-before-sleep.test.mjs`, `compact-nudge.test.mjs`, `context-alert.test.mjs`, `cost.test.mjs`, `crash-revive.test.mjs`, `fixer.test.mjs`, `global.test.mjs`, `groups.test.mjs`, `handoff-route.test.mjs`, `handover.test.mjs`, `honest-completion.test.mjs`, `item-backbone.test.mjs`, `item-generic.test.mjs`, `item-local.test.mjs`, `item-read.test.mjs`, `item_tool.test.mjs`, `landing-check.test.mjs`, `layers.test.mjs`, `log-tool.test.mjs`, `mark-strip.test.mjs`, `one-writer.test.mjs`, `open-task.test.mjs`, `page_tools.test.mjs`, `path-mastermind.test.mjs`, `policy.test.mjs`, `prompt-tasks.test.mjs`, `readme-chain.test.mjs`, `ref-cache.test.mjs`, `requests.test.mjs`, `respawn.test.mjs`, `revive-skip.test.mjs`, `revive-sweep.test.mjs`, `role-system.test.mjs`, `roles.test.mjs`, `say-tools.test.mjs`, `seat-cost.test.mjs`, `send-alias.test.mjs`, `session-entries.test.mjs`, `session-query-record.test.mjs`, `session-route-tasks.test.mjs`, `session-state.test.mjs`, `session_tasks.test.mjs`, `single-brief.test.mjs`, `skill-tool.test.mjs`, `spawn-parent.test.mjs`, `spawn-worktree.test.mjs`, `task-origin.test.mjs`, `turn-costs.test.mjs`, `verb-note.test.mjs`, `voice-backfill.test.mjs`, `wakeups.test.mjs` |
+ | `*-proof.mjs` / `*.proof.mjs` | `chain-proof.mjs`, `experts-proof.mjs`, `fork-proof.mjs`, `hitl.proof.mjs`, `jobs-proof.mjs`, `landed-reap-proof.mjs`, `layers-proof.mjs`, `openrouter-cost-blind-proof.mjs`, `page-assistant-proof.mjs`, `queue-proof.mjs`, `relay-bypass-proof.mjs`, `revive-guard-proof.mjs`, `revive-proof.mjs`, `spend-gate-proof.mjs`, `voice-models-proof.mjs`, `wake-proof.mjs` — end-to-end proofs, one scenario each, not unit tests |
+ | [doc/](./doc/) | the detail; see the readme's "Design" list for which exist |
+ | [readme.md](./readme.md) | this module's index |
+diff --git a/Servex/agents/mark-strip.js b/Servex/agents/mark-strip.js
+new file mode 100644
+index 000000000..aba63e92b
+--- /dev/null
++++ b/Servex/agents/mark-strip.js
+@@ -0,0 +1,14 @@
++/* A "done" report with every timestamp, uuid and long hex id blanked out — so `Agents.wake_parent`'s
++ * duplicate check (step 4, one place per conversation, 2026-11-09) catches "Idle and blocked, no change
++ * since 09:14" repeating verbatim at 09:19 with only the clock different, without also catching two
++ * reports that happen to share a sentence but differ anywhere else.
++ *
++ * Its own file, not a method on Agents.js: Agents.js's first import is the Claude SDK package, so any test
++ * of this one pure function would otherwise need that package installed too. */
++export function strip_marks(text){
++	return String(text ?? "")
++		.replace(/\b\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?\b/g, "<at>")
++		.replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, "<id>")
++		.replace(/\b[0-9a-f]{10,}\b/gi, "<id>")
++		.trim();
++}
+diff --git a/Servex/agents/mark-strip.test.mjs b/Servex/agents/mark-strip.test.mjs
+new file mode 100644
+index 000000000..51e4fd67a
+--- /dev/null
++++ b/Servex/agents/mark-strip.test.mjs
+@@ -0,0 +1,27 @@
++// node Servex/agents/mark-strip.test.mjs — strip_marks is a pure function, no SDK/Agents import needed
++import assert from "node:assert/strict";
++import { strip_marks } from "./mark-strip.js";
++
++let checks = 0;
++const check = (name, fn) => { fn(); checks++; };
++
++check("two reports that differ only by their timestamp strip to the same text", () => {
++	const a = strip_marks("done: Idle and blocked, no change since 2026-11-09T09:14:00-06:00");
++	const b = strip_marks("done: Idle and blocked, no change since 2026-11-09T09:19:00-06:00");
++	assert.equal(a, b);
++});
++
++check("a uuid and a long hex id both blank out", () => {
++	assert.equal(strip_marks("child a1b2c3d4-e5f6-7890-abcd-ef1234567890 finished"), strip_marks("child 99999999-aaaa-bbbb-cccc-dddddddddddd finished"));
++	assert.equal(strip_marks("commit abc123def456 landed"), strip_marks("commit 0000111122223333 landed"));
++});
++
++check("a real difference in wording still differs after stripping", () => {
++	assert.notEqual(strip_marks("done: built the thing"), strip_marks("done: built a different thing"));
++});
++
++check("no marks: unchanged but trimmed", () => {
++	assert.equal(strip_marks("  plain text  "), "plain text");
++});
++
++console.log(`mark-strip: ${checks} checks passed`);
+diff --git a/Servex/doc/follow.md b/Servex/doc/follow.md
+index a02b21754..960082fc0 100644
+--- a/Servex/doc/follow.md
++++ b/Servex/doc/follow.md
+@@ -47,7 +47,7 @@ follow({ path: "public/framework" })
+ 
+ ## A cloud agent: follow plus `updates`
+ 
+-A cloud agent (the voice app) cannot receive messages, so point the follow at its inbox and let it pull: `follow({path, agent: "voice-app"})` appends each delta to that agent's inbox, and its `updates` tool returns only the lines after its own cursor. Details: [catch-up.md](../ext/remote/doc/catch-up.md).
++A cloud agent (the voice app) cannot receive messages, so point the follow at it and let it pull with `updates` instead: `follow({path, agent: "voice-app"})`. **A registered EXTERNAL agent's `.jsonl` follows are never pushed to its inbox (2026-11-09)** — `flush()` skips sending for a path with `agents.external.has(agent)`, and `updates` reads the followed file itself, from that caller/conversation's own byte offset, returning each line as `{agent, session, path, line}` instead of a text burst (`agent` is `sub.of ?? line.by ?? null` — the child being tailed, or who wrote the line, never the follower's own id). A followed path that is NOT a `.jsonl` file still gets today's one-line "changed: …" note, since there is no line for `updates` to read in its place. The same `skip_by`/`heard` filters, and `worth_waking` for an `of` follow, apply here too — `External.passes_filters` calls the same static `Follow` helpers `queue()` uses, so a parent tailing a child through its own inbox hears exactly what a spawned parent would. A directory follow reuses the `.jsonl` files `Follow` already tracks under it (`follow.offsets`) rather than walking the tree again on every `updates` call — a module with thousands of files costs one lookup, not a scan, per call. Details: [catch-up.md](../ext/remote/doc/catch-up.md).
+ 
+ ## Only what's new — never a replay
+ 
+diff --git a/Servex/ext/remote/RemoteMCP.js b/Servex/ext/remote/RemoteMCP.js
+index 369f9a3db..990702e7a 100644
+--- a/Servex/ext/remote/RemoteMCP.js
++++ b/Servex/ext/remote/RemoteMCP.js
+@@ -28,7 +28,7 @@ export default class RemoteMCP {
+         "The owner's standing rule (2026-10-16): when the owner asks a question, put the answer on /live/ as a card first, then say \"take a look\" and keep the spoken reply to one or two sentences. A status answer (\"what's running\") is a card listing each agent's id, state, what it is on and its cost (list_agents has them); it is shown, not spoken.",
+         "Restarting Servex needs no question (the owner, 2026-11-06): it takes seconds and dev servers keep running. Do it between turns, never mid-sentence in a voice call, since it drops your own connection for a moment. Then check it came back (list_agents).",
+         "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
+-        "Call `updates` at the start of nearly every turn: it returns only what arrived for you since your last call (agent messages, the owner's notes, changes to logs you follow). Subscribe to a log with follow({path, agent: \"voice-app\"}).",
++        "Call `updates` at the start of nearly every turn: it returns only what arrived for you since your last call (agent messages, the owner's notes, changes to logs you follow). Subscribe to a log with follow({path, agent: \"voice-app\"}). Pass your claude.ai conversation id as `conversation` on `updates` and `register_session` — it keeps your own place separate from any other conversation reading the same shared inbox, and a FIRST call with a conversation id Servex has not seen gets `missed`, a digest of what happened before you joined.",
+     ].join("\n");
+     // The bridge's listening tool (voice-bridge, 2026-11-01): a short long-poll on one ask's ticket. Remote route only.
+     static HEAR = {
+@@ -266,11 +266,14 @@ export default class RemoteMCP {
+     }
+ 
+     // catch-up.md item 1: when the cursor is behind, every other tool result says so in one line (nothing when nothing is new)
++    // the pending check uses the SAME key `updates` itself would default to with no explicit `conversation` — this connection's
++    // own voice session id (step 1, one place per conversation, 2026-11-09) — so the hint never disagrees with what updates() finds
+     hint(tool, result, sid){
+         try {
+             if (tool === "updates" || !result?.content) return result;
+             result = this.ride(result, sid);
+-            const n = this.servex.external?.ensure?.(RemoteMCP.CALLER)?.pending?.(RemoteMCP.CALLER) ?? 0;
++            let v = null; try { v = this.voice_session(sid); } catch {}
++            const n = this.servex.external?.ensure?.(RemoteMCP.CALLER)?.pending?.(RemoteMCP.CALLER, v?.id ?? null) ?? 0;
+             if (n > 0) return { ...result, content: [...result.content, { type: "text", text: `${n} new update${n === 1 ? "" : "s"} for you: call updates.` }] };
+         } catch {}
+         return result;
+diff --git a/Servex/ext/remote/RemoteMCP.test.mjs b/Servex/ext/remote/RemoteMCP.test.mjs
+index e76af4eca..693f814ca 100644
+--- a/Servex/ext/remote/RemoteMCP.test.mjs
++++ b/Servex/ext/remote/RemoteMCP.test.mjs
+@@ -215,13 +215,13 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
+     assert.equal((await call("whoami_test", {})).at(-1).text, "3 new updates for you: call updates.", "hint when behind");
+     assert.equal((await up({ peek: true })).count, 3, "peek reads");
+     assert.equal((await up({ peek: true })).count, 3, "peek does not advance");
+-    const first = await up({});
++    const first = await up({ raw: true });
+     assert.deepEqual(first.updates.map(u => u.text), ["m0", "m1", "m2"]); assert.equal(first.more, false);
+     assert.equal((await up({})).count, 0, "cursor advanced");
+     assert.equal((await call("whoami_test", {})).length, 1, "no hint when caught up");
+     add(60);
+-    const page1 = await up({}); assert.equal(page1.count, 50); assert.equal(page1.more, true, "capped at 50 with more");
+-    const page2 = await up({}); assert.equal(page2.count, 10); assert.equal(page2.more, false); assert.equal(page2.updates[0].text, "m50", "second page continues");
++    const page1 = await up({ raw: true }); assert.equal(page1.count, 50); assert.equal(page1.more, true, "capped at 50 with more");
++    const page2 = await up({ raw: true }); assert.equal(page2.count, 10); assert.equal(page2.more, false); assert.equal(page2.updates[0].text, "m50", "second page continues");
+     fs.appendFileSync(ext.file("voice-app"), '{"text":"half'); assert.equal((await up({})).count, 0, "an unfinished line waits");
+     fs.writeFileSync(ext.file("voice-app"), ""); fs.writeFileSync(ext.cursor_file("voice-app"), "0");   // fresh inbox for the async-ask cases
+     gw.target = undefined; gw.wait_ms = 600; slow_ms = 1500;
+@@ -274,6 +274,162 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
+     assert.equal(swept.length, 1, "exactly one swept answer: a marker stops a second delivery, a stale file is skipped");
+     assert.equal(swept[0].text, "written while Servex was down"); assert.equal(swept[0].reply_to, "feedbeef");
+     assert.ok(fs.existsSync(path.join(rd, "feedbeef.delivered")), "delivery is marked");
++
++    // STEP 1 — one place per conversation (the owner, 2026-11-09): the cursor key is `conversation`, not just the caller
++    {
++        fs.writeFileSync(ext.file("voice-app"), ""); fs.writeFileSync(ext.cursor_file("voice-app"), "0");
++        fs.rmSync(ext.cursors_file("voice-app"), { force: true });
++        let c_next = 0;
++        const addc = n => { fs.appendFileSync(ext.file("voice-app"), Array.from({ length: n }, () => JSON.stringify({ from: "mastermind-a", text: "c" + (c_next++) })).join("\n") + "\n"); };
++        addc(2);   // c0, c1 — already in the inbox before either conversation key below has ever called
++        const a0 = await up({ conversation: "conv-a" });
++        assert.equal(a0.count, 0, "a BRAND NEW conversation key starts at now, not the backlog");
++        assert.ok(Array.isArray(a0.missed) && a0.missed.length === 1 && a0.missed[0].count === 2, "…but is told what it missed, digested (c0+c1, one sender)");
++        addc(1);   // c2
++        const a1 = await up({ conversation: "conv-a", raw: true });
++        assert.deepEqual(a1.updates.map(u => u.text), ["c2"], "conversation a now reads only what arrived after IT started");
++        const b0 = await up({ conversation: "conv-b" });
++        assert.equal(b0.count, 0, "conversation b is also new: it starts at now too, missing nothing conv-a already read");
++        addc(1);   // c3
++        const b1 = await up({ conversation: "conv-b", raw: true });
++        assert.deepEqual(b1.updates.map(u => u.text), ["c3"], "conversation b sees exactly what arrived after it started");
++        const a2 = await up({ conversation: "conv-a", raw: true });
++        assert.deepEqual(a2.updates.map(u => u.text), ["c3"], "conversation a's own place was never moved by b's read — it also gets c3, once, independently");
++    }
++    // STEP 3 — digest by default, `raw: true` for every line
++    {
++        fs.writeFileSync(ext.file("voice-app"), ""); fs.writeFileSync(ext.cursor_file("voice-app"), "0");
++        fs.rmSync(ext.cursors_file("voice-app"), { force: true });
++        // warm both keys on the still-empty inbox, so they are no longer "brand new" once the real lines below land —
++        // a brand-new key starts at now and would otherwise treat these lines as backlog it skips (step 1's own rule)
++        await up({ conversation: "conv-digest" }); await up({ conversation: "conv-raw" });
++        fs.appendFileSync(ext.file("voice-app"), [
++            { from: "minion-a", text: "first" }, { from: "minion-a", text: "second" }, { from: "minion-b", text: "hello" }
++        ].map(l => JSON.stringify(l)).join("\n") + "\n");
++        const d = await up({ conversation: "conv-digest" });
++        assert.equal(d.count, 3, "count is every raw line read, digest or not");
++        assert.equal(d.updates.length, 2, "updates holds the newest line per sender");
++        assert.deepEqual(d.updates.map(u => u.text).sort(), ["hello", "second"], "the newest per sender, not the first");
++        const senders = new Map(d.digest.map(r => [r.from, r]));
++        assert.equal(senders.get("minion-a").count, 2); assert.equal(senders.get("minion-a").latest.text, "second");
++        assert.equal(senders.get("minion-b").count, 1);
++        const r = await up({ raw: true, conversation: "conv-raw" });
++        assert.equal(r.updates.length, 3, "raw:true returns every line, uncompacted");
++    }
++    // STEP 2 — a followed log is read at `updates` time, not pushed to the inbox
++    {
++        const repo_root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
++        const follow_rel = "Servex/agents/tmp-follow-test.jsonl", follow_abs = path.join(repo_root, follow_rel);
++        fs.writeFileSync(follow_abs, JSON.stringify({ by: "minion-x", log: { msg: "step 1 done" } }) + "\n");
++        ext.servex.follow = { list: id => id === "voice-app" ? [{ agent: "voice-app", path: follow_rel }] : [] };
++        try {
++            const f0 = await up({ conversation: "conv-f", raw: true });
++            assert.equal(f0.count, 0, "a followed file's EXISTING content is not replayed on the first read of it");
++            fs.appendFileSync(follow_abs, JSON.stringify({ by: "minion-x", log: { msg: "step 2 done" } }) + "\n");
++            const before = fs.readFileSync(ext.file("voice-app"), "utf8");
++            const f1 = await up({ conversation: "conv-f", raw: true });
++            assert.equal(f1.count, 1, "the followed file's new line arrives through updates");
++            assert.equal(f1.updates[0].path, follow_rel); assert.equal(f1.updates[0].agent, "minion-x");
++            assert.equal(f1.updates[0].line.log.msg, "step 2 done");
++            assert.equal(fs.readFileSync(ext.file("voice-app"), "utf8"), before, "…and never lands in the inbox file itself (Follow.flush's own external skip)");
++            const f2 = await up({ conversation: "conv-f", raw: true });
++            assert.equal(f2.count, 0, "nothing left to read a second time");
++            // fix B: a line with no `by` is tagged agent:null, never the FOLLOWER's own id ("voice-app")
++            fs.appendFileSync(follow_abs, JSON.stringify({ log: { msg: "no by field" } }) + "\n");
++            const f3 = await up({ conversation: "conv-f", raw: true });
++            assert.equal(f3.updates[0].agent, null, "no `by` on the line — agent is null, not the follower's own id");
++            // fix B: a `of`-tailed sub (a parent tailing a child) applies worth_waking — "other" lines dropped, state/pointer kept, tagged as the CHILD (`of`), not the follower
++            ext.servex.follow = { list: id => id === "voice-app" ? [{ agent: "voice-app", path: follow_rel, of: "minion-child" }] : [] };
++            fs.appendFileSync(follow_abs, JSON.stringify({ decision: "picked option a" }) + "\n" + JSON.stringify({ complete: {} }) + "\n");
++            const f4 = await up({ conversation: "conv-f", raw: true });
++            assert.equal(f4.count, 1, "the `decision` line is `other`-kind and dropped by worth_waking; only `complete` (state) survives");
++            assert.equal(f4.updates[0].agent, "minion-child", "tagged as the CHILD being tailed, not the follower (\"voice-app\")");
++        } finally { fs.rmSync(follow_abs, { force: true }); delete ext.servex.follow; }
++    }
++    // fix A — a followed burst bigger than the remaining budget: nothing lost, nothing repeated
++    {
++        const repo_root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
++        const follow_rel = "Servex/agents/tmp-follow-budget.jsonl", follow_abs = path.join(repo_root, follow_rel);
++        fs.writeFileSync(follow_abs, "");
++        ext.servex.follow = { list: id => id === "voice-app" ? [{ agent: "voice-app", path: follow_rel }] : [] };
++        try {
++            await up({ conversation: "conv-budget" });   // warm the key while the file is empty, so its first read starts at 0 new bytes, not "now"
++            fs.appendFileSync(follow_abs, Array.from({ length: 60 }, (_, i) => JSON.stringify({ by: "minion-y", n: i })).join("\n") + "\n");
++            const p1 = await up({ conversation: "conv-budget", raw: true, cap: 50 });
++            assert.equal(p1.count, 50, "the first page is capped at 50, same as the inbox");
++            assert.equal(p1.more, true, "and says there is more");
++            assert.deepEqual(p1.updates.map(u => u.line.n), Array.from({ length: 50 }, (_, i) => i), "lines 0..49, in order");
++            const p2 = await up({ conversation: "conv-budget", raw: true, cap: 50 });
++            assert.equal(p2.count, 10, "the second page picks up exactly where the first one's budget stopped");
++            assert.equal(p2.more, false);
++            assert.deepEqual(p2.updates.map(u => u.line.n), Array.from({ length: 10 }, (_, i) => i + 50), "lines 50..59, not one lost, not one repeated");
++        } finally { fs.rmSync(follow_abs, { force: true }); delete ext.servex.follow; }
++    }
++    // review note 3 — the inbox alone fills `cap` (budget 0 for the follow): `more` must still say true when a followed file has unread bytes
++    {
++        const repo_root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
++        const follow_rel = "Servex/agents/tmp-follow-zero-budget.jsonl", follow_abs = path.join(repo_root, follow_rel);
++        fs.writeFileSync(follow_abs, "");
++        ext.servex.follow = { list: id => id === "voice-app" ? [{ agent: "voice-app", path: follow_rel }] : [] };
++        try {
++            await up({ conversation: "conv-zero" });   // warm both the inbox key and the follow key while both are empty
++            fs.writeFileSync(ext.file("voice-app"), ""); fs.writeFileSync(ext.cursor_file("voice-app"), "0");
++            const map = ext.load_cursors("voice-app");
++            map["conv-zero"].offset = 0;   // so the inbox alone supplies the full cap below
++            ext.save_cursors("voice-app", map);
++            fs.appendFileSync(ext.file("voice-app"), JSON.stringify({ from: "x", text: "inbox line" }) + "\n");
++            fs.appendFileSync(follow_abs, JSON.stringify({ by: "minion-z", n: 0 }) + "\n");   // unread, but the inbox fills cap:1 first
++            const z = await up({ conversation: "conv-zero", raw: true, cap: 1 });
++            assert.equal(z.count, 1, "cap:1 is filled by the inbox line alone, none of the budget left for the follow");
++            assert.equal(z.more, true, "…but `more` still says true: the followed file has an unread line, not reading it does not mean there is none");
++            const z2 = await up({ conversation: "conv-zero", raw: true });
++            assert.equal(z2.count, 1, "and the next call reads it, untouched");
++            assert.equal(z2.updates[0].line.n, 0);
++        } finally { fs.rmSync(follow_abs, { force: true }); delete ext.servex.follow; }
++    }
++    // STEP 5 — rotation: the already-read part moves to the archive, nothing unread is ever lost
++    {
++        fs.writeFileSync(ext.file("voice-app"), ""); fs.writeFileSync(ext.cursor_file("voice-app"), "0");
++        fs.rmSync(ext.cursors_file("voice-app"), { force: true });
++        const old1 = JSON.stringify({ from: "mastermind-a", text: "old one", at: "2025-01-15T09:00:00-05:00" }) + "\n";
++        const old2 = JSON.stringify({ from: "mastermind-a", text: "old two", at: "2025-01-15T09:05:00-05:00" }) + "\n";
++        fs.appendFileSync(ext.file("voice-app"), old1 + old2);
++        const r1 = await up({ conversation: "voice-app", raw: true }); assert.equal(r1.count, 2, "the caller's own key reads both old lines");
++        // a second conversation key, by hand, at a byte offset that has read only the FIRST old line — rotation must not outrun it
++        const map = ext.load_cursors("voice-app");
++        map["conv-r"] = { offset: Buffer.byteLength(old1, "utf8"), at: new Date().toISOString() };   // fresh (not stale): it must still pin rotation
++        ext.save_cursors("voice-app", map);
++        fs.appendFileSync(ext.file("voice-app"), JSON.stringify({ from: "x", text: "new one", at: new Date().toISOString() }) + "\n");
++        ext.deliver("voice-app", "trigger rotation", { from: "owner" });   // deliver() runs rotate() first: its first line is from last January
++        const archive_file = path.join(path.dirname(ext.file("voice-app")), "archive", "voice-app-2025-01.jsonl");
++        assert.ok(fs.existsSync(archive_file), "the already-read part moved to the archive (never deleted)");
++        const archived = fs.readFileSync(archive_file, "utf8").trim().split("\n").map(l => JSON.parse(l));
++        assert.deepEqual(archived.map(l => l.text), ["old one"], "only the line EVERY cursor had read — conv-r had not read old two yet");
++        const remaining = fs.readFileSync(ext.file("voice-app"), "utf8").trim().split("\n").map(l => JSON.parse(l));
++        assert.deepEqual(remaining.map(l => l.text), ["old two", "new one", "trigger rotation"], "nothing unread is lost");
++        const r2 = await up({ conversation: "conv-r", raw: true });
++        assert.deepEqual(r2.updates.map(u => u.text), ["old two", "new one", "trigger rotation"], "conv-r's rebased cursor reads exactly what it had not read yet — no replay, no gap");
++    }
++    // fix D — a cursor nobody has touched in 7+ days does not pin rotation forever
++    {
++        fs.writeFileSync(ext.file("voice-app"), ""); fs.writeFileSync(ext.cursor_file("voice-app"), "0");
++        fs.rmSync(ext.cursors_file("voice-app"), { force: true });
++        const old1 = JSON.stringify({ from: "mastermind-a", text: "stale old one", at: "2025-02-15T09:00:00-05:00" }) + "\n";
++        const old2 = JSON.stringify({ from: "mastermind-a", text: "stale old two", at: "2025-02-15T09:05:00-05:00" }) + "\n";
++        fs.appendFileSync(ext.file("voice-app"), old1 + old2);
++        await up({ conversation: "voice-app", raw: true });   // reads both, offset = end
++        const map = ext.load_cursors("voice-app");
++        const nine_days_ago = new Date(Date.now() - 9 * 86400000).toISOString();
++        map["conv-stale"] = { offset: Buffer.byteLength(old1, "utf8"), at: nine_days_ago };   // 9 days untouched: stale, must not pin
++        ext.save_cursors("voice-app", map);
++        fs.appendFileSync(ext.file("voice-app"), JSON.stringify({ from: "x", text: "fresh one", at: new Date().toISOString() }) + "\n");
++        ext.deliver("voice-app", "trigger stale rotation", { from: "owner" });
++        const archive_file = path.join(path.dirname(ext.file("voice-app")), "archive", "voice-app-2025-02.jsonl");
++        const archived = fs.readFileSync(archive_file, "utf8").trim().split("\n").map(l => JSON.parse(l));
++        assert.deepEqual(archived.map(l => l.text), ["stale old one", "stale old two"], "a 9-day-stale cursor does not pin rotation: both old lines archive despite conv-stale never having read the second one");
++        const stale_now = ext.load_cursors("voice-app")["conv-stale"];
++        assert.equal(stale_now.offset, 0, "conv-stale's own offset rebases to 0 (its unread line is in the archive now, not the live file — a conscious tradeoff for a conversation nobody resumed in a week)");
++    }
+ }
+ // THE BRIDGE (voice-bridge, 2026-11-01): a fake agent streams through the host's real seam, agents.watch(event, agent)
+ {
+diff --git a/Servex/ext/remote/doc/catch-up.md b/Servex/ext/remote/doc/catch-up.md
+index 07e4a9bde..51ba5f423 100644
+--- a/Servex/ext/remote/doc/catch-up.md
++++ b/Servex/ext/remote/doc/catch-up.md
+@@ -17,14 +17,19 @@ Logged in [core/Page/task.jsonl](../../../../public/framework/core/Page/task.jso
+ 
+ ## What is built
+ 
+-- **`updates`** (`External.updates()`, registered by `External.tool()`, so it is on the whole registry and the remote door): returns the lines of the caller's inbox (`logs/inbox/<caller>` file under Servex's home) that arrived after its cursor, oldest first, at most 50 (`more: true` = call again), and moves the cursor. `peek: true` reads without moving it. The cursor is a byte offset in a `.cursor` file beside the inbox; the first call returns the backlog (capped); an unfinished last line waits for its newline.
+-- **Subscribing:** `follow({path, agent: "voice-app"})` ([follow.md](../../../doc/follow.md)) lands each delta in that inbox. `updates` (and `RemoteMCP.hint()` on any remote call) makes the caller an external agent, so `follow` and `send_to_agent` can address `voice-app`.
+-- **The hint (item 1):** `RemoteMCP.hint()` adds one text item, "N new updates for you: call updates.", to every other remote tool result while the cursor is behind, and nothing otherwise.
+-- **The directive:** one sentence in `RemoteMCP.INSTRUCTIONS`: call `updates` at the start of nearly every turn.
+-- Tests: `node Servex/ext/remote/RemoteMCP.test.mjs`. Live after a Servex restart.
++- **`updates`** (`External.updates()`, registered by `External.tool()`, so it is on the whole registry and the remote door): returns everything that arrived for THIS caller/conversation since its own cursor, oldest first, at most 50, and moves the cursor. `peek: true` reads without moving it.
++- **One place per conversation (2026-11-09, the owner).** The cursor key is `conversation` (pass your claude.ai conversation id) or, with none given, the caller's own voice session id that `RemoteMCP` already resolved for this call (`ctx.session.id` — the dated `cloud-voice-<name>` record), or finally the bare caller — today's original behaviour. Every key's place is one entry in `logs/inbox/<caller>.cursors.json` (`{key: {offset, at, follows}}`); the old single `<caller>.cursor` file is still read as the caller-key's own entry, so an upgrade never jumps anyone's place. **A BRAND NEW key starts at "now"** (the inbox's current end), not the backlog — so a second mastermind that only just started talking to a voice session is never handed a wall of lines meant for someone else's conversation. Its first answer carries `missed`: a digest (below) of what happened between the shared cursor and now, capped to the last 24h.
++- **Digest by default.** `updates` returns `{count, more, updates, digest}`: `count` is every raw event read (so paging with `more` stays exact), `digest` is one row per sender — `{from, count, latest}` — and (unless `raw: true`) `updates` itself holds only the newest line per sender, so a caller reading `updates[].text` the old way still works, just compacted. `raw: true` returns every line, as before 2026-11-09.
++- **Follows are read here, not pushed to the inbox (step 2).** `follow({path, agent: "voice-app"})` ([follow.md](../../../doc/follow.md)) still records the subscription, but for an external caller `Follow.flush` no longer delivers a `.jsonl` file's lines as an inbox message (a non-jsonl change still gets today's one-line note — there is no line for `updates` to read instead). Instead, `updates` reads each followed file itself, from THIS key's own byte offset (`External.followed_lines`, independent of `Follow`'s own change-detection offsets), and returns each line as `{agent, session, path, line}`. Like the inbox itself, a key's first read of a followed file starts at that file's current end, not its backlog. A directory follow reuses the `.jsonl` files `Follow` itself already tracks (`follow.offsets`) instead of walking the tree again on every `updates` call (`External.followed_files`) — a module with thousands of files costs one lookup, not a recursive directory scan, per call. The followed line is tagged `agent: sub.of ?? line.by ?? null` — the CHILD being tailed, or who wrote the line, never the follower's own id — and passes the same `skip_by`/`heard`/`worth_waking` filters the pushed-message path uses (`Follow.without`, `Follow.worth_waking`), so a parent-tailing-a-child follow still hears only state/pointer lines through `updates` too.
++- **No line is ever dropped by a budget (fix, 2026-11-09).** `followed_lines(id, state, budget)` takes the CAP remaining after the inbox's own share and stops reading a file at a line boundary once that budget is spent — the per-file offset only ever advances past lines actually returned. A 60-line burst with a 50-line budget comes back as 50 now, `more: true`, then the other 10 on the next call; nothing is skipped, nothing repeats.
++- **The hint (item 1):** `RemoteMCP.hint()` adds one text item, "N new updates for you: call updates.", to every other remote tool result while THIS call's own key is behind (resolved the same way `updates` resolves it, so the hint never disagrees with what a later `updates` call finds), and nothing otherwise.
++- **No duplicate "done" at the sender (step 4).** `Agents.wake_parent`, when the parent is a registered external agent and the report carries no "Next:" note, compares it against the same child's last one to that parent after stripping timestamps and ids (`Servex/agents/mark-strip.js`'s `strip_marks`). An identical report skips only the MESSAGE to the parent — the task-dir `inbox.jsonl` line still writes, same as any other "done" — and is counted on the host (`this._dup_done_skips`), never logged per occurrence. **Measured against the real inbox (2026-11-09, read-only, `voice-app.jsonl`, 727 lines):** 398 lines were a "done" report; of those, only 4 (1.0%) were a byte-for-byte repeat of the SAME sender's previous one after stripping. The inbox's earlier bulk — the 369 "done:"-prefixed and 188 raw `follow` lines noted below — were mostly each other's near-neighbors in TEXT, not literal duplicates; the digest (above) and the follow-via-updates change (step 2) are what actually shrink that volume, not this dedup, which catches a smaller, narrower case (the exact same report sent twice).
++- **Rotation (step 5).** Every `deliver()` first checks just the inbox's first line (`External.first_line`, a small bounded read, not the whole file) before deciding whether a rotation is even due — only once it is (once a month) does it read the whole file. When due, the part every cursor has already read moves to `logs/inbox/archive/<caller>-<YYYY-MM>.jsonl` (appended, never overwritten); the live file keeps only what some cursor has not read yet, and every cursor is rebased to the shorter file. **A STALE cursor does not pin it**: a conversation key `updates()` has not touched in 7+ days (or the legacy single cursor, by its file's own mtime) no longer holds back the rotation — its offset rebases to 0 instead of to its true remaining distance. Whatever it had not read yet is still in the archive, not lost, just no longer live in the inbox; a conversation nobody resumes in a week cannot hold the whole file hostage.
++- **The directive:** one sentence in `RemoteMCP.INSTRUCTIONS`: call `updates` at the start of nearly every turn, and pass `conversation`.
++- Tests: `node Servex/ext/remote/RemoteMCP.test.mjs`, `node Servex/agents/External.test.mjs`, `node Servex/agents/Follow-ack.test.mjs`, `node Servex/agents/mark-strip.test.mjs`. `External.test.mjs` needs `Servex/node_modules` installed (`npm install` inside `Servex/`, never linked to the main tree's). Live after a Servex restart.
+ 
+ ## Not built
+ 
+-- The inbox holds only what is sent to `voice-app` or followed for it. `/live/` and the children's logs arrive only if the agent calls `follow` on them; nothing subscribes automatically.
+-- The first-call backlog is not trimmed to "from now"; the cap bounds it.
+-- A long quiet spell piles the inbox up as raw lines. Measured 2026-11-09: `voice-app.jsonl` held 668 lines since October, about 261 unread; 369 began "done:" (finished agents re-reporting "nothing running") and 188 were raw `follow` deltas. Proposed fix, in order: (1) `updates` returns a digest by default (one line per sender: its latest message and a count), raw lines behind a flag; (2) on resume, show "newest per sender since the cursor" and say how many lines were skipped; (3) stop the duplicate "done, idle" messages at the sender (an open item in [ai/handover.md](/framework/ai/handover.md)) and do not auto-follow `page.jsonl` / `session.jsonl` into the inbox. Big-picture state belongs in the session logs, not the inbox.
++- `/live/` and the children's logs still arrive only if an agent calls `follow` on them; nothing subscribes automatically.
++- `missed`'s digest covers only the caller's shared inbox backlog, not a brand-new key's followed files (those simply start at "now" too, with nothing to report missing — there was never a subscription for them before).
++- The noise this was built to fix (measured 2026-11-09, before this change): `voice-app.jsonl` held 668 lines since October, about 261 unread; 369 began "done:" (finished agents re-reporting "nothing running") and 188 were raw `follow` deltas. Not yet re-measured against a live restart with all five steps in effect.

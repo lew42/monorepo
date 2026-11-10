@@ -3,3 +3,6 @@
 {"file":"page.js"}
 {"file":"place.css"}
 {"file":"swap/page.js"}
+{"file":"add/page.js","nav":{"title":"Add a column","icon":"view_column","description":"The default — clicking a name opens a new column beside it."}}
+{"file":"carousel/page.js","nav":{"title":"Carousel","icon":"view_carousel","description":"Animated cycling — the same four items, one slide showing at a time."}}
+{"file":"swap/page.js","nav":{"title":"Swap in place","icon":"tab","description":"Tabs — clicking a name replaces the one panel, nothing accumulates."}}

@@ -22,3 +22,4 @@
 {"file":"doc/page.jsonl"}
 {"file":"doc/"}
 {"file":"tasks/"}
+{"file":"shell/page.js","nav":{"title":"Shell","icon":"deployed_code","description":"page.demo() — one demo UX, and every demo page on the site wears it."}}

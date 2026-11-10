@@ -50,3 +50,37 @@
 {"file":"catalog/doc/matching.md"}
 {"file":"catalog/page.js"}
 {"file":"tasks/"}
+{"file":"400/page.js","nav":{"title":"400","icon":"smartphone","description":"Five class strings, one column at 400px, unstacking on their own — the same site rendered five ways."}}
+{"file":"anatomy/page.js","nav":{"title":"Anatomy","icon":"account_tree","description":"Seven \"generic layouts\" from the Figma, and the two class strings — a stack, a --grow row — they all turn out to be."}}
+{"file":"apidoc/page.js","nav":{"title":"Framework","icon":"menu_book","description":"A rail, a breadcrumb, a tab strip and three bodies — a class's documentation page, and the five Figma frames it was split into."}}
+{"file":"bold-editorial/page.js","nav":{"title":"Bold Editorial","icon":"contrast","description":"Dark contrast, oversized numerals, asymmetric bands — the theme's elevation ladder standing in for a fixed dark palette."}}
+{"file":"carousel/page.js","nav":{"title":"Carousel","icon":"view_carousel","description":"A rail that scrolls sideways and snaps — one slide on a phone, six across a monitor, no arrows."}}
+{"file":"catalog/page.js","nav":{"title":"Layout catalog","icon":"view_quilt","description":"Every layout we ship, ranked, with how many pages use it and what content it suits."}}
+{"file":"chat/page.js","nav":{"title":"Chat","icon":"forum","description":"A conversation list, a transcript that scrolls, and a composer that never leaves the bottom."}}
+{"file":"cols/page.js","nav":{"title":"Columns","icon":"view_column","description":"Six words for a 2- or 3-column row whose ratio is arithmetic, not a leftover — and the four numbers that say where .flex.auto stops serving 3440."}}
+{"file":"dashboard/page.js","nav":{"title":"Dashboard","icon":"insights","description":"A strip of numbers over a wall of panels, with a rail that only appears when there is room."}}
+{"file":"docs/page.js","nav":{"title":"Docs","icon":"menu_book","description":"A menu rail, an article, a table of contents — the three-column reading page."}}
+{"file":"document/page.js","nav":{"title":"Document","icon":"article","description":"A header, one column of reading, a footer — the layout every other one here is a departure from."}}
+{"file":"feed/page.js","nav":{"title":"Feed","icon":"dynamic_feed","description":"A centred column of posts with two rails that stick, and drop away when the room runs out."}}
+{"file":"fit/page.js","nav":{"title":"Fit","icon":"crop_free","description":"How a page holds a layout: the default sheet, and the four words that change it."}}
+{"file":"flex/page.js","nav":{"title":"Flex","icon":"view_week","description":"A row, and the eight one-word steps away from it."}}
+{"file":"gallery/page.js","nav":{"title":"Gallery","icon":"photo_library","description":"A filter rail beside a wall of tiles that re-counts itself at every width."}}
+{"file":"grid/page.js","nav":{"title":"Grid","icon":"grid_on","description":"A wall that counts its own columns, and the one number that retunes it."}}
+{"file":"hero/page.js","nav":{"title":"Hero","icon":"wallpaper","description":"Copy beside a picture that becomes a picture over copy — one row, and the breakpoint is a consequence."}}
+{"file":"home/page.js","nav":{"title":"Home","icon":"home","description":"A real client homepage — ten bands, one class string each, and the same page at 375 and at 3440 with no breakpoint between them."}}
+{"file":"landing/page.js","nav":{"title":"Landing","icon":"campaign","description":"Full-bleed bands, stacked — no rails, and every band holding its own reading column."}}
+{"file":"mail/page.js","nav":{"title":"Mail","icon":"mail","description":"Folders, a list, a message — three panes that become three stacked bands on a phone."}}
+{"file":"masonry/page.js","nav":{"title":"Masonry","icon":"dashboard","description":"A ragged wall with no gaps — CSS columns, and what the order-keeping version costs."}}
+{"file":"model/page.js","nav":{"title":"The layout model","icon":"menu_book","description":"Seven sentences, twelve words, three page shapes — the whole system, before any of the layouts."}}
+{"file":"overlay/page.js","nav":{"title":"Overlay","icon":"layers","description":"A sheet on one edge, a menu on the other — a panel that covers the page instead of taking a column from it."}}
+{"file":"pricing/page.js","nav":{"title":"Pricing","icon":"sell","description":"Three tiers on one token — the wall counts its own columns and the emphasized one is two classes."}}
+{"file":"screens/page.js","nav":{"title":"Screens","icon":"smartphone","description":"A seven-screen Figma set — four that already exist as real layouts, and the three that don't."}}
+{"file":"set/page.js","nav":{"title":"Set","icon":"view_agenda","description":"Six frames from one Figma node, all literally named \"Layout\" — and the two class strings they turn out to be."}}
+{"file":"shell/page.js","nav":{"title":"App shell","icon":"view_quilt","description":"Header, toolbar, rail, work, inspector, status bar — every region an application has, all optional."}}
+{"file":"sidebar/page.js","nav":{"title":"Sidebar","icon":"view_sidebar","description":"A fixed panel beside fluid content — two utility classes, no rule."}}
+{"file":"space/page.js","nav":{"title":"Space","icon":"travel_explore","description":"A layout is a string. Type one and see it on five screens at once, or take an integer and get one."}}
+{"file":"spec/page.js","nav":{"title":"Full width — the Figma says 1920px","icon":"straighten","description":"A Figma layout spec drawn at four widths, rebuilt as one page — and its twenty declared values checked against the framework's tokens."}}
+{"file":"split/page.js","nav":{"title":"List · detail","icon":"vertical_split","description":"A list beside what it selects — two scrollers side by side, one above the other when they stop fitting."}}
+{"file":"stack/page.js","nav":{"title":"Stack","icon":"view_agenda","description":"Vertical rhythm, and a form that needed none of its own CSS."}}
+{"file":"toc-studio/page.js","nav":{"title":"Tabbed Toc","icon":"toc","description":"A category strip over a scanned table of contents — the real `ext/tabs` CSS, the real `toc()` scan, one row."}}
+{"file":"wire/page.js","nav":{"title":"Wireframes","icon":"view_quilt","description":"Eight generic page skeletons from the Figma, each as one class string — and the one seam the vocabulary cannot say."}}
