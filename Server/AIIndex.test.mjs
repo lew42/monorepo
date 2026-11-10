@@ -92,7 +92,8 @@ assert.deepEqual([d.check.asks.rows, d.check.asks.sum, d.check.asks.ids, d.check
 assert.deepEqual([d.check.sessions.in_sessions, d.check.sessions.with_session, d.check.sessions.ok], [d.check.sessions.with_session, d.check.sessions.with_session, true]);
 assert.equal(d.sessions.find(x => x.id === "s1").title != null, true);
 assert.equal(AIIndex.sig(d) !== AIIndex.sig(s), true);                       // new cards and asks move the signature
-assert.equal("cards" in AIIndex.stream_line(d), false);                    // the stream line stays small: counts and the check only
+assert.equal("cards" in AIIndex.stream_line(d), false);
+assert.equal("open_nested" in AIIndex.stream_line(d), false);              // 622 KB a line on the real store; index.json carries it                    // the stream line stays small: counts and the check only
 // Break the card count on purpose: an `id` that is not first on its line parses fine but the text scan misses it.
 jl("cards.jsonl", [card("2026/10/17/a", "open"), `{"title":"Odd","id":"2026/10/17/odd","status":"open","last":"2026-10-17T10:00:00-05:00"}`]);
 const e = new AIIndex({ root, registry, now }).snapshot();
