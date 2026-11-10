@@ -51,7 +51,7 @@ Page `Page builder` (62:933): `Page · Page builder` (71:555, a copy of `Page ·
 
 - **Templates** (masters, each with a Content slot FILL up to 1600): `Template · Site`, `· App with sidebar`, `· Landing` (1920), `· Phone` (400, Resolution Mobile on the root, grids set to one column) and `· Mega` (3440, the sidebar stays Default and only the Main frame is Resolution Mega, slot max width 2880). Blocks: `Block · Three cards / Photo cards / Split / Stats / Call to action / Gallery`.
 - **A ground colour is a Scheme mode on the template**, not a copy per colour: duplicate a template and set Prime, White or Light gray. Cards inherit the ground and vanish on a Light gray, Dark or Prime ground, so set `Scheme = White` on each card instance there.
-- Not built yet: 1920×1080 fixed-height screens (halves, two or three columns, any ground on any ground), and the 1600 content area splitting into two 800 columns. Build notes: [doc/use-figma.md](./doc/use-figma.md) (Traps) and [doc/troubleshooting.md](./doc/troubleshooting.md).
+- `Screens · 1920×1080` (82:1363, between Drag and drop and Templates): three fixed-height screens: halves on two grounds (82:1373), a 1600 centred area split into two 800 columns (82:1399), a full-bleed Prime band over a padded area (82:1426). Built from plain frames and White-scheme Card instances, not yet components; two or three columns and a Widths page (one page per root width) are not built. Build notes: [doc/use-figma.md](./doc/use-figma.md) (Traps) and [doc/troubleshooting.md](./doc/troubleshooting.md).
 
 ## More
 
