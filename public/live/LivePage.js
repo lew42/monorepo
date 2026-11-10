@@ -506,6 +506,8 @@ export default class LivePage extends Page {
 		return this.meta_of(url).then(m => m.icon ?? null);
 	}
 	// A link card's icon before its page answers: the link's own, else a file for a .jsonl url, else a folder.
+	// A card never shows the "stored inside its parent" dot (it wastes a column); the page header still may.
+	static card_icon(name){ return name === this.stored.item ? null : name; }
 	static link_icon(link, url){ return link.get("icon") ?? (/\.jsonl\/?$/.test(url) ? this.stored.file : this.stored.folder); }
 	static icon(page, name){
 		if (!page.$icon) return void this.glyph(null, name);
@@ -741,8 +743,7 @@ export default class LivePage extends Page {
 					let title_icon = null;
 					const paint = () => P.glyph($icon, item.get("icon") || title_icon);
 					if (item instanceof PageLink){
-						const fallback = P.link_icon(item, own);
-						P.glyph($icon, fallback);
+						P.glyph($icon, P.card_icon(P.link_icon(item, own)));
 					} else this.bind(item, "icon", paint);
 					$title = new P.Heading({ tag: "h4", item, classes: "live-card-title", on_text: go,
 						strip_emoji: !(item instanceof PageLink), on_icon: n => { title_icon = n; paint(); } });
@@ -750,7 +751,7 @@ export default class LivePage extends Page {
 				if (item instanceof PageLink && own.startsWith("/live/")){
 					const theirs = () => {
 						P.title_of(own).then(t => $title.fix(t)).catch(() => {});
-						P.icon_of(own).then(n => P.glyph($icon, n ?? P.link_icon(item, own))).catch(() => {});
+						P.icon_of(own).then(n => P.glyph($icon, P.card_icon(n ?? P.link_icon(item, own)))).catch(() => {});
 					};
 					theirs();
 					P.on_meta(this, u => u === own, theirs);   // its page renames itself: the card follows
@@ -937,7 +938,7 @@ export default class LivePage extends Page {
 				list.forEach(c => div.c("live-card live-page-card", () => {
 					div.c("live-card-body", () => {
 						div.c("live-card-head", () => {
-							span.c("live-icon live-card-icon", () => P.glyph(null, c.icon));
+							span.c("live-icon live-card-icon", () => P.glyph(null, P.card_icon(c.icon)));
 							h4.c("live-card-title", c.title);
 						});
 						if (c.description) div.c("live-preview", () => div.c("live-card-text live-preview-text", () => md(String(c.description), { safe: true })));   // its page's own description

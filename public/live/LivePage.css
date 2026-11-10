@@ -178,12 +178,12 @@
 	.live-entity .live-card-title .mention .item-icon { font-size: 1.3em; }
 	.live-inside { font-size: .75em; opacity: .55; }
 	.live-inside.is-empty { display: none; }
-	.live-card .live-card-text { font-weight: 400; opacity: .8; }
+	.live-card .live-card-text { font-weight: 400; opacity: .8; font-size: .85rem; }   /* fixed, like the title (.9rem) and the H1 (1.05rem): body below title below H1 at every width */
 	.live-foot-removed.is-empty { display: none; }
 	.live-foot-removed { color: inherit; opacity: .7; }
 	/* .live-title (the page's h1) is fixed at 1.05rem, not the page's own growing em (LivePage.css above), so a card
-	   title has to be fixed too to stay clearly smaller at every width: 0.8rem reuses the framework's h4 level
-	   (framework.css's six-level type scale), as rem instead of em, rather than inventing a new number.
+	   title has to be fixed too to stay clearly smaller at every width: 0.9rem (the body text under it is .85rem)
+	   — numbers, not a framework.css level: the framework levels are em, and these three must not grow with the page.
 	   The doubled selector is not a typo: visiting ANY /live/ page dynamic-imports archive/'s and sessions/'s
 	   page.js just to read their title (LivePage.pages_of → meta_of), and those extend the OLD v1 Live, whose
 	   Live.css registers globally (View.stylesheet adopts it site-wide, never scoped to v1's own pages) with its
@@ -191,7 +191,7 @@
 	   sheet — so by plain source order THEY win, not this rule (styles/doc/layout-system.md documents the same
 	   trap). .live-card-title.live-card-title is specificity (0,2,0), which beats a single class regardless of
 	   load order, without touching v1's own files. */
-	.live-card-title.live-card-title { margin: 0; font-size: .8rem; line-height: 1.25; text-transform: none; letter-spacing: normal; }
+	.live-card-title.live-card-title { margin: 0; font-size: .9rem; line-height: 1.25; text-transform: none; letter-spacing: normal; }
 	.live-card-text, .live-sub, .live-foot-text { line-height: 1.45; }
 	:is(.live-card-text, .live-sub, .live-foot-text) .md > * { --flow: var(--live-step); }   /* the markdown inside is .flow, which spaces by --flow (set on every element): one step here too */
 	:is(.live-card-text, .live-sub, .live-foot-text) > * { margin: 0; }
