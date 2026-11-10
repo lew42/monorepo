@@ -123,9 +123,15 @@ export default class LayoutCheck {
 		return map;
 	}
 
+	/* Rewrites the file: every url+width checked now replaces its old line; lines for pages this
+	 * run did not check are kept, so a baseline of five pages never wipes the rest. */
 	static write_baseline(results){
-		const lines = results.filter(r => r.ok).map(r => JSON.stringify({ url: r.url, width: r.width, broken: r.broken, off: r.off, keys: r.keys }));
-		fs.writeFileSync(BASELINE_PATH, lines.map(l => l + "\n").join(""));
+		const rows = new Map();
+		if (fs.existsSync(BASELINE_PATH)) for (const line of fs.readFileSync(BASELINE_PATH, "utf8").split("\n")) {
+			try { const e = JSON.parse(line); rows.set(`${e.url}@${e.width}`, e); } catch {}
+		}
+		for (const r of results.filter(r => r.ok)) rows.set(`${r.url}@${r.width}`, { url: r.url, width: r.width, broken: r.broken, off: r.off, keys: r.keys });
+		fs.writeFileSync(BASELINE_PATH, [...rows.values()].map(e => JSON.stringify(e) + "\n").join(""));
 	}
 
 	/* One line of the table — the whole formatting contract in one place, so a test can check it
