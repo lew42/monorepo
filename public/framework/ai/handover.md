@@ -27,28 +27,30 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-09 05:41 UTC, last 24 h)
+## NOW (computed 2026-11-10 00:09 UTC, last 24 h)
 
-**Pace:** Week: 28% used · 59% gone · 48% of pace (room to spend, 2 days 21 hours left)
+**Pace:** Week: 34% used · 70% gone · 49% of pace (room to spend, 2 days 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (1):**
-- [Feedback inbox (obvious): i-mw7rhgsnftl. Problem: A message headed "reply to: log agent-voice-app" reads as an](/framework/ai/sessions/2026/11/08/spawned/mastermind-ai/) (mastermind-ai)
+**Landed (2):**
+- [You are the file-system audit mastermind (owner's ask, 2026-11-09; handed by voice-app, reply with send_to_age](/framework/ai/sessions/2026/11/09/spawned/mastermind-fs-audit/) (mastermind-fs-audit)
+- [You're working for Michael's voice assistant (a phone voice call). I relay his questions; you do all the diggi](/framework/ai/sessions/2026/11/09/spawned/mastermind-session-recall/) (mastermind-session-recall)
 
-**Open, touched in the window (0):**
-- none
+**Open, touched in the window (2):**
+- [You are a fresh-eyes reviewer (owner's ask, 2026-11-09, handed by voice-app; reply with send_to_agent to voice](/framework/ai/sessions/2026/11/09/spawned/mastermind-friction/) (mastermind-friction)
+- [You are the page-index mastermind (owner's ask, 2026-11-09, handed by voice-app; reply with send_to_agent to v](/framework/ai/sessions/2026/11/09/spawned/mastermind-page-index/) (mastermind-page-index)
 
 **Latest commits on this branch:**
 ```
-2960b99dc servex: log sweep (5 files)
-0124f5ba6 servex: log sweep (3 files)
-1fef796f2 servex: log sweep (5 files)
-865b2a7dc servex: log sweep (3 files)
-ce6f2c9f3 servex: log sweep (5 files)
-12702fa77 servex: log sweep (3 files)
-03b30052d servex: log sweep (5 files)
-00e261982 servex: log sweep (3 files)
+237af0411 page-design: plugins plan at /live/plan/plugins/ (page = tree of plugins, templates, instant ops), past-work findings, review brief
+064e6e5c7 session-truth: brief for one-refiner steps 4+5 (refiner after every channel's Ask.write, live coverage view); /live/done/ cards
+f08e97fec agents.md: an owner idea is a problem to solve; plan, fresh review, then MVP + demo without waiting (the owner, 2026-11-09)
+0eaf8cab9 session-truth: records for the calibration page rework and refiner step 3 (task logs, reviews, answers, /live/done/ card)
+1b3bd4eb1 page-design: past-work brief for page templates and instant page ops
+8eeb5e7b6 live: /live/ cleared to 4 cards (this session, what got done, now, older cards); old cards saved as /live/nov-6-9/
+e52512430 agents.md: context first, detail on demand; git-revertible means decide (the owner, 2026-11-09)
+babe50908 Merge refiner-step3: Prompt.uncovered: map PromptRecords' 0-based numeric cites to sentence ids, as Session.coverage does
 ```
 
 The dated sections below are written by hand and go stale; this block does not.

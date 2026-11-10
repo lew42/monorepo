@@ -214,3 +214,7 @@
 {"complete":{"outcome":"Ranked the top 5 frictions at /live/plan/friction/, measured at 400 px with screenshots. Each one names its file:line, its smallest fix and the agent that owns it. Streaming itself works: a card appears 40 ms after the write.","evidence":["commit 1d3385dec; /live/plan/friction/ (5 screenshots in the folder); session.jsonl log line 2026-11-10T00:18:07Z"],"at":"2026-11-09T18:18:28-06:00"}}
 {"assign":{"closed_by":"unknown caller","closed_at":"2026-11-09T18:18:28-06:00","closed_why":null}}
 {"log":{"at":"2026-11-09T18:18:40-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"commit":{"hash":"483545dc5ad5f289eec08aaa9887caa1534ab84b","what":"friction review: task closed","files":["public/framework/ai/sessions/2026/11/09/spawned/mastermind-friction/session.jsonl"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-10T00:18:46.382Z"}
+{"pid":18612,"cmd":"node C:\\Code\\lew42\\monorepo/.claude/hooks/ledger.mjs stop","why":"child of claude.exe","agent":"mastermind-friction","session":"3add66a6-7764-43a7-b888-1eb9a8f2f029","started":"2026-11-09T18:19:00-06:00","ppid":57028,"seen":"sample","by":"servex"}
+{"pid_exit":18612,"ended":"2026-11-09T18:19:47-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":57028,"ended":"2026-11-09T18:19:53-06:00","code":null,"signal":"SIGKILL","by":"servex"}
