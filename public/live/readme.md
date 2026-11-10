@@ -92,6 +92,7 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
 - **Writing into a card by url waits on a Servex restart.** `item({path: "/live/<card id>/", …})` is built (`card_at`), but the running Servex is older: today that path reads as an empty Page. Until the restart, write into a card through its parent: `{"content": {"<card>": {"content": {"add": …}}}}` on `/live/`. A sub-page that leaves out `"class"` also needs the restart. Only the owner picks the restart time; never call `restart_servex` during a call.
 - [/live/sessions/](sessions/), [/live/archive/](archive/) and [/live/v1/](v1/) are the old version's views; they read v1's log and show nothing new.
 - [/live/calibration/](calibration/) is a page.js, not a log: the first prompt-refinement test (four prompts, Sonnet against Haiku), drawn from [its run files](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/calibration/readme.md). [/live/truth/](truth/) is one too (its own readme).
+- [/live/session/](session/) is a page.js too: a prototype for ONE session (`cloud-voice-app-20261106`), its `session.jsonl` folded by `SessionView.fold` into titled task rows grouped by state (no strike-through), child sessions and a gap note where the owner's prompts aren't in the file. Built only from `ui/card` and `ui.item()`, no page CSS of its own.
 - `{"light": …}` and `{"toggle": {}}` are gone (a `live-light` card replaces them).
 
 ## The header: tabs and settings
