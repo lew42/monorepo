@@ -8,6 +8,7 @@
 //   .all(id)                       every folder that holds the id, the home first (more than one is a twin)
 //   .twins()                       [{id, home, others}] for every id held by more than one folder
 //   .url(id) / SessionFolders.url_in(repo, id)   the folder's site url (flat redirect url when there is no folder): what a node writer links to
+//   .named(id)                     a NON-uuid record (cloud voice): the day folder named for it whose session.jsonl line 1 names it, or null. Read only
 //   .record_of(id)                 the folder that holds the session's RECORD (session.jsonl / task.jsonl): a spawned agent's record sits inside its parent's folder
 //                                  (claimed with .claim), else of(id). The day-level folder of(id) is still where the indexer writes index.json
 //   .create(id, {day, name, dir, first, file})  THE one creator: home() (or `dir`), made, line 1 written if it has no record, nested dirs claimed
@@ -112,6 +113,20 @@ export default class SessionFolders {
 				if (id && SessionFolders.owner(this.nested.has(id) ? path.join(this.root, ...this.nested.get(id).split("/")) : "") !== id && ["session.jsonl", "task.jsonl"].some(f => fs.existsSync(path.join(dir, f))) && this.claim(id, dir)) n++;
 			}
 		return n;
+	}
+
+	/** A session whose id is not a uuid (a cloud voice record, "cloud-voice-app-20261106"): the day folder named exactly for it whose session.jsonl
+	 *  line 1 says `{session: {id}}` with that id, newest day first, or null. Read only, and kept apart from of()/owner(), which hold uuids only,
+	 *  so no writer ever makes or twins a folder for such an id. (A read on its route finds its folder; page_tools.js session_file.) */
+	named(id){
+		if (UUID.test(id ?? "") || !/^[a-z0-9][a-z0-9-]{2,80}$/.test(id ?? "")) return null;
+		const nums = d => dirs(d).filter(n => /^\d+$/.test(n)).sort().reverse();
+		for (const y of nums(this.root)) for (const m of nums(path.join(this.root, y))) for (const d of nums(path.join(this.root, y, m))){
+			const dir = path.join(this.root, y, m, d, id);
+			let l = null; try { l = JSON.parse(fs.readFileSync(path.join(dir, "session.jsonl"), "utf8").split("\n")[0]); } catch {}
+			if (l?.session?.id === id) return dir;
+		}
+		return null;
 	}
 
 	/** The folder that holds the session's record: its claimed nested folder when that is still on disk and still names the id, else of(id). */

@@ -80,6 +80,12 @@ try {
 		fs.mkdirSync(path.join(store, "2026/11/06/a-slug"), { recursive: true });
 		fs.writeFileSync(path.join(store, "2026/11/06/a-slug/session.jsonl"), JSON.stringify({ session: { id: U } }) + "\n");
 		assert.equal(SessionFolders.url_in(REPO, U), "/framework/ai/sessions/2026/11/06/a-slug/", "url_in() is the folder's dated site url, slug name and all");
+		// named(): a non-uuid record is the day folder named for it whose session.jsonl line 1 names it; any other folder of that name is not.
+		fs.mkdirSync(path.join(store, "2026/11/06/cloud-voice-x"), { recursive: true }); fs.mkdirSync(path.join(store, "2026/11/06/cards"), { recursive: true });
+		fs.writeFileSync(path.join(store, "2026/11/06/cloud-voice-x/session.jsonl"), JSON.stringify({ session: { id: "cloud-voice-x", kind: "cloud-voice-agent" } }) + "\n");
+		assert.equal(SessionFolders.at(store).named("cloud-voice-x"), path.join(store, "2026/11/06/cloud-voice-x"), "named() finds a non-uuid record by its folder");
+		assert.equal(SessionFolders.at(store).named("cards"), null, "named() never takes a folder whose record does not name the id");
+		assert.equal(SessionFolders.at(store).named(U), null, "named() is for non-uuid ids only (of() holds uuids)");
 		assert.equal(SessionFolders.url_in(REPO, B), "/framework/ai/sessions/" + B + "/", "an id with no folder yet gets the flat redirect url");
 		assert.equal(SessionFolders.at(store).url(B), null, "and url() itself says null");
 	} finally { SessionFolders.stores.delete(path.resolve(store)); fs.rmSync(REPO, { recursive: true, force: true }); }
