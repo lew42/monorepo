@@ -322,3 +322,4 @@
 {"pid_exit":30204,"ended":"2026-11-10T01:47:01.280Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}
 {"pid_exit":52972,"ended":"2026-11-10T01:47:01.280Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}
 {"pid_exit":31908,"ended":"2026-11-10T01:47:01.280Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}
+{"pid_exit":30160,"ended":"2026-11-10T06:47:08.999Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}
