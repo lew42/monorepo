@@ -15,6 +15,15 @@
  *   `npm start` / `npm run dev` — both just wrap the same server;
  *   the PowerShell form `Start-Process node ... server.js` (bare or via `-ArgumentList`).
  *
+ * ALSO BLOCKS (added 2026-11-09, `runaway-search`): an UNSCOPED recursive search — one of its
+ * own orphans burned a core for hours after the shell that started it was gone
+ * (`Servex/doc/processes.md`, "Reaping a burning orphan"; `Servex/agents/roles/minion.md`'s
+ * "Never `find /`"). `grep -r/-R/--recursive`, `find`, or `rg`, whose search root is `/`, a
+ * drive root (`C:\`, `/c`, `C:/`), `~` / `$HOME`, `..`, or the repo root — `.` or no path at all
+ * while `cwd` IS that root, or an absolute path naming it outright (`C:\Code\lew42\monorepo`,
+ * `C:\Code\lew42\worktrees\<any>`). A named subfolder or a single file is always fine, as is
+ * `git grep` / plain `grep` with no `-r`.
+ *
  * ALLOWS everything else: `node Server/worktree-up.mjs`, `worktree-down.mjs`, `merge.mjs`,
  * `smoke.mjs`, `node --test`, `node --check`, any other `node <script>.js` that isn't
  * `server.js` or `Server/run.js` itself, and "server.js" showing up only as an argument/flag
@@ -53,12 +62,69 @@ function node_script(segment) {
 	return null;
 }
 
+/* UNSCOPED RECURSIVE SEARCH (deliverable 2, `runaway-search`). Only `grep`/`egrep`/`fgrep`
+ * (and only once a recursive flag is present), `find` and `rg` (always recursive) are checked —
+ * never `git grep` (a different executable, "git", with "grep" as an argument) and never a
+ * plain non-recursive `grep`. */
+const SEARCH_EXE = /^(grep|egrep|fgrep|find|rg)(\.exe)?$/i;
+// A root the owner never wants walked whole, written any way a shell accepts it.
+const ROOT_LIKE = /^([A-Za-z]:[\\/]?|\/[A-Za-z]?\/?|~|\$HOME|\.\.)$/;
+// This repo's own root, main checkout or any worktree — an absolute path naming it outright.
+const REPO_ROOT = /^[A-Za-z]:\/code\/lew42\/(monorepo|worktrees\/[^/]+)\/?$/i;
+
+/* Tokenize one shell segment, keeping a quoted "pattern with spaces" as one token. */
+function tokens_of(segment) {
+	const out = [];
+	const re = /"([^"]*)"|'([^']*)'|(\S+)/g;
+	let m;
+	while ((m = re.exec(segment))) out.push(m[1] ?? m[2] ?? m[3]);
+	return out;
+}
+
+function norm_path(p) { return p.replace(/\\/g, "/").replace(/\/+$/, "") + "/"; }
+
+/* true when `root` (an operand as typed — undefined means "no path given, so the
+ * cwd itself"), with the command's own `cwd`, names something wider than the owner
+ * ever wants one search to walk. */
+function unscoped_root(root, cwd) {
+	if (root === undefined || root === ".") return REPO_ROOT.test(norm_path(cwd ?? ""));
+	if (root === ".." || ROOT_LIKE.test(root)) return true;
+	return REPO_ROOT.test(norm_path(root));
+}
+
+/* `grep`/`egrep`/`fgrep` need an explicit recursive flag; `find` and `rg` always walk. */
+function is_recursive(exe, rest) {
+	if (/^(find|rg)(\.exe)?$/i.test(exe)) return true;
+	return rest.some(t => t === "--recursive" || (/^-[A-Za-z]+$/.test(t) && t.includes("r")));
+}
+
+/* `find <path> ...`: the path is the first non-flag operand (or none: "."). `grep`/`rg`:
+ * PATTERN first, so any path operand comes after it. */
+function search_root(exe, rest) {
+	const positional = rest.filter(t => !t.startsWith("-"));
+	if (/^find(\.exe)?$/i.test(exe)) return positional[0];
+	return positional[1]; // pattern is positional[0]
+}
+
+/* One shell segment: the search-scope violation it names, or null. */
+function scope_violation(segment, cwd) {
+	const tokens = tokens_of(segment);
+	const exe = (tokens[0] ?? "").replace(/^.*[\\/]/, "");
+	if (!SEARCH_EXE.test(exe)) return null;
+	const rest = tokens.slice(1);
+	if (!is_recursive(exe, rest)) return null;
+	const root = search_root(exe, rest);
+	if (!unscoped_root(root, cwd)) return null;
+	return { exe: exe.replace(/\.exe$/i, ""), root: root ?? "." };
+}
+
 let raw = "";
 process.stdin.on("data", d => (raw += d)).on("end", () => {
 	try {
 		const input = JSON.parse(raw);
 		const raw_cmd = String(input.tool_input?.command ?? "");
 		if (!raw_cmd.trim()) return process.exit(0);
+		const cwd = String(input.cwd ?? "");
 		// Quoted text is a message, not a command: `git commit -m "fixed server.js"` must pass.
 		const cmd = raw_cmd.replace(/"[^"]*"|'[^']*'/g, '""');
 
@@ -81,6 +147,15 @@ process.stdin.on("data", d => (raw += d)).on("end", () => {
 				return process.exit(2);
 			}
 		}
+
+		// Unscoped recursive search: checked on the RAW command, so a quoted pattern stays intact.
+		for (const segment of raw_cmd.split(SEGMENTS)) {
+			const hit = scope_violation(segment, cwd);
+			if (hit) {
+				process.stderr.write(scope_reason(hit));
+				return process.exit(2);
+			}
+		}
 		process.exit(0);
 	} catch {
 		process.exit(0);
@@ -89,4 +164,8 @@ process.stdin.on("data", d => (raw += d)).on("end", () => {
 
 function reason(label) {
 	return `SERVER GUARD: \`${label}\` is blocked. Servex starts dev servers — agents don't. Hit the worktree's URL (the proxy auto-starts it on first request), or call the \`start_server\` MCP tool. Never \`node server.js\` / \`node Server/run.js\` / \`npm start\` / \`npm run dev\` by hand.\n`;
+}
+
+function scope_reason({ exe, root }) {
+	return `SERVER GUARD: \`${exe}\` over \`${root}\` is unscoped — it can walk the whole repo and burn a core after you've moved on. Name the folder (\`grep -rn X Servex/\`) or use \`git grep -n <pattern> -- <folder>\` instead.\n`;
 }
