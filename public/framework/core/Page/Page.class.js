@@ -262,9 +262,11 @@ export class Page extends Item {
 	// A jsonl page already loaded at `url` (jsonl() registers it): its lines, as a listing.
 	static page_listing(url){ return Page.Listing.page_listing(Page, url); }
 
+	// On: a parent shows its grandchildren from the `nav` on their listing lines, importing nothing (Index.js, doc/index-jsonl.md).
+	// Off by default until its titles and class-card surfaces match a loaded page (doc/index-jsonl.md, Status); `?index=1` turns it on.
+	static from_index = new URLSearchParams(globalThis.location?.search).get("index") === "1";
+
 	// ⚠ Folders inside a dated task folder get no log (PageFiles.js covers()): answer null at once. (doc/watch-out.md)
-	// On: a parent shows its grandchildren from the `nav` on their listing lines, importing nothing (Index.js, doc/index-jsonl.md). `?index=0` in the url turns it off.
-	static from_index = new URLSearchParams(globalThis.location?.search).get("index") !== "0";
 
 	static UNLOGGED = /^\/framework\/ai\/\d{4}-\d\d-\d\d\/[^/]+\/[^/]+\//;
 

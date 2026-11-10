@@ -4,7 +4,7 @@ import Store from "../Item/Store.js";
  * files.jsonl lines (Server/plugins/PageFiles.js). `PageIndex.navs(Page, url)` -> Map name -> {title, icon, description}.
  * On the dev server ONE request, /api/index?dir=&depth=2 (Server/plugins/PageIndex.js), answers the folder and its
  * children's folders at once, so the children's own calls are served from the cache; anywhere else (a static host) it reads
- * the folder's own listing, one small file per folder. Page.from_index (`?index=0` turns it off) is the switch.
+ * the folder's own listing, one small file per folder. Page.from_index (off by default; `?index=1` turns it on) is the switch.
  * (doc/index-jsonl.md) */
 export default class PageIndex {
 

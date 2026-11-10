@@ -30,9 +30,16 @@ Then measure the same three urls again and post before/after on [/live/done/](/l
 
 ## Status (2026-11-10)
 
-Built and on by default: the server half (`Server/PageNav.mjs`, `Server/plugins/PageIndex.js`) and the browser half (`core/Page/Index.js`, `Page.from_index`, `?index=0` turns it off). Measured on the worktree server in one headless run per page, 1200 px shots of each look the same:
+Built: the server half (`Server/PageNav.mjs`, `Server/plugins/PageIndex.js`) and the browser half (`core/Page/Index.js`, `Page.from_index`). **The browser half is off by default; `?index=1` turns it on** (commit 2eb6b05bc measured it, the review turned it off). Two things differ from a loaded page, so it stays off until they are fixed (review: `ai/sessions/2026/11/09/spawned/mastermind-page-index/build/review.md`):
 
-| Page | index on | `?index=0` |
+1. **Wrong titles.** `PageNav.mjs` takes the first `title:` / `icon:` literal anywhere in a `page.js`, so a demo's literal can win (on /framework/ the Sidebar card read "Framework", the Item card "Doc"). The read has to be anchored to the page's own options.
+2. **Class cards lose their dark surface.** `nav_for` and the line's `nav` carry no `card` / `class_card`, which `Previews.js` reads.
+
+Also: the sidebar tree (`ux/Tree/Tree.js`) still loads every child it lists, so the saving is on the page's last preview level only, not in the sidebar.
+
+Measured on the worktree server, in one headless run per page, `?index=1` against off:
+
+| Page | `?index=1` | off (default) |
 |---|---|---|
 | /framework/ | 824 requests, 4.7 MB, 27 page.js | 1,076 requests, 5.7 MB, 139 page.js |
 | a session page (cloud-voice-app-20261106) | 1,065 requests, 12.7 MB, 47 page.js | 1,300 requests, 13.7 MB, 161 page.js |
