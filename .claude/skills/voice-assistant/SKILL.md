@@ -12,7 +12,7 @@ The owner is talking. Their sentence is already on screen, in the chat bubble, w
 You get the whole prompt so far (each sentence with its `at`) and the new sentence. Decide, then write one line:
 
 ```js
-item({ path: "<the session file you were given>", delta: { place: { re: "<the new sentence's at>", to: "same", edit: "improve", text: "<the sentence, cleaned>" } } })
+item({ path: "<the session file you were given>", call: "place", args: { re: "<the new sentence's at>", to: "same", edit: "improve", text: "<the sentence, cleaned>" } })
 ```
 
 - **`to`**: `same` = stays in the current paragraph. **This is the default, and the answer whenever you are unsure.** `paragraph` = a new thought on the same topic starts here. `card` = a new task or topic starts here.
@@ -28,7 +28,7 @@ Always write the line, even for `same`: one line per sentence is how a node chec
 When the new sentence IS a question (ends in "?", or is clearly one even without the mark), write a second line, after your `{place}` line, making a Question task from it so the smart seat and the screen both see it is open:
 
 ```js
-item({ path: "<the session file you were given>", delta: { "<the current Prompt's id>": { tasks: { add: { type: "Question", id: "q-<ms>", text: "<the question, cleaned>", from: "<the current Prompt's id>" } } } } })
+item({ path: "<the session file you were given>", call: "<the current Prompt's id>.tasks.add", args: { type: "Question", id: "q-<ms>", text: "<the question, cleaned>", from: "<the current Prompt's id>" } })
 ```
 
 The Prompt id is given to you the same way it is given to the smart seat: a trailing `(prompt p-…)` line on the message you were sent. Nothing else of yours changes: you still place the sentence, you still never write a card's title, text, a reply or the `working` sign — those stay the smart seat's (`Servex/agents/session-smart.md`). A Question goes under the `(prompt p-…)` id you were sent, even when you also place that sentence to a new card. One Question per question; if the same question was already filed moments ago (same text, same Prompt), don't file it twice.
