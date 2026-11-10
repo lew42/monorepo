@@ -9,9 +9,10 @@ System work (tokens, components) now lives in the **"November 2026"** file (the 
 What the design system file holds:
 - **Colors** (1 mode): `prime`, `light`, `dark`, `error`, `ok`, `warn`. `prime`, `light` and `dark` are hidden from pickers.
 - **Scheme** (modes White, Light gray, Prime, Dark; roles `text`, `muted`, `surface`, `accent`, `on-accent`): the Sept-2026 `Text` collection, renamed.
-- **Resolution** (Default, Mobile, Mega): `pad-x`, `pad-y`, `gap`, `radius`, `btn-pad-x`, `btn-pad-y`, `h1-size`, `small-pad-x`, `small-pad-y`.
+- **Resolution** (Default, Mobile, Mega): `pad-x`, `pad-y`, `gap`, `radius`, `btn-pad-x`, `btn-pad-y`, `h1-size`, `small-pad-x`, `small-pad-y`, `section-pad-x` (120/16/80), `section-pad-y` (120/48/64) (the last two copied from Sept-2026, 2026-11-09).
+- **Card** (modes Filled, the default, and Flush; variables `card-fill` = Scheme/`surface` or transparent, `card-pad-x` / `card-pad-y` = `pad-x` / `pad-y` or 0): see [Card modes](#card-modes-label-style-the-_claude-frame-and-making-a-card-owner-2026-11-09).
 - **Button** (modes Primary, Transparent; variables `fill` = Scheme/`accent` or 10% black, `label` = Scheme/`on-accent` or Scheme/`text`): the button's style, as a mode (see [modes over variants](#modes-over-variants-owner-2026-11-05)).
-- **Text styles** `h1`–`h4` and `body` (Montserrat); **components** Button, Card, Icon button and Page. Masters sit on the root canvas.
+- **Text styles** `h1`–`h4`, `body` and `label` (Montserrat Medium 16 / 24, on the Button label); **components** Button, Card, Icon button and Page. Masters sit on the root canvas.
 
 ### How Claude works in a file (owner's rules, 2026-11-05)
 
@@ -131,8 +132,8 @@ A page is a `Page` template: its nav, title and footer live in the main componen
 
 Decisions:
 - **No text properties on components.** With placeholder text, a plain override is fine and a property is just more to manage. Keep component properties for real toggles and swaps. (This supersedes the TEXT-property rows in the table above and the kit's Label/Sub/Meta properties for new work in the design system file.)
-- **Card is a thin shell:** a padded `surface` with one `Content` SLOT. Its default content (kicker, title, body, Button) is starter content only; the Kicker/Title/Body/Show toggles were removed.
-- **Master components live on the root canvas, not nested in frames.** A nested master loses its purple component label, which the owner wants visible.
+- **Card is a thin shell:** a padded `surface` (its fill and padding bound to the **Card** collection) with one `Content` SLOT. Its default content (kicker, title, body, Button) is starter content only; the Kicker/Title/Body/Show toggles were removed.
+- **Master components live on the root canvas, not nested in frames.** A nested master loses its purple component label, which the owner wants visible. Only main components get that label; instances get none (owner finding, 2026-11-09), so keeping *pieces* loose on the canvas gains nothing, and frames are fine for them.
 - **Button is one component again** (the `Style` variant set is gone): its look comes from the **Button** variable collection, modes Primary and Transparent ([modes over variants](#modes-over-variants-owner-2026-11-05)). Transparent is a 10% black fill with a `text` label and works on any ground.
 - **Page** (owner-built, file `hbolzQ3Xnc78rhxAPj8xK2`): a wrapper frame (no padding, gap bound to `gap`) holding a Toolbar row of Transparent-mode buttons, then a Card instance.
 
@@ -142,13 +143,13 @@ How a slot behaves in copies (verified by the owner by testing):
 3. Overriding the slot node's own properties (for example a bigger corner radius on the slot in a copy) does **not** break that: contents and order still follow the master. This holds through nesting (a slot inside a Card instance inside the Page).
 4. So shared chrome (toolbars, headers, footers) goes in the master around the slot; the slot holds only what changes per page.
 
-Icons in the design system file (2026-11-05): they use the **Material Icons** font (filled), the same set the site loads, not Material Symbols (Sept-2026's icon font). New component **Icon button**: square, padding `small-pad-x` (12, so 48×48), a 24 px glyph in `text`; it binds the same `fill`/`label` variables as Button and sets Button mode Transparent on its main, which its copies inherit; change the icon by typing its name into the `Icon` layer. `small-pad-x` / `small-pad-y` (12/8/16 and 6/4/8 for Default/Mobile/Mega) were copied into Resolution from Sept-2026. The Page toolbar is now `arrow_back` on the left, `share` and `more_vert` on the right.
+Icons in the design system file (2026-11-05): they use the **Material Icons** font (filled), the same set the site loads, not Material Symbols (Sept-2026's icon font). New component **Icon button**: square, padding `small-pad-x` (12) on the sides and `btn-pad-y` top and bottom (so it matches the Button's height; was `small-pad-x` all round, 48×48), a 24 px glyph in `text`; it binds the same `fill`/`label` variables as Button and sets Button mode Transparent on its main, which its copies inherit; change the icon by typing its name into the `Icon` layer. `small-pad-x` / `small-pad-y` (12/8/16 and 6/4/8 for Default/Mobile/Mega) were copied into Resolution from Sept-2026. The Page toolbar is now `arrow_back` on the left, `share` and `more_vert` on the right.
 
 Open: should Page wrap a Card instance (one extra layer, lets things sit outside the card) or be flat, the surface itself?
 
 #### Component or plain frame? (open, raised by the owner 2026-11-09; shown on the canvas)
 
-With padding, gap and colours tokenized, a container like a card may not need to be a component: a plain frame bound to the tokens is easier to edit (no slot to fill). Claude's suggestion, **not decided**: components for small repeated pieces that must stay in sync (Button, Icon button, a toolbar); plain frames for free-form containers. This puts the earlier "Card: a thin shell with one Content slot" choice in question.
+With padding, gap and colours tokenized, a container like a card may not need to be a component: a plain frame bound to the tokens is easier to edit (no slot to fill). Claude's suggestion, **not decided**: components for small repeated pieces that must stay in sync (Button, Icon button, a toolbar); plain frames for free-form containers. This puts the earlier "Card: a thin shell with one Content slot" choice in question. The owner leans towards components plus slots ("try them until there's a reason not to"), so the Card stays a component for now; the Flush mode below covers the nested-card case.
 
 #### Modes over variants (owner, 2026-11-05)
 
@@ -161,7 +162,18 @@ A colour or style switch is a **variable mode**, not a variant: `Scheme` for gro
 
 #### Where masters go as the library grows (owner, 2026-11-05)
 
-Masters on the root canvas will sprawl. The likely fix is **one library page per component family**: the Assets panel groups library components by page, then top-level frame, so the library pages become the sections of the drag-and-drop toolbox ([builder.md](./builder.md)). Not built yet; the owner wants to see a consumer file first, and that drives the structure (see the consumer-file note above). A drag-and-drop test is on the canvas (2026-11-09): **A)** pieces loose on the root canvas (name labels show, purple for components, and they drift as you add more) against **B)** pieces in a toolbox frame (tidy, can match a column's width and mode, no labels). Not decided.
+Masters on the root canvas will sprawl. The likely fix is **one library page per component family**: the Assets panel groups library components by page, then top-level frame, so the library pages become the sections of the drag-and-drop toolbox ([builder.md](./builder.md)). Not built yet; the owner wants to see a consumer file first, and that drives the structure (see the consumer-file note above). A drag-and-drop test went on the canvas (2026-11-09): **A)** pieces loose on the root canvas against **B)** pieces in a toolbox frame (tidy, can match a column's width and mode). Result: only main components carry the purple label, so A gains nothing; frames are fine. The Drag-and-drop frame is a toolbox plus a 400-wide Mobile drop zone (Light gray, Resolution Mobile, `pad-x` / `pad-y`).
+
+#### Card modes, `label` style, the `_Claude frame`, and making a card (owner, 2026-11-09)
+
+- **Card modes, no variants.** The **Card** collection has modes **Filled** (default) and **Flush**. Flush is no fill and no padding, for content inside a parent that already pads; same component, still linked. **Trap:** a nested Card inherits its parent's Card mode unless you set the mode on the nested Card itself.
+- **Inline items in a row share one height** (owner rule; mismatched heights look wrong). The `label` text style (Montserrat Medium 16, line height 24) is on the Button label, and Button and Icon button both pad with `btn-pad-y`, so each is 2×`btn-pad-y` + 24 tall: 56 Default, 40 Mobile, 52 Mega.
+- **`_Claude frame`** (component; the `_` prefix hides it from publishing): a robot header plus a `Content` slot, `section-pad` padding, Scheme Light gray. `Claude · working area` and the Drag-and-drop frame are instances of it, so their look changes in one place.
+- **White is for actual cards** (owner rule): containers go a touch darker (Light gray), to avoid white, gray, white back and forth.
+- **Blocks dropped into a card (a stat, rows) use a 10% black fill, not white**, so they show on any card and any Scheme.
+- **Layers panel:** a layer with several explicit modes shows one mode chip plus "+1".
+- **Make a new card** (a workflow now on the canvas): 1) copy a Card (Alt-drag, or from Assets); 2) fill its slot with blocks; 3) pick a Scheme; 4) pick a Resolution (Mobile for phone width); 5) blocks inside use 10% black.
+- **Open, not decided:** card widths (about 400 for a phone, about 500 a good desktop default, 800 too wide), so maybe a min and max width per Resolution; responsive wrapping in Figma isn't worth much effort yet. "Section", to the owner, means a full-width, full-height block.
 
 #### Grid auto layout: equal-height cards that adapt (verified 2026-11-05)
 
