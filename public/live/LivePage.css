@@ -131,16 +131,20 @@
 	.live-page:has(> .live-sub:not(.is-empty)) > .live-main.is-empty::before { content: none; }   /* a page with its own text is not empty */
 	.live-items { display: flex; flex-direction: column; gap: var(--live-gap); }   /* page.items: one card each, spaced like the content */
 	.live-items.is-empty { display: none; }
-	/* What cannot be tapped draws with no frame (a block); what can is a card (a link to a sub-page), with a chevron. */
+	/* What cannot be tapped draws with no frame (a block); what can is a card (a link to a sub-page), with a chevron.
+	   The frame itself (background, ink, radius, padding, shadow) is the kit's `.card` (framework.css), set in
+	   LivePage.js alongside `live-card`; this class keeps only what is LivePage's own job: the whole-card link
+	   feel (cursor, press/hover feedback) and the bottom strip that keeps text clear of the chevron. */
 	.live-block { display: flex; flex-direction: column; gap: var(--live-step); min-width: 0; overflow-wrap: anywhere; }   /* no frame, so no inset: it runs the full width */
 	.live-card {
-		background: var(--live-card); color: var(--live-ink); border-radius: .6rem; padding: 1rem;
-		box-shadow: 0 1px 2px light-dark(#0002, #0006);
-		display: block; min-width: 0; overflow-wrap: anywhere;
+		min-width: 0; overflow-wrap: anywhere;
 		position: relative; cursor: pointer; transition: transform .1s, box-shadow .1s;
 	}
 	.live-card:hover { box-shadow: 0 2px 8px light-dark(#0003, #0008); }
 	.live-card:has(.live-card-go:active) { transform: scale(.98); }
+	/* LiveTasksView sets its own `gap` between its two direct children (the title, the rows) — the kit's
+	   between-children rhythm (`:where(.card) > * + *`) would stack a second gap on top of it. */
+	.live-tasks > * + * { margin-block-start: 0; }
 	.live-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--live-step); }
 	/* The whole card is one link: the chevron's ::after covers the card. A mention or a button inside sits above it, so
 	   it is tapped on its own (a link inside a link is not allowed in HTML, so the card is a div).
@@ -150,13 +154,13 @@
 	.live-card-go::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
 	/* A small corner mark, not a reserved column: the card keeps extra room only at the BOTTOM (one strip, not a
 	   whole right side), so text uses the card's full width and the chevron still never sits under it. */
-	.live-card:has(> .live-card-go) { padding-bottom: 1.5rem; }
+	.live-card:has(> .live-card-go) { padding-bottom: calc(var(--pad-card) + .5rem); }
 	.live-card-chevron { position: absolute; right: .75rem; bottom: .6rem; font-size: 1.1rem; line-height: 1; opacity: .45; pointer-events: none; }
 	.live-card :is(a:not(.live-card-go), button, input, select, label, pre, .live-code-wrap, table) { position: relative; z-index: 1; }   /* tapped, or swiped sideways, on their own */
 	/* A code block inside a card (LivePage.Preview's own members): page padding, card padding and the chevron would
 	   squeeze it to nothing, so it bleeds to the card's own edges (its padding, inline) and scrolls sideways instead
 	   (at every width, not just a phone: a wide card is still only its own column wide). */
-	.live-card :is(.live-card-text pre, .live-code-wrap) { margin-inline: -1rem; max-width: none; border-radius: 0; }
+	.live-card :is(.live-card-text pre, .live-code-wrap) { margin-inline: calc(-1 * var(--pad-card)); max-width: none; border-radius: 0; }
 	/* A card's preview (LivePage.Preview) starts where its title starts, not under the icon; an "@Page" card has no icon. */
 	.live-preview, .live-preview-list { display: flex; flex-direction: column; gap: var(--live-step); min-width: 0; }
 	:is(.live-preview-list, .live-preview-text).is-empty, .live-preview-text.is-hidden { display: none; }
