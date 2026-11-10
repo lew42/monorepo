@@ -189,7 +189,7 @@ export default new Page({
 
 		md("[titled](titled/) · [stack](stack/) · [tree-rows](tree-rows/) · [compact](compact/) · [large](large/) — one small set of card looks (step 1 of [the ui-kit plan](/live/plan/ui-kit/)), so a page reaches for an existing style instead of inventing a sixth. [fit](fit/) sits beside them: not a sixth style but a width fix, for a card whose content is short in a wide column.");
 
-		md("## Four variants, not six");
+		md("## Two shapes stay cut");
 
 		md("An avatar-and-name row and a centered empty state were both built and cut here already, twice — `ui/doc/record.md` §7 and §10, and its own rule is not to reopen a written verdict with no new evidence. A `stat` card isn't below either: [Stat tiles](/framework/ui/stats/) already says the tile *is* the card, one token retuned, and a second page would be a second home for the same three lines.");
 

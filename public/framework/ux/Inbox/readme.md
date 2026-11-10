@@ -28,7 +28,9 @@ this.rail = new MyRail({ page: this }).mount();
 - A page that takes the whole shell (a System tab, an Overview) wears `inbox-takeover`;
   a plain page beside the rail wears `inbox-page` so it scrolls by itself.
 - **`.flush-stack`** — rows touching, no padding, no gap, one box, only its outer corners
-  rounded (`--flush-radius`). The rail's list wears it; any list can.
+  rounded (`--flush-radius`). The rail's list wears it. Moved to `framework.css` (the
+  `util` layer, 2026-11-09) since it had no Inbox dependency; `ui/card`'s `stack` variant
+  wears it too now — any list can.
 
 ## Watch out
 
