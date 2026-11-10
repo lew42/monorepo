@@ -1053,27 +1053,30 @@ export class Agents {
 		}
 		const text = kind === "error" ? child.last_error : fork ? (child.words ?? child.last_text) : child.last_text;
 		const body =(fork ? `fork answer: ${(text ?? "").slice(0, 4000)}` : `${kind}: ${(text ?? "").slice(0, 4000)}`);
-		/* STEP 4 (one place per conversation, 2026-11-09) — an external parent (a cloud voice call) that
-		 * already heard this child say "done, nothing changed" does not need to hear it again: hundreds of
-		 * identical "Idle and blocked, no change since …" lines were the single biggest source of inbox noise
-		 * (catch-up.md, measured 2026-11-09). Compared AFTER stripping timestamps and ids, so only a REALLY
-		 * identical report is skipped — any new word in it still goes through. The skip is counted on the
-		 * host (`this._dup_done_skips`), never logged per occurrence: a count, not a line. */
-		if (kind === "done" && !fork && this.external?.has?.(child.parent)){
-			const stripped = strip_marks(body);
-			const seen = (this._done_seen ??= new Map());
-			if (seen.get(child.parent + ":" + child.id) === stripped){
-				this._dup_done_skips = (this._dup_done_skips ?? 0) + 1;
-				child.woke = true;
-				return;
-			}
-			seen.set(child.parent + ":" + child.id, stripped);
-		}
 		child.woke = true;
 		/* THE NEXT STEP, in node (2026-10-13): a landed task tells its parent which queued sibling it unblocks, with the brief's path. */
 		const next = kind === "done" && child.task?.dir && task_landed(child.task.dir) ? next_briefs(child.task.dir) : [];
 		const note = next.length ? `\n\nNext: ${next.map(n => `${n.dir}${n.brief ? ` (brief ${n.brief})` : ""}`).join("; ")}. Its \`after\` edge is met; start it.` : "";
 		this.inbox(child, kind, text);
+		/* STEP 4 (one place per conversation, 2026-11-09) — an external parent (a cloud voice call) that
+		 * already heard this child say "done, nothing changed" does not need to hear it again: hundreds of
+		 * identical "Idle and blocked, no change since …" lines were the single biggest source of inbox noise
+		 * (catch-up.md, measured 2026-11-09). Compared AFTER stripping timestamps and ids, so only a REALLY
+		 * identical report is skipped — any new word, or a non-empty `note` (a sibling just unblocked), still
+		 * goes through. The skip is counted on the host (`this._dup_done_skips`), never logged per occurrence:
+		 * a count, not a line.
+		 *
+		 * SKIPS ONLY THE MESSAGE TO THE PARENT (fix E, review 2026-11-09): the task-dir inbox.jsonl line above
+		 * still happens exactly as for any other "done" — a duplicate report is still real news to the TASK
+		 * record, even when the parent has already heard it. An earlier version returned before that line ran,
+		 * and silently dropped it too. */
+		if (kind === "done" && !fork && !note && this.external?.has?.(child.parent)){
+			const stripped = strip_marks(body);
+			const seen = (this._done_seen ??= new Map());
+			const dup_key = child.parent + ":" + child.id;
+			if (seen.get(dup_key) === stripped){ this._dup_done_skips = (this._dup_done_skips ?? 0) + 1; return; }
+			seen.set(dup_key, stripped);
+		}
 		if (quiet && !note) return;   // a short ack after only followed lines: recorded in the inbox, but the parent is not woken; a landed task still tells it what it unblocks
 		if (this.closing) return;   // Servex is shutting down: the inbox has it; revive nobody
 		child.parent = this.holder(child.parent);   // a child of a retired mastermind-servex-N reports to the live one

@@ -334,6 +334,35 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
             assert.equal(fs.readFileSync(ext.file("voice-app"), "utf8"), before, "…and never lands in the inbox file itself (Follow.flush's own external skip)");
             const f2 = await up({ conversation: "conv-f", raw: true });
             assert.equal(f2.count, 0, "nothing left to read a second time");
+            // fix B: a line with no `by` is tagged agent:null, never the FOLLOWER's own id ("voice-app")
+            fs.appendFileSync(follow_abs, JSON.stringify({ log: { msg: "no by field" } }) + "\n");
+            const f3 = await up({ conversation: "conv-f", raw: true });
+            assert.equal(f3.updates[0].agent, null, "no `by` on the line — agent is null, not the follower's own id");
+            // fix B: a `of`-tailed sub (a parent tailing a child) applies worth_waking — "other" lines dropped, state/pointer kept, tagged as the CHILD (`of`), not the follower
+            ext.servex.follow = { list: id => id === "voice-app" ? [{ agent: "voice-app", path: follow_rel, of: "minion-child" }] : [] };
+            fs.appendFileSync(follow_abs, JSON.stringify({ decision: "picked option a" }) + "\n" + JSON.stringify({ complete: {} }) + "\n");
+            const f4 = await up({ conversation: "conv-f", raw: true });
+            assert.equal(f4.count, 1, "the `decision` line is `other`-kind and dropped by worth_waking; only `complete` (state) survives");
+            assert.equal(f4.updates[0].agent, "minion-child", "tagged as the CHILD being tailed, not the follower (\"voice-app\")");
+        } finally { fs.rmSync(follow_abs, { force: true }); delete ext.servex.follow; }
+    }
+    // fix A — a followed burst bigger than the remaining budget: nothing lost, nothing repeated
+    {
+        const repo_root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
+        const follow_rel = "Servex/agents/tmp-follow-budget.jsonl", follow_abs = path.join(repo_root, follow_rel);
+        fs.writeFileSync(follow_abs, "");
+        ext.servex.follow = { list: id => id === "voice-app" ? [{ agent: "voice-app", path: follow_rel }] : [] };
+        try {
+            await up({ conversation: "conv-budget" });   // warm the key while the file is empty, so its first read starts at 0 new bytes, not "now"
+            fs.appendFileSync(follow_abs, Array.from({ length: 60 }, (_, i) => JSON.stringify({ by: "minion-y", n: i })).join("\n") + "\n");
+            const p1 = await up({ conversation: "conv-budget", raw: true, cap: 50 });
+            assert.equal(p1.count, 50, "the first page is capped at 50, same as the inbox");
+            assert.equal(p1.more, true, "and says there is more");
+            assert.deepEqual(p1.updates.map(u => u.line.n), Array.from({ length: 50 }, (_, i) => i), "lines 0..49, in order");
+            const p2 = await up({ conversation: "conv-budget", raw: true, cap: 50 });
+            assert.equal(p2.count, 10, "the second page picks up exactly where the first one's budget stopped");
+            assert.equal(p2.more, false);
+            assert.deepEqual(p2.updates.map(u => u.line.n), Array.from({ length: 10 }, (_, i) => i + 50), "lines 50..59, not one lost, not one repeated");
         } finally { fs.rmSync(follow_abs, { force: true }); delete ext.servex.follow; }
     }
     // STEP 5 — rotation: the already-read part moves to the archive, nothing unread is ever lost
@@ -346,7 +375,7 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
         const r1 = await up({ conversation: "voice-app", raw: true }); assert.equal(r1.count, 2, "the caller's own key reads both old lines");
         // a second conversation key, by hand, at a byte offset that has read only the FIRST old line — rotation must not outrun it
         const map = ext.load_cursors("voice-app");
-        map["conv-r"] = { offset: Buffer.byteLength(old1, "utf8") };
+        map["conv-r"] = { offset: Buffer.byteLength(old1, "utf8"), at: new Date().toISOString() };   // fresh (not stale): it must still pin rotation
         ext.save_cursors("voice-app", map);
         fs.appendFileSync(ext.file("voice-app"), JSON.stringify({ from: "x", text: "new one", at: new Date().toISOString() }) + "\n");
         ext.deliver("voice-app", "trigger rotation", { from: "owner" });   // deliver() runs rotate() first: its first line is from last January
@@ -358,6 +387,26 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
         assert.deepEqual(remaining.map(l => l.text), ["old two", "new one", "trigger rotation"], "nothing unread is lost");
         const r2 = await up({ conversation: "conv-r", raw: true });
         assert.deepEqual(r2.updates.map(u => u.text), ["old two", "new one", "trigger rotation"], "conv-r's rebased cursor reads exactly what it had not read yet — no replay, no gap");
+    }
+    // fix D — a cursor nobody has touched in 7+ days does not pin rotation forever
+    {
+        fs.writeFileSync(ext.file("voice-app"), ""); fs.writeFileSync(ext.cursor_file("voice-app"), "0");
+        fs.rmSync(ext.cursors_file("voice-app"), { force: true });
+        const old1 = JSON.stringify({ from: "mastermind-a", text: "stale old one", at: "2025-02-15T09:00:00-05:00" }) + "\n";
+        const old2 = JSON.stringify({ from: "mastermind-a", text: "stale old two", at: "2025-02-15T09:05:00-05:00" }) + "\n";
+        fs.appendFileSync(ext.file("voice-app"), old1 + old2);
+        await up({ conversation: "voice-app", raw: true });   // reads both, offset = end
+        const map = ext.load_cursors("voice-app");
+        const nine_days_ago = new Date(Date.now() - 9 * 86400000).toISOString();
+        map["conv-stale"] = { offset: Buffer.byteLength(old1, "utf8"), at: nine_days_ago };   // 9 days untouched: stale, must not pin
+        ext.save_cursors("voice-app", map);
+        fs.appendFileSync(ext.file("voice-app"), JSON.stringify({ from: "x", text: "fresh one", at: new Date().toISOString() }) + "\n");
+        ext.deliver("voice-app", "trigger stale rotation", { from: "owner" });
+        const archive_file = path.join(path.dirname(ext.file("voice-app")), "archive", "voice-app-2025-02.jsonl");
+        const archived = fs.readFileSync(archive_file, "utf8").trim().split("\n").map(l => JSON.parse(l));
+        assert.deepEqual(archived.map(l => l.text), ["stale old one", "stale old two"], "a 9-day-stale cursor does not pin rotation: both old lines archive despite conv-stale never having read the second one");
+        const stale_now = ext.load_cursors("voice-app")["conv-stale"];
+        assert.equal(stale_now.offset, 0, "conv-stale's own offset rebases to 0 (its unread line is in the archive now, not the live file — a conscious tradeoff for a conversation nobody resumed in a week)");
     }
 }
 // THE BRIDGE (voice-bridge, 2026-11-01): a fake agent streams through the host's real seam, agents.watch(event, agent)

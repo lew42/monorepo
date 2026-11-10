@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { place, stamp } from "../home.js";
+import Follow from "../Follow.js";
 
 // Servex/agents/External.js -> up two is the repo root (where public/ and Servex/ live)
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -145,8 +146,10 @@ export default class External {
 		return [...by.values()];
 	}
 
-	// every .jsonl file at `rel` (a file) or under it (a directory), never node_modules/.git — mirrors Follow.walk, kept separate on purpose (External reads at `updates` time, Follow reads on a watch event)
-	jsonl_files(rel){
+	// every .jsonl file at `rel` (a file) or under it (a directory), never node_modules/.git — a WALK, only used as the
+	// fallback below when there is no live Follow to ask instead (fix C: a directory walked on every `updates` call,
+	// for a module with thousands of files, was the actual cost this was built to cut)
+	walk_jsonl_files(rel){
 		const abs = path.join(ROOT, rel);
 		let stat; try { stat = fs.statSync(abs); } catch { return []; }
 		if (stat.isFile()) return abs.endsWith(".jsonl") ? [abs] : [];
@@ -164,6 +167,28 @@ export default class External {
 		return out;
 	}
 
+	/* The files one `follow` subscription covers, WITHOUT walking the tree again: a single file is just itself
+	 * (cheap either way); a directory reuses the `.jsonl` files `Follow` already tracks under it (`follow.offsets`,
+	 * populated as Follow's own chokidar watcher sees each file — the SAME set `follow.js`'s own burst delivery
+	 * reads from). Only a test double with no live `Follow` (no `.offsets` map) falls back to a real walk. */
+	followed_files(sub){
+		const abs = path.join(ROOT, sub.path);
+		let stat; try { stat = fs.statSync(abs); } catch { return []; }
+		if (stat.isFile()) return abs.endsWith(".jsonl") ? [abs] : [];
+		const offsets = this.servex.follow?.offsets;
+		if (!(offsets instanceof Map)) return this.walk_jsonl_files(sub.path);
+		const prefix = abs + path.sep;
+		return [...offsets.keys()].filter(f => f === abs || f.startsWith(prefix));
+	}
+
+	// one followed line passes a sub's own filters (fix B): `of` (a parent tailing a child) keeps only state/pointer
+	// lines, `skip_by`/`heard` drop the agent's own lines — the SAME static helpers Follow.flush applies to a pushed burst
+	passes_filters(sub, raw_text){
+		if (sub.of && !Follow.worth_waking([raw_text]).length) return false;
+		if ((sub.skip_by || sub.heard) && !Follow.without([raw_text], sub.skip_by, sub.heard).length) return false;
+		return true;
+	}
+
 	rel_path(abs){ return path.relative(ROOT, abs).split(path.sep).join("/"); }
 
 	// best-effort: a session id folder name out of a sessions/YYYY/MM/DD/<folder>/... path; null for anything else
@@ -176,32 +201,49 @@ export default class External {
 	 * change-detection offsets. A key's first read of a file starts at the file's CURRENT END (no backlog
 	 * replay), same rule as a brand-new conversation key over the inbox itself.
 	 *
+	 * `budget` (fix A) caps how many EVENTS this call returns — never how many bytes it reads: inside one file
+	 * it reads line by line and stops exactly at a line boundary once the budget is spent, so the per-file
+	 * offset only ever advances past lines actually handed back. Without this, a 60-line burst with a 50-line
+	 * budget would have `jsonl_files`' old whole-file read move the offset past all 60 while returning only 50
+	 * — the other 10 gone forever, never re-read. Returns `{events, more}`; `more` is true when this file (or a
+	 * later one, once the budget is spent) still has bytes this key has not read.
+	 *
 	 * `state` is mutated in place (its `follows` map advances) — a peek passes a disposable copy instead of
 	 * the real cursor state, so a peek never moves anything, here or in the inbox offset above. */
-	followed_lines(id, state){
+	followed_lines(id, state, budget = Infinity){
 		const follow = this.servex.follow;
-		if (typeof follow?.list !== "function") return [];
+		if (typeof follow?.list !== "function" || budget <= 0) return { events: [], more: false };
 		state.follows ??= {};
 		const out = [];
+		let more = false;
 		for (const sub of follow.list(id)){
-			for (const file of this.jsonl_files(sub.path)){
+			for (const file of this.followed_files(sub)){
 				const rel = this.rel_path(file);
 				let size; try { size = fs.statSync(file).size; } catch { continue; }
 				let prev = state.follows[rel];
 				if (prev == null){ state.follows[rel] = size; continue; }   // first read of this file for this key: starts at now
-				if (size <= prev){ state.follows[rel] = size; continue; }   // nothing new, or the file was truncated/replaced: catch up, resend nothing
+				if (size < prev){ state.follows[rel] = size; continue; }    // the file was truncated/replaced: catch up, resend nothing
+				if (size === prev) continue;                                // nothing new here
+				if (out.length >= budget){ more = true; continue; }         // budget already spent this call: note there is more, read it next time
 				const buf = Buffer.alloc(size - prev), fd = fs.openSync(file, "r");
 				try { fs.readSync(fd, buf, 0, buf.length, prev); } finally { fs.closeSync(fd); }
-				const end = buf.lastIndexOf(10) + 1;   // only complete lines
-				state.follows[rel] = prev + end;
-				for (const t of buf.subarray(0, end).toString("utf8").split("\n")){
-					if (!t.trim()) continue;
-					let line; try { line = JSON.parse(t); } catch { line = { raw: t }; }
-					out.push({ agent: line.by ?? sub.agent ?? null, session: this.session_of_path(rel), path: rel, line, at: line.at ?? null });
+				let pos = 0, consumed = 0;
+				while (pos < buf.length && out.length < budget){
+					const nl = buf.indexOf(10, pos);
+					if (nl === -1) break;   // an unfinished trailing line waits for next time
+					const raw_text = buf.toString("utf8", pos, nl).trim();
+					pos = nl + 1;
+					consumed = pos;
+					if (!raw_text) continue;
+					if (!this.passes_filters(sub, raw_text)) continue;   // filtered out, but its bytes are still consumed — never re-delivered
+					let line; try { line = JSON.parse(raw_text); } catch { line = { raw: raw_text }; }
+					out.push({ agent: sub.of ?? line.by ?? null, session: this.session_of_path(rel), path: rel, line, at: line.at ?? null });
 				}
+				state.follows[rel] = prev + consumed;
+				if (pos < buf.length) more = true;   // bytes left unread in this file: the budget ran out, or the last line was unfinished
 			}
 		}
-		return out;
+		return { events: out, more };
 	}
 
 	/* The `updates` tool: everything that arrived for this caller/conversation since its own cursor, oldest
@@ -239,9 +281,10 @@ export default class External {
 		const lines = all_new.slice(0, cap);
 		// a peek must not move ANY cursor, including the per-file ones `followed_lines` advances — read against a disposable copy
 		const follow_state = peek ? { follows: { ...(state.follows ?? {}) } } : state;
-		const followed = this.followed_lines(id, follow_state);
-		const events = [...lines, ...followed].slice(0, cap);
-		const more = all_new.length > lines.length || lines.length + followed.length > events.length;
+		// the remaining budget after the inbox's own share (fix A) — followed_lines stops at a line boundary once it is spent, so nothing it reads is ever dropped
+		const { events: followed, more: followed_more } = this.followed_lines(id, follow_state, Math.max(0, cap - lines.length));
+		const events = [...lines, ...followed];
+		const more = all_new.length > lines.length || followed_more;
 		if (!peek){
 			state.offset = this.advance(buf, state.offset ?? 0, lines.length);
 			state.at = stamp();
@@ -290,25 +333,54 @@ export default class External {
 	/* How many events (inbox + followed) sit after this key's cursor (the "N new updates" hint). */
 	pending(id, conversation = null){ return this.updates(id, { peek: true, cap: Infinity, conversation }).count; }
 
+	// the first line of a file, without reading the whole thing (fix D) — grows its read window only as far as it needs to find a newline
+	first_line(file){
+		let fd, size;
+		try { size = fs.statSync(file).size; if (!size) return null; fd = fs.openSync(file, "r"); } catch { return null; }
+		try {
+			for (let want = 4096; ; want *= 4){
+				const n = Math.min(want, size), buf = Buffer.alloc(n);
+				fs.readSync(fd, buf, 0, n, 0);
+				const nl = buf.indexOf(10);
+				if (nl !== -1) return buf.toString("utf8", 0, nl).trim();
+				if (n >= size) return buf.toString("utf8").trim();   // the whole file is one line (or has none)
+			}
+		} finally { try { fs.closeSync(fd); } catch {} }
+	}
+
+	// ms since `at` was last updated — Infinity (always "stale") for a cursor with no timestamp at all
+	age_ms(at){ const t = Date.parse(at ?? ""); return Number.isFinite(t) ? Date.now() - t : Infinity; }
+
 	/* STEP 5 — rotation. Called before every append: when the inbox's first line is from an earlier calendar
-	 * month than now, the already-read portion (up to the earliest offset any cursor — the legacy one or any
-	 * conversation key — has reached) moves to `logs/inbox/archive/<id>-<YYYY-MM>.jsonl` (appended, never
-	 * overwritten), and every cursor is rebased to the shorter file. Lines no cursor has read yet are never
-	 * archived — they stay in the live file. */
+	 * month than now, the already-read portion moves to `logs/inbox/archive/<id>-<YYYY-MM>.jsonl` (appended,
+	 * never overwritten), and every cursor is rebased to the shorter file. Only reads the whole file once it
+	 * has already decided, from the first line alone, that a rotation is actually due (fix D) — the common
+	 * case (every other call, all month) costs one small read, not the whole inbox.
+	 *
+	 * A STALE cursor (fix D) — one `updates()` has not touched in 7+ days, the legacy `.cursor` file counted
+	 * by its own mtime — does not PIN the rotation: it is rebased to 0 instead of to its true remaining
+	 * distance, so a conversation nobody has resumed in a week cannot hold the whole inbox hostage forever.
+	 * Whatever that stale cursor had not read yet is still in the archive, not lost, just no longer live;
+	 * [catch-up.md](ext/remote/doc/catch-up.md) says so. */
 	rotate(id){
+		const STALE_MS = 7 * 86400000;
 		const file = this.file(id);
-		let buf; try { buf = fs.readFileSync(file); } catch { return; }
-		if (!buf.length) return;
-		const nl = buf.indexOf(10);
-		let first; try { first = JSON.parse(buf.toString("utf8", 0, nl === -1 ? buf.length : nl).trim()); } catch { return; }
-		const at = Date.parse(first?.at ?? "");
+		let parsed; try { parsed = JSON.parse(this.first_line(file) ?? ""); } catch { return; }
+		const at = Date.parse(parsed?.at ?? "");
 		if (!Number.isFinite(at)) return;
 		const first_date = new Date(at), now = new Date();
 		if (first_date.getUTCFullYear() === now.getUTCFullYear() && first_date.getUTCMonth() === now.getUTCMonth()) return;
+		let buf; try { buf = fs.readFileSync(file); } catch { return; }   // a rotation is actually due: now the whole file is read, once
+		if (!buf.length) return;
 		const map = this.load_cursors(id);
-		// the legacy cursor file only still matters for a key that has never gone through `updates()` yet (no entry in `map`)
-		const offsets = [...new Set([id, ...Object.keys(map)])].map(k => map[k]?.offset ?? (k === id ? this.legacy_offset(id) : 0));
-		const keep_from = Math.min(buf.length, ...offsets);   // never archive a line some cursor has not read yet
+		const fresh = [];
+		// the legacy key only still matters for a caller that has never gone through `updates()` yet (no entry in `map`)
+		if (!map[id]){
+			let mtime = 0; try { mtime = fs.statSync(this.cursor_file(id)).mtimeMs; } catch {}
+			if (Date.now() - mtime < STALE_MS) fresh.push(this.legacy_offset(id));
+		}
+		for (const s of Object.values(map)) if (this.age_ms(s.at) < STALE_MS) fresh.push(s.offset ?? 0);
+		const keep_from = fresh.length ? Math.min(buf.length, ...fresh) : buf.length;   // nobody fresh is reading: archive everything
 		if (keep_from <= 0) return;
 		const ym = `${first_date.getUTCFullYear()}-${String(first_date.getUTCMonth() + 1).padStart(2, "0")}`;
 		const archive = path.join(path.dirname(file), "archive", `${id}-${ym}.jsonl`);
