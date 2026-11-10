@@ -104,11 +104,11 @@ export class Prompt extends Task {
 
 	// ---- completion: the owner's rule is "complete when everything it asks is done or documented" ----
 	get parts(){ return this.get_one("parts") ?? []; }
-	/** Sentence ids no part (or its nested detail) cites. */
+	/** Sentence ids no part (or its nested detail) cites. A number cites by 0-based position (PromptRecords); a string cites an id. */
 	get uncovered(){
-		const cited = new Set(), walk = ps => (ps ?? []).forEach(p => { (p.cites ?? []).forEach(n => cited.add(n)); walk(p.parts); });
+		const all = this.sentences, cited = new Set(), walk = ps => (ps ?? []).forEach(p => { (p.cites ?? []).forEach(n => cited.add(typeof n === "number" ? all[n]?.id : n)); walk(p.parts); });
 		walk(this.parts);
-		return this.sentences.map(s => s.id).filter(id => !cited.has(id));
+		return all.map(s => s.id).filter(id => !cited.has(id));
 	}
 	/** A task's state by id or path: my own asks first, then anywhere in the session. */
 	task_state(ref){ const key = String(ref ?? "").split("/").filter(Boolean).at(-1); return (this.find(key) ?? this.root()?.find?.(key))?.state ?? null; }

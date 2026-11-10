@@ -464,7 +464,8 @@ function apply_pages(at, pages, url){
  * class code a browser would use. Only Task can be imported in node (Page touches the DOM,
  * Page touches the DOM), so Task and Session get the key refusals. */
 const ITEM_PATH = { type: "string", description: "The item's url, e.g. a task folder \"/framework/ai/sessions/…/<slug>/\" (task.jsonl there wins over page.jsonl) or a page. Omit = your own session page." };
-const ITEM_DESCRIPTION = "THE ITEM TOOL: `item({path, delta})`. `delta` is ONE log line, the exact object Item.set(delta) takes: a key naming a method calls it with the value as its arguments (`{\"start\":{}}`, `{\"wait\":{\"on\":\"owner\"}}`), a key naming a child walks into it (`{\"tasks\":{\"add\":{\"title\":\"x\"}}}`), any other key assigns. `\"a.b\": v` is shorthand for `{a:{b:v}}`. A read-only method name (get, find, toJSON, walk, root, contains, member, locate) as a key is refused: use `read` instead. No `delta` = the current state. `item({path, read:\"a.b.c\"})` reads one dotted path with NO write (never with `delta`); see the `read` parameter. The first call per class also returns `instructions`; `{\"help\":{}}` returns them again.";
+const ITEM_DESCRIPTION = "THE ITEM TOOL: `item({path, get | set | call})`. Prefer the verbs: `get` reads a dotted path, `set` changes fields (`{\"title\":\"Plans\"}`), `call` runs a method (`call:\"tasks.add\", args:{title:\"x\"}`); `delta` and `read` still work, below."
+	+ " `item({path, delta})`: `delta` is ONE log line, the exact object Item.set(delta) takes: a key naming a method calls it with the value as its arguments (`{\"start\":{}}`, `{\"wait\":{\"on\":\"owner\"}}`), a key naming a child walks into it (`{\"tasks\":{\"add\":{\"title\":\"x\"}}}`), any other key assigns. `\"a.b\": v` is shorthand for `{a:{b:v}}`. A read-only method name (get, find, toJSON, walk, root, contains, member, locate) as a key is refused: use `read` instead. No `delta` = the current state. `item({path, read:\"a.b.c\"})` reads one dotted path with NO write (never with `delta`); see the `read` parameter. The first call per class also returns `instructions`; `{\"help\":{}}` returns them again.";
 
 // improvements.jsonl: a folder's proposed fixes and moves, one nested Task each (Servex/agents/roles/mastermind.md, "Improvements").
 const FILE_CLASS = { "task.jsonl": "Task", "session.jsonl": "Session", "page.jsonl": "Page", "improvements.jsonl": "Improvements" };
@@ -1226,6 +1227,30 @@ function cap_read(value){
 	}
 	return { truncated: true, hint: "read a deeper path for less", preview: JSON.stringify(value).slice(0, READ_CAP) };
 }
+/* THE THREE VERBS (item-tool plan, merge 1, /live/plan/item-tool/): `get`/`set`/`call` each become exactly what today's
+ * `delta`/`read` would have been, so everything below this function — validation, the write, replay — never sees a
+ * difference. Returns {delta, read} (one of the two undefined) or {why} to refuse before anything is touched. */
+function verbs_to_delta({ delta, read, get, set, call, args }){
+	const vals = { delta, read, get, set, call }, given = Object.keys(vals).filter(k => vals[k] !== undefined);
+	if (given.length > 1) return { why: `only one of ${given.join(", ")} in one call. Nothing was written.` };
+	if (args !== undefined && call === undefined) return { why: "`args` is only for `call`. Nothing was written." };
+	if (get !== undefined){
+		if (typeof get !== "string") return { why: "`get` must be a dotted path (a string), the same as `read`. Nothing was written." };
+		return { read: get };
+	}
+	if (set !== undefined){
+		if (!is_plain(set)) return { why: "`set` must be an object of fields to change, e.g. {\"title\": \"Plans\"}. Nothing was written." };
+		return { delta: set };
+	}
+	if (call !== undefined){
+		if (typeof call !== "string" || !call.trim()) return { why: "`call` must be a dotted path to a method, e.g. \"tasks.add\". Nothing was written." };
+		const parts = hops(call), method = parts.pop();
+		if (!method) return { why: "`call` must be a dotted path to a method, e.g. \"tasks.add\". Nothing was written." };
+		return { delta: nest(parts, { [method]: args !== undefined ? args : {} }) };
+	}
+	return { delta, read };   // neither given: today's delta/read, unchanged
+}
+
 // A delta that only reads is refused before anything is written (requirements.md item 2): `get`/`find`/`toJSON`/`walk`/`root`/
 // `contains`/`member`/`locate` as a KEY, at any depth — the item tool's own write-only contract, not a method allowlist.
 const READ_ONLY_KEYS = new Set(["get", "find", "toJSON", "walk", "root", "contains", "member", "locate"]);
@@ -1530,7 +1555,11 @@ async function card_at(file){
 	return { file: up, hops };
 }
 
-async function run_item_now({ path: url, target, delta, read } = {}, ctx = {}, alias = false){
+async function run_item_now({ path: url, target, delta, read, get, set, call, args } = {}, ctx = {}, alias = false){
+	const used_verb = get !== undefined ? "get" : set !== undefined ? "set" : call !== undefined ? "call" : null;
+	const verbs = verbs_to_delta({ delta, read, get, set, call, args });
+	if (verbs.why) return { ok: false, why: verbs.why };
+	({ delta, read } = verbs);
 	url ??= own_page(ctx);
 	delta = unmark_delta(delta);
 	let caller_log = ctx.caller_log ?? null;
@@ -1573,6 +1602,33 @@ async function run_item_now({ path: url, target, delta, read } = {}, ctx = {}, a
 	const first_time = () => !told.has(`${ctx.caller}|${kind}`) && told.set(`${ctx.caller}|${kind}`, true);
 	const state = () => tasky ? task_state(Class, root()) : !fs.existsSync(at.file) ? null : paged || !Class ? page_text(Class ? root : null, at.file, url) : root().toJSON();
 	const extra = async () => alias ? {} : { ...(first_time() ? { instructions: await instructions_for(kind, Class) } : {}), state: state() };
+
+	// SET/CALL (merge 1): a key or method name that doesn't belong, checked against the resolved class's own callable
+	// surface (surface_of) and its lists — the same data `instructions.methods` gives, never a hardcoded list.
+	if (used_verb === "set" && Class){
+		const node = at.target.length ? node_at(live_or_refuse(), at.target) : live_or_refuse();
+		// A dotted key ("tasks.x.priority") is checked at its LAST step, on the node its prefix reaches; a prefix that
+		// does not resolve is left to today's write path, which refuses or creates exactly as the same delta would.
+		for (const key of Object.keys(delta)){
+			const parts = hops(key), last = parts.pop();
+			const at_node = parts.length ? walk(node, parts) : node;
+			if (parts.length && at_node === undefined) continue;
+			const methods = new Set(surface_of(at_node?.constructor ?? Class).map(m => m.name));
+			const lists = at_node && typeof at_node.lists === "function" ? at_node.lists() : {};
+			if (lists[last]) return { ok: false, why: `"${key}" is a list; use call: "${key}.add" (or another of its verbs) to change it, set a field inside it with a dotted key ("${key}.<id>.<field>"), or get: "${key}" to read it. Nothing was written.` };
+			if (methods.has(last)) return { ok: false, why: `"${key}" is a method; use call: "${key}". Nothing was written.` };
+		}
+	}
+	if (used_verb === "call" && Class){
+		const parts = hops(call), method = parts.at(-1), parent = parts.slice(0, -1);
+		const base = at.target.length ? node_at(live_or_refuse(), at.target) : live_or_refuse();
+		const node = parent.length ? walk(base, parent) : base;
+		if (parent.length && node === undefined) return { ok: false, why: `no such path: "${parent.join(".")}". Nothing was written.` };
+		const owner = node?.constructor ?? Class;
+		if (owner?.queries?.includes(method)) return { ok: false, why: `"${method}" only reads; use get. Nothing was written.` };
+		const methods = surface_of(owner).map(m => m.name);
+		if (!methods.includes(method)) return { ok: false, why: `"${method}" is not a method on "${[...at.target, ...parent].join(".") || "this item"}". Known methods: ${methods.join(", ") || "(none)"}. Nothing was written.` };
+	}
 
 	// READ: `item({path, read:"a.b.c"})` writes nothing. It replays the SAME live root a write uses and walks the dotted
 	// path one get() per step (walk_path reuses `hop`, the write path's own walker). Never together with `delta`.
@@ -1840,7 +1896,12 @@ export function page_tools(resolve_log = null){
 			async (args, ctx = {}) => JSON.stringify(await run_item(args, { resolve_log, ...ctx }, true))),
 
 		tool("item", ITEM_DESCRIPTION,
-			{ path: ITEM_PATH, delta: { type: "object", description: "ONE JSONL line, exactly what Item.set(delta) takes and the log holds. Omit it to read the current state. {\"help\":{}} returns the instructions again." },
+			{ path: ITEM_PATH,
+				get: { type: "string", description: "Read a dotted path, e.g. \"tasks.link-dot.state\" — never writes, same answer as `read` (below)." },
+				set: { type: "object", description: "Change plain fields, e.g. {\"title\": \"Plans\"}. Writes one log line, the same as the equivalent `delta`. Refused if a key names a method (use `call`) or a child list (use `call: \"<list>.add\"` or `get`)." },
+				call: { type: "string", description: "A dotted path to a method, e.g. \"tasks.add\" or \"tasks.link-dot.complete\". Writes one log line, the same as the equivalent `delta`. Refused if the last step is not a method, or is a query (use `get`)." },
+				args: { description: "The method's argument, for `call` only (e.g. {title: \"x\"}). Omit for a method that takes none, e.g. call: \"start\"." },
+				delta: { type: "object", description: "ONE JSONL line, exactly what Item.set(delta) takes and the log holds. Omit it to read the current state. {\"help\":{}} returns the instructions again." },
 				read: { type: "string", description: "A dotted path to read with NO write, e.g. \"content.today\" (never together with `delta`). Answers {ok:true, read, value}: an Item as its data with every List inside replaced by {total, rows:[{id,type,title}]}; a List as that same rows shape; a query the class lists (help's \"queries\": completion_score, tally, cost, …) is CALLED and answers its value, still with no write; anything else as the plain value. Capped near 4 KB (then `truncated:true`). A path that does not resolve answers {ok:false, why:\"no such path: <the first missing step>\", here:[the ids or keys that exist at the last good step]}." } },
 			[],
 			async (args, ctx = {}) => JSON.stringify(await run_item(args, { resolve_log, ...ctx }))),

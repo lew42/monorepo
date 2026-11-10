@@ -1,6 +1,6 @@
 # Prompt-refinement calibration 1: Sonnet wins on quality and on cost
 
-This is the first calibration from [prompt-refinement-and-tasks.md](/framework/ai/doc/prompt-refinement-and-tasks.md) ("Next", step 1). Four of the owner's voice prompts from the cloud session `cloud-8849dcc6` (turns #27, #95, #114 and #116) were refined by Haiku 5.5 and then by Sonnet 5.5. Both got the same fixed [instructions.md](instructions.md) and were checked against the 24 tasks of the [voice-app record](/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/). Opus judged them (this page). No task was written into that record. The suggested tasks are on [/live/calibration/](/live/calibration/).
+This is the first calibration from [prompt-refinement-and-tasks.md](/framework/ai/doc/prompt-refinement-and-tasks.md) ("Next", step 1). Four of the owner's voice prompts from the cloud session `cloud-8849dcc6` (turns #27, #95, #114 and #116) were refined by Haiku 5.5 and then by Sonnet 5.5. Both got the same fixed [instructions.md](instructions.md) and were checked against the 24 tasks of the [voice-app record](/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/). Opus judged them (this page). No task was written into that record. Each prompt, its words and both outputs are drawn on [/live/calibration/](/live/calibration/).
 
 ## The verdict
 
