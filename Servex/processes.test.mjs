@@ -80,6 +80,28 @@ try {
 ok(killed.sort().join() === "600,601", "reaps the idle orphaned waiters and nothing else");
 ok(p.reaped.length === 2 && p.reaped[0].ok, "each reap is recorded");
 
+// burning: a search orphan averaging over the threshold is reaped as "burning",
+// a busy one under the window is kept, a node orphan is never reaped either way.
+{
+	const m = new Processes({ reaping: false, servex: { agents: { live: new Map() } } });
+	m.cores = 1;   // keeps "% of one core" == the normalized cpu value, for a simple fixture
+	const hot = Array(m.burn_samples).fill(30);          // averaged 30% > burn_core_pct (25) for a full window
+	const warming = Array(Math.ceil(m.burn_samples / 2)).fill(90);   // hot, but not yet a full window
+	m.procs = new Map([
+		[700, { pid: 700, ppid: 1, name: "grep.exe", mb: 5, cmd: "C:\\Code\\lew42\\monorepo\\grep.exe -rn DayPromptsRefine .", cpu_hist: hot }],
+		[701, { pid: 701, ppid: 1, name: "rg.exe", mb: 5, cmd: "C:\\Code\\lew42\\monorepo\\rg.exe pattern .", cpu_hist: warming }],
+		[702, { pid: 702, ppid: 1, name: "node.exe", mb: 5, cmd: "C:\\Code\\lew42\\monorepo\\node.exe x.js", cpu_hist: hot }]
+	]);
+	m.now = { orphans: [700, 701, 702].map(pid => ({ pid })) };
+	const burned = [];
+	const real2 = process.kill;
+	process.kill = pid => { burned.push(pid); };
+	try { m.reap(); } finally { process.kill = real2; }
+	ok(burned.join() === "700", "only the search orphan with a full hot window is reaped");
+	ok(m.reaped[0].why === "burning" && m.reaped[0].cpu_avg === 30, "the reaped line says why:\"burning\" and the averaged cpu");
+	ok(m.procs.has(701) && m.procs.has(702), "a short window and a node orphan are both kept");
+}
+
 ok(p.history.length === 2 && typeof p.history[1].ours_mb === "number", "an hour of points is kept");
 ok(/Ours .* GB/.test(p.line()), "one line for system_health");
 console.log(`processes.test: ${pass} checks pass`);
