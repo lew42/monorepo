@@ -77,3 +77,5 @@
 {"file":"plugins/page.jsonl"}
 {"content":{"add":{"type":"part-link","id":"link-plugins","path":"./plugins/","title":"Plugins: a page is a tree of plugins"}},"by":"pages.add","ts":"2026-11-10T00:07:00.998Z"}
 {"content":{"add":{"id":"link-plugins","type":"part-link","path":"/live/plan/plugins/","title":"Plugins: a page is a tree of plugins","text":"Templates and instant page changes, as one system. Plan"}},"by":"mastermind-page-design","ts":"2026-11-10T00:07:01.979Z"}
+{"file":"index/page.jsonl"}
+{"content":{"add":{"type":"part-link","id":"link-index","path":"./index/","title":"Plan: page indexes"}},"by":"pages.add","ts":"2026-11-10T00:10:12.075Z"}
