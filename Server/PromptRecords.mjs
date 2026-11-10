@@ -145,16 +145,22 @@ Answer at the end with ONE JSON object and nothing else after it:
 		return { text: result?.result || text, usd };
 	}
 
-	/** Step 2, model: one call per prompt, no context (blind recall measured 0.95-1.0 against an Opus reading). */
-	async parts_one(p){
-		const sentences = RefinedCard.sentences(p.text);
-		const r = await this.call(`The prompt, sentence by sentence:\n${sentences.map((s, i) => `${i}: ${s}`).join("\n")}`, { model: this.def.parts.model, system: PromptRecords.PARTS_BRIEF });
+	/** The parts of numbered sentences, nothing written: one model call, no context (blind recall measured 0.95-1.0 against an Opus reading).
+	 *  Cites are 0-based indexes into `sentences`. { subject, parts, usd }. Shared by parts_one and Servex/agents/TurnRefiner.js. */
+	static async parts_of(sentences, { model = LIVE_MODEL } = {}){
+		const r = await PromptRecords.ask(`The prompt, sentence by sentence:\n${sentences.map((s, i) => `${i}: ${s}`).join("\n")}`, { model, system: PromptRecords.PARTS_BRIEF });
 		const o = PromptAudit.json(r.text), ids = { n: 0 };
 		const clean = ps => (ps ?? []).filter(x => x?.text).map(x => ({ id: `a${++ids.n}`, cites: (x.cites ?? []).map(Number).filter(n => Number.isInteger(n) && n >= 0 && n < sentences.length),
 			kind: Prompt.KINDS.includes(x.kind) ? x.kind : "ask", text: String(x.text).trim(), ...(x.file ? { file: String(x.file) } : {}), ...(x.module ? { module: String(x.module) } : {}), ...(x.parts?.length ? { parts: clean(x.parts) } : {}),
 			outcome: x.kind === "conversation" ? { is: "no-action", why: "conversation" } : { is: "open" } }));
-		const parts = clean(o.parts);
-		await this.add({ prompt: this.rid(p), stage: "parts", process: this.process, step: "parts", subject: String(o.subject ?? ""), parts, model: this.def.parts.model, usd: +r.usd.toFixed(5) });
+		return { subject: String(o.subject ?? ""), parts: clean(o.parts), usd: r.usd };
+	}
+
+	/** Step 2, model: one call per prompt, no context. */
+	async parts_one(p){
+		const { subject, parts, usd } = await PromptRecords.parts_of(RefinedCard.sentences(p.text), { model: this.def.parts.model });
+		this.spent += usd;
+		await this.add({ prompt: this.rid(p), stage: "parts", process: this.process, step: "parts", subject, parts, model: this.def.parts.model, usd: +usd.toFixed(5) });
 		return parts;
 	}
 
