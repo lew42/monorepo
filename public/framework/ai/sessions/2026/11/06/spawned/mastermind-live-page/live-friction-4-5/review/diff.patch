@@ -1,0 +1,75 @@
+diff --git a/public/framework/ext/Chat/Chat.js b/public/framework/ext/Chat/Chat.js
+index aee6d6ccb..de72fabd8 100644
+--- a/public/framework/ext/Chat/Chat.js
++++ b/public/framework/ext/Chat/Chat.js
+@@ -406,8 +406,8 @@ export function card_of(b){
+ }
+ 
+ /** One sticky-bottom scroll for every chat log; call `pin()` after drawing. See doc/notes.md#sticky-scroll */
+-export function sticky_scroll(box, { observe = true } = {}){   // observe:false = the caller re-pins on a resize itself (ux/Dictate/Widget.js Thread.anchor)
+-	let locked = true, last = 0;
++export function sticky_scroll(box, { observe = true, locked: start_locked = true } = {}){   // observe:false = the caller re-pins on a resize itself (ux/Dictate/Widget.js Thread.anchor); locked:false = open where it is, follow only once the reader reaches the bottom (/live/)
++	let locked = start_locked, last = 0;
+ 	// A fixed/sticky bar (the bottom toolbar) can sit over the box's bottom edge: the last line must land just above it, so the box grows tail room as tall as the overlap.
+ 	let tail = -1, tail_base = null;   // -1: the first make_room() always writes
+ 	const BREATH = 14;   // px of air between the last line and the bar / the box edge (the owner, 2026-10-25: not flush)
+diff --git a/public/live/LivePage.js b/public/live/LivePage.js
+index c222c38b9..24bc8d642 100644
+--- a/public/live/LivePage.js
++++ b/public/live/LivePage.js
+@@ -311,7 +311,7 @@ export default class LivePage extends Page {
+ 	follow(){
+ 		const box = this.$scroll?.el;
+ 		if (!box || typeof document === "undefined" || this.settings_of || this.at) return;   // settings and a file read from the top
+-		import("/framework/ext/Chat/Chat.js").then(({ sticky_scroll }) => { this.scroll = sticky_scroll(box); this.scroll.pin(); })
++		import("/framework/ext/Chat/Chat.js").then(({ sticky_scroll }) => { this.scroll = sticky_scroll(box, { locked: false }); })   // opens at the top; follows only after the reader scrolls to the bottom
+ 			.catch(e => console.warn("LivePage: no scroll lock (" + e.message + ")"));
+ 	}
+ 
+@@ -472,11 +472,16 @@ export default class LivePage extends Page {
+ 	// A text in markdown with mentions, kept in step with one key of an item: new LivePage.Md({ item, key: "text" }).
+ 	static Md = class LiveMdView extends View {
+ 		render(){
+-			this.bind(this.item, this.key, function(t){
+-				const has = t != null && t !== "";
++			const empty = v => v == null || v === "";
++			const show = function(){   // `key`'s value, else `fallback`'s (a card's `description`, else its `text`)
++				let t = this.item.get?.(this.key);
++				if (empty(t) && this.fallback) t = this.item.get?.(this.fallback);
++				const has = !empty(t);
+ 				this.tc("is-empty", !has).empty(() => { if (has) md(String(t), { safe: true }); });
+ 				LivePage.label_tables(this.el);
+-			});
++			};
++			this.bind(this.item, this.key, show);
++			if (this.fallback) this.bind(this.item, this.fallback, show);
+ 		}
+ 	};
+ 
+@@ -777,11 +782,11 @@ export default class LivePage extends Page {
+ 			const { page, item, url } = this, P = page.constructor, list = item?.preview?.on ? item.preview : null, drawn = new Map();
+ 			this.ac("live-preview");
+ 			const $list = div.c("live-preview-list");
+-			const $text = new P.Md({ item, key: "description", classes: "live-card-text live-preview-text" });
++			const $text = new P.Md({ item, key: "description", fallback: "text", classes: "live-card-text live-preview-text" });
+ 			const $theirs = div.c("live-card-text live-preview-text is-empty");
+ 			let theirs = null;
+ 			const draw = () => {
+-				const members = (list?.items ?? []).filter(i => !i.transient), own = item?.get?.("description");
++				const members = (list?.items ?? []).filter(i => !i.transient), own = item?.get?.("description") || item?.get?.("text");
+ 				DefaultView.place($list.el, members, drawn, it => P.safely(page, "preview", () => new P.Block({ page, item: it, capture: false }), it));
+ 				$list.tc("is-empty", !members.length);
+ 				$text.tc("is-hidden", members.length > 0);
+diff --git a/public/live/readme.md b/public/live/readme.md
+index 0eab9ca12..55b727ac3 100644
+--- a/public/live/readme.md
++++ b/public/live/readme.md
+@@ -31,7 +31,7 @@ Open [/live/](/live/) on the PC, or `https://monorepo.lew42.com/live/` on the ph
+ | buttons inside a card | add them to the card's own list: `{"content":{"<card>":{"content":{"add":{"type":"live-button","id":"yes","label":"Yes","method":"alert","args":"Yes"}}}}}` (or write to `/live/<card>/` with the plain `content.add`). They draw in one row on the card; tapping one presses it, tapping elsewhere opens the card |
+ | a code block | `{"content":{"add":{"type":"live-code","lang":"js","code":"const sum = (a, b) => a + b;"}}}`; `lang` is js, json, css, html or sh (default js), highlighted by `ext/highlight`; optional `title` and one-line `caption`. **Use it for any code in a card. Keep each line of an example under about 40 characters, because that is what fits on a phone, and put each chained call (`.map`, `.filter`, `.reduce`) on its own line.** A file view (settings → a file) can scroll; an example should fit |
+ | a plain element | `{"content":{"add":{"type":"View","content":"Hello world"}}}`: a div with that text (any registered class that is not an Item draws this way; `Item.foreign` in core/Item/Item.js). Demo: [/live/div-test/](/live/div-test/) |
+-| a titled block's preview (what its card shows) | `{"content":{"<card>":{"preview":{"add":{"type":"part-text","text":"One short line."}}}}}`. A card on its parent shows only its title and its `preview` list (anything can go in it); with an empty list, its `description`; else just the title. Its own page (`/live/<card>/`) shows the same preview first, then the full `text` and content. A page takes one too: `{"preview":{"add":…}}` on its own path shows at the top of that page. A link card shows its own preview, else its own `description`, else the `description` its page gives itself (`LivePage.Preview`). ⬜ A link card does not yet show its page's own `preview` list (it would have to replay that page's file) |
++| a titled block's preview (what its card shows) | `{"content":{"<card>":{"preview":{"add":{"type":"part-text","text":"One short line."}}}}}`. A card on its parent shows only its title and its `preview` list (anything can go in it); with an empty list, its `description`, or its `text` when it has no description; else just the title. (A `/live/` page opens at the top and follows new cards only once you have scrolled to the bottom.) Its own page (`/live/<card>/`) shows the same preview first, then the full `text` and content. A page takes one too: `{"preview":{"add":…}}` on its own path shows at the top of that page. A link card shows its own preview, else its own `description`, else the `description` its page gives itself (`LivePage.Preview`). ⬜ A link card does not yet show its page's own `preview` list (it would have to replay that page's file) |
+ | a card for a thing on the site | `{"content":{"add":{"type":"part-card","id":"pg","title":"@Page"}}}`: its icon and name, and a tap opens it (ext/Mention) |
+ | an item in its own file | `{"items":{"add":{"file":"thing.jsonl"}}}`: its lines live in `thing.jsonl` beside this page's own, not here. Drawn after the content (title + its text, tailed live) and reachable as a full page at `/live/<folder>/thing` — its id defaults to the file name (core/Item/readme.md, "page.items") |
+ 
