@@ -39,16 +39,16 @@ Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` ma
 
 ## The design system file's page structure (2026-11-09)
 
-- **Pages, in order:** UI (status, plan, one copy of each core piece; was `Index`), Page 1 (the owner's Drag and drop frame and My Card), Components, Cards, Layouts, Page builder (was `Pages`, mine), Images, Claude · Sandbox. This mastermind owns Page builder and any new page-builder pages; Cards, UI, Components, Layouts and Images belong to the cloud-chat agent (`voice-app`), so ask before touching them.
+- **Pages:** look them up by name in the file (they get renamed and added); UI is the status page and the Map of the card system. There is no `Components` page any more (deleted 2026-11-10: every master lives on the page about it). This mastermind owns Page builder, Icons, Panels and any new page-builder pages; UI, Layouts and Images belong to the cloud-chat agent (`voice-app`), so ask before touching them.
 - **Cards page** (mine, owner 2026-11-10): the basic card has modes Padded and Unpadded, no fill variable (Scheme `surface`), sized to content, sizes from Resolution `card-pad`/`card-gap` ([doc](./doc/use-figma.md#card-modes-label-style-the-_claude-frame-and-making-a-card-owner-2026-11-09)). A page grows sideways, one `Page · 1920` per topic: `Page · Cards` (basics), `Page · Card builder` (voice-app's, 2080; don't touch), `Page · Card types` (5400), `Page · Layout basics` (7480), `Page · Nesting` (9640), `Page · Media` (11800; [details](./doc/use-figma.md)). Drag sources must be direct children of a root GRID frame ([rule](./doc/use-figma.md#traps)).
-- **Every page** has a `Page · 1920` copy at (0,0) and a `Main components` column left of x 0 holding the masters, each under a purple `Main component label` (`Colors/main-component`). A master cannot go inside a slot. Keep the wrapper around each master thin and named, so a whole page is easy to select.
+- **Every page** has a `Page · 1920` copy at (0,0). Its masters sit at the canvas root, left of the page (x at most -(widest master + 160), stacked with a 96 gap so nothing overlaps or hides anything), and Figma's own purple component name is the label (owner, 2026-11-10: no `Main components` column, no fake `Main component label`, no "What it is" paragraphs). Component sets are vertical auto layout (gap 24, padding 24). A master cannot go inside a slot.
 - **Root frames are 400, 1920 or 3440 wide** (owner); anything else nests inside one. Fewer one-off, non-component frames.
-- **Components page:** `Kicker` (h4 caps: section kickers, status, captions; was `Icon item`), a new `Icon item` (icon 24 + name, for list rows and menus; `Icon button` is the same without the name), and `Input`, `Select`, `Text area`, `Toggle`, `Checkbox`. Inputs are as tall as Button (2 × `btn-pad-y` + 24). Toggle off and Checkbox unchecked are overrides, not variants.
+- **Where the old Components masters went (2026-11-10):** Button and Icon button to `Cards · Buttons & toolbars`; Input, Select, Text area, Toggle, Checkbox to `Inputs`; Icon item to `Icons`; Kicker to `Text`; the Section label component (175:12079) to `Layouts`. Kicker is h4 caps (section kickers, status, captions); `Icon item` is icon 24 + name for list rows and menus (`Icon button` is the same without the name). Inputs are as tall as Button (2 × `btn-pad-y` + 24). Toggle off and Checkbox unchecked are overrides, not variants.
 - **Images page:** every portrait has an avatar row (40, 64, 96, 160, rounded square, ring). Avatar rings are outside strokes, so rows that hold them need `clipsContent = false`. Background removal is not possible from the MCP (Weave is not linked to the account); the owner does it in Figma (Actions → Remove background).
 
 ## The card system pages (voice-app's, listed 2026-11-10)
 
-Each is a `Page · 1920` at (0,0) with its masters in a `Main components` column at x -560. The UI page's top section, "Map of the card system", links to each. Masters and ids (voice-app owns them; ask before touching):
+Each is a `Page · 1920` at (0,0) with its masters at the canvas root to its left. The UI page's top section, "Map of the card system", links to each. Masters and ids (voice-app owns them; ask before touching):
 
 - **Cards · Buttons & toolbars:** Toolbar `118:423`.
 - **Cards · Lists & grids:** List row `126:423`, Divider `126:436`, Tile `126:442`.
@@ -63,7 +63,7 @@ Build lessons from these pages are in [use-figma.md, Traps](./doc/use-figma.md#t
 
 ## The icon system (mine, 2026-11-10)
 
-Page `Icons` (156:975, was `Cards · Icons`; always look pages up by id, they get renamed): `Page · Icons` (166:1383) with sections Icon, Icon frame, Icon item, Alignment test, Pill; masters in the `Main components` column at x -1239 (kickers hidden: "Atom" and "Molecule" meant nothing).
+Page `Icons` (156:975, was `Cards · Icons`; always look pages up by id, they get renamed): `Page · Icons` (166:1383) with sections Icon, Icon frame, Icon item, Alignment test, Pill; masters at the canvas root at x -634 (kickers hidden: "Atom" and "Molecule" meant nothing; the owner reworked this page by hand and it is the model for the cleanup).
 
 - **Icon** (set 156:988): Size H1/H2/H3/H4/Body/Label, one text style each (`Icon/H1`…`Icon/Label`, Material Icons, line height = the text style's); glyph prop `Icon#156:0`. Every master uses it as an exposed nested instance (Kicker, card header, Panel, Icon button, Icon item, Pill, and voice-app's Chip, Tile, Nav item, Menu item, Toast, Search field).
 - **Icon frame** (set 162:1856, Small 28 / Medium 37 / Large 46): the small icon button. None, hover and selected are the Selection mode on the instance (Off, Hover, On), not variants. **Icon button** 21:126 stays the large (56) Button-mode version.
@@ -75,23 +75,23 @@ Page `Icons` (156:975, was `Cards · Icons`; always look pages up by id, they ge
 
 ## The Panels page (mine, 2026-11-10)
 
-Page `Panels` (170:569): `Main components` (169:10299, x -560) holds `Main · Panel` (Panel 153:1779, 400 wide); `Page · Panels` (170:570) has two sections.
+Page `Panels` (170:569): the Panel master (153:1779, 400 wide) sits at the root at x -560; `Page · Panels` (170:570) has two sections (their kickers are hidden).
 
 - **Panel stack:** the moved example, four Panel instances (Layout, Fill, Stroke, Effects) in a frame fixed 400 wide, hugging its height. If it ever renders collapsed, re-set the stack frame to HUG then FIXED and each panel to FIXED then FILL; node reads said 400 while the render showed ~100.
 - **Hover rows, two kinds:** edge-to-edge (container padding 0, so the hover fill runs the full width, like Figma's Layers) and inset (container padding 8, row radius 6, so the hover floats with a gap at its left edge, like the three zones on Bars). Rows are Icon item instances whose fill is bound to `Selection` bg, modes Off, Hover, On.
-- **Master column rule:** the `Main components` column sits fully left of the page, x at most -(column width + 160), never under the page.
+- **Master placement rule:** masters sit fully left of the page, x at most -(widest master + 160), never under the page.
 
 ## The Page builder page (2026-11-09)
 
 Page `Page builder` (62:933) has exactly two top-level frames, both auto layout (rule: query every top-level node before a layout change; a container is a column of equal-width things or a row of equal-height things, never rows of very different widths; no manual positions inside a frame):
 
 - `Page builder` (96:1800, at 0,0, vertical): `Start` (96:1801, one blank 1920×1080 `Template · Site` instance on the left with two filled copies below it, and a column of all seven blocks beside it; titles 100 to 140, sized to a 1920 row) then `More` (a row of five columns, one per width class: Drag and drop plus the six-block copy `Page · all six blocks` 93:1941; Screens · 1920×1080; Examples plus How to build a page; Templates, 3440; Compare widths plus the master with its 400 and 3440 copies).
-- `Main components` (71:518, left of x 0): a row of five columns, one per width (400, 1000, 1600 blocks, 1920, 3440), so no column mixes widths.
+- The masters (templates, blocks, `Page · 1920` 67:88, `Page` 16:163, `_Claude frame` 42:157) sit at the canvas root, left of x 0, in columns by width (400, 1000, 1600 blocks, 1920, 3440), right to left, the last ending at x -160; no column mixes widths.
 
 - **Templates** (masters; the Content slot carries the padding, bound to `pad-x`/`pad-y`, so the whole area is the drop target, and `Scheme = White` is set on each component; rules in [use-figma.md](./doc/use-figma.md#templates-you-drag-into-owners-findings-2026-11-09)): `Template · Site`, `· App with sidebar` (and `· Full bleed`, slot padding 0), `· Landing` (1920), `· Phone` (400, Resolution Mobile on the root, grids set to one column) and `· Mega` (3440, the sidebar stays Default and only the Main frame is Resolution Mega, slot content max 2880). Blocks: `Block · Three cards / Photo cards / Split / Stats / Call to action / Gallery`.
 - **A ground colour is a Scheme mode on the template**, not a copy per colour: duplicate a template and set Prime, White or Light gray. Cards inherit the ground and vanish on a Light gray, Dark or Prime ground, so set `Scheme = White` on each card instance there.
 - `Screens · 1920×1080` (82:1363, between Drag and drop and Templates): three fixed-height screens: halves on two grounds (82:1373), a 1600 centred area split into two 800 columns (82:1399), a full-bleed Prime band over a padded area (82:1426). Built from plain frames and White-scheme Card instances, not yet components; two or three columns and a Widths page (one page per root width) are not built. Build notes: [doc/use-figma.md](./doc/use-figma.md) (Traps) and [doc/troubleshooting.md](./doc/troubleshooting.md).
-- **Responsive builder (2026-11-09):** the 1920 master `Page builder · 1920 master` (86:1451, a component wrapping the old page copy 71:555) sits in `More` with a 400 copy (Resolution Mobile, 86:1452) and a 3440 copy (Resolution Mega, 86:1603), each under a label. Drop a block into the master's Content slot and both copies show it. The master sits on the canvas, not in `Main components`, because you design in it. `Main components` also holds `Page · 1920` (67:88), `Page` (16:163) and `_Claude frame` (42:157), moved from the Layouts page: `appendChild` across pages works and every instance stays linked.
+- **Responsive builder (2026-11-09):** the 1920 master `Page builder · 1920 master` (86:1451, a component wrapping the old page copy 71:555) sits in `More` with a 400 copy (Resolution Mobile, 86:1452) and a 3440 copy (Resolution Mega, 86:1603), each under a label. Drop a block into the master's Content slot and both copies show it. The master sits beside its copies because you design in it. `Page · 1920`, `Page` and `_Claude frame` moved here from the Layouts page: `appendChild` across pages works and every instance stays linked.
 - **Blocks wrap, they are not grids:** Three cards, Photo cards, Stats, Gallery, Split and the CTA band are horizontal WRAP rows with children FILL and a min width (320 cards, 160 stats and photos), so at 400 they stack (stats and gallery go 2 by 2) and at 1600 they sit in a row. The Split image has `minHeight` 320 so it does not collapse when stacked. Header and Section label text are FILL with max 760, so nothing overflows 400. The Section master (48:601) belongs to the cloud-chat agent; its label fix was reported to it.
 
 ## More
