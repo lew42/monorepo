@@ -224,3 +224,9 @@
 {"log":{"at":"2026-11-09T23:02:11-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
 {"log":{"at":"2026-11-09T23:07:12-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
 {"log":{"at":"2026-11-09T23:12:12-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-09T23:17:12-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"tool_call":{"at":"2026-11-10T05:24:26.318Z","tool":"send_to_agent","args_hash":"1546a61c182c","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-10T05:26:13.003Z","tool":"send_to_agent","args_hash":"af87deef3a9b","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-10T05:28:42.208Z","tool":"send_to_agent","args_hash":"a352fd7cc776","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-10T05:32:34.810Z","tool":"send_to_agent","args_hash":"2de16353b5eb","caller":"voice-app"}}
+{"log":{"at":"2026-11-09T23:42:12-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
