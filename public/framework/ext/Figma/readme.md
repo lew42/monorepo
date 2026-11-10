@@ -46,6 +46,21 @@ Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` ma
 - **Components page:** `Kicker` (h4 caps: section kickers, status, captions; was `Icon item`), a new `Icon item` (icon 24 + name, for list rows and menus; `Icon button` is the same without the name), and `Input`, `Select`, `Text area`, `Toggle`, `Checkbox`. Inputs are as tall as Button (2 × `btn-pad-y` + 24). Toggle off and Checkbox unchecked are overrides, not variants.
 - **Images page:** every portrait has an avatar row (40, 64, 96, 160, rounded square, ring). Avatar rings are outside strokes, so rows that hold them need `clipsContent = false`. Background removal is not possible from the MCP (Weave is not linked to the account); the owner does it in Figma (Actions → Remove background).
 
+## The card system pages (voice-app's, listed 2026-11-10)
+
+Each is a `Page · 1920` at (0,0) with its masters in a `Main components` column at x -560. The UI page's top section, "Map of the card system", links to each. Masters and ids (voice-app owns them; ask before touching):
+
+- **Cards · Buttons & toolbars:** Toolbar `118:423`.
+- **Cards · Lists & grids:** List row `126:423`, Divider `126:436`, Tile `126:442`.
+- **Cards · Inputs & forms:** Search field `130:423`, Chip `130:432`, Form field `130:440`, Slider `130:451`.
+- **Cards · Navigation:** Nav item, Bottom nav, Tab, Tabs, Segment, Segmented control. The `Selection` collection (modes Off/On; variables fg, bg, indicator) marks the selected one: a selected item is just `Selection: On`.
+- **Cards · Overlays:** Screen `136:423` (400×860), Sheet, Toast, Menu item, Menu, Keyboard; a second page instance, `Keyboard & screen height`, sits to its right.
+- **Cards · Domain cards:** nine cards in a 3×400 masonry.
+- **Apps · Tasks, Apps · Chat, Apps · Editor:** flows of 400×860 screens; `Prototype ·` top-level frames sit to the right, wired with `setReactionsAsync` and a flow start.
+- **`Page · Card builder`** (on Cards) was rebuilt: 6 starting cards, a masonry drop zone, 12 edge-to-edge rows and 12 padded pieces, all in 400-wide grid columns.
+
+Build lessons from these pages are in [use-figma.md, Traps](./doc/use-figma.md#traps) (card system build lessons).
+
 ## The Page builder page (2026-11-09)
 
 Page `Page builder` (62:933) has exactly two top-level frames, both auto layout (rule: query every top-level node before a layout change; a container is a column of equal-width things or a row of equal-height things, never rows of very different widths; no manual positions inside a frame):
