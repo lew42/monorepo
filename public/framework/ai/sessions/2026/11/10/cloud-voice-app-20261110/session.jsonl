@@ -39,3 +39,5 @@
 {"tool_call":{"at":"2026-11-10T12:26:48.300Z","tool":"item","args_hash":"11deeb76952e","caller":"voice-app"}}
 {"log":{"at":"2026-11-10T06:33:38-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
 {"log":{"at":"2026-11-10T06:38:38-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-10T06:43:40-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-10T06:48:40-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
