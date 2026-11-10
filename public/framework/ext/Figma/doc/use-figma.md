@@ -9,10 +9,10 @@ System work (tokens, components) now lives in the **"November 2026"** file (the 
 What the design system file holds:
 - **Colors** (1 mode): `prime`, `light`, `dark`, `error`, `ok`, `warn`. `prime`, `light` and `dark` are hidden from pickers.
 - **Scheme** (modes White, Light gray, Prime, Dark; roles `text`, `muted`, `surface`, `accent`, `on-accent`): the Sept-2026 `Text` collection, renamed.
-- **Resolution** (Default, Mobile, Mega): `pad-x`, `pad-y`, `gap`, `radius`, `btn-pad-x`, `btn-pad-y`, `h1-size`, `small-pad-x`, `small-pad-y`, `section-pad-x` (120/16/80), `section-pad-y` (120/48/64) (the last two copied from Sept-2026, 2026-11-09).
-- **Card** (modes Filled, the default, and Flush; variables `card-fill` = Scheme/`surface` or transparent, `card-pad-x` / `card-pad-y` = `pad-x` / `pad-y` or 0): see [Card modes](#card-modes-label-style-the-_claude-frame-and-making-a-card-owner-2026-11-09).
+- **Resolution** (Default, Mobile, Mega, Compact): `pad-x`, `pad-y`, `gap`, `radius`, `btn-pad-x`, `btn-pad-y`, `h1-size`, `small-pad-x`, `small-pad-y`, `section-pad-x` (120/16/80), `section-pad-y` (120/48/64) (the last two copied from Sept-2026, 2026-11-09). **Compact** (pad 24, gap 12, btn 16/10, h1 40, small-pad 8/4, section-pad 48) is for dense desktop grids; Mobile is only for previewing phone width.
+- **Card** (modes Filled, the default, Flush, Shell and Inset; variables `card-fill` = Scheme/`surface` or transparent, `card-pad-x` / `card-pad-y` = `pad-x` / `pad-y` or 0, `card-gap` = 0 in Shell, else `gap`): see [Card modes](#card-modes-label-style-the-_claude-frame-and-making-a-card-owner-2026-11-09).
 - **Button** (modes Primary, Transparent; variables `fill` = Scheme/`accent` or 10% black, `label` = Scheme/`on-accent` or Scheme/`text`): the button's style, as a mode (see [modes over variants](#modes-over-variants-owner-2026-11-05)).
-- **Text styles** `h1`–`h4`, `body` and `label` (Montserrat Medium 16 / 24, on the Button label); **components** Button, Card, Icon button and Page. Masters sit on the root canvas.
+- **Text styles** `h1`–`h4`, `body` and `label` (Montserrat Medium 16 / 24, on the Button label); **components** Button, Card, Icon button, Page, Card header, Card media, Card footer, Icon item and Section (see [componentize](#componentize-almost-everything-that-has-a-name-owner-2026-11-09-later)). Masters sit on the root canvas.
 
 ### How Claude works in a file (owner's rules, 2026-11-05)
 
@@ -166,7 +166,13 @@ Masters on the root canvas will sprawl. The likely fix is **one library page per
 
 #### Card modes, `label` style, the `_Claude frame`, and making a card (owner, 2026-11-09)
 
-- **Card modes, no variants.** The **Card** collection has modes **Filled** (default) and **Flush**. Flush is no fill and no padding, for content inside a parent that already pads; same component, still linked. **Trap:** a nested Card inherits its parent's Card mode unless you set the mode on the nested Card itself.
+- **Card modes, no variants.** The **Card** collection has modes **Filled** (default), **Flush**, **Shell** and **Inset**; same component, still linked.
+  - **Flush:** no fill, no padding, for content inside a parent that already pads.
+  - **Shell:** fill, no padding, clips; it holds sections. The `card-gap` variable (0 in Shell, else `gap`) is bound to the Card slot's spacing, so sections sit flush in a Shell.
+  - **Inset:** padding, no fill; that is a section.
+  - **Trap:** a nested Card inherits its parent's Card mode unless you set the mode on the nested Card itself.
+- **Default padding (48) on ~300px cards is far too much** (owner): put fewer per row, or use the **Compact** Resolution mode. Mobile mode is only for previewing phone width.
+- **Card parts are components** (2026-11-09, later): **Card header** (10% black band, `pad-x` sides, Content slot), **Card media** (full-bleed image area, 200 tall), **Card footer** (top hairline, right-aligned Content slot for buttons), **Icon item** (an icon plus a name) and **Section** (Icon item kicker, title, a description you hide when not needed, Content slot; master `clipsContent` off). The Icon item is the context header above content, instead of a small kicker line. Every section, status tile and workflow step in `Claude · working area` is a Section or Card instance.
 - **Inline items in a row share one height** (owner rule; mismatched heights look wrong). The `label` text style (Montserrat Medium 16, line height 24) is on the Button label, and Button and Icon button both pad with `btn-pad-y`, so each is 2×`btn-pad-y` + 24 tall: 56 Default, 40 Mobile, 52 Mega.
 - **`_Claude frame`** (component; the `_` prefix hides it from publishing): a robot header plus a `Content` slot, `section-pad` padding, Scheme Light gray. `Claude · working area` and the Drag-and-drop frame are instances of it, so their look changes in one place.
 - **White is for actual cards** (owner rule): containers go a touch darker (Light gray), to avoid white, gray, white back and forth.
@@ -175,9 +181,18 @@ Masters on the root canvas will sprawl. The likely fix is **one library page per
 - **Make a new card** (a workflow now on the canvas): 1) copy a Card (Alt-drag, or from Assets); 2) fill its slot with blocks; 3) pick a Scheme; 4) pick a Resolution (Mobile for phone width); 5) blocks inside use 10% black.
 - **Open, not decided:** card widths (about 400 for a phone, about 500 a good desktop default, 800 too wide), so maybe a min and max width per Resolution; responsive wrapping in Figma isn't worth much effort yet. "Section", to the owner, means a full-width, full-height block.
 
+#### Componentize almost everything that has a name (owner, 2026-11-09, later)
+
+Chips, tiles, sections and card parts become components; text layers do not (text styles cover those). The **level-1 base set** is: text styles, Button, Input, Select, Toggle, Icon button, Icon item. For grids, set cards to Fill so they share the row, and control how many per row with the column count and by dragging; prefer no variants for layouts.
+
+**Slot traps (verified):**
+- A slot cannot have GRID layout (error "Slot property cannot be applied to frame nodes with GRID layoutMode"). A grid is a plain frame inside a slot.
+- A slot whose only child is set to Fill collapses (HUG with only FILL children). Slots also clip by default: set `clipsContent = false` and let rows hug.
+- Inside an instance's slot (especially nested slots), node handles go stale after each insert or append ("node … does not exist", `indexOf` = -1). Look nodes up again by name after every change; build new content at the page root and move it in as one piece; append a node to its final parent *before* editing it (editing a Card's slot and then appending it into another Card's slot scrambled both cards).
+
 #### Grid auto layout: equal-height cards that adapt (verified 2026-11-05)
 
-Set `frame.layoutMode = 'GRID'`, then `gridColumnCount` / `gridRowCount`, `gridColumnSizes = [{type:'FLEX', value:1}, …]` and `gridRowSizes = [{type:'HUG'}, …]`; bind `gridRowGap` / `gridColumnGap` to `gap`. The grid frame has a fixed width and HUG height; its children get `layoutSizingHorizontal` and `layoutSizingVertical` = `'FILL'`. Each row takes the tallest card's height and every card in it fills: making one card's text longer grew all three from 346 to 520. **Trap:** append the children *after* setting `layoutMode = 'GRID'`; children already in the frame kept one row each. Re-append them to re-flow. **Second trap (2026-11-09):** a grid child that is a *wrapper* (caption + card) with the card set to FILL vertically collapses, because the HUG row measures the wrapper's content as near zero. Fix: give captions and cards their own grid rows (row 0 captions, row 1 cards, …), each child FILL; the cards then get full height and equal heights per row. This replaces the "tallest hugs" and "fixed row" workarounds in [figma-layout.md](./figma-layout.md).
+Set `frame.layoutMode = 'GRID'`, then `gridColumnCount` / `gridRowCount`, `gridColumnSizes = [{type:'FLEX', value:1}, …]` and `gridRowSizes = [{type:'HUG'}, …]`; bind `gridRowGap` / `gridColumnGap` to `gap`. The grid frame has a fixed width and HUG height; its children get `layoutSizingHorizontal` and `layoutSizingVertical` = `'FILL'`. Each row takes the tallest card's height and every card in it fills: making one card's text longer grew all three from 346 to 520. **Trap:** append the children *after* setting `layoutMode = 'GRID'`; children already in the frame kept one row each. Re-append them to re-flow. **Second trap (2026-11-09):** a grid child that is a *wrapper* (caption + card) with the card set to FILL vertically collapses, because the HUG row measures the wrapper's content as near zero. Fix: give captions and cards their own grid rows (row 0 captions, row 1 cards, …), each child FILL; the cards then get full height and equal heights per row. This replaces the "tallest hugs" and "fixed row" workarounds in [figma-layout.md](./figma-layout.md). **Third trap (2026-11-09):** grid children keep explicit cells; `insertChild` into a grid does not take the old cell. Reorder with `node.setGridChildPosition(row, col)`: a cell must be empty, and rows can't be removed while occupied, so park every child in spare rows first, then place them, then trim `gridRowCount`. A grid cannot be a slot (see the slot traps above).
 
 Removing boolean component properties (Show kicker, Show button) made every previously hidden layer visible again in all copies; re-hide or delete those layers afterwards.
 
