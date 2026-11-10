@@ -37,6 +37,10 @@ Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` ma
 - **Figma mastermind** (owner, 2026-10-13): one standing session owns the Figma work and keeps this folder's docs current (it took them over from the docs mastermind on 2026-11-09, after a lean audit: file-map, haiku-builds and mapping deleted, use-figma.md condensed to the design system file; git has the old text). Figma work needs no worktree; repo edits (docs, `tokens/`) still commit by path, and `tokens/` still goes through review and merge. Pages follow [doc/page-layout.md](./doc/page-layout.md) (one 1920 wrapper, auto layout, an Index page). Edit the main component, never the same override on every instance.
 - Screenshots over 600 KB are refused by `track.mjs`; the Figma screenshot URL is short-lived.
 
+## The Pages page (2026-11-09)
+
+Page `Pages` (62:933) in the design system file follows the file's page convention: `Page · Pages` (71:555, a copy of `Page · 1920`) at (0,0) with the six section blocks as instances in its Content slot; `Page templates and examples` (71:800) below it, three 1920 template instances plus two examples; and `Main components` (71:518) left of x 0 holding the masters: `Page · Stack`, `Page · Sidebar`, `Page · Landing`, and `Block · Three cards / Photo cards / Split / Stats / Call to action / Gallery`. Templates are 1920 wide with a Content slot FILL up to 1600; blocks are 1600 wide. Build notes: [doc/use-figma.md](./doc/use-figma.md) (Traps) and [doc/troubleshooting.md](./doc/troubleshooting.md).
+
 ## More
 
 - [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
