@@ -81,6 +81,14 @@ Page `Panels` (170:569): the Panel master (153:1779, 400 wide) sits at the root 
 - **Hover rows, two kinds:** edge-to-edge (container padding 0, so the hover fill runs the full width, like Figma's Layers) and inset (container padding 8, row radius 6, so the hover floats with a gap at its left edge, like the three zones on Bars). Rows are Icon item instances whose fill is bound to `Selection` bg, modes Off, Hover, On.
 - **Master placement rule:** masters sit fully left of the page, x at most -(widest master + 160), never under the page.
 
+## The "Components, sets, variants" page (2026-11-10)
+
+A "when to use what" explainer right after Icons, ten columns left to right (a plain copies, b main + instances, c copy of an instance, d nesting, e component set, f duplicated set, g base component, h modes, i the Content box, j variants don't share values), every title and caption on the canvas, masters at the page root (no wrapper) so Figma's purple names show. The principle it states: prefer plain overrides over property systems; add a property only when you would set it on many instances.
+
+- **Pill and Icon item have no TEXT property.** Each variant's text shows its own class (H1 to Label) and an instance is edited by typing over the text. Deleting the property wiped property-set text on existing instances (18 on Icons were retyped), so move text off a property only after reading the real nodes (see Traps in [use-figma.md](./doc/use-figma.md)).
+- The duplicate `Pill (copy · not linked)` (168:9214) is the exhibit for f, i and j: it still has `Label#166:0` bound on five variants and unbound on H2, and its radius is a number on some variants and the `round` variable on H1. The original Pill's six variants are all bound to `round`.
+- `Pill (wraps Icon item)` is the demo of rebuilding Pill as a wrapper around an Icon item instance; the live Pill is not rewired. A main's fill can resolve through an explicit variable mode (the Pill sets `Selection` to 159:0), so a copy must copy `explicitVariableModes` or its instances render with no fill.
+
 ## The Page builder page (2026-11-09)
 
 Page `Page builder` (62:933) has exactly two top-level frames, both auto layout (rule: query every top-level node before a layout change; a container is a column of equal-width things or a row of equal-height things, never rows of very different widths; no manual positions inside a frame):
