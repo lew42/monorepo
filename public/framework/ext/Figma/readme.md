@@ -61,6 +61,18 @@ Each is a `Page · 1920` at (0,0) with its masters in a `Main components` column
 
 Build lessons from these pages are in [use-figma.md, Traps](./doc/use-figma.md#traps) (card system build lessons).
 
+## The icon system (mine, 2026-11-10)
+
+Page `Cards · Icons` (156:975): `Page · Icons` (166:1383) with sections Icon, Icon frame, Icon item, Alignment test, Pill; masters in the `Main components` column.
+
+- **Icon** (set 156:988): Size H1/H2/H3/H4/Body/Label, one text style each (`Icon/H1`…`Icon/Label`, Material Icons, line height = the text style's); glyph prop `Icon#156:0`. Every master uses it as an exposed nested instance (Kicker, card header, Panel, Icon button, Icon item, Pill, and voice-app's Chip, Tile, Nav item, Menu item, Toast, Search field).
+- **Icon frame** (set 162:1856, Small 28 / Medium 37 / Large 46): the small icon button. None, hover and selected are the Selection mode on the instance (Off, Hover, On), not variants. **Icon button** 21:126 stays the large (56) Button-mode version.
+- **Icon item** (set 162:11334): icon pinned to the top of the first line, Name FILL, so a long title wraps beside it. **Pill** (set 166:594): icon and label in a rounded Selection-coloured background, per size.
+- **Alignment (tested):** a pinned-top row beats an inline glyph (the second line runs under the icon, and uppercase H4 breaks the ligature) and a centred icon (drifts to the middle of a wrapped block).
+- **Panel** header is a Label (fill) plus an `Actions` slot for Icon frame buttons; the footer is a Toolbar.
+- **Swapping a master's own `Icon` text property for the nested Icon:** record every copy's value first (`setSharedPluginData`; `setPluginData` is not supported here), swap, write the values back, then delete the old property; a deleted property takes its copy values with it. A nested instance's glyph property cannot be bound to the parent's property.
+- Gaps: no Small text style (Label stands in), Material Icons has no Outlined weight, Kicker glyph is 14 px (Icon/H4).
+
 ## The Page builder page (2026-11-09)
 
 Page `Page builder` (62:933) has exactly two top-level frames, both auto layout (rule: query every top-level node before a layout change; a container is a column of equal-width things or a row of equal-height things, never rows of very different widths; no manual positions inside a frame):
