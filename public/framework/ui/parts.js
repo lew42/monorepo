@@ -1,6 +1,7 @@
 import View from "../core/View/View.js";
 
-export const css = rules => new View({ tag: "style", capture: false }).text(rules).append_to(document.head);
+// In node (a page class replayed by the item tool) there is no document, so nothing is added.
+export const css = rules => typeof document === "undefined" ? null : new View({ tag: "style", capture: false }).text(rules).append_to(document.head);
 
 // A component function, plus the `.c("classes", …)` form every View factory has.
 export const component = fn => Object.assign(fn, {

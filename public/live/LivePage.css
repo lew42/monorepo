@@ -82,26 +82,36 @@
 	.live-tabs::after { right: 0; background: linear-gradient(to left, var(--live-floor), transparent); }
 	.live-tabs.more-left::before, .live-tabs.more-right::after { opacity: 1; }
 
-	/* /<page>/settings/: label and value rows, then the folder's files, one under the other. */
+	/* /<page>/settings/: label and value rows, then the folder's files, one under the other. The box (background,
+	   radius) is the kit's `.card` (set in LivePage.js as `live-settings-box`); each row is the kit's `.ui-row`
+	   (padding, gap, hover ground) — these rules keep only what the kit doesn't: the label/value wrap and the
+	   bold, right-aligned note. */
 	.live-settings { display: flex; flex-direction: column; gap: var(--live-step); font-size: .9em; }
-	.live-settings-row { display: flex; flex-wrap: wrap; gap: .2rem 1rem; padding: .5rem .75rem; background: var(--live-card); border-radius: .6rem; }
+	/* The rows carry the padding (.ui-row), so the box keeps only a sliver top and bottom, like .live-files-body, and no stacked gap between rows. */
+	.live-settings-box { padding: .25rem 0; }
+	.live-settings-box > * + *, .live-files-body > * + * { margin-block-start: 0; }
+	.live-settings-row { flex-wrap: wrap; gap: .2rem 1rem; }
 	.live-settings-label { min-width: 8rem; font-weight: 600; }
 	.live-settings-value { min-width: 0; overflow-wrap: anywhere; }
 	.live-settings-value a { color: inherit; }
-	.live-settings-class { background: var(--live-card); border-radius: .6rem; font-weight: 600; }
+	.live-settings-class { font-weight: 600; }
 	.live-settings-note { margin-left: auto; font-size: .8em; font-weight: 400; opacity: .6; }
-	/* LivePage.Files: one list, top to bottom (folders, then files); a file is its text, wrapped to the phone. */
+	/* LivePage.Files: one list, top to bottom (folders, then files); a file is its text, wrapped to the phone.
+	   The box is the kit's `.card` (background, radius — LivePage.js); each row is the kit's `.ui-row` (display,
+	   align, gap, padding). These rules keep only LivePage's own job: the divider between rows, the bold dir
+	   row, and the is-file case (a code file shown edge to edge, no box — the `.file()` method drops `.card`). */
 	.live-files { display: flex; flex-direction: column; gap: var(--live-step); }
 	.live-files-title { margin: var(--live-step) 0 0; font-size: .9em; opacity: .7; overflow-wrap: anywhere; text-transform: none; letter-spacing: normal; }
 	.live-files.is-file > .live-files-title { display: none; }
-	.live-files-body { display: flex; flex-direction: column; background: var(--live-card); border-radius: .6rem; padding: .25rem 0; min-width: 0; }
-	.live-files-row { display: flex; align-items: center; gap: .6em; padding: .55em .75rem; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
-	.live-files-row + .live-files-row { border-top: 1px solid light-dark(#0001, #fff1); }
+	.live-files-body { display: flex; flex-direction: column; padding: .25rem 0; min-width: 0; }
+	.live-files-row { color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+	.live-files-row + .live-files-row, .live-settings-box > .ui-row + .ui-row { border-top: 1px solid light-dark(#0001, #fff1); }
 	.live-files-row.is-dir { font-weight: 600; }
 	.live-files-row .ui-icon, .live-files-row .icon { flex: none; opacity: .6; }
 	.live-files-said { padding: .55em .75rem; opacity: .7; }
-		/* A file's page: the code alone, the full width, no card and no gutter (a phone needs the width). */
-	.live-files.is-file > .live-files-body { background: none; border-radius: 0; padding: 0; margin-inline: calc(-1 * var(--live-pad-x)); }
+		/* A file's page: the code alone, the full width, no gutter (a phone needs the width); `.card` is already
+		   gone by the time this applies ($box.rc("card") in LivePage.js's `file()`). */
+	.live-files.is-file > .live-files-body { padding: 0; margin-inline: calc(-1 * var(--live-pad-x)); }
 	.live-files-body pre { margin: 0; font-size: .78em; overflow-x: hidden; }
 	.live-files.is-file pre { padding: .6rem .5rem; border-radius: 0; }   /* the code keeps its own colours and floor, edge to edge */
 	.live-files-body pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
