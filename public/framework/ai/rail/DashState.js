@@ -17,10 +17,10 @@ export default class DashState extends TaskStateLog {
 	/** The stream line sets `state` (counts, check); the full picture follows it. */
 	apply(entry){ super.apply(entry); if (entry?.in_flight && this.started) this.refetch_soon(); }
 
+	/** `started` flips after the opening replay of ai/index.jsonl: one load follows it, so its old lines must not each ask for a refetch (they fetched the 4 MB file three times per open, 2026-11-09). */
 	start(){
-		this.started = true;
 		this.day.live(() => this.patch());
-		return this.live(() => {}).then(() => this.load_soon());
+		return this.live(() => {}).then(() => { this.started = true; return this.load_soon(); });
 	}
 
 	/** Coalesce stream lines: the first fetches now, the rest wait out REFETCH_MS and fetch once. */
