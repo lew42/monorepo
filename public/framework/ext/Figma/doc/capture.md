@@ -40,4 +40,4 @@ Test: [/framework/ext/Figma/colors/](/framework/ext/Figma/colors/) from the loca
 - But `get_design_context` on one card returns a **grid**: `grid grid-cols-[537.14px] grid-rows-[18.28px 26.86px ...] gap 14.92px p-[29.84px]`. That is our `.fg-scheme` (`display:grid`, `gap:1em`, `padding:2em`, 1em = 14.92px), recovered with the original em values as pixels, but with fixed tracks. So the signal "this was a grid with this gap and padding" survives; the responsive part (`1fr`, `minmax`, `auto-fit`) does not.
 - Output over about 90 KB comes back as a sparse tree only; ask `get_design_context` on sub-nodes.
 
-Mapping Figma properties to framework words: [doc/mapping.md](./mapping.md).
+Mapping Figma properties to framework words: [figma-to-framework.md](./figma-to-framework.md).

@@ -2,9 +2,11 @@
 
 The owner's idea: "for any two-column layout with different coloured backgrounds, put a panel to the left and to the right, the same width and colour as the layout's columns, with a large toolbox of pre-configured items that work well in that column. A dark empty left sidebar has a dark toolbox panel beside it; drag any child into the layout. On the right, a white or light-gray page area takes cards and text configured to that scheme… I think that's what I've been missing."
 
+**Being built (2026-11-09):** the page builder in the design system file's `Pages` page (page templates 1920 wide, a 1600 content area, section blocks as components) is the current form of this idea; the toolbox rules below still apply to it.
+
 ## How it works in Figma
-- **A toolbox matches its target.** Each layout column gets a toolbox panel with the **same width, ground and Text mode** (and Resolution). Its items are built for that context: nav rows and a profile for a dark 280 sidebar, cards and prose for a light main.
-- **Let modes inherit; don't set them on items.** An item that doesn't set its own Text mode takes its parent's, so an item dragged from a dark toolbox into a dark column looks right with no clicks. The only per-item choice left is the card's own fill, if it has one. This is simpler than a `Scheme` variant on every item. Use the variant only for an item that must carry its own ground (a card that stays light on a dark page).
+- **A toolbox matches its target.** Each layout column gets a toolbox panel with the **same width, ground and Scheme mode** (and Resolution). Its items are built for that context: nav rows and a profile for a dark 280 sidebar, cards and prose for a light main.
+- **Let modes inherit; don't set them on items.** An item that doesn't set its own Scheme mode takes its parent's, so an item dragged from a dark toolbox into a dark column looks right with no clicks. The only per-item choice left is the card's own fill, if it has one. This is simpler than a `Scheme` variant on every item. Use the variant only for an item that must carry its own ground (a card that stays light on a dark page).
 - **Width class matters as much as colour.** A sidebar item is built for about 280–400; a main item fills 800+. Items stay FILL, so they also fit a slightly different width of the same class.
 - **Drag:** Alt-drag copies from the toolbox (a plain drag moves the item out of it). Reorder by dragging inside the column.
 
