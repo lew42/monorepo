@@ -232,3 +232,5 @@
 {"file":"friction-test/page.jsonl"}
 {"file":"friction-test/page.jsonl","gone":true}
 {"file":"_removed/"}
+{"file":"session/"}
+{"content":{"now":{"text":"**Goal:** beautiful, working streaming pages you drive by voice.\n\n1. **Session view:** a fast, readable page for this session (live-page, building)\n2. **UI kit:** one small set of parts every page uses; the [library](/framework/library/) becomes the template tree; layout checked by numbers on every merge (ui-kit, planning)\n3. **Friction:** the top 5 things that make pages feel broken (friction, reviewing)\n4. **Page plugins:** a page as a tree of switchable plugins (page-design, planning)\n5. **Page index:** big folders load fast (page-index, planning)"}},"by":"voice-app","ts":"2026-11-10T00:23:57.262Z"}
