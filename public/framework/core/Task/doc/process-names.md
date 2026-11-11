@@ -40,12 +40,12 @@ A spawn then names three things: the role (who), the kind (the routine), and the
 One item call creates the process, and node does the rest:
 
 ```js
-item({ path: "<your session>", delta: { tasks: { add: { title: "Two steps",
-  steps: [{ title: "Write the note", do: "write note.md" }, { title: "Check the note", do: "read note.md back" }] } } } })
+item({ path: "<your session>", call: "tasks.add", args: { title: "Two steps",
+  steps: [{ title: "Write the note", do: "write note.md" }, { title: "Check the note", do: "read note.md back" }] } })
 ```
 
 1. Node writes line 1 and both steps, then starts step 1 and sends you its prompt. A step with no `session` goes to you, the creator.
-2. You complete it: `item({path: "<process url>", delta: {"write-the-note": {"complete": {"outcome": "…"}}}})`.
+2. You complete it: `item({path: "<process url>", call: "write-the-note.complete", args: {outcome: "…"}})`.
 3. Node prompts step 2 and includes step 1's outcome.
 4. A step added while the process runs comes after the others.
 5. When every step is done, the process is complete, and so is its line in the session's count.

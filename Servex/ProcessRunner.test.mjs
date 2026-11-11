@@ -57,7 +57,7 @@ try {
 	let L = read(FILE);
 	ok(L[0].class === "Process" && L[0].process === "build" && L.filter(l => l.tasks?.add).length === 8, "line 1 is a Process, eight step lines");
 	ok(L.some(l => l.start) && L.some(l => l.investigate?.start) && L.some(l => l.spawn?.step === "investigate" && l.spawn.agent === "a1"), "node started it and spawned the investigate session");
-	ok(spawned[0].model === "claude-haiku-5-5" && spawned[0].task.dir.endsWith("fix-x/investigate") && spawned[0].prompt.includes(`"investigate": {"complete"`), "the spawn carries the step's model, a folder inside the process, and the completing line");
+	ok(spawned[0].model === "claude-haiku-5-5" && spawned[0].task.dir.endsWith("fix-x/investigate") && spawned[0].prompt.includes(`call: "investigate.complete"`), "the spawn carries the step's model, a folder inside the process, and the completing line");
 
 	const step = async (delta, caller) => { await item(delta, caller, PURL); await settle(FILE); };
 	await step({ investigate: { complete: { outcome: "found the cause in X.js", evidence: ["test"] } } }, "a1");
@@ -146,7 +146,7 @@ try {
 	await settle(SF);
 	let S = read(SF), sent0 = sent.length;
 	ok(r.ok && S[0].class === "Process" && S[0].process === "steps" && S.filter(l => l.tasks?.add).length === 2, "one call: a Process with the two steps as its steps");
-	ok(S.some(l => l["write-the-note"]?.start) && sent.at(-1).id === "mm1" && sent.at(-1).text.includes("write note.md") && sent.at(-1).text.includes(`"write-the-note": {"complete"`), "node starts step 1 and prompts the creator with it");
+	ok(S.some(l => l["write-the-note"]?.start) && sent.at(-1).id === "mm1" && sent.at(-1).text.includes("write note.md") && sent.at(-1).text.includes(`call: "write-the-note.complete"`), "node starts step 1 and prompts the creator with it");
 	await item({ "write-the-note": { complete: { outcome: "note.md written", evidence: ["test"] } } }, "mm1", SURL); await settle(SF);
 	ok(sent.length === sent0 + 1 && sent.at(-1).text.includes("read note.md back") && sent.at(-1).text.includes("note.md written"), "step 1 returns: node prompts step 2, with step 1's outcome");
 	const added = (await item({ tasks: { add: { title: "Add a step", do: "a step added while it runs" } } }, "mm1", SURL)).ids[0]; await settle(SF);   // a title add gets an Item.short_id (item-generic), never the slug "add-a-step"

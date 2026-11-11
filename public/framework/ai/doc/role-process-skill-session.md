@@ -6,7 +6,7 @@ The owner's questions (2026-10-24, items 12 and 13 of [the brief](../sessions/20
 
 Checked in the code, 2026-10-24.
 
-1. **Add a process to a session:** `item({path: <session>, delta: {tasks: {add: {title, process: "build", brief}}}})`. `page_tools.js` (`process_home`, `make_process`, around line 990) sees `process` (a template name) or `steps` (your own list), makes the folder, writes line 1 and one add line per step, and notes it in the session.
+1. **Add a process to a session:** `item({path: <session>, call: "tasks.add", args: {title, process: "build", brief}})`. `page_tools.js` (`process_home`, `make_process`, around line 990) sees `process` (a template name) or `steps` (your own list), makes the folder, writes line 1 and one add line per step, and notes it in the session.
 2. **Spawn an agent from it:** the same call tells `ProcessRunner` (`Servex/ProcessRunner.js`, `launch()`), which calls `agents.spawn({role, model, effort, prompt, task})` for each step whose `session.run` is `fresh`, then moves on when the step's agent completes it with another item call. `same` re-uses the previous step's agent; `owner` hands the step to the process's creator.
 3. **A one-off agent is a one-step process:** `steps: [{title, do, session: {run: "fresh", role, model, effort}}]`. `Process.from_steps` already accepts it.
 

@@ -22,7 +22,7 @@ The helpers already exist and are already made on first use (`_helper(name)`). G
 
 - **Made on demand:** a getter per group over the existing `_helper`, so a page that never uses columns never builds them.
 - **A delta walks into a group like a child:** `{"tabs": {"set": {name}}}`. Each group class declares its own `static callable`.
-- **Help stays small:** the item tool prints only the group names and one line each (`groups: {columns: "…"}`); `item({path, read: "help.columns"})` prints one group's verbs when asked. The page's own surface stays the 9 methods plus the `content` list.
+- **Help stays small:** the item tool prints only the group names and one line each (`groups: {columns: "…"}`); `item({path, get: "help.columns"})` prints one group's verbs when asked. The page's own surface stays the 9 methods plus the `content` list.
 - Delete the five dead ones (`settle_columns`, `column_slide`, `scroll_column`, `resize_column`, `in_doc`); rename `Page.add`/`Page.move` to `add_page`/`move_page`.
 
 ## Cost and risk
