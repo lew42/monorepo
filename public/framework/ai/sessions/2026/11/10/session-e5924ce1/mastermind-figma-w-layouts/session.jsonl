@@ -13,3 +13,6 @@
 {"pid_exit":5100,"ended":"2026-11-11T02:53:59-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"log":{"at":"2026-11-11T02:59:40-06:00","heartbeat":"deliberate","msg":"mastermind-figma-w-layouts its agent is not running: it was stopped on purpose by mastermind-figma-live at 2026-11-11T02:53:45-06:00; not revived."}}
 {"log":{"at":"2026-11-11T03:05:28-06:00","msg":"task-loop status ask 1: mastermind-figma-w-layouts was stopped on purpose; not woken","ask":1}}
+{"log":{"at":"2026-11-11T03:10:28-06:00","msg":"task-loop status ask 2: mastermind-figma-w-layouts was stopped on purpose; not woken","ask":2}}
+{"log":{"at":"2026-11-11T03:15:28-06:00","msg":"task-loop status ask 3: mastermind-figma-w-layouts was stopped on purpose; not woken","ask":3}}
+{"log":{"at":"2026-11-11T03:20:28-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
