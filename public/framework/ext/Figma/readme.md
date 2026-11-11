@@ -98,10 +98,13 @@ Page `Pills` (210:14169, right after Icons): masters at the root at x -420 (Pill
 
 ## The Flow page (mine, 2026-11-11)
 
-Page `Flow` (382:26220): a flowchart that lays itself out. Masters at x -480 (Add `382:26276`, Step set `382:26291`, Branch set `382:26306`, Flow set `382:26329`); `Page · Flow` (385:11721) shows the same path from a bare surface to the hero left to right (A), top to bottom (B) and as a branch (C), built from the file's real instances scaled to 200 wide.
-- **Direction is a variant** (Horizontal | Vertical) on Step, Branch and Flow, because `layoutMode` cannot be bound to a variable. **Step** = `Content` slot + an `Arrow` boolean to the next step. **Flow** = a `Steps` slot of Steps ending in an **Add** (the + slot; duplicate the last Step or drop a new one before it). **Branch** = a Step whose `Branches` slot takes two or more Flows of the same direction. A Step's content may itself be a Flow or Branch.
-- **Equal node height keeps arrows centred:** in a left-to-right row, give each node's Preview the same fixed height; a hugging node with a longer caption moves its own arrow.
-- **Preview scale:** `rescale(k)` works on an instance (Card, Panel, Hero, Section); wrap it in a clipped Preview frame of fixed width.
+Page `Flow` (382:26220): a flowchart that lays itself out. Masters at x -954: Step set `382:26291`, Flow set `382:26329`, Branch set `397:12341`. `Page · Flow` (385:11721) shows a path from a bare surface to the hero left to right (A), top to bottom (B), a square fork (C), a rounded 3-path fork (D) and the duplicate test (E, `399:12332`).
+- **Arrows are real vector paths** (`createVector` + `setVectorNetworkAsync`, `ARROW_LINES` cap, stroke bound to Scheme `muted`, weight 2), each in an auto-layout wrapper with the vector set to FILL along its axis, so it stretches with its container.
+- **Direction is a variant** (Horizontal | Vertical) on Step and Flow, because `layoutMode` cannot be bound to a variable. **Step** = `Content` slot plus its trailing arrow as one unit, with a boolean `Arrow` (on by default). **Flow** = a `Steps` slot of Steps; there is no Add button (the old one is on the Cut list).
+- **Duplicate to add:** select a step, Ctrl+D, and you get card and arrow (tested in section E). Turn `Arrow` off on the last step; when you duplicate the last step, turn `Arrow` on for the old last one.
+- **Branch** (set, 8 variants: Direction x Corners Square|Rounded x Paths 2|3): a `Content` slot, a trunk and a tree-style fork into `Path 1`..`Path 3` slots, each holding a Flow. Rounded corners are vertex `cornerRadius` 16. Gap: the trunk meets the fork exactly only when the path rows have equal height.
+- **Traps:** a slot must be made with `component.createSlot()` (a plain frame has no `appendChild`); a zero-width vector set to FILL centres itself, so pin a spine to 0.01 and align the parent MIN; moving a node between instance slots leaves stale ids, so `clone()` then `appendChild`; `clone()` of a nested step does not land in its slot, so use `slot.insertChild(i + 1, step.clone())`.
+- **Equal node height keeps arrows centred:** in a left-to-right row, a hugging node with a longer caption moves its own arrow. `rescale(k)` works on an instance; wrap it in a clipped frame of fixed width.
 - **Design-system gaps this chart exposed:** no Surface component and no Stack component (both are labeled placeholders on the page); a Card's header-and-body layout is an unpadded slot override, not a named mode.
 
 ## Component pages: column, masters, workspace (owner, 2026-11-10)
