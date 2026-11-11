@@ -1,26 +1,28 @@
 diff --git a/public/framework/core/Plugin/readme.md b/public/framework/core/Plugin/readme.md
-index 0b27fcd4ff..bc0066b9d1 100644
+index d7c776f53..c8ed3c480 100644
 --- a/public/framework/core/Plugin/readme.md
 +++ b/public/framework/core/Plugin/readme.md
-@@ -45,3 +45,4 @@ Badge.make_default(b);                             // "Make default": b's overri
+@@ -58,3 +58,4 @@ Badge.make_default(b);                             // "Make default": b's overri
  
  - [doc/design-notes.md](./doc/design-notes.md) — events vs extension vs mixins, ordering, cost, debugging, names considered.
  - [doc/investigation.md](./doc/investigation.md) — what existed before this, and who used it.
 +- [/live/demos/plugins/](/live/demos/plugins/) — the MVP demo: a page as a tree of plugins, with a saved switch.
 diff --git a/public/live/demos/page.jsonl b/public/live/demos/page.jsonl
-index b2af2d46a6..3cb2d64760 100644
+index 7fc527dd2..406b5bebd 100644
 --- a/public/live/demos/page.jsonl
 +++ b/public/live/demos/page.jsonl
-@@ -20,3 +20,6 @@
- {"file":"code-card/page.jsonl"}
+@@ -21,6 +21,8 @@
  {"content":{"add":{"id":"codecard1","type":"part-link","path":"./code-card/","title":"Code card — js, json and css, highlighted"}},"ts":"2026-11-06T23:30:00.000Z","by":"minion-code-card"}
  {"file":"ref/"}
-+{"file":"ref/page.js"}
+ {"file":"ref/page.js"}
 +{"file":"plugins/"}
 +{"file":"plugins/page.js"}
+ {"content":{"add":{"id":"refdemo","type":"part-link","path":"/live/demos/ref/","title":"Ref — one item, two lists","text":"Edit it in list A; list B's Ref shows the change"}},"by":"mastermind-page-design","ts":"2026-11-09T23:56:14.066Z"}
+ {"file":"instant/page.jsonl"}
+ {"content":{"add":{"type":"part-link","id":"link-instant","path":"./instant/","title":"Instant page changes"}},"by":"pages.add","ts":"2026-11-10T00:22:05.007Z"}
 diff --git a/public/live/demos/plugins/Badge.js b/public/live/demos/plugins/Badge.js
 new file mode 100644
-index 0000000000..58b073b28e
+index 000000000..58b073b28
 --- /dev/null
 +++ b/public/live/demos/plugins/Badge.js
 @@ -0,0 +1,23 @@
@@ -49,7 +51,7 @@ index 0000000000..58b073b28e
 +export default Badge;
 diff --git a/public/live/demos/plugins/Border.js b/public/live/demos/plugins/Border.js
 new file mode 100644
-index 0000000000..ddbd12166f
+index 000000000..ddbd12166
 --- /dev/null
 +++ b/public/live/demos/plugins/Border.js
 @@ -0,0 +1,7 @@
@@ -62,7 +64,7 @@ index 0000000000..ddbd12166f
 +export default Border;
 diff --git a/public/live/demos/plugins/Count.js b/public/live/demos/plugins/Count.js
 new file mode 100644
-index 0000000000..2cb6feceef
+index 000000000..2cb6fecee
 --- /dev/null
 +++ b/public/live/demos/plugins/Count.js
 @@ -0,0 +1,7 @@
@@ -75,7 +77,7 @@ index 0000000000..2cb6feceef
 +export default Count;
 diff --git a/public/live/demos/plugins/DemoPage.js b/public/live/demos/plugins/DemoPage.js
 new file mode 100644
-index 0000000000..e32f2398d8
+index 000000000..e32f2398d
 --- /dev/null
 +++ b/public/live/demos/plugins/DemoPage.js
 @@ -0,0 +1,10 @@
@@ -91,7 +93,7 @@ index 0000000000..e32f2398d8
 +export default DemoPage;
 diff --git a/public/live/demos/plugins/DemoPage.test.mjs b/public/live/demos/plugins/DemoPage.test.mjs
 new file mode 100644
-index 0000000000..aec22918a2
+index 000000000..aec22918a
 --- /dev/null
 +++ b/public/live/demos/plugins/DemoPage.test.mjs
 @@ -0,0 +1,60 @@
@@ -157,7 +159,7 @@ index 0000000000..aec22918a2
 +});
 diff --git a/public/live/demos/plugins/Wide.js b/public/live/demos/plugins/Wide.js
 new file mode 100644
-index 0000000000..7607afa6d5
+index 000000000..7607afa6d
 --- /dev/null
 +++ b/public/live/demos/plugins/Wide.js
 @@ -0,0 +1,7 @@
@@ -170,7 +172,7 @@ index 0000000000..7607afa6d5
 +export default Wide;
 diff --git a/public/live/demos/plugins/files.jsonl b/public/live/demos/plugins/files.jsonl
 new file mode 100644
-index 0000000000..80024cbade
+index 000000000..80024cbad
 --- /dev/null
 +++ b/public/live/demos/plugins/files.jsonl
 @@ -0,0 +1,10 @@
@@ -186,12 +188,13 @@ index 0000000000..80024cbade
 +{"file":"readme.md"}
 diff --git a/public/live/demos/plugins/page.js b/public/live/demos/plugins/page.js
 new file mode 100644
-index 0000000000..bfb808ab32
+index 000000000..0143229c2
 --- /dev/null
 +++ b/public/live/demos/plugins/page.js
-@@ -0,0 +1,91 @@
+@@ -0,0 +1,97 @@
 +import { Page, md, div, span, label, input, button, pre, code } from "/app.js";
 +import DemoPage from "./DemoPage.js";
++import Badge from "./Badge.js";
 +import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 +import { RecordWriter } from "/framework/core/Item/RecordWriter.js";
 +
@@ -200,21 +203,26 @@ index 0000000000..bfb808ab32
 +// gives (core/Plugin/Plugin.js). The item tool writing the same line also reaches this reader, so an open tab redraws.
 +const FILE_URL = new URL("./page.jsonl", import.meta.url).pathname;
 +
-+let overrides = {}, demo = null, redraw = () => {};
++let overrides = {}, sub = {}, demo = null, redraw = () => {};
 +const jsonl = new JSONL({ url: FILE_URL });
 +jsonl.read = entries => {
-+	for (const o of entries) if (o && typeof o.overrides === "object") overrides = o.overrides;
++	for (const o of entries) if (o && typeof o.overrides === "object") { overrides = o.overrides; sub = o.sub || {}; }
 +};
++// Badge's own plugin (Count) is a class-level row, not a per-box override, so it rides in the same line as `sub`.
++const apply_sub = () => { for (const [name, enabled] of Object.entries(sub)) Badge.plugins.set({ [name]: { enabled } }); };
++apply_sub();
 +// Resolved before this page's own content() builds its DOM (same reason as /live/demos/ref/page.js): `overrides` is
 +// already the saved value by the time `new DemoPage({overrides})` runs, so the first draw already shows it.
-+await jsonl.live(() => { demo?.load_overrides(overrides); redraw(); });
++await jsonl.live(() => { demo?.load_overrides(overrides); apply_sub(); redraw(); });
 +
 +// A worktree's own page answers RecordWriter's one entry point "stubbed" (page_tools.js: "another checkout"), so the
 +// line never lands there — the same case core/Item/Store.js#flush falls back for: send the ones not taken straight
 +// through this page's own dev server (Outbox, the wire half of FsFile.append).
 +const save = async () => {
 +	if (!demo) return;
-+	const { rest } = await RecordWriter.post(FILE_URL, { lines: [{ overrides: demo.overrides }] });
++	sub = {};
++	for (const row of demo.plugins) for (const r of row.plugins || []) sub[r.get("name")] = !!r.get("enabled");
++	const { rest } = await RecordWriter.post(FILE_URL, { lines: [{ overrides: demo.overrides, sub }] });
 +	if (!rest.length) return;
 +	const { default: Outbox } = await import("/framework/core/Item/Outbox.js");
 +	await Outbox.shared().send(FILE_URL, rest, { item: true });
@@ -261,13 +269,13 @@ index 0000000000..bfb808ab32
 +		const draw = () => { $panel.empty(() => { demo.plugins.forEach(top_row); }); };
 +
 +		div.c("flex wrap gap", () => {
-+			div.c("card pad flow", () => {
-+				$panel = div.c("flow");
-+				button.c("btn prim").text("Reset").attr("type", "button").click(() => { demo.reset_plugins(); save(); draw(); });
-+			}).style("flex", "1 1 16em");
 +			div.c("flex v gap", () => {
 +				span.c("muted", "Live result");
 +				div.c("surface pad").el.appendChild(el);
++			}).style("flex", "1 1 16em");
++			div.c("card pad flow", () => {
++				$panel = div.c("flow");
++				button.c("btn prim").text("Reset").attr("type", "button").click(() => { demo.reset_plugins(); Badge.plugins.set({ Count: { enabled: true } }); save(); draw(); });
 +			}).style("flex", "1 1 16em");
 +		});
 +		draw();
@@ -283,7 +291,7 @@ index 0000000000..bfb808ab32
 +});
 diff --git a/public/live/demos/plugins/page.jsonl b/public/live/demos/plugins/page.jsonl
 new file mode 100644
-index 0000000000..a731c73064
+index 000000000..a731c7306
 --- /dev/null
 +++ b/public/live/demos/plugins/page.jsonl
 @@ -0,0 +1,2 @@
@@ -291,7 +299,7 @@ index 0000000000..a731c73064
 +{"overrides":{},"by":"owner","ts":"2026-11-10T00:35:44.242Z"}
 diff --git a/public/live/demos/plugins/readme.md b/public/live/demos/plugins/readme.md
 new file mode 100644
-index 0000000000..ef03a07dc6
+index 000000000..a5fd79b98
 --- /dev/null
 +++ b/public/live/demos/plugins/readme.md
 @@ -0,0 +1,27 @@
@@ -306,17 +314,17 @@ index 0000000000..ef03a07dc6
 +- `Badge.js` — a plugin that is **also** pluggable (`Badge.use(Count)`, a plugin of a plugin). `Badge.attach(inst)` draws the badge element, then makes a real `new Badge({el})` to hold it, so Badge's own plugins attach the normal way.
 +- `Count.js` — Badge's own plugin: writes a number onto the badge.
 +- `page.js` — the page: the box, the tree panel (one row per `demo.plugins`, nested rows from `row.plugins`), a Reset button, and the "what you just did" code block.
-+- `page.jsonl` — **not** a routing file (this page is a `page.js` page): one plain data file, the single source of truth for the saved switch. One line, `{"overrides": {...}}`, the plain object `demo.overrides` gives.
++- `page.jsonl` — **not** a routing file (this page is a `page.js` page): one plain data file, the single source of truth for the saved switch. One line, `{"overrides": {...}, "sub": {...}}`: `demo.overrides` plus Badge's own plugin state.
 +- `DemoPage.test.mjs` — the core test (`node public/live/demos/plugins/DemoPage.test.mjs`).
 +
 +## How the switch is saved
 +
-+A checkbox calls `row.set({enabled})`, which flips the plugin on the live box; then the page calls `RecordWriter.post(FILE_URL, {lines: [{overrides: demo.overrides}]})` (`core/Item/RecordWriter.js`) to append one line to this page's own `page.jsonl`. On load, `page.js` reads that file (`JSONL`, `ext/JSONL/JSONL.js`) for the last `overrides` line and passes it to `new DemoPage({overrides})` before the first draw. The same file is kept live (`jsonl.live(...)`): a line the item tool writes there reaches every open tab too, so it redraws with no reload.
++A checkbox calls `row.set({enabled})`, which flips the plugin on the live box; then the page calls `RecordWriter.post(FILE_URL, {lines: [{overrides: demo.overrides, sub}]})` (`core/Item/RecordWriter.js`) to append one line to this page's own `page.jsonl` (in a worktree RecordWriter answers "stubbed", so the line goes through `Outbox.shared().send` instead). On load, `page.js` reads that file (`JSONL`, `ext/JSONL/JSONL.js`) for the last `overrides` line and passes it to `new DemoPage({overrides})` before the first draw. The same file is kept live (`jsonl.live(...)`): a line the item tool writes there reaches every open tab too, so it redraws with no reload.
 +
 +## Watch out
 +
 +- `Badge` is a plugin of `DemoPage` AND a `Plugin` host of its own; its sub-plugin (`Count`) attaches to the real `new Badge({el})` instance `Badge.attach` makes internally, not to the `DemoPage` instance.
-+- The sub-plugin's checkbox toggles the CLASS-level row (`Badge.enable`/`disable`), not a per-`DemoPage`-instance override — there is one `Count` setting shared by every demo box, which is enough for this MVP.
++- The sub-plugin's checkbox toggles the CLASS-level row (`Badge.plugins`), not a per-`DemoPage`-instance override — there is one `Count` setting shared by every demo box. It is saved in the same `page.jsonl` line as `sub`: `{"overrides": {...}, "sub": {"Count": false}}`, and re-applied to `Badge.plugins` on load.
 +
 +## More
 +

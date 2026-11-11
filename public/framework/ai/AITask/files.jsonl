@@ -63,3 +63,4 @@
 {"file":"failures.jsonl","gone":true}
 {"file":"failures.jsonl"}
 {"file":"tree/page.js","nav":{"title":"Task tree","icon":"account_tree","description":"A day's tasks as a tree: which ran at the same time, which waited, what is running now, and how far along each one is."}}
+{"file":"failures.jsonl","gone":true}

@@ -30822,3 +30822,19 @@
 {"file":"239b0bd4-68fd-4b96-9f0a-3807901571f2/page.jsonl","gone":true}
 {"file":"doc/","nav":{"title":"Sessions docs: the index"}}
 {"file":"v/page.js","nav":{"title":"Session variants","icon":"science","description":"Variant takes on the sessions pages. Each is a folder here."}}
+{"file":"transcripts/","gone":true}
+{"file":"sessions.json","gone":true}
+{"file":"spend-tree.json","gone":true}
+{"file":"week.json","gone":true}
+{"file":"session-index.json","gone":true}
+{"file":"session-tree.json","gone":true}
+{"file":"openrouter-reconcile.json","gone":true}
+{"file":"openrouter-costs.json","gone":true}
+{"file":"screenshots/","gone":true}
+{"file":"index.jsonl","gone":true}
+{"file":"failures.jsonl","gone":true}
+{"file":"session-folders.json","gone":true}
+{"file":"2020/","gone":true}
+{"file":"session-twins.json","gone":true}
+{"file":"session-index.json"}
+{"file":"session-tree.json"}

@@ -66,3 +66,4 @@
 {"file":"live/page.js","nav":{"title":"Live list","icon":"reorder","description":"A page's own content, as a List of Items, saved to a real file — drag, add or sort, then reload: the list comes back."}}
 {"file":"replay/page.js","nav":{"title":"Replay lab","icon":"replay","description":"Press a button, reload, and see what the real Item, Task and Store bring back and what they run a second time."}}
 {"file":"watch/page.js","nav":{"title":"Watch a tree being built","icon":"visibility","description":"Step through it: every object shows as it is made and changed, and every line it saves sits beside it."}}
+{"file":"failures.jsonl","gone":true}

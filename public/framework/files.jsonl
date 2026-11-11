@@ -219,3 +219,4 @@
 {"file":"util/page.js","nav":{"title":"Util","icon":"handyman","description":"Small, dependency-free helpers. Plain functions, no classes, no state."}}
 {"file":"ux/page.js","nav":{"title":"UX","icon":"layers","description":"The behavior tier — ui/ hands you markup, ux/ hands you a class you can extend."}}
 {"file":"versus/page.js","nav":{"title":"Versus","icon":"balance","description":"What it refuses, what that buys, what it costs — and the column where React wins."}}
+{"file":"failures.jsonl","gone":true}

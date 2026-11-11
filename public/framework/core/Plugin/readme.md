@@ -58,3 +58,4 @@ Badge.make_default(b);                             // "Make default": b's overri
 
 - [doc/design-notes.md](./doc/design-notes.md) — events vs extension vs mixins, ordering, cost, debugging, names considered.
 - [doc/investigation.md](./doc/investigation.md) — what existed before this, and who used it.
+- [/live/demos/plugins/](/live/demos/plugins/) — the MVP demo: a page as a tree of plugins, with a saved switch.

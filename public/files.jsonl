@@ -184,3 +184,5 @@
 {"file":"tasks/page.jsonl","nav":{"title":"Tasks","icon":"task_alt","description":"Every task a module keeps in its own tasks/ folder: the Inbox with its Tasks and Home chips on."}}
 {"file":"web/page.js","nav":{"title":"Web","icon":"language","description":"The guide — how to build things on the web, shown live."}}
 {"file":"websites/page.js","nav":{"title":"Websites","icon":"public","description":"Real sites, shot at four widths and tagged by their layout."}}
+{"file":"data/","gone":true}
+{"file":"failures.jsonl","gone":true}

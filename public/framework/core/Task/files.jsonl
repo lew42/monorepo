@@ -63,3 +63,4 @@
 {"file":"live/page.js","nav":{"title":"Ship the feature","icon":"checklist","description":"Start, pause and complete a real Task with subtasks — no reload. Try to complete it too early and watch it refuse."}}
 {"file":"page/page.js","nav":{"title":"TaskPage","icon":"checklist","description":"The thin route: opens this folder's task.jsonl and shows the task full-size."}}
 {"file":"process/page.js","nav":{"title":"Process","icon":"account_tree","description":"A Task whose children are named steps. Node runs them in order and hands each step's instructions to the next session."}}
+{"file":"failures.jsonl","gone":true}

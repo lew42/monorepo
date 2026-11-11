@@ -21,6 +21,8 @@
 {"content":{"add":{"id":"codecard1","type":"part-link","path":"./code-card/","title":"Code card — js, json and css, highlighted"}},"ts":"2026-11-06T23:30:00.000Z","by":"minion-code-card"}
 {"file":"ref/"}
 {"file":"ref/page.js"}
+{"file":"plugins/"}
+{"file":"plugins/page.js"}
 {"content":{"add":{"id":"refdemo","type":"part-link","path":"/live/demos/ref/","title":"Ref — one item, two lists","text":"Edit it in list A; list B's Ref shows the change"}},"by":"mastermind-page-design","ts":"2026-11-09T23:56:14.066Z"}
 {"file":"instant/page.jsonl"}
 {"content":{"add":{"type":"part-link","id":"link-instant","path":"./instant/","title":"Instant page changes"}},"by":"pages.add","ts":"2026-11-10T00:22:05.007Z"}
@@ -41,3 +43,4 @@
 {"file":"ref/page.js","nav":{"title":"One source of truth","icon":"link","description":"One item, two places: edit the title in List A and List B's Ref shows the change, no reload."}}
 {"file":"tabs/page.jsonl","nav":{"title":"Tabs"}}
 {"file":"tabs-page/page.jsonl","nav":{"title":"Tabs"}}
+{"file":"plugins/page.js","nav":{"title":"Plugins","icon":"extension","description":"A page is a tree of plugins. Flip a switch; the page changes now and after a reload."}}

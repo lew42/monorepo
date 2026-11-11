@@ -73,3 +73,4 @@
 {"file":"tooltip/page.js","nav":{"title":"Tooltip","icon":"help_outline","description":"Three spans and a stylesheet — the CSS is the whole component."}}
 {"file":"tree/page.js","nav":{"title":"Tree","icon":"▣","description":"Icon + text rows, indented once per nesting level — a sidebar for layers, navigation, anything with children."}}
 {"file":"words/page.js","nav":{"title":"Config words","icon":"style","description":"Two classes on a section — every component inside re-skins, and no component knows."}}
+{"file":"failures.jsonl","gone":true}

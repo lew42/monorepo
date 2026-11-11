@@ -38,3 +38,4 @@
 {"file":"tests/page.js","nav":{"title":"Test corpus","description":"Twenty-three layouts with a declared verdict — fifteen broken on purpose, eight that should score clean."}}
 {"file":"vision/page.js","nav":{"title":"Vision browse","icon":"visibility","description":"Every screenshot a run took — prompt, model, tokens and feedback, with a box to ask more."}}
 {"file":"widths/page.js","nav":{"title":"Widths","icon":"straighten","description":"The width tier's bare /full/ urls, and the library arrangements they cite, read at 400/1280/1920/3440."}}
+{"file":"failures.jsonl","gone":true}

@@ -93,3 +93,5 @@
 {"file":"runs/page.js","nav":{"title":"Refine runs by day","icon":"history","description":"The owner's past prompts, refined day by day in reverse, each ask scored on the 0.5 = not sure scale."}}
 {"file":"stages/","nav":{"title":"Refine stages","description":"the live stages of a voice prompt"}}
 {"file":"try/page.js","nav":{"title":"Try it","icon":"science","description":"Run the real clean() step against any model — local, cheap OpenRouter, or Haiku — and compare."}}
+{"file":"screenshots/","gone":true}
+{"file":"failures.jsonl","gone":true}

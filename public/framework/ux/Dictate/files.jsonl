@@ -92,3 +92,4 @@
 {"file":"variants/page.js","nav":{"title":"Variants","icon":"grid_view","description":"Today's box (v1), the mobile prompt-cards flow, a compact one-line toolbar mic, and Parts — the same whisper pipeline rebuilt on audio/'s rolling-window transcriber."}}
 {"file":"VoiceChat/","nav":{"title":"VoiceChat"}}
 {"file":"workspace/page.js","nav":{"title":"Workspace","icon":"space_dashboard","description":"A dictation workspace where each sentence becomes an item you can see and move, while raw transcript stays beside it."}}
+{"file":"failures.jsonl","gone":true}
