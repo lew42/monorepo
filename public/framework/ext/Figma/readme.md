@@ -95,6 +95,12 @@ Two docs pages after the card system, before `Claude · Sandbox` (docs, not part
 - **A text style overrides a bound `fontSize`.** For a mode cascade the text must be unstyled (`setTextStyleIdAsync('')`, restore fontName, lineHeight, letterSpacing, then bind). Width and height binding cascades through explicit parent modes with no such trap.
 - **Screenshotting a nested section:** `get_screenshot` refuses nested ids; clone the section to the page root, shoot it, delete it. A section placed in a slot gets a nested id, so look it up by name.
 
+- **Demo 7, Card or Panel** (292:9671): a padded Card beside the real Panel with its pre-filled rows, three steps.
+
+## Component pages: column, masters, workspace (owner, 2026-11-10)
+
+Every component page (Cards, Inputs, Buttons & toolbars, Pills, Lists & grids, Navigation, Bars, Overlays, Panels, Images, Layouts) follows the owner's `Inputs` page: a vertical frame named like the page holds a short Preview (the 3 best items in 3 captioned columns) above the page template; the masters sit at the root to its right; and an open **Workspace** at (0,0) holds a Toolbox, 2 to 4 "Recreate this" lessons (example beside an empty Card, Panel or Screen) and a Cut list. The lesson kit masters (Lesson 270:8072, Step, Drop zone, Toolbox) live on Walkthroughs. **Card = padded, Panel = zero padding with full-width rows, one system:** Panel `153:1779` clips, has no gap, and ships pre-filled with Card header, media, body and footer. Recipe and traps: [doc/use-figma.md](./doc/use-figma.md#component-page-layout-workspace-and-card-vs-panel-owner-2026-11-10).
+
 - **Naming:** a base component is `X`, its set is `X Set` (Pill and Pill Set, Tag and Tag Set, Icon and Icon Set).
 - **Every component set has the Figma-default look** (dashed #9747FF, vertical, padding 20; recipe in [use-figma.md, Traps](./doc/use-figma.md#traps)).
 - **Pill and Icon item have no TEXT property.** Each variant's text shows its own class (H1 to Label) and an instance is edited by typing over the text. Deleting the property wiped property-set text on existing instances (18 on Icons were retyped), so move text off a property only after reading the real nodes (see Traps in [use-figma.md](./doc/use-figma.md)).
