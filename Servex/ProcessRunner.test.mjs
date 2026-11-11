@@ -146,7 +146,7 @@ try {
 	await settle(SF);
 	let S = read(SF), sent0 = sent.length;
 	ok(r.ok && S[0].class === "Process" && S[0].process === "steps" && S.filter(l => l.tasks?.add).length === 2, "one call: a Process with the two steps as its steps");
-	ok(S.some(l => l["write-the-note"]?.start) && sent.at(-1).id === "mm1" && sent.at(-1).text.includes("write note.md") && sent.at(-1).text.includes(`"write-the-note": {"complete"`), "node starts step 1 and prompts the creator with it");
+	ok(S.some(l => l["write-the-note"]?.start) && sent.at(-1).id === "mm1" && sent.at(-1).text.includes("write note.md") && sent.at(-1).text.includes(`call: "write-the-note.complete"`), "node starts step 1 and prompts the creator with it");
 	await item({ "write-the-note": { complete: { outcome: "note.md written", evidence: ["test"] } } }, "mm1", SURL); await settle(SF);
 	ok(sent.length === sent0 + 1 && sent.at(-1).text.includes("read note.md back") && sent.at(-1).text.includes("note.md written"), "step 1 returns: node prompts step 2, with step 1's outcome");
 	const added = (await item({ tasks: { add: { title: "Add a step", do: "a step added while it runs" } } }, "mm1", SURL)).ids[0]; await settle(SF);   // a title add gets an Item.short_id (item-generic), never the slug "add-a-step"
