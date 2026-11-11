@@ -7,3 +7,4 @@
 {"review":{"at":"2026-11-03T19:45:40-06:00","answer":{"n":6,"reply":"noted: the checkbox is a first version drawn in the title; ticking and a browser test are in todo.md"}}}
 {"review":{"at":"2026-11-03T19:45:40-06:00","answer":{"n":7,"reply":"noted: new topic becomes a card; stored paragraphs declined with a written proposal"}}}
 {"review":{"at":"2026-11-03T19:45:40-06:00","answer":{"n":8,"reply":"noted: no change needed"}}}
+{"unclosed":{"at":"2026-11-11T00:00:56-06:00","why":"unclosed: 9 log lines of work, never completed; last line 2026-11-04T01:45:40.807Z; closed by StaleClose 2026-11-11","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-11T06:00:56.635Z"}

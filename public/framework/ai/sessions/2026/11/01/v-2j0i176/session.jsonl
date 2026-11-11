@@ -84,3 +84,4 @@
 {"log":{"at":"2026-11-02T00:23:07-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
 {"log":{"at":"2026-11-02T00:36:47-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
 {"log":{"at":"2026-11-02T00:41:48-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"unclosed":{"at":"2026-11-11T00:00:53-06:00","why":"unclosed: 86 log lines of work, never completed; last line 2026-11-02T00:41:48-06:00; closed by StaleClose 2026-11-11","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-11T06:00:53.019Z"}

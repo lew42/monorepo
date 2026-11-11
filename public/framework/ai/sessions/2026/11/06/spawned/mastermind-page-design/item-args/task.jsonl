@@ -7,3 +7,4 @@
 {"review":{"at":"2026-11-09T18:28:11-06:00","answer":{"n":6,"reply":"fixed: this log has the answers, commits 064d5769e, bb82ed805 and 27bc8865a, and the worktree C:/Code/lew42/worktrees/item-args."}}}
 {"review":{"at":"2026-11-09T18:28:11-06:00","answer":{"n":7,"reply":"fixed: item-tool.md says the in-process schema accepts any args shape."}}}
 {"log":{"at":"2026-11-09T18:28:11-06:00","msg":"Also 27bc8865a: call passes the tool's own verbs (help, place, pages.*) straight through, like their delta (the docs-switch review found them refused). item-verbs 15, item_tool 148, zod_of 9 pass. Live after the next Servex restart."}}
+{"unclosed":{"at":"2026-11-11T00:01:01-06:00","why":"unclosed: 9 log lines of work, never completed; last line 2026-11-09T18:28:11-06:00; closed by StaleClose 2026-11-11","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-11T06:01:01.200Z"}

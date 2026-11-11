@@ -3,3 +3,4 @@
 {"review":{"at":"2026-11-02T17:36:56-06:00","answer":{"n":2,"reply":"fixed: checked all four agents' logs; every one called with `to` (one also `agent`). The entry is closed with that evidence, the stale sub-bullets removed."}}}
 {"review":{"at":"2026-11-02T17:36:56-06:00","answer":{"n":3,"reply":"fixed: the 09-29 comment now says `message` is an alias."}}}
 {"review":{"at":"2026-11-02T17:36:56-06:00","answer":{"n":4,"reply":"noted: this task line records the branch worktree/send-alias, commits 14b3586f5 and 0e9db9da4."}}}
+{"unclosed":{"at":"2026-11-11T00:00:38-06:00","why":"unclosed: 5 log lines of work, never completed; last line 2026-11-02T23:36:56.712Z; closed by StaleClose 2026-11-11","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-11T06:00:38.323Z"}

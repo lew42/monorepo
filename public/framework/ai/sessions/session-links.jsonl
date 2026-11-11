@@ -952,3 +952,6 @@
 {"run":"2026-11-10T06:02:14.126Z","kind":"links","count":2}
 {"run":"2026-11-10T06:02:14.126Z","dir":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/item-args","log":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/session.jsonl"}
 {"run":"2026-11-10T06:02:14.126Z","dir":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/plugins-mvp","log":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/session.jsonl"}
+{"run":"2026-11-11T06:00:23.402Z","kind":"links","count":2}
+{"run":"2026-11-11T06:00:23.402Z","dir":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/read-no-write","log":"public/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/session.jsonl"}
+{"run":"2026-11-11T06:00:23.402Z","dir":"public/framework/ai/sessions/2026/11/09/spawned/mastermind-ui-kit/step-5","log":"public/framework/ai/sessions/2026/11/09/spawned/mastermind-ui-kit/session.jsonl"}

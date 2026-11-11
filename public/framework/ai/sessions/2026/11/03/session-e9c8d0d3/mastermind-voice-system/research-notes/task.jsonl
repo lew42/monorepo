@@ -6,3 +6,4 @@
 {"review":{"at":"2026-11-03T19:40:23-06:00","answer":{"n":3,"reply":"noted: BargeIn.js line citations may drift; left as is"}}}
 {"review":{"at":"2026-11-03T19:40:23-06:00","answer":{"n":4,"reply":"noted: repo references verified by reviewer"}}}
 {"review":{"at":"2026-11-03T19:40:23-06:00","answer":{"n":5,"reply":"noted: minion spend is a few cents (Haiku, docs only); not itemised"}}}
+{"unclosed":{"at":"2026-11-11T00:00:57-06:00","why":"unclosed: 8 log lines of work, never completed; last line 2026-11-03T19:45:00-06:00; closed by StaleClose 2026-11-11","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-11T06:00:57.569Z"}

@@ -7,3 +7,4 @@
 {"review":{"at":"2026-11-03T19:31:14-06:00","answer":{"n":6,"reply":"noted: a failed spawn retries and logs per say; harmless noise while spawning is broken, falls back to the shared mastermind"}}}
 {"review":{"at":"2026-11-03T19:31:14-06:00","answer":{"n":7,"reply":"noted: the id is on the backing line and in the doc comment; small drift from the brief, no behaviour effect"}}}
 {"review":{"at":"2026-11-03T19:31:14-06:00","answer":{"n":8,"reply":"noted: seat brief is 892 words; the test enforces 900, a future edit must reword rather than add"}}}
+{"unclosed":{"at":"2026-11-11T00:00:57-06:00","why":"unclosed: 9 log lines of work, never completed; last line 2026-11-04T01:31:14.700Z; closed by StaleClose 2026-11-11","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-11T06:00:57.061Z"}

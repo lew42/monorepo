@@ -8,3 +8,4 @@
 {"review":{"at":"2026-11-01T18:19:18-06:00","answer":{"n":7,"reply":"fixed: a // link is no longer treated as a site path"}}}
 {"review":{"at":"2026-11-01T18:19:18-06:00","answer":{"n":8,"reply":"noted: a failed join falls back to starting a session, which is the old behaviour; the Sheet logs which session it follows"}}}
 {"set":{"state":"running"},"by":"owner","ts":"2026-11-02T23:02:54.688Z","client":"d6aa194c"}
+{"unclosed":{"at":"2026-11-11T00:00:36-06:00","why":"unclosed: 10 log lines of work, never completed; last line 2026-11-02T23:02:54.688Z; closed by StaleClose 2026-11-11","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-11T06:00:36.397Z"}

@@ -16,3 +16,4 @@
 {"review":{"at":"2026-11-10T19:57:47-06:00","answer":{"n":7,"reply":"noted: narrow column on wide screens is acceptable for a toy demo"}}}
 {"review":{"at":"2026-11-10T19:57:47-06:00","answer":{"n":8,"reply":"noted: tmp entry in files.jsonl is generated noise; page.jsonl is reset to a clean last line below"}}}
 {"review":{"at":"2026-11-10T19:57:47-06:00","answer":{"n":9,"reply":"noted: test patches up by hand; passes"}}}
+{"unclosed":{"at":"2026-11-11T00:01:01-06:00","why":"unclosed: 18 log lines of work, never completed; last line 2026-11-09T18:43:19-06:00; closed by StaleClose 2026-11-11","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-11T06:01:01.396Z"}

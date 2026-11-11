@@ -4,3 +4,4 @@
 {"review":{"at":"2026-11-02T03:20:00-06:00","answer":{"n":1,"reply":"fixed: this task.jsonl records the branch, the commit and the test run (FAIL before, PASS after); the task is filed on chat-model's record."}}}
 {"review":{"at":"2026-11-02T03:20:00-06:00","answer":{"n":2,"reply":"noted: the main tree keeps the old line until merge.mjs lands the branch; that is the point of the merge."}}}
 {"review":{"at":"2026-11-02T03:22:00-06:00","answer":{"n":3,"reply":"noted: agreed, a short log overlaps the whole first half and still exercises the replay dedupe."}}}
+{"unclosed":{"at":"2026-11-11T00:00:36-06:00","why":"unclosed: 6 log lines of work, never completed; last line 2026-11-02T03:20:00-06:00; closed by StaleClose 2026-11-11","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-11T06:00:36.223Z"}

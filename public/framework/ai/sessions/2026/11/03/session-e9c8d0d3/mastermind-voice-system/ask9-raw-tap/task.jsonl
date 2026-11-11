@@ -7,3 +7,4 @@
 {"review":{"at":"2026-11-03T19:00:25-06:00","answer":{"n":6,"reply":"fixed: the css comment now states the rule, not a task slug"}}}
 {"review":{"at":"2026-11-03T19:00:25-06:00","answer":{"n":7,"reply":"noted: requirement met, thanks"}}}
 {"review":{"at":"2026-11-03T19:00:34-06:00","answer":{"n":3,"reply":"declined: not a defect, the change lives on the worktree branch and lands with this very merge; confirmed after merge"}}}
+{"unclosed":{"at":"2026-11-11T00:00:57-06:00","why":"unclosed: 9 log lines of work, never completed; last line 2026-11-04T01:00:34.336Z; closed by StaleClose 2026-11-11","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-11T06:00:57.227Z"}
