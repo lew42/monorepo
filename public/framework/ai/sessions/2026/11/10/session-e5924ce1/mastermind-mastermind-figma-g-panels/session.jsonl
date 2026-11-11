@@ -6,3 +6,5 @@
 {"log":{"at":"2026-11-11T02:30:28-06:00","msg":"task-loop status ask 1: mastermind-mastermind-figma-g-panels was stopped on purpose; not woken","ask":1}}
 {"log":{"at":"2026-11-11T02:30:39-06:00","heartbeat":"deliberate","msg":"mastermind-mastermind-figma-g-panels its agent is not running: it was stopped on purpose by mastermind-figma-live at 2026-11-11T02:25:10-06:00; not revived."}}
 {"log":{"at":"2026-11-11T02:35:29-06:00","msg":"task-loop status ask 2: mastermind-mastermind-figma-g-panels was stopped on purpose; not woken","ask":2}}
+{"log":{"at":"2026-11-11T02:45:28-06:00","msg":"task-loop status ask 3: mastermind-mastermind-figma-g-panels was stopped on purpose; not woken","ask":3}}
+{"log":{"at":"2026-11-11T02:50:28-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}

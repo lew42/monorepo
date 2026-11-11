@@ -7,3 +7,6 @@
 {"log":{"at":"2026-11-11T02:22:35-06:00","msg":"agent stopped with its task still open and no outcome logged; StaleClose will read it unclosed"},"by":"servex-close-loop"}
 {"log":{"at":"2026-11-11T02:27:36-06:00","heartbeat":"deliberate","msg":"mastermind-figma-g-lists its agent is not running: it was stopped on purpose by mastermind-figma-live at 2026-11-11T02:22:35-06:00; not revived."}}
 {"log":{"at":"2026-11-11T02:35:29-06:00","msg":"task-loop status ask 1: mastermind-figma-g-lists was stopped on purpose; not woken","ask":1}}
+{"log":{"at":"2026-11-11T02:45:28-06:00","msg":"task-loop status ask 2: mastermind-figma-g-lists was stopped on purpose; not woken","ask":2}}
+{"log":{"at":"2026-11-11T02:50:28-06:00","msg":"task-loop status ask 3: mastermind-figma-g-lists was stopped on purpose; not woken","ask":3}}
+{"log":{"at":"2026-11-11T02:55:29-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}

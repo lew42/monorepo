@@ -311,3 +311,8 @@
 {"tool_call":{"at":"2026-11-11T08:35:50.545Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
 {"tool_call":{"at":"2026-11-11T08:35:50.985Z","tool":"updates","args_hash":"44136fa355b3","caller":"voice-app"}}
 {"tool_call":{"at":"2026-11-11T08:35:51.379Z","tool":"shell","args_hash":"5b1241b2d351","caller":"voice-app"}}
+{"log":{"at":"2026-11-11T02:45:28-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"tool_call":{"at":"2026-11-11T08:50:26.784Z","tool":"updates","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-11T08:51:09.278Z","tool":"send_to_agent","args_hash":"542d93fa5e0d","caller":"voice-app"}}
+{"log":{"at":"2026-11-11T03:00:28-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-11T03:05:28-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
