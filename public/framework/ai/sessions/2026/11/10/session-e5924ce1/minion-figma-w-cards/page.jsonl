@@ -5,3 +5,8 @@
 {"inbox":{"id":"n-w8sfb6rw","from":"servex-task-loop","text":"minion-figma-w-cards is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-11-11T03:05:30.599-06:00"}}
 {"inbox":{"id":"n-ydy8ojjo","from":"servex-task-loop","text":"minion-figma-w-cards is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-11-11T04:05:30.648-06:00"}}
 {"inbox":{"id":"n-0j45zn4j","from":"servex-task-loop","text":"minion-figma-w-cards is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-11-11T05:05:30.839-06:00"}}
+{"inbox":{"id":"n-mvzxuy73","from":"servex-heartbeat","text":"minion-figma-w-cards its agent is not running: it was stopped on purpose by mastermind-figma-live at 2026-11-11T00:40:01-06:00; not revived.","at":"2026-11-11T15:31:23.442-06:00"}}
+{"inbox":{"id":"n-n2ikaeet","from":"servex-heartbeat","text":"minion-figma-w-cards its agent is not running: its working directory C:/Code/lew42/worktrees/qf-2 no longer exists; not revived.","at":"2026-11-11T15:36:27.514-06:00"}}
+{"inbox":{"id":"n-ndzh96bv","from":"servex-task-loop","text":"minion-figma-w-cards is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-11-11T15:45:22.653-06:00"}}
+{"inbox":{"id":"n-pi1kqjo6","from":"servex-heartbeat","text":"minion-figma-w-cards its agent is not running: it was stopped on purpose by mastermind-figma-live at 2026-11-11T00:40:01-06:00; not revived.","at":"2026-11-11T16:44:31.226-06:00"}}
+{"inbox":{"id":"n-pj8hjlfd","from":"servex-task-loop","text":"minion-figma-w-cards is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-11-11T16:45:26.839-06:00"}}

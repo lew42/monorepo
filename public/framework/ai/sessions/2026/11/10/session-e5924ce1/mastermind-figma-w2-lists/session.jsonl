@@ -13,3 +13,7 @@
 {"log":{"at":"2026-11-11T02:20:28-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
 {"log":{"at":"2026-11-11T03:20:28-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-11T04:20:29-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-11T05:20:29-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-11T15:31:19-06:00","heartbeat":"deliberate","msg":"mastermind-figma-w2-lists its agent is not running: it was stopped on purpose by mastermind-figma-live at 2026-11-11T01:47:20-06:00; not revived."}}
+{"log":{"at":"2026-11-11T15:40:21-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"stop":{"at":"2026-11-11T16:40:24-06:00","why":"dropped: owner mastermind-figma-w2-lists is stopped"}}
