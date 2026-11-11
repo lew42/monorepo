@@ -233,3 +233,7 @@
 {"log":{"at":"2026-11-10T21:25:19-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
 {"log":{"at":"2026-11-10T21:30:19-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
 {"tool_call":{"at":"2026-11-11T03:32:49.554Z","tool":"updates","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"log":{"at":"2026-11-10T21:40:19-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-10T21:45:20-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-10T21:55:19-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-10T22:00:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
