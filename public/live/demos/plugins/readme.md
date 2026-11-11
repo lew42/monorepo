@@ -19,7 +19,7 @@ A checkbox calls `row.set({enabled})`, which flips the plugin on the live box; t
 ## Watch out
 
 - `Badge` is a plugin of `DemoPage` AND a `Plugin` host of its own; its sub-plugin (`Count`) attaches to the real `new Badge({el})` instance `Badge.attach` makes internally, not to the `DemoPage` instance.
-- The sub-plugin's checkbox toggles the CLASS-level row (`Badge.enable`/`disable`), not a per-`DemoPage`-instance override — there is one `Count` setting shared by every demo box, which is enough for this MVP.
+- The sub-plugin's checkbox toggles the CLASS-level row (`Badge.plugins`), not a per-`DemoPage`-instance override — there is one `Count` setting shared by every demo box. It is saved in the same `page.jsonl` line as `sub`: `{"overrides": {...}, "sub": {"Count": false}}`, and re-applied to `Badge.plugins` on load.
 
 ## More
 

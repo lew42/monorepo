@@ -1,5 +1,6 @@
 import { Page, md, div, span, label, input, button, pre, code } from "/app.js";
 import DemoPage from "./DemoPage.js";
+import Badge from "./Badge.js";
 import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 import { RecordWriter } from "/framework/core/Item/RecordWriter.js";
 
@@ -8,21 +9,26 @@ import { RecordWriter } from "/framework/core/Item/RecordWriter.js";
 // gives (core/Plugin/Plugin.js). The item tool writing the same line also reaches this reader, so an open tab redraws.
 const FILE_URL = new URL("./page.jsonl", import.meta.url).pathname;
 
-let overrides = {}, demo = null, redraw = () => {};
+let overrides = {}, sub = {}, demo = null, redraw = () => {};
 const jsonl = new JSONL({ url: FILE_URL });
 jsonl.read = entries => {
-	for (const o of entries) if (o && typeof o.overrides === "object") overrides = o.overrides;
+	for (const o of entries) if (o && typeof o.overrides === "object") { overrides = o.overrides; sub = o.sub || {}; }
 };
+// Badge's own plugin (Count) is a class-level row, not a per-box override, so it rides in the same line as `sub`.
+const apply_sub = () => { for (const [name, enabled] of Object.entries(sub)) Badge.plugins.set({ [name]: { enabled } }); };
+apply_sub();
 // Resolved before this page's own content() builds its DOM (same reason as /live/demos/ref/page.js): `overrides` is
 // already the saved value by the time `new DemoPage({overrides})` runs, so the first draw already shows it.
-await jsonl.live(() => { demo?.load_overrides(overrides); redraw(); });
+await jsonl.live(() => { demo?.load_overrides(overrides); apply_sub(); redraw(); });
 
 // A worktree's own page answers RecordWriter's one entry point "stubbed" (page_tools.js: "another checkout"), so the
 // line never lands there — the same case core/Item/Store.js#flush falls back for: send the ones not taken straight
 // through this page's own dev server (Outbox, the wire half of FsFile.append).
 const save = async () => {
 	if (!demo) return;
-	const { rest } = await RecordWriter.post(FILE_URL, { lines: [{ overrides: demo.overrides }] });
+	sub = {};
+	for (const row of demo.plugins) for (const r of row.plugins || []) sub[r.get("name")] = !!r.get("enabled");
+	const { rest } = await RecordWriter.post(FILE_URL, { lines: [{ overrides: demo.overrides, sub }] });
 	if (!rest.length) return;
 	const { default: Outbox } = await import("/framework/core/Item/Outbox.js");
 	await Outbox.shared().send(FILE_URL, rest, { item: true });
@@ -69,13 +75,13 @@ export default new Page({
 		const draw = () => { $panel.empty(() => { demo.plugins.forEach(top_row); }); };
 
 		div.c("flex wrap gap", () => {
-			div.c("card pad flow", () => {
-				$panel = div.c("flow");
-				button.c("btn prim").text("Reset").attr("type", "button").click(() => { demo.reset_plugins(); save(); draw(); });
-			}).style("flex", "1 1 16em");
 			div.c("flex v gap", () => {
 				span.c("muted", "Live result");
 				div.c("surface pad").el.appendChild(el);
+			}).style("flex", "1 1 16em");
+			div.c("card pad flow", () => {
+				$panel = div.c("flow");
+				button.c("btn prim").text("Reset").attr("type", "button").click(() => { demo.reset_plugins(); Badge.plugins.set({ Count: { enabled: true } }); save(); draw(); });
 			}).style("flex", "1 1 16em");
 		});
 		draw();
