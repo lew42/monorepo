@@ -1035,6 +1035,37 @@
        see styles/rules/readme.md. */
     .measure.start { margin-inline: 0; }
 
+    /* ── THE FLUSH STACK (the owner's name, design/layout/doc/rules.md) ──
+       Rows touching: no padding, no gap, one box. Only the stack's OUTER corners
+       round (`--flush-radius`, square by default); the rows inside stay square, so
+       rounded rows never meet in pinched notches. Any list can wear it.
+       Moved here from `ux/Inbox/Inbox.css` (2026-11-09) — it has no dependency on
+       anything Inbox-specific, and a sitewide utility belongs in the one sitewide
+       stylesheet, not in the one component that happened to need it first; see
+       `ui/card/page.js`'s `stack` variant for a second caller. */
+    .flush-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        padding: 0;
+        border-radius: var(--flush-radius, 0);
+    }
+
+    .flush-stack > * {
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .flush-stack > :first-child {
+        border-start-start-radius: var(--flush-radius, 0);
+        border-start-end-radius: var(--flush-radius, 0);
+    }
+
+    .flush-stack > :last-child {
+        border-end-start-radius: var(--flush-radius, 0);
+        border-end-end-radius: var(--flush-radius, 0);
+    }
+
     /* `table-equal` — columns split evenly instead of by content, on the table
        ABOVE's `width: max-content` shrink-wrap. `md()` puts the class straight on
        a table that is the WHOLE markdown block, but wraps it in a div (still
@@ -1203,7 +1234,11 @@
          gone; re-declaring `--flow: var(--flow)` here would be a self-reference). */
 
     :where(.flow, blockquote) > * { margin-block: 0; }
-    :where(.flow, blockquote) > * + * { margin-block-start: var(--flow); }
+    /* `:not(.card)` (ui-kit step 4, 2026-11-09): `PageCard.View` renders
+       `"part-card card flow"`, so without this a card's own title-to-body gap was
+       `--flow` (this rule) instead of `.card`'s own `--gap` rule below — a card is
+       its own rhythm, on purpose; this rule should never reach inside one. */
+    :where(.flow, blockquote):not(.card) > * + * { margin-block-start: var(--flow); }
 
     /* the small headings take half again — the one pair one token can't say */
     :where(.flow, blockquote) > * + :is(h3, .h3, h4, .h4)

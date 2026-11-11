@@ -11,3 +11,6 @@
 {"file":"views.js"}
 {"file":"data/page.jsonl"}
 {"file":"data/"}
+{"file":"doc/page.js","nav":{"title":"Docs","icon":"menu_book","description":"The long form — storage, scoring, the record"}}
+{"file":"judge/page.js","nav":{"title":"Which matters more?","icon":"compare_arrows","description":"Pick between two — every pick appends one line"}}
+{"file":"ranked/page.js","nav":{"title":"Ranked","icon":"sort","description":"One run's asks as a thread you page through"}}

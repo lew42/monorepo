@@ -1,7 +1,6 @@
 import { createSdkMcpServer, tool as sdk_tool } from "@anthropic-ai/claude-agent-sdk";
 import SessionRecord from "../../Server/SessionRecord.mjs";
 import LogLine from "../../Server/LogLine.mjs";
-import { z } from "zod";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
@@ -16,6 +15,7 @@ import { wake_tools } from "./Wakeups.js";
 import { job_tools } from "./Jobs.js";
 import { expert_tools } from "./Experts.js";
 import { page_tools } from "./page_tools.js";
+import { zod_of } from "./zod_of.js";
 import { skill_text, SKILLS_DIR } from "./roles.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -598,14 +598,9 @@ return [
  * gives a session only `load_module` and `readme_modules` (experts-proof.mjs, way b). `alwaysLoad`: otherwise the CLI defers them
  * behind ToolSearch and a small model reports the tool "not available". */
 export function server(agents = singleton, ctx = { caller: null }, list = tools(agents)){
-	const zod = ({ type, items, enum: one_of }) => one_of ? z.enum(one_of)
-		: Array.isArray(type) ? z.union([z.looseObject({}), z.boolean()])   // `task`: an object, or false for no task dir
-		: type === "number" ? z.number() : type === "boolean" ? z.boolean()
-		: type === "object" ? z.looseObject({})   // NOT z.record(): one record breaks the SDK server's whole tools/list
-		: type === "array" ? z.array(items?.type === "string" ? z.string() : z.any()) : z.string();
 	return createSdkMcpServer({ name: "servex", alwaysLoad: true, tools: list.map(t => sdk_tool(t.name, t.description,
 		Object.fromEntries(Object.entries(t.inputSchema.properties).map(([k, p]) =>
-			[k, (t.inputSchema.required.includes(k) ? zod(p) : zod(p).optional()).describe(p.description ?? k)])),
+			[k, (t.inputSchema.required.includes(k) ? zod_of(p) : zod_of(p).optional()).describe(p.description ?? k)])),
 		async args => {
 			try {
 				const who = ctx.caller, run = () => t.handler(args, ctx);   // every child process this tool starts is logged under the calling agent (Servex/SpawnLog.js)

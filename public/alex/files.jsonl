@@ -22,3 +22,5 @@
 {"file":"ui/page.jsonl"}
 {"file":"examples/"}
 {"file":"ui/"}
+{"file":"framework/page.js","nav":{"title":"Framework"}}
+{"file":"styles/page.js","nav":{"title":"Styles"}}

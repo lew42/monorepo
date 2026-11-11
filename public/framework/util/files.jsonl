@@ -9,3 +9,6 @@
 {"file":"page.js"}
 {"file":"readme.md"}
 {"file":"source/page.js"}
+{"file":"is/page.js","nav":{"title":"is","icon":"rule","description":"Type checks that return booleans."}}
+{"file":"markup/page.js","nav":{"title":"markup","icon":"html","description":"An element's children as readable HTML source."}}
+{"file":"source/page.js","nav":{"title":"source","icon":"data_object","description":"A function's body as readable source text."}}

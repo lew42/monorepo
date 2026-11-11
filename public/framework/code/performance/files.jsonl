@@ -8,3 +8,4 @@
 {"file":"bench/page.js"}
 {"file":"doc/"}
 {"file":"tasks/"}
+{"file":"bench/page.js","nav":{"title":"Batching benchmark","icon":"timer","description":"Seven ways to update 1,000 rows at once. Click one and watch the milliseconds."}}

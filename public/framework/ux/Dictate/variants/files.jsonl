@@ -5,3 +5,7 @@
 {"file":"v1/page.js"}
 {"file":"parts/"}
 {"file":"parts/page.js"}
+{"file":"cards/page.js","nav":{"title":"Cards","icon":"view_agenda","description":"Each finished sentence becomes its own card — the mobile \"prompt item\" flow."}}
+{"file":"compact/page.js","nav":{"title":"Compact","icon":"unfold_less","description":"One short line, never a growing block — for a toolbar or a single form row."}}
+{"file":"parts/page.js","nav":{"title":"Parts","icon":"graphic_eq","description":"Dictate's whisper half rebuilt on audio/'s MicStream + rolling-window Transcriber.Whisper — same caption, same log, same revise:, fewer hallucinated seams."}}
+{"file":"v1/page.js","nav":{"title":"v1 — today's box","icon":"mic","description":"Frozen from before 2026-09-29: one caption line, growing settled text, a grey guess."}}

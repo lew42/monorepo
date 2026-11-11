@@ -2,6 +2,8 @@
 
 Every page Claude makes in Figma is laid out like a web page, not as frames scattered on the canvas.
 
+**Design system file (2026-11-09):** its pages are `Page 1` (the cloud chat's working area), `Index`, the family pages (`Components`, `Cards`, `Layouts`, `Images`), `Pages` (page templates and section blocks) and `Claude · Sandbox`. Masters sit on their family page in one auto-layout board `<Family> · main components`, not loose on the canvas. Standard widths are 400, 1920 (the default for everything) and 3440; a page template is 1920 wide with a content area of FILL plus max width 1600. The `Page · …` components and the scaled Index below are how the Sept-2026 file works.
+
 - **One wrapper, 1920 wide.** The whole page sits in one auto-layout frame 1920 px wide that grows downward and scrolls with the mouse wheel. Use several 1920 wrappers, stacked or side by side, only when the content really splits. A design wider than 1920 (a 3440 mega mock-up, a 4400 video sheet) sits in its own wrapper beside it.
 - **A page has its own ground** (owner, 2026-10-13). Each `Page · …` component carries a fill that differs from the canvas, on the main component (white by default; a light-gray page is the owner's choice and keeps it), so you can see where a page starts and stops. A transparent page is allowed only when it is deliberately a plain list of sections laid on another ground. Groups of pages (as on the Index) sit in a black-10% wrapper with a big heading.
 - **Above the fold first.** The top 1080 px holds what the page is: its title, a one-line gist, a Notes box (what is here, the verdict, anything waiting on the owner), and the most important specimen. Detail goes further down.

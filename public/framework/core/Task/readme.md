@@ -50,7 +50,7 @@ build.tasks.add({ title: "Shoot it", expected: "…" }); // an object with no ty
 build.tasks.add({ type: "Project", title: "Next" });  // a typed object: that class (Project, Process, Session)
 ```
 
-The item tool takes the same three forms: `item({path, delta: {"tasks": {"add": "Write the readme"}}})`. It writes the object form. A **Session is a Task** too ([core/Session](../Session/readme.md), "How work gets into a session").
+The item tool takes the same three forms: `item({path, call: "tasks.add", args: "Write the readme"})`. It writes the object form. A **Session is a Task** too ([core/Session](../Session/readme.md), "How work gets into a session").
 
 Watch it live: [core/Task/live/](/framework/core/Task/live/).
 

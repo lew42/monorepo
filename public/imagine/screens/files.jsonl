@@ -13,3 +13,11 @@
 {"file":"uneven/page.js"}
 {"file":"doc/page.jsonl"}
 {"file":"doc/"}
+{"file":"deck/page.js","nav":{"title":"Deck","icon":"slideshow","description":"Slides swapped in place, one url each."}}
+{"file":"divide/page.js","nav":{"title":"Divide","icon":"view_column","description":"Each click opens a column; the rest share the row."}}
+{"file":"mix/page.js","nav":{"title":"Mix","icon":"dashboard","description":"A column that splits its own height — bands are click targets that open a third column."}}
+{"file":"quad/page.js","nav":{"title":"Quad","icon":"grid_view","description":"A 2x2 menu that becomes a one-column rail the moment a quadrant opens beside it."}}
+{"file":"read/page.js","nav":{"title":"Peek","icon":"chrome_reader_mode","description":"Document first, title as a strip at the edge — opening it costs a 14em rail, not the screen."}}
+{"file":"stack/page.js","nav":{"title":"Stack","icon":"view_agenda","description":"The height has no row to open into, so every band count is a new screen — a swap, not a split."}}
+{"file":"title/page.js","nav":{"title":"Title Slide","icon":"auto_stories","description":"Enter, and the title steps back to the minor share."}}
+{"file":"uneven/page.js","nav":{"title":"Uneven","icon":"straighten","description":"Two numbers set the exact split — like 61.8/38.2."}}

@@ -340,6 +340,19 @@ export default class Follow {
 			this.rescope();
 			return;
 		}
+		/* STEP 2 (one place per conversation, 2026-11-09) — an EXTERNAL agent
+		 * (a cloud voice call, through `External`) no longer gets a jsonl delta
+		 * pushed as an inbox message: its `updates` tool reads the followed
+		 * files itself, from its own cursor (`External.followed_lines`), so the
+		 * SAME bytes delivered here would otherwise show up twice. A directory
+		 * change that is not a `.jsonl` file still gets today's one-line note —
+		 * there is no line for `updates` to read instead, only a changed path. */
+		if (this.agents.external?.has?.(agent)){
+			const other = items.filter(i => !i.lines);
+			if (!other.length) return;
+			try { this.agents.send(agent, this.message(other), { from: "servex-follow" }); } catch {}
+			return;
+		}
 		try { this.agents.send(agent, this.message(items), { from: "servex-follow" }); } catch {}
 	}
 

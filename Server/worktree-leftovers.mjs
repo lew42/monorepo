@@ -41,7 +41,8 @@ for (const dir of DIRS.length ? DIRS : fs.readdirSync(ROOT).map(n => path.join(R
 	try { if (!fs.statSync(dir).isDirectory() || listed.has(slash(dir)) || [...listed].some(l => l.startsWith(slash(dir) + "/"))) continue; } catch { continue; }   // gone meanwhile (the Pool removes its own)
 	if (fs.existsSync(path.join(dir, ".git"))) { report.push({ name, keep: "has a .git file: a worktree git lost track of; repair it by hand" }); continue; }
 	const files = walk(dir);
-	const newest = Math.max(0, ...files.filter(f => !LOG(f)).map(f => { try { return fs.statSync(path.join(dir, f)).mtimeMs; } catch { return 0; } }));
+	// a reduce, not Math.max(...): spreading 10,000+ files overflowed the stack (pid-gone-ends, 2026-11-09)
+	const newest = files.filter(f => !LOG(f)).reduce((max, f) => { try { return Math.max(max, fs.statSync(path.join(dir, f)).mtimeMs); } catch { return max; } }, 0);
 	if (newest > RECENT) { report.push({ name, files: files.length, keep: "changed in the last 6 hours" }); continue; }
 	// ignored by the repo's own rules: a cache, never anyone's work
 	const ignored = new Set(files.length ? run(["check-ignore", "--stdin"], files.join("\n")).stdout.split(/\r?\n/).filter(Boolean) : []);

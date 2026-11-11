@@ -17,7 +17,14 @@ const HTML = "http://www.w3.org/1999/xhtml";
  * 0.25× miniatures that have a zoom control right above them.
  *
  * To audit a demo, point the tool at the demo's own render at its own width. */
-export const IGNORE = "[data-layout-ignore], .demo-screen, .demo-sims, .page-preview-thumb";
+// `.library-thumb` (ui-kit step 4, 2026-11-09): the Library rail scales its previews
+// with CSS `zoom` (Rail.js `fit()`), the same "thumbnail, not a real render" shape
+// `.page-preview-thumb` already covers — all 29 BROKEN findings on
+// /framework/library/?at=ui/card at 400px were inside these thumbs before this line
+// (27 "rendered too small to read"; the other 2 the same padding check misreading a
+// shrunk render, on two OTHER components' thumbs in the rail, not the card page
+// itself), none of them a real bug.
+export const IGNORE = "[data-layout-ignore], .demo-screen, .demo-sims, .page-preview-thumb, .library-thumb";
 
 export function probe(root, { depth = 20, max = 4000, ignore = IGNORE } = {}){
 	const doc = root.ownerDocument;

@@ -127,10 +127,11 @@ const { t: tt, msgs: tmsgs2 } = testWatch("tt", async () => ({ ok: false, timeou
 tt.changed(["/framework/x/Thing.mjs"]); await idle();
 assert.equal(tmsgs2.length, 0); assert.equal(tt.test_state.size, 0);
 
-// prior(): this worktree's last save line, else dev's results.jsonl (a merge-base cache line is not dev's result), else unknown = quiet
+// prior(): this worktree's last save line, else dev's daily results (a merge-base cache line is not dev's result), else unknown = quiet
 const F = "x/Thing.test.mjs", bad = { ok: false, tail: "not ok - boom" };
 const rt = path.join(root, "rt"); fs.mkdirSync(rt, { recursive: true });
-fs.writeFileSync(path.join(rt, "results.jsonl"), [{ file: F, ok: true, trigger: "manual" }, { file: F, ok: false, sha: "abc", trigger: "merge-base" }].map(l => JSON.stringify(l) + "\n").join(""));
+fs.mkdirSync(path.join(rt, "results"), { recursive: true });
+fs.writeFileSync(path.join(rt, "results", "2026-11-10.jsonl"), [{ file: F, ok: true, trigger: "manual" }, { file: F, ok: false, sha: "abc", trigger: "merge-base" }].map(l => JSON.stringify(l) + "\n").join(""));
 const withRt = (id, dir) => { const m = testWatch(id, async () => bad); m.t.runner = async () => ({ results: path.join(dir, "save-results.jsonl") }); return m; };
 const dev = withRt("tp", rt);
 dev.t.changed(["/framework/x/Thing.mjs"]); await idle();
@@ -140,7 +141,7 @@ const unknown = withRt("tu", empty);
 unknown.t.changed(["/framework/x/Thing.mjs"]); await idle();
 assert.equal(unknown.msgs.length, 0, "no earlier result: a log line, no message");
 const own = path.join(root, "rt-own"); fs.mkdirSync(own, { recursive: true });
-fs.copyFileSync(path.join(rt, "results.jsonl"), path.join(own, "results.jsonl"));
+fs.mkdirSync(path.join(own, "results"), { recursive: true }); fs.copyFileSync(path.join(rt, "results", "2026-11-10.jsonl"), path.join(own, "results", "2026-11-10.jsonl"));
 fs.writeFileSync(path.join(own, "save-results.jsonl"), JSON.stringify({ file: F, ok: false, trigger: "save", worktree: "to" }) + "\n" + JSON.stringify({ file: F, ok: true, trigger: "save", worktree: "other" }) + "\n");
 const mine = withRt("to", own);
 mine.t.changed(["/framework/x/Thing.mjs"]); await idle();

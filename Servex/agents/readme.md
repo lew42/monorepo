@@ -116,9 +116,11 @@ Test: `node Servex/agents/close-loop.test.mjs` (temp task dirs, no live Servex).
 `Agents.js` (the host, the agent, its queue) · `tools.js` (the MCP tools) ·
 `Assistant.js` + `assistant.md` (the always-up fast assistant and its posture) · `Chain.js` + `doc/assistant-chain.md` (flagged one-global-assistant chain, `SERVEX_CHAIN=on`) ·
 `Layers.js` + `Global.js` (the card and cross-card agents, [`doc/layers.md`](./doc/layers.md)) ·
+`TurnRefiner.js` (the one refiner after a channel's `Ask.write`: the parts brief on a cloud-voice turn, off with `PromptTasks.js off`; `TurnRefiner.test.mjs`; doc [`ext/Refine/doc/prompt-records.md`](/framework/ext/Refine/doc/prompt-records.md)) ·
 `turn-costs.js` (each turn's real dollars from an agent's log; `cost.test.mjs`) · `Sessions.js` per-session `plugins` (`POST /api/session/settings`) and the shared defaults (`/api/session/defaults`; `Sessions.plugins.test.mjs`, doc [`ux/Dictate/doc/settings.md`](/framework/ux/Dictate/doc/settings.md)) ·
 `page_tools.js`'s `task_origin()` + `handoff-note.js`'s `handoff_note()` (ask1-origin, 2026-11-03: a handoff's first message quotes the owner's own raw words, read off the task before `move_item` runs; `task-origin.test.mjs`) ·
 `page_tools.js`'s `strip_duplicate_questions()` (a nested Question add whose text matches one already in the file is never written again — it links the existing one's `also_from` to the repeating Prompt instead, every sibling line in the same write still lands; `Question-dedupe.test.mjs`; `ux/Dictate/doc/question-cards.md`) ·
+`TurnRefiner.js` + `TurnRefiner.test.mjs` (the one parts refiner for a turn with no Prompt page: web dictation and cloud voice, right after `Ask.write`; [prompt-records.md](/framework/ext/Refine/doc/prompt-records.md#channels-and-the-turn-refiner)) ·
 `policy.js` · `claims.js` · `Brief.js` · `tiers.js` ·
 `roles.js` (role → posture) · `Registry.js` (who has ever been spawned, and which host holds it) ·
 `ops.js` (restart, pause, resume) · `Jobs.js` (background work in node) ·

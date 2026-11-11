@@ -50,6 +50,7 @@ A session has exactly ONE folder: `public/framework/ai/sessions/YYYY/MM/DD/<fold
 - **Mind the token burn:** let a script read and calculate, batch tool calls, no session replays or long audits unless asked, keep sessions short.
 - **Context size:** keep a working agent rather than switching for context size alone; compact around 300k. Decisions go in the module's docs as they are made ([doc/context.md](doc/context.md)).
 - **No hard fences between roles:** a capable agent just does the job; the mastermind is the one that decides and splits work.
+- **A small job goes to a fresh, capped agent:** spawn it with `budget_usd` (Servex enforces that), Sonnet unless it needs Opus. Never revive a long-running, big-context mastermind for a few-line fix: a "$4" fix that way cost $108 (page-design, 2026-11-10), and a cap written in a message is not enforced.
 
 ## Explaining to the owner
 

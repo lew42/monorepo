@@ -10,3 +10,8 @@
 {"file":"tree.js"}
 {"file":"doc/page.jsonl"}
 {"file":"doc/"}
+{"file":"cards/page.js","nav":{"title":"Cards","icon":"view_agenda","description":"Each column a floating surface — the site's own card shadow, a wash gutter between them."}}
+{"file":"finder/page.js","nav":{"title":"Finder","icon":"view_column","description":"The shipped default — hairlines, one --wash floor. No override in colstyles.css at all."}}
+{"file":"glass/page.js","nav":{"title":"Glass","icon":"blur_on","description":"The alpha ladder read as depth: a faint trail behind you, a frosted sticky head."}}
+{"file":"hooks/page.js","nav":{"title":"Hooks","icon":"tune","description":"Every control point over how a columns tree renders, live — one demo, one caption, per hook."}}
+{"file":"ink/page.js","nav":{"title":"Ink","icon":"dark_mode","description":"Dark, bold, presentational — built from the site's own dark-in-both-modes tokens."}}

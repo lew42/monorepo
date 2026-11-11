@@ -8,3 +8,4 @@
 {"file":"rules.js"}
 {"file":"strip.js"}
 {"file":"tasks/"}
+{"file":"doc/page.js","nav":{"title":"Docs","icon":"description","description":"Four notes: the props, the rules, the fixtures, and the port."}}

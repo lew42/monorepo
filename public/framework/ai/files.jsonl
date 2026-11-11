@@ -1579,3 +1579,36 @@
 {"file":"prompt-tasks-test-21180/","gone":true}
 {"file":"index.json.tmp"}
 {"file":"index.json.tmp","gone":true}
+{"file":"AIDashboard/","nav":{"title":"AIDashboard ai/AIDashboard/"}}
+{"file":"AIDay/","nav":{"title":"AIDay ai/AIDay/"}}
+{"file":"AISession/page.js","nav":{"title":"AISession","icon":"forum","description":"One Claude session read once from its transcript, and the family of classes around it: the sessions grid, a session's own page, the node tools."}}
+{"file":"AITask/page.js","nav":{"title":"loose-ends","icon":"smart_toy","description":"A task's task.jsonl (or legacy session.json), rendered — request, checklist, spend, agents — with a live feed and a chat panel onto the raw transcript."}}
+{"file":"asks/page.js","nav":{"title":"Asks","icon":"inbox","description":"Every ask you made, who owns it, and whether it landed."}}
+{"file":"audits/page.js","nav":{"title":"Audits","icon":"fact_check","description":"Read-only audits of how the framework is built. Nothing is merged by an audit."}}
+{"file":"cards/","nav":{"title":"ai/cards: one card and what it shows"}}
+{"file":"council/page.js","nav":{"title":"The ask loop","icon":"published_with_changes","description":"Everything you ask, whether it was built, and what the council found."}}
+{"file":"dashboard/page.js","nav":{"title":"Inbox","icon":"dashboard","description":"A grid of live previews: what's stalled, what's running, the top of the inbox and the log, and every session."}}
+{"file":"doc/page.js","nav":{"title":"AI docs","icon":"description","description":"The AI system's long-form docs: decisions, flows, archives. The index is the readme."}}
+{"file":"health/page.js","nav":{"title":"Page health","icon":"monitor_heart","description":"Is it working? Every page a change could have broken, checked in a hidden browser right after the save."}}
+{"file":"local/page.js","nav":{"title":"Local Models","icon":"chat","description":"Talk to a model running on this machine's own GPU — no cloud, no cost, pick which gguf file answers."}}
+{"file":"log/page.jsonl","nav":{"title":"Log","icon":"history"}}
+{"file":"merge/page.js","nav":{"title":"Ready to merge","icon":"merge","description":"Branches an agent marked ready: what was done, how it was reviewed, and the one Merge button."}}
+{"file":"models/page.js","nav":{"title":"Models","icon":"memory","description":"Which agent runs on which model, and what it cost."}}
+{"file":"now/page.js","nav":{"title":"Now","icon":"bolt","description":"Every session running right now: who, what it is doing, where it lives, what it has cost. Computed from the session index, live."}}
+{"file":"process/page.js","nav":{"title":"Process","icon":"monitor_heart","description":"How the work itself is going: who is awake, what you owe an answer on, what the audits changed, where it is failing."}}
+{"file":"queue/page.js","nav":{"title":"Task queue","icon":"list","description":"Every accepted task, ranked: what it is, why, its estimated cost and its priority. Computed from the task records, live."}}
+{"file":"quick-fix/page.js","nav":{"title":"Quick fix","icon":"bolt","description":"Every small fix asked for by voice, and how many seconds it took to land."}}
+{"file":"rail/","nav":{"title":"ai/rail: the list on the left, and the data behind it"}}
+{"file":"readmes/page.js","nav":{"title":"Readmes","icon":"menu_book","description":"What an agent working in each folder is given to read: the readme chain, in tokens."}}
+{"file":"review/page.js","nav":{"title":"Review questions","icon":"fact_check","description":"Every question a fresh reviewer asks, per system, in the order it asks them."}}
+{"file":"sessions/page.js","nav":{"title":"Sessions","description":"one folder per Claude session, and the grid that lists them"}}
+{"file":"skills/","nav":{"title":"Skills","description":"plain readmes that tell an agent how to do one kind of job"}}
+{"file":"system/page.jsonl","nav":{"title":"System","icon":"account_tree"}}
+{"file":"talk/page.js","nav":{"title":"Talk","icon":"mic","description":"Press the mic, talk, and watch one card fill with your words."}}
+{"file":"tasks/page.js","nav":{"title":"Tasks","icon":"task_alt","description":"What is in flight, queued and landed today: the Inbox with its Tasks chips on."}}
+{"file":"tests/page.js","nav":{"title":"Test library","description":"Small tasks with a known-good outcome, run across models to see which is cheapest and good enough."}}
+{"file":"tracking/page.js","nav":{"title":"Tracking","icon":"monitoring","description":"Work with no task open, child sessions with no parent link, and stored numbers that disagree."}}
+{"file":"usage/page.js","nav":{"title":"Usage pace","icon":"speed","description":"Spend against the clock: today's meter and three pace-relative variants."}}
+{"file":"v/page.js","nav":{"title":"Versions","icon":"layers","description":"New versions of the AI dashboard, tried beside the old one."}}
+{"file":"process-test-35512/"}
+{"file":"process-test-35512/","gone":true}

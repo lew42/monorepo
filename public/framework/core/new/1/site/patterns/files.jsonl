@@ -9,3 +9,11 @@
 {"file":"settings/page.js"}
 {"file":"shop/page.js"}
 {"file":"wiki/page.js"}
+{"file":"api/page.js","nav":{"title":"Strand API"}}
+{"file":"dashboard/page.js","nav":{"title":"Dashboard"}}
+{"file":"docs/page.js","nav":{"title":"Kettle docs"}}
+{"file":"gallery/page.js","nav":{"title":"Gallery"}}
+{"file":"onboarding/page.js","nav":{"title":"Onboarding"}}
+{"file":"settings/page.js","nav":{"title":"Settings"}}
+{"file":"shop/page.js","nav":{"title":"Shop"}}
+{"file":"wiki/page.js","nav":{"title":"Notebook"}}

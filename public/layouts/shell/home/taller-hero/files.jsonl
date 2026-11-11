@@ -1,3 +1,5 @@
 {"file":"no-wall/page.js"}
 {"file":"page.js"}
 {"file":"split-hero/page.js"}
+{"file":"no-wall/page.js","nav":{"title":"No wall","description":"The taller hero with the card wall removed, so the page is a bar, a hero and a footer."}}
+{"file":"split-hero/page.js","nav":{"title":"Split hero","description":"The tall hero divided into two columns — words beside a picture — which stacks back to one when the viewport is narrow."}}

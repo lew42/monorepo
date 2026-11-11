@@ -6,3 +6,5 @@
 {"file":"page/page.js"}
 {"file":"page.js"}
 {"file":"view/page.js"}
+{"file":"page/page.js","nav":{"title":"Flex"}}
+{"file":"view/page.js","nav":{"title":"Hi"}}

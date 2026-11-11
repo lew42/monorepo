@@ -8,3 +8,12 @@
 {"file":"security/page.js"}
 {"file":"users/page.js"}
 {"file":"video/page.js"}
+{"file":"ai/page.js","nav":{"title":"AI","icon":"auto_awesome","description":"What fal.ai and its neighbours do for topics, images, content and moderation, at what cost, and where the key never goes."}}
+{"file":"cloudflare/page.js","nav":{"title":"Cloudflare","icon":"cloud","description":"Workers, Durable Objects, D1, KV, R2, local dev and the cost table — is one DO per topic the right shape?"}}
+{"file":"community/page.js","nav":{"title":"Community","icon":"groups","description":"Levels, reputation and governance that make progression meaningful without becoming school."}}
+{"file":"data/page.js","nav":{"title":"Data","icon":"storage","description":"Where each kind of data lives so the site stays static and the platform stays cheap — five architectures weighed."}}
+{"file":"payments/page.js","nav":{"title":"Payments","icon":"payments","description":"Membership, cent-scale tipping, payouts and the ledger — without becoming a payment processor."}}
+{"file":"realtime/page.js","nav":{"title":"Realtime","icon":"forum","description":"Text chat first on Durable Objects; what voice, recording and transcripts would cost, and what may be recorded."}}
+{"file":"security/page.js","nav":{"title":"Security","icon":"security","description":"The threat model, and which of the other verdicts break under it."}}
+{"file":"users/page.js","nav":{"title":"Users","icon":"person","description":"Identity, sessions and authorization for a public product on Cloudflare, testable locally with fake users."}}
+{"file":"video/page.js","nav":{"title":"Video","icon":"videocam","description":"Publishing through the YouTube API within quotas, verification and terms — or hosting video ourselves."}}

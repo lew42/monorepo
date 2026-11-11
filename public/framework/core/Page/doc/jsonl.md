@@ -244,6 +244,9 @@ page.jsonl line turns one extension on for one page. Both call the same
 ⚠ Nobody calls this by default, so the forEach below is empty for every page —
   the "must not slow a page with no extensions" rule this exists to keep.
 
+**Current (fold-2, 2026-11-09):** there is no `forEach` any more — `Page.plugged(this)` (core/Plugin's `Pluggable`)
+replaces it, below, "EXTENSIONS — a page.jsonl line names one on".
+
 ### A page's own preferences. Today there is exactly one: nav — "does this
 
 *was Page.class.js line 74*
@@ -315,6 +318,15 @@ calling the same `Ext.setup(page)`.
 `ext_ready` — every extension's own import+setup promise, so anything that
 reads what an extension set up (a `place`-d module, say) can
 `await Promise.all(page.ext_ready ?? [])` first rather than race it.
+
+**Current (fold-2, 2026-11-09):** the wording above is the ORIGINAL comment, kept as it was. The mechanism
+underneath it changed: `Page.use(Ext)`, `page.ext(name)` and the "both end up calling the same `Ext.setup(page)`"
+now run through core/Plugin's `Pluggable` (`class Page extends Pluggable(Item)`), the same mechanism any other
+pluggable class uses — [core/Plugin/readme.md](/framework/core/Plugin/readme.md). `page.ext(name)` records the
+extension on `Page` as available but off class-wide (`Page.available(Ext)`, so no other page reaches it), then
+switches it on for THIS instance only (`this.toggle_plugin(rec, true)`) — never `Page.use(Ext)`, which turns it on
+everywhere. `Page._ext` is a read-only alias for old readers (the extensions on class-wide right now); `Page.plugins`
+is the live, switchable list — what the item tool's deltas and a control panel read and write.
 
 ### STEP 1 — the file EXISTS
 

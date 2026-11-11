@@ -228,3 +228,33 @@
 {"file":"calibration/page.js"}
 {"save":{"name":"nov-6-9","title":"/live/ cards, Nov 6 to 9"},"by":"voice-app","ts":"2026-11-10T00:01:48.560Z"}
 {"content":{"add":[{"id":"this-session","path":"/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/","text":"A new, faster session view is being built","title":"Session cloud-voice-app-20261106 (this chat)","type":"part-link"},{"id":"done","path":"./done/","text":"One link per landed piece","title":"What got done","type":"part-link"},{"id":"now","text":"- **Session view:** a new, fast page for this session (live-page)\n- **Card styles:** 3 to 5 list and card layouts side by side (live-page)\n- **Page index:** index.jsonl so big folders load fast (new agent)\n- **Pages and templates:** make a page, add tabs or cards, instantly; keep what works as a template (page-design)\n- **Git hygiene:** why the tree stays dirty, and a plan (fs-audit)","title":"Now","type":"part-card"},{"id":"archive","path":"./nov-6-9/","text":"Everything that was on this page before","title":"Older cards (Nov 6 to 9)","type":"part-link"}]},"by":"voice-app","ts":"2026-11-10T00:01:55.076Z"}
+{"content":{"now":{"text":"**Goal:** beautiful, working streaming pages you drive by voice.\n\n1. **Session view:** a fast, readable page for this session (live-page, building)\n2. **Card styles:** 3 to 5 layouts side by side to pick from (live-page, building)\n3. **Friction:** the top 5 things that make pages feel broken, each with its smallest fix (friction, reviewing)\n4. **Page plugins:** a page as a tree of switchable plugins; this is where templates live (page-design, planning)\n5. **Page index:** big folders load fast (page-index, planning)\n\nPlans are reviewed, then the smallest working version is built and linked on What got done."}},"by":"voice-app","ts":"2026-11-10T00:06:48.159Z"}
+{"file":"friction-test/page.jsonl"}
+{"file":"friction-test/page.jsonl","gone":true}
+{"file":"_removed/"}
+{"file":"session/"}
+{"content":{"now":{"text":"**Goal:** beautiful, working streaming pages you drive by voice.\n\n1. **Session view:** a fast, readable page for this session (live-page, building)\n2. **UI kit:** one small set of parts every page uses; the [library](/framework/library/) becomes the template tree; layout checked by numbers on every merge (ui-kit, planning)\n3. **Friction:** the top 5 things that make pages feel broken (friction, reviewing)\n4. **Page plugins:** a page as a tree of switchable plugins (page-design, planning)\n5. **Page index:** big folders load fast (page-index, planning)"}},"by":"voice-app","ts":"2026-11-10T00:23:57.262Z"}
+{"file":"session/page.js"}
+{"content":{"add":{"id":"link-session-view","type":"part-link","path":"/live/session/","title":"Session view prototype: this voice session's tasks, titled and grouped"},"after":null},"by":"mastermind-live-page","ts":"2026-11-10T00:52:14.176Z"}
+{"content":{"move":{"id":"link-session-view","after":null}},"by":"mastermind-live-page","ts":"2026-11-10T00:52:26.010Z"}
+{"file":"archive/page.js","nav":{"title":"Live archive","description":"The old /live cards, kept as they were."}}
+{"file":"audit/page.jsonl","nav":{"title":"Audit: what's waiting on you","icon":"🔎","description":"All 85 'waiting on you' items, each with a proposed verdict, and the 9 real questions at the top. Nothing was closed or moved."}}
+{"file":"calibration/page.js","nav":{"title":"Prompt calibration","icon":"tune","description":"Four of your cloud-chat prompts, refined by Sonnet and by Haiku: what went in, what came out, which won."}}
+{"file":"completion/page.jsonl","nav":{"title":"Completion","description":"Completion of the 200 costliest sessions since Oct 24."}}
+{"file":"demos/page.jsonl","nav":{"title":"Demos"}}
+{"file":"design/page.jsonl","nav":{"title":"Page design: page.ui"}}
+{"file":"div-test/page.jsonl","nav":{"title":"Div test"}}
+{"file":"done/page.jsonl","nav":{"title":"What got done","description":"One link per piece of work, Nov 6 to 9. Tap through on your phone."}}
+{"file":"fs-audit/page.jsonl","nav":{"title":"File-system audit","icon":"🗄️","description":"What is big, stray, doubled or unlisted in the repo and Servex's home. Proposals only; nothing was changed."}}
+{"file":"item-read/page.jsonl","nav":{"title":"Item tool: read queries","description":"Why read can't compute completion, and the fix."}}
+{"file":"item-test/page.jsonl","nav":{"title":"Item test"}}
+{"file":"lab/page.jsonl","nav":{"title":"Lab: /live/ as a tiny app","icon":"🧪"}}
+{"file":"next/page.jsonl","nav":{"title":"Next"}}
+{"file":"pids/page.jsonl","nav":{"title":"Process logging","description":"Is every process we start logged, attributed and ended? (2026-11-08)"}}
+{"file":"plan/page.jsonl","nav":{"title":"Page plan","icon":"🗺️","description":"Where the page system is going, and the next steps."}}
+{"file":"session/page.js","nav":{"title":"Session","icon":"forum","description":"One session's tasks, titled and grouped, not a crossed-off wall of text."}}
+{"file":"session-page/page.jsonl","nav":{"title":"Session page: proposal","icon":"📋","description":"How the session page, /live/ and the voice chat become one live page. Step 0 is built."}}
+{"file":"sessions/page.js","nav":{"title":"Live sessions","description":"Every session of ideas shown on /live, newest first."}}
+{"file":"tabs/page.jsonl","nav":{"title":"Tabs","description":"Every tab system, and one to unify them."}}
+{"file":"truth/page.js","nav":{"title":"Truth","icon":"fact_check","description":"How true the session and task record is, counted by code each day."}}
+{"file":"v1/page.js","nav":{"title":"Live v1","description":"The Live page as it was until 2026-11-06, kept."}}

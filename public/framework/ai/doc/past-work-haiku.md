@@ -14,7 +14,7 @@ The owner's ask (2026-10-24, item 5 of [the brief](../sessions/2026/10/24/sessio
 2. **It spawns one Haiku child session** with that file as the brief (`Budget: $N` first; a long read may pass 100k, [agent-rules.md](agent-rules.md)).
 3. **The child reads the logs first**, for anything done recently: `ModuleLog` on the likely modules, `PastWork.mjs` on each term, the last week's tasks. Only then the readmes and code.
 4. **Each find is reported the moment it exists**, as a result item in the child's own session, through the item tool, so the asker (and the owner on the session page) watch the list grow instead of waiting for a final report:
-   `item({path: <child session>, delta: {results: {add: {where, what, kind, confidence, source}}}})`
+   `item({path: <child session>, call: "results.add", args: {where, what, kind, confidence, source}})`
    with `kind` one of `exists | partly | related | stale`, `where` a path or url, `what` one plain sentence, `confidence` high, medium or low (with `checked in code` or `read in a log` as the source), `source` which step found it. A first version can use the page parts that exist (`part-card`, one per find); a `SearchResult` item class comes when the list is wanted as data (queryable, sortable like the sessions grid).
 5. **The session shows a check mark when the search ends**: the child completes its task (`{"complete": ...}` through the item tool), and the session's `completion` shows it done like any other task. A search that found nothing ends with a single `kind: none` result naming the readmes it read, so the next searcher skips them.
 6. **The asker reads the list, not a report.** It decides: reuse, extend, or build new and say why.

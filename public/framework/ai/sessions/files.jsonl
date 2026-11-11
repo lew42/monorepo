@@ -30820,3 +30820,5 @@
 {"file":"transcripts/"}
 {"file":"week.json"}
 {"file":"239b0bd4-68fd-4b96-9f0a-3807901571f2/page.jsonl","gone":true}
+{"file":"doc/","nav":{"title":"Sessions docs: the index"}}
+{"file":"v/page.js","nav":{"title":"Session variants","icon":"science","description":"Variant takes on the sessions pages. Each is a folder here."}}

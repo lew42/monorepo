@@ -3,3 +3,4 @@
 {"file":"page.js"}
 {"file":"page.json"}
 {"file":"readme.md"}
+{"file":"edit/page.js","nav":{"title":"Title","icon":"edit_note","description":"Description"}}

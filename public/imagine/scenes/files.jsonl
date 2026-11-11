@@ -11,3 +11,9 @@
 {"file":"worlds/page.js"}
 {"file":"doc/page.jsonl"}
 {"file":"doc/"}
+{"file":"gallery/page.js","nav":{"title":"Thin Stones","description":"2D in 3D — canvas paintings on a wall, each one a url."}}
+{"file":"observatory/page.js","nav":{"title":"Observatory","description":"All four grains at once — a region, an object, a camera and a light, as four ways of looking through one instrument."}}
+{"file":"plinth/page.js","nav":{"title":"Torus","description":"Single object swap — one mesh changes, the room persists."}}
+{"file":"quarters/page.js","nav":{"title":"Grove","description":"Region swap — one zone changes, the rest of the world persists."}}
+{"file":"tour/page.js","nav":{"title":"Tour","description":"The YouTube lab's cue engine on a wall clock, walking the worlds this module already has."}}
+{"file":"worlds/page.js","nav":{"title":"Dawn","description":"Full scene swap — a child replaces the whole world."}}

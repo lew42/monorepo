@@ -5,3 +5,9 @@
 {"file":"other/page.js"}
 {"file":"page.js"}
 {"file":"text/page.js"}
+{"file":"button/page.js","nav":{"title":"Button","description":"The .btn component and its variants."}}
+{"file":"img/page.js","nav":{"title":"Image","description":"img is display:block, max-width:100% by default."}}
+{"file":"input/page.js","nav":{"title":"Input","description":"Form controls — inputs, select, textarea, buttons."}}
+{"file":"list/page.js","nav":{"title":"List","description":"Unordered, ordered, and nested lists."}}
+{"file":"other/page.js","nav":{"title":"Other","description":"Preformatted code, tables, disclosure."}}
+{"file":"text/page.js","nav":{"title":"Text","description":"Headings, paragraphs, links, emphasis, quotes."}}

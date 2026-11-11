@@ -11,3 +11,8 @@
 {"file":"mobile/page.jsonl"}
 {"file":"inbox.jsonl"}
 {"file":"tasks/"}
+{"file":"Claim/page.js","nav":{"title":"Claim","icon":"crop_free","description":"A tab, claimed by an agent — a ring around the viewport and a mark in the title."}}
+{"file":"DevBar/page.js","nav":{"title":"DevBar","icon":"build","description":"A right rail of dev chrome on every page, behind one keystroke."}}
+{"file":"DevShell/page.js","nav":{"title":"DevShell","icon":"dark_mode","description":"Ctrl + \\ opens a dark shell around the whole site — page tree and route on the left, the dev bar's own tabs on the right."}}
+{"file":"mobile/page.jsonl","nav":{"title":"Mobile","icon":"smartphone","description":"How to open this site on a phone, why the microphone and the socket behave differently there, and what is hard-coded to localhost."}}
+{"file":"Socket/page.js","nav":{"title":"Socket","icon":"cable","description":"One WebSocket to the dev server, and the reload it pushes."}}

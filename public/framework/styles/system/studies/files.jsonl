@@ -23,3 +23,13 @@
 {"file":"themes/page.js"}
 {"file":"type/page.js"}
 {"file":"vocabulary/page.js"}
+{"file":"color/page.js","nav":{"title":"Color","icon":"palette","description":"Lighten and darken on five grounds, and what a vivid accent can carry."}}
+{"file":"lists/page.js","nav":{"title":"Ada Bramwell","icon":"list","description":"Six ways to show the same group → member → detail list — a plain list, a title bar, an accordion, a drill-down, an inbox rail, a launcher — over one shared team fixture, with drag-to-reassign in two of them."}}
+{"file":"padding/page.js","nav":{"title":"Padding","icon":"crop_free","description":"Padding only — a live ladder from 0% to 30% of a box's own width, the comfortable band measured against DesignTool's prior numbers, and where the site's own padding actually gets thin."}}
+{"file":"scale/page.js","nav":{"title":"Scale","icon":"format_size","description":"When the site goes small and when it goes big — a live ladder, the site's real font-size spectrum, and the pages a 3440 screen is wasted on."}}
+{"file":"size/page.js","nav":{"title":"Size","icon":"tune","description":"One knob for pad, gap and flow — tested."}}
+{"file":"spacing/page.js","nav":{"title":"Spacing","icon":"height","description":"Every /imagine/ realm's vertical spacing, measured box by box at 1280 and 3440 — the neighbour-ratio pairs with no legitimate reason, the cramped ranking, and one proposal that fixes all three."}}
+{"file":"system/page.js","nav":{"title":"One word: what the page holds","icon":"architecture","description":"A layout system that doesn't fail: one declared word, one spend rule, four floors — and the DesignTool as its test rather than its critic."}}
+{"file":"themes/page.js","nav":{"title":"Themes","icon":"palette","description":"Six themes on one mock UI, a generator that makes six more from four numbers, and the seam that makes both possible."}}
+{"file":"type/page.js","nav":{"title":"h5/h6 = bold body, exactly","icon":"text_fields","description":"The site's typography as it actually ships — one live specimen sheet, the measure question settled with real numbers, and the one hierarchy step that silently collapses."}}
+{"file":"vocabulary/page.js","nav":{"title":"Vocabulary","icon":"sell","description":"A tag vocabulary for describing any site's structure, applied first to our own realms — the blog, the docs, the columns world — as the seed corpus."}}

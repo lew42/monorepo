@@ -12,3 +12,11 @@
 {"file":"slug.js"}
 {"file":"tags/page.js"}
 {"file":"toc/page.js"}
+{"file":"article/page.js","nav":{"title":"A page whose content is a file"}}
+{"file":"blog/page.js","nav":{"title":"Blog"}}
+{"file":"book/page.js","nav":{"title":"Chapter one — the boundary"}}
+{"file":"index/page.js","nav":{"title":"An index built from data"}}
+{"file":"order/page.js","nav":{"title":"Prev / next through a reading order"}}
+{"file":"search/page.js","nav":{"title":"Search over content you actually have"}}
+{"file":"tags/page.js","nav":{"title":"Tags"}}
+{"file":"toc/page.js","nav":{"title":"A table of contents from headings"}}

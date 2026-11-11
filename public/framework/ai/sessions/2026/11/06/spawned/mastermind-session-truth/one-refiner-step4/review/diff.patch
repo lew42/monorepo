@@ -1,0 +1,156 @@
+diff --git a/Server/PromptRecords.mjs b/Server/PromptRecords.mjs
+index 5dea25074..550e106e7 100644
+--- a/Server/PromptRecords.mjs
++++ b/Server/PromptRecords.mjs
+@@ -145,16 +145,22 @@ Answer at the end with ONE JSON object and nothing else after it:
+ 		return { text: result?.result || text, usd };
+ 	}
+ 
+-	/** Step 2, model: one call per prompt, no context (blind recall measured 0.95-1.0 against an Opus reading). */
+-	async parts_one(p){
+-		const sentences = RefinedCard.sentences(p.text);
+-		const r = await this.call(`The prompt, sentence by sentence:\n${sentences.map((s, i) => `${i}: ${s}`).join("\n")}`, { model: this.def.parts.model, system: PromptRecords.PARTS_BRIEF });
++	/** The parts of numbered sentences, nothing written: one model call, no context (blind recall measured 0.95-1.0 against an Opus reading).
++	 *  Cites are 0-based indexes into `sentences`. { subject, parts, usd }. Shared by parts_one and Servex/agents/TurnRefiner.js. */
++	static async parts_of(sentences, { model = LIVE_MODEL } = {}){
++		const r = await PromptRecords.ask(`The prompt, sentence by sentence:\n${sentences.map((s, i) => `${i}: ${s}`).join("\n")}`, { model, system: PromptRecords.PARTS_BRIEF });
+ 		const o = PromptAudit.json(r.text), ids = { n: 0 };
+ 		const clean = ps => (ps ?? []).filter(x => x?.text).map(x => ({ id: `a${++ids.n}`, cites: (x.cites ?? []).map(Number).filter(n => Number.isInteger(n) && n >= 0 && n < sentences.length),
+ 			kind: Prompt.KINDS.includes(x.kind) ? x.kind : "ask", text: String(x.text).trim(), ...(x.file ? { file: String(x.file) } : {}), ...(x.module ? { module: String(x.module) } : {}), ...(x.parts?.length ? { parts: clean(x.parts) } : {}),
+ 			outcome: x.kind === "conversation" ? { is: "no-action", why: "conversation" } : { is: "open" } }));
+-		const parts = clean(o.parts);
+-		await this.add({ prompt: this.rid(p), stage: "parts", process: this.process, step: "parts", subject: String(o.subject ?? ""), parts, model: this.def.parts.model, usd: +r.usd.toFixed(5) });
++		return { subject: String(o.subject ?? ""), parts: clean(o.parts), usd: r.usd };
++	}
++
++	/** Step 2, model: one call per prompt, no context. */
++	async parts_one(p){
++		const { subject, parts, usd } = await PromptRecords.parts_of(RefinedCard.sentences(p.text), { model: this.def.parts.model });
++		this.spent += usd;
++		await this.add({ prompt: this.rid(p), stage: "parts", process: this.process, step: "parts", subject, parts, model: this.def.parts.model, usd: +usd.toFixed(5) });
+ 		return parts;
+ 	}
+ 
+diff --git a/Servex/agents/TurnRefiner.js b/Servex/agents/TurnRefiner.js
+new file mode 100644
+index 000000000..98f9371f1
+--- /dev/null
++++ b/Servex/agents/TurnRefiner.js
+@@ -0,0 +1,29 @@
++import PromptRecords from "../../Server/PromptRecords.mjs";
++import Ask from "../../Server/Ask.mjs";
++
++/* THE REFINER OF A TURN THAT HAS NO PROMPT PAGE (one-refiner step 4, 2026-11-09). A channel that wrote its words through Ask.write
++ * calls TurnRefiner.refine(text, via, re, put) right after: the parts brief (PromptRecords.parts_of, the one refiner) splits the
++ * same sentences Ask.split numbered, and a second `refined` line with the same `re` carries the parts as sections whose items cite
++ * sentence numbers (1-based), so Session.coverage() counts them. A failure is returned, never thrown; the turn's words already stand.
++ * Channels: cloud voice (RemoteMCP.record) calls it. VS Code is refined by Echo + PromptTasks, and web dictation by Sessions.refine
++ * (both write sections). Doc: ext/Refine/doc/prompt-records.md. */
++export default class TurnRefiner {
++
++	/** The sections for parts, items citing 1-based sentence numbers (a part's nested details cite too): [{heading, items:[{id, text, cites}]}]. */
++	static sections(parts){
++		const items = parts.map((x, i) => ({ id: "p" + (i + 1), text: x.text, cites: [...new Set([...(x.cites ?? []), ...(x.parts ?? []).flatMap(d => d.cites ?? [])])].map(n => n + 1) }));
++		return items.length ? [{ heading: "", items }] : [];
++	}
++
++	/** {ok, parts, usd} or {ok:false, why}. `put(line)` is the channel's own door, as for Ask.write. */
++	static async refine(text, via, re, put, { parts_of = PromptRecords.parts_of } = {}){
++		try {
++			if (Ask.skip(text)) return { ok: true, skipped: Ask.skip(text) };
++			const sentences = Ask.split(text);
++			if (!sentences.length) return { ok: true, skipped: "no sentences" };
++			const r = await parts_of(sentences.map(s => s.text));
++			const out = await Ask.write(text, via, re, put, { sentences, sections: TurnRefiner.sections(r.parts), by: "parts", cost_usd: +(r.usd ?? 0).toFixed(5) });
++			return out.ok ? { ok: true, parts: r.parts.length, usd: r.usd } : out;
++		} catch (e){ return { ok: false, why: e.message || String(e) }; }
++	}
++}
+diff --git a/Servex/agents/TurnRefiner.test.mjs b/Servex/agents/TurnRefiner.test.mjs
+new file mode 100644
+index 000000000..6aa0bb482
+--- /dev/null
++++ b/Servex/agents/TurnRefiner.test.mjs
+@@ -0,0 +1,16 @@
++import assert from "node:assert/strict";
++import TurnRefiner from "./TurnRefiner.js";
++import Ask from "../../Server/Ask.mjs";
++import Session from "../../public/framework/core/Session/Session.js";
++
++const lines = [], text = "Fix the login page. It is broken. Thanks a lot.", re = "2026-11-09T10:00:00.000-05:00";
++const parts_of = async s => { assert.equal(s.length, 3); return { parts: [{ id: "a1", cites: [0, 1], kind: "ask", text: "Fix login" }, { id: "a2", cites: [2], kind: "conversation", text: "thanks" }], usd: 0.002 }; };
++Ask.write(text, "voice", re, l => lines.push(l));   // the channel's first line
++assert.equal(Session.replay(lines).coverage().cited, 0, "before the refiner nothing is cited");
++const r = await TurnRefiner.refine(text, "voice", re, l => lines.push(l), { parts_of });
++assert.equal(r.ok, true); assert.equal(r.parts, 2);
++const c = Session.replay(lines).coverage();
++assert.equal(c.sentences, 3); assert.equal(c.cited, 3, "every sentence is cited after the refiner");
++assert.equal((await TurnRefiner.refine("/clear", "voice", re, () => {}, { parts_of })).skipped, "slash command");
++assert.equal((await TurnRefiner.refine(text, "voice", re, () => {}, { parts_of: async () => { throw new Error("down"); } })).ok, false);
++console.log("TurnRefiner.test: ok");
+diff --git a/Servex/ext/remote/RemoteMCP.js b/Servex/ext/remote/RemoteMCP.js
+index 369f9a3db..634e4ddd4 100644
+--- a/Servex/ext/remote/RemoteMCP.js
++++ b/Servex/ext/remote/RemoteMCP.js
+@@ -6,6 +6,7 @@ import express from "express";
+ import TaskDirs from "../../../Server/TaskDirs.mjs";
+ import DatedFiles from "../../../Server/DatedFiles.mjs";
+ import Ask from "../../../Server/Ask.mjs";
++import TurnRefiner from "../../agents/TurnRefiner.js";
+ 
+ /* The remote MCP endpoint (POST /mcp/remote), behind a bearer token. It serves the SAME tool registry every local Claude
+  * session gets (`servex.mcp`, read live, never copied) plus `ask_mastermind` on top; calls run as caller "voice-app".
+@@ -284,7 +285,8 @@ export default class RemoteMCP {
+         try {
+             if (text) fs.appendFileSync(abs, JSON.stringify({ owner_words: { at, words: text, caller: RemoteMCP.CALLER } }) + "\n");
+             // the same words as numbered sentences, split by code with secrets withheld (Server/Ask.mjs): the line the voice model writes, `re` = the words line's `at`
+-            if (text) Ask.write(text, "voice", at, line => fs.appendFileSync(abs, JSON.stringify(line) + "\n"));
++            // then the one refiner (TurnRefiner: the parts brief) adds the sections that cite them, in the background
++            if (text){ const put = line => fs.appendFileSync(abs, JSON.stringify(line) + "\n"); Ask.write(text, "voice", at, put); TurnRefiner.refine(text, "voice", at, put).then(r => { if (r.ok === false) console.error("remote-mcp: turn refine:", r.why); }); }
+             const hash = crypto.createHash("sha256").update(JSON.stringify(call.args ?? {})).digest("hex").slice(0, 12);
+             fs.appendFileSync(abs, JSON.stringify({ tool_call: { at, tool, args_hash: hash, caller: RemoteMCP.CALLER } }) + "\n");
+         } catch (e) { console.error("remote-mcp: voice log write failed:", e.message); }
+diff --git a/public/framework/ai/doc/prompt-refinement-map.md b/public/framework/ai/doc/prompt-refinement-map.md
+index 6194c6486..38938a141 100644
+--- a/public/framework/ai/doc/prompt-refinement-map.md
++++ b/public/framework/ai/doc/prompt-refinement-map.md
+@@ -6,6 +6,8 @@ Eight mechanisms touch an owner's prompt, and they write to different files. Thi
+ 
+ **Step 3 of the one-refiner plan (built on a branch, live after merge and a Servex restart):** `session.coverage()` (`core/Session/Session.js`) counts the owner's sentences in a session and how many a task cites; the session page shows it as one line under the stats (`ai/AISession/SessionStats.js`), with the uncited sentences one click down. It is the number the next steps move. It counts sentences with the browser splitter (`core/Task/sentences.js`), which does not redact or quick-clean, so it reads about 8% higher than the study's `Ask.split` count (131 against 121 on session 5132a480).
+ 
++**Steps 4 and 5 of the one-refiner plan (built on a branch, live after merge and a Servex restart):** which channel refines, and where. **VS Code tab:** Echo writes the sections, and `PromptTasks` (`Servex/agents/PromptTasks.js`, only for an owner's `vscode-tab` session) runs the `live` process for the parts. **Web dictation:** `Sessions.refine` (`Servex/agents/Sessions.js`) writes the sections. **Cloud voice:** had no refiner; `RemoteMCP.record` (`Servex/ext/remote/RemoteMCP.js`) now calls `TurnRefiner.refine` (`Servex/agents/TurnRefiner.js`) right after `Ask.write`. It runs the same parts brief through `PromptRecords.parts_of` (the model call factored out of `parts_one`, so no second prompt record is written) and appends a second `refined` line, same `re`, whose sections cite the turn's sentences. Proof on a scratch turn of 4 sentences: cited 0 before, 4 after, $0.008 on Sonnet. Detail: [prompt-records.md](/framework/ext/Refine/doc/prompt-records.md#channels-and-the-turn-refiner).
++
+ **Changed since (checked 2026-11-08):** the hook now writes through `Ask.write` (`Server/Ask.mjs`, one splitter that numbers sentences). PromptTasks (mechanism 2) is switched off by the `prompt-tasks.off` file in the Servex home, so no `parts` line or `source.part` task was written 11-01..08, and coverage is 0% on every channel. The plan to keep one refiner, with each mechanism's lesson: [/live/plan/one-refiner/](/live/plan/one-refiner/) (record: [inventory.json](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/one-refiner-plan/inventory.json)).
+ 
+ ## The mechanisms
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/one-refiner-step4/session.jsonl b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/one-refiner-step4/session.jsonl
+new file mode 100644
+index 000000000..c6b4b16e1
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/one-refiner-step4/session.jsonl
+@@ -0,0 +1 @@
++{"log":{"at":"2026-11-09T18:19:14-06:00","msg":"Deliverable 1: PromptTasks.prompted (Servex/agents/PromptTasks.js:47-50,89) refines only an owner vscode-tab session; web dictation has its own sections in Sessions.refine (Sessions.js ~927-962); cloud voice had NO refiner (RemoteMCP.record). Wired: Servex/agents/TurnRefiner.js called from Servex/ext/remote/RemoteMCP.js record(); proof on a scratch turn: cited 0 -> 4 of 4, $0.008. Deliverable 3 NOT done: the coverage line did not draw in headless main-site shots (20-45 s waits) of cloud-voice-session-recall and session-a943a876; the page loads (shots/session-a943a876-400.png shows no stats bar), the stats bar is drawn after work_ready (AISessionDetail.js:365, lazy SessionWork), cause unconfirmed; live update cut for budget; 1200 shot failed (browser closed). A Servex restart is needed for the cloud-voice change."}}
+diff --git a/public/framework/ext/Refine/doc/prompt-records.md b/public/framework/ext/Refine/doc/prompt-records.md
+index 83c12a619..7ff40b720 100644
+--- a/public/framework/ext/Refine/doc/prompt-records.md
++++ b/public/framework/ext/Refine/doc/prompt-records.md
+@@ -77,6 +77,18 @@ Measured on the way: the SDK's `total_cost_usd` on a **resumed** session is cumu
+ ## Not built yet
+ 
+ - ⬜ The browser counts a `task` outcome as open; it does not yet resolve the task's state (node does, in `--summary`).
+-- ⬜ Whisper/Dictate and the cloud voice agent as sources of the `live` process (today: VS Code tabs).
++- ⬜ Whisper/Dictate as a source of the `live` process (cloud voice is refined by TurnRefiner, see above).
+ - ⬜ A session's completion counting its prompts, not only its tasks.
+ - ⬜ A step rewrites the whole parts list (a later line wins), so each step adds about 0.5 MB to a long session's `prompts.jsonl`; writing only the outcomes that changed, keyed by part id, would keep it small.
++
++## Channels and the turn refiner
++
++One refiner, the parts brief ([PartsBrief.js](/framework/ext/Refine/PartsBrief.js)), runs on every channel that carries an owner turn:
++
++| Channel | Writes the words | Refines (parts / sections) |
++|---|---|---|
++| VS Code tab | prompt-relay (Prompt page_add) | `PromptTasks.run` -> `PromptRecords.parts_one` (only an owner's `vscode-tab`), plus Echo sections |
++| Web dictation | `Sessions.say` | `Sessions.refine` (Echo clean + structure) |
++| Cloud voice | `Ask.write` in `RemoteMCP.record` | `TurnRefiner.refine` ([Servex/agents/TurnRefiner.js](/Servex/agents/TurnRefiner.js)) |
++
++`PromptRecords.parts_of(sentences, {model})` is the pure model call (`{subject, parts, usd}`, cites 0-based); `parts_one` wraps it and writes `prompts.jsonl`. `TurnRefiner.refine(text, via, re, put)` calls it for a turn that has no Prompt page, then `Ask.write` a second `refined` line with the same `re` and `sections` whose items cite sentence numbers (1-based). `Session.coverage()` counts those. A failure is returned, never thrown. Test: `Servex/agents/TurnRefiner.test.mjs`.

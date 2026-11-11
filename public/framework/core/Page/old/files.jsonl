@@ -10,3 +10,10 @@
 {"file":"readme.md"}
 {"file":"shell/page.js"}
 {"file":"weight.jsonl"}
+{"file":"children/page.js","nav":{"title":"Children","icon":"account_tree","description":"The filesystem is the router: how a tree is defined, imported and walked."}}
+{"file":"flow/page.js","nav":{"title":"Page flow","icon":"format_line_spacing","description":"Vertical rhythm: who owns the space between two blocks."}}
+{"file":"intro/page.js","nav":{"title":"Intro","icon":"flag"}}
+{"file":"nav/page.js","nav":{"title":"Navigation","icon":"explore","description":"Every navigation shape, running — and the one call behind each."}}
+{"file":"overview/page.js","nav":{"title":"Overview","description":"The fifteen demo trees, as top tabs instead of a rail."}}
+{"file":"previews/page.js","nav":{"title":"Previews","icon":"grid_view","description":"previews() arranges, preview() draws — the parent's wall and the child's card."}}
+{"file":"shell/page.js","nav":{"title":"Shell","icon":"tune","description":"The knobs: what a page tells every menu, what shape it takes, and how to build the frame around it."}}

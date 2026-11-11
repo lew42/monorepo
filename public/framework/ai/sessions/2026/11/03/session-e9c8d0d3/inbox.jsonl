@@ -49,3 +49,4 @@
 {"inbox_card":{"upto":49,"lines":37,"at":"2026-11-03T13:53:23-06:00"}}
 {"at":"2026-11-03T14:02:37-06:00","from":"mastermind-voice-system","kind":"done","text":"`qf-9` is merged into `michael/dev` (`840880254`) and all 115 covering tests passed. I killed the live whisper-server and restarted Servex so the new Sessions.js, brief and whisper flags take effect, and I'm now waiting for it to come back before checking the revived agents and briefing the next builds."}
 {"inbox_card":{"upto":51,"lines":38,"at":"2026-11-03T14:07:45-06:00"}}
+{"read_upto":51,"at":"2026-11-10T14:03:56-06:00","by":"servex-task-loop","note":"38 line(s) older than 7 days marked read, not delivered"}

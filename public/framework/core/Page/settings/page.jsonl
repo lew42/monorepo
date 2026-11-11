@@ -14,3 +14,6 @@
 {"file":"hidden/page.jsonl"}
 {"file":"readme.md"}
 {"file":"tasks/"}
+{"file":"disabled/page.jsonl","nav":{"title":"Disabled","icon":"block"}}
+{"file":"hidden/page.jsonl","nav":{"title":"Hidden","icon":"visibility_off"}}
+{"file":"normal/page.jsonl","nav":{"title":"Normal","icon":"tab"}}

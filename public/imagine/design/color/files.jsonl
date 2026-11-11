@@ -11,3 +11,5 @@
 {"file":"shots/"}
 {"file":"shots/page.jsonl"}
 {"file":"shots/"}
+{"file":"palette/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /framework/styles/system/studies/color/palette/."}}
+{"file":"sections/page.js","nav":{"title":"Sections","icon":"layers","description":"Every pairing of grounds, and every nesting."}}

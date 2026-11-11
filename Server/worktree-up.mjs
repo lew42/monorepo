@@ -38,6 +38,7 @@ import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { refuse_links_into_main } from "./junction-guard.mjs";
+import { ensure_modules } from "./ensure-modules.mjs";
 import SessionRecord from "./SessionRecord.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -166,6 +167,7 @@ try {
 } catch (e) {
 	console.error("worktree-up: `npm ci` failed — the server will probably fail to boot.");
 }
+if (!ensure_modules(target)) console.error("worktree-up: node_modules is still incomplete after a retry — the server will fail to boot.");
 
 const jc = await junction_check;
 if (jc?.code === 1) console.warn(`worktree-up: WARNING — some worktree holds a link into the main checkout (not this one's fault; the up goes on):\n${jc.out.trim()}`);

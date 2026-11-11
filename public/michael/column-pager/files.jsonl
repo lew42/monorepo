@@ -1,3 +1,5 @@
 {"file":"anatomy/page.js"}
 {"file":"mvp/page.js"}
 {"file":"page.js"}
+{"file":"anatomy/page.js","nav":{"title":"Anatomy","description":"sidebar / breadcrumbs / columns."}}
+{"file":"mvp/page.js","nav":{"title":"MVP","description":"Define pager() on a topic."}}

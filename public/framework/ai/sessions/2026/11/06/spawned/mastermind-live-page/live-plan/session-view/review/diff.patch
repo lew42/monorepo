@@ -1,0 +1,272 @@
+diff --git a/public/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-plan/session-view/probe.mjs b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-plan/session-view/probe.mjs
+new file mode 100644
+index 000000000..148ecb738
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/11/06/spawned/mastermind-live-page/live-plan/session-view/probe.mjs
+@@ -0,0 +1,23 @@
++import Browser from "file:///C:/Code/lew42/worktrees/qf-3/Server/Browser.mjs";
++
++const browser = await Browser.browser();
++const page = await browser.newPage({ viewport: { width: 400, height: 900 } });
++const errs = [];
++page.on("console", msg => { if (msg.type() === "error") errs.push(msg.text()); });
++page.on("pageerror", e => errs.push("pageerror: " + e.message));
++const t0 = Date.now();
++await page.goto("http://qf-3.localhost/live/session/", { waitUntil: "networkidle" });
++await page.waitForTimeout(500);
++const svHtml = await page.evaluate(() => document.querySelector("main, .page")?.outerHTML?.slice(0, 3000) ?? document.body.innerHTML.slice(0, 1000));
++console.log("load ms:", Date.now() - t0);
++console.log("errs:", JSON.stringify(errs, null, 2));
++console.log("svHtml:", svHtml);
++await page.screenshot({ path: "shots/probe-400.png", fullPage: true });
++await page.setViewportSize({ width: 1200, height: 900 });
++await page.screenshot({ path: "shots/probe-1200.png", fullPage: true });
++await page.setViewportSize({ width: 400, height: 1400 });
++await page.click("summary:has-text('Place every sentence')");
++await page.waitForTimeout(200);
++await page.locator("text=Child sessions").scrollIntoViewIfNeeded();
++await page.screenshot({ path: "shots/probe-detail-400.png", fullPage: true });
++await Browser.close();
+diff --git a/public/live/readme.md b/public/live/readme.md
+index 1685ebdc3..bc95faffe 100644
+--- a/public/live/readme.md
++++ b/public/live/readme.md
+@@ -92,6 +92,7 @@ Reading never writes a line. `page_read(path)` is the whole page as text. `item(
+ - **Writing into a card by url waits on a Servex restart.** `item({path: "/live/<card id>/", …})` is built (`card_at`), but the running Servex is older: today that path reads as an empty Page. Until the restart, write into a card through its parent: `{"content": {"<card>": {"content": {"add": …}}}}` on `/live/`. A sub-page that leaves out `"class"` also needs the restart. Only the owner picks the restart time; never call `restart_servex` during a call.
+ - [/live/sessions/](sessions/), [/live/archive/](archive/) and [/live/v1/](v1/) are the old version's views; they read v1's log and show nothing new.
+ - [/live/calibration/](calibration/) is a page.js, not a log: the first prompt-refinement test (four prompts, Sonnet against Haiku), drawn from [its run files](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/calibration/readme.md). [/live/truth/](truth/) is one too (its own readme).
++- [/live/session/](session/) is a page.js too: a prototype for ONE session (`cloud-voice-app-20261106`), its `session.jsonl` folded by `SessionView.fold` into titled task rows grouped by state (no strike-through), child sessions and a gap note where the owner's prompts aren't in the file. Built only from `ui/card` and `ui.item()`, no page CSS of its own.
+ - `{"light": …}` and `{"toggle": {}}` are gone (a `live-light` card replaces them).
+ 
+ ## The header: tabs and settings
+diff --git a/public/live/session/SessionView.js b/public/live/session/SessionView.js
+new file mode 100644
+index 000000000..83a4ea7bb
+--- /dev/null
++++ b/public/live/session/SessionView.js
+@@ -0,0 +1,84 @@
++// SessionView — a lean, DOM-free fold of one session's session.jsonl into {tasks, children, totals}.
++// Deliberately NOT core/Session (that class drags in Chat/Settings/View for a chat and settings UI
++// this prototype never shows); this is the small fold the brief allows when the full replay is
++// heavier than the page needs. Runs in node (the test) and the browser the same way.
++export default class SessionView {
++
++	// text -> {id, startAt (ms), lastAt (ISO string), tasks: [...], done, total, children}. Never throws on a bad line.
++	static fold(text){
++		const lines = String(text ?? "").split("\n").filter(Boolean).map(line => {
++			try { return JSON.parse(line); } catch { return null; }
++		}).filter(Boolean);
++
++		let id = null, startAt = null, lastAt = null;
++		const tasks = new Map();   // top-level task id -> task row, insertion order = first-seen order
++		const children = [];       // {agent, at, task_dir} from {"spawned":{...}} lines
++
++		for (const line of lines){
++			if (line.ts) lastAt = line.ts;
++			if (line.session){ id = line.session.id ?? id; startAt = line.session.at ?? startAt; continue; }
++			if (line.assign){ id = id ?? line.assign.agent ?? null; const at = Date.parse(line.assign.requested_at ?? ""); startAt = startAt ?? (Number.isNaN(at) ? null : at); continue; }
++			if (line.spawned){ children.push({ agent: line.spawned.agent ?? null, at: line.spawned.at ?? null, task_dir: line.spawned.task_dir ?? null }); continue; }
++			if (line.tasks) SessionView.apply_tasks(tasks, line.tasks);
++		}
++
++		const list = [...tasks.values()];
++		const stopped = list.filter(t => t.state === "stopped").length;
++		const done = list.filter(t => t.state === "complete").length;
++		return { id, startAt, lastAt, tasks: list, done, total: list.length - stopped, children };
++	}
++
++	// One task-list's worth of ops: {"add": {...}} makes a row; any other key is an existing (or lazily made) id's own ops.
++	static apply_tasks(map, ops){
++		for (const [key, val] of Object.entries(ops ?? {})){
++			if (key === "add"){
++				const id = val?.id;
++				if (!id) continue;
++				map.set(id, SessionView.new_task(id, val));
++				continue;
++			}
++			let t = map.get(key);
++			if (!t){ t = SessionView.new_task(key, { title: key }); map.set(key, t); }   // a subtask referenced before an explicit add
++			SessionView.apply_ops(t, val);
++		}
++	}
++
++	static new_task(id, fields){
++		return { id, title: fields?.title ?? id, state: "idle", module: fields?.module ?? null, why: fields?.why ?? null,
++			owner: null, outcome: null, evidence: null, waiting: null, log: [], subtasks: new Map() };
++	}
++
++	// One task's own ops line (a verb, a plain field, or a nested "tasks" for its subtasks).
++	static apply_ops(t, ops){
++		for (const [verb, arg] of Object.entries(ops ?? {})){
++			switch (verb){
++				case "start": case "resume": t.state = "running"; break;
++				case "pause": t.state = "paused"; break;
++				case "stop": t.state = "stopped"; t.why = arg?.why ?? t.why; break;
++				case "wait": t.state = "waiting"; t.waiting = { on: arg?.on ?? null, what: arg?.what ?? null }; break;
++				case "complete":
++					t.state = "complete";
++					if (arg?.outcome !== undefined) t.outcome = arg.outcome;
++					if (arg?.evidence !== undefined) t.evidence = arg.evidence;
++					break;
++				case "log": t.log.push(typeof arg === "string" ? arg : arg?.msg ?? JSON.stringify(arg)); break;
++				case "title": t.title = arg; break;
++				case "owner": t.owner = arg; break;
++				case "module": t.module = arg; break;
++				case "tasks": SessionView.apply_tasks(t.subtasks, arg); break;
++				default: break;   // now, priority, tags, …: not shown in this prototype
++			}
++		}
++	}
++
++	// The four groups the brief asks for; "stopped" (dropped) folds into "done" so nothing silently disappears.
++	static GROUPS = [
++		{ key: "working", label: "Working", states: ["running"] },
++		{ key: "waiting", label: "Waiting on you", states: ["waiting"] },
++		{ key: "open", label: "Open", states: ["idle", "paused"] },
++		{ key: "done", label: "Done", states: ["complete", "stopped"] },
++	];
++	static grouped(tasks){
++		return SessionView.GROUPS.map(g => ({ ...g, tasks: tasks.filter(t => g.states.includes(t.state)) }));
++	}
++}
+diff --git a/public/live/session/SessionView.test.mjs b/public/live/session/SessionView.test.mjs
+new file mode 100644
+index 000000000..356218a3b
+--- /dev/null
++++ b/public/live/session/SessionView.test.mjs
+@@ -0,0 +1,35 @@
++import { test } from "../../framework/core/Test/Test.js";
++import SessionView from "./SessionView.js";
++
++test("SessionView", t => {
++	const text = [
++		'{"session":{"id":"s1","at":1000}}',
++		'{"tasks":{"add":{"id":"a","title":"A task"}},"ts":"2026-01-01T00:00:00.000Z"}',
++		'{"tasks":{"add":{"id":"b","title":"B task"}},"ts":"2026-01-01T00:00:01.000Z"}',
++		'{"tasks":{"a":{"start":{}}},"ts":"2026-01-01T00:00:02.000Z"}',
++		'{"tasks":{"b":{"wait":{"on":"owner","what":"a yes"}}},"ts":"2026-01-01T00:00:03.000Z"}',
++		'{"tasks":{"a":{"complete":{"outcome":"done","evidence":["x1"]}}},"ts":"2026-01-01T00:00:04.000Z"}',
++		'{"tasks":{"add":{"id":"c","title":"C task"}},"ts":"2026-01-01T00:00:05.000Z"}',
++		'{"tasks":{"c":{"stop":{"why":"dup"}}},"ts":"2026-01-01T00:00:06.000Z"}',
++		'{"spawned":{"agent":"minion-x","task_dir":"/framework/ai/sessions/2026/01/01/s1/x/"},"ts":"2026-01-01T00:00:07.000Z"}',
++		'not json, skipped',
++	].join("\n");
++
++	const r = SessionView.fold(text);
++	t.eq(r.id, "s1", "reads the session id");
++	t.eq(r.startAt, 1000, "reads the start time");
++	t.eq(r.lastAt, "2026-01-01T00:00:07.000Z", "reads the last line's ts");
++	t.eq(r.tasks.length, 3, "three top-level tasks, a torn line skipped");
++	t.eq(r.done, 1, "one complete");
++	t.eq(r.total, 2, "stopped task leaves the total (2 of 3, c dropped)");
++	t.eq(r.children.length, 1, "one spawned child");
++	t.eq(r.children[0].agent, "minion-x", "child names its agent");
++
++	const g = SessionView.grouped(r.tasks);
++	t.eq(g.find(x => x.key === "working").tasks.length, 0, "a is complete, not running, by the end");
++	t.eq(g.find(x => x.key === "waiting").tasks.length, 1, "b is waiting");
++	t.eq(g.find(x => x.key === "done").tasks.length, 2, "a (complete) and c (stopped) both show as done");
++
++	const b = r.tasks.find(x => x.id === "b");
++	t.eq(b.waiting.on, "owner", "waiting reason is kept");
++});
+diff --git a/public/live/session/files.jsonl b/public/live/session/files.jsonl
+new file mode 100644
+index 000000000..e8afc4063
+--- /dev/null
++++ b/public/live/session/files.jsonl
+@@ -0,0 +1,5 @@
++{"file":"SessionView.js"}
++{"file":"SessionView.test.mjs"}
++{"file":"page.js"}
++{"file":"session.css"}
++{"file":"session.css","gone":true}
+diff --git a/public/live/session/page.js b/public/live/session/page.js
+new file mode 100644
+index 000000000..7f14bdd64
+--- /dev/null
++++ b/public/live/session/page.js
+@@ -0,0 +1,83 @@
++import { Page, div, span, a, p, h2, icon, ui } from "/app.js";
++import SessionView from "./SessionView.js";
++
++/* /live/session/ — prototype session view for ONE session (2026-11-09, requirements.md). The owner can't read the
++ * current session page: tasks show as crossed-off paragraphs with no titles. This reads the one file (one fetch,
++ * SessionView.fold) and draws titled rows, grouped by state, open on tap — built only from ui/card and ui/item
++ * (ui.item: a row, or a tree node when it has children), no new CSS (the owner, via voice-app, 2026-11-09).
++ * Later: every session, at its own folder. */
++const SESSION_URL = "/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/session.jsonl";
++const SESSION_FOLDER = "/framework/ai/sessions/2026/11/06/cloud-voice-app-20261106/";
++
++const fmt = ms => ms ? new Date(ms).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—";
++
++const STATE_ICON = { running: "play_circle", waiting: "schedule", idle: "radio_button_unchecked", paused: "pause_circle", complete: "check_circle", stopped: "block" };
++const GROUP_ICON = { working: "bolt", waiting: "schedule", open: "radio_button_unchecked", done: "check_circle" };
++
++export default new Page({
++	meta: import.meta,
++	title: "Session",
++	description: "One session's tasks, titled and grouped, not a crossed-off wall of text.",
++	icon: "forum",
++
++	content(){
++		const $out = div.c("wide flex v gap");
++		const t0 = performance.now();
++		$out.empty(() => p("Loading…"));
++		fetch(SESSION_URL).then(r => r.ok ? r.text() : Promise.reject(new Error(`${SESSION_URL}: ${r.status}`)))
++			.then(text => {
++				const data = SessionView.fold(text);
++				console.log(`SessionView: fetch to drawn in ${Math.round(performance.now() - t0)} ms`);
++				$out.empty(() => draw(data));
++			}, e => $out.empty(() => p(`Could not load the session: ${e.message}`)));
++	},
++});
++
++function draw(data){
++	header_card(data);
++	h2("Tasks");
++	for (const group of SessionView.grouped(data.tasks)) if (group.tasks.length) group_item(group);
++	h2("Child sessions");
++	children_card(data.children);
++	h2("The owner's prompts");
++	p.c("muted", "Not in this file: no prompt or owner-sentence lines here, and none in the session's own ai/ or page.jsonl either (checked 2026-11-09; logged as a gap on this task).");
++}
++
++function header_card(data){
++	div.c("card flex v gap-25", () => {
++		div.c("flex gap-50", () => { icon("forum"); a(data.id).attr("href", SESSION_FOLDER); });
++		p.c("muted", `Started ${fmt(data.startAt)} · last line ${data.lastAt ? fmt(Date.parse(data.lastAt)) : "—"}`);
++		p(`${data.done} of ${data.total} tasks done`);
++	});
++}
++
++function group_item(group){
++	ui.item({ icon: GROUP_ICON[group.key], name: `${group.label} (${group.tasks.length})`, open: group.key !== "done",
++		children: group.tasks.map(t => ({ icon: STATE_ICON[t.state] ?? "circle", name: t.title, children: () => task_detail(t) })) });
++}
++
++function task_detail(t){
++	div.c("flex v gap-25", () => {
++		if (t.why) p(`Why: ${t.why}`);
++		if (t.waiting) p(`Waiting on ${t.waiting.on ?? "?"}${t.waiting.what ? `: ${t.waiting.what}` : ""}`);
++		if (t.outcome) p(t.outcome);
++		if (t.evidence?.length) p(() => {
++			span("Evidence: ");
++			[].concat(t.evidence).forEach((e, i) => { if (i) span(", "); evidence_link(e); });
++		});
++		if (!t.why && !t.waiting && !t.outcome && !t.evidence?.length) span.c("muted", "Nothing logged yet.");
++	});
++}
++
++function evidence_link(e){
++	const text = String(e);
++	if (text.startsWith("/")) a(text).attr("href", text);
++	else span(text);
++}
++
++function children_card(children){
++	if (!children.length){ p.c("muted", "None spawned."); return; }
++	div.c("card flex v gap-25", () => {
++		for (const c of children) ui.item({ icon: "smart_toy", name: c.agent ?? "?", ...(c.task_dir ? { href: c.task_dir, end: "arrow" } : {}) });
++	});
++}

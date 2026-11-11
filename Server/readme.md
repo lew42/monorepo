@@ -25,6 +25,7 @@ The owner-facing server also starts `whisper-server` for dictation on its own �
 
 ## Routes the dev server adds for the pages
 
+- `GET /api/index?dir=/framework/&depth=2` ([`plugins/PageIndex.js`](./plugins/PageIndex.js)) answers a folder's children and their children with the `nav` (title, icon, description) from their `files.jsonl` lines (`PageNav.mjs` writes it); `core/Page/Index.js` is the one caller ([plan](/framework/core/Page/doc/index-jsonl.md)).
 - `GET /api/folder-names?dir=/framework/ai/sessions/2026/10/20/` ([`plugins/FolderNames.js`](./plugins/FolderNames.js)) answers `{"names": [...]}`, the entry names of one folder under `public/`, always a 200 (a missing folder is `[]`). `ai/AITask/listing.js` asks it once per folder, so opening a task folder checks `session.jsonl`, `task.jsonl`, `page.js` and `requirements.md` without a 404 probe for each. It is a new route: a dev server started before it landed answers no listing, and the pages fall back to the old probes (and their 404s) until the server restarts.
 
 ## Scripts (one line each; the full paragraph for every one is in [`doc/script-notes.md`](./doc/script-notes.md))
@@ -58,6 +59,8 @@ The owner-facing server also starts `whisper-server` for dictation on its own �
 - `node Server/DoneCheck.mjs [--dry|--list]` — Haiku check of completed owner asks, "marked done, not done" ([completion](../public/framework/core/Task/doc/completion.md)).
 - `node Server/CloseoutWalk.mjs <session> [--dry|--apply|--counts]` — walks a session's open owner asks to done, stopped, or deferred with a home (same doc).
 - `node Server/NavCheck.mjs <worktree>` — the click test: every page a branch adds must have an `a[href]` on its parent page, loaded headless; `merge.mjs` runs it and refuses an unlinked page, `--no-nav "why"` overrides ([`doc/nav-check.md`](./doc/nav-check.md)).
+- `node Server/OwnCSS.mjs --census` — every page's own CSS outside the kit, most first; `merge.mjs` refuses a branch that adds declarations to a page's own CSS, `--own-css "why"` overrides ([`doc/own-css.md`](./doc/own-css.md)).
+- `node Server/LayoutCheck.mjs <base url> <page url>... [--widths 400,1200] [--json] [--baseline]` — a numeric layout check, no screenshots: `analyze()` + `PaddingContract.check()` headless per page×width, BROKEN (high-severity) vs OFF (polish) counts and the top 3 findings; `merge.mjs` runs it on the changed pages right after the smoke run and only ever reports (never refuses a merge).
 - `node Server/Tunnel.mjs up|down|status` — the Cloudflare tunnel: `servex.lew42.com` (the voice app's `/mcp/remote`) and `monorepo.lew42.com` (the site from anywhere, through `SiteGateway.mjs`, behind a key cookie); `node Server/TunnelNamed.mjs setup` sets its hosts and DNS ([tunnel doc](../Servex/ext/remote/doc/tunnel.md)).
 - [`git-hooks/`](./git-hooks/) — the git hooks every worktree shares, versioned here with a small installer: they log each commit (and a `Session:` trailer) to the session that made it.
 

@@ -10,3 +10,12 @@
 {"file":"research/page.js"}
 {"file":"topic/page.js"}
 {"file":"workflows/page.js"}
+{"file":"decisions/page.js","nav":{"title":"Decisions","icon":"gavel","description":"The hard-to-reverse calls, one record each."}}
+{"file":"existing/page.js","nav":{"title":"Existing framework","icon":"inventory_2","description":"What the framework already has, per concern."}}
+{"file":"local/page.js","nav":{"title":"Local","description":"npm run dev: a real Durable Object room."}}
+{"file":"mvp/page.js","nav":{"title":"Deploy first, not last","icon":"linear_scale","description":"The smallest slice: ten steps to a server."}}
+{"file":"omnibox/page.js","nav":{"title":"Omnibox","icon":"search","description":"The site's search box started here, as a platform question. Now it lives on core/Search's own page."}}
+{"file":"prior/page.js","nav":{"title":"Prior Cloudflare","icon":"history","description":"Prior Cloudflare work — none of it ever shipped."}}
+{"file":"research/page.js","nav":{"title":"Research","icon":"explore","description":"Nine platform questions, each dug to a verdict."}}
+{"file":"topic/page.js","nav":{"title":"JavaScript","icon":"code","description":"A topic demo, built from words the framework has."}}
+{"file":"workflows/page.js","nav":{"title":"Workflows","icon":"grid_view","description":"Every sign-up and sign-in flow as a demo app you can click through — one wall, a click counter on each card."}}

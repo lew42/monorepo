@@ -26,7 +26,7 @@ for (const url of urls){
 	const data = rows.filter(r => /\.(jsonl?|md)(\?|$)/.test(r.url));
 	const sum = a => a.reduce((n, r) => n + r.bytes, 0);
 	const top = [...data].sort((a, b) => b.bytes - a.bytes).slice(0, 8).map(r => `${(r.bytes / 1024).toFixed(0)} KB ${r.url}`);
-	const row = { url, requests: rows.length, kb: Math.round(sum(rows) / 1024), data_requests: data.length, data_kb: Math.round(sum(data) / 1024),
+	const row = { url, requests: rows.length, scripts: rows.filter(r => r.type === "script").length, page_js: rows.filter(r => /\/page\.js(\?|$)/.test(r.url)).length, kb: Math.round(sum(rows) / 1024), data_requests: data.length, data_kb: Math.round(sum(data) / 1024),
 		jsonl_requests: data.filter(r => /\.jsonl/.test(r.url)).length, load_ms, idle_ms, top };
 	out.push(row);
 	console.log(JSON.stringify(row, null, 1));

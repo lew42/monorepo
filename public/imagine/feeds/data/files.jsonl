@@ -3,3 +3,6 @@
 {"file":"table/page.js"}
 {"file":"tree/page.js"}
 {"file":"data.json"}
+{"file":"cards/page.js","nav":{"title":"Cards","icon":"grid_view","description":"The filtered rows as a wall of cards."}}
+{"file":"table/page.js","nav":{"title":"Table","icon":"table_rows","description":"The filtered rows as one table, six columns."}}
+{"file":"tree/page.js","nav":{"title":"Tree","icon":"account_tree","description":"Type, then building, then its facts — three panes, one selection each."}}

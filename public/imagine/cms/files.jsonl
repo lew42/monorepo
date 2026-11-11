@@ -12,3 +12,9 @@
 {"file":"welcome.md"}
 {"file":"shots/page.jsonl"}
 {"file":"shots/"}
+{"file":"d1/page.js","nav":{"title":"D1 pages","icon":"storage","description":"Three pages that are rows in Cloudflare D1 (SQLite), read over one API route."}}
+{"file":"doc/page.js","nav":{"title":"CMS notes","description":"The one open proposal behind cms's JSON pages: undo for an append-only log."}}
+{"file":"edit/page.js","nav":{"title":"Edit","icon":"edit_note","description":"Change welcome.md in the browser; the file on disk changes. Publishing is git commit."}}
+{"file":"json/page.js","nav":{"title":"JSON pages","icon":"storage","description":"A page tree that exists as data — page.json is the snapshot, page.jsonl the deltas."}}
+{"file":"services/page.js","nav":{"title":"Services","icon":"cloud","description":"What a create-and-manage screen for D1, Durable Objects, KV and R2 would be — each button labelled with the wrangler command behind it."}}
+{"file":"thinking/page.js","nav":{"title":"Thinking","icon":"balance","description":"The options matrix — git files, node:sqlite, D1, Durable Objects, KV, R2 — and the adapter seam that avoids picking one."}}

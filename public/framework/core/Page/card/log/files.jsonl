@@ -5,3 +5,4 @@
 {"file":"doc/"}
 {"file":"whisper/"}
 {"file":"whisper/page.js"}
+{"file":"whisper/page.js","nav":{"title":"Whisper debug log","icon":"subtitles","description":"Runs a real Transcriber.Whisper against a saved clip or the mic, and logs every tick as a nested card."}}

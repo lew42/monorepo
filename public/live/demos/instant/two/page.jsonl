@@ -1,0 +1,3 @@
+{"title":"Two","icon":"2️⃣","description":"A second tab, a second call.","class":"/live/LivePage.js"}
+{"content":{"add":{"id":"kbmk9u58","type":"part-text","text":"Tab **Two**: a second `pages.add` call. Each sub-page with no children of its own is a tab under `/live/`."}},"by":"mastermind-page-design","ts":"2026-11-10T00:22:18.787Z"}
+{"kbmk9u58":{"text":"Tab **Two**: the same two calls, `pages.add` then `tab`."},"by":"mastermind-page-design","ts":"2026-11-10T00:23:10.195Z"}

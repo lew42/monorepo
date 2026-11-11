@@ -184,7 +184,8 @@ aliases();
  * would. */
 window.app?.ready.then(() => {
 	const router = window.app.router;
-	if (!router?.active) return;
+	// The live site's router is core/Router, not this sketch's Router: the patches above never reached it.
+	if (!(router instanceof Router) || !router.active) return;
 
 	if (location.pathname !== router.active.url)
 		history.replaceState({}, "", router.active.url + location.search + location.hash);

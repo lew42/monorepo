@@ -260,3 +260,7 @@ public/framework/ext/Chat/v2/fixture/dbg-*.jsonl
 # temp folders left by the page-tools test
 **/.page-tools-test-*/
 **/.page-tools-items-test-*/
+# the In-flight block's cache; rebuilt in one command: node Server/unmerged.mjs --write
+public/framework/ai/unmerged.json
+# core/Test daily test results (results/YYYY-MM-DD.jsonl, last 7 days; older ones move to results/archive/): machine state written by TestRunner, one file a day instead of one 7 MB tracked file. Alternative: track the daily files; rotation would then leave deleted paths the sweeper never commits.
+public/framework/core/Test/results/

@@ -9,3 +9,8 @@
 {"file":"screen/page.js"}
 {"file":"screen.js"}
 {"file":"tabs/page.js"}
+{"file":"columns/page.js","nav":{"title":"Docs","icon":"view_column","description":"A column opens and nothing already open moves."}}
+{"file":"doc/page.js","nav":{"title":"Measurements","icon":"straighten","description":"How every number on the Navigation page was taken."}}
+{"file":"reserved/page.js","nav":{"title":"Reserved height","icon":"crop_free","description":"A box that keeps its height whatever you put in it."}}
+{"file":"screen/page.js","nav":{"title":"Full screen","icon":"web_asset","description":"A whole screen whose sub pages never move the rail."}}
+{"file":"tabs/page.js","nav":{"title":"Reserved tabs","icon":"tab","description":"The tab strip never moves; make the panel behave too."}}

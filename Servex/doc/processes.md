@@ -58,7 +58,12 @@ Every 10 seconds Servex reads every process on the machine. It sorts each one in
 | **front desk** | the assistants, managers and session agents |
 | **Servex** | Servex itself, the node that supervises it, and its other children |
 | **Claude Code session** | a claude.exe Servex did not start (a VS Code tab) and its shells |
-| **dev servers** | the servers Servex started detached, and any process from this repo or a worktree whose parent is gone |
+| **dev servers** | the servers Servex started detached, and a parent-gone node of ours running the main site's `run.js`, a worktree's `server.js`, or the gate — a REAL server. Its `servers` field counts servers (one per tree); `n` counts processes, about four per server (cmd, conhost, two nodes), and the health line prints `servers`. Nothing else counts here (2026-11-09: these used to inflate "dev servers" with everything below) |
+| **tunnel** | a parent-gone `Tunnel.mjs` or `cloudflared` |
+| **whisper** | a parent-gone `whisper-server` |
+| **browsers** | a parent-gone Playwright chromium (its cache path, or a Playwright `--user-data-dir`) |
+| **leftover shells** | a parent-gone `cmd`/`bash`/`powershell`/`conhost` that is not a waiter and wraps none of the above |
+| **other of ours** | anything else of ours whose parent is gone |
 | **orphans** | a leftover waiter of ours (bash, tail, grep, sleep …) whose parent is gone |
 | *other* | everything else: Chrome, VS Code, Windows. Counted, never touched. |
 
@@ -162,8 +167,9 @@ The monitor checks that PID every 10 seconds. An agent that says `working` or `i
 ## Orphans: flagged, and ours reaped
 
 - **Flagged:** a process of our kinds whose parent is gone, and whose command line points into this repo, a worktree, Claude's own folders, or Git for Windows' own tools.
-- **Reaped** after 10 minutes with no CPU (`SERVEX_REAP_ORPHANS_MS`), and only if it is a waiter: bash, sh, tail, grep, sleep, cat, head, sed, awk, timeout or find. A node process with no parent is shown under dev servers, never killed. `SERVEX_REAP_ORPHANS=0` only flags.
-- **Every reap** writes one line to the `processes` log and shows under `reaped`.
+- **Reaped idle** after 10 minutes with no CPU (`SERVEX_REAP_ORPHANS_MS`), and only if it is a waiter: bash, sh, tail, grep, egrep, fgrep, rg, du, xargs, ls, sleep, cat, head, sed, awk, timeout or find. A node process with no parent is never a waiter, so it is never reaped: it lands in "dev servers" (a real server) or "other of ours" (`classify_leftover`, `Processes.js`), either way shown, never killed. `SERVEX_REAP_ORPHANS=0` only flags.
+- **Reaped burning** (2026-11-09, `runaway-search`): a search kind — grep, egrep, fgrep, find, rg, du, xargs, ls, or a `git grep` / `git log -S...` invocation — never node, never an app — whose parent is gone and that has averaged at least `SERVEX_BURN_CORE_PCT` (default 25) of ONE core over the last `SERVEX_BURN_WINDOW_MS` (default 2 minutes), from the per-pid 10-second CPU samples `take()` already keeps (`cpu_hist`). This is what catches a recursive search started by an agent whose shell is gone: it keeps walking the tree and spinning a fan long after nobody is waiting on it. The idle rule above is unchanged and runs independently.
+- **Every reap** writes one line to the `processes` log and shows under `reaped`, `{type: "reaped", why: "idle" | "burning", pid, name, mb, cmd, ok, idle_min | cpu_avg}`.
 
 ⚠ **Windows lies about Git Bash parents.** A Git Bash tool starts through `exec`, so Windows names a parent that already exited, even while the pipeline is alive and being read. A `tail -f | grep` under a live Claude session looks parentless. So the monitor also reads Git's own `ps -e`, which keeps the true tree, and trusts it over Windows. Without that, a live session's monitor would be killed. The proof plants both a dead and a live pipeline: [proof.txt](/framework/ai/sessions/2026/09/30/2976c23c-62af-4aa8-b898-5e56e1c025f8/process-monitor/proof.txt).
 

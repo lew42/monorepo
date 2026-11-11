@@ -55,3 +55,28 @@
 {"file":"youtube/page.js"}
 {"file":"ai/"}
 {"file":"lines/page.js"}
+{"file":"blogx/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /layouts/labs/blogx/."}}
+{"file":"cms/page.js","nav":{"title":"CMS","icon":"edit_document","description":"A CMS out of two seams that already existed: a markdown file is a page, and the dev socket writes files."}}
+{"file":"codrops/page.js","nav":{"title":"Grid item hover effect","icon":"block","description":"Free web-effect demos from Codrops, rebuilt as pages on this framework — what carries over and what does not."}}
+{"file":"decks/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /layouts/labs/decks/."}}
+{"file":"design/page.js","nav":{"title":"Moved","icon":"moving","description":"This realm split across five places — the studies joined what they proved."}}
+{"file":"feeds/page.js","nav":{"title":"Feeds","icon":"dynamic_feed","description":"Embeds and data-driven pages — a YouTube picker, one dataset drawn three ways, one live API."}}
+{"file":"gallery/page.js","nav":{"title":"Gallery","icon":"grid_view","description":"Browsable lists of all the things — every card a page borrowed from somewhere else."}}
+{"file":"game/page.js","nav":{"title":"The Verge","icon":"explore","description":"Three realms, nine rooms, a trade and a way out — a world walked entirely as columns and links."}}
+{"file":"generated/page.js","nav":{"title":"Generated","icon":"output","description":"Page trees exported from the generator — the same tree, as files you can edit."}}
+{"file":"importance/page.js","nav":{"title":"Importance","icon":"equalizer","description":"What matters most here, ranked by comparison"}}
+{"file":"layouts/page.js","nav":{"title":"Moved","icon":"moving","description":"The numbered layouts became named layouts in /framework/core/Layout/."}}
+{"file":"lines/page.js","nav":{"title":"Line art","icon":"gesture","description":"Turn any image into line art: darker pixels mark steadier, straighter edges."}}
+{"file":"mag/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /layouts/labs/mag/."}}
+{"file":"paging/page.js","nav":{"title":"Paging","icon":"auto_stories","description":"One configurable page, six building blocks, and twelve ready-made shapes."}}
+{"file":"platform/page.js","nav":{"title":"Platform","icon":"public","description":"Topics as worlds — the research, the decisions and the prototypes behind a community platform built on this framework."}}
+{"file":"research/page.js","nav":{"title":"Research","icon":"explore","description":"Five topics — four in ancient technology, one on browser automation — dug in parallel and streamed live, every claim carrying how sure anyone actually is."}}
+{"file":"review/page.js","nav":{"title":"Platform","icon":"fact_check","description":"Eighteen realms opened cold by eighteen reviewers: what a stranger thought each page was for, what it meant to be, and the 55 things that got fixed."}}
+{"file":"scenes/page.js","nav":{"title":"Scenes","icon":"3d_rotation","description":"A 3D pager: the page tree is the scene graph. Click an object to navigate."}}
+{"file":"screens/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /layouts/labs/screens/."}}
+{"file":"sections/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /layouts/labs/sections/."}}
+{"file":"shells/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /layouts/labs/shells/."}}
+{"file":"stream/page.js","nav":{"title":"Stream","icon":"sensors","description":"A page edited in one tab, arriving live in every other. Deltas over the socket that already watched the file."}}
+{"file":"team/page.js","nav":{"title":"Ada Bramwell","icon":"dashboard","description":"A sample team's kanban board — six people, twelve tasks, four lanes. Drag a task to move it, or click a person to see just theirs."}}
+{"file":"vary/page.js","nav":{"title":"Vary","icon":"science","description":"Four variation trees — scrollbars, background hierarchy, child placement, column looks."}}
+{"file":"youtube/page.js","nav":{"title":"YouTube","icon":"smart_display","description":"Five labs on the IFrame Player API — a control panel, a course, and three ways a timeline can drive the UI."}}

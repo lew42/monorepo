@@ -6,3 +6,5 @@
 {"file":"page.js"}
 {"file":"readme.md"}
 {"file":"issue.json"}
+{"file":"contents/page.js","nav":{"title":"Contents","icon":"toc","description":"Six pieces, in reading order."}}
+{"file":"doc/page.js","nav":{"title":"Docs","icon":"menu_book","description":"The record — what was chosen, what it was measured against, what was rejected."}}

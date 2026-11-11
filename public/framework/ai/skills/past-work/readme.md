@@ -51,4 +51,4 @@ How indexing works, and why readmes are the main index: [ai/doc/owner-2026-10-17
 
 past-work → investigate (how it works now, the pieces, the decisions) → `plan.md` beside `requirements.md` → build. Details in `new-task`.
 
-Improve this skill: `item({path: "/framework/ai/skills/past-work/improvements.jsonl", delta: {tasks: {add: {title, why}}}})`.
+Improve this skill: `item({path: "/framework/ai/skills/past-work/improvements.jsonl", call: "tasks.add", args: {title, why}})`.

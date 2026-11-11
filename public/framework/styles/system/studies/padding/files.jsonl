@@ -4,3 +4,4 @@
 {"file":"shots/"}
 {"file":"shots/page.jsonl"}
 {"file":"shots/"}
+{"file":"one-rule/page.js","nav":{"title":"One rule","icon":"crop_square","description":"A single card padding declaration — clamp(0.75em, 3.5cqi, 2.5em) — proven at five slot widths, and the three control variants that stay em-based."}}

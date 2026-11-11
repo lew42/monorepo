@@ -4,3 +4,7 @@
 {"file":"list-large/page.js"}
 {"file":"measure-3440/page.js"}
 {"file":"page.js"}
+{"file":"flush-wall/page.js","nav":{"title":"Flush Wall","description":"A 0-gap 0-pad grid, edge-to-edge, against the padded version."}}
+{"file":"grid-detail/page.js","nav":{"title":"Grid → Detail","icon":"image","description":"A large grid of small tiles; each opens a small detail column."}}
+{"file":"list-large/page.js","nav":{"title":"List → Large","icon":"dashboard","description":"A small picker opens a large content column."}}
+{"file":"measure-3440/page.js","nav":{"title":"Measure at 3440","description":"A default-width column, ordinary 2-column content, measured."}}

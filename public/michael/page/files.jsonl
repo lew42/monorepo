@@ -2,3 +2,6 @@
 {"file":"mvp/page.js"}
 {"file":"page.js"}
 {"file":"tree/page.js"}
+{"file":"links/page.js","nav":{"title":"Links","description":"link / crumb / preview."}}
+{"file":"mvp/page.js","nav":{"title":"MVP","description":"The smallest page.js."}}
+{"file":"tree/page.js","nav":{"title":"Tree","description":"children + adoption."}}

@@ -1,0 +1,651 @@
+diff --git a/Server/AIIndex.mjs b/Server/AIIndex.mjs
+index 6378302347..e5ae5730af 100644
+--- a/Server/AIIndex.mjs
++++ b/Server/AIIndex.mjs
+@@ -27,7 +27,7 @@ export default class AIIndex {
+ 	static QUIET_MIN = 5;       // a working agent with no line for this long is marked ⚠
+ 	static BEAT = 60000;        // a quiet picture is still appended once a minute, so the page knows the writer is alive
+ 	static REWALK = 600000;     // a full walk of both stores every ten minutes, under the fs.watch ticks
+-	static KEEP = 200;          // index.jsonl is cut back to this many lines when it passes twice that
++	static KEEP = 10;           // index.jsonl is cut back to this many lines when it passes twice that: every open replays the whole file, and readers need only the last line (400 lines were 267 MB, 2026-11-10)
+ 
+ 	static WAKE_MIN = 250;      // an fs.watch change wakes the loop after this many ms (a debounce), not at the next 5 s tick
+ 
+@@ -355,8 +355,8 @@ export default class AIIndex {
+ 			timing: { ms: +(performance.now() - t0).toFixed(1), full: walked, files: all.length } };
+ 	}
+ 
+-	/** The line the dashboard tails: its old keys, plus the bucket counts and the check (never the whole task list). */
+-	static stream_line(s){ const { tasks, sessions, agents, cards, asks, ...line } = s; return line; }
++	/** The line the dashboard tails: its old keys, plus the bucket counts and the check (never the whole task list, nor open_nested: 622 KB a line, read only from index.json). */
++	static stream_line(s){ const { tasks, sessions, agents, cards, asks, open_nested, ...line } = s; return line; }
+ 	/** The picture without its clock, to tell whether anything changed. Cards and asks: their bucket counts and newest change. */
+ 	static sig(s){
+ 		const newest = rows => (rows ?? []).reduce((a, r) => r.when && r.when > a ? r.when : a, "");
+diff --git a/Server/AIIndex.test.mjs b/Server/AIIndex.test.mjs
+index da1765ddf1..ffe353c58f 100644
+--- a/Server/AIIndex.test.mjs
++++ b/Server/AIIndex.test.mjs
+@@ -92,7 +92,8 @@ assert.deepEqual([d.check.asks.rows, d.check.asks.sum, d.check.asks.ids, d.check
+ assert.deepEqual([d.check.sessions.in_sessions, d.check.sessions.with_session, d.check.sessions.ok], [d.check.sessions.with_session, d.check.sessions.with_session, true]);
+ assert.equal(d.sessions.find(x => x.id === "s1").title != null, true);
+ assert.equal(AIIndex.sig(d) !== AIIndex.sig(s), true);                       // new cards and asks move the signature
+-assert.equal("cards" in AIIndex.stream_line(d), false);                    // the stream line stays small: counts and the check only
++assert.equal("cards" in AIIndex.stream_line(d), false);
++assert.equal("open_nested" in AIIndex.stream_line(d), false);              // 622 KB a line on the real store; index.json carries it                    // the stream line stays small: counts and the check only
+ // Break the card count on purpose: an `id` that is not first on its line parses fine but the text scan misses it.
+ jl("cards.jsonl", [card("2026/10/17/a", "open"), `{"title":"Odd","id":"2026/10/17/odd","status":"open","last":"2026-10-17T10:00:00-05:00"}`]);
+ const e = new AIIndex({ root, registry, now }).snapshot();
+diff --git a/Server/PageNav.mjs b/Server/PageNav.mjs
+new file mode 100644
+index 0000000000..c0c02f239e
+--- /dev/null
++++ b/Server/PageNav.mjs
+@@ -0,0 +1,81 @@
++import fs from "fs";
++import path from "path";
++import { fileURLToPath } from "url";
++
++/* PageNav: the quick version of a page (what a link or a preview card needs), read from TEXT.
++ * Node can't import a page.js (it needs the DOM), so the fields come from, in order:
++ *   1. page.jsonl: plain top-level title / icon / description keys, the latest wins;
++ *   2. page.js: literal  title: "…"  /  icon: "…"  /  description: "…"  string literals;
++ *   3. readme.md: the heading  "# Title — description".
++ * Each field takes the first source that has it. A key is present only when found.
++ *   PageNav.of(dir)  ->  { title?, icon?, description? }
++ *   PageNav.same(a, b)
++ * CLI: node Server/PageNav.mjs [dir]           dry run: what would be written
++ *      node Server/PageNav.mjs [dir] --apply   append nav to the files.jsonl lines (PageFiles.backfill_nav)
++ * (core/Page/doc/index-jsonl.md) */
++
++const KEYS = ["title", "icon", "description"];
++const LITERAL = key => new RegExp(`(?:^|[\\s,{])${key}\\s*:\\s*("(?:[^"\\\\\\n]|\\\\.)*"|'(?:[^'\\\\\\n]|\\\\.)*')`, "m");
++
++const text = file => { try { return fs.readFileSync(file, "utf8"); } catch { return null; } };
++
++export default class PageNav {
++
++	static KEYS = KEYS;
++
++	static of(dir){
++		const nav = {};
++		const take = from => { for (const key of KEYS) if (nav[key] === undefined && typeof from[key] === "string" && from[key]) nav[key] = from[key]; };
++		take(this.from_jsonl(text(path.join(dir, "page.jsonl"))));
++		take(this.from_js(text(path.join(dir, "page.js"))));
++		take(this.from_readme(text(path.join(dir, "readme.md"))));
++		return nav;
++	}
++
++	// Plain top-level keys of every line; the latest value of each key wins. Lines that are file lines or verbs have none of these keys.
++	static from_jsonl(src){
++		const out = {};
++		for (const line of src?.split("\n") ?? []){
++			if (!line.trim().startsWith("{")) continue;
++			let obj; try { obj = JSON.parse(line); } catch { continue; }
++			if (!obj || typeof obj.file === "string") continue;
++			for (const key of KEYS) if (typeof obj[key] === "string") out[key] = obj[key];
++		}
++		return out;
++	}
++
++	static from_js(src){
++		const out = {};
++		if (!src) return out;
++		for (const key of KEYS){
++			const hit = src.match(LITERAL(key))?.[1];
++			if (!hit) continue;
++			try { out[key] = hit[0] === '"' ? JSON.parse(hit) : hit.slice(1, -1).replace(/\\(.)/g, "$1"); } catch {}
++		}
++		return out;
++	}
++
++	static from_readme(src){
++		const heading = src?.match(/^#\s+(.+)$/m)?.[1]?.trim();
++		if (!heading) return {};
++		const [title, ...rest] = heading.split(/\s+[—–]\s+/);
++		const out = { title: title.replace(/[`*_]/g, "").trim() };
++		const description = rest.join(" — ").replace(/[`*_]/g, "").trim();
++		if (description) out.description = description;
++		return out;
++	}
++
++	static same(a, b){ return KEYS.every(key => (a?.[key] ?? "") === (b?.[key] ?? "")); }
++}
++
++if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])){
++	const args = process.argv.slice(2), apply = args.includes("--apply");
++	const dir = path.resolve(args.find(a => !a.startsWith("--")) ?? "public");
++	// Not awaited: PageFiles imports this file, so waiting here would wait on itself.
++	import("./plugins/PageFiles.js").then(({ default: PageFiles }) => {
++		const files = Object.create(PageFiles.prototype);
++		files.pending = new Map();
++		const count = files.backfill_nav(dir, apply);
++		console.log(`${apply ? "wrote" : "would write"} ${count} nav lines under ${dir}`);
++	});
++}
+diff --git a/Server/PageNav.test.mjs b/Server/PageNav.test.mjs
+new file mode 100644
+index 0000000000..37bef1ba10
+--- /dev/null
++++ b/Server/PageNav.test.mjs
+@@ -0,0 +1,54 @@
++// node Server/PageNav.test.mjs — one temp folder per source kind, plus the PageFiles write rule (nav differs -> a new line).
++import assert from "node:assert";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import PageNav from "./PageNav.mjs";
++
++const root = fs.mkdtempSync(path.join(os.tmpdir(), "pagenav-"));
++const make = (name, files) => {
++	const dir = path.join(root, name);
++	fs.mkdirSync(dir, { recursive: true });
++	for (const [file, text] of Object.entries(files)) fs.writeFileSync(path.join(dir, file), text);
++	return dir;
++};
++let checks = 0;
++const eq = (a, b, msg) => { assert.deepStrictEqual(a, b, msg); checks++; };
++
++eq(PageNav.of(make("jsonl", { "page.jsonl": '{"title":"One","icon":"x"}\n{"cmd":"hi"}\n{"title":"Two","description":"d \\"q\\""}\n' })),
++	{ title: "Two", icon: "x", description: 'd "q"' }, "page.jsonl: latest wins");
++eq(PageNav.of(make("js", { "page.js": 'export default new Page({\n\ttitle: "Core",\n\tdescription: \'It\\\'s core\',\n\ticon: "dashboard",\n\tchildren: "a b"\n});' })),
++	{ title: "Core", description: "It's core", icon: "dashboard" }, "page.js literals");
++eq(PageNav.of(make("computed", { "page.js": "new Page({ title: `T ${x}`, label: 'x' })" })), {}, "a template literal is not read");
++eq(PageNav.of(make("readme", { "readme.md": "# Item — an arbitrary `thing`\n\nbody" })),
++	{ title: "Item", description: "an arbitrary thing" }, "readme heading");
++eq(PageNav.of(make("mixed", { "page.js": 'new Page({ title: "From js" })', "readme.md": "# Other — desc" })),
++	{ title: "From js", description: "desc" }, "each field takes the first source that has it");
++eq(PageNav.of(make("empty", {})), {}, "nothing found: no keys");
++eq(PageNav.same({ title: "a" }, { title: "a", icon: undefined }), true, "same ignores missing");
++eq(PageNav.same({ title: "a" }, { title: "b" }), false, "different title");
++
++// PageFiles: a line carries nav; it is written again only when nav (or the file) changes
++const parent = make("parent", {});
++const kid = make("parent/kid", { "page.js": 'new Page({ title: "Kid" })' });
++fs.writeFileSync(path.join(parent, "files.jsonl"), "");
++const { default: PageFiles } = await import("./plugins/PageFiles.js");
++const files = Object.create(PageFiles.prototype);
++files.pending = new Map();
++const read = () => fs.readFileSync(path.join(parent, "files.jsonl"), "utf8").split("\n").filter(Boolean).map(JSON.parse);
++const sync = () => files.sync(parent, "kid");
++
++sync();
++eq(read(), [{ file: "kid/page.js", nav: { title: "Kid" } }], "first line carries nav");
++sync(); sync();
++eq(read().length, 1, "unchanged nav: no new line");
++fs.writeFileSync(path.join(kid, "page.js"), 'new Page({ title: "Kid", /* edited */ })');
++sync();
++eq(read().length, 1, "page.js changed but nav did not: no new line");
++fs.writeFileSync(path.join(kid, "page.js"), 'new Page({ title: "Kid 2" })');
++sync();
++eq(read().at(-1), { file: "kid/page.js", nav: { title: "Kid 2" } }, "nav changed: a new line");
++eq(files.state(path.join(parent, "files.jsonl")).get("kid").nav, { title: "Kid 2" }, "state replays the latest nav");
++
++fs.rmSync(root, { recursive: true, force: true });
++console.log(`PageNav.test: ${checks} checks ok`);
+diff --git a/Server/plugins/PageFiles.js b/Server/plugins/PageFiles.js
+index b7ac6eed85..d66918f500 100644
+--- a/Server/plugins/PageFiles.js
++++ b/Server/plugins/PageFiles.js
+@@ -1,6 +1,7 @@
+ import fs from "fs";
+ import path from "path";
+ import watch from "../watch.js";
++import PageNav from "../PageNav.mjs";
+ 
+ /* EVERY FOLDER KEEPS ITS OWN FILE LIST, one JSON line per change, so a page gets its
+  * folder's listing from one small file instead of the whole site's directory.json.
+@@ -10,6 +11,12 @@ import watch from "../watch.js";
+  *   {"file":"kid/page.js"}               a subfolder with a page.js
+  *   {"file":"kid/"}                      a plain subfolder
+  *   {"file":"photo.png","gone":true}     it disappeared
++ *   {"file":"kid/page.js","nav":{"title":"Kid","icon":"…","description":"…"}}
++ *                                        a subfolder's line also carries what a link or card needs, read from
++ *                                        text by Server/PageNav.mjs. A parent lists its children from these
++ *                                        lines instead of loading each child (core/Page/doc/index-jsonl.md).
++ *                                        A new line is written when the file OR the nav differs from the latest
++ *                                        line, so a session page.jsonl that grows a hundred lines writes none.
+  *
+  * WHICH FILE HOLDS THE LIST — `log_of(dir)`, the one place that decides:
+  *   - A JSONL PAGE (no page.js, and its page.jsonl's line 1 is NOT a file line — every
+@@ -161,7 +168,7 @@ export default class PageFiles {
+         this.sync(dir, name);
+         // page.js in a subfolder changes how the PARENT lists that subfolder, and where
+         // the subfolder keeps its own list
+-        if (name === "page.js") {
++        if (name === "page.js" || name === "readme.md") {
+             this.sync(path.dirname(dir), path.basename(dir));
+         }
+     }
+@@ -226,7 +233,7 @@ export default class PageFiles {
+             if (!line.trim()) continue;
+             let obj; try { obj = JSON.parse(line); } catch { continue; }
+             if (typeof obj?.file !== "string") continue;
+-            map.set(key_of(obj.file), { file: obj.file, gone: !!obj.gone });
++            map.set(key_of(obj.file), { file: obj.file, gone: !!obj.gone, nav: obj.nav });
+         }
+         return map;
+     }
+@@ -238,15 +245,44 @@ export default class PageFiles {
+         this.write(dir, name, state ?? this.state(log), log);
+     }
+ 
+-    // The one append decision: a line only when the replayed state differs from the disk.
++    // The nav a subfolder's line should carry: undefined for a file, or a folder with nothing readable.
++    nav_of(dir, name) {
++        let stat; try { stat = fs.statSync(path.join(dir, name)); } catch { return undefined; }
++        if (!stat.isDirectory()) return undefined;
++        const nav = PageNav.of(path.join(dir, name));
++        return Object.keys(nav).length ? nav : undefined;
++    }
++
++    // The one append decision: a line only when the replayed state differs from the disk (the file, or the nav).
+     write(dir, name, state, log) {
+         const have = state.get(name);
+         const want = this.desired(dir, name);
+-        const line = want ? (have && !have.gone && have.file === want ? null : { file: want })
+-                          : (have && !have.gone ? { file: have.file, gone: true } : null);
++        let line = null, nav;
++        if (want) {
++            nav = this.nav_of(dir, name);
++            const same = have && !have.gone && have.file === want && PageNav.same(have.nav, nav);
++            if (!same) line = nav ? { file: want, nav } : { file: want };
++        } else if (have && !have.gone) line = { file: have.file, gone: true };
+         if (!line) return;
+         this.append(log, line);
+-        state.set(name, { file: line.file, gone: !!line.gone });
++        state.set(name, { file: line.file, gone: !!line.gone, nav });
++    }
++
++    /* The backfill (node Server/PageNav.mjs): catch every covered log under `dir` up, so its subfolder lines carry nav.
++     * A dry run counts the lines it would append and writes nothing. */
++    backfill_nav(dir, apply = false) {
++        let count = 0;
++        const real = PageFiles.prototype.append;
++        this.append = (log, obj) => { count++; if (apply) real.call(this, log, obj); };
++        try {
++            const walk = d => {
++                let entries; try { entries = fs.readdirSync(d, { withFileTypes: true }); } catch { return; }
++                if (entries.some(e => e.isFile() && (e.name === PAGE || e.name === LIST))) this.settle(d, false);
++                for (const e of entries) if (e.isDirectory() && covers(path.join(d, e.name))) walk(path.join(d, e.name));
++            };
++            walk(dir);
++        } finally { delete this.append; }
++        return count;
+     }
+ 
+     /* Everything in `dir` the log does not know yet (and everything it lists that is gone).
+diff --git a/Server/plugins/PageIndex.js b/Server/plugins/PageIndex.js
+new file mode 100644
+index 0000000000..993004c6a8
+--- /dev/null
++++ b/Server/plugins/PageIndex.js
+@@ -0,0 +1,86 @@
++import fs from "fs";
++import path from "path";
++
++/* PageIndex: GET /api/index?dir=/framework/&depth=2
++ * answers one JSON object for a folder's children, so a page learns its children's titles
++ * (and their children's) in ONE request instead of one files.jsonl each (core/Page/doc/index-jsonl.md):
++ *
++ *   { "dir": "/framework/",
++ *     "children": { "core": { "kind": "js", "nav": {title,icon,description}, "children": { "View": { … } } },
++ *                   "readme.md": { "kind": "file" } } }
++ *
++ * `kind` is "js" | "jsonl" | "dir" | "file", from each entry's latest log line. `children` appears
++ * only at depth 2 and only for a folder that has its own log. Read from the folder's files.jsonl,
++ * or its page.jsonl when that is a jsonl page's own list, and cached per folder until that log's
++ * mtime changes. Dev server only, like FolderNames; only listings the static server already serves. */
++
++const PUBLIC = path.resolve(process.cwd(), "public");
++const denied = name => name.startsWith(".") || name === "node_modules";
++const CHILD = /^([^/]+)\/page\.(jsonl|js)$/;
++
++export default class PageIndex {
++
++	static setup(server){ new PageIndex(server); }
++
++	cache = new Map();   // log path -> { mtime, entries }
++
++	constructor(server){
++		server.on("express", () => this.route(server));
++	}
++
++	// The latest line per name, read from whichever log the folder has: { name: {kind, nav?} }
++	entries(abs){
++		for (const file of ["files.jsonl", "page.jsonl"]){
++			const log = path.join(abs, file);
++			let stat; try { stat = fs.statSync(log); } catch { continue; }
++			const hit = this.cache.get(log);
++			if (hit?.mtime === stat.mtimeMs) return hit.entries;
++
++			const latest = new Map();
++			for (const line of fs.readFileSync(log, "utf8").split("\n")){
++				if (!line.trim()) continue;
++				let obj; try { obj = JSON.parse(line); } catch { continue; }
++				if (typeof obj?.file !== "string") continue;
++				const key = obj.file.split("/")[0];
++				obj.gone ? latest.delete(key) : latest.set(key, obj);
++			}
++			if (file === "page.jsonl" && !latest.size) continue;
++
++			const entries = {};
++			latest.forEach((obj, key) => {
++				const kind = obj.file.match(CHILD)?.[2] ?? (obj.file.includes("/") ? "dir" : "file");
++				entries[key] = obj.nav ? { kind, nav: obj.nav } : { kind };
++			});
++			this.cache.set(log, { mtime: stat.mtimeMs, entries });
++			return entries;
++		}
++		return null;
++	}
++
++	build(segments, depth){
++		const abs = path.resolve(PUBLIC, ...segments);
++		const entries = this.entries(abs);
++		if (!entries) return null;
++		if (depth < 2) return entries;
++
++		const out = {};
++		for (const [name, entry] of Object.entries(entries)){
++			const kids = entry.kind === "file" || denied(name) ? null : this.entries(path.join(abs, name));
++			out[name] = kids ? { ...entry, children: kids } : entry;
++		}
++		return out;
++	}
++
++	route(server){
++		server.router.get("/api/index", (req, res) => {
++			const segments = String(req.query.dir ?? "").split("/").filter(Boolean);
++			if (segments.some(denied)) return res.status(403).end();
++
++			const abs = path.resolve(PUBLIC, ...segments);
++			if (abs !== PUBLIC && !abs.startsWith(PUBLIC + path.sep)) return res.status(403).end();
++
++			const depth = Math.min(Number(req.query.depth) || 1, 2);
++			res.set("Cache-Control", "no-store").json({ dir: req.query.dir, children: this.build(segments, depth) ?? {} });
++		});
++	}
++}
+diff --git a/Server/readme.md b/Server/readme.md
+index 4887843e05..673c760b6b 100644
+--- a/Server/readme.md
++++ b/Server/readme.md
+@@ -25,6 +25,7 @@ The owner-facing server also starts `whisper-server` for dictation on its own 
+ 
+ ## Routes the dev server adds for the pages
+ 
++- `GET /api/index?dir=/framework/&depth=2` ([`plugins/PageIndex.js`](./plugins/PageIndex.js)) answers a folder's children and their children with the `nav` (title, icon, description) from their `files.jsonl` lines (`PageNav.mjs` writes it); `core/Page/Index.js` is the one caller ([plan](/framework/core/Page/doc/index-jsonl.md)).
+ - `GET /api/folder-names?dir=/framework/ai/sessions/2026/10/20/` ([`plugins/FolderNames.js`](./plugins/FolderNames.js)) answers `{"names": [...]}`, the entry names of one folder under `public/`, always a 200 (a missing folder is `[]`). `ai/AITask/listing.js` asks it once per folder, so opening a task folder checks `session.jsonl`, `task.jsonl`, `page.js` and `requirements.md` without a 404 probe for each. It is a new route: a dev server started before it landed answers no listing, and the pages fall back to the old probes (and their 404s) until the server restarts.
+ 
+ ## Scripts (one line each; the full paragraph for every one is in [`doc/script-notes.md`](./doc/script-notes.md))
+diff --git a/Server/run.js b/Server/run.js
+index cce5c3aba3..cb5d2790d7 100644
+--- a/Server/run.js
++++ b/Server/run.js
+@@ -10,6 +10,7 @@ import MentionSync from "./plugins/MentionSync.js";   // auto-syncs ext/Mention/
+ import PageFiles from "./plugins/PageFiles.js";
+ import DevSource from "./plugins/DevSource.js";   // read-only Servex/Server browsing — Server/plugins/DevSource.js
+ import FolderNames from "./plugins/FolderNames.js";   // /api/folder-names?dir= — one folder's names, so the router walk probes nothing
++import PageIndex from "./plugins/PageIndex.js";   // /api/index?dir=&depth= — each child's nav in one request (core/Page/doc/index-jsonl.md)
+ import DevSocket from "./plugins/DevSocket/DevSocket.js";
+ import Runtime from "./plugins/SocketServer/Runtime.js";
+ import AILogs from "./plugins/AILogs.js";
+@@ -53,6 +54,7 @@ Server.use(MentionSync);
+ Server.use(PageFiles);   // appends {"file"} lines to page.jsonl — Server/plugins/PageFiles.js
+ Server.use(DevSource);   // /devsource.json + /devsource/<path> — Servex/Server source, read-only
+ Server.use(FolderNames);
++Server.use(PageIndex);
+ Server.use(AILogs);
+ Server.use(AISessionTailer);   // follows transcripts, writes index.json files - ai/AISession/AISessionIndex.mjs
+ Server.use(MCP);
+diff --git a/public/framework/ai/sessions/2026/11/09/spawned/mastermind-page-index/measure.mjs b/public/framework/ai/sessions/2026/11/09/spawned/mastermind-page-index/measure.mjs
+index dce5ab2a05..ce33a10a86 100644
+--- a/public/framework/ai/sessions/2026/11/09/spawned/mastermind-page-index/measure.mjs
++++ b/public/framework/ai/sessions/2026/11/09/spawned/mastermind-page-index/measure.mjs
+@@ -26,7 +26,7 @@ for (const url of urls){
+ 	const data = rows.filter(r => /\.(jsonl?|md)(\?|$)/.test(r.url));
+ 	const sum = a => a.reduce((n, r) => n + r.bytes, 0);
+ 	const top = [...data].sort((a, b) => b.bytes - a.bytes).slice(0, 8).map(r => `${(r.bytes / 1024).toFixed(0)} KB ${r.url}`);
+-	const row = { url, requests: rows.length, kb: Math.round(sum(rows) / 1024), data_requests: data.length, data_kb: Math.round(sum(data) / 1024),
++	const row = { url, requests: rows.length, scripts: rows.filter(r => r.type === "script").length, page_js: rows.filter(r => /\/page\.js(\?|$)/.test(r.url)).length, kb: Math.round(sum(rows) / 1024), data_requests: data.length, data_kb: Math.round(sum(data) / 1024),
+ 		jsonl_requests: data.filter(r => /\.jsonl/.test(r.url)).length, load_ms, idle_ms, top };
+ 	out.push(row);
+ 	console.log(JSON.stringify(row, null, 1));
+diff --git a/public/framework/core/Page/Index.js b/public/framework/core/Page/Index.js
+new file mode 100644
+index 0000000000..e939f9f026
+--- /dev/null
++++ b/public/framework/core/Page/Index.js
+@@ -0,0 +1,43 @@
++import Store from "../Item/Store.js";
++
++/* PageIndex: what a parent knows about its children without loading them, read from the `nav` on their
++ * files.jsonl lines (Server/plugins/PageFiles.js). `PageIndex.navs(Page, url)` -> Map name -> {title, icon, description}.
++ * On the dev server ONE request, /api/index?dir=&depth=2 (Server/plugins/PageIndex.js), answers the folder and its
++ * children's folders at once, so the children's own calls are served from the cache; anywhere else (a static host) it reads
++ * the folder's own listing, one small file per folder. Page.from_index (`?index=0` turns it off) is the switch.
++ * (doc/index-jsonl.md) */
++export default class PageIndex {
++
++	static cache = new Map();   // folder url -> Promise<Map>
++
++	static enabled(P){ return P.from_index; }
++
++	static navs(P, url){
++		url = String(url).replace(/\/?$/, "/");
++		if (!this.cache.has(url)) this.cache.set(url, this.dev(url).then(map => map ?? this.listed(P, url)));
++		return this.cache.get(url);
++	}
++
++	// null when this is not the dev server or the aggregate is not there.
++	static async dev(url){
++		if (!Store.local()) return null;
++		let answer;
++		try {
++			const res = await fetch("/api/index?depth=2&dir=" + encodeURIComponent(url));
++			if (!res.ok || !(res.headers.get("content-type") ?? "").includes("json")) return null;
++			answer = await res.json();
++		} catch { return null; }
++
++		const own = new Map();
++		for (const [name, entry] of Object.entries(answer.children ?? {})){
++			if (entry.nav) own.set(name, entry.nav);
++			if (entry.children) this.cache.set(url + name + "/", Promise.resolve(new Map(Object.entries(entry.children).filter(([, e]) => e.nav).map(([n, e]) => [n, e.nav]))));
++		}
++		return own;
++	}
++
++	static async listed(P, url){
++		const listing = await P.listing(url);
++		return listing?.navs ?? new Map();
++	}
++}
+diff --git a/public/framework/core/Page/Listing.js b/public/framework/core/Page/Listing.js
+index 9434ac8d93..2499c7a5fe 100644
+--- a/public/framework/core/Page/Listing.js
++++ b/public/framework/core/Page/Listing.js
+@@ -9,18 +9,22 @@ export default class PageListing {
+ 	files = [];
+ 	dirs = [];
+ 	pages = new Map();
++	navs = new Map();   // child name -> {title, icon, description} from the line's `nav` (Server/plugins/PageFiles.js)
+ 
+ 	// `page`: is this folder a jsonl page? Unknown (undefined) means "read line 1".
+ 	// `log`: the file the list came from ("files.jsonl" or "page.jsonl") — a real file there too.
+ 	static from(entries, page, log = "page.jsonl"){
+ 		const { CHILD, key_of } = this, latest = new Map();
+-		for (const { file, gone } of entries){
++		const navs = new Map();
++		for (const { file, gone, nav } of entries){
+ 			if (typeof file !== "string") continue;
+ 			gone ? latest.delete(key_of(file)) : latest.set(key_of(file), file);
++			gone || !nav ? navs.delete(key_of(file)) : navs.set(key_of(file), nav);
+ 		}
+ 
+ 		const listing = new this();
+ 		listing.log = log;
++		listing.navs = navs;
+ 		listing.page = page ?? (!!entries[0] && typeof entries[0].file !== "string");   // line 1 builds a page; a listing-only log starts with a file line
+ 		latest.forEach((name, key) => {
+ 			const kind = name.match(CHILD)?.[2];
+diff --git a/public/framework/core/Page/Listing.test.mjs b/public/framework/core/Page/Listing.test.mjs
+index 9a3d4d3779..9115a0f3f0 100644
+--- a/public/framework/core/Page/Listing.test.mjs
++++ b/public/framework/core/Page/Listing.test.mjs
+@@ -15,7 +15,7 @@ register(pathToFileURL(path.join(ROOT, "Servex", "agents", "site-hooks.mjs")).hr
+ 
+ const dir = fs.mkdtempSync(path.join(os.tmpdir(), "listing-live-"));
+ const lines = list => list.map(x => JSON.stringify(x)).join("\n") + "\n";
+-fs.writeFileSync(path.join(dir, "files.jsonl"), lines([{ file: "a.txt" }, { file: "b.txt" }, { file: "docs/readme.md" }, { file: "kid/page.jsonl" }]));
++fs.writeFileSync(path.join(dir, "files.jsonl"), lines([{ file: "a.txt" }, { file: "b.txt" }, { file: "docs/readme.md" }, { file: "kid/page.jsonl", nav: { title: "Kid", icon: "K", description: "d" } }]));
+ 
+ // The one fake: a site url under /fake/ answers with the temp file.
+ globalThis.fetch = async url => {
+@@ -36,6 +36,8 @@ ok(live.listing.files.join() === "a.txt,b.txt", "files: " + live.listing.files);
+ ok(live.listing.dirs.join() === "docs", "folder: " + live.listing.dirs);
+ ok(live.listing.pages.get("kid") === "jsonl", "a child page is a page, not a file");
+ 
++ok(live.listing.navs.get("kid")?.title === "Kid" && live.listing.navs.size === 1, "a child's nav comes from its listing line");
++
+ // 2. a tailed batch: one file added
+ live.reader.read(live.reader.parse(lines([{ file: "c.txt" }])));
+ live.reader.changed();
+diff --git a/public/framework/core/Page/Page.class.js b/public/framework/core/Page/Page.class.js
+index 4bf6cb393d..1e17e92752 100644
+--- a/public/framework/core/Page/Page.class.js
++++ b/public/framework/core/Page/Page.class.js
+@@ -10,6 +10,7 @@ import PageFilesTab from "./FilesTab.js";
+ import PageChildren from "./Children.js";
+ import PageLogReader from "./Reader.js";
+ import PageListing from "./Listing.js";
++import PageIndex from "./Index.js";
+ import PageLoad from "./Load.js";
+ import PagePrefs from "./Prefs.js";
+ import PageRelated from "./Related.js";
+@@ -262,6 +263,9 @@ export class Page extends Item {
+ 	static page_listing(url){ return Page.Listing.page_listing(Page, url); }
+ 
+ 	// ⚠ Folders inside a dated task folder get no log (PageFiles.js covers()): answer null at once. (doc/watch-out.md)
++	// On: a parent shows its grandchildren from the `nav` on their listing lines, importing nothing (Index.js, doc/index-jsonl.md). `?index=0` in the url turns it off.
++	static from_index = new URLSearchParams(globalThis.location?.search).get("index") !== "0";
++
+ 	static UNLOGGED = /^\/framework\/ai\/\d{4}-\d\d-\d\d\/[^/]+\/[^/]+\//;
+ 
+ 	// The listing, only if it is already here — a loaded jsonl page, or a `listing()`
+@@ -354,6 +358,7 @@ export class Page extends Item {
+ 		page.naming();
+ 
+ 		const stub = this.pages.find(name);
++		page.nav_check(stub);
+ 		stub ? this.pages.replace(stub, page) : this.children.put(page);
+ 		return page;
+ 	}
+@@ -695,9 +700,9 @@ export class Page extends Item {
+ 	nav(){ return { url: this.url, label: this.label ?? this.title, icon: this.icon, card: this.card, description: this.description }; }
+ 
+ 	nav_for(name){
+-		const child = this.children.get(name);
++		const child = this.children.get(name), held = !child && this.pages.find(name);   // held: a placeholder carrying the line's nav
+ 
+-		return { ...child?.nav(), url: this.url + name + "/", label: child?.label ?? child?.title ?? name };
++		return { ...child?.nav(), ...(held?.indexed && { icon: held.icon, description: held.description }), url: this.url + name + "/", label: child?.label ?? child?.title ?? held?.title ?? name };
+ 	}
+ 
+ 	// ════ PREVIEWS ═══
+@@ -719,14 +724,34 @@ export class Page extends Item {
+ 		this.loaded = levels;
+ 
+ 		// ⚠ The guard above is why the wait belongs here in core (no "Chaining cycle detected for promise"). (doc/decisions.md)
+-		const walk = () => Promise.all([...this.children.keys()].map(name =>
+-			this.child(name, 0).then(child => child?.load_all_children(child.leaf ? 0 : levels - 1).loading)));
++		const walk = async () => {
++			// The last level only needs titles and icons: a still-unloaded child takes them from its listing line and imports nothing.
++			const navs = (levels === 1 && Page.from_index && await Page.Index.navs(Page, this.url)) || null;
++			return Promise.all([...this.children.keys()].map(name => this.nav_held(name, navs) ||
++				this.child(name, 0).then(child => child?.load_all_children(child.leaf ? 0 : levels - 1).loading)));
++		};
+ 
+ 		this.loading = this.child_source ? this.source_children().then(walk) : walk();
+ 
+ 		return this;
+ 	}
+ 
++	// True when a declared, unloaded child now carries its nav and needs no import. A child with no nav line returns false and loads as before.
++	nav_held(name, navs){
++		const held = navs && this.pages.find(name), nav = navs?.get(name);
++		if (!held?.stub || !nav) return false;
++		if (!held.indexed) Object.assign(held, { indexed: true, title: nav.title, icon: nav.icon, description: nav.description });
++		return true;
++	}
++
++	// The check (once per page): the nav a listing line gave while this page was a placeholder, against what the loaded page says.
++	nav_check(held){
++		if (!held?.indexed || this.nav_checked) return;
++		this.nav_checked = true;
++		const wrong = ["title", "icon", "description"].filter(key => held[key] !== undefined && held[key] !== this[key]);
++		if (wrong.length) console.warn(`page index: ${this.url} differs from its listing line in ${wrong.map(key => `${key} ("${held[key]}" vs "${this[key]}")`).join(", ")}`);
++	}
++
+ 	prefs(){ return this._helper("Prefs"); }
+ }
+ 
+@@ -737,6 +762,7 @@ Item.register(Page, "Page");
+ 
+ Page.Reader = PageLogReader;
+ Page.Listing = PageListing;
++Page.Index = PageIndex;
+ Page.Load = PageLoad;
+ Page.Prefs = PagePrefs;
+ Page.Jsonl = PageJsonl;
+diff --git a/public/framework/core/Page/doc/index-jsonl.md b/public/framework/core/Page/doc/index-jsonl.md
+index 9c7bd4b3c0..5a2c09b480 100644
+--- a/public/framework/core/Page/doc/index-jsonl.md
++++ b/public/framework/core/Page/doc/index-jsonl.md
+@@ -28,6 +28,17 @@ A fresh reviewer checked this plan against the code before anything was built ([
+ 
+ Then measure the same three urls again and post before/after on [/live/done/](/live/done/).
+ 
++## Status (2026-11-10)
++
++Built and on by default: the server half (`Server/PageNav.mjs`, `Server/plugins/PageIndex.js`) and the browser half (`core/Page/Index.js`, `Page.from_index`, `?index=0` turns it off). Measured on the worktree server in one headless run per page, 1200 px shots of each look the same:
++
++| Page | index on | `?index=0` |
++|---|---|---|
++| /framework/ | 824 requests, 4.7 MB, 27 page.js | 1,076 requests, 5.7 MB, 139 page.js |
++| a session page (cloud-voice-app-20261106) | 1,065 requests, 12.7 MB, 47 page.js | 1,300 requests, 13.7 MB, 161 page.js |
++
++The first measurement showed no difference because `load_all_children` crashed in both modes (`false?.get`, fixed: `navs` is `null` when unused). It saves the last level of the tree only, so the remaining requests are scripts, data and the levels above it.
++
+ ## Decisions, and the alternatives
+ 
+ - **No file named `index.jsonl`.** The owner's name was taken: `ai/index.jsonl` (read as "the last line is the whole picture", `TaskStateLog.js`), the sessions store's day, month and year streams (`Server/AIIndexStream.mjs`, gitignored, so never on a static host) and `ext/Figma/index.jsonl` each assume their own line shape. The index is the `files.jsonl` the folder already has. *Alternative:* a new `pages.jsonl` per folder; it wins if the nav lines ever need their own writer or reader, at the cost of one more request per folder.
+diff --git a/public/framework/core/Page/readme.md b/public/framework/core/Page/readme.md
+index 1c942a6c42..33d3b07ace 100644
+--- a/public/framework/core/Page/readme.md
++++ b/public/framework/core/Page/readme.md
+@@ -89,6 +89,7 @@ Also here: [audit/](audit/) (every page layout in use, most-used first) · [make
+ | `Children.js` | the deprecated `page.children` shim (`Map`-shaped view over `page.pages`); remove once the census shows 0 live callers |
+ | `Reader.js` | `PageLogReader extends Item.Store`: the `Item.Store` for one `page.jsonl`, one per url (`Reader.for`) |
+ | `Listing.js`, `Listing.test.mjs` | `PageListing`: what `listing()` answers (files, dirs, pages, is-this-a-page, the source file) |
++| `Index.js` | `PageIndex`: a parent's children's title, icon and description from their listing lines (one `/api/index` request on the dev server); `Page.from_index`, `?index=0` switches it off ([doc/index-jsonl.md](doc/index-jsonl.md)) |
+ | `Load.js` | `PageLoad`: the loading statics, each taking the class first; `Page` keeps one-line forwarders |
+ | `Log.js` | a compat re-export, `PageLog` = `Page` (folded into `Page` 2026-10-03); still imported by `ai/cards/Tasks.js` and `ai/rail/groups.js` |
+ | `Links.js` | where a clicked link opens, and the `.md`-file helpers it uses (`doc/open.md`) |
+diff --git a/public/framework/ux/Tree/Tree.js b/public/framework/ux/Tree/Tree.js
+index cddaa87721..611f692467 100644
+--- a/public/framework/ux/Tree/Tree.js
++++ b/public/framework/ux/Tree/Tree.js
+@@ -115,7 +115,11 @@ export default class Tree extends View {
+ 	 * too — that is what the await is for. */
+ 	static async nodes_of(page, names){
+ 		if (names) await Promise.all(names.map(name => page.child(name, 0)));   // only the pinned ones (below), not every child
+-		else await page.load_all_children(1).loading;
++		else {
++			await page.load_all_children(1).loading;
++			// A row needs its page (is it a branch? a leaf?), which a placeholder carrying only its listing nav (Page.nav_held) cannot say.
++			await Promise.all([...page.children.keys()].filter(name => page.pages.find(name)?.stub).map(name => page.child(name, 0)));
++		}
+ 		return (names ?? [...page.children.keys()]).filter(name => page.children.has(name)).map(name => this.node_of(page, name));
+ 	}
+ 

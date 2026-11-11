@@ -46,3 +46,6 @@
 {"file":"doc/"}
 {"file":"PanelGlyphs.js"}
 {"file":"tasks/"}
+{"file":"demo/page.js","nav":{"title":"Demo","icon":"school","description":"Twelve small workspaces, each a recorded guide beside a fresh one to follow along on."}}
+{"file":"playground/page.js","nav":{"title":"Playground","icon":"space_dashboard","description":"The whole-window Workspace — a document, its viewport set, and the drawer as the responsive handle."}}
+{"file":"Workspace/page.js","nav":{"title":"Workspace","icon":"dashboard","description":"Holds a Panel root — the class behind workspace()'s door, able to mount a second view of the same document."}}

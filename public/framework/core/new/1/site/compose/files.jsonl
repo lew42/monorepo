@@ -7,3 +7,10 @@
 {"file":"page.js"}
 {"file":"slots/page.js"}
 {"file":"state/page.js"}
+{"file":"component/page.js","nav":{"title":"A page as a component"}}
+{"file":"embed/page.js","nav":{"title":"A page inside a page"}}
+{"file":"fragments/page.js","nav":{"title":"Fragments"}}
+{"file":"labels/page.js","nav":{"title":"Labels before the import"}}
+{"file":"limits/page.js","nav":{"title":"Where it runs out"}}
+{"file":"slots/page.js","nav":{"title":"Slots"}}
+{"file":"state/page.js","nav":{"title":"Shared state"}}

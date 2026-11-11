@@ -162,12 +162,18 @@ export default class WorktreeWatch {
         WorktreeWatch.pump();
     }
 
+    /* Dev's daily result files (core/Test/results/, last 7 days, oldest first). */
+    static dev_results(dir){
+        let names = []; try { names = fs.readdirSync(path.join(dir, "results")); } catch {}
+        return names.filter(n => /^\d{4}-\d{2}-\d{2}\.jsonl$/.test(n)).sort().slice(-7).map(n => path.join(dir, "results", n));
+    }
+
     /* A TestRunner pointed at this worktree. Overridden in the test. */
     async runner(){
         if (!this._runner){
             const R = (await import(WorktreeWatch.runner_url)).default;
             this._runner = new R(); this._runner.root = this.root;
-            this._runner.results = path.join(path.dirname(this._runner.results), "save-results.jsonl");   // save runs never touch the tracked results.jsonl
+            this._runner.results = path.join(R.DIR, "save-results.jsonl");   // save runs never touch the tracked daily results
         }
         return this._runner;
     }
@@ -185,14 +191,14 @@ export default class WorktreeWatch {
     /* The last known result of a test before this run: this worktree's own last save line, else dev's latest line in results.jsonl, else undefined (unknown, so quiet). */
     async prior(file){
         if (this.test_state.has(file)) return this.test_state.get(file);
-        const save = (await this.runner()).results;
+        const save = (await this.runner()).results, dir = path.dirname(save);
         const last = (f, keep) => {
-            let text = ""; try { text = fs.readFileSync(f, "utf8"); } catch {}
+            let text = ""; for (const g of [].concat(f)) try { text += fs.readFileSync(g, "utf8") + "\n"; } catch {}
             let was;
             for (const l of text.split(/\r?\n/)) if (l.includes(file)) try { const e = JSON.parse(l); if (e.file === file && !e.timeout && keep(e)) was = e.ok; } catch {}
             return was;
         };
-        return last(save, e => e.worktree === this.id) ?? last(path.join(path.dirname(save), "results.jsonl"), e => !e.sha);
+        return last(save, e => e.worktree === this.id) ?? last(this.constructor.dev_results(dir), e => !e.sha);
     }
 
     /* Run the near tests one after another (one slot of the shared queue); tell the holder only about a change. */

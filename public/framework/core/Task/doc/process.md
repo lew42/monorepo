@@ -39,7 +39,7 @@ A process lives in its own folder inside the session that made it: `<session fol
 {"plan":{"start":{}},"by":"ProcessRunner"}
 ```
 
-**Creating one is one call** (never two steps): `item({path: <your session>, delta: {tasks: {add: {title, process: "build", brief}}}})`. The item tool sees `process`, makes the folder, writes line 1 and the step lines from the definition (the add's own `steps_over` overrides change a step's session), and tells ProcessRunner, which starts step 1.
+**Creating one is one call** (never two steps): `item({path: <your session>, call: "tasks.add", args: {title, process: "build", brief}})`. The item tool sees `process`, makes the folder, writes line 1 and the step lines from the definition (the add's own `steps_over` overrides change a step's session), and tells ProcessRunner, which starts step 1.
 
 ## Does finishing step N hand step N+1 its instructions? Yes
 
@@ -68,7 +68,7 @@ Each step names how its session is run, so the process carries the agent archite
 | `owner` | the agent that created the process (the mastermind), sent the step's prompt |
 | `wait` | nobody: the step waits on the owner (`merge`); the process stays running, not complete, until the step is |
 
-The prompt node sends is built from the step's `do`, the brief, and the outcomes of the steps before it, and it ends with the one line that completes the step: `item({path, delta: {"<step>": {"complete": {"outcome": "…"}}}})`.
+The prompt node sends is built from the step's `do`, the brief, and the outcomes of the steps before it, and it ends with the one line that completes the step: `item({path, call: "<step>.complete", args: {outcome: "…"}})`.
 
 ## The templates (`core/Task/processes/`, one subclass each, kept small)
 
@@ -139,7 +139,7 @@ What worked:
 
 The prompt audit ([ai/doc/prompt-audit.md](/framework/ai/doc/prompt-audit.md)) already judges each owner ask against what the session did. It writes `prompt-review.jsonl` beside the session, and today nothing files those asks as tasks. Once completion is automatic, the plan is:
 
-1. **Node files each ask.** A node step after `Server/PromptAudit.mjs` reads every ask judged not done and adds it to that session as an idle task: `item({path: <session>, delta: {tasks: {add: {title, source: <prompt link>}}}})`.
+1. **Node files each ask.** A node step after `Server/PromptAudit.mjs` reads every ask judged not done and adds it to that session as an idle task: `item({path: <session>, call: "tasks.add", args: {title, source: <prompt link>}})`.
 2. **A repeat adds weight.** An ask whose title matches an existing task is a `reinforce` line (the same rule as improvements), so asking again raises its weight.
 3. **The session counts it.** The session's `completion` counts these tasks, so an ask that is never done keeps the session open, and the dashboard shows it.
 4. **A process when needed.** A mastermind turns an ask into a process with `process: "build"` when it needs more than one step.

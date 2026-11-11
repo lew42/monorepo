@@ -16,3 +16,4 @@
 {"file":"note.md"}
 {"file":"unplaced.md"}
 {"file":"child/page.jsonl"}
+{"file":"child/page.jsonl","nav":{"title":"A child page","icon":"description"}}

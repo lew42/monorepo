@@ -10,3 +10,7 @@
 {"file":"doc/"}
 {"file":"doc/","gone":true}
 {"file":"doc/"}
+{"file":"base/page.js","nav":{"title":"base","icon":"layers","description":"The reset — ten rules that fix what the browser gets wrong. Nothing here is a look."}}
+{"file":"site/page.js","nav":{"title":"site","icon":"format_paint","description":"The site's own skin — /styles.css, above the framework and below the utilities."}}
+{"file":"theme/page.js","nav":{"title":"theme","icon":"brush","description":"The base theme — tokens plus the default look. The layer a theme replaces."}}
+{"file":"util/page.js","nav":{"title":"util","icon":"build","description":"Opt-in classes — flex, grid, spacing, zoom. Free if you don't use them."}}

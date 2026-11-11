@@ -13,3 +13,6 @@
 {"file":"shots/"}
 {"file":"shots/page.jsonl"}
 {"file":"shots/"}
+{"file":"audit/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /framework/styles/system/studies/spacing/audit/."}}
+{"file":"ceilings/page.js","nav":{"title":"Ceilings","icon":"vertical_align_top","description":"Three candidate spacing ceilings, shot on cms, paging and stream at 3440 — a token override on a scratch tab, never a framework.css edit. The owner picks."}}
+{"file":"nesting/page.js","nav":{"title":"Moved","icon":"moving","description":"This page moved to /framework/styles/system/studies/spacing/nesting/."}}

@@ -57,7 +57,7 @@ export class Process extends Task {
 			done.length ? `What the earlier steps recorded:\n${done.map(x => `- ${x.id}: ${x.get_one("outcome")}`).join("\n")}` : "",
 			`Your job in this step: ${p.get_one("do") ?? "(not described)"}`,
 			`When the step is done, record it with the item tool; this is what moves the process on, and nothing else does:`,
-			`item({path: "${url}", delta: {"${id}": {"complete": {"outcome": "<a few sentences: what you found or did, and the files or branch it is in>"}}}})`,
+			`item({path: "${url}", call: "${id}.complete", args: {"outcome": "<a few sentences: what you found or did, and the files or branch it is in>"}})`,
 		].filter(Boolean).join("\n\n");
 	}
 

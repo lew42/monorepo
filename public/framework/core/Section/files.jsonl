@@ -7,3 +7,4 @@
 {"file":"example/page.jsonl"}
 {"file":"example/"}
 {"file":"tasks/"}
+{"file":"doc/page.js","nav":{"title":"Docs","icon":"description","description":"Three notes: the idea, the picker, and the slots."}}

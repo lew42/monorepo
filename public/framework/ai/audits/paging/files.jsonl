@@ -217,3 +217,4 @@
 {"file":"shot-library-1920.png"}
 {"file":"shot-variants-1920.png"}
 {"file":"shot-variants-type-1920.png"}
+{"file":"types/page.js","nav":{"title":"Page types","icon":"category","description":"The page-type library as a wall: each type is a page, each variant is a page inside it."}}

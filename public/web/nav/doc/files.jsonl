@@ -1,3 +1,4 @@
 {"file":"page.js"}
 {"file":"study/page.js"}
 {"file":"architecture.md"}
+{"file":"study/page.js","nav":{"title":"Navigation","icon":"explore","description":"Does the navigation stay still when a column opens? Since 2026-09-18 it does. Three rows, one click — core as it is, the proposal that became core, and the even mode — and all three now read 0."}}

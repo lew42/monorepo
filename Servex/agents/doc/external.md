@@ -43,6 +43,45 @@ Servex's own agents: a registry row that is not external, a running agent, or a 
 minted id in `layers.json`. Otherwise a message to that agent would land in a file instead of
 waking it. The error says so and suggests `vscode-<your task>`.
 
+## `updates`: one place per conversation (2026-11-09)
+
+The inbox file is shared by every caller using the same id (every cloud voice chat calls as
+`voice-app`), so `updates(id, {conversation, peek, cap, raw})` keeps a SEPARATE reading position per
+conversation, not one shared cursor:
+
+- **The cursor key** is `conversation` (pass a claude.ai conversation id) → else `ctx.session.id`
+  (the voice session `RemoteMCP` already resolved for this call) → else the bare caller — today's
+  original single-cursor behaviour. Every key's place is one entry in `logs/inbox/<id>.cursors.json`
+  (`cursors_file(id)`, `{key: {offset, at, follows: {<file>: offset}}}`); the legacy single
+  `<id>.cursor` file (`legacy_offset(id)`) is still read as the caller-key's own first value, so an
+  upgrade never jumps anyone's place.
+- **A BRAND NEW key starts at "now"** (the inbox's current end), never the backlog, so a second
+  mastermind joining a voice session's conversation is not handed a wall of lines meant for someone
+  else. Its first answer carries `missed`: a digest of what happened between the shared cursor and
+  now, capped to the last 24h.
+- **Digest by default.** `updates` returns `{count, more, updates, digest}`: `count` is every raw
+  event actually read (so paging stays exact), `digest` is one row per sender
+  (`{from, count, latest}`, `digest(events)`), and `updates` itself holds only the newest line per
+  sender unless `raw: true` asks for every line.
+- **Follows are read here, not pushed to the inbox.** `followed_lines(id, state, budget)` reads each
+  file a `follow({path, agent: id})` subscription covers, from THIS key's own byte offset — separate
+  from `Follow.js`'s own change-detection offsets — and returns `{agent, session, path, line}` per
+  line (`agent` is `sub.of ?? line.by ?? null`, applying the same `skip_by`/`heard`/`worth_waking`
+  filters a pushed burst would). `budget` (the cap left after the inbox's own share) stops it at a
+  line boundary, so a burst bigger than the cap pages across calls instead of losing or repeating
+  lines. `followed_files(sub)` reuses the `.jsonl` files `Follow` already tracks under a directory
+  (`follow.offsets`) rather than walking the tree again on every call; `walk_jsonl_files` is only the
+  fallback for a test double with no live `Follow`.
+- **Rotation.** `deliver()` calls `rotate(id)` first: `first_line(file)` is a small bounded read that
+  decides, from the inbox's own first line alone, whether a rotation is even due (the common case —
+  same month — costs nothing more). Once a month, the part every FRESH cursor (`age_ms(s.at) <
+  7 days`; a cursor stale 7+ days no longer pins it) has already read moves to
+  `logs/inbox/archive/<id>-<YYYY-MM>.jsonl` (appended, never overwritten); the live file keeps only
+  what some fresh cursor has not read, and every cursor rebases to the shorter file.
+
+Tests: `RemoteMCP.test.mjs`'s "updates" block (steps 1, 2, 3, 5 and the budget/staleness fixes), and
+`mark-strip.test.mjs` for step 4 below.
+
 ## The one line in `Agents.send()`
 
 ```js
@@ -66,6 +105,18 @@ An external id is never in `live`, so `send()`'s first branch always falls throu
 session `wake()` could reopen — checking `external.has(id)` before `wake()` is what keeps a real
 send to a real external agent from ever reaching `wake()`'s "never got a session" throw.
 
+## No duplicate "done" to an external parent
+
+`Agents.wake_parent` (`Agents.js`, not this file's own fence, but the one place this matters) skips
+re-sending a "done" report to a registered EXTERNAL parent when it is a byte-for-byte repeat of the
+same child's last one to that parent, after stripping timestamps and ids (`mark-strip.js`'s
+`strip_marks`) — and only when the report carries no "Next:" note (a sibling unblocking is always
+new information). The skip drops only the MESSAGE; the task-dir `inbox.jsonl` line still writes,
+same as any other "done". The skip is counted on the host (`this._dup_done_skips`), never logged
+per occurrence. `strip_marks` lives in its own file, `mark-strip.js`, so it is testable with no
+`@anthropic-ai/claude-agent-sdk` import (`Agents.js`'s own first line) in the way. Test:
+`mark-strip.test.mjs` (the pure function) and `Follow-ack.test.mjs` (the real `wake_parent`).
+
 ## Policy: an external id messages, it does not spawn
 
 `policy.js` reads a registered external id as `kind: "external"`. Any agent may message one, and
@@ -88,6 +139,12 @@ not here.
 
 ## Files
 
-`External.js` (the class) · `External.test.mjs` (fakes `cards`/`mcp`/`log`, but a REAL `Agents`
-host with a scratch registry dir, so the test proves the actual `send()` hook) · the one line in
-[`Agents.js`](../Agents.js)'s `send()` · the one install line in [`Servex.js`](../../Servex.js).
+`External.js` (the class: registration, the inbox, `updates`/`cursors_file`/`followed_lines`/
+`rotate`) · `External.test.mjs` (fakes `cards`/`mcp`/`log`, but a REAL `Agents` host with a scratch
+registry dir, so the test proves the actual `send()` hook) · [`mark-strip.js`](../mark-strip.js)
+(`strip_marks`, its own file so it tests without the SDK import) · `mark-strip.test.mjs` · the one
+line in [`Agents.js`](../Agents.js)'s `send()`, and the duplicate-done check in its `wake_parent` ·
+the one install line in [`Servex.js`](../../Servex.js). The `updates`/follow/rotation mechanics are
+also proved by `Servex/ext/remote/RemoteMCP.test.mjs` (the remote door's own test) and
+`Follow-ack.test.mjs`; the fuller account of what the voice door does with `updates` is
+[`Servex/ext/remote/doc/catch-up.md`](../../ext/remote/doc/catch-up.md).

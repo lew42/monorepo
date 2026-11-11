@@ -11,3 +11,4 @@
 {"file":"modules/"}
 {"file":"overview/"}
 {"file":"tasks/"}
+{"file":"browsable/page.js","nav":{"title":"Browsable","icon":"hub","description":"Is the site organized, visual, and browsable — measured from source, not eyeballed."}}

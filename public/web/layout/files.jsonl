@@ -6,3 +6,10 @@
 {"file":"respond/page.js"}
 {"file":"screens/page.js"}
 {"file":"tracks/page.js"}
+{"file":"flex/page.js","nav":{"icon":"view_week"}}
+{"file":"flow/page.js","nav":{"icon":"reorder"}}
+{"file":"grid/page.js","nav":{"icon":"grid_on"}}
+{"file":"measure/page.js","nav":{"icon":"straighten"}}
+{"file":"respond/page.js","nav":{"icon":"aspect_ratio"}}
+{"file":"screens/page.js","nav":{"title":"Depot","icon":"warehouse"}}
+{"file":"tracks/page.js","nav":{"icon":"table_rows"}}

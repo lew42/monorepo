@@ -8,3 +8,5 @@
 {"file":"shots/"}
 {"file":"shots/page.jsonl"}
 {"file":"shots/"}
+{"file":"doc/page.js","nav":{"title":"Docs","icon":"article","description":"What counts as a real page, what is a dynamic one, and how a page derives from another."}}
+{"file":"home/page.js","nav":{"title":"Framework","description":"The base design: a bar, a hero on a fold budget, a wall of six, a footer."}}

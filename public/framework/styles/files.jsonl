@@ -26,3 +26,11 @@
 {"file":"weight.jsonl"}
 {"file":"widths/page.js"}
 {"file":"tasks/"}
+{"file":"elements/page.js","nav":{"title":"Elements","icon":"text_fields","description":"Every element the framework styles, rendered beside the rule that styles it."}}
+{"file":"layers/page.js","nav":{"title":"Layers","icon":"layers","description":"Four cascade layers, declared once in framework.css — the one line the whole CSS strategy hangs on."}}
+{"file":"layouts/page.js","nav":{"title":"Layouts","icon":"dashboard_customize","description":"Every whole-page layout, the class strings they are built from, and the pages that explain both — one filterable wall."}}
+{"file":"rules/page.js","nav":{"title":"Rules","icon":"rule","description":"The dos and don'ts, one page each — and the live examples that keep them honest."}}
+{"file":"sections/page.js","nav":{"title":"Sections","icon":"view_day","description":"The layouts, filled with real elements and components — a whole page, composed."}}
+{"file":"stacks/page.js","nav":{"title":"Stacking","icon":"layers","description":"Every fill on every floor, measured — and the alpha ladder that makes one word work on all of them."}}
+{"file":"system/page.js","nav":{"title":"System","icon":"straighten","description":"The spacing system: three tokens, four rungs, and the words you type."}}
+{"file":"widths/page.js","nav":{"title":"AI system: the dashboard you're reading","icon":"straighten","description":"One measure, one margin — four ways to size the same three cards."}}

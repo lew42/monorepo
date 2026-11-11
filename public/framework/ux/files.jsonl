@@ -46,3 +46,22 @@
 {"file":"Understand/page.js"}
 {"file":"Browse/page.js"}
 {"file":"tasks/"}
+{"file":"Auth/page.js","nav":{"title":"Auth","icon":"lock","description":"Login, signup, reset and a social row as one class — view switching is the behavior that earns it."}}
+{"file":"Browse/page.js","nav":{"title":"Click a row: it opens on the right","icon":"view_sidebar","description":"One list-and-detail view: a resizable list on the left, the row you clicked on the right."}}
+{"file":"Card/page.js","nav":{"title":"Card","icon":"dashboard","description":"The look of an AI card's own page — its head, its outline, a Live-card row — the same CSS whether the card opens in the AI rail or on its own page."}}
+{"file":"Content/page.js","nav":{"title":"Content","icon":"dashboard_customize","description":"The kinds of card a page is built from — ask a question, make a decision, quote a prompt."}}
+{"file":"Course/page.js","nav":{"title":"The template tier","icon":"school","description":"Chapters of lessons: a rail, a reading column and a next-up card that coordinate — the large-screen showcase."}}
+{"file":"Dictate/page.js","nav":{"title":"Dictate","icon":"route","description":"A mic button with a state you can always see and an error said in plain words — whisper running on this machine first, the browser's own recognition second."}}
+{"file":"Filter/page.js","nav":{"title":"Filter","icon":"filter_alt","description":"A segment + search class that drives several regions at once — the coordinated-regions dashboard."}}
+{"file":"Hotkeys/page.js","nav":{"title":"Hotkeys","icon":"keyboard","description":"One flat list of named hotkeys, filterable and rebindable — a key or a mouse button, remembered per browser."}}
+{"file":"Inbox/page.js","nav":{"title":"Pinned: an agent left you a risk","icon":"campaign","description":"A rail of page previews beside the page you picked: persistent navigation that never jumps, with filters, a score floor, read/unread and archive."}}
+{"file":"Menu/page.js","nav":{"title":"Menu","icon":"arrow_drop_down_circle","description":"ui/menu's <details> opened up — close-on-pick and click-outside as a class, instead of a handler you write per item."}}
+{"file":"Objects/page.js","nav":{"title":"Objects","icon":"category","description":"The live object inspector widget. Walks class instances, Maps, Arrays, and links classes."}}
+{"file":"Pagination/page.js","nav":{"title":"Pagination","icon":"last_page","description":"ui/pagination's row, opened up — the current page remembered on the instance, and go(n) driving real content through one wire."}}
+{"file":"Popover/page.js","nav":{"title":"Popover","icon":"picture_in_picture","description":"The owner's two popup options, built and compared: near-content position: absolute, against the popover attribute's top layer."}}
+{"file":"Rename/page.js","nav":{"title":"Rename","icon":"drive_file_rename_outline","description":"Tap a title to select it, then Rename turns it into a dropdown of 5 suggested names plus keep current."}}
+{"file":"Revise/page.js","nav":{"title":"Revise","icon":"auto_fix_high","description":"Text in, revised text out, at a level — the AI step of dictation, usable for a prompt or for writing."}}
+{"file":"Tags/page.js","nav":{"title":"Tags","icon":"local_offer","description":"ui/tags's chip row, opened up — the × and the field were inert in the template; this is what wiring them looks like."}}
+{"file":"Tree/page.js","nav":{"title":"Tree","icon":"account_tree","description":"One tree — expandable, draggable, and it folds itself around what you select."}}
+{"file":"Understand/page.js","nav":{"title":"Understand","icon":"fact_check","description":"A ✓ or ? after every sentence the assistant read — green means clear, yellow opens a clarifying question right there in the flow."}}
+{"file":"Wizard/page.js","nav":{"title":"Name","icon":"checklist","description":"The generic multi-step engine - steps, next/back, a validation gate, keyboard, phone to 3440. Lessons, courses and signup all extend this."}}

@@ -38,7 +38,11 @@ const rows = [
 	[601, 56, "grep.exe", 5, 0, 700, GIT + "grep.exe --line-buffered prompt"],                 // its partner, Git's parent gone too
 	[602, 57, "node.exe", 50, 0, 700, "node C:\\Code\\lew42\\worktrees\\qf-4\\Server\\run.js"], // ours, parent gone, not a waiter
 	[700, 1, "chrome.exe", 400, 9, 100, "chrome.exe"],
-	[701, 1, "tail.exe", 5, 0, 100, "C:\\cygwin\\bin\\tail.exe -f C:\\other.log"]              // the owner's own: never ours
+	[701, 1, "tail.exe", 5, 0, 100, "C:\\cygwin\\bin\\tail.exe -f C:\\other.log"],             // the owner's own: never ours
+	[800, 950, "cloudflared.exe", 40, 1, 700, "C:\\Code\\lew42\\monorepo\\node_modules\\.bin\\cloudflared.exe tunnel run --token x"], // parent gone: a tunnel, not a dev server
+	[801, 951, "whisper-server.exe", 90, 2, 700, "C:\\Users\\x\\AppData\\Local\\lew42\\whisper\\bin\\whisper-server.exe --port 8178"], // parent gone: whisper, not a dev server
+	[802, 952, "chrome.exe", 300, 4, 700, "C:\\Users\\x\\AppData\\Local\\ms-playwright\\chromium-1148\\chrome-win\\chrome.exe --headless --user-data-dir=C:\\temp\\pw"], // parent gone: a Playwright browser, not a dev server
+	[803, 953, "cmd.exe", 5, 0, 700, "cmd /c echo lew42 done"]                                 // parent gone: a leftover shell, not a dev server
 ];
 const msys = [[10, 1, 401], [11, 10, 402], [20, 18, 600], [21, 19, 601]];   // Git: 402's parent is 401; 600/601's parents are gone
 
@@ -56,7 +60,13 @@ ok(of(402) === "session 400", "a Git Bash tool whose Windows parent is gone stay
 ok(of(500) === "dev servers" && of(501) === "dev servers", "a detached dev server and its child");
 ok(of(600) === "orphans" && of(601) === "orphans", "a tail|grep whose parents are gone is an orphan");
 ok(of(602) === "dev servers", "a parentless node of ours is shown, never called an orphan");
+ok(by("dev servers").servers === 2 && by("dev servers").n === 3, "dev servers counts server trees (2), not processes (3)");
+ok(p.line().includes(" 2 dev servers ("), "the health line says the real server count");
 ok(!of(700) && !of(701), "chrome and a stranger's tail are not ours");
+ok(of(800) === "tunnel", "a parent-gone cloudflared is its own group, not a dev server");
+ok(of(801) === "whisper", "a parent-gone whisper-server is its own group, not a dev server");
+ok(of(802) === "browsers", "a parent-gone Playwright chromium is its own group, not a dev server");
+ok(of(803) === "leftover shells", "a parent-gone cmd with no real server under it is its own group, not a dev server");
 ok(s.orphans.map(o => o.pid).sort().join() === "600,601", "the orphan list");
 ok(by("task 2026-09-30/process-monitor").mb === 556, "a task's RAM is the sum of its processes");
 ok(s.ours.mb + s.other.mb === rows.reduce((t, r) => t + r[3], 0), "ours + other = everything");
@@ -79,6 +89,28 @@ try {
 } finally { process.kill = real; }
 ok(killed.sort().join() === "600,601", "reaps the idle orphaned waiters and nothing else");
 ok(p.reaped.length === 2 && p.reaped[0].ok, "each reap is recorded");
+
+// burning: a search orphan averaging over the threshold is reaped as "burning",
+// a busy one under the window is kept, a node orphan is never reaped either way.
+{
+	const m = new Processes({ reaping: false, servex: { agents: { live: new Map() } } });
+	m.cores = 1;   // keeps "% of one core" == the normalized cpu value, for a simple fixture
+	const hot = Array(m.burn_samples).fill(30);          // averaged 30% > burn_core_pct (25) for a full window
+	const warming = Array(Math.ceil(m.burn_samples / 2)).fill(90);   // hot, but not yet a full window
+	m.procs = new Map([
+		[700, { pid: 700, ppid: 1, name: "grep.exe", mb: 5, cmd: "C:\\Code\\lew42\\monorepo\\grep.exe -rn DayPromptsRefine .", cpu_hist: hot }],
+		[701, { pid: 701, ppid: 1, name: "rg.exe", mb: 5, cmd: "C:\\Code\\lew42\\monorepo\\rg.exe pattern .", cpu_hist: warming }],
+		[702, { pid: 702, ppid: 1, name: "node.exe", mb: 5, cmd: "C:\\Code\\lew42\\monorepo\\node.exe x.js", cpu_hist: hot }]
+	]);
+	m.now = { orphans: [700, 701, 702].map(pid => ({ pid })) };
+	const burned = [];
+	const real2 = process.kill;
+	process.kill = pid => { burned.push(pid); };
+	try { m.reap(); } finally { process.kill = real2; }
+	ok(burned.join() === "700", "only the search orphan with a full hot window is reaped");
+	ok(m.reaped[0].why === "burning" && m.reaped[0].cpu_avg === 30, "the reaped line says why:\"burning\" and the averaged cpu");
+	ok(m.procs.has(701) && m.procs.has(702), "a short window and a node orphan are both kept");
+}
 
 ok(p.history.length === 2 && typeof p.history[1].ours_mb === "number", "an hour of points is kept");
 ok(/Ours .* GB/.test(p.line()), "one line for system_health");

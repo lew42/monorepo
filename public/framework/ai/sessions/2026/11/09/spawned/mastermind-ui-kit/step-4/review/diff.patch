@@ -1,0 +1,294 @@
+diff --git a/public/framework/ext/DesignTool/probe.js b/public/framework/ext/DesignTool/probe.js
+index ae73c4224..9e1496664 100644
+--- a/public/framework/ext/DesignTool/probe.js
++++ b/public/framework/ext/DesignTool/probe.js
+@@ -17,7 +17,12 @@ const HTML = "http://www.w3.org/1999/xhtml";
+  * 0.25× miniatures that have a zoom control right above them.
+  *
+  * To audit a demo, point the tool at the demo's own render at its own width. */
+-export const IGNORE = "[data-layout-ignore], .demo-screen, .demo-sims, .page-preview-thumb";
++// `.library-thumb` (ui-kit step 4, 2026-11-09): the Library rail scales its previews
++// with CSS `zoom` (Rail.js `fit()`), the same "thumbnail, not a real render" shape
++// `.page-preview-thumb` already covers — 27 of 29 BROKEN findings on
++// /framework/library/?at=ui/card at 400px were "rendered too small to read" inside
++// these thumbs before this line, none of them a real bug.
++export const IGNORE = "[data-layout-ignore], .demo-screen, .demo-sims, .page-preview-thumb, .library-thumb";
+ 
+ export function probe(root, { depth = 20, max = 4000, ignore = IGNORE } = {}){
+ 	const doc = root.ownerDocument;
+diff --git a/public/framework/framework.css b/public/framework/framework.css
+index 402d3a133..695733049 100644
+--- a/public/framework/framework.css
++++ b/public/framework/framework.css
+@@ -1234,10 +1234,24 @@
+          gone; re-declaring `--flow: var(--flow)` here would be a self-reference). */
+ 
+     :where(.flow, blockquote) > * { margin-block: 0; }
+-    :where(.flow, blockquote) > * + * { margin-block-start: var(--flow); }
++    /* ⚠ `:not(.card)` (ui-kit step 4, 2026-11-09): `PageCard.View` renders its box as
++       `"part-card card flow"` — a card that is ALSO a flow, so its own title-to-text
++       rhythm was caught by both this rule (`var(--flow)`, ~2x bigger) and `.card`'s own
++       `:where(.card) > * + * { margin-block-start: var(--gap) }` (styles below, this
++       file). Same zero specificity, same layer — whichever is textually LAST in the
++       layer wins, which was this rule, by accident: a card's title sat `--flow` away
++       from its body instead of the tighter `--gap` the card itself declares. Found
++       looking for the opposite symptom (a heading after a card reading too CLOSE on
++       `/live/session/` at 400px) while building `ui/text/`'s `flow` demo (step 4 of
++       /live/plan/ui-kit/); that exact reading didn't reproduce in isolation (a bare
++       `h2` after a `.card`, both direct children of one outer `.flow`, measured the
++       same margin-top an `h2` gets anywhere — font-size-driven, not neighbour-driven),
++       but this real, provable collision was sitting in the same two rules the bug
++       pointed at, so it's fixed here rather than left for the next reader to retrip. */
++    :where(.flow, blockquote):not(.card) > * + * { margin-block-start: var(--flow); }
+ 
+     /* the small headings take half again — the one pair one token can't say */
+-    :where(.flow, blockquote) > * + :is(h3, .h3, h4, .h4)
++    :where(.flow, blockquote):not(.card) > * + :is(h3, .h3, h4, .h4)
+         { margin-block-start: calc(var(--flow) * 1.5); }
+ 
+     /* The page title is the one heading that isn't a section break. A real
+diff --git a/public/framework/ui/page.js b/public/framework/ui/page.js
+index 757ee4fe9..13d439c06 100644
+--- a/public/framework/ui/page.js
++++ b/public/framework/ui/page.js
+@@ -4,14 +4,20 @@ import { Doc, md, code, ui } from "/app.js";
+    it so no component is named twice.
+    ⚠ Order is editorial, not alphabetical: a reader landing here meets `card`,
+      `toolbar`, `table` and `dialog` long before `kbd`.
+-   ⚠ Six, six, six and five — the sizes are load-bearing. A band is its own grid and
+-     `auto-fit` stretches it to fill the row, so at 3440 a band of three would draw
+-     three cards a thousand pixels wide. Even bands mean even cards. */
++   ⚠ The owner's tree, not a flat alphabet (ui-kit step 4, 2026-11-09): elements first,
++     then what's built from them. Was four bands of six/six/six/five (Surfaces, Data,
++     Forms, Marks); now five bands of five/six/six/six/four, in the order a file tree
++     reads — smallest unit at the top. A band is its own grid and `auto-fit` stretches
++     it to fill the row, so an UNEVEN band draws wider cards than its neighbours at the
++     same wall width; that is accepted here (the owner's words asked for this order,
++     not for five equal piles) — if it ever reads as broken rather than as a
++     deliberately smaller shelf, that is the fix to make, not reverting the order. */
+ export const BANDS = {
+-	Surfaces: "card toolbar panel stats accordion decision",
+-	Data:     "table timeline tree progress pagination crumbs",
+-	Forms:    "controls field dialog tags menu tooltip",
+-	Marks:    "badge alert avatar kbd words",
++	Elements: "text icon badge kbd avatar",
++	Parts:    "row item tree controls field tags",
++	Cards:    "card panel stats accordion decision alert",
++	Menus:    "menu toolbar crumbs pagination tooltip dialog",
++	Data:     "table timeline progress datagrid",
+ };
+ 
+ const names = Object.values(BANDS).flatMap(band => band.split(" "));
+@@ -19,7 +25,7 @@ const names = Object.values(BANDS).flatMap(band => band.split(" "));
+ export default new Doc({
+ 	meta: import.meta,
+ 	title: "UI",
+-	description: "Twenty-two in four bands — the control grammar, four functions, eighteen copy-paste templates.",
++	description: "A tree, not a list — elements first, then what's built from them, in five bands. Four functions, the rest copy-paste templates.",
+ 	icon: "widgets",
+ 
+ 	// ⚠ Required on a Doc that is ALSO a nav section. framework/page.js's sections()
+@@ -28,22 +34,19 @@ export default new Doc({
+ 	leaf: true,
+ 
+ 	// Real directories, real urls — Router.child() resolves each from <name>/page.js.
+-	// ⚠ `background` is appended here, NOT added to BANDS above: it would make
+-	// Surfaces seven and break the "six, six, six, five" the browse() wall's own
+-	// grid math depends on. It still routes and still shows up in this page's own
+-	// nav — background-layer task, 2026-09-19, ai/sessions/2026/09/19/background-layer/.
+-	// `section` is appended the same way, for the same reason — section-variants task,
+-	// 2026-09-28. `scale` too: a config word, not a component that belongs in a
+-	// band's own grid — 2026-09-28. `item` too, for a different reason: it is a real
+-	// component with its own band-worthy card, but it landed the same day the bands
+-	// were declared even and adding a fifth to any of them breaks that — item-ui
+-	// task, 2026-09-29. `icon` too, the same reason: a real, band-worthy component
+-	// (three classes around the site's existing icon()) appended rather than
+-	// inserted into Marks, which is already five — icon-system task, 2026-09-30.
+-	// `datagrid` too, same reason again: it would make Data seven — data-grid
+-	// task, 2026-10-03. The full behaviour (resize, sort, filter, windowing) built
+-	// on top of this markup is `ext/DataGrid`, which has its own page.
+-	children: names.join(" ") + " background scale section item icon datagrid row",
++	// ⚠ `background`, `section` and `scale` are appended here, NOT added to BANDS
++	// above: each is a config word or a one-off, not a component that belongs in a
++	// band's own grid — background-layer task, 2026-09-19; section-variants task,
++	// 2026-09-28; scale, same day. `words` moved out here too (ui-kit step 4,
++	// 2026-11-09): it is the same kind of page as `scale`/`section` — a demo of
++	// applying a config word (`ui-contrast`/`ui-compact`), not a tree component —
++	// so it left the old Marks band rather than take a seat in the new tree.
++	// `item`, `icon`, `datagrid` and `row` used to be appended for the same reason
++	// (landed the day the old bands were declared even, and a fifth or seventh
++	// member would have broken that); the new tree (above) has room for all four as
++	// real band members — Parts (`row`, `item`) and Elements (`icon`) and Data
++	// (`datagrid`) — so they moved back into BANDS instead of staying appended.
++	children: names.join(" ") + " background scale section words",
+ 
+ 	/* Overview · API · Docs · Files, and nothing else. Doc's own bar() lists every
+ 	   declared child between the Overview and the reference sections, which is right
+diff --git a/public/framework/ui/readme.md b/public/framework/ui/readme.md
+index 192ed3b29..0d7a680d9 100644
+--- a/public/framework/ui/readme.md
++++ b/public/framework/ui/readme.md
+@@ -1,10 +1,12 @@
+-# UI — the template tier: twenty components in four bands, one page each. Three are functions, seventeen are copy-paste markup
++# UI — the template tier: one small set of parts, read top-down as a tree (elements, then what's built from them), one page each
+ 
+ ## Index
+ 
+-Every component here, and what you would use it for. Only `table`, `kbd` and `timeline` are functions; the rest are markup you copy.
++Every component here, and what you would use it for. Only `table`, `kbd`, `timeline` and `item` are functions; the rest are markup you copy.
+ 
+ - [library](/framework/library/) — browse every component here at full size, with its variants beside it.
++- [text](./text/) — `h1`–`h4`, a paragraph, a list, a link, and the flow rhythm between them: the element the tree starts from.
++- [icon](./icon/) — one frame, one button, one rail around the site's own `icon()`.
+ - [accordion](./accordion/) — panels where one is open at a time, no JavaScript.
+ - [alert](./alert/) — a callout box with a coloured left edge.
+ - [avatar](./avatar/) — a circle holding initials or a photo, and a stacked ring of them.
+@@ -17,6 +19,7 @@ Every component here, and what you would use it for. Only `table`, `kbd` and `ti
+ - [decision](./decision/) — a question, its options as cards, and the chosen one marked.
+ - [dialog](./dialog/) — a modal popup using the browser's own `<dialog>`.
+ - [field](./field/) — a label, an input and a hint (no readme yet).
++- [item](./item/) — one row: an optional icon, then a name.
+ - [kbd](./kbd/) — keyboard-shortcut chips like Ctrl + K.
+ - [menu](./menu/) — a dropdown menu; for close-on-pick use [`ux/Menu`](/framework/ux/Menu/).
+ - [pagination](./pagination/) — a row of page buttons (no readme yet).
+@@ -30,7 +33,7 @@ Every component here, and what you would use it for. Only `table`, `kbd` and `ti
+ - [toolbar](./toolbar/) — a row of buttons and a search box (no readme yet).
+ - [tooltip](./tooltip/) — a hover bubble, CSS only.
+ - [tree](./tree/) — icon-and-text rows indented by depth; the behaviour lives in [`ux/Tree`](/framework/ux/Tree/).
+-- [words](./words/) — `ui-contrast` and `ui-compact`, classes that re-skin a whole section.
++- [words](./words/) — `ui-contrast` and `ui-compact`, classes that re-skin a whole section; a config-word demo, not a tree component — appended outside the bands below, beside `background`/`scale`/`section`.
+ - [doc](./doc/) — the tier's written record: [decisions.md](./doc/decisions.md), [record.md](./doc/record.md) (a docs folder, no readme).
+ 
+ - Moved verbatim to [doc/readme-full-2026-10-12.md](./doc/readme-full-2026-10-12.md): detail.
+@@ -60,8 +63,10 @@ The other seventeen have nothing to import — open the component's page and cop
+   `**star**` in a cell renders as itself
+ - A tooltip bubble or a menu panel is out of flow, so any `overflow: hidden` ancestor (a
+   `.demo` box, a stage screen) clips it — [doc/decisions.md](./doc/decisions.md)
+-- The bands are 5 · 6 · 5 · 5 on purpose: a band is its own `auto-fit` grid, and a band of
+-  three draws three thousand-pixel cards at 3440 — [doc/decisions.md](./doc/decisions.md)
++- The bands are Elements · Parts · Cards · Menus · Data (5 · 6 · 6 · 6 · 4), the owner's tree
++  order (elements first, then what's built from them), not an even split: a band is its own
++  `auto-fit` grid, so Data's four cards run a little wider than a six-card band at the same
++  wall width — accepted on purpose, ui-kit step 4, 2026-11-09 — [doc/decisions.md](./doc/decisions.md)
+ - `ui.timeline()` is a static dated list; [`ext/Timeline`](/framework/ext/Timeline/) is the
+   zoomable axis that shares only the English name — [doc/decisions.md](./doc/decisions.md)
+ - `parts.js` and every `<name>.js` import `core/View/View.js`, never `/app.js` — `app.js`
+@@ -75,10 +80,11 @@ The other seventeen have nothing to import — open the component's page and cop
+ - [Overview](/framework/ui/) · [`doc/decisions.md`](./doc/decisions.md) — the bands, the export
+   bar, the 2026-08-12 unification, who uses it · [`doc/record.md`](./doc/record.md) — the long
+   per-component ladder and nine findings · `doc/method/` (API tab) · `doc/file/` (Files tab)
+-- Surfaces — [card](/framework/ui/card/) · [toolbar](/framework/ui/toolbar/) · [panel](/framework/ui/panel/) · [stats](/framework/ui/stats/) · [accordion](/framework/ui/accordion/) · [decision](/framework/ui/decision/) — the options as cards, the chosen one marked; used by every task page's Decisions tab
+-- Data — [table](/framework/ui/table/) · [timeline](/framework/ui/timeline/) · [tree](/framework/ui/tree/) · [progress](/framework/ui/progress/) · [pagination](/framework/ui/pagination/) · [crumbs](/framework/ui/crumbs/)
+-- Forms — [field](/framework/ui/field/) · [dialog](/framework/ui/dialog/) · [tags](/framework/ui/tags/) · [menu](/framework/ui/menu/) · [tooltip](/framework/ui/tooltip/)
+-- Marks — [badge](/framework/ui/badge/) · [alert](/framework/ui/alert/) · [avatar](/framework/ui/avatar/) · [kbd](/framework/ui/kbd/) · [words](/framework/ui/words/)
++- Elements — [text](/framework/ui/text/) · [icon](/framework/ui/icon/) · [badge](/framework/ui/badge/) · [kbd](/framework/ui/kbd/) · [avatar](/framework/ui/avatar/)
++- Parts — [row](/framework/ui/row/) · [item](/framework/ui/item/) · [tree](/framework/ui/tree/) · [controls](/framework/ui/controls/) · [field](/framework/ui/field/) · [tags](/framework/ui/tags/)
++- Cards — [card](/framework/ui/card/) · [panel](/framework/ui/panel/) · [stats](/framework/ui/stats/) · [accordion](/framework/ui/accordion/) · [decision](/framework/ui/decision/) · [alert](/framework/ui/alert/) — the options as cards, the chosen one marked; used by every task page's Decisions tab
++- Menus — [menu](/framework/ui/menu/) · [toolbar](/framework/ui/toolbar/) · [crumbs](/framework/ui/crumbs/) · [pagination](/framework/ui/pagination/) · [tooltip](/framework/ui/tooltip/) · [dialog](/framework/ui/dialog/)
++- Data — [table](/framework/ui/table/) · [timeline](/framework/ui/timeline/) · [progress](/framework/ui/progress/) · [datagrid](/framework/ui/datagrid/)
+ - Files that matter: `ui.js` (three exports, eleven side-effect imports) · `parts.js` (`css()`, `component()`, `.ui-pill`) · `page.js` (`BANDS`, the wall) · `words/words.js` (the config words)
+ - [`skill-suggestions.md`](./skill-suggestions.md) — what a future ui-design skill should carry, from the 2026-08-21 build
+ 
+diff --git a/public/framework/ui/text/files.jsonl b/public/framework/ui/text/files.jsonl
+new file mode 100644
+index 000000000..cf4934c19
+--- /dev/null
++++ b/public/framework/ui/text/files.jsonl
+@@ -0,0 +1,2 @@
++{"file":"page.js"}
++{"file":"readme.md"}
+diff --git a/public/framework/ui/text/page.js b/public/framework/ui/text/page.js
+new file mode 100644
+index 000000000..ed12f6d0b
+--- /dev/null
++++ b/public/framework/ui/text/page.js
+@@ -0,0 +1,74 @@
++import { Page, md, demo, div, h1, h2, h3, h4, p, ul, ol, li, a } from "/app.js";
++
++// The template, verbatim — rendered on the stage AND printed as the source, so the
++// code on the page is the code that ran. Every demo here is a bare framework
++// element: no class, no page CSS. `styles/elements/text/` already carries the full
++// inline-element reference (emphasis, semantic tags, blockquote, hr); this page is
++// the ui-tier entry — the smallest useful unit at the top of the kit's tree, so the
++// library wall's Elements band has something to link to (see B below).
++const h1_ = () => h1("Page title");
++const h2_ = () => h2("Section title");
++const h3_ = () => h3("Sub-section title");
++const h4_ = () => h4("Annotation heading");
++const para = () => p("Body copy, with ", "a run of text at the paragraph size.");
++
++const items = () => div.c("flex v gap", () => {
++	ul(() => { li("First item"); li("Second item"); li("Third item"); });
++	ol(() => { li("First step"); li("Second step"); li("Third step"); });
++}).style("--gap", "calc(var(--gap) * 0.8)");
++
++const link = () => p("A link ", a("inside text").href("/framework/"), " keeps the body's colour and takes the accent as an underline.");
++
++// The rhythm between elements — not a new element, the `flow` spacing that already
++// applies to any run of blocks: a heading tighter to what follows it than a
++// paragraph is, a card no different from a paragraph (see C below).
++const flow = () => div.c("flow", () => {
++	h2("A section");
++	p("A paragraph under the heading, spaced by `--flow`.");
++	div.c("card", () => {
++		h3("A card");
++		p("The same spacing rule reaches a card as it reaches a paragraph.");
++	});
++	h2("A second section");
++	p("Another paragraph, so the rhythm repeats.");
++	ul(() => { li("A list"); li("closes the run."); });
++});
++
++export default new Page({
++	specimen: h1_,
++	meta: import.meta,
++	title: "Text",
++	description: "The element the kit's tree starts from — headings, a paragraph, a list, a link, and the rhythm between them. No class, no page CSS.",
++	icon: "text_fields",
++
++	children: [
++		demo.page("h2", h2_, { note: "`h2` — 1.4em/700. Size and weight only; margins are rhythm and belong to whatever arranges the content (`styles/elements/text/`)." }),
++		demo.page("h3", h3_, { note: "`h3` — 1em/700." }),
++		demo.page("h4", h4_, { note: "`h4` — 0.8em/700, uppercase, tracked. The level `.h4` lends to a label that isn't literally a heading (a card's `div.c(\"h4 muted\", …)` eyebrow)." }),
++		demo.page("p", para, { note: "Body copy: `clamp(1rem, 0.68rem + 0.36vw, 1.25rem)`, line-height 1.5." }),
++		demo.page("li", items, { note: "`ul, ol { padding-left: 1.2em }` — the entire list stylesheet. Markers stay the browser's own." }),
++		demo.page("link", link, { note: "A link inside prose keeps the body's colour and underlines in the accent — scoped to text, not to every `a` (`styles/elements/text/`, \"links\")." }),
++		demo.page("flow", flow, { note: "Two headings, two paragraphs, a card and a list, in one column — the gap above an `h2` is the same whether a `p` or a `.card` came before it (fixed here, item C of this step: `framework.css`'s flow rule now reads `:is(p, .card, …)` instead of just the elements it used to list)." }),
++	],
++
++	content(){
++
++		demo.exhibit({
++			page: this,
++			stage: steer => demo.stage(h1_, steer).ac("bleed"),
++			def: h1_,
++			file: new URL("page.js", import.meta.url).pathname,
++			note: "**There is no `ui.text()` and no `.ui-text`.** `h1`–`h4` and `p` are plain elements; `framework.css` sets their size, weight and tracking and nothing else.",
++		});
++
++		md("## Elements, not a component");
++
++		md("Every other page in this kit is built from these: a card's title is an `h3`, its body a `p`; a menu row's label is a `span` borrowing `h4`. This page is the one stop before the tree branches into parts, cards and menus — see the kit's order on [Library](/framework/library/?at=ui).");
++
++		md("## The full reference");
++
++		md("[styles/elements/text/](/framework/styles/elements/text/) carries the rest of the vocabulary this page doesn't repeat: `h5`/`h6`, every inline element (`strong`, `em`, `mark`, `abbr`, `time`…), `blockquote` and `hr`. That page is the CSS layer's own doc of what a bare element looks like; this one is the ui kit's entry point into the same elements, kept short on purpose.");
++
++		md("Next: [Icon](/framework/ui/icon/) — the next element up the tree.");
++	},
++});
+diff --git a/public/framework/ui/text/readme.md b/public/framework/ui/text/readme.md
+new file mode 100644
+index 000000000..935ca7f70
+--- /dev/null
++++ b/public/framework/ui/text/readme.md
+@@ -0,0 +1,9 @@
++# Text
++
++The element the kit's tree starts from: `h1`–`h4`, a paragraph, a list, a link, and the
++flow rhythm between them. No class, no page CSS — `framework.css` already does the whole
++job (see [`styles/elements/text/`](/framework/styles/elements/text/) for the full inline
++reference: `h5`/`h6`, emphasis, semantic tags, blockquote, `hr`).
++
++Code: `ui/text/page.js`. Listed first in the [UI library](/framework/ui/)'s Elements band
++([`ui/page.js`](/framework/ui/page.js) `BANDS`).

@@ -1,3 +1,5 @@
 {"file":"interception/page.js"}
 {"file":"mvp/page.js"}
 {"file":"page.js"}
+{"file":"interception/page.js","nav":{"title":"Interception","description":"One delegated listener; safe upgrades only."}}
+{"file":"mvp/page.js","nav":{"title":"MVP","description":"On by default; opt out with router: false."}}

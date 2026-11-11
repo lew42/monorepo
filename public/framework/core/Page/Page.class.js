@@ -2,6 +2,7 @@ import { View, div, p, h1, h4, a, span, icon, is } from "../View/View.js";
 import PageFrame from "./Frame.js";
 import Item from "../Item/Item.js";
 import List from "../List/List.js";
+import { Pluggable } from "../Plugin/Plugin.js";
 import { track } from "../track/track.js";
 import ai_cost from "./weight/ai-cost.js";
 import PageWork from "./ai/PageWork.js";
@@ -10,6 +11,7 @@ import PageFilesTab from "./FilesTab.js";
 import PageChildren from "./Children.js";
 import PageLogReader from "./Reader.js";
 import PageListing from "./Listing.js";
+import PageIndex from "./Index.js";
 import PageLoad from "./Load.js";
 import PagePrefs from "./Prefs.js";
 import PageRelated from "./Related.js";
@@ -31,12 +33,13 @@ const ALIAS = { surface: "card", wash: "tint" };
 
 const is_md = url => /\.md(\?|#|$)/i.test(url);
 
-export class Page extends Item {
+export class Page extends Pluggable(Item) {
 
-	// ════ EXTENSIONS, CODE-REGISTERED — Page.use(Ext) runs Ext.setup(page) on EVERY page ═══
-	// ⚠ Nobody calls it by default, so the loop below is empty for a page with no extensions. (doc/jsonl.md)
-	static _ext = [];
-	static use(Ext){ Page._ext.push(Ext); return Page; }
+	// ════ EXTENSIONS, CODE-REGISTERED — Page.use(Ext) (core/Plugin's Pluggable) runs Ext.attach/setup(page) on
+	// EVERY page, the moment the module that calls it loads. ⚠ Nobody calls it by default, so a page with no
+	// extensions reaches no plugin at all. (doc/jsonl.md) `Page._ext` is a read-only alias, for old readers: the
+	// extensions currently on class-wide (`Page.plugins` is the live, switchable list).
+	static get _ext(){ return [...this.records.values()].filter(rec => rec.on).map(rec => rec.plugin); }
 
 	// What a delta can call on any page, beside Item's. Cards, tabs and sub-pages are not methods: they are the lists `content`, `pages` and the keys of a delta.
 	static callable = {
@@ -57,7 +60,7 @@ export class Page extends Item {
 		Page.track(this);
 		this.naming();
 		this.declare();
-		Page._ext.forEach(Ext => Ext.setup?.(this));
+		Page.plugged(this);   // reaches every class-wide extension (Page.use(Ext)) — core/Plugin's Pluggable
 		this.initialize?.();
 	}
 
@@ -167,9 +170,11 @@ export class Page extends Item {
 	}
 
 	// ════ EXTENSIONS ═══
+	// A `{"ext": "Name"}` line (or a direct call): import it, then switch it on for THIS PAGE ONLY — `Page.available`
+	// records it class-wide but off, so no other page reaches it, and `toggle_plugin` turns it on just here (core/Plugin's Pluggable).
 	ext(name){
 		const ready = import(new URL(`./ext/${name}/${name}.js`, import.meta.url).href)
-			.then(({ default: Ext }) => Ext.setup?.(this))
+			.then(({ default: Ext }) => { Page.available(Ext); this.toggle_plugin(Page.records.get(Ext), true); })
 			.catch(error => console.error(`${this.log_label()} — ext("${name}") failed to load:`, error));
 		(this.ext_ready ??= []).push(ready);
 	}
@@ -261,7 +266,12 @@ export class Page extends Item {
 	// A jsonl page already loaded at `url` (jsonl() registers it): its lines, as a listing.
 	static page_listing(url){ return Page.Listing.page_listing(Page, url); }
 
+	// On: a parent shows its grandchildren from the `nav` on their listing lines, importing nothing (Index.js, doc/index-jsonl.md).
+	// Off by default until its titles and class-card surfaces match a loaded page (doc/index-jsonl.md, Status); `?index=1` turns it on.
+	static from_index = new URLSearchParams(globalThis.location?.search).get("index") === "1";
+
 	// ⚠ Folders inside a dated task folder get no log (PageFiles.js covers()): answer null at once. (doc/watch-out.md)
+
 	static UNLOGGED = /^\/framework\/ai\/\d{4}-\d\d-\d\d\/[^/]+\/[^/]+\//;
 
 	// The listing, only if it is already here — a loaded jsonl page, or a `listing()`
@@ -354,6 +364,7 @@ export class Page extends Item {
 		page.naming();
 
 		const stub = this.pages.find(name);
+		page.nav_check(stub);
 		stub ? this.pages.replace(stub, page) : this.children.put(page);
 		return page;
 	}
@@ -695,9 +706,9 @@ export class Page extends Item {
 	nav(){ return { url: this.url, label: this.label ?? this.title, icon: this.icon, card: this.card, description: this.description }; }
 
 	nav_for(name){
-		const child = this.children.get(name);
+		const child = this.children.get(name), held = !child && this.pages.find(name);   // held: a placeholder carrying the line's nav
 
-		return { ...child?.nav(), url: this.url + name + "/", label: child?.label ?? child?.title ?? name };
+		return { ...child?.nav(), ...(held?.indexed && { icon: held.icon, description: held.description }), url: this.url + name + "/", label: child?.label ?? child?.title ?? held?.title ?? name };
 	}
 
 	// ════ PREVIEWS ═══
@@ -719,12 +730,32 @@ export class Page extends Item {
 		this.loaded = levels;
 
 		// ⚠ The guard above is why the wait belongs here in core (no "Chaining cycle detected for promise"). (doc/decisions.md)
-		const walk = () => Promise.all([...this.children.keys()].map(name =>
-			this.child(name, 0).then(child => child?.load_all_children(child.leaf ? 0 : levels - 1).loading)));
+		const walk = async () => {
+			// The last level only needs titles and icons: a still-unloaded child takes them from its listing line and imports nothing.
+			const navs = (levels === 1 && Page.from_index && await Page.Index.navs(Page, this.url)) || null;
+			return Promise.all([...this.children.keys()].map(name => this.nav_held(name, navs) ||
+				this.child(name, 0).then(child => child?.load_all_children(child.leaf ? 0 : levels - 1).loading)));
+		};
 
 		this.loading = this.child_source ? this.source_children().then(walk) : walk();
 
 		return this;
+	}
+
+	// True when a declared, unloaded child now carries its nav and needs no import. A child with no nav line returns false and loads as before.
+	nav_held(name, navs){
+		const held = navs && this.pages.find(name), nav = navs?.get(name);
+		if (!held?.stub || !nav) return false;
+		if (!held.indexed) Object.assign(held, { indexed: true, title: nav.title, icon: nav.icon, description: nav.description });
+		return true;
+	}
+
+	// The check (once per page): the nav a listing line gave while this page was a placeholder, against what the loaded page says.
+	nav_check(held){
+		if (!held?.indexed || this.nav_checked) return;
+		this.nav_checked = true;
+		const wrong = ["title", "icon", "description"].filter(key => held[key] !== undefined && held[key] !== this[key]);
+		if (wrong.length) console.warn(`page index: ${this.url} differs from its listing line in ${wrong.map(key => `${key} ("${held[key]}" vs "${this[key]}")`).join(", ")}`);
 	}
 
 	prefs(){ return this._helper("Prefs"); }
@@ -737,6 +768,7 @@ Item.register(Page, "Page");
 
 Page.Reader = PageLogReader;
 Page.Listing = PageListing;
+Page.Index = PageIndex;
 Page.Load = PageLoad;
 Page.Prefs = PagePrefs;
 Page.Jsonl = PageJsonl;

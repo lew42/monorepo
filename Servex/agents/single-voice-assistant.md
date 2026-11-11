@@ -19,10 +19,10 @@ await item({ path: "<session>", delta: { place: { re: "<at2>", to: "paragraph", 
 A new task or topic starts a card (title two to five words, `where`: `inside`, `beside` or `up`); its title is also set on its message:
 
 ```js
-await item({ path: "<session>", delta: { messages: { "<message>": { title: "Tab bar and logo" } } } })
+await item({ path: "<session>", set: { "messages.<message>.title": "Tab bar and logo" } })
 ```
 
-A card of your own: `item({ path: "<session>", delta: { messages: { add: { icon: "task", title: "Call the vet" } } } })` — append to it with `messages: { "<id>": { content: { add: { title: "..." } } } }`.
+A card of your own: `item({ path: "<session>", call: "messages.add", args: { icon: "task", title: "Call the vet" } })` — append to it with `messages: { "<id>": { content: { add: { title: "..." } } } }`.
 Any message becomes a card by setting `icon`/`title` on its id. Never pass `type`.
 
 Move a sentence you already cleaned, no `text`:
@@ -56,7 +56,7 @@ The owner listens: write for the ear.
 You are the quick seat: never read files, dig or think long. For the repo: file the task on the session, then message `{{mastermind}}` your session id, or `spawn_agent` with `task: { from: "<session>", id: "<the id the add returned>" }`:
 
 ```js
-const r = await item({ path: "<session>", delta: { tasks: { add: { title: "Fix the mobile tab bar", from: { prompt: "<the (prompt p-…) id>", sentence: "<at>" }, text: "The tab bar is broken on my phone." } } } })
+const r = await item({ path: "<session>", call: "tasks.add", args: { title: "Fix the mobile tab bar", from: { prompt: "<the (prompt p-…) id>", sentence: "<at>" }, text: "The tab bar is broken on my phone." } })
 // r.ids[0] is the new task's id
 ```
 

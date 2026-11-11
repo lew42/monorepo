@@ -27,28 +27,29 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-09 05:41 UTC, last 24 h)
+## NOW (computed 2026-11-11 00:08 UTC, last 24 h)
 
-**Pace:** Week: 28% used · 59% gone · 48% of pace (room to spend, 2 days 21 hours left)
+**Pace:** Week: 50% used · 84% gone · 60% of pace (room to spend, 1 day 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (1):**
-- [Feedback inbox (obvious): i-mw7rhgsnftl. Problem: A message headed "reply to: log agent-voice-app" reads as an](/framework/ai/sessions/2026/11/08/spawned/mastermind-ai/) (mastermind-ai)
+**Landed (2):**
+- [page_read matches the item tool (friction #3)](/framework/ai/sessions/2026/11/10/spawned/mastermind-friction-3/) (mastermind-friction-3)
+- [One small job for voice-app (reply with send_to_agent to voice-app, two lines). Budget $2, enforced. Land item](/framework/ai/sessions/2026/11/10/spawned/mastermind-merge-7/) (mastermind-merge-7)
 
-**Open, touched in the window (0):**
-- none
+**Open, touched in the window (1):**
+- [You are my hands in Figma while I talk with the owner on a voice call. Keep your replies short and report what](/framework/ai/sessions/2026/11/10/spawned/mastermind-figma-live/) (mastermind-figma-live)
 
 **Latest commits on this branch:**
 ```
-2960b99dc servex: log sweep (5 files)
-0124f5ba6 servex: log sweep (3 files)
-1fef796f2 servex: log sweep (5 files)
-865b2a7dc servex: log sweep (3 files)
-ce6f2c9f3 servex: log sweep (5 files)
-12702fa77 servex: log sweep (3 files)
-03b30052d servex: log sweep (5 files)
-00e261982 servex: log sweep (3 files)
+bff62da55 Figma readme: Icon set migrated to Icon Set 185:10067, old set deleted, migration recipe
+d74e6aa21 Figma readme: Pills page, docs page as walkthrough lessons, Icon frame removed, X / X Set naming
+b58503467 ui-kit run: trailing session line
+6a3bd2003 ui-kit run: close the run task (all six steps merged)
+98217294f Merge qf-3: page_read replays a page as its own class (LivePage), so it matches the item tool (friction #3)
+5f4d00c7b page_read replays a page as its own class (LivePage), so it matches the item tool (friction #3)
+cdfae3dae servex: log sweep (9 files)
+d3f12471b Figma docs: components/sets/variants/properties page (k-r), Pill Set finish, set look, Size mode verdict
 ```
 
 The dated sections below are written by hand and go stale; this block does not.

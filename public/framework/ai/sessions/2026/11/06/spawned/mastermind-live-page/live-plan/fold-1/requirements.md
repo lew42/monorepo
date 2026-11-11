@@ -4,7 +4,9 @@ Budget: $4. Load the `minion` skill first, then the `code` skill.
 
 ## Why
 
-The owner said yes on 2026-11-09 (relayed by voice-app: "make the best decision you can, as long as it's not destructive"). The plan is at [/live/plan/fold/](/live/plan/fold/); see its card "The one real disagreement: who fetches a file". The decision is that an Item keeps `Item.open(url)`, and how an item's lines arrive and become an object belongs to the Store. Then a second store (for example a Durable Object) never means editing Item.
+The owner said yes on 2026-11-09 (relayed by voice-app: "make the best decision you can, as long as it's not destructive"). The plan is at [/live/plan/fold/](/live/plan/fold/), card "The one real disagreement: who fetches a file".
+
+The decision: an Item keeps `Item.open(url)`, and how its lines arrive and become an object belongs to the Store. Then a second store (for example a Durable Object) never means editing Item.
 
 ## The change
 

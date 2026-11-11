@@ -1,0 +1,3 @@
+{"title":"One","icon":"1️⃣","description":"A tab made by one pages.add call.","class":"/live/LivePage.js"}
+{"content":{"add":{"id":"yml0qof6","type":"part-text","text":"Tab **One**: made by `instant.pages.add({name: \"one\", title: \"One\"})`, then this text by `one.content.add({type: \"part-text\", text})`."}},"by":"mastermind-page-design","ts":"2026-11-10T00:22:17.783Z"}
+{"yml0qof6":{"text":"Tab **One**: made by `instant.pages.add({name: \"one\", title: \"One\"})` and marked a tab by `instant.tab({name: \"one\", tab: true})`. This text is `one.content.add({type: \"part-text\", text})`."},"by":"mastermind-page-design","ts":"2026-11-10T00:23:09.519Z"}

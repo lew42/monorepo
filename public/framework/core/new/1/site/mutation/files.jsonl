@@ -8,3 +8,8 @@
 {"file":"recovery/page.js"}
 {"file":"undo/page.js"}
 {"file":"upload.js"}
+{"file":"autosave/page.js","nav":{"title":"Autosave, for real"}}
+{"file":"concurrent/page.js","nav":{"title":"Two urls, one record"}}
+{"file":"outliving/page.js","nav":{"title":"An action that outlives its page"}}
+{"file":"recovery/page.js","nav":{"title":"Draft recovery"}}
+{"file":"undo/page.js","nav":{"title":"Undo across a navigation"}}

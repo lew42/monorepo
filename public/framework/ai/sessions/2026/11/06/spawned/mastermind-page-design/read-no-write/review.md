@@ -1,0 +1,16 @@
+verdict: fix
+1. [fix] `named_day_folder` (`Servex/agents/page_tools.js:166`) is a new, private session-folder finder. agents.md says to find a session folder with `SessionFolders.at(store).of(id)` and never by building a path, and `core/Session/SessionFolders.mjs:17` exists because "five finders each had their own rule". `SessionFolders.of()` refuses a non-uuid (`SessionFolders.mjs:166`), so the simpler, single fix is to teach `SessionFolders` to find a non-uuid record (a day folder named exactly for the id, newest first) and have `session_file` call it. Then the AISession scan, the page and Servex all get the same answer from one place.
+2. [note] The lookup accepts any day folder whose name matches, including folders that are not sessions. In the worktree, a read of `/framework/ai/sessions/cards/` resolves to `2026/11/10/cards/page.jsonl` (`{"ok":false,"why":"no such path: id","here":["title","_pages"]}`), and `/sessions/spawned/` resolves the same way. It's read-only, so nothing is written, but item 1's version should accept only a folder that holds a session record (`session.jsonl` or `index.json` naming that id).
+3. [note] Both asks hold after the follow-up. I ran both tests in `worktrees/read-no-write-2`: `item-read-no-write: 16 checks pass` and `page_tools: 44 checks passed`. `/sessions/voice-app/` now answers `cloud-voice-app-20261110`, and an unknown name (`no-such-xyz`) gets a reason, not a throw. Dropping the full `AISession.scan()` rescan also answers the previous review's note 6.
+4. [note] The follow-up commits (`d59e373d7`, `742da30c9`) are still only on the `read-no-write-2` worktree branch. The brief's Check hasn't been re-run against them on the live site, which needs a merge and a Servex restart. The last `task.jsonl` log line says so, which is enough for a fresh agent to continue. Add the post-merge Check result to `task.jsonl`.
+5. [note] `requirements.md` (last line) still says the test has "14 checks"; it now has 16. The test's added `session-folders.json` filter (`item-read-no-write.test.mjs:15`) is explained in its comment. `core/Session/doc/identity.md:56` and `Servex/doc/item-tool.md:55` are current. If item 1 is done, identity.md should name `SessionFolders` instead of `named_day_folder`.
+
+## Requirements
+- 1 "A read must never create a folder; a bad id gets a reason, not a 500. Test that a read leaves the tree unchanged." — yes. 16 checks pass, including a non-uuid record found by its bare id with the tree unchanged, and `no-such-xyz` answering a reason.
+- 2 "AICost.ask … ask by the dated folder url (AISession.page_url)" — yes. This diff doesn't change it; it landed in 9c63f7004.
+- Check "opening …cloud-voice-app-20261106/ makes no POST that writes and no 500" — yes for the merged first part: the `task.jsonl` log line at 06:01 records 200s and an unchanged tree after the Servex restart. Not yet re-run for this follow-up (finding 4).
+- Class page for a new or changed class — n/a. No class was added; `named_day_folder` is a function.
+
+## Words
+- The code comment and the identity.md line say plainly why (the scan indexes uuids only) — yes.
+- The `task.jsonl` log line states what was checked, what failed and what follows — yes.

@@ -10,3 +10,5 @@
 {"file":"shots/page.jsonl"}
 {"file":"doc/"}
 {"file":"shots/"}
+{"file":"mechanisms/page.js","nav":{"title":"A blog post, 5 segments deep","icon":"list","description":"Every navigation mechanism the site uses, shot at three widths - rails, crumbs, tabs, preview walls, the columns row, prev/next strips - and three click-trails into the four-plus-level deep end."}}
+{"file":"numbers/page.js","nav":{"title":"Numbers","icon":"straighten","description":"The measured before/after: how far an already-open column moves when another one opens, on four real pages at four widths."}}

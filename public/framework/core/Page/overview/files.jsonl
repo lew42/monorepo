@@ -32,3 +32,33 @@
 {"file":"weight.jsonl"}
 {"file":"weight.jsonl"}
 {"file":"tasks/"}
+{"file":"catalog/page.js","nav":{"title":"Parts"}}
+{"file":"children/page.js","nav":{"title":"Web","icon":"palette"}}
+{"file":"columns/page.js","nav":{"title":"Finder","icon":"description"}}
+{"file":"crumbs/page.js","nav":{"title":"Docs","description":"The trail to here, derived from chain() — never typed."}}
+{"file":"dashboard/page.js","nav":{"title":"Admin"}}
+{"file":"docs/page.js","nav":{"title":"Docs","icon":"article"}}
+{"file":"flush/page.js","nav":{"title":"Tiles","description":"A grid with 0 gap and 0 padding — cells meet, wall reaches the edge."}}
+{"file":"folders/page.js","nav":{"title":"Years"}}
+{"file":"full/page.js","nav":{"title":"Full","description":"The five regions a page could take over, and what each one costs."}}
+{"file":"grid/page.js","nav":{"title":"Swatches","description":"The wall at a smaller --column — density is a token."}}
+{"file":"inset/page.js","nav":{"title":"Inset","description":"--page-pad, --gutter-x, --pad-y: which one wins, and what it costs."}}
+{"file":"labels/page.js","nav":{"title":"Guide","icon":"code"}}
+{"file":"landing/page.js","nav":{"title":"Nimbus"}}
+{"file":"list/page.js","nav":{"title":"Index","description":"One link per child, in declaration order."}}
+{"file":"measure/page.js","nav":{"title":"Measure","description":"The one token that caps the main track — and where it is really declared."}}
+{"file":"mounts/page.js","nav":{"title":"Child","description":"Where a child mounts — Page.container() asks a region, then the nearest $pages, then app.$pages."}}
+{"file":"page/page.js","nav":{"title":"Hello"}}
+{"file":"prose/page.js","nav":{"title":"Note","description":"The leaf: no children, so the content is the page."}}
+{"file":"rail/page.js","nav":{"title":"Parts","description":"Nav that stays beside the page it opens."}}
+{"file":"region/page.js","nav":{"description":"What a region actually hands the page inside it — measured, not claimed."}}
+{"file":"render/page.js","nav":{"title":"Correct","description":"render() owes three things: set this.view, carry .page, never nest a second one."}}
+{"file":"replace/page.js","nav":{"title":"Child","description":"A sibling REPLACES its parent on screen; a page with its own $pages KEEPS it."}}
+{"file":"route/page.js","nav":{"title":"Wiki"}}
+{"file":"shell/page.js","nav":{"title":"Shell","description":"main / wide / bleed — the three tracks every page already has, lit."}}
+{"file":"site/page.js","nav":{"title":"Acme","icon":"language"}}
+{"file":"strip/page.js","nav":{"title":"Feed"}}
+{"file":"tabs/page.js","nav":{"title":"Guide","description":"One strip of links over a panel — children flip between."}}
+{"file":"vtabs/page.js","nav":{"title":"API","description":"The tab bar stood on its end — the inner left tabs."}}
+{"file":"wall/page.js","nav":{"title":"Shelf"}}
+{"file":"width/page.js","nav":{"title":"Width","description":"small, default, large, full — a page's own word for its column track."}}
