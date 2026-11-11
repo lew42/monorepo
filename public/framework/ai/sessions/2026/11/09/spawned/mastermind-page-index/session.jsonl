@@ -1152,3 +1152,5 @@
 {"pid_exit":53920,"ended":"2026-11-10T21:06:30-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid_exit":41504,"ended":"2026-11-10T21:06:30-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"commit":{"hash":"014b66d766482e92049c97d710e8c1c45b06e151","what":"core/Task: improvement note, resume from waiting leaves the state waiting","files":["public/framework/core/Task/improvements.jsonl"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-11T03:06:36.874Z"}
+{"log":{"at":"2026-11-10T21:10:56-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-11T03:10:56.260Z"}
+{"pid_exit":55524,"ended":"2026-11-10T21:10:56-06:00","code":0,"signal":null,"by":"servex"}
