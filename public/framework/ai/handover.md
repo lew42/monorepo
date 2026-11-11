@@ -27,30 +27,29 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-10 00:09 UTC, last 24 h)
+## NOW (computed 2026-11-11 00:08 UTC, last 24 h)
 
-**Pace:** Week: 34% used · 70% gone · 49% of pace (room to spend, 2 days 2 hours left)
+**Pace:** Week: 50% used · 84% gone · 60% of pace (room to spend, 1 day 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
 **Landed (2):**
-- [You are the file-system audit mastermind (owner's ask, 2026-11-09; handed by voice-app, reply with send_to_age](/framework/ai/sessions/2026/11/09/spawned/mastermind-fs-audit/) (mastermind-fs-audit)
-- [You're working for Michael's voice assistant (a phone voice call). I relay his questions; you do all the diggi](/framework/ai/sessions/2026/11/09/spawned/mastermind-session-recall/) (mastermind-session-recall)
+- [page_read matches the item tool (friction #3)](/framework/ai/sessions/2026/11/10/spawned/mastermind-friction-3/) (mastermind-friction-3)
+- [One small job for voice-app (reply with send_to_agent to voice-app, two lines). Budget $2, enforced. Land item](/framework/ai/sessions/2026/11/10/spawned/mastermind-merge-7/) (mastermind-merge-7)
 
-**Open, touched in the window (2):**
-- [You are a fresh-eyes reviewer (owner's ask, 2026-11-09, handed by voice-app; reply with send_to_agent to voice](/framework/ai/sessions/2026/11/09/spawned/mastermind-friction/) (mastermind-friction)
-- [You are the page-index mastermind (owner's ask, 2026-11-09, handed by voice-app; reply with send_to_agent to v](/framework/ai/sessions/2026/11/09/spawned/mastermind-page-index/) (mastermind-page-index)
+**Open, touched in the window (1):**
+- [You are my hands in Figma while I talk with the owner on a voice call. Keep your replies short and report what](/framework/ai/sessions/2026/11/10/spawned/mastermind-figma-live/) (mastermind-figma-live)
 
 **Latest commits on this branch:**
 ```
-237af0411 page-design: plugins plan at /live/plan/plugins/ (page = tree of plugins, templates, instant ops), past-work findings, review brief
-064e6e5c7 session-truth: brief for one-refiner steps 4+5 (refiner after every channel's Ask.write, live coverage view); /live/done/ cards
-f08e97fec agents.md: an owner idea is a problem to solve; plan, fresh review, then MVP + demo without waiting (the owner, 2026-11-09)
-0eaf8cab9 session-truth: records for the calibration page rework and refiner step 3 (task logs, reviews, answers, /live/done/ card)
-1b3bd4eb1 page-design: past-work brief for page templates and instant page ops
-8eeb5e7b6 live: /live/ cleared to 4 cards (this session, what got done, now, older cards); old cards saved as /live/nov-6-9/
-e52512430 agents.md: context first, detail on demand; git-revertible means decide (the owner, 2026-11-09)
-babe50908 Merge refiner-step3: Prompt.uncovered: map PromptRecords' 0-based numeric cites to sentence ids, as Session.coverage does
+bff62da55 Figma readme: Icon set migrated to Icon Set 185:10067, old set deleted, migration recipe
+d74e6aa21 Figma readme: Pills page, docs page as walkthrough lessons, Icon frame removed, X / X Set naming
+b58503467 ui-kit run: trailing session line
+6a3bd2003 ui-kit run: close the run task (all six steps merged)
+98217294f Merge qf-3: page_read replays a page as its own class (LivePage), so it matches the item tool (friction #3)
+5f4d00c7b page_read replays a page as its own class (LivePage), so it matches the item tool (friction #3)
+cdfae3dae servex: log sweep (9 files)
+d3f12471b Figma docs: components/sets/variants/properties page (k-r), Pill Set finish, set look, Size mode verdict
 ```
 
 The dated sections below are written by hand and go stale; this block does not.

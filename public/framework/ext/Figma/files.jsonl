@@ -62,3 +62,7 @@
 {"file":"guide/page.js","nav":{"title":"Figma guide","icon":"draw","description":"How Claude draws in Figma with use_figma, coded from the 3440-wide design it drew."}}
 {"file":"palette/page.js","nav":{"title":"White","icon":"palette"}}
 {"file":"tokens/page.js","nav":{"title":"Figma tokens","icon":"tune","description":"The Figma file's variables as opt-in --fig-* CSS: the same schemes, modes and spacing, coded."}}
+{"file":"chips1.png"}
+{"file":"chips1.png","gone":true}
+{"file":"pills.png"}
+{"file":"pills.png","gone":true}
