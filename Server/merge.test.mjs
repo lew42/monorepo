@@ -124,7 +124,7 @@ function scratchTests(branch, { baseX, baseTest, branchX, branchTest }){
 const mergeT = (wt, main, env = {}) => spawnSync("node", [MERGE, wt, "--main", main, "--skip-smoke", "--no-review", "scratch-repo test"], { encoding: "utf8", windowsHide: true, env: { ...process.env, TESTRUNNER_TIMEOUT: "3000", ...env } });
 const GOOD = "export const x = 1;\n", BAD = "export const x = 2;\n";
 const CHECKS_ONE = "import { x } from './x.mjs'; if (x !== 1) { console.log('not ok - x is ' + x); process.exit(1); }\n";
-const rows = main => { try { return fs.readFileSync(path.join(main, "public/framework/core/Test/results.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l)); } catch { return []; } };
+const rows = main => { const d = path.join(main, "public/framework/core/Test/results"); try { return fs.readdirSync(d).filter(n => n.endsWith(".jsonl")).flatMap(n => fs.readFileSync(path.join(d, n), "utf8").trim().split("\n").filter(Boolean).map(l => JSON.parse(l))); } catch { return []; } };
 
 test("tests: passes on the base, fails on the branch -> refused, nothing lands; the base result is cached by sha", () => {
 	const { main, wt } = scratchTests("worktree/t1", { baseX: GOOD, baseTest: CHECKS_ONE, branchX: BAD });

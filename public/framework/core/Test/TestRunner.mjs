@@ -11,8 +11,32 @@ const SKIP = new Set(["node_modules", ".git", "worktrees", ".merge-base"]);
 const IMPORT_RE = /(?:\bfrom\s*|\bimport\s*\(\s*|^\s*import\s+)["']([^"']+)["']/gm;
 
 export default class TestRunner {
+	static DIR = HERE;
+	static KEEP_DAYS = 7;
+
+	/* Daily result files: results/YYYY-MM-DD.jsonl, so no single file grows without bound. */
+	static day_file(dir = HERE, at = new Date()){ return path.join(dir, "results", at.toISOString().slice(0, 10) + ".jsonl"); }
+
+	/* The daily files of the last KEEP_DAYS days that exist, oldest first. Readers (page, merge gate, worktree watch) read these. */
+	static recent_files(dir = HERE, days = TestRunner.KEEP_DAYS){
+		let names = []; try { names = fs.readdirSync(path.join(dir, "results")); } catch {}
+		const cut = new Date(Date.now() - days * 864e5).toISOString().slice(0, 10);
+		return names.filter(n => /^\d{4}-\d{2}-\d{2}\.jsonl$/.test(n) && n.slice(0, 10) > cut).sort().map(n => path.join(dir, "results", n));
+	}
+
+	/* Daily files older than KEEP_DAYS move aside to results/archive/ (never deleted). */
+	static rotate(dir = HERE, days = TestRunner.KEEP_DAYS){
+		const keep = new Set(TestRunner.recent_files(dir, days).map(f => path.basename(f)));
+		let names = []; try { names = fs.readdirSync(path.join(dir, "results")); } catch { return; }
+		const old = names.filter(n => /^\d{4}-\d{2}-\d{2}\.jsonl$/.test(n) && !keep.has(n));
+		if (!old.length) return;
+		fs.mkdirSync(path.join(dir, "results", "archive"), { recursive: true });
+		for (const n of old) try { fs.renameSync(path.join(dir, "results", n), path.join(dir, "results", "archive", n)); } catch {}
+	}
+
 	root = ROOT;
-	results = process.env.TESTRUNNER_RESULTS || path.join(HERE, "results.jsonl");   // the env var is for proofs
+	results = process.env.TESTRUNNER_RESULTS || null;   // a fixed file (the env var is for proofs); null = today's daily file
+	results_file(){ return this.results || TestRunner.day_file(); }
 	timeout = Number(process.env.TESTRUNNER_TIMEOUT) || 60000;   // 60 s; the env var is for proofs
 	parallel = 4;
 	limits = (() => { try { return JSON.parse(fs.readFileSync(path.join(HERE, "timeouts.json"), "utf8")); } catch { return {}; } })();   // per-file limits, see timeouts.json
@@ -149,7 +173,7 @@ export default class TestRunner {
 				const line = { file, ok, ms: Date.now() - t0, at: new Date().toISOString(), trigger, ...extra };
 				if (!ok) line.tail = (timedOut ? "TIMED OUT after " + timeout + "ms\n" : "") + out.trim().split(/\r?\n/).slice(-15).join("\n");
 				if (timedOut) line.timeout = true;
-				fs.appendFileSync(this.results, JSON.stringify(line) + "\n");
+				const out_file = this.results_file(); fs.mkdirSync(path.dirname(out_file), { recursive: true }); if (!this.results && !fs.existsSync(out_file)) TestRunner.rotate(); fs.appendFileSync(out_file, JSON.stringify(line) + "\n");
 				console.log(`${ok ? "PASS" : timedOut ? "TIME" : "FAIL"} ${file} (${line.ms} ms)`);
 				resolve(line);
 			});

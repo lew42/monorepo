@@ -11,10 +11,10 @@ const git = (cwd, ...a) => spawnSync("git", a, { cwd, encoding: "utf8", windowsH
 export default class MergeTests {
 	static SCRIPT = /\.m?js$/;
 
-	/** dir: the branch's worktree. main: the repo whose results.jsonl and .git it uses. base_ref/branch: git refs.
+	/** dir: the branch's worktree. main: the repo whose results/ and .git it uses. base_ref/branch: git refs.
 	 *  changed: repo-relative paths the branch changes (existing ones only). Returns { refused, notes, ran, shas }. */
 	static async gate({ dir, main, base_ref, branch, changed, log = console.log }){
-		const results = path.join(main, "public/framework/core/Test/results.jsonl");
+		const test_dir = path.join(main, "public/framework/core/Test"), results = TestRunner.day_file(test_dir);
 		const mk = root => { const r = new TestRunner(); r.root = root; r.results = results; return r; };
 		fs.mkdirSync(path.dirname(results), { recursive: true });
 		const out = { refused: [], notes: [], ran: 0 };
@@ -33,7 +33,7 @@ export default class MergeTests {
 		const sha = git(main, "merge-base", base_ref, branch).stdout.trim();
 		if (!sha) { out.notes.push("tests: no merge base found; failing tests are not compared"); return out; }
 		out.sha = sha;
-		const cached = MergeTests.cached(results, sha);
+		const cached = MergeTests.cached(TestRunner.recent_files(test_dir), sha);
 		const need = failed.map(r => r.file).filter(f => !cached.has(f));
 		if (need.length) {
 			const base_dir = MergeTests.checkout(main, sha);
@@ -59,9 +59,9 @@ export default class MergeTests {
 	}
 
 	/** file -> ok for the base results already recorded for this sha (timeouts are never recorded as results). */
-	static cached(results, sha){
+	static cached(files, sha){
 		const map = new Map();
-		let text = ""; try { text = fs.readFileSync(results, "utf8"); } catch {}
+		let text = ""; for (const f of [].concat(files)) try { text += fs.readFileSync(f, "utf8") + "\n"; } catch {}
 		for (const l of text.split(/\r?\n/)) {
 			if (!l.includes(sha)) continue;
 			try { const e = JSON.parse(l); if (e.sha === sha && e.trigger === "merge-base" && !e.timeout) map.set(e.file, e.ok); } catch {}
