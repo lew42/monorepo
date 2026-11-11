@@ -38,3 +38,4 @@
 {"file":"practice/page.js","nav":{"title":"Practice","icon":"design_services","description":"Three big layouts that span 3440 and hold at 400 — a workbench, a reader and a catalog, each with every decision one click down."}}
 {"file":"shell/page.js","nav":{"title":"Shell","icon":"view_sidebar","description":"A sidebar that never moves, resizable to any width, and a viewport beside it holding a tree of homepage designs derived one change at a time."}}
 {"file":"tag/page.js","nav":{"title":"Tags","icon":"sell","description":"Click a tag, get every layout that carries it."}}
+{"file":"screenshots/","gone":true}

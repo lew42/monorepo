@@ -56,3 +56,4 @@
 {"file":"failures.jsonl"}
 {"file":"rail/page.js","nav":{"title":"Mobile bottom rail","icon":"smartphone","description":"Below 52em: an ✦ AI button that opens a listening sheet — a real voice session on a plain page, the card's own thread on a card page — and an ⋯ More that reaches the drawer's tabs."}}
 {"file":"walkthrough/page.js","nav":{"title":"The ☰","icon":"slideshow","description":"Fourteen real screenshots: the ☰, the AI tab, Sessions, a reload that keeps its tab, selecting content, \"Ask about this\", the rest of the tabs and the page's inbox on desktop — then on a phone, the ☰ navigation, the bottom rail, the ✦ AI sheet, and what happens when the mic can't start."}}
+{"file":"failures.jsonl","gone":true}

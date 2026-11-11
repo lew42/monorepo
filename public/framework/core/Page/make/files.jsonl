@@ -3,3 +3,4 @@
 {"file":"weight.jsonl"}
 {"file":"failures.jsonl"}
 {"file":"readme-page/page.js","nav":{"title":"A readme as the page","icon":"description","description":"The whole page is its own readme.md, plus one JS-built block under it."}}
+{"file":"failures.jsonl","gone":true}

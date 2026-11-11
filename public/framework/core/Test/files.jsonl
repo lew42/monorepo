@@ -60,3 +60,6 @@
 {"file":"view/page.js","nav":{"title":"Watch a test run","icon":"play_circle","description":"A class's core test, step by step: every object it makes drawn live, every line it saves beside it. The same steps run in node."}}
 {"file":"results/"}
 {"file":"results.jsonl","gone":true}
+{"file":"save-results.jsonl","gone":true}
+{"file":"failures.jsonl","gone":true}
+{"file":"results/","gone":true}

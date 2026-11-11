@@ -157,3 +157,6 @@
 {"file":"Template/page.js","nav":{"title":"Template","icon":"dashboard_customize","description":"A page that renders many times. One BigCard, three clones, one live value."}}
 {"file":"tool/page.jsonl","nav":{"title":"Page tool","icon":"edit_note","description":"Agents change this page live: a path and a delta, one line appended to its page.jsonl."}}
 {"file":"weight/page.js","nav":{"title":"Weight","icon":"dashboard","description":"Each page's weight: 1 by default, raised by the pages that reference it, plus a manual adjustment. Heaviest sorts first."}}
+{"file":"screenshots/","gone":true}
+{"file":"layout-check/","gone":true}
+{"file":"failures.jsonl","gone":true}

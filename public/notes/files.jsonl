@@ -168,3 +168,4 @@
 {"file":"we-think/page.js","nav":{"title":"We think","icon":"groups","description":"Where the mastermind skill came from — vote, write to the filesystem, don't pollute the prompt."}}
 {"file":"web-of-lies/page.js","nav":{"title":"Web of lies","icon":"forum","description":"Topics, questions, answers - claims or facts?"}}
 {"file":"what-is-openmike/page.js","nav":{"title":"What is OpenMike?","icon":"campaign","description":"Three drafts of one pitch, and 1,000 people to help launch."}}
+{"file":"inbox/","gone":true}

@@ -43,3 +43,4 @@
 {"file":"ref/page.js","nav":{"title":"One source of truth","icon":"link","description":"One item, two places: edit the title in List A and List B's Ref shows the change, no reload."}}
 {"file":"tabs/page.jsonl","nav":{"title":"Tabs"}}
 {"file":"tabs-page/page.jsonl","nav":{"title":"Tabs"}}
+{"file":"plugins/page.js","nav":{"title":"Plugins","icon":"extension","description":"A page is a tree of plugins. Flip a switch; the page changes now and after a reload."}}

@@ -258,3 +258,4 @@
 {"file":"tabs/page.jsonl","nav":{"title":"Tabs","description":"Every tab system, and one to unify them."}}
 {"file":"truth/page.js","nav":{"title":"Truth","icon":"fact_check","description":"How true the session and task record is, counted by code each day."}}
 {"file":"v1/page.js","nav":{"title":"Live v1","description":"The Live page as it was until 2026-11-06, kept."}}
+{"file":"failures.jsonl","gone":true}

@@ -77,3 +77,4 @@
 {"file":"Task/page.js","nav":{"title":"Task","icon":"checklist","description":"A DOM-free unit of work — id, title, a state machine, a computed duration and progress, a List of subtasks."}}
 {"file":"Test/page.js","nav":{"title":"Test","icon":"fact_check","description":"Is it passing? The latest run of every node test, failures first."}}
 {"file":"View/page.js","nav":{"title":"View","icon":"image","description":"A chainable wrapper over a DOM element, with capturing."}}
+{"file":"failures.jsonl","gone":true}
