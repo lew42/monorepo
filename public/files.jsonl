@@ -186,3 +186,5 @@
 {"file":"websites/page.js","nav":{"title":"Websites","icon":"public","description":"Real sites, shot at four widths and tagged by their layout."}}
 {"file":"data/","gone":true}
 {"file":"failures.jsonl","gone":true}
+{"file":"data/"}
+{"file":"failures.jsonl"}
