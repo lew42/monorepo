@@ -25,6 +25,7 @@ import fs from "node:fs";
 import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { ensure_modules } from "./ensure-modules.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const REGISTRY = path.join(ROOT, ".worktrees.json");
@@ -57,10 +58,7 @@ async function adopt(){
 	const at = process.argv.indexOf("--path"), dir = at > 0 ? path.resolve(process.argv[at + 1]) : path.resolve(ROOT, "..", "worktrees", name);
 	let branch = null;
 	try { branch = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd: dir, encoding: "utf8", windowsHide: true }).trim(); } catch { return null; }
-	if (!fs.existsSync(path.join(dir, "node_modules"))) {
-		console.log(`worktree-restart: ${dir} has no node_modules; running npm ci…`);
-		try { execFileSync(process.platform === "win32" ? "npm.cmd" : "npm", ["ci"], { cwd: dir, stdio: "inherit", shell: true, windowsHide: true }); } catch {}
-	}
+	ensure_modules(dir);
 	const port = await new Promise(r => { const s = net.createServer().listen(0, () => { const p = s.address().port; s.close(() => r(p)); }); });
 	const e = { name, path: dir, branch, port, log: path.join(ROOT, ".worktree-logs", `${name}.log`), created_at: new Date().toISOString(), booted: false, adopted: true };
 	write_registry(name, e);
@@ -78,6 +76,8 @@ if (!fs.existsSync(entry.path)) {
 	console.error(`worktree-restart: ${entry.path} does not exist on disk — this worktree is gone, not just its server. Nothing this script can fix.`);
 	process.exit(1);
 }
+
+ensure_modules(entry.path);
 
 // Stop a still-alive process on that port first — never leave two servers
 // bound to the same port. `taskkill` on an already-dead pid just says "not
