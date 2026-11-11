@@ -44,3 +44,4 @@
 {"file":"tabs/page.jsonl","nav":{"title":"Tabs"}}
 {"file":"tabs-page/page.jsonl","nav":{"title":"Tabs"}}
 {"file":"plugins/page.js","nav":{"title":"Plugins","icon":"extension","description":"A page is a tree of plugins. Flip a switch; the page changes now and after a reload."}}
+{"content":{"add":{"id":"plugins-a-page-is-a-tree-of-plugins-togg","type":"part-link","path":"./plugins/","title":"Plugins: a page is a tree of switchable parts","by":"mastermind-plugins-demo-fix","ts":"2026-11-11T02:06:45.130Z"}},"by":"mastermind-plugins-demo-fix","ts":"2026-11-11T02:06:45.193Z"}

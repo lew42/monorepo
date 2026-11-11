@@ -1630,3 +1630,17 @@
 {"file":"failures.jsonl","gone":true}
 {"file":"page-work.json"}
 {"file":"tasks.json"}
+{"file":"failures.jsonl"}
+{"file":"index.json"}
+{"file":"index.jsonl"}
+{"file":"index.jsonl.lock"}
+{"file":"openrouter-usage.json"}
+{"file":"recordings/"}
+{"file":"screenshots/"}
+{"file":"servex-queue.json"}
+{"file":"state.json"}
+{"file":"usage.json"}
+{"file":"v-h999x0j.summary.json"}
+{"file":"v-omwdzl5.summary.json"}
+{"file":"v-rs7u4o7.summary.json"}
+{"file":"v-s9g6vd1.summary.json"}
