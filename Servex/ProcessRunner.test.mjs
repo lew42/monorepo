@@ -57,7 +57,7 @@ try {
 	let L = read(FILE);
 	ok(L[0].class === "Process" && L[0].process === "build" && L.filter(l => l.tasks?.add).length === 8, "line 1 is a Process, eight step lines");
 	ok(L.some(l => l.start) && L.some(l => l.investigate?.start) && L.some(l => l.spawn?.step === "investigate" && l.spawn.agent === "a1"), "node started it and spawned the investigate session");
-	ok(spawned[0].model === "claude-haiku-5-5" && spawned[0].task.dir.endsWith("fix-x/investigate") && spawned[0].prompt.includes(`"investigate": {"complete"`), "the spawn carries the step's model, a folder inside the process, and the completing line");
+	ok(spawned[0].model === "claude-haiku-5-5" && spawned[0].task.dir.endsWith("fix-x/investigate") && spawned[0].prompt.includes(`call: "investigate.complete"`), "the spawn carries the step's model, a folder inside the process, and the completing line");
 
 	const step = async (delta, caller) => { await item(delta, caller, PURL); await settle(FILE); };
 	await step({ investigate: { complete: { outcome: "found the cause in X.js", evidence: ["test"] } } }, "a1");
