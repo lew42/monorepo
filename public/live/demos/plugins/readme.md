@@ -9,12 +9,12 @@
 - `Badge.js` — a plugin that is **also** pluggable (`Badge.use(Count)`, a plugin of a plugin). `Badge.attach(inst)` draws the badge element, then makes a real `new Badge({el})` to hold it, so Badge's own plugins attach the normal way.
 - `Count.js` — Badge's own plugin: writes a number onto the badge.
 - `page.js` — the page: the box, the tree panel (one row per `demo.plugins`, nested rows from `row.plugins`), a Reset button, and the "what you just did" code block.
-- `page.jsonl` — **not** a routing file (this page is a `page.js` page): one plain data file, the single source of truth for the saved switch. One line, `{"overrides": {...}}`, the plain object `demo.overrides` gives.
+- `page.jsonl` — **not** a routing file (this page is a `page.js` page): one plain data file, the single source of truth for the saved switch. One line, `{"overrides": {...}, "sub": {...}}`: `demo.overrides` plus Badge's own plugin state.
 - `DemoPage.test.mjs` — the core test (`node public/live/demos/plugins/DemoPage.test.mjs`).
 
 ## How the switch is saved
 
-A checkbox calls `row.set({enabled})`, which flips the plugin on the live box; then the page calls `RecordWriter.post(FILE_URL, {lines: [{overrides: demo.overrides}]})` (`core/Item/RecordWriter.js`) to append one line to this page's own `page.jsonl`. On load, `page.js` reads that file (`JSONL`, `ext/JSONL/JSONL.js`) for the last `overrides` line and passes it to `new DemoPage({overrides})` before the first draw. The same file is kept live (`jsonl.live(...)`): a line the item tool writes there reaches every open tab too, so it redraws with no reload.
+A checkbox calls `row.set({enabled})`, which flips the plugin on the live box; then the page calls `RecordWriter.post(FILE_URL, {lines: [{overrides: demo.overrides, sub}]})` (`core/Item/RecordWriter.js`) to append one line to this page's own `page.jsonl` (in a worktree RecordWriter answers "stubbed", so the line goes through `Outbox.shared().send` instead). On load, `page.js` reads that file (`JSONL`, `ext/JSONL/JSONL.js`) for the last `overrides` line and passes it to `new DemoPage({overrides})` before the first draw. The same file is kept live (`jsonl.live(...)`): a line the item tool writes there reaches every open tab too, so it redraws with no reload.
 
 ## Watch out
 
