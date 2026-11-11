@@ -5,3 +5,4 @@
 {"file":"playwright/page.js"}
 {"file":"drone-scans/page.js"}
 {"file":"lines-to-3d/page.js"}
+{"file":"aggregator-content/page.js"}

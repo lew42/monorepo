@@ -142,6 +142,14 @@ export const posts = [
 
 	{
 		section: "ai",
+		name: "aggregator-content",
+		title: "Aggregator content: commentary on other creators' clips, plus a lightweight video index",
+		date: "2026-11-10",
+		description: "Niche round-up videos that are mostly original research and commentary, with short credited clips from other creators, and a metadata index that lets you find the right scene without hosting anyone's video.",
+	},
+
+	{
+		section: "ai",
 		name: "drone-scans",
 		title: "Idea: a fleet of drones that scans a home in minutes",
 		date: "2026-10-01",
