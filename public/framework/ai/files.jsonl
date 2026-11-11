@@ -1628,3 +1628,5 @@
 {"file":"index.json","gone":true}
 {"file":"index.jsonl","gone":true}
 {"file":"failures.jsonl","gone":true}
+{"file":"page-work.json"}
+{"file":"tasks.json"}
