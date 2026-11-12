@@ -98,6 +98,12 @@ Page `Pills` (210:14169, right after Icons): masters at the root at x -420 (Pill
 - **A parent's own TEXT property is dead unless a text node references it.** After the Icon migration Button had a leftover `Icon#117:1` that drove nothing: expose the nested Icon instead (`isExposedInstance`), as on Button and Pill. Sweep after any icon swap for toolbars, bottom navs and menus whose icons are all identical (the glyph recorded was lost): restore with `icon.setProperties({'Icon#211:0': name})`.
 - **Figma MCP limits:** about 10 screenshots a minute and 200 a day for the whole account, shared by every agent; `use_figma` did not seem to count. One screenshot per finished fix, shoot a whole preview, wait a minute on a limit error.
 
+## The Labels page and the design tree (mine, 2026-11-12)
+
+- **Labels** (Lew42 file, page `442:11253`; [page](https://www.figma.com/design/hbolzQ3Xnc78rhxAPj8xK2?node-id=443-12002)): masters at the canvas root, colours in the variable collection `Label`. `Class label` 442:11254 (text property `Class`), `Mode label` 442:11256 (`Name`, `Value`, boolean `Swatch`; set the Swatch node's fill for a colour), `Label note` 442:11261 ("labels are static"). Labels never follow a mode switch.
+- **Placement, tested:** a wrapper with a label row above the thing (10px gap) is the safe default, it takes 32px in the flow. An absolute label 10px above takes no space and overlaps the neighbour above at a 16px gap, and the parent must have Clip content off (auto-layout frames clip by default) or the label vanishes. An absolute label inside the corner needs 44px top padding. The page also shows three ways to list settings (table, card grid, label strip).
+- **Design tree** (Claude November file, page `Design space tree` 20:366): one plain card, three directions (Soft, Bold, Quiet), three one-change variations each, 1 → 3 → 9, with a pill under each card saying what changed. Connectors are 2px rectangles placed after layout from measured card centres, so redraw them if a card's height changes.
+
 ## The Flow page (mine, 2026-11-11)
 
 Page `Flow` (382:26220): a flowchart that lays itself out. Masters at x -954: Step set `382:26291`, Flow set `382:26329`, Branch set `397:12341`. `Page · Flow` (385:11721) shows a path from a bare surface to the hero left to right (A), top to bottom (B), a square fork (C), a rounded 3-path fork (D) and the duplicate test (E, `399:12332`).
