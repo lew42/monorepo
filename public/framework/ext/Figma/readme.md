@@ -61,7 +61,7 @@ Each is a `Page · 1920` at (0,0) with its masters at the canvas root to its lef
 - **Apps · Tasks, Apps · Chat, Apps · Editor:** flows of 400×860 screens; `Prototype ·` top-level frames sit to the right, wired with `setReactionsAsync` and a flow start.
 - **`Page · Card builder`** (on Cards) was rebuilt: 6 starting cards, a masonry drop zone, 12 edge-to-edge rows and 12 padded pieces, all in 400-wide grid columns.
 
-**Image cards run edge to edge** (owner, 2026-11-12): a photo never sits inside the padded Card slot. In `.1600 · Photo cards` and `.1600 · Masonry three` (page 1600 Sections) the image card's Content slot has 0 padding and the text and button sit in a padded `Body` frame; the pre-change masters are on the Cut list (`BACKUP 2026-11-12 …`).
+**Image cards run edge to edge** (owner, 2026-11-12): a photo never sits inside the padded Card slot. In `.1600 · Photo cards` and `.1600 · Masonry three` (page 1600 Sections) the image card's Content slot has 0 padding and the text and button sit in a padded `Body` frame; the pre-change masters are on the Cut list (`BACKUP 2026-11-12 …`). **Image radius** (2026-11-12): Image `56:944` binds its corners to variable `Image/radius` (collection `Image`, modes Rounded = the site radius, Flush = 0); Card `8:5` and Panel `153:1779` set mode Flush, so an image inside either has no radius and the card's own radius clips it, while a standalone Image stays rounded. Backup: `BACKUP 2026-11-12 Image` on the Cut list.
 
 Build lessons from these pages are in [use-figma.md, Traps](./doc/use-figma.md#traps) (card system build lessons).
 
