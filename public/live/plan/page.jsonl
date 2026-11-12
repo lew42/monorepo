@@ -93,3 +93,6 @@
 {"file":"questions/page.jsonl","nav":{"title":"Open questions, in full","icon":"❓","description":"The five open design questions, each with its options, pros and cons."}}
 {"file":"today/page.jsonl","nav":{"title":"How it works today","icon":"🔧","description":"The page system as it stands: the classes, where data lives, urls, the item tool, what to keep and what to simplify."}}
 {"file":"ui-kit/page.jsonl","nav":{"title":"Plan: one UI kit","icon":"🧱","description":"A small set of parts every page and card is built from, browsed as a tree in the library, checked at merge without screenshots."}}
+{"file":"terms/page.jsonl"}
+{"content":{"add":{"type":"part-link","id":"link-terms","path":"./terms/","title":"Terms: row, item, list, tree, bar"}},"by":"pages.add","ts":"2026-11-11T21:43:31.913Z"}
+{"file":"terms/page.jsonl","nav":{"title":"Terms: row, item, list, tree, bar","icon":"📖","description":"One word per layout, with a definition and a tiny example, so bars, lists and tree rows stop overlapping."}}

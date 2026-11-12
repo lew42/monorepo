@@ -20,3 +20,4 @@
 {"file":"static/page.js","nav":{"title":"The static contract"}}
 {"file":"ugly/page.js","nav":{"title":"Ugly urls"}}
 {"file":"failures.jsonl","gone":true}
+{"file":"failures.jsonl"}

@@ -63,3 +63,6 @@
 {"file":"save-results.jsonl","gone":true}
 {"file":"failures.jsonl","gone":true}
 {"file":"results/","gone":true}
+{"file":"failures.jsonl"}
+{"file":"results/"}
+{"file":"save-results.jsonl"}

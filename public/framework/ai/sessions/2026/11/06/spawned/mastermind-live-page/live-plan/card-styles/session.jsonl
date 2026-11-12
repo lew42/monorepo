@@ -170,3 +170,11 @@
 {"pid_exit":7392,"ended":"2026-11-09T18:26:01-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid_exit":12460,"ended":"2026-11-09T18:26:12-06:00","code":null,"signal":"SIGKILL","by":"servex"}
 {"assign":{"closed_by":"mastermind-live-page","closed_at":"2026-11-09T18:27:43-06:00","closed_why":"Superseded by the ui kit (the owner via voice-app, 2026-11-09); draft kept on branch draft/card-styles (e1d7bebd3) and handed to mastermind-ui-kit."}}
+{"pid_exit":57264,"ended":"2026-11-11T21:30:13.169Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}
+{"pid_exit":21284,"ended":"2026-11-11T21:30:13.169Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}
+{"pid_exit":8480,"ended":"2026-11-11T21:30:13.169Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}
+{"pid_exit":51380,"ended":"2026-11-11T21:30:13.169Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}
+{"pid_exit":14644,"ended":"2026-11-11T21:30:13.169Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}
+{"pid_exit":37400,"ended":"2026-11-11T21:30:13.169Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}
+{"pid_exit":34308,"ended":"2026-11-11T21:30:13.169Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}
+{"pid_exit":18136,"ended":"2026-11-11T21:30:13.169Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}

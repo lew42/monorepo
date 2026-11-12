@@ -75,3 +75,4 @@
 {"file":"v2/page.js","nav":{"title":"Chat v2","icon":"forum","description":"A session's chat, read only: its prompts at the root, the assistant's replies, questions and tasks nested under each."}}
 {"file":"v3/page.js","nav":{"title":"Chat v3","icon":"forum","description":"A session's chat drawn from session.messages: prompts in list order, the replies that answer them (found by re.to) and the tasks/questions beside them."}}
 {"file":"failures.jsonl","gone":true}
+{"file":"failures.jsonl"}

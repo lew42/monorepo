@@ -78,3 +78,4 @@
 {"file":"Test/page.js","nav":{"title":"Test","icon":"fact_check","description":"Is it passing? The latest run of every node test, failures first."}}
 {"file":"View/page.js","nav":{"title":"View","icon":"image","description":"A chainable wrapper over a DOM element, with capturing."}}
 {"file":"failures.jsonl","gone":true}
+{"file":"failures.jsonl"}

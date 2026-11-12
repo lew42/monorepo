@@ -163,3 +163,5 @@ Page `Page builder` (62:933) has exactly two top-level frames, both auto layout 
 ## Notes from your asks
 
 - Rules, preferences and ideas you said about this module: [doc/notes-from-asks.md](doc/notes-from-asks.md)
+
+**Native connectors (FigJam arrows pasted into a design file), learned 2026-11-11:** a script can't create one or move its midpoint or label (`createConnector`, `connectorControlPoints`, `connectorTextPosition` are refused). Clone a connector whose route already looks right, then set `connectorStart` / `connectorEnd`. The clone keeps its midpoint at the same distance from the source box's left edge, so charts whose source boxes share a width (416 on the Flow page) route cleanly. To force a re-route, point `connectorEnd` at another node and back; re-setting the same endpoint does nothing. Labels sit at the path's middle (the shared trunk on a branch), so keep them to short words like yes / no.

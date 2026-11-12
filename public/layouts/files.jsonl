@@ -39,3 +39,4 @@
 {"file":"shell/page.js","nav":{"title":"Shell","icon":"view_sidebar","description":"A sidebar that never moves, resizable to any width, and a viewport beside it holding a tree of homepage designs derived one change at a time."}}
 {"file":"tag/page.js","nav":{"title":"Tags","icon":"sell","description":"Click a tag, get every layout that carries it."}}
 {"file":"screenshots/","gone":true}
+{"file":"screenshots/"}

@@ -47,3 +47,4 @@
 {"file":"SessionFolders.test.mjs"}
 {"file":"Chat/","nav":{"title":"core/Session/Chat","description":"a session's chat as one real list"}}
 {"file":"failures.jsonl","gone":true}
+{"file":"failures.jsonl"}

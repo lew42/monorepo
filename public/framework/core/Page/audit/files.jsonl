@@ -12,3 +12,4 @@
 {"file":"priority/page.js","nav":{"title":"The main pages, and their layouts","icon":"leaderboard","description":"The site's most-linked pages, heaviest first, each with the layout it uses."}}
 {"file":"reuse/page.js","nav":{"title":"Why pages drift, and how reuse becomes the default","icon":"recycling","description":"A page drifts when nothing hands it an existing layout at the moment it is made. Four changes fix that."}}
 {"file":"failures.jsonl","gone":true}
+{"file":"failures.jsonl"}

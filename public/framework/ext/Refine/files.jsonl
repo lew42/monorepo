@@ -95,3 +95,5 @@
 {"file":"try/page.js","nav":{"title":"Try it","icon":"science","description":"Run the real clean() step against any model — local, cheap OpenRouter, or Haiku — and compare."}}
 {"file":"screenshots/","gone":true}
 {"file":"failures.jsonl","gone":true}
+{"file":"failures.jsonl"}
+{"file":"screenshots/"}

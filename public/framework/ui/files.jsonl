@@ -74,3 +74,4 @@
 {"file":"tree/page.js","nav":{"title":"Tree","icon":"▣","description":"Icon + text rows, indented once per nesting level — a sidebar for layers, navigation, anything with children."}}
 {"file":"words/page.js","nav":{"title":"Config words","icon":"style","description":"Two classes on a section — every component inside re-skins, and no component knows."}}
 {"file":"failures.jsonl","gone":true}
+{"file":"failures.jsonl"}

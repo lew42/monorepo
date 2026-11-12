@@ -93,3 +93,4 @@
 {"file":"VoiceChat/","nav":{"title":"VoiceChat"}}
 {"file":"workspace/page.js","nav":{"title":"Workspace","icon":"space_dashboard","description":"A dictation workspace where each sentence becomes an item you can see and move, while raw transcript stays beside it."}}
 {"file":"failures.jsonl","gone":true}
+{"file":"failures.jsonl"}
