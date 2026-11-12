@@ -27,29 +27,33 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-11 00:08 UTC, last 24 h)
+## NOW (computed 2026-11-12 00:00 UTC, last 24 h)
 
-**Pace:** Week: 50% used · 84% gone · 60% of pace (room to spend, 1 day 2 hours left)
+**Pace:** Week: 61% used · 98% gone · 62% of pace (room to spend, 2 hours 59 minutes left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (2):**
-- [page_read matches the item tool (friction #3)](/framework/ai/sessions/2026/11/10/spawned/mastermind-friction-3/) (mastermind-friction-3)
-- [One small job for voice-app (reply with send_to_agent to voice-app, two lines). Budget $2, enforced. Land item](/framework/ai/sessions/2026/11/10/spawned/mastermind-merge-7/) (mastermind-merge-7)
+**Landed (6):**
+- [Load the minion skill and figma-use. Figma file key hbolzQ3Xnc78rhxAPj8xK2 (Lew42 Design System), remote `figm](/framework/ai/sessions/2026/11/11/session-8662821b/minion-minion-prune-b/) (minion-minion-prune-b)
+- [Load the minion skill. Budget: $3. Job: prune published components in Figma file hbolzQ3Xnc78rhxAPj8xK2 (Lew42](/framework/ai/sessions/2026/11/11/session-8662821b/minion-minion-prune-d/) (minion-minion-prune-d)
+- [Load the minion skill. Budget: $3. Job: prune published components in Figma file hbolzQ3Xnc78rhxAPj8xK2 (Lew42](/framework/ai/sessions/2026/11/11/session-8662821b/minion-minion-prune-c/) (minion-minion-prune-c)
+- [Figma library prune, your pages only. File "Lew42 Design System", key hbolzQ3Xnc78rhxAPj8xK2 (remote `figma` M](/framework/ai/sessions/2026/11/11/session-8662821b/minion-prune-a/) (minion-prune-a)
+- [From voice-app, for the owner (Michael). Build a small flowchart system in the Figma file "Lew42 Design System](/framework/ai/sessions/2026/11/11/spawned/mastermind-figma-flow/) (mastermind-figma-flow)
+- [From voice-app, for the owner (Michael). Two jobs in the "Lew42 Design System" Figma file. Context: mastermind](/framework/ai/sessions/2026/11/11/spawned/mastermind-figma-bars/) (mastermind-figma-bars)
 
 **Open, touched in the window (1):**
-- [You are my hands in Figma while I talk with the owner on a voice call. Keep your replies short and report what](/framework/ai/sessions/2026/11/10/spawned/mastermind-figma-live/) (mastermind-figma-live)
+- [From voice-app. You are the owner's (Michael's) hands in the Figma file "Lew42 Design System": https://www.fig](/framework/ai/sessions/2026/11/11/spawned/mastermind-figma-jam/) (mastermind-figma-jam)
 
 **Latest commits on this branch:**
 ```
-bff62da55 Figma readme: Icon set migrated to Icon Set 185:10067, old set deleted, migration recipe
-d74e6aa21 Figma readme: Pills page, docs page as walkthrough lessons, Icon frame removed, X / X Set naming
-b58503467 ui-kit run: trailing session line
-6a3bd2003 ui-kit run: close the run task (all six steps merged)
-98217294f Merge qf-3: page_read replays a page as its own class (LivePage), so it matches the item tool (friction #3)
-5f4d00c7b page_read replays a page as its own class (LivePage), so it matches the item tool (friction #3)
-cdfae3dae servex: log sweep (9 files)
-d3f12471b Figma docs: components/sets/variants/properties page (k-r), Pill Set finish, set look, Size mode verdict
+2542c9db1 servex: log sweep (16 files)
+540593249 ext/Figma: Path set, radius/stroke variables, single Branch in the readme
+48ab35898 ext/Figma: Fork piece masters, Flow/stroke variable, fork test findings
+e4887e725 ext/Figma: Box, Arrow and flat Step on the Flow page, docs page rewritten
+49873cc0b ext/Figma: Flow page upgrade (vector arrows, Step with Arrow boolean, Branch set with tree forks)
+21c615fa7 servex: log sweep (29 files)
+775b284a9 ext/Figma: the Flow page (Step, Branch, Flow, Add) and what it showed missing
+b205753d9 servex: log sweep (4 files)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
