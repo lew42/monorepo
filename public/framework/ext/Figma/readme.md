@@ -104,6 +104,12 @@ Page `Pills` (210:14169, right after Icons): masters at the root at x -420 (Pill
 - **Placement, tested:** a wrapper with a label row above the thing (10px gap) is the safe default, it takes 32px in the flow. An absolute label 10px above takes no space and overlaps the neighbour above at a 16px gap, and the parent must have Clip content off (auto-layout frames clip by default) or the label vanishes. An absolute label inside the corner needs 44px top padding. The page also shows three ways to list settings (table, card grid, label strip).
 - **Design tree** (Claude November file, page `Design space tree` 20:366): one plain card, three directions (Soft, Bold, Quiet), three one-change variations each, 1 → 3 → 9, with a pill under each card saying what changed. Connectors are 2px rectangles placed after layout from measured card centres, so redraw them if a card's height changes.
 
+## Scheme contrast (owner feedback, 2026-11-12, UI Kit "One card, four schemes")
+
+- **Prime:** Scheme `accent` in Prime mode aliases the new Colors `ink` (#1A1612), so the kicker (2.03 to 5.82) and button (white on ink, 17.99) read. **Dark and Prime labels on the orange accent are white:** Theme `on-ui` in Prime mode is white (black .85 was 5.92, white is 3.09; the owner accepted the lower ratio), so the orange button on White and Light gray cards is white too.
+- **Still failing:** body text on Prime (3.88) and Dark (4.04), because its softness is paint opacity in the Card master, not a variable; the Dark orange kicker (2.03); the White and Light gray orange kickers (3.09, 2.76).
+- **Three-column rows use Scale SM** (owner set it by hand, "works better"; applied nowhere else yet).
+
 ## The Flow page (mine, 2026-11-11)
 
 Page `Flow` (382:26220): a flowchart that lays itself out. Masters at x -954: Step set `382:26291`, Flow set `382:26329`, Branch set `397:12341`. `Page · Flow` (385:11721) shows a path from a bare surface to the hero left to right (A), top to bottom (B), a square fork (C), a rounded 3-path fork (D) and the duplicate test (E, `399:12332`).
