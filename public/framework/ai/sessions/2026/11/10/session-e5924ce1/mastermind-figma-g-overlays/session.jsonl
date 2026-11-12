@@ -16,3 +16,4 @@
 {"log":{"at":"2026-11-11T16:35:25-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-11T17:20:35-06:00","heartbeat":"deliberate","msg":"mastermind-figma-g-overlays its agent is not running: it was stopped on purpose by mastermind-figma-live at 2026-11-11T02:21:31-06:00; not revived."}}
 {"log":{"at":"2026-11-11T17:40:14-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-11T18:40:17-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
