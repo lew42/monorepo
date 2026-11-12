@@ -61,6 +61,8 @@ Each is a `Page · 1920` at (0,0) with its masters at the canvas root to its lef
 - **Apps · Tasks, Apps · Chat, Apps · Editor:** flows of 400×860 screens; `Prototype ·` top-level frames sit to the right, wired with `setReactionsAsync` and a flow start.
 - **`Page · Card builder`** (on Cards) was rebuilt: 6 starting cards, a masonry drop zone, 12 edge-to-edge rows and 12 padded pieces, all in 400-wide grid columns.
 
+**Image cards run edge to edge** (owner, 2026-11-12): a photo never sits inside the padded Card slot. In `.1600 · Photo cards` and `.1600 · Masonry three` (page 1600 Sections) the image card's Content slot has 0 padding and the text and button sit in a padded `Body` frame; the pre-change masters are on the Cut list (`BACKUP 2026-11-12 …`).
+
 Build lessons from these pages are in [use-figma.md, Traps](./doc/use-figma.md#traps) (card system build lessons).
 
 ## The icon system (mine, 2026-11-10)
@@ -165,3 +167,10 @@ Page `Page builder` (62:933) has exactly two top-level frames, both auto layout 
 - Rules, preferences and ideas you said about this module: [doc/notes-from-asks.md](doc/notes-from-asks.md)
 
 **Native connectors (FigJam arrows pasted into a design file), learned 2026-11-11:** a script can't create one or move its midpoint or label (`createConnector`, `connectorControlPoints`, `connectorTextPosition` are refused). Clone a connector whose route already looks right, then set `connectorStart` / `connectorEnd`. The clone keeps its midpoint at the same distance from the source box's left edge, so charts whose source boxes share a width (416 on the Flow page) route cleanly. To force a re-route, point `connectorEnd` at another node and back; re-setting the same endpoint does nothing. Labels sit at the path's middle (the shared trunk on a branch), so keep them to short words like yes / no.
+
+**Owner's direction, 2026-11-12:**
+- **Demos teach.** Each one shows the problem or the solution at a glance, clickable, with the master and its instances side by side. Put masters at the page root so Figma's name label sits above each one. Small pages, one topic per page. Use our components, not loose frames. Keep them visual: masonry grids of familiar things.
+- **Layouts:** design at 1920 pages holding 1600 sections. The breakpoints are open: 1440 and 768 are designer habit, and 1000 is a nice round one. He wants one rule across all widths: padding based on width, clamped, which is CSS `clamp()` on the web.
+- **Image cards:** a big image runs edge to edge with no padding (a Panel layout); only the text gets padding.
+- **Hidden from publishing:** start the name with `.`, which Figma documents for components. `_` is documented only for variable collections, and the forum reports it stopped working for components.
+- **Naming:** every component set ends in `Set` (see Component pages above).
