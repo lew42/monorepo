@@ -112,8 +112,8 @@ Page `Pills` (210:14169, right after Icons): masters at the root at x -420 (Pill
 
 ## Scheme contrast (owner feedback, 2026-11-12, UI Kit "One card, four schemes")
 
-- **Prime:** Scheme `accent` in Prime mode aliases the new Colors `ink` (#1A1612), so the kicker (2.03 to 5.82) and button (white on ink, 17.99) read. **Dark and Prime labels on the orange accent are white:** Theme `on-ui` in Prime mode is white (black .85 was 5.92, white is 3.09; the owner accepted the lower ratio), so the orange button on White and Light gray cards is white too.
-- **Still failing:** body text on Prime (3.88) and Dark (4.04), because its softness is paint opacity in the Card master, not a variable; the Dark orange kicker (2.03); the White and Light gray orange kickers (3.09, 2.76).
+- **Prime text is white** (owner, 2026-11-12: white on prime beats black, and no dynamic or adaptive colour): Scheme `text`, `muted` and `accent` in Prime mode are white, `on-accent` is Colors `ink` (#1A1612), so the Prime card has white text and a white button with a dark label. Colors `prime` is now #FF7950 and `dark` #433E37 (the owner's edits; don't undo). White on prime is 2.59 (black was 8.1; the owner accepted it). **Labels on the orange accent are white:** Theme `on-ui` in Prime mode is white (3.09 on the old orange), so the orange button on Dark, White and Light gray cards is white too. **White is the default scheme** everywhere; Prime and Dark are not approved yet.
+- **Still weak:** body text softness is paint opacity in the Card master, not a variable (so Prime and Dark body text sit below 4.5); the Dark orange kicker is 4.09 on the new Dark; the White and Light gray orange kickers are about 3.
 - **Three-column rows use Scale SM** (owner set it by hand, "works better"; applied nowhere else yet).
 
 ## The Flow page (mine, 2026-11-11)
