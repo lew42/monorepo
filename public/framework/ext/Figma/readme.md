@@ -275,6 +275,7 @@ Page `Page builder` (62:933) has exactly two top-level frames, both auto layout 
 - [doc/use-figma.md](./doc/use-figma.md) — drawing with `use_figma`: the design system file's collections, Resolution in practice, the bind/mode/compose recipe, card modes, slots, componentizing, grid, traps; [doc/troubleshooting.md](./doc/troubleshooting.md) for dated edge cases
 - [doc/icons.md](./doc/icons.md) — the Sept-2026 `Icon` set (glyph components, Size x Style x Fill x Tone) and the rules that hold in both files: the Material name is the identity, the Icons-vs-Symbols trap, handoff to code
 - [doc/observations.md](./doc/observations.md) — how the Figma MCP behaves (costs, limits, what failed); keep it current
+- [doc/page-plan.md](./doc/page-plan.md) — all 50 pages of the design system file: masters, cross-page use, and a proposal to sort them into a library, a Lab file, app files and an archive (2026-11-13, read-only audit, nothing changed)
 - [doc/card-census.md](./doc/card-census.md) — what every Card `8:5` instance holds in its Content slot (1265 instances, top 15 signatures, which layouts to make masters), 2026-11-12
 - [doc/token-audit.md](./doc/token-audit.md) — the 18 variable collections: usage counts and a KEEP / MERGE / TOSS verdict each, awaiting the owner's confirmation (2026-11-13)
 - [doc/capture.md](./doc/capture.md) — our page into Figma (`generate_figma_design`): works; flex survives as auto layout, one breakpoint per capture
