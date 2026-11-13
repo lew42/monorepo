@@ -120,6 +120,7 @@ Images page (56:870): `Image card base` (517:10689, x -560 y 700; vertical, padd
 - **Variants added to Image card Set:** Plain, Tag, Label + title, Icon button, Edit tools, Comment, Overlay kit. Colour is a mode, not a variant.
 - **Picks:** warm photo, Scrim (Frost also fine); cool photo, Frost (Scrim good); busy photo, Scrim. Edge and Glass get lost on busy and cool photos; Primary clashes on warm and is loud elsewhere, so keep it for the one main action off the image.
 - **Button group fix:** the old white blob was a pill-radius backing around square buttons that each had their own fill. Now one backing (Button fill and stroke, Scale `radius`) holds Ghost buttons, so one radius and one backing.
+- **Default overlay is Scrim (owner, 2026-11-13: dark transparent backing + white icon "looks pretty sharp")**: the Set's overlay variants (Label + icon button, Tag, Icon button, Comment, Edit tools, Button group, Top bar, Overlay kit) now set Button mode Scrim (Ghost light inside groups) on the master, so every card follows. New mode `Faint` (white 40%, dark label) for the faint-white option; a bare icon is Ghost light plus a drop shadow on the glyph (an effect, set per instance). Side by side on three photos: section 4 `Three styles` (541:50966). Result: Scrim holds on all photos; Faint is fine but quiet; Bare white vanishes on the light cool and busy photos even with a shadow.
 - **Tag pill:** its icon glyph fill is bound to Button label, otherwise it vanishes in Frost.
 
 ## The Panels page (mine, 2026-11-10)
