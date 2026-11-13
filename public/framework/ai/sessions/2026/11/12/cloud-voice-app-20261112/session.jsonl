@@ -162,3 +162,16 @@
 {"log":{"at":"2026-11-12T21:15:32-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
 {"tool_call":{"at":"2026-11-13T03:19:57.258Z","tool":"updates","args_hash":"09461d2259b5","caller":"voice-app"}}
 {"tool_call":{"at":"2026-11-13T03:19:57.730Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T03:21:05.459Z","tool":"send_to_agent","args_hash":"e6339f2bf0e6","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T03:21:10.730Z","tool":"page_set","args_hash":"e7f78b692541","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T03:21:15.175Z","tool":"page_set","args_hash":"4126648c71bb","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T03:21:18.245Z","tool":"page_set","args_hash":"11662016a24f","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T03:21:29.503Z","tool":"page_set","args_hash":"132ea85c6737","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T03:21:34.444Z","tool":"send_to_agent","args_hash":"482353be8390","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T03:21:42.620Z","tool":"page_set","args_hash":"e1950ee49ec6","caller":"voice-app"}}
+{"log":{"at":"2026-11-12T21:30:32-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-12T21:35:32-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-12T21:40:32-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"tool_call":{"at":"2026-11-13T03:42:42.343Z","tool":"updates","args_hash":"33cc2a2c1e95","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T03:42:42.837Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T03:42:53.110Z","tool":"send_to_agent","args_hash":"aefae60c8784","caller":"voice-app"}}
