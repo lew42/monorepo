@@ -60,3 +60,7 @@
 {"log":{"at":"2026-11-13T13:53:38-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-13T19:53:38.699Z"}
 {"pid_exit":26052,"ended":"2026-11-13T13:53:38-06:00","code":0,"signal":null,"by":"servex"}
 {"pid_exit":31732,"ended":"2026-11-13T13:53:40-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid":22284,"cmd":"C:\\Code\\lew42\\monorepo\\Servex\\node_modules\\@anthropic-ai\\claude-agent-sdk-win32-x64\\claude.exe --output-format stream-json --verbose --input-format stream-json --effort medium --model claude-sonnet-5-5 --resume=1cd0396f-425c-44e5-9ec6-e5eddd09323e --disallowedTools mcp__servex__page_call,mcp__servex","why":"claude.exe","agent":"mastermind-figma-docs","session":"1cd0396f-425c-44e5-9ec6-e5eddd09323e","started":"2026-11-13T14:23:11-06:00","by":"servex"}
+{"log":{"at":"2026-11-13T14:23:18-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-13T20:23:18.645Z"}
+{"action":{"at":"2026-11-13T14:23:28-06:00","did":"edit","files":["public/framework/ext/Figma/doc/modes.md"]},"by":"ledger","ts":"2026-11-13T20:23:28.528Z"}
+{"commit":{"hash":"77d99336e9f88b1bd1bbc5bd0f955cff539b5823","what":"figma: doc/modes.md (what a mode moves, escape hatches, where to set it), linked from readme","files":["public/framework/ext/Figma/doc/modes.md","public/framework/ext/Figma/readme.md"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-13T20:23:36.742Z"}
