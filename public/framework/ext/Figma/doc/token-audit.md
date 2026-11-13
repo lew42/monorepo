@@ -35,6 +35,7 @@ Leftovers, harmless: 24 literalized swatches still carry an explicit mode of the
 - **Bar fill = Selection bg in every mode** (Plain=Off transparent, Tonal=Hover black 6%, Floating=On surface). One could be dropped from Bar.
 - **Scale gap-y** aliases gap in 6 of 7 modes; only Mobile differs (24 vs 16). 11 uses. Toss candidate.
 - **Scale content-max** (1680, 400, 2400, 1600...) does not match the 1600 and 2880 areas the resolution pages use; **toolbar-pad-x** has 9 uses.
+- **Button modes, proposed cut from 9 to 7** (counts on the ↳ Button page grid, explicit Button-mode settings outside the Cut list: Ghost 583, Transparent 302, Primary 109, Surface 50, Frost 50, Outline 48, Scrim 36, Edge 36, Ghost light 0): drop **Ghost light** (0 uses) and **Edge** (it gets lost on busy and cool photos); keep **Frost** and **Scrim**, the overlay modes the image cards need. Frost, Scrim and Edge are only used on the Images page.
 - **Button label** equals Scheme text in 5 of its 9 modes (aliased, fine).
 - **Scheme muted:** White and Light gray are the same value.
 - **Icon size:** Body and Label are both 16, so one mode is a duplicate.
