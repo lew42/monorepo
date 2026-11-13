@@ -37,6 +37,18 @@ Verdicts for the owner to confirm: 18 collections, 49 variables. Nothing is dele
 - **Flow arrow-gap** is 0 and **fork-half-row** has 0 uses.
 - **Orphan mode**: collection id `41:159` appears as an explicit mode on 21 nodes of the file's root page but is not a local collection (deleted). Harmless; clear it when touching that page.
 
+## Redundancy seen on the Scale demo page (2026-11-13, values unchanged)
+
+Read from the Scale demo page ([readme](../readme.md#the-token-demo-pages-mine-2026-11-13)), columns ordered by width. Proposals only; nothing was changed.
+
+- **XS vs Mobile:** pad-x 16 and 16, h1-size 32 and 32, radius 3 and 4. They differ only in pad-y (16 vs 32), gap (12 vs 16), button padding and section padding. Closest pair; the first mode to merge.
+- **Mega vs XL (not monotonic):** Mega is the 3440 column but its pad-y is 64 (XL 80), radius 6 (XL 8), btn-pad-x 24 (LG 32, XL 40), btn-pad-y 14 (LG 18, XL 22), toolbar-pad-x 26 (XL 24 is smaller, fine). Buttons and padding shrink going to Mega while section-pad doubles. Either Mega should continue the ladder or XL is the redundant one.
+- **LG vs Default:** pad-x 64 vs 48, gap 40 vs 26, content-max both 1680. Visibly different, keep unless the ladder shrinks.
+- **content-max** is 1680 in Default, LG, XL, 1600 in SM and XS, 2400 Mega, 400 Mobile: the "wider than the cell" bar cannot show it as a shape, and the values do not match the 1600 and 2880 areas the resolution pages use.
+- **gap-y** equals gap in every mode except Mobile (24 vs 16): drop the variable and give Mobile's two stacks the gap directly, or keep it only for Mobile.
+- **radius** is 3, 4, 4, 4, 6, 6, 8: four of seven modes are 4 or less, nearly indistinguishable on screen.
+- **Desktop (1920)** has no mode: it uses Default with a 1600 area.
+
 ## What a change costs
 
 - Deleting a variable keeps each bound node's last value, so a TOSS never moves a pixel; it removes the binding.

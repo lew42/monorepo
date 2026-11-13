@@ -129,6 +129,17 @@ Page `Pills` (210:14169, right after Icons): masters at the root at x -420 (Pill
 - **Verdict on named widths:** no new ones. Keep Mobile 400, Default 1000, Desktop 1920 with a 1600 area, Mega 3440; 1200 is Default with more air; add a Tablet name only if a two-column layout must hold below 1000.
 - **Code text style** (2026-11-12): style `code`, JetBrains Mono Regular 14, line height 160%, for class names, paths and snippets; shown as the last row of "Type scale" on the Text page ([row](https://www.figma.com/design/hbolzQ3Xnc78rhxAPj8xK2/Lew42-Design-System?node-id=456-2184)). Consolas and Courier New are not in the file's font list (Figma serves its own fonts), so JetBrains Mono was chosen over Roboto Mono; Fira Code, IBM Plex Mono and Source Code Pro are also available. **Its size is not bound to a Scale variable**, like body and label: a text style overrides a bound `fontSize`, and only h1 binds (`h1-size`). Text styles do not follow Scale modes.
 
+## The token demo pages (mine, 2026-11-13)
+
+One page per variable collection, under the Tokens page with the "↳" prefix: [" ↳ Colors"](https://www.figma.com/design/hbolzQ3Xnc78rhxAPj8xK2?node-id=500-11052) (`Page · Colors tokens` 500:11052, one mode), " ↳ Scheme" (501:10356, `Page · Scheme tokens` 501:10357, columns White, Light gray, Prime, Dark), " ↳ Scale" (503:10356, `Page · Scale tokens` 503:12812, columns XS 360, Mobile 400, SM 600, Default 1000, LG 1600, XL 2600, Mega 3440, the owner's draft ladder). Constants, Button, Selection, Icon size, Image and Bar have no demo page yet. The audit and its flags: [doc/token-audit.md](./doc/token-audit.md).
+
+- **One grid, columns are modes by width, rows are tokens.** Each cell is a live shape bound to the token with the column's mode set explicitly (`setExplicitVariableModeForCollection`): two blocks with the gap, a box with the padding, a square with the radius, a swatch, `Aa` at the size. Labels are plain text with the column name and width above ("Default (1000)"). The number under each shape is static text ("numbers are static; the shapes are live"), resolved through alias chains by the column's own mode.
+- **Masters** sit at the Tokens page root at x -460, left of `Tokens Preview`: `Token sample` 500:10619 (a bound swatch) and `Token cell` 500:10621 (a white card with a `Preview` slot and a `Number` text). Every cell is an instance of `Token cell`.
+- **A page instance cannot be wider than 1600.** `Page · 1920`'s Content slot has `maxWidth` 1600, which an instance cannot override ("max-size"), so a seven-column grid does not fit. The Scale page is a plain 3440 frame (padding 120) like `Page · 3440` on the Mega page.
+- **Moving a node out of an instance's slot** (`appendChild`) makes its old nested id vanish and the next call on it throws "node does not exist"; `clone()` it first, then move the clone.
+- **The "→" glyph does not render in Montserrat;** write "=" in static numbers.
+- Desktop (1920) has no Scale mode (it is Default with a 1600 area), so it has no column.
+
 ## The Labels page and the design tree (mine, 2026-11-12)
 
 - **Labels** (Lew42 file, page `442:11253`; [page](https://www.figma.com/design/hbolzQ3Xnc78rhxAPj8xK2?node-id=443-12002)): masters at the canvas root, colours in the variable collection `Label`. `Class label` 442:11254 (text property `Class`), `Mode label` 442:11256 (`Name`, `Value`, boolean `Swatch`; set the Swatch node's fill for a colour), `Label note` 442:11261 ("labels are static"). Labels never follow a mode switch.
