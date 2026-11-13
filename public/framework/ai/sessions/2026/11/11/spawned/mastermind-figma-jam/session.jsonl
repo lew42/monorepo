@@ -1817,3 +1817,4 @@
 {"log":{"at":"2026-11-12T21:05:32-06:00","msg":"task-loop status ask 2: mastermind-figma-jam was stopped on purpose; not woken","ask":2}}
 {"log":{"at":"2026-11-12T21:10:32-06:00","msg":"task-loop status ask 3: mastermind-figma-jam was stopped on purpose; not woken","ask":3}}
 {"log":{"at":"2026-11-12T21:15:32-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"log":{"at":"2026-11-12T22:15:32-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
