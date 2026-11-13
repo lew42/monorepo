@@ -1819,3 +1819,4 @@
 {"log":{"at":"2026-11-12T21:15:32-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
 {"log":{"at":"2026-11-12T22:15:32-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-12T23:15:32-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"stop":{"at":"2026-11-13T00:15:34-06:00","why":"dropped: owner mastermind-figma-jam is stopped"}}

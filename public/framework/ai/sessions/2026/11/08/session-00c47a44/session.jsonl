@@ -70,3 +70,4 @@
 {"log":{"at":"2026-11-10T21:45:20-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-10T22:45:21-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-10T23:45:22-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"unclosed":{"at":"2026-11-13T00:00:47-06:00","why":"unclosed: 72 log lines of work, never completed; last line 2026-11-10T23:45:22-06:00; closed by StaleClose 2026-11-13","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-13T06:00:47.516Z"}
