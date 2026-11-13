@@ -109,6 +109,12 @@ Page `Icons` (156:975, was `Cards · Icons`; always look pages up by id, they ge
 - **Swapping a master's own `Icon` text property for the nested Icon:** record every copy's value first (`setSharedPluginData`; `setPluginData` is not supported here), swap, write the values back, then delete the old property; a deleted property takes its copy values with it. A nested instance's glyph property cannot be bound to the parent's property.
 - Gaps: no Small text style (Label stands in), Material Icons has no Outlined weight, Kicker glyph is 14 px (Icon/H4).
 
+## Image cards (mine, 2026-11-13)
+
+Images page (56:870): `Image card base` (517:10689, x -560 y 700; vertical, padding = Scale `gap`, radius = Scale `radius`, fill Colors `light` with no mode, one nested `Image` instance FILL x 300) feeds `Image card Set` (519:10780, y 7000, left of the page; `Placement` = 11 variants, each a base instance plus its own text and UI: label + icon button, title on gradient, title + text on gradient, title + text below, kicker + meta below, centre title on scrim, toolbar bottom right, top bar + menu, caption panel, title + actions below, side by side 520 wide). The section `Section · Image cards` (519:21596, y 2000) holds a Figma Grid (4 columns, gap bound to `gap`, rows HUG, side by side spans 2) of Set instances with the photos swapped by fill override on the nested Image.
+- **Base to Set inheritance, tested:** setting the base's corner radius to 32 changed the base, every variant and every grid instance at once; rebinding restored it. It works.
+- **Caveats:** overlays (gradients, scrim) carry their own radius bound to `Image/radius`, so a direct override on the base leaves them square; change the token, not one layer. The text-below variants sit outside the base's gray ground. The black gradient and scrim are literal paints, not variable-bound. The radius token is only 4, so "rounded" is a one-token change away.
+
 ## The Panels page (mine, 2026-11-10)
 
 Page `Panels` (170:569): the Panel master (153:1779, 400 wide) sits at the root at x -560; `Page · Panels` (170:570) has two sections (their kickers are hidden).
