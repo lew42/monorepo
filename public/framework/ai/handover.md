@@ -27,33 +27,32 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-12 00:00 UTC, last 24 h)
+## NOW (computed 2026-11-13 00:00 UTC, last 24 h)
 
-**Pace:** Week: 61% used · 98% gone · 62% of pace (room to spend, 2 hours 59 minutes left)
+**Pace:** Week: 4% used · 13% gone · 32% of pace (room to spend, 6 days 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (6):**
-- [Load the minion skill and figma-use. Figma file key hbolzQ3Xnc78rhxAPj8xK2 (Lew42 Design System), remote `figm](/framework/ai/sessions/2026/11/11/session-8662821b/minion-minion-prune-b/) (minion-minion-prune-b)
-- [Load the minion skill. Budget: $3. Job: prune published components in Figma file hbolzQ3Xnc78rhxAPj8xK2 (Lew42](/framework/ai/sessions/2026/11/11/session-8662821b/minion-minion-prune-d/) (minion-minion-prune-d)
-- [Load the minion skill. Budget: $3. Job: prune published components in Figma file hbolzQ3Xnc78rhxAPj8xK2 (Lew42](/framework/ai/sessions/2026/11/11/session-8662821b/minion-minion-prune-c/) (minion-minion-prune-c)
-- [Figma library prune, your pages only. File "Lew42 Design System", key hbolzQ3Xnc78rhxAPj8xK2 (remote `figma` M](/framework/ai/sessions/2026/11/11/session-8662821b/minion-prune-a/) (minion-prune-a)
-- [From voice-app, for the owner (Michael). Build a small flowchart system in the Figma file "Lew42 Design System](/framework/ai/sessions/2026/11/11/spawned/mastermind-figma-flow/) (mastermind-figma-flow)
-- [From voice-app, for the owner (Michael). Two jobs in the "Lew42 Design System" Figma file. Context: mastermind](/framework/ai/sessions/2026/11/11/spawned/mastermind-figma-bars/) (mastermind-figma-bars)
+**Landed (5):**
+- [You build out the Panels system for Michael (the owner) in the Figma file Lew42 Design System (fileKey hbolzQ3](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-panels/) (mastermind-figma-panels)
+- [Figma project for Michael (the owner), relayed by me (voice-app). File: Lew42 Design System, https://www.figma](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-text-layouts/) (mastermind-figma-text-layouts)
+- [Figma project for Michael (the owner), relayed by me (voice-app). File: Lew42 Design System, https://www.figma](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-resolutions/) (mastermind-figma-resolutions)
+- [You are the Figma components researcher for Michael (the owner). I'm voice-app, the cloud mastermind relaying ](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-components/) (mastermind-figma-components)
+- [Small Figma job for Michael (the owner), relayed by me (voice-app). File: Lew42 Design System, https://www.fig](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-image-cards/) (mastermind-figma-image-cards)
 
 **Open, touched in the window (1):**
-- [From voice-app. You are the owner's (Michael's) hands in the Figma file "Lew42 Design System": https://www.fig](/framework/ai/sessions/2026/11/11/spawned/mastermind-figma-jam/) (mastermind-figma-jam)
+- [You're the Live page builder for Michael (the owner), in a live chat. I'm voice-app: I relay his words to you,](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-live-page/) (mastermind-figma-live-page)
 
 **Latest commits on this branch:**
 ```
-2542c9db1 servex: log sweep (16 files)
-540593249 ext/Figma: Path set, radius/stroke variables, single Branch in the readme
-48ab35898 ext/Figma: Fork piece masters, Flow/stroke variable, fork test findings
-e4887e725 ext/Figma: Box, Arrow and flat Step on the Flow page, docs page rewritten
-49873cc0b ext/Figma: Flow page upgrade (vector arrows, Step with Arrow boolean, Branch set with tree forks)
-21c615fa7 servex: log sweep (29 files)
-775b284a9 ext/Figma: the Flow page (Step, Branch, Flow, Add) and what it showed missing
-b205753d9 servex: log sweep (4 files)
+2d8969329 figma: document the code text style (JetBrains Mono 14)
+90614202a servex: log sweep (12 files)
+fdcbd6477 figma: Prime scheme text is white; White is the default scheme
+a29d76abd figma: note Mobile pad-x 16 and SM bump in readme
+72ad2d143 figma: document Start here and Text layouts pages and page-building traps
+b88e53bda figma: document scheme contrast fixes (Prime ink accent, white on-ui)
+0ef2ac5a5 figma: document Image radius Flush mode in Card and Panel
+0f7eb9cf7 figma: document Labels page and design space tree
 ```
 
 The dated sections below are written by hand and go stale; this block does not.

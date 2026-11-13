@@ -26,3 +26,10 @@
 {"pid_exit":26308,"ended":"2026-11-12T17:49:32-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid_exit":23204,"ended":"2026-11-12T17:49:32-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid_exit":5672,"ended":"2026-11-12T17:49:32-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid":28984,"cmd":"\"C:\\Program Files\\Git\\cmd\\git.exe\" -c core.askPass= -c submodule.recurse=false -c log.showSignature=false -c gc.auto=0 -c maintenance.auto=false -c core.hooksPath=\\\\.\\NUL -c core.fsmonitor= -c \"core.sshCommand=ssh -o BatchMode=yes -o StrictHostKeyChecking=yes\" -c protocol.ext.allow=never -c protocol","why":"child of claude.exe","agent":"mastermind-figma-text-layouts","session":"25b84973-f1f7-42c2-a937-7a409606bc4f","started":"2026-11-12T17:51:33-06:00","ppid":31460,"seen":"sample","by":"servex"}
+{"pid":9448,"cmd":"git.exe -c core.askPass= -c submodule.recurse=false -c log.showSignature=false -c gc.auto=0 -c maintenance.auto=false -c core.hooksPath=\\\\.\\NUL -c core.fsmonitor= -c \"core.sshCommand=ssh -o BatchMode=yes -o StrictHostKeyChecking=yes\" -c protocol.ext.allow=never -c protocol.fd.allow=never -c protocol","why":"child of claude.exe","agent":"mastermind-figma-text-layouts","session":"25b84973-f1f7-42c2-a937-7a409606bc4f","started":"2026-11-12T17:51:33-06:00","ppid":28984,"seen":"sample","by":"servex"}
+{"pid_exit":28984,"ended":"2026-11-12T17:51:44-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":9448,"ended":"2026-11-12T17:51:44-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"commit":{"hash":"2d89693294d5a0cf2f026c52c35bc6d8d385cf05","what":"figma: document the code text style (JetBrains Mono 14)","files":["public/framework/ext/Figma/readme.md"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-12T23:51:52.241Z"}
+{"log":{"at":"2026-11-12T17:52:02-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-12T23:52:02.541Z"}
+{"pid_exit":31460,"ended":"2026-11-12T17:52:02-06:00","code":0,"signal":null,"by":"servex"}
