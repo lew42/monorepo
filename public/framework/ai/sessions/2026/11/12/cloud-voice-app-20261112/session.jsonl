@@ -76,3 +76,26 @@
 {"tool_call":{"at":"2026-11-13T00:49:09.247Z","tool":"updates","args_hash":"02a4334fdee9","caller":"voice-app"}}
 {"tool_call":{"at":"2026-11-13T00:50:11.937Z","tool":"updates","args_hash":"179523d0110c","caller":"voice-app"}}
 {"tool_call":{"at":"2026-11-13T00:50:12.345Z","tool":"list_agents","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T00:50:43.522Z","tool":"send_to_agent","args_hash":"878c48dcd5c3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T00:50:52.975Z","tool":"shell","args_hash":"1363a0f0c819","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T00:51:00.054Z","tool":"edit_file","args_hash":"4c2d6da4352c","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T00:51:05.091Z","tool":"send_to_agent","args_hash":"207d96813537","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T00:51:09.763Z","tool":"shell","args_hash":"ec93bfd99625","caller":"voice-app"}}
+{"commit":{"hash":"0e26bc762029bd92d1660d1c02a178c857ed1111","what":"figma: agents edit masters, screenshot then approval, in the Figma readme","files":["public/framework/ext/Figma/readme.md"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-13T00:51:10.303Z"}
+{"tool_call":{"at":"2026-11-13T00:51:13.537Z","tool":"wait_for_agent","args_hash":"92e67897cf7f","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T00:52:39.617Z","tool":"list_agents","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T00:52:49.136Z","tool":"wait_for_agent","args_hash":"1a904ad4ae1d","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T00:55:05.143Z","tool":"send_to_agent","args_hash":"30b23fd3bfc7","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T00:55:10.172Z","tool":"updates","args_hash":"c5bcf3dcfa89","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T00:55:20.068Z","tool":"send_to_agent","args_hash":"bbd76e88f558","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T00:55:20.662Z","tool":"wait_for_agent","args_hash":"1a904ad4ae1d","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T00:57:28.963Z","tool":"wait_for_agent","args_hash":"fa2384efc578","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T00:59:01.587Z","tool":"updates","args_hash":"c5bcf3dcfa89","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T00:59:11.997Z","tool":"send_to_agent","args_hash":"2a10af7ae60e","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T00:59:12.809Z","tool":"check_usage","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T00:59:15.243Z","tool":"wait_for_agent","args_hash":"fa2384efc578","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T01:00:28.176Z","tool":"send_to_agent","args_hash":"2e0febe14dd2","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T01:00:47.154Z","tool":"updates","args_hash":"8f50f5611919","caller":"voice-app"}}
+{"log":{"at":"2026-11-12T19:10:32-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"tool_call":{"at":"2026-11-13T01:13:32.383Z","tool":"send_to_agent","args_hash":"c292b0ce4485","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T01:13:39.529Z","tool":"send_to_agent","args_hash":"807dbeb49455","caller":"voice-app"}}

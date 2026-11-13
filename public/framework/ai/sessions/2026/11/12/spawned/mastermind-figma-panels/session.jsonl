@@ -33,3 +33,11 @@
 {"log":{"at":"2026-11-12T18:21:44-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-13T00:21:44.557Z"}
 {"log":{"at":"2026-11-12T18:26:03-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-13T00:26:03.013Z"}
 {"pid_exit":21056,"ended":"2026-11-12T18:26:03-06:00","code":0,"signal":null,"by":"servex"}
+{"pid":31472,"cmd":"C:\\Code\\lew42\\monorepo\\Servex\\node_modules\\@anthropic-ai\\claude-agent-sdk-win32-x64\\claude.exe --output-format stream-json --verbose --input-format stream-json --effort medium --model claude-sonnet-5-5 --resume=6afb7c6e-ea71-409f-8c04-8bc617ea88c6 --disallowedTools mcp__servex__page_call,mcp__servex","why":"claude.exe","agent":"mastermind-figma-panels","session":"6afb7c6e-ea71-409f-8c04-8bc617ea88c6","started":"2026-11-12T19:13:32-06:00","by":"servex"}
+{"log":{"at":"2026-11-12T19:13:37-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-13T01:13:37.766Z"}
+{"pid":20448,"cmd":"\"C:\\Program Files\\Git\\cmd\\git.exe\" -c core.askPass= -c submodule.recurse=false -c log.showSignature=false -c gc.auto=0 -c maintenance.auto=false -c core.hooksPath=\\\\.\\NUL -c core.fsmonitor= -c \"core.sshCommand=ssh -o BatchMode=yes -o StrictHostKeyChecking=yes\" -c protocol.ext.allow=never -c protocol","why":"child of claude.exe","agent":"mastermind-figma-panels","session":"6afb7c6e-ea71-409f-8c04-8bc617ea88c6","started":"2026-11-12T19:13:51-06:00","ppid":31472,"seen":"sample","by":"servex"}
+{"pid_exit":20448,"ended":"2026-11-12T19:14:02-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid":17272,"cmd":"node C:\\Code\\lew42\\monorepo/.claude/hooks/ledger.mjs stop","why":"child of claude.exe","agent":"mastermind-figma-panels","session":"6afb7c6e-ea71-409f-8c04-8bc617ea88c6","started":"2026-11-12T19:15:52-06:00","ppid":31472,"seen":"sample","by":"servex"}
+{"log":{"at":"2026-11-12T19:15:56-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-13T01:15:56.853Z"}
+{"pid_exit":31472,"ended":"2026-11-12T19:15:57-06:00","code":0,"signal":null,"by":"servex"}
+{"pid_exit":17272,"ended":"2026-11-12T19:16:03-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
