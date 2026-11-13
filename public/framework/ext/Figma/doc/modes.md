@@ -18,7 +18,11 @@ A mode switches **every variable in its collection**, on the layer you set it on
 
 ## Where to set a mode
 
-On the exact layer that should change, never on a wrapper that also holds labels (a mode cascades into the labels too). **Masters carry no explicit modes**, so they render at the default.
+**The nearest explicit mode above a layer wins**, whether it was set in the master or on the instance. An instance override on a layer beats later master edits to that same layer.
+
+**Practice (owner, 2026-11-13): set NO modes on layers inside a master, and set the size mode only on an instance's OUTERMOST frame.** Keep labels outside the instance so they don't scale. Master edits, including newly added layers, then follow at the instance's size. Masters carry no explicit modes, so they render at the default.
+
+**Superseded 2026-11-13:** "On the exact layer that should change (e.g. the card inside an instance), never on a wrapper that also holds labels." Setting the mode on an inner layer is what causes case 4 below.
 
 ## Scale in the v2 file
 
@@ -26,4 +30,9 @@ The v2 file's Scale is cut down to `pad-x`, `pad-y`, `gap`, `radius` and `squeez
 
 ## Findings
 
-Open question: which layouts break when everything switches together. To be tested; nothing recorded yet.
+**Mode cascade: who wins?** ([V2 Scale page, 5 cases](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=19-449), 2026-11-13). The rule: the nearest explicit mode above a layer wins, set in the master or on the instance; an instance override beats later master edits to that same layer.
+
+- **Case 4 (the surprise):** the master set SM on its inner cards, and the instance set LG on the Stack around them. The cards stayed SM, because their own mode is nearer.
+- **Case 5 (the practice):** no modes inside the master; the size mode only on the instance's outermost frame, labels outside. Master edits, new layers included, follow at the instance's size.
+
+Still open: which layouts break when everything switches together.
