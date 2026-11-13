@@ -229,6 +229,7 @@ Page `Page builder` (62:933) has exactly two top-level frames, both auto layout 
 - [doc/icons.md](./doc/icons.md) — the Sept-2026 `Icon` set (glyph components, Size x Style x Fill x Tone) and the rules that hold in both files: the Material name is the identity, the Icons-vs-Symbols trap, handoff to code
 - [doc/observations.md](./doc/observations.md) — how the Figma MCP behaves (costs, limits, what failed); keep it current
 - [doc/card-census.md](./doc/card-census.md) — what every Card `8:5` instance holds in its Content slot (1265 instances, top 15 signatures, which layouts to make masters), 2026-11-12
+- [doc/token-audit.md](./doc/token-audit.md) — the 18 variable collections: usage counts and a KEEP / MERGE / TOSS verdict each, awaiting the owner's confirmation (2026-11-13)
 - [doc/capture.md](./doc/capture.md) — our page into Figma (`generate_figma_design`): works; flex survives as auto layout, one breakpoint per capture
 - [doc/figma-to-framework.md](./doc/figma-to-framework.md) — which Figma signal implies which of our layout words, where the signal runs out, the default; what a spec must name (HUG = does not stretch)
 - [doc/page-storage.md](./doc/page-storage.md) — how a page's content should be stored (JSONL views vs `page.js`), decided
