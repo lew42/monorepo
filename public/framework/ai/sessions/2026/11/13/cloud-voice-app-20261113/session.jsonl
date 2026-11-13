@@ -1,0 +1,15 @@
+{"session":{"id":"cloud-voice-app-20261113","kind":"cloud-voice-agent","caller":"voice-app","at":1794596346214}}
+{"tool_call":{"at":"2026-11-13T18:59:06.313Z","tool":"send_to_agent","args_hash":"8696faff5946","caller":"voice-app"}}
+{"log":{"at":"2026-11-13T13:05:36-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-13T13:10:36-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-13T13:15:36-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"tool_call":{"at":"2026-11-13T19:17:55.963Z","tool":"spawn_agent","args_hash":"fdb95f6aad6b","caller":"voice-app"}}
+{"task":"/framework/ai/sessions/2026/11/13/spawned/mastermind-figma-tokens/","type":"Session","spawn":{"role":"mastermind","model":"claude-sonnet-5-5","effort":"high","role_readme":"Servex/agents/roles/mastermind.md","session_id":"43a4773f-bba7-43ea-8331-c55f43de704b","agent":"mastermind-figma-tokens","at":"2026-11-13T13:17:56-06:00","placed":"top"},"by":"Servex","ts":"2026-11-13T19:17:56.009Z"}
+{"messages":{"add":{"type":"Ref","url":"/framework/ai/sessions/2026/11/13/spawned/mastermind-figma-tokens/","by":"servex","at":"2026-11-13T19:17:56.011Z"}},"by":"servex","ts":"2026-11-13T19:17:56.011Z"}
+{"spawned":{"at":"2026-11-13T19:18:00.582Z","agent":"mastermind-figma-tokens","task_dir":null,"caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T19:18:02.747Z","tool":"send_to_agent","args_hash":"79cf84591635","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T19:18:20.134Z","tool":"page_set","args_hash":"b5abd4c58fed","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T19:20:05.863Z","tool":"updates","args_hash":"9074ae46491d","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T19:20:09.141Z","tool":"stop_agent","args_hash":"16afcca74bd5","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T19:20:09.845Z","tool":"stop_agent","args_hash":"d4d277fa6706","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-13T19:20:10.889Z","tool":"updates","args_hash":"8deb4702aa9d","caller":"voice-app"}}
