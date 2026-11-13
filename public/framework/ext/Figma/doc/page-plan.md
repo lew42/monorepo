@@ -95,6 +95,44 @@ These masters are the core. Their pages stay in the library, and they should not
 | 48 | 3440 · Mega (441:12321) | 1 | 0 | none | Resolution test at 3440 |
 | 49 | Card strategy (477:44553) | 17 | 5 (A, B, C, D test masters) | none | The four-way test of how to make a new card |
 
+## Duplicates between a page's Preview and its body (read-only, 2026-11-13)
+
+**The pattern, found on every page that has a Preview:** the `.X Preview` master is not a short sample. It holds a loose copy of the page's own sections (same names, same sizes), so every section exists twice and an edit to one leaves the other stale. The preview's copy is a pasted frame, not an instance of the body's. Method: for each page, names and rounded sizes of every frame, instance and component at least 150 × 60 in the Preview, matched against the body beside it. "Shared" is how many of the preview's distinct (name, size) pairs also exist in the body.
+
+**Which copy goes, as a rule:** the body copy is the real one (the masters and the owner's edits live there). The preview should be at most the three best items, placed as instances of the body's cards, never a pasted section. So the **preview copy goes** (or shrinks to three instances) on every page below. The exception is Overlays, where it is the body that looks thin (see its row).
+
+| Page | Preview | Shared / preview total | What is duplicated | Keep / go |
+|---|---|---|---|---|
+| Tokens (206:564) | Tokens Preview (232:994) | 39 of 39 (all of it) | the whole Collections section (1600 × 641), the same 9 collection cards (Colors, Scheme, Theme, Scale, Button, Selection, Bar, 388 wide) and every Pill row | Go: the preview copy. Make the preview three collection cards as instances, or one instance of the body section. (The body still lists Theme; it was merged into Scheme.) |
+| Colors (203:564) | Colors Preview | 6 of 9 | `.Section` 1600 × 543, "Scheme modes" 1600 × 419 and the four Scheme cards (White, Light gray, Prime, Dark) | Go: preview copy; keep the body, show two schemes as instances |
+| Scheme (501:10356), Scale (503:10356) | none | none | no preview | none |
+| Themes (173:563) | Themes Preview | 0 of 3 | none (no body besides the preview) | none; page is the old Theme demos, on the Cut list path anyway |
+| Text (170:563) | .Text Preview | 13 of 16 | `.Section` 1600 × 729, Styles 1600 × 634, Card · Styles, Card · Article, Card · Hero (512 × 634), List | Go: preview copy; show the Hero card only |
+| Page Builder (225:612) | .Page Builder Preview | 15 of 19 | Card · Travel, Card · Sign in, Card · Settings, Card body, Image (516 wide), Header | Go: preview copy |
+| 1600 Sections (208:10803) | .1600 Sections Preview | 31 of 34 | `.1600 · Masonry three`, `.Masonry`, Hero with image, Four features, Testimonial, Footer (all 1600 wide) | Go: preview copy; the sections are the page's content, so the preview shows three as instances |
+| Icons (156:975) | Icons Preview | 26 of 31 | `.Section` 1600 × 502, "Core icons" 1600 × 407, and the icon tiles menu, close, search, add (186 × 125) | Go: preview copy |
+| Pills (210:14169) | Pills (column) holds one preview | 1 of 10 | only the "Sizes" row (1600 × 69) | Go: the preview's Sizes row; it is the one repeated item |
+| Scale (185:10073) | .Scale Preview | 23 of 32 | Step · LG and Step · Default (1600), Scale = LG and Scale = Default | Go: preview copy |
+| Labels (442:11253) | none | none | no preview frame on the page | none |
+| Images (56:870) | Images (column) holds one preview | 7 of 20 | Shapes 1600 × 332, Wide 1011 × 332, Image, Square | Go: preview copy |
+| Inputs (130:412) | Inputs Preview | 21 of 22 | `.Section` (1600 × 830, 1600 × 338), `.Masonry`, Kit, Card · Sign in, Newsletter, Feedback, Settings | Go: preview copy |
+| Cards (56:868) | Cards (column) holds one preview | 14 of 19 | Cards 768 × 573 and 768 × 505, Card · Product, Card · Sign in | Go: preview copy |
+| Buttons & toolbars (118:412) | preview in the column | 11 of 12 | `.Section` 1600 × 690, "Made from them" 1600 × 444, Kit, Card · Buttons | Go: preview copy |
+| Bars (159:507) | preview in the column | 0 of 9 | none found (the preview shows different content) | none |
+| Lists & grids (126:412) | preview in the column | 10 of 11 | `.Section` 1600 × 530, "Made from them", Kit, Card | Go: preview copy |
+| Navigation (134:416) | preview in the column | 13 of 14 | `.Section` 1600 × 607, "Made from them", Card, Kit | Go: preview copy |
+| Overlays (136:412) | preview in the column | 4 of 32 | `.Screen` 400 × 860, Menu, `.Bottom nav`, Spacer | Go: these four from the preview; the rest is its own |
+| Domain cards (145:412) | .Domain cards Preview | 34 of 35 | `.Section` 1600 × 1746, "Masonry · 3 @ 1600", Card · Product, Card · Music player | Go: preview copy |
+| Panels (170:569) | preview in the column | 15 of 16 | `.Section` 1600 × 704, `.Masonry`, Card · Trip, Card · Photos | Go: preview copy |
+| Layouts (56:869) | preview in the column | 3 of 21 | `.Wrap row` 1600 × 416, Card, Text | Go: those three from the preview |
+| Grids (464:10330), Grids & sizes (443:11642) | none | none | no preview frame on the page | none |
+| Explore · Masonry (336:7485) | .Masonry boards Preview is the whole page | not compared | the page holds only its preview | none |
+| Pages (62:933) | .Pages Preview | not compared | the preview sits beside the same templates | check by hand |
+
+**Not checked** (no preview frame found by name, or not compared): UI Kit (the page is only its preview, so nothing to duplicate), Apps · Tasks, Chat and Editor, Component notes, Live, Start here, Text layouts, Walkthroughs, Flow, Docs, Devices, the four resolution pages, Card strategy.
+
+**Fix as one pass (not done, read-only):** open each page's Preview, delete the pasted sections, and put in three instances of the body's own cards. The preview then updates when the body does. About 20 pages, each a minute or two; Tokens first, since the owner named it.
+
 ## The proposal
 
 ### LIBRARY (stays, publishable): 13 pages plus the token group
