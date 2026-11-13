@@ -33,6 +33,9 @@ This is the current truth. Where an older line below contradicts it, that line i
 9. **The layer rule:** text uses approved styles, everything else is an instance, and layout frames are the only loose layers, inside a parent component ([layer rule](#the-layer-rule-and-the-grids-page-owner-2026-11-12)).
 10. **Agents edit the master, never an instance-then-push.** Screenshot, then wait for the owner's approval. The Lew42 Design System page is the approved set ([owner's direction](#notes-from-your-asks)).
 11. **Grids:** no grid components (a frame with a bound gap; the card is the component); `.grid.gap`, not `.grid.cards` ([Grids](#the-layer-rule-and-the-grids-page-owner-2026-11-12)).
+12. **Templatize, but don't add nesting without a really good reason** (owner, 2026-11-12): "Always create things in a templatized way when possible. But don't create extra nesting without a really good reason: wrapping a component in another instance just to templatize it costs extra layers to dig through, and it gets confusing which layer you have selected. A component whose only child is a single content slot is maybe a smell: do we really need a component for that one layer of styling?"
+13. **Don't map every Figma feature to a mode, variable or property** (owner, 2026-11-12): "It creates extra work and gives you nothing extra." The card padding switch was added, removed and brought back; don't do that.
+14. **Image cards are full bleed** (owner, 2026-11-12): "A padded image is no bueno. If a card has an image, it's full bleed, edge to edge, and the text sits in a padded Content slot beside it." The Content slot is the padded area where text is dropped; it can switch colour modes ([Image cards](#the-card-system-pages-voice-apps-listed-2026-11-10)).
 
 ## Classes
 
