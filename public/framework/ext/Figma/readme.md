@@ -40,6 +40,14 @@ This is the current truth. Where an older line below contradicts it, that line i
 14. **Image cards are full bleed** (owner, 2026-11-12): "A padded image is no bueno. If a card has an image, it's full bleed, edge to edge, and the text sits in a padded Content slot beside it." The Content slot is the padded area where text is dropped; it can switch colour modes ([Image cards](#the-card-system-pages-voice-apps-listed-2026-11-10)).
 15. **Refine, don't accumulate** (owner, 2026-11-12): "Part of the problem with our whole system is that there are too many things. We keep creating more and more, and we're not refining it into the basic system. There are too many colour tokens." Before adding a token, component, mode or property, check whether an existing one covers it; prefer removing over adding.
 
+16. **Grids are not components** (owner, 2026-11-13): a grid is a fundamental layout frame whose control point is the gap token, so a component adds nothing. A higher-level master (e.g. a whole page wrapped in a master for previews) already templates the layout inside it. Don't pre-build every grid permutation; a small layouts reference with blank cards is enough.
+17. **A master feeding a component set buys one extra layer of inheritance** (owner, 2026-11-13): a base master nested inside each variant means base edits reach every variant and every instance of every variant. A test is running on the Images page.
+18. **Rebase by paste** (owner, 2026-11-13): copying a component set, or a master+set system, into another file creates brand-new masters, already wired to their instances. It's the quickest way to start a new, separately editable template from the design system. Within one file, there's no easy way to duplicate a master with its instances rewired.
+
+## Plugin ideas
+
+- **Duplicate as new master** (owner, 2026-11-13): duplicate a master (or a component set, or a master+set system) in the same file, rewiring the copies to the new master. Today that takes detach, re-make and re-link by hand, or a paste into another file (item 18).
+
 ## Classes
 
 - `Figma` (`Figma.js`) — the system; `Figma.files()` loads every tracked file from `index.jsonl`; `files_sync()` is the one blocking read a cold deep link needs.
