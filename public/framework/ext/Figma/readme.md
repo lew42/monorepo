@@ -115,6 +115,13 @@ Images page (56:870): `Image card base` (517:10689, x -560 y 700; vertical, padd
 - **Base to Set inheritance, tested:** setting the base's corner radius to 32 changed the base, every variant and every grid instance at once; rebinding restored it. It works.
 - **Caveats:** overlays (gradients, scrim) carry their own radius bound to `Image/radius`, so a direct override on the base leaves them square; change the token, not one layer. The text-below variants sit outside the base's gray ground. The black gradient and scrim are literal paints, not variable-bound. The radius token is only 4, so "rounded" is a one-token change away.
 
+**Overlays on photos (2026-11-13, owner feedback on button colour):** `Section · Image overlays` (525:10834, Images page, y 4000) holds a design tree (plain image, then one thing added per branch: tag, label + title, icon button, button group, edit tools, comment), a 5 × 3 colour matrix (Overlay kit on a warm, a cool and a busy photo) and a sizes row (360, 600, 1000).
+- **Four new `Button` modes for use over images:** Frost (white 85%, dark label), Scrim (black 55%, white label), Edge (transparent, white outline), Ghost light (transparent, white label, for buttons inside a group). Glass is Edge plus a background blur effect (an effect, so it is set per instance, not a mode). Set the mode on each button and backing itself (the master icon button carries an explicit mode, so a parent's does not cascade).
+- **Variants added to Image card Set:** Plain, Tag, Label + title, Icon button, Edit tools, Comment, Overlay kit. Colour is a mode, not a variant.
+- **Picks:** warm photo, Scrim (Frost also fine); cool photo, Frost (Scrim good); busy photo, Scrim. Edge and Glass get lost on busy and cool photos; Primary clashes on warm and is loud elsewhere, so keep it for the one main action off the image.
+- **Button group fix:** the old white blob was a pill-radius backing around square buttons that each had their own fill. Now one backing (Button fill and stroke, Scale `radius`) holds Ghost buttons, so one radius and one backing.
+- **Tag pill:** its icon glyph fill is bound to Button label, otherwise it vanishes in Frost.
+
 ## The Panels page (mine, 2026-11-10)
 
 Page `Panels` (170:569): the Panel master (153:1779, 400 wide) sits at the root at x -560; `Page · Panels` (170:570) has two sections (their kickers are hidden).
