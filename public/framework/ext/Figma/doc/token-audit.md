@@ -28,6 +28,8 @@ The file now has **10 variable collections**, every name prefixed "Lew42 · " (i
 
 Leftovers, harmless: 24 literalized swatches still carry an explicit mode of the deleted Theme collection; the Cut list's old Theme bindings keep their last values. Collection id `41:159` is an orphan explicit mode on 21 nodes of the file's root page; clear it when touching that page.
 
+**The alias chain** (shown at the top of the ↳ Button page, 534:11266): a button reads Button, which aliases Scheme, which aliases Colors. Primary fill = Scheme `accent` = Colors `prime`; Primary label = Scheme `on-accent` = white (ink on the Prime ground). So the Scheme mode of the ground a button sits on picks its colours, shown by one Primary button on each of White, Light gray, Prime and Dark.
+
 ## Flags still open (proposals; values untouched)
 
 - **Bar fill = Selection bg in every mode** (Plain=Off transparent, Tonal=Hover black 6%, Floating=On surface). One could be dropped from Bar.
