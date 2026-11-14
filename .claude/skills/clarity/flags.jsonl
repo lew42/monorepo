@@ -2473,3 +2473,6 @@
 {"at":"2026-11-13T19:33:41.621Z","target":"public/framework/ai/sessions/2026/11/13/spawned/mastermind-figma-tokens","verdict":"queued","kind":"landing"}
 {"at":"2026-11-13T19:33:42.038Z","target":"public/framework/ai/sessions/2026/11/13/spawned/mastermind-figma-tokens","verdict":"spawned","to":"clarity-mastermind-figma-tokens"}
 {"at":"2026-11-13T13:40:00-06:00","target":"public/framework/ai/sessions/2026/11/13/spawned/mastermind-figma-tokens","verdict":"rewrote","what":"outcome was a 62-word paragraph; rewrote as a ticked checklist with links","to":"session.jsonl"}
+{"at":"2026-11-14T21:45:11.648Z","target":"public/framework/ai/sessions/2026/11/14/spawned/mastermind-auth-build/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-14T21:46:12.816Z","target":"public/framework/ai/sessions/2026/11/14/spawned/mastermind-auth-build/requirements.md","verdict":"spawned","to":"clarity-mastermind-auth-build"}
+{"at":"2026-11-14T12:00:00.000Z","target":"public/framework/ai/sessions/2026/11/14/spawned/mastermind-auth-build/requirements.md","verdict":"clear","what":"text-check clean; title says what it is, six numbered asks, open items listed; agent brief so dense items are acceptable","to":"clarity.flags"}
