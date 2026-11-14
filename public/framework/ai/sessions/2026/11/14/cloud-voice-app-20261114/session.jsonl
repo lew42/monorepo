@@ -1,0 +1,9 @@
+{"session":{"id":"cloud-voice-app-20261114","kind":"cloud-voice-agent","caller":"voice-app","at":1794691551437}}
+{"tool_call":{"at":"2026-11-14T21:25:51.533Z","tool":"updates","args_hash":"f528a13eb383","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-14T21:25:56.554Z","tool":"list_agents","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-14T21:26:19.641Z","tool":"stop_agent","args_hash":"0936f97df2f5","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-14T21:26:34.917Z","tool":"spawn_agent","args_hash":"a34a7b324757","caller":"voice-app"}}
+{"task":"/framework/ai/sessions/2026/11/14/spawned/mastermind-auth-build/","type":"Session","spawn":{"role":"mastermind","model":"claude-sonnet-5-5","effort":"high","role_readme":"Servex/agents/roles/mastermind.md","session_id":"e040cc6b-830e-4822-a60a-7250a8bdc220","agent":"mastermind-auth-build","at":"2026-11-14T15:26:34-06:00","placed":"top"},"by":"Servex","ts":"2026-11-14T21:26:34.979Z"}
+{"messages":{"add":{"type":"Ref","url":"/framework/ai/sessions/2026/11/14/spawned/mastermind-auth-build/","by":"servex","at":"2026-11-14T21:26:34.980Z"}},"by":"servex","ts":"2026-11-14T21:26:34.980Z"}
+{"spawned":{"at":"2026-11-14T21:26:38.735Z","agent":"mastermind-auth-build","task_dir":null,"caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-14T21:26:40.624Z","tool":"updates","args_hash":"f528a13eb383","caller":"voice-app"}}
