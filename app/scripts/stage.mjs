@@ -26,7 +26,8 @@ function copy(url){   // url: absolute path like /framework/core/View/View.js
 		else if (s.startsWith(".")) copy(posix.normalize(posix.join(posix.dirname(url), s)));
 }
 
-copy("/framework/core/View/View.js");   // app.js's one framework import; copy() follows the rest
+copy("/framework/core/View/View.js");
+copy("/framework/core/Item/Item.js");   // the document store extends Item.Store
 const sw = join(out, "sw.js");
 writeFileSync(sw, readFileSync(sw, "utf8").replace("__BUILD__", Date.now().toString(36)));
 console.log("staged", seen.size, "framework files into", out);

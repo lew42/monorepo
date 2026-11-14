@@ -9,20 +9,28 @@
   "compatibility_date": "2026-07-09",
   "assets": { "directory": "./.stage", "binding": "ASSETS", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
   "d1_databases": [{ "binding": "DB", "database_name": "lew42-app-local", "database_id": "local", "migrations_dir": "migrations" }],
+  "durable_objects": { "bindings": [{ "name": "DOC_DO", "class_name": "DocDO" }, { "name": "USER_DO", "class_name": "UserDO" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["DocDO", "UserDO"] }],
+  "r2_buckets": [{ "binding": "SNAPSHOTS", "bucket_name": "lew42-app-local-docs" }],
   "vars": { "ENV_NAME": "local", "DEV_LOGIN": "1", "GOOGLE_CLIENT_ID": "" },
 
+  // R2 snapshots: staging and production get "r2_buckets": [{ "binding": "SNAPSHOTS", "bucket_name": "lew42-app-<stage>-docs" }] once R2 is enabled in the Cloudflare dashboard (wrangler r2 bucket create fails with code 10042 until then). The Durable Object skips snapshots with no binding.
   "env": {
     "staging": {
       "name": "lew42-app-staging",
       "routes": [{ "pattern": "staging.lew42.com", "custom_domain": true }],
       "assets": { "directory": "./.stage", "binding": "ASSETS", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
       "d1_databases": [{ "binding": "DB", "database_name": "lew42-app-staging", "database_id": "a60d0b2a-1c74-47cb-8787-e0a424c1c3d0", "migrations_dir": "migrations" }],
+      "durable_objects": { "bindings": [{ "name": "DOC_DO", "class_name": "DocDO" }, { "name": "USER_DO", "class_name": "UserDO" }] },
+      "migrations": [{ "tag": "v1", "new_sqlite_classes": ["DocDO", "UserDO"] }],
       "vars": { "ENV_NAME": "staging", "DEV_LOGIN": "0", "GOOGLE_CLIENT_ID": "" }
     },
     "production": {
       "name": "lew42-app",
       "assets": { "directory": "./.stage", "binding": "ASSETS", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
       "d1_databases": [{ "binding": "DB", "database_name": "lew42-app-prod", "database_id": "23f5702e-37ed-458b-8e69-d240bf672812", "migrations_dir": "migrations" }],
+      "durable_objects": { "bindings": [{ "name": "DOC_DO", "class_name": "DocDO" }, { "name": "USER_DO", "class_name": "UserDO" }] },
+      "migrations": [{ "tag": "v1", "new_sqlite_classes": ["DocDO", "UserDO"] }],
       "vars": { "ENV_NAME": "production", "DEV_LOGIN": "0", "GOOGLE_CLIENT_ID": "" }
     }
   }

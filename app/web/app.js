@@ -1,8 +1,9 @@
 // The auth app's UI. Plain View classes from the framework (staged beside this file by scripts/stage.mjs).
+import { docs_page, doc_page } from "/docs.js";
 import { View, div, h2, h3, p, span, a, button, img, table, thead, tbody, tr, th, td } from "/framework/core/View/View.js";
 
-const api = async (path, body) => {
-	const res = await fetch("/api" + path, body === undefined ? {} : { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+const api = async (path, body, method = "POST") => {
+	const res = await fetch("/api" + path, body === undefined ? {} : { method, headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 	const data = await res.json().catch(() => ({}));
 	if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
 	return data;
@@ -56,6 +57,11 @@ class App extends View {
 		this.go(location.pathname, false);
 	}
 
+	async load_settings(){
+		this.state.settings = (await api("/settings")).settings;
+		document.documentElement.dataset.theme = this.state.settings.theme || "auto";
+	}
+
 	go(path, push = true){
 		if (push) history.pushState({}, "", path);
 		this.state.path = path;
@@ -68,9 +74,10 @@ class App extends View {
 
 	draw(){
 		const { user, path } = this.state;
+		if (user && !this.state.settings){ this.state.settings = {}; this.load_settings().then(() => this.draw()); }
 		this.bar.empty(this.link("/", "lew42", "brand"));
 		if (user){
-			this.bar.append(this.link("/", "Home"), this.link("/profile", "Profile"));
+			this.bar.append(this.link("/", "Home"), this.link("/docs", "Docs"), this.link("/profile", "Profile"));
 			if (user.role === "admin") this.bar.append(this.link("/admin", "Admin"));
 			this.bar.append(new Bell(), new InstallButton());
 			this.bar.append(user.avatar_url ? img.c("avatar").attr("src", user.avatar_url).attr("referrerpolicy", "no-referrer").attr("alt", "") : span(user.name || user.email));
@@ -78,7 +85,7 @@ class App extends View {
 		} else {
 			this.bar.append(new Bell(), new InstallButton());
 		}
-		const page = !user ? this.login_page() : path === "/profile" ? this.profile_page() : path === "/admin" ? this.admin_page() : this.home_page();
+		const page = !user ? this.login_page() : path === "/docs" ? docs_page(this, api) : path.startsWith("/doc/") ? doc_page(this, api, path.slice(5)) : path === "/profile" ? this.profile_page() : path === "/admin" ? this.admin_page() : this.home_page();
 		this.main.empty(page);
 	}
 
@@ -111,10 +118,21 @@ class App extends View {
 		return div(h2("Home"), p.c("muted", "Hello, " + (this.state.user.name || this.state.user.email) + ". Here is your feed."), list);
 	}
 
+	settings_card(){
+		const mine = this.state.settings || {};
+		const pick = div.c("row");
+		["auto", "light", "dark"].forEach(t => pick.append(button.c(mine.theme === t || (!mine.theme && t === "auto") ? "primary" : "", t).click(async () => {
+			this.state.settings = (await api("/settings", { theme: t }, "PUT")).settings;
+			document.documentElement.dataset.theme = t;
+			this.draw();
+		})));
+		return div.c("card", h3("Your settings"), p.c("muted", "Saved in your own Durable Object, so they follow you to every device."), pick);
+	}
+
 	profile_page(){
 		const u = this.state.user;
 		const row = (k, v) => tr(th(k), td(v ?? "—"));
-		return div(h2("Profile"), table(tbody(row("Name", u.name), row("Email", u.email), row("Role", u.role), row("Member since", when(u.created_at)), row("Last login", when(u.last_login)), row("Google id", u.google_sub), row("Stage", this.state.config.env))));
+		return div(h2("Profile"), table(tbody(row("Name", u.name), row("Email", u.email), row("Role", u.role), row("Member since", when(u.created_at)), row("Last login", when(u.last_login)), row("Google id", u.google_sub), row("Stage", this.state.config.env))), this.settings_card());
 	}
 
 	admin_page(){
@@ -129,7 +147,8 @@ class App extends View {
 	async sign_out(){
 		await api("/auth/logout", {});
 		if (window.google?.accounts) google.accounts.id.disableAutoSelect();
-		this.state.user = null;
+		this.state.user = null; this.state.settings = null;
+		document.documentElement.dataset.theme = "auto";
 		this.go("/");
 	}
 }
