@@ -8,6 +8,8 @@ A small Cloudflare Worker app, separate from the lew42.com site (the git-built "
 | staging | `lew42-app-staging` | https://staging.lew42.com (seeded with fake people) | `DB` of env.staging |
 | production | `lew42-app` | https://lew42-app.lew42.workers.dev | `DB` of env.production |
 
+Deploying staging adds a DNS record for staging.lew42.com to the lew42.com zone (a custom domain on `lew42-app-staging`); the main site's Worker is not touched.
+
 Each stage has its own D1, its own `SESSION_SECRET`, and its own Durable Object storage. Bindings do not inherit between `wrangler.jsonc` envs, so each env lists its own.
 
 ## What is in the folder
