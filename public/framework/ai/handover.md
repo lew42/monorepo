@@ -27,32 +27,30 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-13 00:00 UTC, last 24 h)
+## NOW (computed 2026-11-14 00:00 UTC, last 24 h)
 
-**Pace:** Week: 4% used · 13% gone · 32% of pace (room to spend, 6 days 2 hours left)
+**Pace:** Week: 10% used · 27% gone · 37% of pace (room to spend, 5 days 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (5):**
-- [You build out the Panels system for Michael (the owner) in the Figma file Lew42 Design System (fileKey hbolzQ3](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-panels/) (mastermind-figma-panels)
-- [Figma project for Michael (the owner), relayed by me (voice-app). File: Lew42 Design System, https://www.figma](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-text-layouts/) (mastermind-figma-text-layouts)
-- [Figma project for Michael (the owner), relayed by me (voice-app). File: Lew42 Design System, https://www.figma](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-resolutions/) (mastermind-figma-resolutions)
-- [You are the Figma components researcher for Michael (the owner). I'm voice-app, the cloud mastermind relaying ](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-components/) (mastermind-figma-components)
-- [Small Figma job for Michael (the owner), relayed by me (voice-app). File: Lew42 Design System, https://www.fig](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-image-cards/) (mastermind-figma-image-cards)
+**Landed (3):**
+- [Figma tokens: audit and Colors/Scheme/Scale demo pages](/framework/ai/sessions/2026/11/13/spawned/mastermind-figma-tokens/) (mastermind-figma-tokens)
+- [A read-only job for Michael (the owner), relayed by me (voice-app). File: Lew42 Design System (fileKey hbolzQ3](/framework/ai/sessions/2026/11/13/spawned/mastermind-figma-pages/) (mastermind-figma-pages)
+- [A small job for Michael (the owner), relayed by me (voice-app). He's starting a fresh design system file, "Lew](/framework/ai/sessions/2026/11/13/spawned/mastermind-figma-v2/) (mastermind-figma-v2)
 
 **Open, touched in the window (1):**
-- [You're the Live page builder for Michael (the owner), in a live chat. I'm voice-app: I relay his words to you,](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-live-page/) (mastermind-figma-live-page)
+- [PLANNING ONLY — do not build or edit anything. Research and report back.](/framework/ai/sessions/2026/11/13/spawned/mastermind-user-auth/) (mastermind-user-auth)
 
 **Latest commits on this branch:**
 ```
-2d8969329 figma: document the code text style (JetBrains Mono 14)
-90614202a servex: log sweep (12 files)
-fdcbd6477 figma: Prime scheme text is white; White is the default scheme
-a29d76abd figma: note Mobile pad-x 16 and SM bump in readme
-72ad2d143 figma: document Start here and Text layouts pages and page-building traps
-b88e53bda figma: document scheme contrast fixes (Prime ink accent, white on-ui)
-0ef2ac5a5 figma: document Image radius Flush mode in Card and Panel
-0f7eb9cf7 figma: document Labels page and design space tree
+0b2ebb6ab servex: log sweep (4 files)
+3ff7d5943 servex: log sweep (4 files)
+43d5b6f46 servex: log sweep (5 files)
+dc6c1b70f servex: log sweep (6 files)
+969ce1606 figma readme: Scale goes on regions, Scheme on what should look different
+4cb4c03d9 figma readme: Scale is one switch per design, on the outermost frame
+c35a97ac0 servex: log sweep (6 files)
+e92f5c03d figma: mode rule is nearest explicit mode wins; no modes in masters, size mode on the outermost frame (old line superseded)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
