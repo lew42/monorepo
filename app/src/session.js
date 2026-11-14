@@ -23,7 +23,10 @@ export async function token_from(request, secret){
 	if (!raw) return null;
 	const [token, sig] = raw.split(".");
 	if (!token || !sig) return null;
-	return sig === await hmac(secret, token) ? token : null;
+	const want = await hmac(secret, token);
+	let diff = want.length ^ sig.length;   // compare every character so the time taken does not reveal how much matched
+	for (let i = 0; i < want.length; i++) diff |= want.charCodeAt(i) ^ (sig.charCodeAt(i) || 0);
+	return diff === 0 ? token : null;
 }
 
 export const set_cookie = (value, secure) => `${COOKIE}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${MAX_AGE}${secure ? "; Secure" : ""}`;

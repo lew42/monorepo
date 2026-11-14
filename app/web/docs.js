@@ -35,6 +35,8 @@ async function open_doc(root, app, api, meta, me){
 	try { doc = await DocItem.open("doc:" + meta.id); }
 	catch (err){ return root.empty(h2(meta.title), p.c("error", err.message)); }
 	const store = doc.store;
+	if (app.state.path !== "/doc/" + meta.id) return store.close();   // left before it finished opening
+	app.on_leave(() => store.close());
 	window.live_doc = doc;   // a handle for scripts/live.test.mjs
 	const area = textarea.c("doc-text").attr("rows", "14").attr("placeholder", "Start editing, then type here.");
 	const bar = div.c("row");

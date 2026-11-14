@@ -40,6 +40,7 @@ export class DocStore extends Item.Store {
 		ws.onmessage = e => this.message(JSON.parse(e.data));
 		ws.onclose = () => {
 			this.connected = false; clearInterval(this.beater); clearTimeout(this.reconnect_timer); this.changed();
+			if (this.closed) return;
 			if (this.first) { this.first.no(new Error("could not open the document")); this.first = null; this.opening = null; return; }
 			this.reconnect_timer = setTimeout(() => this.connect(), 1000);
 		};
@@ -73,6 +74,19 @@ export class DocStore extends Item.Store {
 	request_lock(){ this.send({ t: "lock" }); }
 	release_lock(){ this.flush_typing_now(); this.send({ t: "unlock" }); }
 	flush_typing_now(){ this.end_typing(true); }
+
+	// Leaving the document: send what is typed, give up the lock, close the socket and forget this store so the next open starts clean.
+	async close(){
+		if (this.closed) return;
+		this.closed = true;
+		this.end_typing(true);
+		await new Promise(done => setTimeout(done, 0));   // let Store.flush hand the last line to deliver()
+		this.flush_unsent();
+		this.send({ t: "unlock" });
+		clearInterval(this.beater); clearTimeout(this.reconnect_timer);
+		this.ws?.close();
+		Item.Store.instances?.delete(this.url);
+	}
 
 	// Keep the heartbeat running exactly while we hold the lock.
 	keep_beating(){

@@ -36,6 +36,12 @@ Wire (JSON text frames), also in the header of `src/doc.js`: `hello`/`lines`/`ac
 
 Measured on staging (30 edits, two browsers, one machine): ping round trip median 28 ms; edit reaches the other client median 46 ms (p95 55); keystroke to visible median 115 ms (p95 129).
 
+## Known limits (demo)
+
+- The editing lock belongs to a person, not a tab: one person with two tabs can write from both.
+- Any signed-in user can open and edit any document (the list is not filtered by owner).
+- Leaving a document page closes its socket and gives up the lock (`DocStore.close()`, called through `app.on_leave`); `scripts/live.test.mjs` covers it.
+
 ## Still open
 
 - Real Google sign-in is untested until a Google OAuth Client ID is set in `wrangler.jsonc` vars.

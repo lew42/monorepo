@@ -21,14 +21,23 @@ const load_google = () => gsi ??= new Promise((ok, no) => {
 	document.head.append(s);
 });
 
+// The browser fires beforeinstallprompt once per page load, so it is caught once here and every InstallButton (the top bar is rebuilt on each page change) reads it.
+let install_event = null;
+const install_buttons = new Set();
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); install_event = e; install_buttons.forEach(b => b.offer()); });
+addEventListener("appinstalled", () => { install_event = null; install_buttons.forEach(b => b.empty()); });
+
 class InstallButton extends View {
 	render(){
 		if (standalone()) return;
 		if (ios()) return this.append(div.c("hint", "To install on iPhone: tap the Share icon, then “Add to Home Screen”."));
-		addEventListener("beforeinstallprompt", e => {
-			e.preventDefault();
-			this.empty(button.c("primary", "Install app").click(async () => { e.prompt(); await e.userChoice; this.empty(); }));
-		});
+		install_buttons.forEach(b => b.el.isConnected || install_buttons.delete(b));   // buttons of earlier top bars
+		install_buttons.add(this);
+		this.offer();
+	}
+	offer(){
+		if (!install_event) return;
+		this.empty(button.c("primary", "Install app").click(async () => { const e = install_event; e.prompt(); await e.userChoice; install_event = null; install_buttons.forEach(b => b.empty()); }));
 	}
 }
 
@@ -48,6 +57,7 @@ class App extends View {
 	// no class fields here: View runs render() inside super(), before a subclass's fields exist
 	async render(){
 		this.state = { user: null, config: {}, path: location.pathname };
+		this.leavers = [];
 		this.bar = div.c("topbar");
 		this.main = new View({ tag: "main" });
 		this.append(this.bar, this.main);
@@ -72,8 +82,12 @@ class App extends View {
 		return a.c(cls + (this.state.path === path ? " on" : ""), label).href(path).on("click", e => { e.preventDefault(); this.go(path); });
 	}
 
+	// Run fn once when the page on screen is replaced (a document uses it to close its socket).
+	on_leave(fn){ this.leavers.push(fn); }
+
 	draw(){
 		const { user, path } = this.state;
+		this.leavers.splice(0).forEach(fn => fn());
 		if (user && !this.state.settings){ this.state.settings = {}; this.load_settings().then(() => this.draw()); }
 		this.bar.empty(this.link("/", "lew42", "brand"));
 		if (user){

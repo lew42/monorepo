@@ -1,6 +1,6 @@
 // node scripts/live.test.mjs [base-url] — two headless browsers on one document: the editing lock, live edits, history on reload,
 // the lock dropping when the editor leaves, and edit→other-client latency. Needs `wrangler dev` running (local sign-in).
-// Staging has no dev sign-in, so for it pass STAGING_SESSION_SECRET and STAGING_COOKIES (see scripts/latency.mjs).
+// Staging has no dev sign-in: scripts/latency.mjs signs its own cookies for it.
 import { createRequire } from "node:module";
 import assert from "node:assert/strict";
 const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_DIR || "playwright");
@@ -77,9 +77,17 @@ await bob.click("button:has-text('Start editing')");
 await bob.waitForSelector("text=You are editing");
 await alice.waitForSelector("text=bob is editing");
 
-// the editor leaves without pressing Done: the lock is released for everyone
-await bob.close();
-await alice.waitForSelector("text=Nobody is editing", { timeout: 20000 });
+// the editor walks to another page without pressing Done: the document's socket closes and the lock is released at once
+await bob.click("a:has-text('Docs')");
+await alice.waitForSelector("text=Nobody is editing", { timeout: 3000 });
+await bob.waitForSelector("text=Documents");
+
+// the editor's tab closes without pressing Done: the lock is released for everyone
+await alice.click("button:has-text('Start editing')");
+await alice.waitForSelector("text=You are editing");
+await alice.close();
+await bob.goto(base + path);
+await bob.waitForSelector("text=Nobody is editing", { timeout: 20000 });
 
 assert.deepEqual(errors, [], "no console errors");
 await browser.close();
