@@ -61,7 +61,7 @@ caller writes, the same class of thing as the `Origin` header that left `rpc:cmd
 until 2026-08-16. The guard that held there was the peer address, *"the one field a caller cannot
 choose"* (`Server/readme.md`), and the edge has no equivalent. So:
 
-- `/api/dev/*` lives in `worker/dev.js`, imported only by the `main` of `worker/wrangler.jsonc`.
+- `/api/dev/*` lives in `worker/dev.js`, imported only by the local stage's `main` in `worker/wrangler.jsonc`.
   `worker/index.js` — the production `main` — never imports it. There is nothing to disable.
 - Keep `DEV_LOGIN` **and** the hostname check inside `dev.js` anyway: two lines, and they are what
   stops a `cloudflared` tunnel or `wrangler dev --remote` from publishing the dev bundle. Belt, not

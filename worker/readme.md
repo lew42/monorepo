@@ -70,7 +70,7 @@ Before step 2, finish the owner's list below.
 
 - **Real Google sign-in has never run.** `GOOGLE_CLIENT_ID` is empty on every stage, so staging was verified with cookies minted by the test scripts; `google.js` rejects every token until the owner finishes step 1 and 2 below.
 - **Banning a real user.** A ban is a flag in the dev login's cookie only (`dev.js`); no column or admin route sets it on staging or production, and `can.js` does not check it.
-- **A page that lists live documents and their lock holders**, and a `DocStore` test.
+- **A page that lists live documents and their lock holders.**
 - The old app's `ADMIN_GOOGLE_SUB` option (admin by Google subject id) was dropped: the admin is `ADMIN_EMAIL`, compared at sign-in.
 
 ## What the owner must do
