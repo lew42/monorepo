@@ -14,7 +14,7 @@ if (!["staging", "production"].includes(stage)) { console.error("usage: deploy.m
 
 const wr = (args, input) => {
 	console.log("\n$ wrangler", args.join(" "));
-	const r = spawnSync("npx", ["wrangler", ...args, ...CONFIG], { cwd: root, shell: true, input, encoding: "utf8", stdio: [input ? "pipe" : "inherit", "pipe", "inherit"] });
+	const r = spawnSync("npx", ["wrangler", ...args, ...CONFIG], { cwd: root, shell: true, input, encoding: "utf8", stdio: ["pipe", "pipe", "inherit"] });
 	process.stdout.write(r.stdout || "");
 	if (r.status !== 0) { console.error("FAILED:", args.join(" ")); process.exit(r.status || 1); }
 	return r.stdout || "";

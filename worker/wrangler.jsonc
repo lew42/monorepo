@@ -32,7 +32,7 @@
       "main": "index.js",
       "routes": [{ "pattern": "staging.lew42.com", "custom_domain": true }],
       "assets": { "directory": "../public", "binding": "ASSETS", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
-      "d1_databases": [{ "binding": "DB", "database_name": "monorepo-staging", "database_id": "TODO_STAGING_D1", "migrations_dir": "migrations" }],
+      "d1_databases": [{ "binding": "DB", "database_name": "monorepo-staging", "database_id": "2c9207d4-f993-42d8-b640-edbd67c15a0c", "migrations_dir": "migrations" }],
       "durable_objects": { "bindings": [{ "name": "ROOM", "class_name": "Room" }, { "name": "USER_DO", "class_name": "UserDO" }] },
       "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }, { "tag": "v2", "new_sqlite_classes": ["UserDO"] }],
       "vars": { "ENV_NAME": "staging", "GOOGLE_CLIENT_ID": "", "API_HOSTS": "staging.lew42.com" }
@@ -42,7 +42,7 @@
       "main": "index.js",
       "routes": [{ "pattern": "lew42.com", "custom_domain": true }],
       "assets": { "directory": "../public", "binding": "ASSETS", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
-      "d1_databases": [{ "binding": "DB", "database_name": "monorepo-prod", "database_id": "TODO_PROD_D1", "migrations_dir": "migrations" }],
+      "d1_databases": [{ "binding": "DB", "database_name": "monorepo-prod", "database_id": "c6f18950-a4a9-4ef5-bb78-ac6cb9261fa3", "migrations_dir": "migrations" }],
       "durable_objects": { "bindings": [{ "name": "ROOM", "class_name": "Room" }, { "name": "USER_DO", "class_name": "UserDO" }] },
       "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }, { "tag": "v2", "new_sqlite_classes": ["UserDO"] }],
       "vars": { "ENV_NAME": "production", "GOOGLE_CLIENT_ID": "", "API_HOSTS": "lew42.com,www.lew42.com" }

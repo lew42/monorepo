@@ -147,6 +147,10 @@ In plain terms: one Worker has exactly one "production" slot. Its own address (`
 
 Either way, nothing changes until a custom domain is added: today only `monorepo.lew42.workers.dev` exists, and it follows `main`.
 
+## The API Worker is deployed by script, not by a push (2026-11-15)
+
+The root `wrangler.jsonc` (what the Git build deploys) stays **assets only**: a push cannot put the API, or a preview with production data, on lew42.com. The API Worker is [worker/wrangler.jsonc](../../../worker/wrangler.jsonc) (local, `staging`, `production` environments), deployed with `node worker/scripts/deploy.mjs staging` first. It also answers only on hostnames in `API_HOSTS`, so a Git preview url gets a 503 from `/api/*`. The production cutover is a dashboard change plus one script run: [worker/readme.md](../../../worker/readme.md), "Production cutover".
+
 ## The PC's routine: work on a dev branch, never check out `main`
 
 The owner's worry (2026-11-01): if the PC works directly on `main`, a pull can land on top of its own unpushed merges and conflict, and `main` is no longer a clean copy of GitHub's. Answer: the PC never checks out `main` at all.

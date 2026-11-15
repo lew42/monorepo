@@ -12,7 +12,7 @@
 - [Session](/framework/core/Session/) (`Session.js`): a session record.
 - [Dated](/framework/core/Item/Dated/) (`Dated.js`, with `Dated.Index`): a collection filed by day (`<root>/YYYY/MM/DD/<slug>/`) and its pointer rows; the first is projects. Not an Item itself: its index is. Node half: `Server/DatedFiles.mjs` (doc `Server/doc/dated-files.md`).
 - [Panel](/framework/ext/Panel/) (`Panel.js`) and `Block` (`ext/editor/blocks.js`): layout and editor pieces.
-- `Item.Store` (`Store.js`) is not an Item; `Page.Reader` extends it. `DocStore` (`app/web/DocStore.js`) extends it too: the same lines over one WebSocket to a Cloudflare Durable Object ([app/readme.md](../../../../app/readme.md), "Live documents").
+- `Item.Store` (`Store.js`) is not an Item; `Page.Reader` extends it. `DocStore` (`DocStore.js`) extends it too: the same lines over one WebSocket to a Cloudflare Durable Object (the Room Durable Object, [worker/room.js](../../../../worker/room.js); [worker/readme.md](../../../../worker/readme.md)).
 
 **When to reach for which:** a **List** when something is ordered and needs watching (events are built in — there's no event-less variant any more); an **Item** when it is a thing (an icon, a title, saved); a **Page** when it has a URL.
 
