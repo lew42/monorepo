@@ -1,4 +1,0 @@
-# copy to .dev.vars (gitignored) for `wrangler dev`
-SESSION_SECRET=any-long-random-string
-ADMIN_EMAIL=admin@dev.local
-GOOGLE_CLIENT_ID=

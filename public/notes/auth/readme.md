@@ -1,7 +1,6 @@
 # Auth, accounts and teams — design record
 
-**Nothing here is built.** This is the thinking, written down before any of it is,
-so the expensive decisions get argued while they're still cheap.
+**Built since:** a working slice of this design runs as one Worker (`worker/`, [worker/readme.md](../../../worker/readme.md)): Google sign-in, the stateless cookie, `can()`, live documents, deployed to staging.lew42.com. The app is at [/app/](../../app/). Most of the rest below (topics, teams, bans in KV) is still thinking, written down before it is built, so the expensive decisions get argued while they're still cheap.
 
 Format as everywhere: **question → options → weighing → verdict.**
 

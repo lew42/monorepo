@@ -9,8 +9,8 @@ found most of the plumbing already built and working locally. This task built th
 ## The table
 
 `pages(path TEXT PRIMARY KEY, json TEXT NOT NULL, updated INTEGER NOT NULL)` in
-`worker/schema.sql`, right beside `likes`. Three rows are seeded under `/imagine/cms/d1/` in
-`worker/seed.sql`, upserted so a second `npm run dev` does not duplicate them.
+`worker/migrations/0001_init.sql`, right beside `likes`. Three rows are seeded under `/imagine/cms/d1/` in
+`worker/seed/dev.sql`, upserted so a second `npm run dev` does not duplicate them.
 
 **Why this does not touch the `likes` decision.** `schema.sql` already carries a real rule:
 a like keys on the page's `url`, not on a page id, because a rename must never orphan a like.
@@ -80,6 +80,6 @@ takes the CMS wall next.
 from the scout's report, the three items still standing between this local proof and the real
 Cloudflare account:
 
-4. **The D1 binding for local dev** — already done (`wrangler.dev.jsonc`).
+4. **The D1 binding for local dev** — already done (`worker/wrangler.jsonc`).
 5. **The owner's Cloudflare login + `wrangler d1 create`** — the 5-minute item, needed once, for real.
 6. **Production `wrangler.jsonc` gains a `main` and a `d1_databases` binding, then a deploy** — this is the actual gap. Nothing like it has ever shipped here.

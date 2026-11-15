@@ -1,3 +1,6 @@
+# wrangler dev secrets (worker/): local only
+worker/.dev.vars
+
 node_modules
 
 # TEMPORARY (owner, 2026-10-19): keep new public/live/ files out of git while the sessions page is tried out. Comment out the next line to switch it off.
@@ -264,3 +267,16 @@ public/framework/ext/Chat/v2/fixture/dbg-*.jsonl
 public/framework/ai/unmerged.json
 # core/Test daily test results (results/YYYY-MM-DD.jsonl, last 7 days; older ones move to results/archive/): machine state written by TestRunner, one file a day instead of one 7 MB tracked file. Alternative: track the daily files; rotation would then leave deleted paths the sweeper never commits.
 public/framework/core/Test/results/
+
+# YouTube stream data (the owner, 2026-11-14): public/ deploys to monorepo.lew42.workers.dev and the transcripts hold private/sensitive speech,
+# so the data stays local until the sensitive review (annotations kind:"sensitive") is done. Code, design.md and readme.md are not ignored.
+public/youtube/michaellewis_813/raw/
+public/youtube/michaellewis_813/videos/
+public/youtube/michaellewis_813/*.txt
+public/youtube/michaellewis_813/meta.ndjson
+public/youtube/michaellewis_813/flat.json
+public/youtube/michaellewis_813/dl.log
+public/youtube/michaellewis_813/video-cache/
+public/youtube/michaellewis_813/frames/
+# Whole YouTube folder (the owner via voice-app, 2026-11-14): nothing under public/youtube/ may be committed or deployed until the sensitive review is done. Already-tracked files.jsonl indexes stay tracked; the owner can delete this line to publish.
+public/youtube/

@@ -1,5 +1,7 @@
 # The local multi-user harness
 
+> **Now built (2026-11-15):** the files this page names as `wrangler.dev.jsonc`, `worker/schema.sql` and `worker/seed.sql` are today `worker/wrangler.jsonc` (local stage), `worker/migrations/0001_init.sql` and `worker/seed/dev.sql`. How it runs now: [worker/readme.md](../../../../worker/readme.md). The text below is the original proposal.
+
 Brief §10 asks for a local system that is *genuinely playable*: fake users, role switching,
 the anonymous state, and two people in one room. This is the buildable proposal. **Nothing
 here is built** — and nothing here changes the live deploy.

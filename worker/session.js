@@ -1,20 +1,12 @@
-// worker/session.js — HMAC-SHA256 sign/verify over WebCrypto (/notes/auth/ §3).
-// No dependency: WebCrypto is in the Workers runtime. Shared by index.js (verify,
-// every request) and dev.js (sign, the one dev-only login route) — nothing here
-// is dev-only, so nothing here needs the DEV_LOGIN gate.
+// worker/session.js: HMAC-SHA256 sign/verify over WebCrypto (/notes/auth/ §3). No dependency: WebCrypto is in the Workers runtime.
+// index.js verifies on every request and signs after a Google login; dev.js signs for the dev login. Nothing here is dev-only.
 //
-// Payload carries whatever the minter decides (dev.js embeds the fake role/ban
-// for this harness; a real OAuth callback would embed a role derived from D1
-// instead) plus `te` (token_epoch, /notes/auth/ §3's revoke-everywhere column)
-// and `exp` (unix seconds). verify() only ever RETURNS what was signed — it has
-// no opinion on what a payload should contain.
+// The payload is `{uid, te, exp}` (plus `banned` from the dev login): who, their token_epoch (the revoke-everywhere counter, §3) and
+// an expiry in unix seconds. The role is never in the cookie; index.js reads it from D1 on each request. verify() only returns what
+// was signed. The secret is env.SESSION_SECRET, with no fallback: a Worker without one has no valid sessions.
 
 export const COOKIE = "s";
-
-// A real deploy sets env.SESSION_SECRET (a Workers secret); this harness never
-// deploys, so wrangler.dev.jsonc's vars carries it instead, with this as the
-// belt if that var is ever missing. Not a real secret — never write one here.
-export const DEV_SECRET_FALLBACK = "local-dev-insecure-secret-do-not-deploy";
+export const MAX_AGE = 30 * 86400;
 
 function b64u(bytes) {
     return btoa(String.fromCharCode(...new Uint8Array(bytes)))
@@ -37,9 +29,9 @@ export async function sign(payload, secret) {
     return `${body}.${b64u(mac)}`;
 }
 
-// null on anything wrong — a bad cookie is the same as no cookie, never a throw.
+// null on anything wrong: a bad cookie is the same as no cookie, never a throw.
 export async function verify(token, secret) {
-    if (!token) return null;
+    if (!token || !secret) return null;
     const [body, mac] = token.split(".");
     if (!body || !mac) return null;
     try {
@@ -59,10 +51,8 @@ export function readCookie(request) {
     return match ? match[1] : null;
 }
 
-// HttpOnly + Secure + SameSite=Lax, /notes/auth/ §3's line verbatim. Chrome
-// treats http://localhost as a secure context, so Secure still round-trips here
-// (assumption 3's other half — see local/page.js).
-export function setCookie(token, maxAgeSeconds = 2592000) {
+// HttpOnly + Secure + SameSite=Lax (/notes/auth/ §3). Chrome treats http://localhost as a secure context, so Secure still round-trips there.
+export function setCookie(token, maxAgeSeconds = MAX_AGE) {
     return `${COOKIE}=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAgeSeconds}`;
 }
 export function clearCookie() {
