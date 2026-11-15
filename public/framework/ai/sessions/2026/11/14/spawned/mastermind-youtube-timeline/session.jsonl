@@ -418,3 +418,4 @@
 {"log":{"at":"2026-11-15T00:47:18-06:00","msg":"task-loop status ask 3: mastermind-yt-wvrk7h was stopped on purpose; not woken","ask":3}}
 {"log":{"at":"2026-11-15T00:52:18-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
 {"log":{"at":"2026-11-15T01:52:18-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-15T02:52:18-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
