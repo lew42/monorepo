@@ -33,3 +33,4 @@
 {"log":{"at":"2026-11-14T21:01:19-06:00","msg":"task-loop status ask 2: mastermind-yt-v6k5c4 was stopped on purpose; not woken","ask":2}}
 {"log":{"at":"2026-11-14T21:06:19-06:00","msg":"task-loop status ask 3: mastermind-yt-v6k5c4 was stopped on purpose; not woken","ask":3}}
 {"log":{"at":"2026-11-14T21:11:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"log":{"at":"2026-11-14T22:11:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
