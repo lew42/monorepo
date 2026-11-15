@@ -609,3 +609,6 @@
 {"log":{"at":"2026-11-14T21:19:04.540-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-5cj22vj\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
 {"log":{"at":"2026-11-14T21:19:06.348-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
 {"log":{"at":"2026-11-14T21:26:19-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-14T21:31:19-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-14T21:36:19-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-14T21:41:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
