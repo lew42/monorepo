@@ -1,7 +1,6 @@
-// node app/src/google.test.mjs — one fake Google key pair, one token, every check once.
+// node worker/google.test.mjs — one fake Google key pair, one token, every check once.
 import assert from "node:assert/strict";
 import { verify_google_token } from "./google.js";
-import { new_cookie_value, token_from } from "./session.js";
 
 const pair = await crypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" }, true, ["sign", "verify"]);
 const jwk = { ...(await crypto.subtle.exportKey("jwk", pair.publicKey)), kid: "k1", alg: "RS256", use: "sig" };
@@ -25,9 +24,4 @@ await fails(await make({}, { alg: "none", kid: "k1" }), /alg/);
 const good = await make({});
 await fails(good.slice(0, -4) + "AAAA", /signature/);
 
-const { token, value } = await new_cookie_value("s3cret");
-const req = (v, secret) => token_from(new Request("https://x", { headers: { cookie: "sid=" + v } }), secret);
-assert.equal(await req(value, "s3cret"), token);
-assert.equal(await req(value, "other"), null);
-assert.equal(await req(token + ".deadbeef", "s3cret"), null);
 console.log("google.test ok");

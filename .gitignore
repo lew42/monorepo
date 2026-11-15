@@ -264,3 +264,6 @@ public/framework/ext/Chat/v2/fixture/dbg-*.jsonl
 public/framework/ai/unmerged.json
 # core/Test daily test results (results/YYYY-MM-DD.jsonl, last 7 days; older ones move to results/archive/): machine state written by TestRunner, one file a day instead of one 7 MB tracked file. Alternative: track the daily files; rotation would then leave deleted paths the sweeper never commits.
 public/framework/core/Test/results/
+
+# wrangler dev secrets (worker/): local only
+worker/.dev.vars

@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 // dev.mjs — `npm run dev`. Two servers, two ports, two jobs (local-dev.md):
 //   :80 (or $PORT)  node server.js     — the existing UI dev loop, unchanged
-//   :8787           wrangler dev       — identity + rooms, one origin, fully local
+//   :8787           wrangler dev -c worker/wrangler.jsonc — the whole site (public/) + /api/*, one origin, fully local
 //
-// Applies worker/schema.sql + worker/seed.sql to the local D1 first (idempotent:
-// CREATE TABLE IF NOT EXISTS, and seed.sql deletes its own rows before inserting —
-// local D1 persists across restarts, so a plain re-run must not assume a clean db).
+// Applies worker/migrations + worker/seed/dev.sql to the local D1 first (idempotent: migrations apply once,
+// the seed is INSERT .. ON CONFLICT upserts; local D1 persists across restarts).
 // Prefixes both children's output and kills both on Ctrl+C.
 
 import { spawn, spawnSync } from "node:child_process";
@@ -38,15 +37,16 @@ function stopAll() {
 process.on("SIGINT", () => { stopAll(); process.exit(0); });
 process.on("SIGTERM", () => { stopAll(); process.exit(0); });
 
-console.log("[dev] applying worker/schema.sql + worker/seed.sql to the local D1 …");
-for (const file of ["worker/schema.sql", "worker/seed.sql"]) {
-    const result = spawnSync(`npx --yes wrangler d1 execute local-dev --local -c wrangler.dev.jsonc --file=./${file}`, { shell: true, encoding: "utf8", windowsHide: true });
-    if (result.status !== 0) {
-        console.error(`[dev] ${file} failed:\n${result.stdout}\n${result.stderr}`);
-        process.exit(1);
-    }
+function wr(args) {
+    const result = spawnSync(`npx --yes wrangler ${args}`, { shell: true, encoding: "utf8", windowsHide: true });
+    if (result.status !== 0) { console.error(`[dev] wrangler ${args} failed:
+${result.stdout}
+${result.stderr}`); process.exit(1); }
 }
-console.log("[dev] local D1 ready — five fake users (alice owner, bob moderator, carol member, dave member, eve banned).");
+console.log("[dev] applying worker/migrations + worker/seed/dev.sql to the local D1 …");
+wr("d1 migrations apply DB --local -c worker/wrangler.jsonc");
+wr("d1 execute DB --local -c worker/wrangler.jsonc --file=./worker/seed/dev.sql");
+console.log("[dev] local D1 ready: six fake users (alice owner, bob moderator, carol member, dave member, eve banned, admin admin).");
 
 if (await isListening(PORT)) {
     console.log(`[dev] :${PORT} is already answering — assuming node server.js is running there; not starting a second one.`);
@@ -57,11 +57,11 @@ if (await isListening(PORT)) {
     console.log(`[dev] node server.js  → http://localhost:${PORT}`);
 }
 
-const wrangler = spawn(`npx --yes wrangler dev -c wrangler.dev.jsonc --port ${API_PORT}`, { shell: true, windowsHide: true });
+const wrangler = spawn(`npx --yes wrangler dev -c worker/wrangler.jsonc --port ${API_PORT}`, { shell: true, windowsHide: true });
 prefixed("wrangler", wrangler);
 children.push(wrangler);
 console.log(`[dev] wrangler dev    → http://localhost:${API_PORT}   (the whole site + identity, rooms and likes; DEV_LOGIN=1)`);
 console.log(`[dev] switch users at http://localhost:${API_PORT}/api/dev/login?as=carol   (alice bob carol dave eve; ?as=none clears it)`);
-console.log(`[dev] the slice       → http://localhost:${API_PORT}/imagine/platform/topic/   (sign in, then like it)`);
+console.log(`[dev] the auth demo   → http://localhost:${API_PORT}/app/   (the PWA: sign in with the dev buttons)`);
 
 wrangler.on("exit", (code) => { stopAll(); process.exit(code ?? 0); });

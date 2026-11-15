@@ -1,0 +1,51 @@
+// The ONE Cloudflare config for the site and its API: static files from ../public, /api/* answered by the Worker.
+// Run every command from the repo root with `-c worker/wrangler.jsonc` (the npm scripts and worker/scripts/deploy.mjs do).
+//
+//   local       top level      the `dev` npm script                              main = worker/dev.js (adds /api/dev/login), local D1, DEV_LOGIN=1
+//   staging     env.staging    `node worker/scripts/deploy.mjs staging`         Worker "monorepo-staging", staging.lew42.com, its own D1
+//   production  env.production `node worker/scripts/deploy.mjs production`     Worker "monorepo", lew42.com, its own D1
+//
+// The dev login lives only in worker/dev.js, which is the `main` of the local stage and of no other: the staging and production
+// bundles do not contain it (identity.md ruling 3).
+//
+// Bindings do not inherit across `env`, so each stage lists its own. SESSION_SECRET and ADMIN_EMAIL are secrets, set by deploy.mjs.
+// API_HOSTS is the allowlist of hostnames the API answers on: a Git preview URL (<branch>-monorepo.<account>.workers.dev) is not on it.
+//
+// Why this file is not the root wrangler.jsonc: Cloudflare's Git build runs `npx wrangler deploy` on the root file on every push to
+// the production branch. The root file stays assets-only (no `main`, no bindings) until production is cut over by hand (worker/readme.md).
+{
+  "name": "monorepo-dev",
+  "main": "dev.js",
+  "compatibility_date": "2026-07-09",
+  "assets": { "directory": "../public", "binding": "ASSETS", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
+  "d1_databases": [{ "binding": "DB", "database_name": "monorepo-local", "database_id": "monorepo-local-0000-0000-0000-000000000000", "migrations_dir": "migrations" }],
+  "durable_objects": { "bindings": [{ "name": "ROOM", "class_name": "Room" }, { "name": "USER_DO", "class_name": "UserDO" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }, { "tag": "v2", "new_sqlite_classes": ["UserDO"] }],
+  "r2_buckets": [{ "binding": "SNAPSHOTS", "bucket_name": "monorepo-local-docs" }],
+  "vars": { "ENV_NAME": "local", "DEV_LOGIN": "1", "GOOGLE_CLIENT_ID": "", "API_HOSTS": "localhost,127.0.0.1" },
+
+  // R2 snapshots: staging and production get "r2_buckets": [{ "binding": "SNAPSHOTS", "bucket_name": "monorepo-<stage>-docs" }] once R2 is
+  // enabled in the Cloudflare dashboard (creating a bucket fails with code 10042 until then). Room skips snapshots when there is no binding.
+  "env": {
+    "staging": {
+      "name": "monorepo-staging",
+      "main": "index.js",
+      "routes": [{ "pattern": "staging.lew42.com", "custom_domain": true }],
+      "assets": { "directory": "../public", "binding": "ASSETS", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
+      "d1_databases": [{ "binding": "DB", "database_name": "monorepo-staging", "database_id": "TODO_STAGING_D1", "migrations_dir": "migrations" }],
+      "durable_objects": { "bindings": [{ "name": "ROOM", "class_name": "Room" }, { "name": "USER_DO", "class_name": "UserDO" }] },
+      "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }, { "tag": "v2", "new_sqlite_classes": ["UserDO"] }],
+      "vars": { "ENV_NAME": "staging", "GOOGLE_CLIENT_ID": "", "API_HOSTS": "staging.lew42.com" }
+    },
+    "production": {
+      "name": "monorepo",
+      "main": "index.js",
+      "routes": [{ "pattern": "lew42.com", "custom_domain": true }],
+      "assets": { "directory": "../public", "binding": "ASSETS", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
+      "d1_databases": [{ "binding": "DB", "database_name": "monorepo-prod", "database_id": "TODO_PROD_D1", "migrations_dir": "migrations" }],
+      "durable_objects": { "bindings": [{ "name": "ROOM", "class_name": "Room" }, { "name": "USER_DO", "class_name": "UserDO" }] },
+      "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }, { "tag": "v2", "new_sqlite_classes": ["UserDO"] }],
+      "vars": { "ENV_NAME": "production", "GOOGLE_CLIENT_ID": "", "API_HOSTS": "lew42.com,www.lew42.com" }
+    }
+  }
+}

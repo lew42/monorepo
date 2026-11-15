@@ -1,4 +1,4 @@
-// Draws the three PNG icons (blue square, white "L") with zlib only: node scripts/icons.mjs. Run once; the PNGs are committed.
+// Draws the three PNG icons (blue square, white "L") with zlib only: node worker/scripts/icons.mjs. Run once; the PNGs are committed.
 import { deflateSync } from "node:zlib";
 import { writeFileSync } from "node:fs";
 
@@ -21,7 +21,7 @@ function png(size, inset){   // inset: fraction of the size kept clear around th
 	return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk("IHDR", ihdr), chunk("IDAT", deflateSync(Buffer.concat(rows))), chunk("IEND", Buffer.alloc(0))]);
 }
 
-writeFileSync("web/icons/icon-192.png", png(192, 0));
-writeFileSync("web/icons/icon-512.png", png(512, 0));
-writeFileSync("web/icons/icon-maskable-512.png", png(512, .1));
-writeFileSync("web/icons/icon.svg", `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1a73e8"/><path d="M26 20h14v48h34v14H26z" fill="#fff"/></svg>`);
+writeFileSync("public/app/icons/icon-192.png", png(192, 0));
+writeFileSync("public/app/icons/icon-512.png", png(512, 0));
+writeFileSync("public/app/icons/icon-maskable-512.png", png(512, .1));
+writeFileSync("public/app/icons/icon.svg", `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#1a73e8"/><path d="M26 20h14v48h34v14H26z" fill="#fff"/></svg>`);
