@@ -5,3 +5,4 @@
 {"file":"inbox.jsonl"}
 {"inbox":{"id":"n-gcqwixqa","from":"servex-task-loop","text":"1 unread line(s) in public/framework/ai/sessions/2026/11/14/spawned/mastermind-youtube-timeline/inbox.jsonl, and mastermind-yt-wvrk7h is stopped or gone. Look at them.","at":"2026-11-15T00:27:18.450-06:00"}}
 {"inbox":{"id":"n-ge6sv12v","from":"servex-heartbeat","text":"mastermind-youtube-timeline its agent is not running: it was stopped on purpose by mastermind-youtube-timeline at 2026-11-14T22:11:53-06:00; not revived.","at":"2026-11-15T00:28:25.711-06:00"}}
+{"inbox":{"id":"n-h8x3l87e","from":"servex-task-loop","text":"spawned/mastermind-youtube-timeline is started but silent: 3 status asks went unanswered. Close it, or keep chasing?","at":"2026-11-15T00:52:19.473-06:00"}}
