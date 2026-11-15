@@ -600,3 +600,12 @@
 {"log":{"at":"2026-11-14T19:41:19-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
 {"log":{"at":"2026-11-14T19:46:19-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
 {"log":{"at":"2026-11-14T19:51:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"log":{"at":"2026-11-14T20:51:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-14T21:16:46.289-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
+{"log":{"at":"2026-11-14T21:17:02.662-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-5cj22vj\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-14T21:18:02.667-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
+{"log":{"at":"2026-11-14T21:18:51.299-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-5cj22vj\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-14T21:18:53.980-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
+{"log":{"at":"2026-11-14T21:19:04.540-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-5cj22vj\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-14T21:19:06.348-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
+{"log":{"at":"2026-11-14T21:26:19-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
