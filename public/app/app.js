@@ -1,5 +1,6 @@
-// The auth app's UI. Plain View classes from the framework (staged beside this file by scripts/stage.mjs).
-import { docs_page, doc_page } from "/docs.js";
+// The auth demo's UI, served at /app/. Plain View classes from the framework, no build. Routes are in the hash (#/docs), so every
+// refresh, deep link and installed-PWA launch is a request for /app/ itself and the static host needs no rewrite rule.
+import { docs_page, doc_page } from "./docs.js";
 import { View, div, h2, h3, p, span, a, button, img, table, thead, tbody, tr, th, td } from "/framework/core/View/View.js";
 
 const api = async (path, body, method = "POST") => {
@@ -12,6 +13,8 @@ const api = async (path, body, method = "POST") => {
 const standalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 const ios = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
 const when = ms => new Date(ms).toLocaleString();
+const when_s = seconds => seconds ? new Date(seconds * 1000).toLocaleString() : "—";   // users.created_at / last_login are unix seconds, docs and the feed are ms
+const here = () => decodeURIComponent(location.hash.slice(1)) || "/";
 
 let gsi;
 const load_google = () => gsi ??= new Promise((ok, no) => {
@@ -48,7 +51,7 @@ class Bell extends View {
 			const perm = await Notification.requestPermission();
 			if (perm !== "granted") return alert("Notifications are " + perm + ". Allow them in the browser's site settings.");
 			const reg = await navigator.serviceWorker.ready;
-			reg.showNotification("lew42 app", { body: "Notifications work on this device.", icon: "/icons/icon-192.png", tag: "test" });
+			reg.showNotification("lew42 app", { body: "Notifications work on this device.", icon: "/app/icons/icon-192.png", tag: "test" });
 		}));
 	}
 }
@@ -56,15 +59,15 @@ class Bell extends View {
 class App extends View {
 	// no class fields here: View runs render() inside super(), before a subclass's fields exist
 	async render(){
-		this.state = { user: null, config: {}, path: location.pathname };
+		this.state = { user: null, config: {}, path: here() };
 		this.leavers = [];
 		this.bar = div.c("topbar");
 		this.main = new View({ tag: "main" });
 		this.append(this.bar, this.main);
-		addEventListener("popstate", () => this.go(location.pathname, false));
+		addEventListener("hashchange", () => this.go(here(), false));
 		this.state.config = await api("/config");
 		this.state.user = (await api("/me")).user;
-		this.go(location.pathname, false);
+		this.go(here(), false);
 	}
 
 	async load_settings(){
@@ -73,13 +76,13 @@ class App extends View {
 	}
 
 	go(path, push = true){
-		if (push) history.pushState({}, "", path);
+		if (push && here() !== path) return void (location.hash = path);   // hashchange calls go() again with push off
 		this.state.path = path;
 		this.draw();
 	}
 
 	link(path, label, cls = "nav"){
-		return a.c(cls + (this.state.path === path ? " on" : ""), label).href(path).on("click", e => { e.preventDefault(); this.go(path); });
+		return a.c(cls + (this.state.path === path ? " on" : ""), label).href("#" + path);
 	}
 
 	// Run fn once when the page on screen is replaced (a document uses it to close its socket).
@@ -92,9 +95,9 @@ class App extends View {
 		this.bar.empty(this.link("/", "lew42", "brand"));
 		if (user){
 			this.bar.append(this.link("/", "Home"), this.link("/docs", "Docs"), this.link("/profile", "Profile"));
-			if (user.role === "admin") this.bar.append(this.link("/admin", "Admin"));
+			if ((user.role === "admin" || user.role === "owner")) this.bar.append(this.link("/admin", "Admin"));
 			this.bar.append(new Bell(), new InstallButton());
-			this.bar.append(user.avatar_url ? img.c("avatar").attr("src", user.avatar_url).attr("referrerpolicy", "no-referrer").attr("alt", "") : span(user.name || user.email));
+			this.bar.append(user.avatar_url ? img.c("avatar").attr("src", user.avatar_url).attr("referrerpolicy", "no-referrer").attr("alt", "") : span(user.handle));
 			this.bar.append(button("Sign out").click(() => this.sign_out()));
 		} else {
 			this.bar.append(new Bell(), new InstallButton());
@@ -129,7 +132,7 @@ class App extends View {
 	home_page(){
 		const list = div(p.c("muted", "Loading…"));
 		api("/feed").then(({ items }) => list.empty(items.map(i => div.c("card", h3(i.title), p(i.body), span.c("muted", when(i.at)))))).catch(e => list.empty(p.c("error", e.message)));
-		return div(h2("Home"), p.c("muted", "Hello, " + (this.state.user.name || this.state.user.email) + ". Here is your feed."), list);
+		return div(h2("Home"), p.c("muted", "Hello, " + this.state.user.handle + ". Here is your feed."), list);
 	}
 
 	settings_card(){
@@ -146,14 +149,14 @@ class App extends View {
 	profile_page(){
 		const u = this.state.user;
 		const row = (k, v) => tr(th(k), td(v ?? "—"));
-		return div(h2("Profile"), table(tbody(row("Name", u.name), row("Email", u.email), row("Role", u.role), row("Member since", when(u.created_at)), row("Last login", when(u.last_login)), row("Google id", u.google_sub), row("Stage", this.state.config.env))), this.settings_card());
+		return div(h2("Profile"), table(tbody(row("Name", u.handle), row("Signed in with", u.provider), row("Role", u.role), row("Member since", when_s(u.created_at)), row("Last login", when_s(u.last_login)), row("Stage", this.state.config.env))), this.settings_card());
 	}
 
 	admin_page(){
 		const out = div(p.c("muted", "Loading…"));
 		api("/admin/users").then(({ users }) => out.empty(table(
-			thead(tr(th("Name"), th("Email"), th("Role"), th("Last login"))),
-			tbody(users.map(u => tr(td(u.name || ""), td(u.email), td(u.role), td(when(u.last_login)))))
+			thead(tr(th("Name"), th("Signed in with"), th("Role"), th("Last login"))),
+			tbody(users.map(u => tr(td(u.handle), td(u.provider), td(u.role), td(when_s(u.last_login)))))
 		))).catch(e => out.empty(p.c("error", e.message)));
 		return div(h2("Users"), out);
 	}
@@ -169,4 +172,4 @@ class App extends View {
 
 new App({ el: document.getElementById("app"), capture: false });
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");

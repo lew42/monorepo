@@ -1,6 +1,6 @@
-// node scripts/live.test.mjs [base-url] — two headless browsers on one document: the editing lock, live edits, history on reload,
+// node worker/scripts/live.test.mjs [base-url] — two headless browsers on one document: the editing lock, live edits, history on reload,
 // the lock dropping when the editor leaves, and edit→other-client latency. Needs `wrangler dev` running (local sign-in).
-// Staging has no dev sign-in: scripts/latency.mjs signs its own cookies for it.
+// Staging has no dev sign-in: worker/scripts/latency.mjs signs its own cookies for it.
 import { createRequire } from "node:module";
 import assert from "node:assert/strict";
 const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_DIR || "playwright");
@@ -14,7 +14,7 @@ async function person(handle){
 	const page = await ctx.newPage();
 	page.on("pageerror", e => errors.push(handle + ": " + e.message));
 	page.on("console", m => m.type() === "error" && !/gsi|accounts.google|ERR_/.test(m.text()) && errors.push(handle + ": " + m.text()));
-	await page.goto(base);
+	await page.goto(base + "/app/");
 	await page.waitForSelector("text=Sign in");
 	await page.click("text=dev: " + handle);
 	await page.waitForSelector("text=Welcome");
@@ -27,8 +27,8 @@ await alice.click("a:has-text('Docs')");
 await alice.fill(".title-input", "Latency test " + Date.now());
 await alice.click("button:has-text('Create')");
 await alice.waitForSelector("text=Nobody is editing");
-const path = new URL(alice.url()).pathname;
-await bob.goto(base + path);
+const route = new URL(alice.url()).hash;
+await bob.goto(base + "/app/" + route);
 await bob.waitForSelector("text=Nobody is editing");
 
 // the lock: alice takes it, bob is read-only
@@ -86,7 +86,7 @@ await bob.waitForSelector("text=Documents");
 await alice.click("button:has-text('Start editing')");
 await alice.waitForSelector("text=You are editing");
 await alice.close();
-await bob.goto(base + path);
+await bob.goto(base + "/app/" + route);
 await bob.waitForSelector("text=Nobody is editing", { timeout: 20000 });
 
 assert.deepEqual(errors, [], "no console errors");

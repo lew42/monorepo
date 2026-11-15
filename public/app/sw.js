@@ -1,5 +1,5 @@
-// Service worker: cache static files as they are used, never /api, and answer any navigation from the cached shell when offline.
-const CACHE = "lew42-app-__BUILD__";
+// Service worker (scope /app/): cache static files as they are used, never /api, and answer any navigation from the cached shell when offline.
+const CACHE = "lew42-app-v1";
 
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(
@@ -13,12 +13,12 @@ self.addEventListener("fetch", e => {
 		const cache = await caches.open(CACHE);
 		try {
 			const res = await fetch(req);
-			if (res.ok) cache.put(req.mode === "navigate" ? "/index.html" : req, res.clone());
+			if (res.ok) cache.put(req.mode === "navigate" ? "/app/index.html" : req, res.clone());
 			return res;
 		} catch (err){
-			return (await cache.match(req.mode === "navigate" ? "/index.html" : req)) || Response.error();
+			return (await cache.match(req.mode === "navigate" ? "/app/index.html" : req)) || Response.error();
 		}
 	})());
 });
 
-self.addEventListener("notificationclick", e => { e.notification.close(); e.waitUntil(clients.openWindow("/")); });
+self.addEventListener("notificationclick", e => { e.notification.close(); e.waitUntil(clients.openWindow("/app/")); });

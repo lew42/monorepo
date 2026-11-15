@@ -1,44 +1,44 @@
-// node scripts/latency.mjs — edit→other-client latency against the REAL staging Worker (https://staging.lew42.com).
-// Staging has no dev sign-in, so this signs two session cookies itself with STAGING_SESSION_SECRET (from .dev.vars, gitignored)
-// and inserts the matching session rows for the seeded users alice and bob. Needs PLAYWRIGHT_DIR like live.test.mjs.
+// node worker/scripts/latency.mjs — edit→other-client latency against the REAL staging Worker (https://staging.lew42.com).
+// Staging has no dev sign-in, so this signs two stateless session cookies itself with STAGING_SESSION_SECRET (worker/.dev.vars,
+// gitignored, written by deploy.mjs when it creates the secret) for the seeded users alice and bob. Needs PLAYWRIGHT_DIR like live.test.mjs.
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { new_cookie_value, sha256 } from "../src/session.js";
+import { sign } from "../session.js";
 const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_DIR || "playwright");
 
-const app = join(dirname(fileURLToPath(import.meta.url)), "..");
+const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const base = process.argv[2] || "https://staging.lew42.com";
 const N = Number(process.env.EDITS || 30);
-const secret = /STAGING_SESSION_SECRET=(\S+)/.exec(readFileSync(join(app, ".dev.vars"), "utf8"))?.[1];
-if (!secret) throw new Error("STAGING_SESSION_SECRET missing from .dev.vars");
+const secret = /STAGING_SESSION_SECRET=(\S+)/.exec(readFileSync(join(root, "worker", ".dev.vars"), "utf8"))?.[1];
+if (!secret) throw new Error("STAGING_SESSION_SECRET missing from worker/.dev.vars");
 
-async function cookie_for(sub){
-	const { token, value } = await new_cookie_value(secret);
-	const sql = `INSERT INTO sessions (token_hash, user_id, created_at, expires_at) SELECT '${await sha256(token)}', id, ${Date.now()}, ${Date.now() + 3600_000} FROM users WHERE google_sub = '${sub}'`;
-	const r = spawnSync("npx", ["wrangler", "d1", "execute", "DB", "--env", "staging", "--remote", "--command", `"${sql}"`], { cwd: app, shell: true, encoding: "utf8" });
-	if (r.status !== 0) throw new Error("could not insert session: " + r.stdout + r.stderr);
-	return value;
+async function cookie_for(provider_id){
+	const sql = `SELECT id, token_epoch FROM users WHERE provider = 'seed' AND provider_id = '${provider_id}'`;
+	const r = spawnSync("npx", ["wrangler", "d1", "execute", "DB", "--env", "staging", "--remote", "--json", "-c", "worker/wrangler.jsonc", "--command", `"${sql}"`], { cwd: root, shell: true, encoding: "utf8" });
+	const row = JSON.parse(r.stdout.slice(r.stdout.indexOf("[")))[0]?.results?.[0];
+	if (!row) throw new Error("no seeded user " + provider_id + " on staging (deploy with --seed): " + r.stdout + r.stderr);
+	return await sign({ uid: row.id, te: row.token_epoch, exp: Math.floor(Date.now() / 1000) + 3600 }, secret);
 }
 
 const browser = await chromium.launch();
 async function person(sub){
 	const ctx = await browser.newContext({ viewport: { width: 390, height: 800 } });
-	await ctx.addCookies([{ name: "sid", value: await cookie_for(sub), url: base, httpOnly: true, secure: true, sameSite: "Lax" }]);
+	await ctx.addCookies([{ name: "s", value: await cookie_for(sub), url: base, httpOnly: true, secure: true, sameSite: "Lax" }]);
 	const page = await ctx.newPage();
-	await page.goto(base);
+	await page.goto(base + "/app/");
 	await page.waitForSelector("text=Welcome");
 	return page;
 }
-const alice = await person("seed:alice"), bob = await person("seed:bob");
+const alice = await person("alice"), bob = await person("bob");
 
 await alice.click("a:has-text('Docs')");
 await alice.fill(".title-input", "Staging latency " + new Date().toISOString());
 await alice.click("button:has-text('Create')");
 await alice.waitForSelector("text=Nobody is editing");
-await bob.goto(base + new URL(alice.url()).pathname);
+await bob.goto(base + "/app/" + new URL(alice.url()).hash);
 await bob.waitForSelector("text=Nobody is editing");
 await alice.click("button:has-text('Start editing')");
 await alice.waitForSelector("text=You are editing");

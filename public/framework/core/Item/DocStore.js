@@ -1,5 +1,5 @@
 // A store adapter for the framework's JSONL streaming system (core/Item/Store.js), over ONE WebSocket to the document's
-// Durable Object (src/doc.js). `DocItem.open("doc:<id>")` loads the document's history, replays it onto the item, and from
+// Room Durable Object (worker/room.js). `DocItem.open("doc:<id>")` loads the document's history, replays it onto the item, and from
 // then on every `item.set(...)` is one JSONL line sent over the socket; lines other people write arrive as live reads.
 //
 // Only the holder of the editing lock may write. The lock is requested with request_lock() and kept alive by a heartbeat.

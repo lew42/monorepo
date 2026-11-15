@@ -1,6 +1,6 @@
 // The documents pages: the list, and one live document (a textarea over a DocItem, DocStore.js).
 import { div, h2, h3, p, span, a, button, input, textarea } from "/framework/core/View/View.js";
-import { DocItem } from "/DocStore.js";
+import { DocItem } from "/framework/core/Item/DocStore.js";
 
 const median = list => { const s = [...list].sort((x, y) => x - y); return s.length ? s[Math.floor(s.length / 2)] : null; };
 
@@ -8,7 +8,7 @@ export function docs_page(app, api){
 	const list = div(p.c("muted", "Loading…"));
 	const title = input.c("title-input").attr("placeholder", "New document title");
 	const draw = docs => list.empty(docs.length ? docs.map(d => div.c("card",
-		a.c("doc-link", h3(d.title)).href("/doc/" + d.id).on("click", e => { e.preventDefault(); app.go("/doc/" + d.id); }),
+		a.c("doc-link", h3(d.title)).href("#/doc/" + d.id).on("click", e => { e.preventDefault(); app.go("/doc/" + d.id); }),
 		span.c("muted", "by " + d.owner))) : p.c("muted", "No documents yet."));
 	const load = () => api("/docs").then(({ docs }) => draw(docs)).catch(e => list.empty(p.c("error", e.message)));
 	load();
@@ -37,7 +37,7 @@ async function open_doc(root, app, api, meta, me){
 	const store = doc.store;
 	if (app.state.path !== "/doc/" + meta.id) return store.close();   // left before it finished opening
 	app.on_leave(() => store.close());
-	window.live_doc = doc;   // a handle for scripts/live.test.mjs
+	window.live_doc = doc;   // a handle for worker/scripts/live.test.mjs
 	const area = textarea.c("doc-text").attr("rows", "14").attr("placeholder", "Start editing, then type here.");
 	const bar = div.c("row");
 	const stats = div.c("stats muted");

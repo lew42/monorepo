@@ -1,6 +1,7 @@
 // node worker/scripts/deploy.mjs <staging|production> [--seed] [--secret KEY=VALUE]...
 // Applies D1 migrations to that stage's own database, deploys the ONE config (worker/wrangler.jsonc, env <stage>), and makes sure
 // SESSION_SECRET exists. Deploy staging first, look at it, then production. Run from anywhere; wrangler runs at the repo root.
+import { appendFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { dirname, join } from "node:path";
@@ -25,6 +26,13 @@ wr(["deploy", "--env", stage]);
 
 const listed = wr(["secret", "list", "--env", stage, "--format", "json"]);
 const have = JSON.parse(listed.slice(listed.indexOf("["), listed.lastIndexOf("]") + 1) || "[]").map(s => s.name);
-if (!have.includes("SESSION_SECRET")) wr(["secret", "put", "SESSION_SECRET", "--env", stage], randomBytes(32).toString("hex"));
+if (!have.includes("SESSION_SECRET")) {
+	const secret = randomBytes(32).toString("hex");
+	wr(["secret", "put", "SESSION_SECRET", "--env", stage], secret);
+	// kept locally (gitignored) so latency.mjs can mint test cookies for staging; production's secret is never written down
+	if (stage === "staging") appendFileSync(join(root, "worker", ".dev.vars"), `
+STAGING_SESSION_SECRET=${secret}
+`);
+}
 flags.forEach((f, i) => { if (f === "--secret") { const [k, ...v] = flags[i + 1].split("="); wr(["secret", "put", k, "--env", stage], v.join("=")); } });
 console.log("\ndeployed", stage);
