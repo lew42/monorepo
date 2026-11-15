@@ -1191,3 +1191,4 @@
 {"log":{"at":"2026-11-14T15:56:18-06:00","msg":"task-loop status ask 3: mastermind-user-auth was stopped on purpose; not woken","ask":3}}
 {"log":{"at":"2026-11-14T16:01:18-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
 {"log":{"at":"2026-11-14T17:01:18-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-14T18:01:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
