@@ -54,7 +54,7 @@ else's page, and a browser always sends the header. A caller that sends nothing 
 caller, and refusing it would only mean the recipe could not be tested from a terminal. A real
 deploy adds the `Origin` check beside this one — belt and braces, and free.
 
-**3 · `worker/seed.sql` is an upsert, and likes survive a restart.**
+**3 · `worker/seed/dev.sql` is an upsert, and likes survive a restart.**
 [local-dev.md](./local-dev/) specified "`DROP TABLE` first, then five fake users". That became
 impossible the moment `likes` existed: **D1 enforces foreign keys**, so `DELETE FROM users` fails
 with `SQLITE_CONSTRAINT_FOREIGNKEY` as soon as one like references a user — and `dev.mjs` re-runs

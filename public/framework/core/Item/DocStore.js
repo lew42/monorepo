@@ -4,7 +4,7 @@
 //
 // Only the holder of the editing lock may write. The lock is requested with request_lock() and kept alive by a heartbeat.
 // Subscribe to what the page needs to draw with store.on_state(fn): connection, lock, round trip, last remote edit.
-import Item from "/framework/core/Item/Item.js";
+import Item from "./Item.js";
 
 const BEAT = 4000;
 

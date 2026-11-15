@@ -66,6 +66,7 @@ class App extends View {
 		this.append(this.bar, this.main);
 		addEventListener("hashchange", () => this.go(here(), false));
 		this.state.config = await api("/config");
+		if (!this.state.config.env) return this.main.append(p("This address has no API yet, so there is nothing to sign in to."));   // a static-only host answers /api/config with the page itself
 		this.state.user = (await api("/me")).user;
 		this.go(here(), false);
 	}
@@ -172,4 +173,5 @@ class App extends View {
 
 new App({ el: document.getElementById("app"), capture: false });
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
+// only where an API answers: on a static-only host there is nothing to install
+if ("serviceWorker" in navigator) fetch("/api/config").then(r => r.headers.get("content-type")?.includes("json") && navigator.serviceWorker.register("./sw.js")).catch(() => {});

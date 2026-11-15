@@ -44,7 +44,7 @@ real database. Step by step, with what you should see at each:
   page is a fixed-width Miller-columns pane, and a card grid measured taller at every width
   than the list it replaced. The reasoning and the numbers are in `page.js`'s own comment.
 
-- **D1 enforces foreign keys**, so `worker/seed.sql` can no longer `DELETE FROM users` —
+- **D1 enforces foreign keys**, so `worker/seed/dev.sql` can no longer `DELETE FROM users` —
   it is an upsert, and the second `npm run dev` used to die once anybody had liked
   anything. Detail: [`decisions/slice.md`](./decisions/slice.md) ruling 3.
 - The like button is `like.js` here, **not** `framework/ext/auth/`, and `/notes/auth/` §7's

@@ -22,8 +22,6 @@ const wr = (args, input) => {
 
 wr(["d1", "migrations", "apply", "DB", "--env", stage, "--remote"]);
 if (flags.includes("--seed")) wr(["d1", "execute", "DB", "--env", stage, "--remote", "--file", `worker/seed/${stage}.sql`]);
-wr(["deploy", "--env", stage]);
-
 const listed = wr(["secret", "list", "--env", stage, "--format", "json"]);
 const have = JSON.parse(listed.slice(listed.indexOf("["), listed.lastIndexOf("]") + 1) || "[]").map(s => s.name);
 if (!have.includes("SESSION_SECRET")) {
@@ -34,5 +32,7 @@ if (!have.includes("SESSION_SECRET")) {
 STAGING_SESSION_SECRET=${secret}
 `);
 }
+wr(["deploy", "--env", stage]);
+
 flags.forEach((f, i) => { if (f === "--secret") { const [k, ...v] = flags[i + 1].split("="); wr(["secret", "put", k, "--env", stage], v.join("=")); } });
 console.log("\ndeployed", stage);

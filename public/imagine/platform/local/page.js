@@ -66,7 +66,7 @@ Full script, output and both screenshots: [the task log](/framework/ai/sessions/
 [\`local-dev.md\`](/imagine/platform/decisions/local-dev.md) named three things nobody had
 verified. All three held; testing them also caught a real bug.`);
 
-		p("1. Verified — wrangler dev -c wrangler.dev.jsonc --port 8787 and PORT=8092 node server.js run side by side on Windows with no port conflict and no file-lock contention, both serving public/ concurrently.");
+		p("1. Verified — wrangler dev -c worker/wrangler.jsonc --port 8787 and PORT=8092 node server.js run side by side on Windows with no port conflict and no file-lock contention, both serving public/ concurrently.");
 		p("2. Verified (noise only) — the framework's own dev Socket (ws://localhost:8787/) hits no route the worker owns, falls through to the assets binding, and gets back a plain 200 page instead of a 101. A real WebSocket treats that as a failed handshake — error, then close — which is exactly Socket.js's existing backoff-and-reconnect path. Console noise, nothing else.");
 		p("3. Verified — a session cookie set at :8787 IS carried on a WebSocket handshake opened from a page whose own origin is :8092 (cookies are not port-scoped, RFC 6265 §8.5), confirmed in a real Chromium context, not asserted from the RFC alone. The harness still keeps everything on one origin (the design local-dev.md already recommended) — this just confirms the fallback would also work.");
 
@@ -84,7 +84,7 @@ with no warning. Every dev-login link is exactly this gesture; this would have s
   ruling 7 keeps the \`users\` table exactly [\`/notes/auth/\`](/notes/auth/) §4's seven columns —
   no email, no role. For five fake logins, the dev-only login route signs the role and the ban
   flag straight into the session payload from a small handle → role map (matching
-  \`worker/seed.sql\`); \`can()\` and \`worker/room.js\` only ever read what the cookie already
+  \`worker/seed/dev.sql\`); \`can()\` and \`worker/room.js\` only ever read what the cookie already
   says. A real login would derive the same fields from D1's topic/founder rows instead.
 - **No mute mid-room, no KV ban key.** The closed list for this harness was the two-context
   message, the banned refusal, and the anonymous read — in that priority order. A moderator

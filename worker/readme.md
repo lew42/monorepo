@@ -60,11 +60,18 @@ The root [wrangler.jsonc](../wrangler.jsonc) is what Cloudflare's Git builds dep
 
 `monorepo-prod` exists and is migrated. To switch lew42.com to this Worker:
 
-1. Open the Cloudflare dashboard → Workers → `monorepo` → Settings → Builds. Set the production branch to `production` (or disconnect Git builds for this Worker) and turn off builds for non-production branches. My API token cannot read or change Workers Builds, so this is a dashboard step.
+1. Open the Cloudflare dashboard → Workers → `monorepo` → Settings → Builds. Set the production branch to `production` (or disconnect Git builds for this Worker) and turn off builds for non-production branches. The agents' Cloudflare token cannot read or change Workers Builds, so this is a dashboard step.
 2. Run `node worker/scripts/deploy.mjs production --secret ADMIN_EMAIL=<your google email>`. That replaces the live Worker `monorepo` with the full API Worker, which still serves all of `public/`.
 3. Check lew42.com, then set the deploy command of the Git build to `npx wrangler deploy -c worker/wrangler.jsonc --env production` (so a push to `production` ships it) and make the root `wrangler.jsonc` the same file or delete it.
 
 Before step 2, finish the owner's list below.
+
+## Not built yet
+
+- **Real Google sign-in has never run.** `GOOGLE_CLIENT_ID` is empty on every stage, so staging was verified with cookies minted by the test scripts; `google.js` rejects every token until the owner finishes step 1 and 2 below.
+- **Banning a real user.** A ban is a flag in the dev login's cookie only (`dev.js`); no column or admin route sets it on staging or production, and `can.js` does not check it.
+- **A page that lists live documents and their lock holders**, and a `DocStore` test.
+- The old app's `ADMIN_GOOGLE_SUB` option (admin by Google subject id) was dropped: the admin is `ADMIN_EMAIL`, compared at sign-in.
 
 ## What the owner must do
 
@@ -74,5 +81,5 @@ Before step 2, finish the owner's list below.
    - `https://lew42.com` (and `https://www.lew42.com` if it is used)
 2. Put the client id in `GOOGLE_CLIENT_ID` for each stage in [wrangler.jsonc](wrangler.jsonc) (it is public, not a secret) and run the deploy script again.
 3. Set `ADMIN_EMAIL` (secret) to your Google email; your first Google sign-in becomes admin: `node worker/scripts/deploy.mjs staging --secret ADMIN_EMAIL=you@example.com`.
-4. Enable R2 in the Cloudflare dashboard (Storage → R2), create buckets `monorepo-staging-docs` and `monorepo-docs`, and add an `r2_buckets` binding named `SNAPSHOTS` to each environment. Until then document history lives only in the Durable Object (fully working, no off-site copy).
+4. Enable R2 in the Cloudflare dashboard (Storage → R2), create buckets `monorepo-staging-docs` and `monorepo-production-docs`, and add an `r2_buckets` binding named `SNAPSHOTS` to each environment. Until then document history lives only in the Durable Object (fully working, no off-site copy).
 5. The Git-builds change at cutover (above).
