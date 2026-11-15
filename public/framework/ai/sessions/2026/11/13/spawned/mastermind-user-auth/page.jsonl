@@ -9,3 +9,5 @@
 {"inbox":{"id":"n-8zv9iro3","from":"servex-task-loop","text":"spawned/mastermind-user-auth is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-11-14T21:01:20.262-06:00"}}
 {"inbox":{"id":"n-b51b1d10","from":"servex-task-loop","text":"spawned/mastermind-user-auth is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-11-14T22:01:20.605-06:00"}}
 {"inbox":{"id":"n-da6uz0dd","from":"servex-task-loop","text":"spawned/mastermind-user-auth is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-11-14T23:01:20.315-06:00"}}
+{"inbox":{"id":"n-er9el5u6","from":"servex-heartbeat","text":"mastermind-user-auth its agent is not running: it was stopped on purpose by voice-app at 2026-11-14T15:26:19-06:00; not revived.","at":"2026-11-14T23:42:36.381-06:00"}}
+{"inbox":{"id":"n-fgnhm8ci","from":"servex-task-loop","text":"spawned/mastermind-user-auth is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-11-15T00:02:21.034-06:00"}}

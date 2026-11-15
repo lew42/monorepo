@@ -3,3 +3,4 @@
 {"inbox":{"id":"n-9j5r5rh7","from":"servex-task-loop","text":"mastermind-yt-sdqcrm is started but silent: 3 status asks went unanswered. Close it, or keep chasing?","at":"2026-11-14T21:16:20.321-06:00"}}
 {"inbox":{"id":"n-bobgwur1","from":"servex-task-loop","text":"mastermind-yt-sdqcrm is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-11-14T22:16:20.240-06:00"}}
 {"inbox":{"id":"n-dth9geob","from":"servex-task-loop","text":"mastermind-yt-sdqcrm is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-11-14T23:16:20.260-06:00"}}
+{"inbox":{"id":"n-es7hcdif","from":"servex-heartbeat","text":"mastermind-yt-sdqcrm its agent is not running; Servex revived it and asked where it is at.","at":"2026-11-14T23:43:20.544-06:00"}}

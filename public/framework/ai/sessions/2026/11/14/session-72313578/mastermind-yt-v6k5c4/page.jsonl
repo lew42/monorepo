@@ -3,3 +3,4 @@
 {"inbox":{"id":"n-9cqc3fqg","from":"servex-task-loop","text":"mastermind-yt-v6k5c4 is started but silent: 3 status asks went unanswered. Close it, or keep chasing?","at":"2026-11-14T21:11:20.403-06:00"}}
 {"inbox":{"id":"n-bhw16umd","from":"servex-task-loop","text":"mastermind-yt-v6k5c4 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-11-14T22:11:20.298-06:00"}}
 {"inbox":{"id":"n-dn1vejkr","from":"servex-task-loop","text":"mastermind-yt-v6k5c4 is started but silent: still no new line on its log. Close it, or keep chasing?","at":"2026-11-14T23:11:20.378-06:00"}}
+{"inbox":{"id":"n-etibk4ts","from":"servex-heartbeat","text":"mastermind-yt-v6k5c4 its agent is not running; Servex revived it and asked where it is at.","at":"2026-11-14T23:44:21.248-06:00"}}

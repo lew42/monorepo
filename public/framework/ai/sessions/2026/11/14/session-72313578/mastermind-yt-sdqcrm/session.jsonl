@@ -14,3 +14,17 @@
 {"log":{"at":"2026-11-14T21:16:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
 {"log":{"at":"2026-11-14T22:16:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-14T23:16:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-14T23:42:34-06:00","heartbeat":"revive-queued","msg":"mastermind-yt-sdqcrm its agent is not running; a revive is queued"}}
+{"pid":30556,"cmd":"C:\\Code\\lew42\\monorepo\\Servex\\node_modules\\@anthropic-ai\\claude-agent-sdk-win32-x64\\claude.exe --output-format stream-json --verbose --input-format stream-json --effort medium --model sonnet --resume=6e0dc56b-c28e-43fc-ab45-82475f0898a4 --disallowedTools mcp__servex__page_call,mcp__servex__page_add,","why":"claude.exe","agent":"mastermind-yt-sdqcrm","session":"6e0dc56b-c28e-43fc-ab45-82475f0898a4","started":"2026-11-14T23:43:19-06:00","by":"servex"}
+{"pid":18492,"cmd":"C:\\Code\\lew42\\monorepo\\Servex\\node_modules\\@anthropic-ai\\claude-agent-sdk-win32-x64\\claude.exe --output-format stream-json --verbose --input-format stream-json --effort medium --model sonnet --resume=6e0dc56b-c28e-43fc-ab45-82475f0898a4 --disallowedTools mcp__servex__page_call,mcp__servex__page_add,","why":"claude.exe","agent":"mastermind-yt-sdqcrm","session":"6e0dc56b-c28e-43fc-ab45-82475f0898a4","started":"2026-11-14T23:43:19-06:00","by":"servex"}
+{"log":{"at":"2026-11-14T23:43:20-06:00","heartbeat":"revive","msg":"revived mastermind-yt-sdqcrm from session 6e0dc56b-c28e-43fc-ab45-82475f0898a4"}}
+{"pid_exit":30556,"ended":"2026-11-14T23:43:26-06:00","code":null,"signal":"SIGKILL","by":"servex"}
+{"log":{"at":"2026-11-14T23:43:27-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-15T05:43:27.539Z"}
+{"pid":21180,"cmd":"","why":"child of claude.exe","agent":"mastermind-yt-sdqcrm","session":"6e0dc56b-c28e-43fc-ab45-82475f0898a4","started":"2026-11-14T23:43:20-06:00","ppid":18492,"seen":"sample","by":"servex"}
+{"pid_exit":21180,"ended":"2026-11-14T23:43:37-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"complete":{"outcome":"Annotated stream sdqCrMRzXGI per reviewer-brief: 21 annotations + summary applied via videos.mjs apply --replace, 0 rejected. Report sent.","evidence":["{\"added\":21,\"rejected\":[]} from node videos.mjs apply sdqCrMRzXGI ... reviewer-sonnet --replace"],"at":"2026-11-14T23:44:02-06:00"}}
+{"assign":{"closed_by":"mastermind-yt-sdqcrm","closed_at":"2026-11-14T23:44:02-06:00","closed_why":null}}
+{"log":{"at":"2026-11-14T23:44:10-06:00","heartbeat":"answered","msg":"Task closed cleanly — `left: []`, nothing outstanding. Stream sdqCrMRzXGI is done: 21 annotations applied, 0 rejected, report already delivered."}}
+{"log":{"at":"2026-11-14T23:44:17-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-11-14T23:48:38-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-15T05:48:38.114Z"}
+{"pid_exit":18492,"ended":"2026-11-14T23:48:38-06:00","code":0,"signal":null,"by":"servex"}

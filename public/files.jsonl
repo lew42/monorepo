@@ -189,3 +189,5 @@
 {"file":"data/"}
 {"file":"failures.jsonl"}
 {"file":"youtube/"}
+{"file":"youtube/page.js","nav":{"title":"Videos","description":"The owner's live-stream videos, annotated and searchable."}}
+{"file":"public/"}

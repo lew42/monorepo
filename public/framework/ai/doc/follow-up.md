@@ -1,34 +1,35 @@
 # Follow-up: what fell through the cracks
 
-Counted by the one state ([one-state.md](one-state.md), `Server/AIIndex.mjs`): every task below is a row of `ai/index.json`. Computed 2026-11-14 06:00 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
+Counted by the one state ([one-state.md](one-state.md), `Server/AIIndex.mjs`): every task below is a row of `ai/index.json`. Computed 2026-11-15 06:02 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
 
-**0 landed with unmerged commits · 0 merged but never landed · 1 quiet over 2 h · 0 landed with no outcome · 509 open tasks untouched over 7 days · 0 open asks with no live owner · 296 healthy of 297.**
+**0 landed with unmerged commits · 0 merged but never landed · 2 quiet over 2 h · 0 landed with no outcome · 509 open tasks untouched over 7 days · 0 open asks with no live owner · 316 healthy of 318.**
 
-## quiet: 1
+## quiet: 2
 
 the state calls it in_flight or stale and its log is silent for over 2 h: resume it or close it.
 
-- [cloud-voice-app-20261110](/framework/ai/sessions/2026/11/10/cloud-voice-app-20261110/): no agent, last log 24 h ago, step 0/0, agent unknown
+- [cloud-voice-app-20261111](/framework/ai/sessions/2026/11/11/cloud-voice-app-20261111/): no agent, last log 24 h ago, step 0/0, agent unknown
+- [session-fb88b979](/framework/ai/sessions/2026/11/11/session-fb88b979/): assistan, last log 25 h ago, step 0/0, agent unknown
 
 ## unworked: 509
 
 Open tasks (idle, queued or waiting, none on the owner) whose last log line is over 7 days old. Nothing runs from the queue by itself, so these only get done if someone looks: do it, group it into a real task, or stop it with a reason (through the item tool). Newest first.
 
-- [v-z0jonhy](/framework/ai/sessions/2026/11/03/v-z0jonhy/): idle, last log 10 d ago
-- [v-qfzrnhh](/framework/ai/sessions/2026/11/02/v-qfzrnhh/): idle, last log 10 d ago
-- [v-u48msei](/framework/ai/sessions/2026/11/01/v-u48msei/): idle, last log 11 d ago
-- [read-aloud-next](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/read-aloud-next/): waiting, last log 12 d ago
-- [v3-messages](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v3-messages/): waiting, last log 12 d ago
-- [v-15bsa90](/framework/ai/sessions/2026/11/01/v-15bsa90/): idle, last log 12 d ago
-- [v-9dvbbrn](/framework/ai/sessions/2026/10/25/v-9dvbbrn/): idle, last log 18 d ago
-- [module-folder-tasks-are-not-found-unless](/framework/ai/sessions/2026/10/25/v-9dvbbrn/module-folder-tasks-are-not-found-unless/): idle, last log 18 d ago
-- [mobile-sheet-page-cannot-scroll-to-the-b](/framework/ai/sessions/2026/10/25/v-9dvbbrn/mobile-sheet-page-cannot-scroll-to-the-b/): idle, last log 18 d ago
-- [chat-tab-on-every-session-page-talk-to-a](/framework/ai/sessions/2026/10/25/v-9dvbbrn/chat-tab-on-every-session-page-talk-to-a/): idle, last log 18 d ago
+- [v-z0jonhy](/framework/ai/sessions/2026/11/03/v-z0jonhy/): idle, last log 11 d ago
+- [v-qfzrnhh](/framework/ai/sessions/2026/11/02/v-qfzrnhh/): idle, last log 11 d ago
+- [v-u48msei](/framework/ai/sessions/2026/11/01/v-u48msei/): idle, last log 12 d ago
+- [read-aloud-next](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/read-aloud-next/): waiting, last log 13 d ago
+- [v3-messages](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v3-messages/): waiting, last log 13 d ago
+- [v-15bsa90](/framework/ai/sessions/2026/11/01/v-15bsa90/): idle, last log 13 d ago
+- [v-9dvbbrn](/framework/ai/sessions/2026/10/25/v-9dvbbrn/): idle, last log 19 d ago
+- [module-folder-tasks-are-not-found-unless](/framework/ai/sessions/2026/10/25/v-9dvbbrn/module-folder-tasks-are-not-found-unless/): idle, last log 19 d ago
+- [mobile-sheet-page-cannot-scroll-to-the-b](/framework/ai/sessions/2026/10/25/v-9dvbbrn/mobile-sheet-page-cannot-scroll-to-the-b/): idle, last log 19 d ago
+- [chat-tab-on-every-session-page-talk-to-a](/framework/ai/sessions/2026/10/25/v-9dvbbrn/chat-tab-on-every-session-page-talk-to-a/): idle, last log 19 d ago
 - …499 more in [follow-up-full.md](follow-up-full.md)
 
 ## Check
 
-296 healthy + 1 flagged = 297; the state lists 297 tasks in the same 10 days: agree. The state's own self-check is ok. Source: ai/index.json (under a minute old). 407 local branches are not merged into `compliance/dev` (many are salvage or abandoned worktrees).
+316 healthy + 2 flagged = 318; the state lists 318 tasks in the same 10 days: agree. The state's own self-check is ok. Source: ai/index.json (under a minute old). 407 local branches are not merged into `compliance/dev` (many are salvage or abandoned worktrees).
 
 ## How each row is counted
 

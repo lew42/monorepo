@@ -1197,3 +1197,5 @@
 {"log":{"at":"2026-11-14T21:01:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-14T22:01:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-14T23:01:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-14T23:42:36-06:00","heartbeat":"deliberate","msg":"mastermind-user-auth its agent is not running: it was stopped on purpose by voice-app at 2026-11-14T15:26:19-06:00; not revived."}}
+{"log":{"at":"2026-11-15T00:02:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}

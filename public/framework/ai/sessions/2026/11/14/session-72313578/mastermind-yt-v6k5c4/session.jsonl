@@ -35,3 +35,15 @@
 {"log":{"at":"2026-11-14T21:11:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
 {"log":{"at":"2026-11-14T22:11:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-14T23:11:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-14T23:42:34-06:00","heartbeat":"revive-queued","msg":"mastermind-yt-v6k5c4 its agent is not running; a revive is queued"}}
+{"pid":30064,"cmd":"C:\\Code\\lew42\\monorepo\\Servex\\node_modules\\@anthropic-ai\\claude-agent-sdk-win32-x64\\claude.exe --output-format stream-json --verbose --input-format stream-json --effort medium --model sonnet --resume=acb2c6f1-660a-4516-a933-446e23a90916 --disallowedTools mcp__servex__page_call,mcp__servex__page_add,","why":"claude.exe","agent":"mastermind-yt-v6k5c4","session":"acb2c6f1-660a-4516-a933-446e23a90916","started":"2026-11-14T23:44:20-06:00","by":"servex"}
+{"pid":28884,"cmd":"C:\\Code\\lew42\\monorepo\\Servex\\node_modules\\@anthropic-ai\\claude-agent-sdk-win32-x64\\claude.exe --output-format stream-json --verbose --input-format stream-json --effort medium --model sonnet --resume=acb2c6f1-660a-4516-a933-446e23a90916 --disallowedTools mcp__servex__page_call,mcp__servex__page_add,","why":"claude.exe","agent":"mastermind-yt-v6k5c4","session":"acb2c6f1-660a-4516-a933-446e23a90916","started":"2026-11-14T23:44:20-06:00","by":"servex"}
+{"log":{"at":"2026-11-14T23:44:20-06:00","heartbeat":"revive","msg":"revived mastermind-yt-v6k5c4 from session acb2c6f1-660a-4516-a933-446e23a90916"}}
+{"log":{"at":"2026-11-14T23:44:26-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-15T05:44:26.982Z"}
+{"log":{"at":"2026-11-14T23:44:27-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-15T05:44:27.114Z"}
+{"pid_exit":30064,"ended":"2026-11-14T23:44:27-06:00","code":null,"signal":"SIGKILL","by":"servex"}
+{"complete":{"outcome":"landed","evidence":["31 annotations + summary applied to stream v6k5C4_MdsM via videos.mjs apply (added:31, rejected:0); self-caught owner-name violation in the applied summary fixed by re-running apply with corrected text, all 31 annotations preserved (grep -c \"Michael\" on video.jsonl and videos/index.jsonl = 0 after fix). Scratch files removed, git status clean."],"at":"2026-11-14T23:45:11-06:00"}}
+{"assign":{"closed_by":"unknown caller","closed_at":"2026-11-14T23:45:11-06:00","closed_why":null}}
+{"log":{"at":"2026-11-14T23:45:17-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-11-14T23:50:41-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-15T05:50:41.088Z"}
+{"pid_exit":28884,"ended":"2026-11-14T23:50:41-06:00","code":0,"signal":null,"by":"servex"}
