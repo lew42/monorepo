@@ -39,9 +39,9 @@ Text, icon, button, image, card, and one or two layouts, leaning on browser defa
 | Part | Proposal | Source |
 |---|---|---|
 | Text | Not a component: text styles (checking the file's styles is open) | none |
-| Icon | One `Icon` component (square, size by variant) | new, needs OK |
-| Button | `Button` (Scale 23:506) | **keep** |
-| Image | One `Image` placeholder (fill, aspect via variant) | new, needs OK |
+| Icon | `Icon.Item Set` on the `Icons` page (the owner is editing it) | **keep**, existing |
+| Button | `Button` (Elements 23:506, moved from Scale) | **keep**, done |
+| Image | `Image` placeholder (Elements 48:4583) | **done** (the owner asked for it) |
 | Card | `Card` (Scale 16:364) with a `with media` variant folded in | **keep, merge** 16:374 and `Card Set` 34:244 into it |
 | Heading | `Heading Set` (34:466) is 52 variants; trim to what the rule set needs | **keep, trim** |
 | Layout | Two building blocks: `Columns` (a row of Fill slots) and `Sidebar layout` (sidebar + main) | **merge** the seven sets into two |
