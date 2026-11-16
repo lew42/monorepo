@@ -27,28 +27,28 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-15 00:01 UTC, last 24 h)
+## NOW (computed 2026-11-16 00:02 UTC, last 24 h)
 
-**Pace:** Week: 11% used · 41% gone · 27% of pace (room to spend, 4 days 2 hours left)
+**Pace:** Week: 15% used · 55% gone · 27% of pace (room to spend, 3 days 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
 **Landed (1):**
-- [BUILD (not planning). Work autonomously; take a worktree (take_worktree) and spawn minions if useful. Report p](/framework/ai/sessions/2026/11/14/spawned/mastermind-auth-build/) (mastermind-auth-build)
+- [CONSOLIDATE the auth demo into the monorepo Worker. Owner approved. Work autonomously in a worktree; report to](/framework/ai/sessions/2026/11/15/spawned/mastermind-auth-merge/) (mastermind-auth-merge)
 
 **Open, touched in the window (0):**
 - none
 
 **Latest commits on this branch:**
 ```
-b94d31a00 servex: log sweep (2 files)
-4a7dd3079 servex: log sweep (5 files)
-d3e424cb3 servex: log sweep (2 files)
-f03214962 servex: log sweep (5 files)
-3ab46c49e servex: log sweep (12 files)
-d9c291ba1 Merge qf-2: app: readme notes (staging DNS record, DocStore listed in the Item readme)
-ae08ee9da app: readme notes (staging DNS record, DocStore listed in the Item readme)
-fd4ec61a9 app: review fixes (dark mode variables, install button survives page changes, documents close their socket and lock on leave, constant-time cookie check)
+8ce3c5effd Merge auth-merge: gitignore: worker/.dev.vars at the top of the file (avoids merge overlap)
+febd5b270e gitignore: worker/.dev.vars at the top of the file (avoids merge overlap)
+d739bedcb0 worker: readme and identity wording after review round 3
+981cf60df5 worker: review fixes (stale doc names, secret before deploy, no-API host message, DocStore test)
+be0e42ca20 servex: log sweep (5 files)
+9f123102d7 worker: remove app/, docs for the consolidated Worker, staging deploy fixes
+371deee01a app UI under public/app (hash routes, new user shape), scripts adapted
+93cb035523 worker: port app/ backend into the monorepo Worker (stateless session, Room lock, migrations, API tests)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.

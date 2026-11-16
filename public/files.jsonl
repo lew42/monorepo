@@ -191,3 +191,4 @@
 {"file":"youtube/"}
 {"file":"youtube/page.js","nav":{"title":"Videos","description":"The owner's live-stream videos, annotated and searchable."}}
 {"file":"public/"}
+{"file":"app/","nav":{"title":"/app/: the auth demo UI"}}
