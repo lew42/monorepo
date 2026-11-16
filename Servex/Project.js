@@ -14,6 +14,7 @@ export default class Project extends Events {
         const pkg = this.pkg();
         this.name ??= pkg.name || path.basename(this.dir);
         this.scripts = pkg.scripts ? Object.keys(pkg.scripts) : [];
+        this.routes = pkg.servex?.routes ?? [];     // [{ prefix, service, start }], see ReverseProxy.prefixes
     }
 
     pkg(){
@@ -38,6 +39,7 @@ export default class Project extends Events {
      * must never try to start a second one on the same port. */
     start_command(){
         if (this.external) return null;
+        if (this.launch) return { command: this.launch[0] === "node" ? process.execPath : this.launch[0], args: this.launch.slice(1) };
         for (const entry of ENTRIES){
             if (fs.existsSync(path.join(this.dir, entry))) return { command: process.execPath, args: [entry] };
         }
@@ -47,7 +49,7 @@ export default class Project extends Events {
 
     toJSON(){
         return {
-            name: this.name, dir: this.dir, port: this.port, self: !!this.self, external: !!this.external,
+            name: this.name, dir: this.dir, port: this.port, self: !!this.self, external: !!this.external, of: this.of,
             scripts: this.scripts, can_start: !this.self && !!this.start_command()
         };
     }

@@ -2,7 +2,7 @@
 
 Not the site's own entry file: that is `public/app.js`; this folder has its own `app.js`.
 
-A small installable app (PWA) in vanilla JS: Google sign-in, a feed, profile, an admin users list and live documents with one editor at a time. It talks to the Worker's `/api/*` ([worker/readme.md](../../worker/readme.md)); open it at `/app/` on the local stage (`node dev.mjs`, then http://localhost:8787/app/) or staging.
+A small installable app (PWA) in vanilla JS: Google sign-in, a feed, profile, an admin users list and live documents with one editor at a time. It talks to the Worker's `/api/*` ([worker/readme.md](../../worker/readme.md)); open it at http://monorepo.localhost/app/ (Servex starts the API on the first request, [Servex/doc/prefix-routes.md](../../Servex/doc/prefix-routes.md)) or on staging.
 
 | File | What it is |
 |---|---|

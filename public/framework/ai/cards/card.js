@@ -1,4 +1,5 @@
 import { Page, View, div, p, span, small, a, button, input, select, option, details, summary } from "/app.js";
+import { servex_url } from "/framework/dev/servex_url.js";
 import { icon, table, thead, tbody, tr, th, td } from "/framework/core/View/View.js";
 import List from "/framework/core/List/List.js";
 import { Faces } from "./Faces.js";
@@ -677,11 +678,11 @@ export default class Card extends Page {
 			const objPath = String(this._objects);
 			if (objPath === "/Servex/" || objPath === "/Servex"){
 				import("/framework/ux/Objects/Objects.js").then(({ default: Objects }) => {
-					fetch("/api/objects").then(r => r.ok ? r.json() : null).then(data => {
+					fetch(servex_url("/api/objects")).then(r => r.ok ? r.json() : null).then(data => {
 						if (data) $box.append(() => Objects.of(data));
-						else $box.append(() => a.c("ai2-objects-link page-link").href("/api/objects").text("Servex (offline)"));
+						else $box.append(() => a.c("ai2-objects-link page-link").href(servex_url("/api/objects")).text("Servex (offline)"));
 					}).catch(() => {
-						$box.append(() => a.c("ai2-objects-link page-link").href("/api/objects").text("Servex"));
+						$box.append(() => a.c("ai2-objects-link page-link").href(servex_url("/api/objects")).text("Servex"));
 					});
 				}).catch(() => {
 					$box.append(() => a.c("ai2-objects-link page-link").href(objPath).text(objPath));

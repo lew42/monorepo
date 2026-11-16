@@ -16,7 +16,8 @@ export { UserDO } from "./settings.js";
 const json = (data, status = 200, headers = {}) =>
     new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json", "cache-control": "no-store", ...headers } });
 const fail = (status, error) => json({ error }, status);
-const is_local = url => url.hostname === "localhost" || url.hostname === "127.0.0.1";
+// This machine: localhost, 127.0.0.1, or any <name>.localhost (Servex's reverse proxy names a project that way). Never a public name.
+export const is_local = url => url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname.endsWith(".localhost");
 
 // The user the cookie names, read from D1 (role, handle and token_epoch are the database's, never the cookie's), or null.
 async function resolveUser(request, env) {
@@ -51,7 +52,17 @@ const FEED = [
 
 const settings_stub = (env, user) => env.USER_DO.get(env.USER_DO.idFromName("user:" + user.id));
 
+// Who each action means, in the words /api/ prints. can.js decides; this only names it.
+const WHO = { public: "anyone", read: "anyone, signed in or not", write: "a signed-in member", admin: "an admin or the owner" };
+
 const ROUTES = {
+    // The endpoint list, generated from this table (plus the two sockets, which route() handles before the table).
+    "GET /api/": ["public", async () => json({ endpoints: [
+        ...Object.entries(ROUTES).map(([key, [action]]) => ({ method: key.split(" ")[0], path: key.split(" ")[1], action, who: WHO[action] })),
+        { method: "GET", path: "/api/room?url=", action: "read", who: WHO.read, note: "WebSocket: the chat room of a page" },
+        { method: "GET", path: "/api/doc/<id>/ws", action: "write", who: WHO.write, note: "WebSocket: one document's Room" },
+    ] })],
+
     "GET /api/config": ["public", async (r, env, url) => json({ client_id: env.GOOGLE_CLIENT_ID || "", env: env.ENV_NAME || "local", dev_login: env.DEV_LOGIN === "1" && is_local(url) })],
 
     "GET /api/me": ["read", async (r, env, url, user) => json(user

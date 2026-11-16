@@ -3,6 +3,11 @@
   "scripts": {
     "dev": "node dev.mjs"
   },
+  "servex": {
+    "routes": [
+      { "prefix": "/api", "service": "api", "start": ["node", "worker/scripts/serve.mjs"] }
+    ]
+  },
   "dependencies": {
     "chokidar": "^5.0.0",
     "express": "^5.2.1",

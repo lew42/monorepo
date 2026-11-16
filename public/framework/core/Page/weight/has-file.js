@@ -1,5 +1,5 @@
 // has_file(page_url, name) — is `name` a real file right beside `page_url`?
-// true/false from the live folder names (/api/folder-names, core/Router/listing.js) on the dev server;
+// true/false from the live folder names (/dev/folder-names, core/Router/listing.js) on the dev server;
 // off it, from the old /directory.json tree when there is one, else undefined ("can't know": callers fetch blind).
 // Imports only Router/listing.js, so weight.js, ai-cost.js and settings.js can all use it without a cycle.
 

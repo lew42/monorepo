@@ -9,7 +9,7 @@
 // bundles do not contain it (identity.md ruling 3).
 //
 // Bindings do not inherit across `env`, so each stage lists its own. SESSION_SECRET and ADMIN_EMAIL are secrets, set by deploy.mjs.
-// API_HOSTS is the allowlist of hostnames the API answers on: a Git preview URL (<branch>-monorepo.<account>.workers.dev) is not on it.
+// API_HOSTS is the allowlist of hostnames the API answers on (locally also monorepo.localhost, the name Servex's proxy serves it under): a Git preview URL (<branch>-monorepo.<account>.workers.dev) is not on it.
 //
 // Why this file is not the root wrangler.jsonc: Cloudflare's Git build runs `npx wrangler deploy` on the root file on every push to
 // the production branch. The root file stays assets-only (no `main`, no bindings) until production is cut over by hand (worker/readme.md).
@@ -22,7 +22,7 @@
   "durable_objects": { "bindings": [{ "name": "ROOM", "class_name": "Room" }, { "name": "USER_DO", "class_name": "UserDO" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }, { "tag": "v2", "new_sqlite_classes": ["UserDO"] }],
   "r2_buckets": [{ "binding": "SNAPSHOTS", "bucket_name": "monorepo-local-docs" }],
-  "vars": { "ENV_NAME": "local", "DEV_LOGIN": "1", "GOOGLE_CLIENT_ID": "", "API_HOSTS": "localhost,127.0.0.1" },
+  "vars": { "ENV_NAME": "local", "DEV_LOGIN": "1", "GOOGLE_CLIENT_ID": "", "API_HOSTS": "localhost,127.0.0.1,monorepo.localhost" },
 
   // R2 snapshots: staging and production get "r2_buckets": [{ "binding": "SNAPSHOTS", "bucket_name": "monorepo-<stage>-docs" }] once R2 is
   // enabled in the Cloudflare dashboard (creating a bucket fails with code 10042 until then). Room skips snapshots when there is no binding.

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-/* FolderNames — GET /api/folder-names?dir=/framework/ai/sessions/2026/10/20/
+/* FolderNames — GET /dev/folder-names?dir=/framework/ai/sessions/2026/10/20/
  * answers {names:[...]}: the entry names of ONE folder under `public/`, always a 200
  * (a missing folder is `[]`). The router walk (ai/AITask `has()`) asks it once per
  * folder instead of probing `session.jsonl`, `task.jsonl`, `page.js` and
@@ -23,7 +23,7 @@ export default class FolderNames {
 	}
 
 	route(server){
-		server.router.get("/api/folder-names", (req, res) => {
+		server.router.get("/dev/folder-names", (req, res) => {
 			const segments = String(req.query.dir ?? "").split("/").filter(Boolean);
 			if (segments.some(denied)) return res.status(403).end();
 

@@ -57,6 +57,7 @@ export default class ReverseProxy extends Events {
         this.bare ??= null;         // the project a nameless `localhost` reaches
         this.site ??= null;         // where a nameless `localhost` PAGE link is sent — see handle()
         this.ports ??= {};
+        this.prefixes ??= {};       // project -> [{ prefix, name }]: a path under prefix goes to the service `name`, see name()
         this.wait ??= 15000;        // how long a request waits for a starting project — ready(), failed()
 
         /* ⚠ A KEEP-ALIVE agent. Without one, http-proxy opens a fresh connection
@@ -87,10 +88,17 @@ export default class ReverseProxy extends Events {
         this.server = this.servers[0];
     }
 
+    /* Who answers this request. The Host names a project; a project that lists `prefixes` sends the
+     * paths under each prefix (`/api` takes `/api`, `/api/x` and `/api?x`, never `/apix`) to that
+     * route's own service, which has its own port, its own process and its own Starting page.
+     * Everything else, and every project with no prefixes, goes to the project itself. */
     name(req){
         const host = (req.headers?.host || "").replace(/:\d+$/, "").toLowerCase();
         if (host === "localhost" || host === "127.0.0.1" || host === "[::1]") return this.bare ?? host;
-        return host.replace(/\.localhost$/, "");
+        const project = host.replace(/\.localhost$/, "");
+        const path = (req.url || "").split("?")[0];
+        const route = this.prefixes[project]?.find(r => path === r.prefix || path.startsWith(r.prefix + "/"));
+        return route ? route.name : project;
     }
 
     target(req){
