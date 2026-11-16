@@ -50,6 +50,8 @@ node worker/scripts/ui.test.mjs http://monorepo.localhost     # headless browser
 node worker/scripts/live.test.mjs http://monorepo.localhost   # two browsers on one document
 ```
 
+⚠ On Windows Node cannot resolve `*.localhost` (curl and browsers can), so `api.test.mjs` against `http://monorepo.localhost` needs a preload that maps `*.localhost` to 127.0.0.1 (`node --import ./that.mjs`); the two browser tests need nothing. Behind the proxy a forged `Host` is turned away by the proxy itself (404), so that one assertion only checks it is not served.
+
 `api.test.mjs` reads the route table out of `index.js`, so a route added without an assertion fails it, and it checks `GET /api/` lists every row.
 
 Wrangler checks every file under `public/` before it starts: 25 MiB per file at most, and a file count limit. Files that must never be an asset (private downloads, caches, the big task-state logs) are listed in [public/.assetsignore](../public/.assetsignore); a new big file under `public/` that is not in git has to be added there or `wrangler dev` stops with "Ensure all assets in your assets directory conform with the Workers maximum size requirement".

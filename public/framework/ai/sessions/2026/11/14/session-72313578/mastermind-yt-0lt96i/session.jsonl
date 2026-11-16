@@ -20,3 +20,6 @@
 {"log":{"at":"2026-11-14T20:31:04-06:00","heartbeat":"answered","msg":"Status: finished. Stream 0LT96I50Ve0 is annotated with 43 annotations applied and 0 rejected. The summary is in `lines-youtube-0LT96I50Ve0.json`. I have nothing in flight and no further work planned."}}
 {"complete":{"outcome":"Stream 0LT96I50Ve0 annotated: summary plus 43 annotations applied via videos.mjs apply, 0 rejected.","evidence":["node videos.mjs apply 0LT96I50Ve0 lines-youtube-0LT96I50Ve0.json reviewer-sonnet --replace reported 43 added, 0 rejected."],"at":"2026-11-14T20:31:07-06:00"}}
 {"assign":{"closed_by":"unknown caller","closed_at":"2026-11-14T20:31:07-06:00","closed_why":null}}
+{"log":{"at":"2026-11-14T20:31:30-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-11-14T20:31:42-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-15T02:31:42.292Z"}
+{"pid_exit":10952,"ended":"2026-11-14T20:31:42-06:00","code":0,"signal":null,"by":"servex"}

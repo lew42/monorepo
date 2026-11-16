@@ -94,7 +94,9 @@ const hostStatus = await new Promise(resolve => {
     const u = new URL(base);
     http.get({ host: u.hostname, port: u.port, path: "/api/config", headers: { Host: "preview.example.workers.dev" } }, res => { res.resume(); resolve(res.statusCode); });
 });
-assert.equal(hostStatus, 503, "an unlisted host is refused");
+// Behind the Servex proxy (a *.localhost base) the proxy routes by Host, so a forged Host is turned away there with a 404 before the Worker sees it.
+if (/\.localhost$/.test(new URL(base).hostname)) assert.notEqual(hostStatus, 200, "an unlisted host is not served");
+else assert.equal(hostStatus, 503, "an unlisted host is refused");
 
 // ── a forged and a tampered cookie are anonymous
 const forged = await (await call("GET", "/api/me", { cookie: "s=" + carol.cookie.slice(2, -3) + "AAA" })).json();
