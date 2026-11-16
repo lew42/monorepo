@@ -21,7 +21,8 @@ These are thoughts from a live voice session, recorded so they survive. **None o
 
 ## Rules from the explorations (2026-11-16)
 
-- **Keep master components at the root of their page.** They can't live inside a preview frame.
+- **Master components live on the root canvas, visibly, so it is obvious they are masters.** They can't live inside a preview frame, and presentation frames never nest masters. The one exception is a frame whose job is to categorise masters, for example by column count and/or width.
+- **Idea, not tried yet: arrows from a master to where its instances are used.** Big Sloppy's "Flow" page has connector/arrow components that could draw them. Caveats: the Lew42 v2 file isn't a library, so those components can't be imported there (they would be rebuilt as plain lines), and Figma's real connector objects are FigJam-only in the plugin API. Worth a try on one page if it stays cheap.
 - **No duplicate content between a page's preview and its page content.** Keep one or the other.
 - **Every page is self-documenting:** it shows its own tokens, modes and components.
 
