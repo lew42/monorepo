@@ -20,6 +20,8 @@ Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` ma
 
 **[Figma → CSS HTML twin](/framework/ext/Figma/layout-css/index.html)** (2026-11-16): plain HTML and CSS, no build step, showing Fixed/Hug/Fill width and height in a flex row and a flex column, same labels and order as the Lew42 v2 file's `Explore – Figma → CSS` page. [What the Plugin API can and can't read about layout version](./doc/layout-versions.md).
 
+**[Live board](./doc/live-board.md)** (2026-11-16): the "Live" page in the Claude November 2026 file — a 2600-wide topics/cards/notes board, seeded with today's dictation, that updates through short `use_figma` calls instead of a rebuild.
+
 ## Component strategy (current, 2026-11-12)
 
 This is the current truth. Where an older line below contradicts it, that line is marked superseded.
