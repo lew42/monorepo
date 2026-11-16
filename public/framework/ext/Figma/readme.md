@@ -287,6 +287,7 @@ Page `Page builder` (62:933) has exactly two top-level frames, both auto layout 
 - [doc/token-audit.md](./doc/token-audit.md) — the 10 variable collections after the 2026-11-13 cleanup (18 before): what was merged and tossed, and the flags still open
 - [doc/design-system-notes.md](./doc/design-system-notes.md) — the owner's open thinking (2026-11-16, not decisions): seven Scale modes multiply every edit, 0.5x to 2x rule, modes as container-query stand-in, fewer modes?, the "level one" kit idea
 - [doc/modes.md](./doc/modes.md) — what a mode switch moves (every variable in its collection, cascading), the four escape hatches, where to set a mode, the v2 Scale cut-down (2026-11-13)
+- [doc/animation-system.md](./doc/animation-system.md) — prototyping through the Plugin API: click-to-variant with Smart Animate works (snippet), exact errors for what does not, how to name layers across variants (2026-11-16)
 - [doc/capture.md](./doc/capture.md) — our page into Figma (`generate_figma_design`): works; flex survives as auto layout, one breakpoint per capture
 - [doc/figma-to-framework.md](./doc/figma-to-framework.md) — which Figma signal implies which of our layout words, where the signal runs out, the default; what a spec must name (HUG = does not stretch)
 - [doc/page-storage.md](./doc/page-storage.md) — how a page's content should be stored (JSONL views vs `page.js`), decided
