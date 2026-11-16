@@ -15,6 +15,10 @@ These are thoughts from a live voice session, recorded so they survive. **None o
 - **Review step: test with short and long text.** After building anything with text, try a short and a long (wrapping) string before approving it. Most layout bugs show up only when the text wraps.
 - **Build without animation first, add animation later.** Static layouts first; interactive variants and Smart Animate are a layer on top. See [animation-system.md](./animation-system.md) if it exists yet (written during the 2600-layout exploration).
 
+## Layout version
+
+- **Use the Latest auto-layout version everywhere** (it matches CSS border-box). **Equal splits: grid flow + `fr`.** Figma has two versions, Latest (default for new frames since July 2026) and Legacy (can be switched back to only until January 2027). Fixed / Hug / Fill are the same in both; Latest only changes six edge cases (padding as a minimum width, inside strokes counting in layout, a parent's stroke setting no longer reaching children, Fill children splitting by content area, auto gap never negative, a single child in a "Between" stack aligning to the start). What the plugin API can read or set: [layout-versions.md](./layout-versions.md) (written by the layout exploration; may not exist yet).
+
 ## The "level one" kit idea
 
 A small first kit: **text, icons, buttons, images and basic layouts, leaning on browser defaults** (what a plain HTML page would do) instead of inventing a Figma-only behaviour. Everything bigger is built from these. Not started; the explorations on the Lew42 v2 file (Explore pages) are the way to find what belongs in it.
