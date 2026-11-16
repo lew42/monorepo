@@ -20,7 +20,7 @@ Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` ma
 
 **[Figma → CSS HTML twin](/framework/ext/Figma/layout-css/index.html)** (2026-11-16): plain HTML and CSS, no build step, showing Fixed/Hug/Fill width and height in a flex row and a flex column, same labels and order as the Lew42 v2 file's `Explore – Figma → CSS` page. [What the Plugin API can and can't read about layout version](./doc/layout-versions.md).
 
-**[Layouts · 1920 Desktop](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=82-1684)** (2026-11-16, Lew42 v2, waiting on the owner's review): the first page of the layout library. It holds 13 viewports of 1920 × 1080 (one column, two-column splits, sidebars, and grids of 2/3/4/6 columns). Each region sets the Scale mode nearest its width. The other Scale pages follow once this one is approved. For a 60/40 split, `layoutGrow` 3 and 2 on two Fill children works through the API (1044/696).
+**[Layout library](./doc/layout-library.md)** (2026-11-16, Lew42 v2): every size page holds one `Layouts · <mode>` root, read left to right from one plain card to nested layouts, with the Scale mode on regions and cards on Auto. [3440 Mega](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=67-5) is the model. The doc also covers the paused Templates pilot and the swap preview test.
 
 **[Live board](./doc/live-board.md)** (2026-11-16): the "Live" page in the Claude November 2026 file — a 2600-wide topics/cards/notes board, seeded with today's dictation, that updates through short `use_figma` calls instead of a rebuild.
 
