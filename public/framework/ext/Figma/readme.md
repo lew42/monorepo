@@ -26,6 +26,8 @@ Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` ma
 
 **[Text](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=99-5362)** (2026-11-16, Lew42 v2, right after Elements): the reference for the 8 local text styles. Six white cards on a `light` ground (Scale `2600 XL` on the wrapper, `1000 Default` on each card): specimens, hierarchy in use, Icon.Item pairings (plain, framed, smaller framed icon, three wrap alignments), wrapping at 400 and 1000, the 720 vs 1600 measure, and the open question of type at 2600. Found while building: `Icon.Item Set`'s Name text and its `Icon` still come from the old file (remote `h1`…`label` styles and the `Icon size` collection), so the fix belongs on that master; the Button master's label fill is unbound.
 
+**[Card vs Section](./doc/card-vs-section.md)** (2026-11-16, Lew42 v2, experiment): one variable mode flips a layout from white cards on a ground to flush full-height columns. The `Lew42 v2 · Surface (experiment)` collection has four variables (gap, inset, radius, ground); no existing page is bound to it.
+
 **[Page audit](./doc/page-audit.md)** (2026-11-16, read-only): every page in Lew42 v2 screenshotted and checked against the build checklist. The one finding that matters everywhere: the Button's label fails WCAG contrast (2.6, needs 4.5) on every Scheme — confirmed by [Explore – Color permutations](./doc/page-audit.md#explore-color-permutations)' own computed numbers, so it's a token fix, not a per-page one.
 
 ## Component strategy (current, 2026-11-12)
