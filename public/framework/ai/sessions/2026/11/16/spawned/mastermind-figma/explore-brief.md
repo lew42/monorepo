@@ -2,6 +2,8 @@
 
 Owner request (relayed by voice-app, 2026-11-16). Each minion builds ONE exploration page in **Lew42 v2**, file key `ADpu9u2V0BlEZfR3rrMfER` (https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER). Load the `minion` skill first, then `figma:figma-use` and `figma:figma-generate-design` (pass `figma-use,figma-generate-design` in `skillNames` on every mutating `use_figma`). Call `create_session` for the file once, reuse its sessionId.
 
+**Before any `use_figma` edit read [build-checklist.md](/framework/ext/Figma/doc/build-checklist.md), and run its "After building" steps (screenshots of the whole page and each section, long-text test, narrow test) before you report done. A report without screenshots is not done.**
+
 ## Core rule: Index first, reuse, no new masters (the owner, 2026-11-16)
 
 - **Read the `Index` page first** (currently still `Page 1` until it is built). It lists every master component in the file, one instance of each with its name, home page and one-line purpose, and nothing else. It is the one source for what exists.
