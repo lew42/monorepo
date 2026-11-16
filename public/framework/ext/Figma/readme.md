@@ -28,6 +28,8 @@ Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` ma
 
 **[Card vs Section](./doc/card-vs-section.md)** (2026-11-16, Lew42 v2, experiment): one variable mode flips a layout from white cards on a ground to flush full-height columns. The `Lew42 v2 · Surface (experiment)` collection has four variables (gap, inset, radius, ground); no existing page is bound to it.
 
+**Resolution cards** (2026-11-16, Lew42 v2): one component set per Scale mode, `Res.<width> <name> Set` (e.g. `Res.1600 LG Set`), on its size page: inside the `<width> / Layouts` folder where one exists, loose near the top on 1920 Desktop and 3440 Mega. Each card is exactly as wide as its screen (width bound to Scale `width`, and the card sets its own Scale mode). It holds one centred label in the new `display` text style (Montserrat Black 128, 120%). 400 Mobile uses `h1` instead, because "Mobile" breaks mid-word at 128. `Style=Card` (default) is white, hugs its height and is at least `card-min` tall. `Style=Space` is light gray at a typical screen height; set Fill height where you place it. The 3440 set is the owner's hand-built card, made into a component. Ids: 360 `100:8494`, 400 `100:8938`, 600 `100:9439`, 1000 `100:9677`, 1600 `100:9682`, 1920 `100:9888`, 2600 `100:10097`, 3440 `100:8489`.
+
 **[Page audit](./doc/page-audit.md)** (2026-11-16, read-only): every page in Lew42 v2 screenshotted and checked against the build checklist. The one finding that matters everywhere: the Button's label fails WCAG contrast (2.6, needs 4.5) on every Scheme — confirmed by [Explore – Color permutations](./doc/page-audit.md#explore-color-permutations)' own computed numbers, so it's a token fix, not a per-page one.
 
 ## Component strategy (current, 2026-11-12)
