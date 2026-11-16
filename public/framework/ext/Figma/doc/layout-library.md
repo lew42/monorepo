@@ -5,7 +5,7 @@ The size pages in [Lew42 v2](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER
 ## Structure of a size page
 
 - **Root wrapper**: black at 5%, the page's Scale mode, padding and gap bound to `section-pad`.
-- **Header**: `h1` with the mode name, one `h3` intro line and a Range line.
+- **Header**: `h1` with the mode name, one `h3` intro line and a Range line. On 1920, 2600 and 3440 it also holds a text line named `Systems used` that links the masters the page uses (index: AI page, Systems map `101:13905`). Keep it when you rebuild a header, and update its links when a master's id changes.
 - **Grid of steps**: one column per step, read left to right, from basic to advanced, so the whole page sits at about 2:1 when zoomed out:
   1. Single column (one padded card)
   2. Two columns (50/50, 60/40, 40/60, rail + fill)
