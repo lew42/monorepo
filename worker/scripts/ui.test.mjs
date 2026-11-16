@@ -28,7 +28,7 @@ await page.waitForSelector("text=Sign in");
 await page.click("text=dev: bob");
 await page.waitForSelector("text=Welcome");
 assert.equal(await page.locator("a:has-text('Admin')").count(), 0, "a moderator sees no Admin link");
-const manifest = await (await page.request.get(base + "/app/manifest.webmanifest")).json();
+const manifest = await page.evaluate(() => fetch("/app/manifest.webmanifest").then(r => r.json()));   // the page resolves *.localhost; page.request (Playwright driver) cannot
 assert.equal(manifest.display, "standalone");
 assert.equal(manifest.scope, "/app/");
 await page.evaluate(() => navigator.serviceWorker.ready);
