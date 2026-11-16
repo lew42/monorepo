@@ -433,7 +433,7 @@ export default class Servex extends Events {
                 service.port = this.ports.port(name);
                 this.projects.push(service);
             }
-            (this.prefixes[project.name] ??= []).push({ prefix: route.prefix.replace(//$/, ""), name });
+            (this.prefixes[project.name] ??= []).push({ prefix: route.prefix.replace(/\/$/, ""), name });
         }
     }
 

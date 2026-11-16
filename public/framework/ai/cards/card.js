@@ -674,14 +674,14 @@ export default class Card extends Page {
 
 		if (this._objects) div.c("ai2-card-objects", $box => {
 			div.c("ai2-objects-head muted").text("Objects");
-			const objPath = String(this._objects);
+			const objPath = String(this._objects), servex = location.hostname === "servex.localhost" ? "" : "http://servex.localhost";
 			if (objPath === "/Servex/" || objPath === "/Servex"){
 				import("/framework/ux/Objects/Objects.js").then(({ default: Objects }) => {
-					fetch("/api/objects").then(r => r.ok ? r.json() : null).then(data => {
+					fetch(servex + "/api/objects").then(r => r.ok ? r.json() : null).then(data => {
 						if (data) $box.append(() => Objects.of(data));
-						else $box.append(() => a.c("ai2-objects-link page-link").href("/api/objects").text("Servex (offline)"));
+						else $box.append(() => a.c("ai2-objects-link page-link").href(servex + "/api/objects").text("Servex (offline)"));
 					}).catch(() => {
-						$box.append(() => a.c("ai2-objects-link page-link").href("/api/objects").text("Servex"));
+						$box.append(() => a.c("ai2-objects-link page-link").href(servex + "/api/objects").text("Servex"));
 					});
 				}).catch(() => {
 					$box.append(() => a.c("ai2-objects-link page-link").href(objPath).text(objPath));
