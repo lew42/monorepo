@@ -22,6 +22,10 @@ The card's fill stays Scheme `surface` and its padding stays Scale `pad-x`/`pad-
 - **Section gap is 1, not 0.** With 0 the white columns merge into one slab. The alternative is 0 with each column told apart by its own Scheme (White sidebar, Light gray main); that needs no hairline, but then Card mode needs the cards' Scheme flipped back.
 - **The demo rebinds radius on each Card instance** (the Card master `34:478` still binds Scale `radius`), so nothing else in the file changes. Adopting it means binding the master's radius to `surface-radius`; Card is the default mode, so every existing card looks the same.
 
+- **Name proposal, not applied:** rename `surface-inset` to `layout-padding`. "Padding" is the word Figma uses, and "layout" says whose padding it is (the layout's, not the card's). `surface-padding` keeps the family prefix but reads like the card's own padding. The owner decides.
+
+The page opens by naming the collection, its modes and where to set the mode. Its "The system" section has a token table (variable, what it controls, Card, Section, why), where every value is a live shape bound to the variable, plus two rows for the collections that stay the same in both modes (Scale `pad-x`/`pad-y`, Scheme `surface`; documented on the Scale page and in the AI page's Tokens frame).
+
 ## What a mode cannot switch
 
 Layout direction, Hug vs Fill sizing, and the column count can't bind to variables. So both modes use Fill-height columns, and stacking at mobile width is still a separate frame.
