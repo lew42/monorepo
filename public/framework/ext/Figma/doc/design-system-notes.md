@@ -28,6 +28,7 @@ These are thoughts from a live voice session, recorded so they survive. **None o
 4. **v2 depends on nothing outside itself.** No instance may have a main component from another file (Big Sloppy included). The remote ones that remain are listed in [component-inventory.md](./component-inventory.md) (encapsulation), to be detached and replaced.
 5. **`Elements` is the home of the core content items** (text as styles, `Button`, `Image`); the icon item lives on the `Icons` page. One home per element.
 6. **Don't edit the pages the owner is editing by hand** (today: `Index`, `Icons`, `1920 Pages`).
+7. **Scale modes are named resolution first, then name** (the owner, 2026-11-16): `360 XS`, `400 Mobile`, `600 SM`, `1000 Default`, `1600 LG`, `2600 XL`, `3440 Mega`; use `<resolution> <name>` in every label. No 1920 mode (undecided). A **`width`** variable in the Scale collection holds each mode's resolution, so a frame whose width is bound to it follows its mode. Proposed re-scaling of the values: [scale-proposal.md](./scale-proposal.md) (not applied).
 
 The inventory and the proposed minimal level-one set: [component-inventory.md](./component-inventory.md). The brief every Figma agent gets carries the same two rules ([explore-brief.md](/framework/ai/sessions/2026/11/16/spawned/mastermind-figma/explore-brief.md)).
 

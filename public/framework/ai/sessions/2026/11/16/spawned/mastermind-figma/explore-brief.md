@@ -9,6 +9,7 @@ Owner request (relayed by voice-app, 2026-11-16). Each minion builds ONE explora
 - **A new master component needs the owner's OK first**, and you add it to `Index` in the same step. Without an OK, build with plain frames or instances of existing masters.
 - **Name component sets like a JS class, dot-nested, ending in " Set"** (`Icon.Item Set`, `Layout.Columns.Two Set`). Core elements (`Button`, `Image`) live on the `Elements` page, icons on `Icons`.
 - **v2 must not depend on another file:** never instance a component from Big Sloppy or any library; no remote main components.
+- **Scale modes are named resolution first** (`360 XS`, `400 Mobile`, `600 SM`, `1000 Default`, `1600 LG`, `2600 XL`, `3440 Mega`); look them up by name, label with `<resolution> <name>`. A `width` variable (Scale) holds each mode's resolution: bind a frame's width to it.
 - **Don't touch a page the owner is editing** (the brief names them).
 - **Masters stay loose on the root canvas of their page**, never inside a frame (see `doc/design-system-notes.md`).
 
