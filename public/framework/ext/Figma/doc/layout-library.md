@@ -41,6 +41,30 @@ Each region also has an instance-swap property with a short list (XS/360, 600 an
 
 [1920 Desktop](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=82-1684) follows the 3440 steps in the frame `Layouts · 1920 Desktop`, below the owner's own nodes on that page, which stay untouched. Range is its own last column, so the page sits at 2.14 : 1. Its range is about 1600 to 2300. The 360 rails and the unit's side columns hold the 360 masters (Navigation, Profile, App bar).
 
+## 1600 LG (2026-11-16)
+
+[1600 LG](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=64-6191) follows the 3440 steps on 1600 × 900 screens. Its range is about 1280 to 2200. At most four columns fit; six would make each card narrower than 230. The old Page master and Layout.Sidebar Set instances are in `Cut · old page contents (2026-11-16)` below the grid.
+
+Masters sit in the folder frame `1600 / Layouts` above the grid (`100:6091`). Each one is built from smaller masters:
+
+- `1600 / Rail + two cards` `100:3746`: 360 / Navigation in a 400 rail, beside 1000 / Two cards.
+- `1600 / 60 / 40` `100:3785`: 1000 / Text column beside 600 / Stat tiles.
+- `1600 / Three cards` `100:3812`: three 400 Mobile regions, each holding a Card with 400 / Icon + title as its content.
+- `1600 / Rails both sides` `100:3849`: 360 / Navigation on the left, 1000 / Text column in the middle, 360 / Profile on the right.
+
+## 1000 Default (2026-11-16)
+
+[1000 Default](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=64-6138) follows the same steps on 1000 × 700 screens, with fewer variants than 1600. Its range is about 920 to 1400. At most three columns fit. Step 1 never leaves one small card alone in the full width: the content is either capped at the 720 measure or fills the row with real content (600 / Stat tiles).
+
+Masters sit in the folder frame `1000 / Layouts` above the grid (`100:5811`):
+
+- `1000 / Text column` `100:2115`: one Card capped at 720 and centred.
+- `1000 / Two cards` `100:2139`: two 400 Mobile regions, each holding a Card with 400 / Icon + title as its content.
+- `1000 / Nav + main` `100:2164`: 360 / Navigation beside 600 / Two small cards.
+- `1000 / Three cards` `100:2189`: three 360 XS regions, each holding a Card with Icon + title content.
+
+**Trap:** a master's height goes stale after a Scale mode change. Set the children to Hug, read the height, set them back to Fill, then set the master's `minHeight` to that value.
+
 ## Templates page and swap test
 
 [Templates](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=99-3914) holds a first pilot: folder frames `LG` (LG / Dashboard grid, Article, Form), `XS` (XS / Filters) and `3440 layouts` (3440 / Rail + Main + Rail, with three instance-swap properties). It is paused: the owner chose the native swap menu, with masters in folder frames by size, and instance-swap properties only where a component really has a child slot. The small [swap preview test](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=100-5842) is there so the owner can check in the UI whether the picker shows previews.
