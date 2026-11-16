@@ -37,6 +37,10 @@ Layout masters for bigger pages to compose from are in the folder frame `2600 / 
 
 Each region also has an instance-swap property with a short list (XS/360, 600 and 400, or LG). If the native swap menu should be the only way to swap, delete the properties; the nested instances stay. The older 2600 sets are parked in `Parked / Blocks`, `Parked / Layout sets` and `Parked / Interactive sets` under the grid.
 
+## 1920 Desktop (2026-11-16)
+
+[1920 Desktop](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=82-1684) follows the 3440 steps in the frame `Layouts · 1920 Desktop`, below the owner's own nodes on that page, which stay untouched. Range is its own last column, so the page sits at 2.14 : 1. Its range is about 1600 to 2300. The 360 rails and the unit's side columns hold the 360 masters (Navigation, Profile, App bar).
+
 ## Templates page and swap test
 
 [Templates](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=99-3914) holds a first pilot: folder frames `LG` (LG / Dashboard grid, Article, Form), `XS` (XS / Filters) and `3440 layouts` (3440 / Rail + Main + Rail, with three instance-swap properties). It is paused: the owner chose the native swap menu, with masters in folder frames by size, and instance-swap properties only where a component really has a child slot. The small [swap preview test](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=100-5842) is there so the owner can check in the UI whether the picker shows previews.
