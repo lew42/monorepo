@@ -2,6 +2,13 @@
 
 Owner request (relayed by voice-app, 2026-11-16). Each minion builds ONE exploration page in **Lew42 v2**, file key `ADpu9u2V0BlEZfR3rrMfER` (https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER). Load the `minion` skill first, then `figma:figma-use` and `figma:figma-generate-design` (pass `figma-use,figma-generate-design` in `skillNames` on every mutating `use_figma`). Call `create_session` for the file once, reuse its sessionId.
 
+## Core rule: Index first, reuse, no new masters (the owner, 2026-11-16)
+
+- **Read the `Index` page first** (currently still `Page 1` until it is built). It lists every master component in the file, one instance of each with its name, home page and one-line purpose, and nothing else. It is the one source for what exists.
+- **Reuse what is there.** Do not make a component that duplicates an existing one (v2's `Scale` page already has a `Button`, a `Card` and a `Card · with media`). Use an instance, or a variant of the existing one.
+- **A new master component needs the owner's OK first**, and you add it to `Index` in the same step. Without an OK, build with plain frames or instances of existing masters.
+- **Masters stay loose on the root canvas of their page**, never inside a frame (see `doc/design-system-notes.md`).
+
 ## Hard rules
 
 1. **Your own new page**, named exactly as your task says (`Explore – <topic>`, with the en dash). Create it with `figma.createPage()`. Work only on that page. Page context resets every `use_figma` call: `await figma.setCurrentPageAsync(page)` once per call.

@@ -19,9 +19,16 @@ These are thoughts from a live voice session, recorded so they survive. **None o
 
 - **Use the Latest auto-layout version everywhere** (it matches CSS border-box). **Equal splits: grid flow + `fr`.** Figma has two versions, Latest (default for new frames since July 2026) and Legacy (can be switched back to only until January 2027). Fixed / Hug / Fill are the same in both; Latest only changes six edge cases (padding as a minimum width, inside strokes counting in layout, a parent's stroke setting no longer reaching children, Fill children splitting by content area, auto gap never negative, a single child in a "Between" stack aligning to the start). What the plugin API can read or set: [layout-versions.md](./layout-versions.md) (written by the layout exploration; may not exist yet).
 
+## Core rules for Lew42 v2 (decided, 2026-11-16)
+
+1. **`Index` is the first page** (the existing `Page 1`, to be renamed). It lists every master component in the file, and only those: one instance of each, with its name, its home page and a one-line purpose. No preview mirrors, no duplicate content. It is the single source an agent reads to know what exists.
+2. **Every agent reads `Index` first and reuses what is there.** No new component that duplicates an existing one (v2 already has a `Button` on the `Scale` page). A new master needs the owner's OK, and is added to `Index` in the same step.
+
+The inventory and the proposed minimal level-one set: [component-inventory.md](./component-inventory.md). The brief every Figma agent gets carries the same two rules ([explore-brief.md](/framework/ai/sessions/2026/11/16/spawned/mastermind-figma/explore-brief.md)).
+
 ## Rules from the explorations (2026-11-16)
 
-- **Master components live on the root canvas, visibly, so it is obvious they are masters.** They can't live inside a preview frame, and presentation frames never nest masters. The one exception is a frame whose job is to categorise masters, for example by column count and/or width.
+- **Master components live loose on the root canvas of their page, visibly, so it is obvious they are masters; never inside a frame** (the owner's later correction: no "Masters" frame, no categorising frame either). Presentation frames never nest masters.
 - **Idea, not tried yet: arrows from a master to where its instances are used.** Big Sloppy's "Flow" page has connector/arrow components that could draw them. Caveats: the Lew42 v2 file isn't a library, so those components can't be imported there (they would be rebuilt as plain lines), and Figma's real connector objects are FigJam-only in the plugin API. Worth a try on one page if it stays cheap.
 - **No duplicate content between a page's preview and its page content.** Keep one or the other.
 - **Every page is self-documenting:** it shows its own tokens, modes and components.
