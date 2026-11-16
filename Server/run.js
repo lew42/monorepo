@@ -9,8 +9,8 @@ import Directory from "./plugins/Directory.js";
 import MentionSync from "./plugins/MentionSync.js";   // auto-syncs ext/Mention/maps/refs.js's icon — Server/plugins/MentionSync.js
 import PageFiles from "./plugins/PageFiles.js";
 import DevSource from "./plugins/DevSource.js";   // read-only Servex/Server browsing — Server/plugins/DevSource.js
-import FolderNames from "./plugins/FolderNames.js";   // /api/folder-names?dir= — one folder's names, so the router walk probes nothing
-import PageIndex from "./plugins/PageIndex.js";   // /api/index?dir=&depth= — each child's nav in one request (core/Page/doc/index-jsonl.md)
+import FolderNames from "./plugins/FolderNames.js";   // /dev/folder-names?dir= — one folder's names, so the router walk probes nothing
+import PageIndex from "./plugins/PageIndex.js";   // /dev/page-index?dir=&depth= — each child's nav in one request (core/Page/doc/index-jsonl.md)
 import DevSocket from "./plugins/DevSocket/DevSocket.js";
 import Runtime from "./plugins/SocketServer/Runtime.js";
 import AILogs from "./plugins/AILogs.js";

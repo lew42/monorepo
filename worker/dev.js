@@ -8,7 +8,7 @@
 // env.DEV_LOGIN === "1" and a localhost host check stay as the belt: they stop a tunnel or `wrangler dev --remote` publishing this
 // route. Production is safe because this file is never its `main`.
 
-import worker, { Room, UserDO, cookie_for } from "./index.js";
+import worker, { Room, UserDO, cookie_for, is_local } from "./index.js";
 import { clearCookie } from "./session.js";
 
 export { Room, UserDO };   // wrangler binds the Durable Object classes from THIS module's exports, since it is `main` here
@@ -17,7 +17,6 @@ export { Room, UserDO };   // wrangler binds the Durable Object classes from THI
 const DEV_SECRET = "local-dev-insecure-secret-do-not-deploy";
 const BANNED = new Set(["eve"]);   // a ban is a cookie flag here; production's is a KV key (identity.md ruling 2)
 
-const is_local = url => url.hostname === "localhost" || url.hostname === "127.0.0.1";
 
 async function dev_login(request, env, url) {
     const body = request.method === "POST" ? await request.json().catch(() => ({})) : {};

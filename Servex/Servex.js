@@ -135,6 +135,7 @@ export default class Servex extends Events {
         this.bare ??= "servex";           // a nameless `localhost` is the dashboard (the owner, 2026-09-23) — ReverseProxy.name()
 
         this.projects = [];
+        this.prefixes = {};               // project -> [{ prefix, name }], the proxy's per-project path routes (add())
         this.processes = new Map();
 
         this.log = new this.constructor.Log();
@@ -372,6 +373,7 @@ export default class Servex extends Events {
             bare: this.bare,
             site: "monorepo",
             ports: this.ports.ports,
+            prefixes: this.prefixes,
             dashboard: `http://127.0.0.1:${this.dashboard_port}/`,
             missing: name => this.autostart(name),
             starting: name => ["launching", "restarting"].includes(this.processes.get(name)?.status)
@@ -415,7 +417,24 @@ export default class Servex extends Events {
 
         project.port = this.ports.port(project.name);
         this.projects.push(project);
+        this.serve(project);
         return project;
+    }
+
+    /* A project's package.json may list `servex.routes`: [{ prefix, service, start }]. Each is a second,
+     * separately-started process in the project's own dir (named `<project>-<service>`, its port from the
+     * same registry, startable and stoppable like any project), and the proxy sends the paths under
+     * `prefix` to it (ReverseProxy.name). */
+    serve(project){
+        for (const route of project.routes){
+            const name = `${project.name}-${route.service}`;
+            if (!this.project(name)){
+                const service = new Project({ dir: project.dir, name, launch: route.start, of: project.name });
+                service.port = this.ports.port(name);
+                this.projects.push(service);
+            }
+            (this.prefixes[project.name] ??= []).push({ prefix: route.prefix.replace(//$/, ""), name });
+        }
     }
 
     project(name){

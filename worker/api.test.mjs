@@ -39,6 +39,15 @@ assert.equal(alice.user.role, "owner");
 assert.equal(carol.user.role, "member");
 
 // ── public routes
+const listing = (await (await check("GET /api/", null, 200)).json()).endpoints;
+for (const [key, action] of Object.entries(declared)) {
+    const [method, path] = key.split(" ");
+    const row = listing.find(e => e.method === method && e.path === path);
+    assert.ok(row, "GET /api/ lists " + key);
+    assert.equal(row.action, action, "GET /api/ names who may call " + key);
+    assert.ok(row.who, "GET /api/ says who may call " + key);
+}
+assert.ok(listing.some(e => e.path === "/api/room?url=") && listing.some(e => e.path === "/api/doc/<id>/ws"), "GET /api/ lists the two sockets");
 const config = await (await check("GET /api/config", null, 200)).json();
 assert.equal(config.dev_login, true);
 await check("POST /api/auth/google", null, 400, null, { body: {} });

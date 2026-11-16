@@ -2,7 +2,7 @@ import Store from "../Item/Store.js";
 
 /* PageIndex: what a parent knows about its children without loading them, read from the `nav` on their
  * files.jsonl lines (Server/plugins/PageFiles.js). `PageIndex.navs(Page, url)` -> Map name -> {title, icon, description}.
- * On the dev server ONE request, /api/index?dir=&depth=2 (Server/plugins/PageIndex.js), answers the folder and its
+ * On the dev server ONE request, /dev/page-index?dir=&depth=2 (Server/plugins/PageIndex.js), answers the folder and its
  * children's folders at once, so the children's own calls are served from the cache; anywhere else (a static host) it reads
  * the folder's own listing, one small file per folder. Page.from_index (off by default; `?index=1` turns it on) is the switch.
  * (doc/index-jsonl.md) */
@@ -23,7 +23,7 @@ export default class PageIndex {
 		if (!Store.local()) return null;
 		let answer;
 		try {
-			const res = await fetch("/api/index?depth=2&dir=" + encodeURIComponent(url));
+			const res = await fetch("/dev/page-index?depth=2&dir=" + encodeURIComponent(url));
 			if (!res.ok || !(res.headers.get("content-type") ?? "").includes("json")) return null;
 			answer = await res.json();
 		} catch { return null; }

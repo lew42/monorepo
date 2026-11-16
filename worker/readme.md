@@ -8,7 +8,7 @@ The demo you can use today is the auth app at **`/app/`** ([public/app/](../publ
 
 | Stage | Worker | Address | D1 database | Entry |
 |---|---|---|---|---|
-| local | `monorepo-dev` | `http://localhost:8787` | `monorepo-local` (a file under `worker/.wrangler/`) | [dev.js](dev.js) (adds the dev login) |
+| local | `monorepo-dev` | `http://monorepo.localhost/api/*` through Servex, or `http://localhost:8787` direct | `monorepo-local` (a file under `worker/.wrangler/`) | [dev.js](dev.js) (adds the dev login) |
 | staging | `monorepo-staging` | `https://staging.lew42.com` | `monorepo-staging`, seeded with fake people | [index.js](index.js) |
 | production | `monorepo` | `https://lew42.com` | `monorepo-prod` (migrated, empty, unused until the cutover) | [index.js](index.js) |
 
@@ -18,7 +18,7 @@ Bindings are not inherited between wrangler environments, so each stage lists it
 
 | File | What it does |
 |---|---|
-| [index.js](index.js) | The router. One table, `"METHOD /path": [action, handler]`; the router resolves the user, checks the host and the origin, then runs `can(user, action)` **before** the handler. |
+| [index.js](index.js) | The router. One table, `"METHOD /path": [action, handler]`; the router resolves the user, checks the host and the origin, then runs `can(user, action)` **before** the handler. `GET /api/` prints that table (method, path, action, who may call it), generated from it. |
 | [session.js](session.js) | The stateless cookie `s`: HMAC-SHA256 over `{uid, te, exp}`. Role is never in it; `index.js` reads the role from D1 each request. `token_epoch` (`POST /api/auth/logout-all`) revokes every cookie of a user. |
 | [can.js](can.js) | `can(user, "read" \| "write" \| "admin")`, the six rows of identity ruling 4. |
 | [google.js](google.js) | Verifies a Google ID token (RS256 against Google's keys, WebCrypto). |
@@ -29,7 +29,7 @@ Bindings are not inherited between wrangler environments, so each stage lists it
 | [dev.js](dev.js) | Local only: `POST /api/dev/login {handle}` and `GET /api/dev/login?as=alice`. |
 | [migrations/](migrations/) | D1 schema (`wrangler d1 migrations apply`). Append a file; never edit one that shipped. |
 | [seed/](seed/) | `dev.sql` (six people alice, bob, carol, dave, eve (banned), admin) and `staging.sql` (four fake people, never able to sign in). |
-| [scripts/](scripts/) | `deploy.mjs`, `icons.mjs`, `live.test.mjs`, `ui.test.mjs`, `latency.mjs`. |
+| [scripts/](scripts/) | `deploy.mjs`, `serve.mjs` (the local API as one process, started by Servex), `icons.mjs`, `live.test.mjs`, `ui.test.mjs`, `latency.mjs`. |
 
 The user object is `{id, provider, handle, avatar_url, role, created_at, last_login}`. There is no email column ([identity ruling 7](../public/notes/auth/identity.md)): the Google name is the handle, and `ADMIN_EMAIL` is compared at sign-in only.
 
@@ -37,16 +37,22 @@ Docs: [public/framework/core/Item/DocStore.js](../public/framework/core/Item/Doc
 
 ## Run it locally
 
-From the repo root: `node dev.mjs` (applies the migrations and `seed/dev.sql`, then runs `wrangler dev -c worker/wrangler.jsonc`). Open `http://localhost:8787/app/` and press a "dev: …" button. Tests, with the stage running:
+**Under Servex (the normal way).** Open `http://monorepo.localhost/app/`. Servex's proxy sends `/api/*` (HTTP and WebSocket) to this Worker and every other path to the dev server, and starts the Worker on the first request ([Servex/doc/prefix-routes.md](../Servex/doc/prefix-routes.md)). The Worker runs as the Servex project `monorepo-api` ([serve.mjs](scripts/serve.mjs): applies the migrations and `seed/dev.sql`, then `wrangler dev` on the port Servex assigned, loopback only), so `stop_server`, `restart_server` and `server_logs` work on it. The first request waits for wrangler to boot (about 15 s); a page shows "Starting monorepo-api…" and reloads itself, and a `POST` or a `fetch` before then gets a 503 with `Retry-After`. Inside the Worker the hostname is `monorepo.localhost`, which is in the local `API_HOSTS`, and the dev login accepts any `*.localhost` name. Press a "dev: …" button on `/app/`.
+
+**Without Servex.** `node dev.mjs` (the dev server on :80 and the Worker on :8787), then open `http://localhost:8787/app/`: the Worker serves the whole site on that one origin.
+
+Tests, with the stage running (pass `http://monorepo.localhost` to go through the proxy, or the :8787 url):
 
 ```
 node worker/google.test.mjs && node worker/session.test.mjs && node worker/can.test.mjs && node worker/lock.test.mjs   # pure, no server
-node worker/api.test.mjs http://localhost:8787      # every route: who may call it, host guard, origin guard, revoke, the Room lock
-node worker/scripts/ui.test.mjs http://localhost:8787     # headless browser, needs PLAYWRIGHT_DIR (a path to the playwright package)
-node worker/scripts/live.test.mjs http://localhost:8787   # two browsers on one document
+node worker/api.test.mjs http://monorepo.localhost      # every route: who may call it, host guard, origin guard, revoke, the Room lock
+node worker/scripts/ui.test.mjs http://monorepo.localhost     # headless browser, needs PLAYWRIGHT_DIR (a path to the playwright package)
+node worker/scripts/live.test.mjs http://monorepo.localhost   # two browsers on one document
 ```
 
-`api.test.mjs` reads the route table out of `index.js`, so a route added without an assertion fails it.
+`api.test.mjs` reads the route table out of `index.js`, so a route added without an assertion fails it, and it checks `GET /api/` lists every row.
+
+Wrangler checks every file under `public/` before it starts: 25 MiB per file at most, and a file count limit. Files that must never be an asset (private downloads, caches, the big task-state logs) are listed in [public/.assetsignore](../public/.assetsignore); a new big file under `public/` that is not in git has to be added there or `wrangler dev` stops with "Ensure all assets in your assets directory conform with the Workers maximum size requirement".
 
 ## Deploy
 
@@ -76,9 +82,9 @@ Before step 2, finish the owner's list below.
 ## What the owner must do
 
 1. **Google OAuth client** (Google Cloud Console → APIs & Services → Credentials → Create credentials → OAuth client ID → Web application; first configure the consent screen: External, app name, your email, scopes `openid email profile`). Authorized JavaScript origins, no redirect URIs needed (Google Identity Services popup/button):
-   - `http://localhost:8787`
    - `https://staging.lew42.com`
    - `https://lew42.com` (and `https://www.lew42.com` if it is used)
+   - optionally `http://localhost:<port>` for the :8787 direct run. Google rejects `*.localhost` origins, so `monorepo.localhost` cannot be listed: local sign-in uses the dev login, and real Google sign-in is tested on staging.
 2. Put the client id in `GOOGLE_CLIENT_ID` for each stage in [wrangler.jsonc](wrangler.jsonc) (it is public, not a secret) and run the deploy script again.
 3. Set `ADMIN_EMAIL` (secret) to your Google email; your first Google sign-in becomes admin: `node worker/scripts/deploy.mjs staging --secret ADMIN_EMAIL=you@example.com`.
 4. Enable R2 in the Cloudflare dashboard (Storage → R2), create buckets `monorepo-staging-docs` and `monorepo-production-docs`, and add an `r2_buckets` binding named `SNAPSHOTS` to each environment. Until then document history lives only in the Durable Object (fully working, no off-site copy).

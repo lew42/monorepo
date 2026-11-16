@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-/* PageIndex: GET /api/index?dir=/framework/&depth=2
+/* PageIndex: GET /dev/page-index?dir=/framework/&depth=2
  * answers one JSON object for a folder's children, so a page learns its children's titles
  * (and their children's) in ONE request instead of one files.jsonl each (core/Page/doc/index-jsonl.md):
  *
@@ -72,7 +72,7 @@ export default class PageIndex {
 	}
 
 	route(server){
-		server.router.get("/api/index", (req, res) => {
+		server.router.get("/dev/page-index", (req, res) => {
 			const segments = String(req.query.dir ?? "").split("/").filter(Boolean);
 			if (segments.some(denied)) return res.status(403).end();
 

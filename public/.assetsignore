@@ -1,5 +1,5 @@
 # Cloudflare Workers static assets: files listed here are not uploaded (20,000-file cap on Free).
-# Gitignore syntax. Count with: node Server/deploy-count.mjs. Plan: framework/ai/doc/repo-size.md
+# Gitignore syntax. Plan: framework/ai/doc/repo-size.md
 
 # The AI log's records (dated session folders, old uuid session folders) are dev-only: they need Servex,
 # so production cannot use them. The sessions module's own code (page.js, v/, doc/) IS uploaded, because
@@ -16,3 +16,17 @@ shots/
 
 # Shots' machine-made round pictures beside each page.
 screenshots/
+
+# Local-only files git ignores (a Git build never sees them), but `wrangler dev` on a full checkout uploads them all.
+# Two of them are over the 25 MiB per-file asset limit and stop the dev server from starting
+# (youtube/*/meta.ndjson 34 MB, framework/ai/tasks/state.jsonl 27 MB). The rest are private or machine state.
+# This list is every one of those paths, so a Git build is unchanged (the files are not in git).
+youtube/*/meta.ndjson
+youtube/*/video-cache/
+framework/ai/tasks/state.jsonl
+framework/ai/whisper/*
+!framework/ai/whisper/files.jsonl
+framework/ai/recordings/
+framework/ai/sessions/transcripts/
+notes/inbox/
+/data/

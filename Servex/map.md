@@ -30,7 +30,7 @@ Every file at the top level of `Servex/`, one line each. Subfolders are one row,
 | [Processes.js](./Processes.js) | `class Processes extends Events` + `task_key(dir)`: the set of every supervised process |
 | [Project.js](./Project.js) | `class Project extends Events`: a directory Servex found with a `package.json` — its name, its port, how to start itself |
 | [Relief.js](./Relief.js) | at 70% memory commit, closes what is finished and sleeps idle agents; suggests closing the owner's own apps only in a note, only while they are away ([doc/processes.md](./doc/processes.md#early-relief-at-70)) |
-| [ReverseProxy.js](./ReverseProxy.js) | `class ReverseProxy extends Events`: port 80, `<name>.localhost` routing to each project |
+| [ReverseProxy.js](./ReverseProxy.js) | `class ReverseProxy extends Events`: port 80, `<name>.localhost` routing to each project, plus per-project path prefixes that go to a second service ([doc/prefix-routes.md](./doc/prefix-routes.md)); test [ReverseProxy.test.mjs](./ReverseProxy.test.mjs) |
 | [SpawnLog.js](./SpawnLog.js) | attribution for every async child process: who started it and why, via an `AsyncLocalStorage` store entered by `tools.js` |
 | [Stream.js](./Stream.js) | `class Stream extends Events`: the live wire — Servex pushes, the dashboard listens, no polling |
 | [TaskLoop.js](./TaskLoop.js) | runs `Server/AIIndex.mjs --watch`, re-prompts stalled task steps ([doc/steps.md](./doc/steps.md), [doc/task-loop.md](./doc/task-loop.md)) |
