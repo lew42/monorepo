@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Figma → CSS: Fixed / Hug / Fill, in a row and in a column</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+    background: #f5f5f5;
+    margin: 0;
+    padding: 80px;
+    color: #1a1a1a;
+  }
+  h1 { font-size: 48px; margin: 0 0 12px; }
+  p.gist { font-size: 16px; margin: 0 0 48px; max-width: 1600px; }
+  h2 { font-size: 24px; margin: 48px 0 16px; }
+  .grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .panel {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .panel .label { font-size: 14px; font-weight: 600; }
+  .panel .css-label { font-size: 12px; font-family: "JetBrains Mono", "Courier New", monospace; color: #555; }
+  .stage {
+    width: 280px;
+    height: 180px;
+    background: #efefef;
+    border: 1px solid #d9d9d9;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+  }
+  .stage.row { flex-direction: row; justify-content: flex-start; }
+  .stage.column { flex-direction: column; align-items: flex-start; }
+
+  /* the child box every example styles */
+  .box {
+    background: #ff6157;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    border-radius: 4px;
+    padding: 8px;
+  }
+
+  /* width, main axis of a row */
+  .w-fixed-row { width: 160px; height: 100%; flex: 0 0 auto; }
+  .w-hug-row   { flex: 0 1 auto; height: 100%; } /* default: sized to content */
+  .w-fill-row  { flex: 1 1 0; min-width: 0; height: 100%; }
+
+  /* height, cross axis of a row */
+  .h-fixed-row { height: 60px; width: 100px; }
+  .h-hug-row   { width: 100px; align-self: flex-start; } /* opt out of stretch */
+  .h-fill-row  { width: 100px; align-self: stretch; } /* the flex default */
+
+  /* width, cross axis of a column */
+  .w-fixed-col { width: 160px; height: 40px; }
+  .w-hug-col   { height: 40px; align-self: flex-start; }
+  .w-fill-col  { height: 40px; align-self: stretch; }
+
+  /* height, main axis of a column */
+  .h-fixed-col { height: 60px; width: 100%; flex: 0 0 auto; }
+  .h-hug-col   { flex: 0 1 auto; width: 100%; }
+  .h-fill-col  { flex: 1 1 0; min-height: 0; width: 100%; }
+
+  footer { margin-top: 64px; font-size: 13px; color: #777; }
+  footer a { color: #ff6157; }
+</style>
+</head>
+<body>
+
+<h1>Figma → CSS</h1>
+<p class="gist">Each Figma width/height setting (Fixed, Hug, Fill), once in a row parent and once in a column parent, with the matching CSS. Same examples, same labels, same order as the Figma page <a href="https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER?node-id=0-1" target="_blank" rel="noopener">Explore – Figma → CSS</a>.</p>
+
+<h2>Width, in a row (the row's main axis)</h2>
+<div class="grid">
+  <div class="panel">
+    <div class="label">Fixed width in a row</div>
+    <div class="css-label">width: 160px</div>
+    <div class="stage row"><div class="box w-fixed-row">Fixed</div></div>
+  </div>
+  <div class="panel">
+    <div class="label">Hug width in a row</div>
+    <div class="css-label">flex: 0 1 auto (default — sized to content)</div>
+    <div class="stage row"><div class="box w-hug-row">Hug</div></div>
+  </div>
+  <div class="panel">
+    <div class="label">Fill width in a row</div>
+    <div class="css-label">flex: 1 1 0</div>
+    <div class="stage row"><div class="box w-fill-row">Fill</div></div>
+  </div>
+</div>
+
+<h2>Height, in a row (the row's cross axis)</h2>
+<div class="grid">
+  <div class="panel">
+    <div class="label">Fixed height in a row</div>
+    <div class="css-label">height: 60px</div>
+    <div class="stage row"><div class="box h-fixed-row">Fixed</div></div>
+  </div>
+  <div class="panel">
+    <div class="label">Hug height in a row</div>
+    <div class="css-label">align-self: flex-start (opt out of stretch)</div>
+    <div class="stage row"><div class="box h-hug-row">Hug</div></div>
+  </div>
+  <div class="panel">
+    <div class="label">Fill height in a row</div>
+    <div class="css-label">align-self: stretch (the flex default)</div>
+    <div class="stage row"><div class="box h-fill-row">Fill</div></div>
+  </div>
+</div>
+
+<h2>Width, in a column (the column's cross axis)</h2>
+<div class="grid">
+  <div class="panel">
+    <div class="label">Fixed width in a column</div>
+    <div class="css-label">width: 160px</div>
+    <div class="stage column"><div class="box w-fixed-col">Fixed</div></div>
+  </div>
+  <div class="panel">
+    <div class="label">Hug width in a column</div>
+    <div class="css-label">align-self: flex-start (content width)</div>
+    <div class="stage column"><div class="box w-hug-col">Hug</div></div>
+  </div>
+  <div class="panel">
+    <div class="label">Fill width in a column</div>
+    <div class="css-label">align-self: stretch (the flex default)</div>
+    <div class="stage column"><div class="box w-fill-col">Fill</div></div>
+  </div>
+</div>
+
+<h2>Height, in a column (the column's main axis)</h2>
+<div class="grid">
+  <div class="panel">
+    <div class="label">Fixed height in a column</div>
+    <div class="css-label">height: 60px</div>
+    <div class="stage column"><div class="box h-fixed-col">Fixed</div></div>
+  </div>
+  <div class="panel">
+    <div class="label">Hug height in a column</div>
+    <div class="css-label">flex: 0 1 auto (default — sized to content)</div>
+    <div class="stage column"><div class="box h-hug-col">Hug</div></div>
+  </div>
+  <div class="panel">
+    <div class="label">Fill height in a column</div>
+    <div class="css-label">flex: 1 1 0</div>
+    <div class="stage column"><div class="box h-fill-col">Fill</div></div>
+  </div>
+</div>
+
+<footer>Vanilla HTML/CSS, no build step, no framework — the browser twin of the Figma page. See <a href="/framework/ext/Figma/readme.md">ext/Figma/readme.md</a>.</footer>
+
+</body>
+</html>

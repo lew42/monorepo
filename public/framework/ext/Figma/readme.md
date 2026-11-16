@@ -18,6 +18,8 @@ node public/framework/ext/Figma/track.mjs spec.json
 
 Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` maps Figma node ids to built pages (re-run after adding a page); `thumbs.mjs` makes the 480 px card thumbnails; `visibility.mjs` lists any page.js no parent declares (the merge gate runs it, exit 1 if any).
 
+**[Figma → CSS HTML twin](/framework/ext/Figma/layout-css/index.html)** (2026-11-16): plain HTML and CSS, no build step, showing Fixed/Hug/Fill width and height in a flex row and a flex column, same labels and order as the Lew42 v2 file's `Explore – Figma → CSS` page. [What the Plugin API can and can't read about layout version](./doc/layout-versions.md).
+
 ## Component strategy (current, 2026-11-12)
 
 This is the current truth. Where an older line below contradicts it, that line is marked superseded.
