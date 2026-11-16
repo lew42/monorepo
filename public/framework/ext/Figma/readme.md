@@ -24,6 +24,8 @@ Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` ma
 
 **[Live board](./doc/live-board.md)** (2026-11-16): the "Live" page in the Claude November 2026 file — a 2600-wide topics/cards/notes board, seeded with today's dictation, that updates through short `use_figma` calls instead of a rebuild.
 
+**[Page audit](./doc/page-audit.md)** (2026-11-16, read-only): every page in Lew42 v2 screenshotted and checked against the build checklist. The one finding that matters everywhere: the Button's label fails WCAG contrast (2.6, needs 4.5) on every Scheme — confirmed by [Explore – Color permutations](./doc/page-audit.md#explore-color-permutations)' own computed numbers, so it's a token fix, not a per-page one.
+
 ## Component strategy (current, 2026-11-12)
 
 This is the current truth. Where an older line below contradicts it, that line is marked superseded.
