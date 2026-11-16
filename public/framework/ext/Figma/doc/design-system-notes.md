@@ -19,6 +19,35 @@ These are thoughts from a live voice session, recorded so they survive. **None o
 
 - **Use the Latest auto-layout version everywhere** (it matches CSS border-box). **Equal splits: grid flow + `fr`.** Figma has two versions, Latest (default for new frames since July 2026) and Legacy (can be switched back to only until January 2027). Fixed / Hug / Fill are the same in both; Latest only changes six edge cases (padding as a minimum width, inside strokes counting in layout, a parent's stroke setting no longer reaching children, Fill children splitting by content area, auto gap never negative, a single child in a "Between" stack aligning to the start). What the plugin API can read or set: [layout-versions.md](./layout-versions.md) (written by the layout exploration; may not exist yet).
 
+## Rules from the explorations (2026-11-16)
+
+- **Keep master components at the root of their page.** They can't live inside a preview frame.
+- **No duplicate content between a page's preview and its page content.** Keep one or the other.
+- **Every page is self-documenting:** it shows its own tokens, modes and components.
+
+## Structure idea (not decided)
+
+- **One page per "space":** Layout, Text, Scale, Color, Navigation. Each doubles as an asset-library page.
+- **One 1920-wide, auto-height preview per page**, gathered on the root design-system page. That worked in Big Sloppy.
+
+## Open question: layout components
+
+- The lean is a **minimal set of building-block components** (for example a column layout with placeholder child cards that shows the structure), **not** pre-built 2/3/4-column permutations that fill the asset panel.
+- Permutations can be shown on a page as plain frames or instances, for reference.
+- Level-one layouts to cover: 2, 3 and 4 columns; full-height vs auto-height vs card columns; equalized vs natural heights.
+
+## A "content length" space
+
+Short and long text, column wrapping, and how uneven content heights change columns. It is where the review step "test with short and long text" gets its examples.
+
+## Open question: fill/hug turning into Fixed
+
+Figma switches an incompatible fill or hug setting to Fixed on its own (for example Fill inside a Hug parent). When should we fight that, and when just accept it? Worked cases: [Explore – Sizing](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER?node-id=34-28).
+
+## Layer names with sizing (trial)
+
+Putting the sizing after the layer name, width × height, like `Sidebar (Hug × Fill)`, on the "Explore – Layout examples" page only. It does not update itself when the sizing changes, so it is a trial to see whether it helps reading layouts.
+
 ## The "level one" kit idea
 
 A small first kit: **text, icons, buttons, images and basic layouts, leaning on browser defaults** (what a plain HTML page would do) instead of inventing a Figma-only behaviour. Everything bigger is built from these. Not started; the explorations on the Lew42 v2 file (Explore pages) are the way to find what belongs in it.
