@@ -47,6 +47,7 @@ export default {
     async fetch(request, env, ctx) {
         const url = new URL(request.url);
         env = { ...env, SESSION_SECRET: env.SESSION_SECRET || DEV_SECRET };
+        // is_local covers every *.localhost project name, so the dev login stays safe only while DEV_LOGIN and API_HOSTS are local-only (worker/wrangler.jsonc)
         if (url.pathname === "/api/dev/login" && env.DEV_LOGIN === "1" && is_local(url)) return dev_login(request, env, url);
         return worker.fetch(request, env, ctx);
     },
