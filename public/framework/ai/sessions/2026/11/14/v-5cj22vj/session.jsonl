@@ -645,3 +645,4 @@
 {"log":{"at":"2026-11-16T04:50:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-16T05:50:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-16T06:50:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-16T07:50:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
