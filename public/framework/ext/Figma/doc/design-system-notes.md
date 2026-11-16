@@ -24,6 +24,11 @@ These are thoughts from a live voice session, recorded so they survive. **None o
 1. **`Index` is the first page** (the existing `Page 1`, to be renamed). It lists every master component in the file, and only those: one instance of each, with its name, its home page and a one-line purpose. No preview mirrors, no duplicate content. It is the single source an agent reads to know what exists.
 2. **Every agent reads `Index` first and reuses what is there.** No new component that duplicates an existing one (v2 already has a `Button` on the `Scale` page). A new master needs the owner's OK, and is added to `Index` in the same step.
 
+3. **Component sets are named like a JS class, dot-nested, ending in " Set"** (the owner, 2026-11-16): `Icon.Item Set`, `Layout.Columns.Two Set`. The dot is the nesting, so the name reads as `Class.Part`.
+4. **v2 depends on nothing outside itself.** No instance may have a main component from another file (Big Sloppy included). The remote ones that remain are listed in [component-inventory.md](./component-inventory.md) (encapsulation), to be detached and replaced.
+5. **`Elements` is the home of the core content items** (text as styles, `Button`, `Image`); the icon item lives on the `Icons` page. One home per element.
+6. **Don't edit the pages the owner is editing by hand** (today: `Index`, `Icons`, `1920 Pages`).
+
 The inventory and the proposed minimal level-one set: [component-inventory.md](./component-inventory.md). The brief every Figma agent gets carries the same two rules ([explore-brief.md](/framework/ai/sessions/2026/11/16/spawned/mastermind-figma/explore-brief.md)).
 
 ## Rules from the explorations (2026-11-16)

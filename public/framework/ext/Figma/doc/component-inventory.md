@@ -54,6 +54,26 @@ Text, icon, button, image, card, and one or two layouts, leaning on browser defa
 - The seven layout sets, after two are chosen.
 - The test masters, after the mode work is documented.
 
+## Done after the owner's go (2026-11-16)
+
+- **One `Button`:** the 2600 duplicate (34:476) is removed; its instances were swapped to the original (23:506), labels kept. The original moved to the new **`Elements`** page (48:4568), next to a new **`Image`** master (48:4583, placeholder) and a text-styles specimen (text is styles, not a component). The icon item's home stays the `Icons` page.
+- **Naming:** the seven 2600 layout sets are renamed to the class convention ([design-system-notes.md](./design-system-notes.md)): `Layout.Miller Set`, `Layout.Miller.Mobile Set`, `Layout.Sidebar Set`, `Layout.Columns.Two Set`, `Layout.Columns.Three Set`, `Layout.ScaleRegions Set`, `Layout.Columns.One Set`. `Card Set` and `Heading Set` already fit. The pages `Index`, `1920 Pages` and `Icons` were left alone (the owner is editing them).
+
+## Encapsulation: instances whose main component lives in another file (read-only)
+
+Found by checking each instance's main component for `remote`. Nothing else in v2 is remote: `Scale`, every `Explore` page and `Elements` are clean.
+
+- **`Icons` page (43:5481):** top-level instances `Page · Icons` (43:6068) and `Workspace` (43:6252) are instances of Big Sloppy's `Page Set/Size=1920` (main 43:2676). Inside them come ~450 remote instances: `.Section` (43:2659), `Icon` (43:3329), about 90 `icon-*` and `Icon.Item Set/Size=*` variants, `.Masonry` (43:2718) and `Card` (43:2711).
+- **`Index` page (0:1):** the one `Icons Preview` instance (local main 43:7935) contains a nested remote `Page` and ~60 remote icon instances.
+- **`1920 Pages` (43:8101):** clean; the local `Page` master (43:8103) has no remote instances.
+- **Fix when the owner is ready:** detach the top-level `Page · Icons`, `Workspace` and the Icons Preview's nested `Page`, then point their icons at the local `Icon.Item Set` (43:6069) and rebuild the sections from local parts.
+
+## Page padding (the `Page` master)
+
+`Scale` already has `section-pad-x` / `section-pad-y` and binds them: 33 times each, on every `Section` frame (and `pad-x`, `pad-y` are bound 118 and 112 times, mostly on cards). Values match in every mode except Mobile (pad-x 24 vs section-pad-x 16; pad-y 32 equals section-pad-y 32). The local `Page` master (43:8103) binds `pad-x` left and right but `section-pad-y` top and bottom.
+
+**Suggestion: bind the page edge to `section-pad-x` / `section-pad-y`, both,** since that is what a Section already uses, so a Section placed in a Page lines up at every mode. No new token. Side note: 6 test cards on `Scale` (e.g. 18:439) bind `pad-x` to a vertical padding; harmless, but wrong axis.
+
 ## Next (not started)
 
 Rename `Page 1` to `Index` and list the kept masters one instance each with name, home page and purpose. No new component until the owner decides.
