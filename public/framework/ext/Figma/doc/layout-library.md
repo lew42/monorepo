@@ -24,6 +24,12 @@ The size pages in [Lew42 v2](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER
 - **Labels read `Role · Mode`** (e.g. `Main · Desktop`), with no typed widths, which go stale when the tokens change. Equal splits are named Column 1 and Column 2. Main and Aside differ in width and mode.
 - **Smaller masters fill the regions that fit them**: the 600 masters in the 600 rails and sidebars, and the 360 masters in the unit's side columns. Every other region that is just space for a layout holds the resolution card of its mode (`Res.<width> Set`, Style=Card, set to Fill), and a nested region holds a real layout master where one exists at its mode (e.g. `1600 / 60 / 40`, `1000 / Three cards`). Step 6 keeps its own cards: they are the content. **No white cards on a white ground**: the shadow is too weak, so every screen is light gray.
 
+## Review tags (2026-11-16)
+
+Every step example (each `Example · …` frame, not each card) on the eight size pages starts with a `Review` tag, an instance of [Review Set](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=104-2072) on the Elements page: Status = Draft (gray, Scheme `muted`), Approved (Colors `ok`), Rejected (Colors `error`), label style, label in Colors `light`. All start as Draft; the owner flips them with the dropdown. **Agents treat only Approved examples as the system.** Padding binds to Scale `text-gap` and `radius`, so a tag grows a little with its page's mode.
+
+Trap: a paint whose colour is bound to a variable lost its paint opacity (back to 1) after a later write, so a 15% tint of `dark` came out solid. Use a variable that carries its own alpha (Scheme `muted` is black at 55%) instead of paint opacity.
+
 ## 2600 XL (2026-11-16)
 
 [2600 XL](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=100-1441) follows the 3440 steps. Its range is about 2200 to 3000. Step 7 drops the 1920 unit in beside one sidebar (with two sidebars it would be only 1144 wide). Interactive demos (Miller columns, sidebar toggle) sit at the bottom of step 6.
