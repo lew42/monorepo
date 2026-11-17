@@ -2,6 +2,15 @@
 
 **Read this before any `use_figma` edit, and run the "After building" steps before you report done.** It exists because the Explore pages built on 2026-11-16 looked broken to the owner (review at the bottom). Most of these rules already existed in [use-figma.md](./use-figma.md), but no agent's brief pointed to them and no agent checked its own result.
 
+## Token rules: check these first (owner, 2026-11-16)
+
+- **Padding is `pad-x` and `pad-y`. The gap between blocks is `gap`.**
+- **`text-gap` only between lines inside one text stack:** never as padding, never as a page gap. (Found on the Live board: a card with padding bound to `gap` and its gap bound to `text-gap`.)
+- **Every frame that sets a width also sets the Scale mode that matches that width.**
+- **Big doc frames (page containers, 5000 wide) stay on 1000 Default,** not the page's size mode. Presentation wrappers never take a small page mode; only specimen regions do.
+- **Long text gets a max width bound to `measure` (720).** A text layer can't bind max width (the API refuses it), so bind it on the text's frame. (Found: labels 1520 wide.)
+- **Less words, more essence.** Every example shows the simplest undeniable case. Names over sentences. No step sequences unless each step visibly builds on the last.
+
 ## Before building
 
 1. **Read `Index` (page 0:1) and reuse what is there.** Never make a component that already exists. If you need a new master, ask first; once approved, add it to `Index` in the same step. Rules: [design-system-notes.md](./design-system-notes.md), "Core rules".
