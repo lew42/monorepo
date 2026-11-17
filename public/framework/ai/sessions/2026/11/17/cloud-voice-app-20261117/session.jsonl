@@ -26,3 +26,10 @@
 {"log":{"at":"2026-11-17T11:00:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-17T12:00:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-17T13:00:25-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-17T14:00:25-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"tool_call":{"at":"2026-11-17T20:29:12.303Z","tool":"updates","args_hash":"36b9e2e2463c","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-17T20:29:15.037Z","tool":"list_agents","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-17T20:29:16.591Z","tool":"list_dir","args_hash":"e1d0d45804e6","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-17T20:29:17.994Z","tool":"shell","args_hash":"00199d16ad62","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-17T20:29:24.218Z","tool":"read_file","args_hash":"ebbbc7e17cf5","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-17T20:29:29.033Z","tool":"shell","args_hash":"60fa6fbdf3c4","caller":"voice-app"}}
