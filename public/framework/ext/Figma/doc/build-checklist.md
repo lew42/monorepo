@@ -2,6 +2,18 @@
 
 **Read this before any `use_figma` edit, and run the "After building" steps before you report done.** It exists because the Explore pages built on 2026-11-16 looked broken to the owner (review at the bottom). Most of these rules already existed in [use-figma.md](./use-figma.md), but no agent's brief pointed to them and no agent checked its own result.
 
+## Before you report: mandatory (owner, 2026-11-16)
+
+Also at the top of the AI page's Index frame in Lew42 v2. The same fires kept recurring (a light gray padded wrapper on a light gray canvas; light gray cards on a light gray Showcase), so check every item on everything you built:
+
+- **Every padded container has a fill that differs from its parent.** No same-on-same anywhere.
+- **Wrappers are 5% black,** so they stack: each level a little darker.
+- **Cards are white and sit on light gray.**
+- **Check the Scheme cascade from the root down.** Modes cascade and the nearest explicit mode wins: the ground sets its Scheme on the root (e.g. Light gray), so set Scheme White on each card or its container. (Proposed, not built: a Scheme `card` role that stays white in Light gray mode.)
+- **Text is never wider than `measure` (720).**
+- **Padding is `pad-x` and `pad-y`; the gap between blocks is `gap`.**
+- **Screenshot the whole thing and judge the contrast yourself** before you report.
+
 ## Token rules: check these first (owner, 2026-11-16)
 
 - **Padding is `pad-x` and `pad-y`. The gap between blocks is `gap`.**
