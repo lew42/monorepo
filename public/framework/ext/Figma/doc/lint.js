@@ -23,6 +23,7 @@
 //   mode-mismatch    (warn) a fixed width far from its Scale mode's width
 //   hidden-in-master (warn) a hidden layer or slot left inside a component master
 //   padded-no-fill   (warn) a padded frame with no fill of its own, on a page or doc frame
+//   stale-paint      a variable-bound paint whose cached colour differs from the live value
 //   page-root        a page holds one frame named "Root" (plus prototype starting
 //                    frames and hidden Archive frames), and no connector outside an Archive
 //
@@ -141,6 +142,22 @@ async function raw_fill(node) {
   }
 }
 
+// A bound paint stores a cached colour beside its binding, and the canvas can draw the
+// cache (2026-11-17: 12 Preview frames bound to Colors light drew white). Fix: set the
+// paint's colour to the live value, then setBoundVariableForPaint (re-binding alone keeps the cache).
+async function stale_paint(node) {
+  for (const prop of ['fills', 'strokes']) {
+    if (!(prop in node) || !Array.isArray(node[prop])) continue;
+    for (const p of node[prop]) {
+      const b = p.type === 'SOLID' && p.boundVariables && p.boundVariables.color;
+      if (!b) continue;
+      const v = await variable(b.id), r = v && v.resolveForConsumer(node).value;
+      if (r && 'r' in r && Math.max(Math.abs(r.r - p.color.r), Math.abs(r.g - p.color.g), Math.abs(r.b - p.color.b)) >= 1.5 / 255)
+        report('error', node, 'stale-paint', `${prop} ${v.name}: cached ${hex(p.color)}, live ${hex(r)}`);
+    }
+  }
+}
+
 function glyph(node) {
   const fonts = node.fontName === figma.mixed ? node.getStyledTextSegments(['fontName']).map(s => s.fontName) : [node.fontName];
   return fonts.some(f => /material|icon|symbol/i.test(f.family)) || /icon|glyph/i.test(node.name);
@@ -221,6 +238,7 @@ async function walk(node, under, master, allowed) {
       if (node.type === 'TEXT') text(node);
       await bindings(node);
       await raw_fill(node);
+      await stale_paint(node);
       child_drives(node);
     }
     await mode_mismatch(node);
