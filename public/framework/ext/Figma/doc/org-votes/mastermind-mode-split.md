@@ -1,0 +1,9 @@
+# Vote: how to organize Lew42 v2 for swapping (mastermind-mode-split, 2026-11-16, from what I know, no Figma calls)
+
+**Q1. Resolution-first pages for layouts and sections; one shared page for scale-agnostic atoms.** A swap is always "put a different master into this slot", and the picker only helps if every choice listed fits the slot's width. A layout built for 1920 in a 400 slot is the failure the owner described. Resolution pages make that impossible. But Card, Button and Text styles are one master at every size (the Scale mode on the outermost frame does the resizing, see [mode-split.md](../mode-split.md)), so give them one page (Elements), not eight copies.
+
+**Q2. On each resolution page, top to bottom: Preview, Layouts, Sections, Containers (cards, panels), Content (text blocks, media).** Big things first, the owner's scan order; Preview on top is the one screenshot. Yes: build the demo screens from instances of that page's own masters, so a swap in the Preview is a real test and "what can I swap to" is exactly what sits below it. Masters must not sit inside the Preview (a Preview that holds masters cannot be a live preview).
+
+**Q3. Both: top-level folder frames for the masters, plus one Preview frame of instances.** Assets groups by top-level frame, so Layouts, Sections, Containers and Content must each be a top-level frame (real folders). The one-screenshot view is a separate top-level Preview frame holding instances, not the masters. Inside a folder frame, slash names ("Section/Four features") give a second grouping level in Assets (I believe, not tested). A single Root per page would hide the folders from Assets, which is why I would not use it.
+
+**Caveat on all three:** I have not tested how the swap picker groups; one cheap check on a spare page settles it before anything is moved.
