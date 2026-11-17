@@ -1,4 +1,4 @@
-# Slot vs instance swap: three tiny demos (plan, not built)
+# Slot vs instance swap: three tiny demos (built 2026-11-16, on the Showcase page)
 
 Lew42 v2 file. The owner's question, relayed 2026-11-16: how should a template take content? Two Figma features answer it, and they sit at opposite ends.
 
@@ -9,6 +9,8 @@ Lew42 v2 file. The owner's question, relayed 2026-11-16: how should a template t
 The owner's leaning: drill in (Ctrl/Cmd-click) and select the actual thing, rather than a big template with many mapped swap properties. Don't make every permutation a variant (header + 1 paragraph, header + 2 paragraphs).
 
 What broke and started this: in the [Swap preview test](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=100-5842), a paragraph duplicated next to the swapped "400 / Icon + title" landed outside the template in the master, so every instance shows it. It is visible, tagged "Needs work", on the [Showcase](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=109-15) page.
+
+**Built** as the "Slots and swaps" block on the [Showcase](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=109-15) page, not on a new page (voice-app, 2026-11-16). Demo 1 is Card (Content swap, four preferred values) beside the new `Card · Slot`; demo 2 is the new `Icon.Title` (locked header, Toolbar slot, Body slot); demo 3 is `Icon.Title` (mapped Icon and Title) beside a Card holding `400 / Icon + title` (drill in). Answer to the first open fact: a SLOT property accepts and stores `preferredValues` through the API; thumbnails in the UI are not confirmed yet.
 
 ## MVP: three demos, each one frame with a Review tag (Draft) and a "Try" line
 
