@@ -47,4 +47,6 @@ On the AI page, Live, Showcase, the 360 XS and 1000 Default benches and Elements
 - **Elements:** raw black titles bound to `text`; 11 unstyled labels in Example · Button by scheme styled; raw 16 gaps bound to `text-gap`; the Specimen instance sets its own Scale mode.
 - **AI page:** one unstyled bullet styled.
 
+**Read-only run, after the stop on Figma edits (2026-11-16, nothing fixed):** 2600 XL had 132 errors (90 same-on-same, mostly white cards on white regions; 22 unstyled text; 14 child-drives; 4 pad-token), plus an 18840-wide wrapper and 4 loose connectors up to 13476 px long. 1920 Desktop had 48 errors (20 raw-fill, 16 raw-value, 12 same-on-same). Lint does not see floating layouts or connectors; a proposed extra rule: a page has one root auto-layout frame, no connectors and nothing else at top level.
+
 **Left open, 1 error:** the Button master's hidden `Icon` frame (`23:508`) has a raw white fill, and no white colour variable exists to bind it to. The Button master is the owner's. Also seen: card-like layout masters (`360 / App bar`, `360 / Profile`) carry their own fill and padding, so inside a Card they double up; the Showcase instances got a contrasting Scheme, and the master question is logged as an improvement in this folder.
