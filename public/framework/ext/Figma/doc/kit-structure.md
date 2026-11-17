@@ -34,5 +34,6 @@ Folders must be top-level frames with plain names: the Assets panel and the swap
 - A 3 columns Container with `card-min` 320 needs at least 1024 of content width at 1000 Default, so the Section is 1200 wide. A 1000-wide Section shows 2 + 1.
 - A Container nested in a Section instance keeps its own explicit Scale mode. Setting the Section to 1600 LG grows only the padding; the cards do not change (Swap demo, Step 4).
 - The Section's size label is static text, so Step 4 overrides it to "1600"; a bound label would need a text variable.
-- Cards in a wrapped row do not stretch to equal height in Figma (Fill/Stretch on a wrapped child has no effect), so a Stat card beside a Text card is shorter by the difference in their content.
+- Cards in a wrapped row do not stretch to equal height on their own (Stretch on a wrapped child has no effect). Setting vertical Fill on one card in the row makes the row equal; the 2 columns master does this on its first card.
+- Lint: the last full run (before the label and card-height fixes) had 0 errors on the folders. The final re-run was blocked by the Figma MCP call limit, so re-run it before relying on it.
 - The lint's `page-root` rule expects exactly one `Root` per page, so it flags these four folders. They sit on 1000 Default by the brief, not by mistake; moving them into Root would hide them from the Assets panel's folder grouping.
