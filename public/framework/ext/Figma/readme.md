@@ -317,6 +317,7 @@ Page `Page builder` (62:933) has exactly two top-level frames, both auto layout 
 - [doc/observations.md](./doc/observations.md) — how the Figma MCP behaves (costs, limits, what failed); keep it current
 - [doc/think-swap.md](./doc/think-swap.md) — how to fill any region quickly (2026-11-16, proposal): a region is a slot holding one content block, which you change with the native swap menu; the five `Content /` blocks; swap properties only for one-of-a-family spots like an icon
 - [doc/simplify-proposal.md](./doc/simplify-proposal.md) — why the 2026-11-16 Figma work came out broken (six agents' diagnoses, lint counts) and a five-rule minimal system; all Figma edits wait on the owner's approval
+- [doc/think-docs.md](./doc/think-docs.md) — how v2 is documented and approved: three homes (canvas, AI page, repo), one rule each; the two-click Review-tag loop with a computed `approved.jsonl`; what to delete from today's docs (proposal)
 - [doc/page-plan.md](./doc/page-plan.md) — all 50 pages of the design system file: masters, cross-page use, and a proposal to sort them into a library, a Lab file, app files and an archive (2026-11-13, read-only audit, nothing changed)
 - [doc/card-census.md](./doc/card-census.md) — what every Card `8:5` instance holds in its Content slot (1265 instances, top 15 signatures, which layouts to make masters), 2026-11-12
 - [doc/token-audit.md](./doc/token-audit.md) — the 10 variable collections after the 2026-11-13 cleanup (18 before): what was merged and tossed, and the flags still open
