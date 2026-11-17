@@ -108,3 +108,4 @@
 {"pid_exit":34088,"ended":"2026-11-16T19:00:32-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid_exit":33408,"ended":"2026-11-16T19:00:32-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"log":{"text":"Replaced Simplify proposal 131:29 on Live with Consolidation plan 137:695 (light gray region, one white card 137:699 with 3 columns: Target 9 pages, Order 4 steps, Quality) from doc/consolidation-plan.md. Screenshot judged; lint (core rules: same-on-same, pad tokens, raw values, raw fill, unstyled, line length) 0 errors. No other page touched; mastermind-roots is the only editor elsewhere."},"by":"mastermind-live","ts":"2026-11-17T01:10:08.703Z"}
+{"follow_up":{"n":2,"to":"voice-app","at":"2026-11-16T20:40:20-06:00"}}
