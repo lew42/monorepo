@@ -53,6 +53,8 @@ All of them are built from `Card` `16:364`, `Content · Stat`, `Card · with med
 
 **[Systems](./doc/systems.md)** (2026-11-16): every system in v2 (Scale, Scheme, Colors, Surface, Text, Icons, Layout, Pages, Masters, Naming, Swapping, Previews, Review, Lint and more) with status, the orphans, the overlaps, and a 12-card Systems page proposal.
 
+**[Gold and plan](./doc/gold-plan.md)** (2026-11-16): start here. The merge of the 16 study reports on one page: the essence, the gold to keep, an 8-step plan, 5 decisions with a recommended answer, resolved conflicts, 7 agent rules.
+
 **[Process review](./doc/process-review.md)** (2026-11-16): why agents produced slop today (5 root causes with evidence), what worked, a 15-line builder prompt and a 7-rule AI page.
 
 **[Essence](./doc/essence.md)** (2026-11-16): one page of what the owner wants from v2, strongest first, the decisions already made, the contradictions with a resolution each, and the complaints agents keep ignoring (lint and AI-page rule candidates).
@@ -338,10 +340,12 @@ Page `Page builder` (62:933) has exactly two top-level frames, both auto layout 
 - [doc/scale-proposal.md](./doc/scale-proposal.md) — proposed re-scaling of the Scale tokens (current vs proposed per mode, a max-width token); not applied
 - [doc/scale-tokens.md](./doc/scale-tokens.md) — the Scale page's cards measured per mode: pad is 14% of a card's width in LG/XL grids (the mode must follow the card's width, not the screen), 11 mismatches, a corrected 8-mode token table, optional type tokens (2026-11-16, read-only proposal)
 - [doc/study-sizes.md](./doc/study-sizes.md) — the 8 size pages studied read-only: gold per page, waste, what truly differs by size, 4 tiers instead of 8 pages, Fill / Hug per tier (2026-11-16)
+- [doc/preview-recipe.md](./doc/preview-recipe.md) — the ten-step recipe for one `.<Page> Preview` per page (sheet, 3 balanced columns of instances, lint, 1:1 check, Index); built so far: 1000 Default, 400 Mobile, Elements, Scale, Text, Templates (2026-11-16)
 - [doc/study-space.md](./doc/study-space.md) — how v2 wastes space vs Big Sloppy's previews: the new numbers, the top 10 issues with node ids, and the 3-column masonry Preview recipe per tier and for Index (2026-11-16, read-only study)
+- [doc/scale-space.md](./doc/scale-space.md) — one responsive master per layout at all 8 Scale modes (wrap + Fill + min width bound to card-min stacks without a Direction variant); layout × width table, master-size rule, built in Lab · Scale space `174:62` (2026-11-16, test, no master touched)
+- [doc/kit-structure.md](./doc/kit-structure.md) — the resolution-first kit on 1000 Default: four top-level folders (Sections, Containers, Content, Swap demo), masters only, padding as a layer not a property, the three rules and the web mapping (2026-11-16)
 - [doc/mode-split.md](./doc/mode-split.md) — a Mega grid of four cards without Mega padding on the cards: wrapper vs per-card override vs two collections, each built and measured in the Lab · Mode split frame; recommends the wrapper (2026-11-16, test, no master touched)
 - [doc/think-layouts.md](./doc/think-layouts.md) — the seven layouts to keep (page shell, four features, three cards, masonry, split, dark band, sidebar + main), the reference Page Set measured, which Scale tokens match it, one master shown at 400 / 1920 / 3440 (2026-11-16, recommendation)
-- [doc/scale-space.md](./doc/scale-space.md) — one responsive master per layout at all 8 Scale modes (wrap + Fill + min width bound to card-min stacks without a Direction variant); layout × width table, master-size rule, built in Lab · Scale space `174:62` (2026-11-16, test, no master touched)
 - [doc/component-inventory.md](./doc/component-inventory.md) — every component in Lew42 v2, near-duplicates, the `Elements` page (one `Button`, `Image`, text styles), the list of instances still depending on Big Sloppy, page-padding advice, and a proposed minimal level-one set
 - [doc/modes.md](./doc/modes.md) — what a mode switch moves (every variable in its collection, cascading), the four escape hatches, where to set a mode, the v2 Scale cut-down (2026-11-13)
 - [doc/drop-test.md](./doc/drop-test.md) — what happens when a Scale-Auto card, a menu or a big layout is dropped into containers set to Mobile, Default, Mega: Auto follows the container, any explicit mode (master or instance) wins, widths never adapt; frame `Lab · Drop test` 162:11407 (2026-11-16)
