@@ -1,6 +1,20 @@
 # Layout library (Lew42 v2 size pages)
 
-**Being replaced (the owner, 2026-11-16):** this 8-step structure was rejected: too much content, too many words, and the step logic doesn't land. `mastermind-bench` now owns the size pages and is rebuilding them as simple test benches, one Specimen per core component, piloting on 360 XS and 1000 Default. Read what follows as the old structure until bench updates this doc.
+## Test bench: the new shape of a size page (2026-11-16, piloted on 360 XS and 1000 Default)
+
+The owner rejected the 8-step structure below ("the simplest example that is undeniable and essential. Less words, more essence"). A size page is now a **test bench**: it shows what our core components look like at this width, so the owner can approve each one per resolution. Built by `mastermind-bench`; the other six pages wait until the owner has compared these two.
+
+- [360 XS · bench](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=114-9406) (`114:9406`) · [1000 Default · bench](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=114-11659) (`114:11659`).
+- **Root** `<mode> · bench`: vertical auto layout, fill Colors `light`, padding `pad-x`/`pad-y`, gap `gap`. It sets **no** Scale mode, so the page itself reads at Default and isn't cramped.
+- **Header**: `h1` with the mode name, one `body` line, and the `Systems used` line (`small`, `muted`); max width `measure`, lines spaced by `text-gap`.
+- **Two sections**, `Components` and `Screens` (`h2`), each a GRID frame of equal columns (3 at 360, 2 at 1000; rows Hug, gap `gap`).
+- **Each specimen** is a `Specimen` instance (`111:57`) with the page's Scale mode set on the instance and its width bound to Scale `width`, so 360 or 1000 comes from the token, not a typed value. Title = the component's name, Review tag Draft, Notes slot hidden (unhide it to add review notes). Its Content slot holds one white region (Scheme `fill`) with ONE instance: padded `pad-x`/`pad-y` for elements and content masters, unpadded for full-width pieces (App bar, Navigation, Profile, Res cards).
+- **360 XS**: Card, Button, Icon.Item Set, 600 / Stat tiles, 400 / List section (swapped into a Card's Content), 360 / App bar, 360 / Navigation, 360 / Profile, Res.360 XS Set. Screens: App bar + list, Card stack.
+- **1000 Default**: Card, Button, Icon.Item Set, 1000 / Text column, Two cards, Three cards, Nav + main, Res.1000 Default Set. Screen: Text + cards.
+- **The old step grid** is not deleted: it sits in a hidden frame `Archive · old steps`, far to the right on each page.
+- **Decided (veto if wrong):** a Card on a white region is white on white (the rule says white cards sit on light gray). Kept because the brief asked for white specimens and the card shadow still reads. To switch, set Scheme `Light gray` on the regions that hold cards.
+
+The rest of this doc describes the old structure, still live on the six pages not yet converted.
 
 The size pages in [Lew42 v2](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2) (`360 XS` … `3440 Mega`) each hold one root frame, `Layouts · <mode>`, that shows which layouts work at that size. [3440 Mega](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=67-5) is the model; the other pages copy its structure.
 
