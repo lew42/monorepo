@@ -20,3 +20,5 @@
 {"pid_exit":34768,"ended":"2026-11-16T15:42:29-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"log":{"at":"2026-11-16T15:42:37-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
 {"log":{"at":"2026-11-16T15:43:08-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-16T21:43:08.204Z"}
+{"pid_exit":13804,"ended":"2026-11-17T14:33:41-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":9296,"ended":"2026-11-17T14:33:41-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
