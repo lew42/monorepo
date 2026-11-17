@@ -39,6 +39,8 @@ All Figma edits are stopped until the owner approves this. It merges the diagnos
 - **A script fails the build** before anyone says "done": a padded frame with the same fill as its parent, padding that is unbound or zero, fixed heights, text wider than 720, nodes outside the root, connectors, or the owner's nodes changed. Lint ([lint.md](./lint.md)) already catches the same-on-same and padding problems. It still needs one new rule: a page has one root, no connectors and nothing else at the top level.
 - **Screenshots are 1:1 crops, section by section,** plus every page that uses a changed master. They are judged by an agent that didn't build the thing.
 
+**On the Live page:** the one-screen version is [Simplify proposal](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=131-29) (lint: 0 errors). Its next step, set by voice-app: build the seven blocks one at a time on a clean "Blocks" page, each approved before the next. The owner's note: specimens nest too deep (specimen card → content slot → region → card → layout component → cards); a specimen is just a Region with a label.
+
 ## If approved: next steps (nothing is touched before)
 
 1. **One agent cleans one page at a time.** It starts with 1920 and 2600 XL, and moves anything outside the root, or not approved, to a Draft page. Nothing is deleted.
