@@ -23,6 +23,8 @@
 //   mode-mismatch    (warn) a fixed width far from its Scale mode's width
 //   hidden-in-master (warn) a hidden layer or slot left inside a component master
 //   padded-no-fill   (warn) a padded frame with no fill of its own, on a page or doc frame
+//   page-root        a page holds one frame named "Root" (plus prototype starting
+//                    frames and hidden Archive frames), and no connector outside an Archive
 //
 // An instance and the layers inside it get only same-on-same (and mode-mismatch on the
 // instance itself), since every other finding there belongs to its master: lint the master.
@@ -155,6 +157,8 @@ function text(node) {
 function child_drives(node) {
   if (!('layoutMode' in node) || node.layoutMode === 'NONE' || node.layoutMode === 'GRID') return;
   if (node.layoutSizingHorizontal !== 'HUG') return;
+  // A page root is a shelf of independent things, so it hugs its widest one on purpose.
+  if (page_root_of(node)) return;
   // Not a driver: a child named "fixed …", a region that sets its own Scale mode (it is the
   // layout's source by rule), a width bound to a variable, or a master in a folder frame.
   const fixed = k => k.layoutSizingHorizontal === 'FIXED' && k.width >= 120 && !/fixed|sets width/i.test(k.name) &&
@@ -179,6 +183,20 @@ async function mode_mismatch(node) {
   const r = node.width / width, explicit = !!(node.explicitVariableModes || {})[scale.id];
   if (r > 1.6 || (explicit && r < 0.6))
     report('warn', node, 'mode-mismatch', `${Math.round(node.width)} wide on ${scale.names[mode]}${explicit ? '' : ' (inherited)'}`);
+}
+
+// --- the page: one root, nothing loose, no connectors (owner, 2026-11-16) ------------
+const page_root_of = n => n.parent && n.parent.type === 'PAGE' && n.name === 'Root';
+const archived = n => { for (let p = n; p && p.type !== 'PAGE'; p = p.parent) if (/archive/i.test(p.name) && p.visible === false) return true; return false; };
+function page_root(page) {
+  const starts = (page.flowStartingPoints || []).map(f => f.nodeId);
+  const roots = page.children.filter(page_root_of);
+  if (roots.length !== 1) report('error', page, 'page-root', `${roots.length} top-level frames named "Root"; a page has exactly one`);
+  for (const k of page.children)
+    if (!page_root_of(k) && !starts.includes(k.id) && !archived(k))
+      report('error', k, 'page-root', `loose at the top level (${k.type}); move it into Root`);
+  for (const c of page.findAllWithCriteria({ types: ['CONNECTOR'] }))
+    if (!archived(c)) report('error', c, 'page-root', 'connector outside a hidden Archive; delete it');
 }
 
 // --- the walk ---------------------------------------------------------------------
@@ -222,13 +240,14 @@ async function lint(ids) {
     scale = { id: col.id, widths: {}, names: {} };
     for (const m of col.modes) { scale.names[m.modeId] = m.name; scale.widths[m.modeId] = w ? Number(w.valuesByMode[m.modeId]) || parseInt(m.name) : parseInt(m.name); }
   }
-  const roots = [];
+  const roots = [], checked = new Set();
   for (const id of ids) {
     const root = await figma.getNodeByIdAsync(id);
     if (!root) { roots.push(`missing ${id}`); continue; }
     let page = root; while (page.type !== 'PAGE') page = page.parent;
     if (figma.currentPage !== page) await figma.setCurrentPageAsync(page);
     roots.push(`${root.name} ${id}`);
+    if ((root.type === 'PAGE' || root.parent.type === 'PAGE') && !checked.has(page.id)) { checked.add(page.id); page_root(page); }
     const kids = root.type === 'PAGE' ? root.children : [root];
     for (const k of kids) {
       let master = null;
