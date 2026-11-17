@@ -30,6 +30,16 @@ Every step example (each `Example · …` frame, not each card) on the eight siz
 
 Trap: a paint whose colour is bound to a variable lost its paint opacity (back to 1) after a later write, so a 15% tint of `dark` came out solid. Use a variable that carries its own alpha (Scheme `muted` is black at 55%) instead of paint opacity.
 
+## Specimens and review notes (2026-11-16, pilot on 3440)
+
+Figma comments are pinned to a canvas position and don't follow auto layout, so review notes live in the design instead. The masters are on the Elements page, in the folder frame `Review notes (Specimen, Notes, Note)` (`111:40`):
+
+- **`Specimen`** (`111:57`): a Header row (an exposed `Review` tag and an h3 `Title` text property), a `Content` slot holding the example, and a `Notes` slot holding a Notes list. Set the instance width to the example's width; everything inside is Fill. It carries no Scale mode.
+- **`Notes`** (`111:48`): the "list program" shape, which is one slot of item instances (`Notes`, preferred item Note) and then a dashed `Add note` row at the end. It sits on Colors `light`, and its width is Fill, capped at `measure`. To add a note, select a note and press Ctrl+D, which works inside a Specimen instance too (tested). For chat or todo lists, copy this shape and swap the item. Build a generic `List` master once a second list exists; with only one, it would just add a layer.
+- **`Note`** (`111:43`): a white bubble (Scheme `fill`) with `Author` (small, muted) and `Text` (body) properties. It has no timestamp, so it never goes stale. Padding binds `button-pad-x/y`, the gap binds `text-gap`, and the corners bind `radius`.
+
+**Pilot:** all 38 `Example · …` frames on [3440 Mega](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=67-5) are now Specimen instances with the same names. Each one's viewport frame was moved into its Content slot unchanged, and the Review status was kept (all Draft). Each starts with one placeholder note. The other size pages wait for the owner's approval of the pilot. Caveat: text styles don't follow Scale, so at 3440 the notes read small next to the viewports.
+
 **Stat tiles below 600** (2026-11-16): `600 / Stat tiles` squeezes its three tiles to about 100 wide at 360 and 400, and an instance can't override a nested min width or the row's direction. So on 360 XS and 400 Mobile the row is detached into a layout frame `Tiles · 2 + 1`: wrap on, gap bound to `gap`, each Card instance FILL with min 150 (360) or 160 (400), so two tiles sit side by side and the third takes the full row.
 
 **Bars use button tokens** (2026-11-16): `360 / App bar` (`100:4743`) binds its side padding to Scale `button-pad-x` and its gap and top/bottom padding to `button-pad-y` (12 / 6 at XS), not `pad-x` and `gap`. A bar is a row of controls, so card padding (48 at Default) made it look loose, above all inside a padded card. It carries no Scale mode; the region holding it sets one.
