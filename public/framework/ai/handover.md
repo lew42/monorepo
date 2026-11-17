@@ -27,28 +27,43 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-16 00:02 UTC, last 24 h)
+## NOW (computed 2026-11-17 00:00 UTC, last 24 h)
 
-**Pace:** Week: 15% used · 55% gone · 27% of pace (room to spend, 3 days 2 hours left)
+**Pace:** Week: 22% used · 70% gone · 32% of pace (room to spend, 2 days 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (1):**
-- [CONSOLIDATE the auth demo into the monorepo Worker. Owner approved. Work autonomously in a worktree; report to](/framework/ai/sessions/2026/11/15/spawned/mastermind-auth-merge/) (mastermind-auth-merge)
+**Landed (20):**
+- [You are "size-small". You own three pages in Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER): "600 SM", "400 Mobile"](/framework/ai/sessions/2026/11/16/spawned/mastermind-size-small/) (mastermind-size-small)
+- [You are "size-1600-1000". You own two pages in Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER): "1600 LG", then "100](/framework/ai/sessions/2026/11/16/spawned/mastermind-size-1600-1000/) (mastermind-size-1600-1000)
+- [You are "res-cards". In Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER), make one default "resolution card" per Scal](/framework/ai/sessions/2026/11/16/spawned/mastermind-res-cards/) (mastermind-res-cards)
+- [You are "surface". In Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER), explore Michael's open question: CARD mode vs](/framework/ai/sessions/2026/11/16/spawned/mastermind-surface/) (mastermind-surface)
+- [You are "size-2600". You own the "2600 XL" page (34:475) in Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER). Michael](/framework/ai/sessions/2026/11/16/spawned/mastermind-size-2600/) (mastermind-size-2600)
+- [You are "text". In Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER), create and own a new page named "Text", placed r](/framework/ai/sessions/2026/11/16/spawned/mastermind-text/) (mastermind-text)
+- [You are the Figma page-audit agent (READ ONLY in Figma). Your brief is "Brief D" in public/framework/ai/sessio](/framework/ai/sessions/2026/11/16/session-0fcba11d/mastermind-figma-page-audit/) (mastermind-figma-page-audit)
+- [You are the 2600 XL page cleanup agent for the Figma file Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER; use Figma ](/framework/ai/sessions/2026/11/16/session-0fcba11d/mastermind-mastermind-figma-2600-xl/) (mastermind-mastermind-figma-2600-xl)
+- [You own Brief A2 in public/framework/ai/sessions/2026/11/16/spawned/mastermind-figma/batch3-briefs.md (read th](/framework/ai/sessions/2026/11/16/session-0fcba11d/mastermind-figma-text-audit-explore/) (mastermind-figma-text-audit-explore)
+- [You own Brief P in public/framework/ai/sessions/2026/11/16/spawned/mastermind-figma/batch3-briefs.md (read the](/framework/ai/sessions/2026/11/16/session-0fcba11d/mastermind-figma-size-pages/) (mastermind-figma-size-pages)
+- [You own Brief A1 in public/framework/ai/sessions/2026/11/16/spawned/mastermind-figma/batch3-briefs.md (read th](/framework/ai/sessions/2026/11/16/session-0fcba11d/mastermind-figma-text-audit-core/) (mastermind-figma-text-audit-core)
+- [Load the figma-use and figma-generate-design skills. Read public/framework/ai/sessions/2026/11/16/spawned/mast](/framework/ai/sessions/2026/11/16/session-0fcba11d/mastermind-figma-2600-fix/) (mastermind-figma-2600-fix)
+- …and 8 more (the [task list](/framework/ai/tasks/))
 
-**Open, touched in the window (0):**
-- none
+**Open, touched in the window (4):**
+- [You're the Figma mastermind for a live voice session with Michael (the owner). The voice agent (cloud Claude) ](/framework/ai/sessions/2026/11/16/spawned/mastermind-figma/) (mastermind-figma)
+- [figma: layout library on the size pages (3440 Mega model, 1920 Desktop)](/framework/ai/sessions/2026/11/16/spawned/mastermind-layouts/) (mastermind-layouts)
+- [You are "live", Michael's live design partner in Figma. Michael talks by voice; the cloud voice agent (voice-a](/framework/ai/sessions/2026/11/16/spawned/mastermind-live/) (mastermind-live)
+- [You are the text-style audit agent for the size pages of the Figma file Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMf](/framework/ai/sessions/2026/11/16/session-0fcba11d/mastermind-figma-text-audit-sizes/) (mastermind-figma-text-audit-sizes)
 
 **Latest commits on this branch:**
 ```
-8ce3c5effd Merge auth-merge: gitignore: worker/.dev.vars at the top of the file (avoids merge overlap)
-febd5b270e gitignore: worker/.dev.vars at the top of the file (avoids merge overlap)
-d739bedcb0 worker: readme and identity wording after review round 3
-981cf60df5 worker: review fixes (stale doc names, secret before deploy, no-API host message, DocStore test)
-be0e42ca20 servex: log sweep (5 files)
-9f123102d7 worker: remove app/, docs for the consolidated Worker, staging deploy fixes
-371deee01a app UI under public/app (hash routes, new user shape), scripts adapted
-93cb035523 worker: port app/ backend into the monorepo Worker (stateless session, Room lock, migrations, API tests)
+3f97923eed servex: log sweep (20 files)
+7f14d9ff3b layouts: note the Systems used header line on 1920, 2600, 3440
+5c9451dae7 figma: Card vs Section names its system, adds a live token table and a name proposal
+a5e4906776 size-small: task closed
+edf7accb97 layouts: resolution cards and layout masters replace placeholders on 3440 and 1920; light grounds; Templates note
+9bd4c01da2 figma: 600 SM, 400 Mobile, 360 XS rebuilt on the 3440 model; small-width masters listed
+e417766783 figma: 1600 LG and 1000 Default size pages rebuilt to the 3440 model; layout masters composed from smaller ones
+d0ec8a2f25 figma: resolution card sets (Res.<width> Set, Card/Space) for all 8 Scale modes in Lew42 v2
 ```
 
 The dated sections below are written by hand and go stale; this block does not.

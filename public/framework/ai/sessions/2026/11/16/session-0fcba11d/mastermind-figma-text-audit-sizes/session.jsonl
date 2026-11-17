@@ -36,3 +36,4 @@
 {"log":{"at":"2026-11-16T17:15:20-06:00","msg":"task-loop status ask 2: mastermind-figma-text-audit-sizes was stopped on purpose; not woken","ask":2}}
 {"log":{"at":"2026-11-16T17:20:20-06:00","msg":"task-loop status ask 3: mastermind-figma-text-audit-sizes was stopped on purpose; not woken","ask":3}}
 {"log":{"at":"2026-11-16T17:25:20-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"log":{"at":"2026-11-16T18:25:20-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}

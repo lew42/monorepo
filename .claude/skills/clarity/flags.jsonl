@@ -2491,3 +2491,6 @@
 {"at":"2026-11-16T23:45:29.417Z","target":"public/framework/ai/sessions/2026/11/16/spawned/mastermind-layouts","verdict":"queued","kind":"landing"}
 {"at":"2026-11-16T23:45:29.825Z","target":"public/framework/ai/sessions/2026/11/16/spawned/mastermind-layouts","verdict":"spawned","to":"clarity-mastermind-layouts"}
 {"at":"2026-11-16T18:00:00-06:00","target":"public/framework/ai/sessions/2026/11/16/spawned/mastermind-layouts","verdict":"rewrote","what":"96-word outcome paragraph rewritten as a ticked checklist","to":"session.jsonl"}
+{"at":"2026-11-17T00:04:13.218Z","target":"public/framework/ai/sessions/2026/11/16/spawned/mastermind-live","verdict":"queued","kind":"landing"}
+{"at":"2026-11-17T00:04:13.981Z","target":"public/framework/ai/sessions/2026/11/16/spawned/mastermind-live","verdict":"spawned","to":"clarity-mastermind-live"}
+{"at":"2026-11-16T18:10:00-06:00","target":"public/framework/ai/sessions/2026/11/16/spawned/mastermind-live","verdict":"rewrote","what":"title dropped the owner's name; outcome rewritten as a ticked list with proof links","to":"mastermind-live/session.jsonl"}
