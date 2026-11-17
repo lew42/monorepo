@@ -435,3 +435,5 @@
 {"log":{"at":"2026-11-16T22:41:05-06:00","heartbeat":"deliberate","msg":"mastermind-figma its agent is not running: it was stopped on purpose by mastermind-figma at 2026-11-16T22:35:24-06:00; not revived."}}
 {"log":{"at":"2026-11-16T22:50:21-06:00","msg":"task-loop status ask 1: mastermind-figma was stopped on purpose; not woken","ask":1}}
 {"log":{"at":"2026-11-16T22:55:21-06:00","msg":"task-loop status ask 2: mastermind-figma was stopped on purpose; not woken","ask":2}}
+{"log":{"at":"2026-11-16T23:00:21-06:00","msg":"task-loop status ask 3: mastermind-figma was stopped on purpose; not woken","ask":3}}
+{"log":{"at":"2026-11-16T23:05:21-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
