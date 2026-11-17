@@ -2,9 +2,12 @@
 
 A **proposal only**; no token value has changed. The seven modes are named by resolution first (`360 XS`, `400 Mobile`, `600 SM`, `1000 Default`, `1600 LG`, `2600 XL`, `3440 Mega`), and a `width` token holds each mode's resolution. Background: [design-system-notes.md](./design-system-notes.md), [token-audit.md](./token-audit.md).
 
-## The eighth mode: 1920 Desktop (draft, 2026-11-16)
+## Decided 2026-11-16
 
-Added on request, between `1600 LG` and `2600 XL`. **Draft values**, interpolated 32% of the way from LG to XL and rounded to a multiple of 4; the owner has not approved them: `width` 1920, `pad-x` and `pad-y` 68, `gap` 44, `radius` 8, `squeeze` 1664, `section-pad-x/y` 68, `button-pad-x` 24, `button-pad-y` 16, `text-gap` 12, `card-min` 432. The table below covers the other seven modes only. Pro allows 10 modes.
+- **1920 Desktop values accepted as they are:** `width` 1920, `pad-x` and `pad-y` 68, `gap` 44, `radius` 8, `section-pad-x/y` 68, `button-pad-x` 24, `button-pad-y` 16, `text-gap` 12, `card-min` 432 (interpolated 32% of the way from LG to XL, rounded to a multiple of 4). Pro allows 10 modes.
+- **`squeeze` is flat at 1600** in 360 XS through 1920 Desktop; 2600 XL stays 1800 and 3440 Mega 2400. This replaces the erratic list under "What is wrong now" and the squeeze row of the table below (the `max-width` rename is not done).
+- **A `measure` token exists:** Scale `measure` = 720 in every mode (scope width/height). The frames named `Text (max 720: measure)` bind their max width to it. This is the reading width, separate from `squeeze` (the content maximum).
+- The rest of the table below is still a proposal, not applied. It covers the other seven modes only.
 
 ## What is wrong now
 

@@ -21,14 +21,14 @@ The file now has **10 variable collections**, every name prefixed "Lew42 · " (i
 
 1. **Renamed** the ten with the "Lew42 · " prefix (a rename keeps every binding).
 2. **Card padding merged into Scale.** 20 direct bindings and 5 on the Cut list were repointed to Scale `pad-x`, `pad-y` and `gap`; the one Unpadded Card became a plain 0. Card `8:5` and Panel `153:1779` look unchanged (checked by screenshot).
-3. **Theme merged into Scheme.** Scheme `accent` in White, Light gray and Dark is now an alias of Colors `prime`, and `on-accent` there is a literal white; the Prime mode is unchanged. The Blue, Gold and Teal demo units went to the Cut list (`Cut · Theme · the UI colour section`, `Cut · Page · Themes`, `Cut · Pills · Theme modes row`); the Live and Component notes swatches became literal fills.
+3. **Theme merged into Scheme.** Scheme `accent` in White, Light gray and Dark is now an alias of Colors `prime`, and `on-accent` there was a literal white (since 2026-11-16 it is an alias of Colors `ink` in every Scheme mode, so labels on the orange accent are dark, about 7:1); the Prime mode is unchanged. The Blue, Gold and Teal demo units went to the Cut list (`Cut · Theme · the UI colour section`, `Cut · Page · Themes`, `Cut · Pills · Theme modes row`); the Live and Component notes swatches became literal fills.
 4. **Tossed:** Label, Device, TEST Pad, Size (demo, Pill), Card strategy test, ZZ scratch dir. A before-and-after read of 223 bound nodes showed zero value changes, because deleting a variable keeps each node's last value.
 5. **Flow stays separate** (not folded into Constants), as the owner decided.
 6. **Demo pages** for the seven collections that had none: Constants, Button, Selection, Icon size, Image, Bar, Flow.
 
 Leftovers, harmless: 24 literalized swatches still carry an explicit mode of the deleted Theme collection; the Cut list's old Theme bindings keep their last values. Collection id `41:159` is an orphan explicit mode on 21 nodes of the file's root page; clear it when touching that page.
 
-**The alias chain** (shown at the top of the ↳ Button page, 534:11266): a button reads Button, which aliases Scheme, which aliases Colors. Primary fill = Scheme `accent` = Colors `prime`; Primary label = Scheme `on-accent` = white (ink on the Prime ground). So the Scheme mode of the ground a button sits on picks its colours, shown by one Primary button on each of White, Light gray, Prime and Dark.
+**The alias chain** (shown at the top of the ↳ Button page, 534:11266): a button reads Button, which aliases Scheme, which aliases Colors. Primary fill = Scheme `accent` = Colors `prime`; Primary label = Scheme `on-accent` = Colors `ink` (was white; changed 2026-11-16). So the Scheme mode of the ground a button sits on picks its colours, shown by one Primary button on each of White, Light gray, Prime and Dark.
 
 ## Flags still open (proposals; values untouched)
 

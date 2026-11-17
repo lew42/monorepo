@@ -6,12 +6,12 @@
 
 ## How it works
 
-A new collection, `Lew42 v2 · Surface (experiment)`, modes **Card** (default) and **Section**. Each variable aliases an existing token in Card mode:
+A collection, `Lew42 v2 · Surface`, modes **Card** (default) and **Section**. Each variable aliases an existing token in Card mode:
 
 | Variable | Bound to | Card | Section |
 |---|---|---|---|
 | `surface-gap` | the layout's gap | Scale `gap` | 1 (a hairline) |
-| `surface-inset` | the layout's padding | Scale `gap` | 0 |
+| `layout-padding` | the layout's padding | Scale `gap` | 0 |
 | `surface-radius` | each card's corners | Scale `radius` | 0 |
 | `surface-ground` | the layout's fill | Colors `light` | black 12% (static) |
 
@@ -20,9 +20,8 @@ The card's fill stays Scheme `surface` and its padding stays Scale `pad-x`/`pad-
 ## Decisions and alternatives
 
 - **Section gap is 1, not 0.** With 0 the white columns merge into one slab. The alternative is 0 with each column told apart by its own Scheme (White sidebar, Light gray main); that needs no hairline, but then Card mode needs the cards' Scheme flipped back.
-- **The demo rebinds radius on each Card instance** (the Card master `34:478` still binds Scale `radius`), so nothing else in the file changes. Adopting it means binding the master's radius to `surface-radius`; Card is the default mode, so every existing card looks the same.
-
-- **Name proposal, not applied:** rename `surface-inset` to `layout-padding`. "Padding" is the word Figma uses, and "layout" says whose padding it is (the layout's, not the card's). `surface-padding` keeps the family prefix but reads like the card's own padding. The owner decides.
+- **The Card master on the Scale page (`16:364`) binds its corner radius to `surface-radius`** (decided 2026-11-16). Card is the default mode, so every existing card looks the same (checked: the radius of all 367 instances is identical before and after). The demo also rebinds radius on its own Card instances. The other Card master `34:478` still binds Scale `radius`; which Card master survives is the open duplicate-masters decision.
+- **`layout-padding`** (renamed from `surface-inset`, 2026-11-16): "padding" is the word Figma uses, and "layout" says whose padding it is (the layout's, not the card's). The alternative `surface-padding` keeps the family prefix but reads like the card's own padding.
 
 The page opens by naming the collection, its modes and where to set the mode. Its "The system" section has a token table (variable, what it controls, Card, Section, why), where every value is a live shape bound to the variable, plus two rows for the collections that stay the same in both modes (Scale `pad-x`/`pad-y`, Scheme `surface`; documented on the Scale page and in the AI page's Tokens frame).
 
