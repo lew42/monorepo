@@ -1,28 +1,34 @@
 # Follow-up: what fell through the cracks
 
-Counted by the one state ([one-state.md](one-state.md), `Server/AIIndex.mjs`): every task below is a row of `ai/index.json`. Computed 2026-11-16 06:00 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
+Counted by the one state ([one-state.md](one-state.md), `Server/AIIndex.mjs`): every task below is a row of `ai/index.json`. Computed 2026-11-17 06:00 UTC by `node Server/FollowUp.mjs --write` from the state's tasks touched in the last 10 days. Re-run it any time; the full table is [follow-up-full.md](follow-up-full.md), unused files are [unreferenced.md](unreferenced.md).
 
-**0 landed with unmerged commits · 0 merged but never landed · 0 quiet over 2 h · 0 landed with no outcome · 509 open tasks untouched over 7 days · 0 open asks with no live owner · 319 healthy of 319.**
+**0 landed with unmerged commits · 0 merged but never landed · 1 quiet over 2 h · 0 landed with no outcome · 510 open tasks untouched over 7 days · 0 open asks with no live owner · 326 healthy of 327.** (Servex was down: agent states unknown.)
 
-## unworked: 509
+## quiet: 1
+
+the state calls it in_flight or stale and its log is silent for over 2 h: resume it or close it.
+
+- [cloud-voice-app-20261113](/framework/ai/sessions/2026/11/13/cloud-voice-app-20261113/): no agent, last log 24 h ago, step 0/0, agent ?
+
+## unworked: 510
 
 Open tasks (idle, queued or waiting, none on the owner) whose last log line is over 7 days old. Nothing runs from the queue by itself, so these only get done if someone looks: do it, group it into a real task, or stop it with a reason (through the item tool). Newest first.
 
-- [v-z0jonhy](/framework/ai/sessions/2026/11/03/v-z0jonhy/): idle, last log 12 d ago
-- [v-qfzrnhh](/framework/ai/sessions/2026/11/02/v-qfzrnhh/): idle, last log 12 d ago
-- [v-u48msei](/framework/ai/sessions/2026/11/01/v-u48msei/): idle, last log 13 d ago
-- [read-aloud-next](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/read-aloud-next/): waiting, last log 14 d ago
-- [v3-messages](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v3-messages/): waiting, last log 14 d ago
-- [v-15bsa90](/framework/ai/sessions/2026/11/01/v-15bsa90/): idle, last log 14 d ago
-- [v-9dvbbrn](/framework/ai/sessions/2026/10/25/v-9dvbbrn/): idle, last log 20 d ago
-- [module-folder-tasks-are-not-found-unless](/framework/ai/sessions/2026/10/25/v-9dvbbrn/module-folder-tasks-are-not-found-unless/): idle, last log 20 d ago
-- [mobile-sheet-page-cannot-scroll-to-the-b](/framework/ai/sessions/2026/10/25/v-9dvbbrn/mobile-sheet-page-cannot-scroll-to-the-b/): idle, last log 20 d ago
-- [chat-tab-on-every-session-page-talk-to-a](/framework/ai/sessions/2026/10/25/v-9dvbbrn/chat-tab-on-every-session-page-talk-to-a/): idle, last log 20 d ago
-- …499 more in [follow-up-full.md](follow-up-full.md)
+- [v-yq08i4n](/framework/ai/sessions/2026/11/06/v-yq08i4n/): idle, last log 7 d ago
+- [v-z0jonhy](/framework/ai/sessions/2026/11/03/v-z0jonhy/): idle, last log 13 d ago
+- [v-qfzrnhh](/framework/ai/sessions/2026/11/02/v-qfzrnhh/): idle, last log 13 d ago
+- [v-u48msei](/framework/ai/sessions/2026/11/01/v-u48msei/): idle, last log 14 d ago
+- [read-aloud-next](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/read-aloud-next/): waiting, last log 15 d ago
+- [v3-messages](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v3-messages/): waiting, last log 15 d ago
+- [v-15bsa90](/framework/ai/sessions/2026/11/01/v-15bsa90/): idle, last log 15 d ago
+- [v-9dvbbrn](/framework/ai/sessions/2026/10/25/v-9dvbbrn/): idle, last log 21 d ago
+- [module-folder-tasks-are-not-found-unless](/framework/ai/sessions/2026/10/25/v-9dvbbrn/module-folder-tasks-are-not-found-unless/): idle, last log 21 d ago
+- [mobile-sheet-page-cannot-scroll-to-the-b](/framework/ai/sessions/2026/10/25/v-9dvbbrn/mobile-sheet-page-cannot-scroll-to-the-b/): idle, last log 21 d ago
+- …500 more in [follow-up-full.md](follow-up-full.md)
 
 ## Check
 
-319 healthy + 0 flagged = 319; the state lists 319 tasks in the same 10 days: agree. The state's own self-check is ok. Source: ai/index.json (under a minute old). 407 local branches are not merged into `compliance/dev` (many are salvage or abandoned worktrees).
+326 healthy + 1 flagged = 327; the state lists 327 tasks in the same 10 days: agree. The state's own self-check is ok. Source: ai/index.json (under a minute old). 407 local branches are not merged into `compliance/dev` (many are salvage or abandoned worktrees).
 
 ## How each row is counted
 

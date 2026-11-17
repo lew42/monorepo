@@ -437,3 +437,5 @@
 {"log":{"at":"2026-11-16T22:55:21-06:00","msg":"task-loop status ask 2: mastermind-figma was stopped on purpose; not woken","ask":2}}
 {"log":{"at":"2026-11-16T23:00:21-06:00","msg":"task-loop status ask 3: mastermind-figma was stopped on purpose; not woken","ask":3}}
 {"log":{"at":"2026-11-16T23:05:21-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"stop":{"at":"2026-11-17T00:05:23-06:00","why":"dropped: owner mastermind-figma is stopped"}}
+{"at":"2026-11-17T06:05:24.493Z","tasks":{"add":{"type":"Task","id":"open-items","title":"Review what stayed open: You're the Figma mastermind for a live voice session with Michael (the owner). The voice agent (cloud Claude) will relay","requested_at":"2026-11-17T06:05:24.493Z"}},"open-items":{"wait":{"on":"owner","what":"closed at 93% with 1 open: You are the text-style audit agent for the size pages of the Figma file Lew42 v2 (fileKey  (mastermind-figma-text-audit-sizes, running)","at":"2026-11-17T06:05:24.493Z"}}}
