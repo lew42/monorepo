@@ -412,3 +412,15 @@
 {"tool_call":{"at":"2026-11-17T02:43:10.728Z","tool":"send_to_agent","args_hash":"3b2dca728daa","caller":"voice-app"}}
 {"log":{"at":"2026-11-16T20:50:20-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
 {"tool_call":{"at":"2026-11-17T02:51:38.925Z","tool":"updates","args_hash":"0a6912bb75d2","caller":"voice-app"}}
+{"log":{"at":"2026-11-16T21:00:20-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-16T21:05:20-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"tool_call":{"at":"2026-11-17T03:07:47.461Z","tool":"updates","args_hash":"0a6912bb75d2","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-17T03:07:55.356Z","tool":"send_to_agent","args_hash":"abb4702fcc75","caller":"voice-app"}}
+{"log":{"at":"2026-11-16T21:15:20-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-16T21:20:20-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"tool_call":{"at":"2026-11-17T03:23:44.727Z","tool":"updates","args_hash":"0a6912bb75d2","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-17T03:24:13.599Z","tool":"shell","args_hash":"7dd406c1eb5f","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-17T03:24:22.558Z","tool":"shell","args_hash":"9f248dbfedf5","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-17T03:24:26.692Z","tool":"shell","args_hash":"0226c3d9089a","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-17T03:24:32.286Z","tool":"shell","args_hash":"4141eee88819","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-17T03:24:45.110Z","tool":"send_to_agent","args_hash":"b4c6ac978378","caller":"voice-app"}}
