@@ -33,6 +33,9 @@ It changes nothing. It answers:
 | mode-mismatch | warn | A Fixed width more than 1.6× its Scale mode's width, or a frame that sets its own mode at under 0.6× of it. | Set the mode nearest the width. |
 | hidden-in-master | warn | A hidden layer or slot inside a master that no boolean property controls. | Delete it, or give it a boolean. |
 | padded-no-fill | warn | A padded page or doc frame with no fill. | Give it the wrapper shade or a Scheme fill. |
+| page-root | error | Runs when you lint a page id or a top-level frame. A page holds exactly one frame named `Root`. Allowed beside it: a prototype starting frame (Showcase's Click through) and hidden `Archive` frames. No connector anywhere outside a hidden Archive. | Move the loose node into Root (master folders first); put connectors in a hidden Archive. |
+
+`Root` is exempt from child-drives: it is a shelf of independent things, so it hugs the widest one.
 
 **Not checked, still yours:** instances and the layers inside them get only same-on-same (their other findings belong to the master: lint the master); the screenshot check for overlap, clipping and empty space; whether the thing makes sense.
 
@@ -47,6 +50,8 @@ On the AI page, Live, Showcase, the 360 XS and 1000 Default benches and Elements
 - **Elements:** raw black titles bound to `text`; 11 unstyled labels in Example · Button by scheme styled; raw 16 gaps bound to `text-gap`; the Specimen instance sets its own Scale mode.
 - **AI page:** one unstyled bullet styled.
 
-**Read-only run, after the stop on Figma edits (2026-11-16, nothing fixed):** 2600 XL had 132 errors (90 same-on-same, mostly white cards on white regions; 22 unstyled text; 14 child-drives; 4 pad-token), plus an 18840-wide wrapper and 4 loose connectors up to 13476 px long. 1920 Desktop had 48 errors (20 raw-fill, 16 raw-value, 12 same-on-same). Lint does not see floating layouts or connectors; a proposed extra rule: a page has one root auto-layout frame, no connectors and nothing else at top level.
+**Read-only run, after the stop on Figma edits (2026-11-16, nothing fixed):** 2600 XL had 132 errors (90 same-on-same, mostly white cards on white regions; 22 unstyled text; 14 child-drives; 4 pad-token), plus an 18840-wide wrapper and 4 loose connectors up to 13476 px long. 1920 Desktop had 48 errors (20 raw-fill, 16 raw-value, 12 same-on-same). Lint did not see floating layouts or connectors then; the page-root rule (above) was added the same evening.
+
+**Roots pass (2026-11-16, evening):** every page except AI, Live and the two Lab pages now passes page-root, with 0 child-drives and 0 unstyled text. Per-page counts: [report](/framework/ai/sessions/2026/11/16/spawned/mastermind-roots/report.md).
 
 **Left open, 1 error:** the Button master's hidden `Icon` frame (`23:508`) has a raw white fill, and no white colour variable exists to bind it to. The Button master is the owner's. Also seen: card-like layout masters (`360 / App bar`, `360 / Profile`) carry their own fill and padding, so inside a Card they double up; the Showcase instances got a contrasting Scheme, and the master question is logged as an improvement in this folder.
