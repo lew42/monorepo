@@ -19,6 +19,8 @@
 
 ## While building
 
+- **A row whose children are all Fill height never grows** (2026-11-16, [master pass](./master-pass.md)): when content inside gets taller, the row keeps its old height and the content spills out. Let one child (the sidebar or the tallest column) Hug and drive the height; the others Fill.
+
 - **Every container is auto layout.** A page's content sits in one vertical auto-layout frame: a page title, then one section per topic.
 - **Layout is parent-down (owner, 2026-11-16).** The container sets the width (fixed or Fill) and the Scale mode; content below it is Fill, so text reflows. Never make a hug-width card whose width comes from a fixed-width child: a child that is the source of the layout can't be found when it breaks. A master meant to be swapped into a slot is Fill width and carries no fixed width of its own, and a content master carries no explicit Scale mode (the container's mode applies). Why: the swap test card (`100:5846`) hugged while its content was fixed at 320, so swapping in `360 / App bar` pushed the layout wide; the App bar also had a fixed height and no mode, so it picked up the default 48 px padding. Check: swap the slot into every master at that master's own size (2026-11-16: 17 masters, no overflow).
 - **Sizing is Fill or Hug.** Fixed only where named in the layer (`Nav (fixed 320: rail)`).

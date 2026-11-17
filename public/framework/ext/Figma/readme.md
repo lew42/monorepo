@@ -45,6 +45,8 @@ All of them are built from `Card` `16:364`, `Content · Stat`, `Card · with med
 
 **[Page audit](./doc/page-audit.md)** (2026-11-16, read-only): every page in Lew42 v2 screenshotted and checked against the build checklist. The one finding that matters everywhere: the Button's label fails WCAG contrast (2.6, needs 4.5) on every Scheme — confirmed by [Explore – Color permutations](./doc/page-audit.md#explore-color-permutations)' own computed numbers, so it's a token fix, not a per-page one.
 
+**[Master pass](./doc/master-pass.md)** (2026-11-16): every master in the `<width> / Layouts` folders and the 8 `Res.<mode>` Sets checked and fixed on the master, one line each with before / after shots. 360 / App bar was rebuilt (40 px tap targets, 24 px icons, a title that fills and cuts with …); 600 / Stat tiles keeps "8.2k" on one line and wraps 2 + 1 by itself; sidebars on 2600 fill the height. The rule it found: a row whose children are all Fill height never grows, so one child must Hug.
+
 ## Component strategy (current, 2026-11-12)
 
 This is the current truth. Where an older line below contradicts it, that line is marked superseded.
