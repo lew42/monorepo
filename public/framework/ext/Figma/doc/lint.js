@@ -76,7 +76,9 @@ async function paint(node, under) {
       const v = await variable(bound.id);
       if (v) { const r = v.resolveForConsumer(node).value; if (r && 'r' in r) { color = r; a = r.a ?? 1; } }
     }
-    const alpha = (f.opacity ?? 1) * a * (node.opacity ?? 1);
+    // A paint bound to a colour with alpha already carries that alpha as paint.opacity
+    // (Figma syncs them), so count it once: tint (black 5%) read as 0.25% before (2026-11-17).
+    const alpha = (bound ? a : (f.opacity ?? 1)) * (node.opacity ?? 1);
     if (alpha <= 0) continue;
     painted = true;
     ground = ground

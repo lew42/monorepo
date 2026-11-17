@@ -1,92 +1,62 @@
-# Pilot: the 1000 Default page shows 1000 at first glance (plan, 2026-11-17)
+# Pilot: the 1000 Default page (built 2026-11-17, waiting for your look)
 
-**Status: proposal. Nothing below is built.** This plan applies [rule 17](./rules.md) ("a size page shows its width at first glance") to one page, [1000 Default](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=64-2898). Nothing rolls out to other pages until you approve this one (rule 14). Source: [your words, section 6](./owner-words-2026-11-17.md#6-the-1000-default-page-stray-folders-text-column-card-vs-section-masonry-text-15-00).
+**Status: built on [1000 Default](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=64-2898).** It follows [rules](./rules.md) 7 and 17–24, the [Root plan](./root-plan-2026-11-17.md) and your words ([Root](./owner-words-2026-11-17-root.md), [layouts](./owner-words-2026-11-17-layouts.md), [section 6](./owner-words-2026-11-17.md)). Nothing old was deleted: what was replaced sits beside its replacement or in the hidden `Archive`. Nothing rolls out to other pages until you approve this one (rule 14).
 
-## The idea in one line
+## What you see
 
-The page becomes a title on top, then one `Masonry` of three columns. Every item in it is 1000 wide: the preview, the master folders and two small demos. Whatever you look at, you see 1000.
-
-```
-Root (vertical, ~3450 × ~3100, about 1.1 : 1)
-├─ Title            "1000 Default" (h1) + one line: "Everything on this page is drawn 1000 wide."
-├─ Masonry          3 columns × 1096 (1000 + folder padding), gap = gap
-│   ├─ Column 1     .1000 Default Preview (hugs, 2 × 484 cards)   ~2000
-│   │               Content (folder)                               ~450
-│   ├─ Column 2     Swap demo (4 steps, each a 1000 Section)      ~1900
-│   │               Card → section (demo)                          ~600
-│   └─ Column 3     Layouts (folder: Text column, Two small cards, ~1300
-│                     Nav + cards, Three cards 2+1)
-│                   Containers (folder: 1, 2, 3 columns at 1000)   ~950
-│                   Sections (folder: Section at 1000)             ~480
-└─ Archive          hidden, last
-```
-
-The column heights are estimates: 2480, 2530 and 2790, a spread of 11%. The real balance is done by brute force once the items exist ([preview-recipe step 3](./preview-recipe.md)).
+Root (`128:9589`) follows the spec: horizontal, fill Colors `tint`, Scale 3440 Mega, padding `section-pad-x` / `-y`, gap `section-pad-x`. It is **6992 × 4207** (about 1.7 : 1). Its only children are three titled Root columns and the hidden Archive. Each column sets Scale **1000 Default** and hugs its height.
 
 ```
-┌───────────────────────────────────────────────────────────────┐
-│ 1000 Default                                                  │
-│ Everything on this page is drawn 1000 wide.                   │
-│ ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
-│ │ Preview      │  │ Swap demo    │  │ Layouts      │          │
-│ │ ┌────┐┌────┐ │  │ step 1       │  │ Text column  │          │
-│ │ │card││card│ │  │ step 2       │  │ Two small    │          │
-│ │ └────┘└────┘ │  │ step 3       │  │ Nav + cards  │          │
-│ │ ┌────┐┌────┐ │  │ step 4       │  │ Three cards  │          │
-│ │ │    ││ 🐦 │ │  ├──────────────┤  ├──────────────┤          │
-│ │ └────┘└────┘ │  │ Card →       │  │ Containers   │          │
-│ ├──────────────┤  │ section      │  ├──────────────┤          │
-│ │ Content      │  └──────────────┘  │ Sections     │          │
-│ └──────────────┘                    └──────────────┘          │
-└───────────────────────────────────────────────────────────────┘
+Root  6992 × 4207, horizontal, tint, Mega
+├─ Root Column 1 - 1000 Default (2128 wide)  "Preview"
+│    .1000 Default Preview (NEW)   title "1000 Default" + Masonry of 7 example cards
+│    Swap demo (rebuilt, wraps 2 + 2)
+├─ Root Column 2 - Masters (1920)            "Masters"
+│    Layouts   Text column (NEW), Text column · old, Two cards, Nav + main, Three cards
+│    Sections  Section, Section · Slot (NEW)
+│    Containers, Content
+├─ Root Column 3 - Demos (1920)              "Demos"
+│    Card → section (swap demo)
+│    .1000 Default Preview · old  (the Index still shows it)
+└─ Archive (hidden)
 ```
 
-## Decisions
+Column heights are 3021, 3695 and 2777. About 15% of the column band is empty, and about 36% of the whole Root, its Mega padding included.
 
-1. **Page title on top.** A `Title` frame, the first child of Root: `h1` "1000 Default" and one `body` line. It is separate from the preview's own header, because the preview is also placed on Index.
+## The decisions, one line each
 
-2. **The preview hugs its content, at 1000.** Today `.1000 Default Preview` (`162:10434`) is a 1920 sheet holding a 1600 area of three 512 columns, which puts a 1920 drawing on a 1000 page. The plan: the sheet hugs, and its `Masonry` becomes two columns of about 484 (1000 content wide), so the preview is one 1000 item like everything else.
-   - *Alternative:* keep the 1920 sheet and label it "Preview · 1600 area". It wins if Index needs every preview the same width. Its cost is that the first thing on the 1000 page is not 1000.
-   - *Knock-on:* the preview instance on Index (`162:11146`) gets narrower. That is a check on Index, not a change to it.
+1. **The page title comes from the preview** (your words: "the title can come from the preview itself"). Column 1 is titled "Preview", and the preview's own `h1` "1000 Default" sits right under it, linked to the page.
+2. **The preview is layout exploration at 1000** (rule 23): a `Masonry` of 7 example cards, each about 1000 wide, with column heights 1107 and 1095. Reading order: single column (reading), single column (dark), 50/50, 1/3 + 2/3, sidebar + main, three columns, then the image card.
+   - **Widths:** every width is Fill. The only fixed width is Root Column 1 at 2128, which makes each card 1000 (2128 − 2 × 48 padding − 32 gap, halved). Stretch that column to watch the cards wrap.
+   - **Built from masters:** `Card · Slot` instances with only their slot content changed (Content masters inside), the new `Text column`, and `Card · with media`. The dark card is `Card · Slot` with Scheme Dark. Sidebar + main is a one-off frame: a white sidebar beside a Main region on Scheme Light gray.
+   - **Ground colours as you locked them:** the sheet is Colors `light`, the cards are white, and Root is `tint`.
+3. **Text column:** a new master (`242:3970`), a full-width card where only the `Text` frame stops at the 720 `measure`. The old one is renamed `Text column · old` and stays beside it in Layouts.
+   - *Alternative:* a narrow card centred in a filled band. It wins for long-read pages.
+4. **Card → section is a swap between two masters** (rule 22, which replaces the override idea in rule 15). The new `Section · Slot` (`242:12046`, in Sections) is `Card · Slot` drawn flush: radius 0, no shadow, clip on, section padding. Swap an instance between the two; the slot content stays. The demo shows both.
+5. **Swap demo rebuilt:** the steps wrap two per row inside the 1920 column, Fill with a minimum of 800. The old 5120-wide demo is in Archive.
+6. **Modes (rule 19):**
+   - **Before the columns:** each Root child had its resolved mode set explicitly, so nothing shifted when Root went to Mega.
+   - **The master folders:** they then dropped that mode, so they show the column's 1000 Default again. That is how they looked before Root went to Mega.
+   - **Left as is:** the old preview keeps its own 1920 Desktop mode.
+7. **Every new master has a description** (rule 21): Text column, Section · Slot, the new preview. Card · Slot's description now also names its swap partner.
 
-3. **One `Masonry` of 1000 items** (rule 16 names it). Each item is either a folder (a frame with the purple `master` stroke, padding bound to `pad-x` / `pad-y`) holding 1000-wide masters, or a 1000-wide demo. A 1000 section can hold two cards of about 484 (the Two small cards and 2 columns masters do this already). Order: the preview top left (the first glance), then the master folders, then the demos. *Alternative:* the readme's order puts master folders first. Rule 17 is newer, so the first glance goes to the preview.
-   - You started a `Root Column 1` frame (Preview + Layouts). The plan reads it as your intent ("Root holds columns") and takes it to three balanced columns. Nothing in `Root Column 1` was moved or restyled; it currently has a raw 64 gap, which lint reports.
+## Moved to Archive
 
-4. **Text column: the 720 measure goes on the text, inside a full-width card.** Today the instance is a 904 container with a card about 600 wide floating inside it, so its edges line up with nothing. In the fix, the card Fills the 1000 width (radius, shadow, padding as every Card has) and the body text inside it has max width bound to `measure` (720), left-aligned. The reading line stays 720, and the card's edges align with every other item.
-   - *Why this one:* it matches the web (`max-width: measure` on the prose, not the box), keeps text in exactly one padded surface (rule 3), and removes the "floating" look you named.
-   - *Alternative:* a narrow 720 card centred in a filled 1000 Section band, which reads as an article column. It wins on a long-read page. It costs a centred box that only looks right with a band behind it.
-   - Built beside the old master (rule 14): a new `Text column` next to it, the old one to Archive once you approve.
-
-5. **Card → section, shown once** (rule 15). One demo item, 1000 wide, with two rows:
-   - *Card:* a 2 columns Container holding two Card instances, each with radius and shadow.
-   - *Section:* the same Card instance dropped full width into a Section, with three plain overrides: radius 0, drop shadow removed, clip content on.
-
-   A caption lists exactly those three overrides. No toggle, mode or variant.
-
-6. **Kit folders.** Sections (`180:644`), Containers (`180:645`), Content (`180:646`) and Swap demo (`181:557`) are now inside Root (moved today). In the pilot they become Masonry items at 1000. The Swap demo's four steps were 1200 wide, because a 3-column Container needs 1024. At 1000 they show 2 + 1 cards, which is honest for this width. They are rebuilt at 1000 beside the old ones, and the old 5120-wide demo goes to Archive. The 5120 demo is what makes Root 5376 wide today, with a large void on the right.
-
-## What moves to Archive (hidden, last in Root)
-
-- Already moved today: `Res.1000 Default Set` (`100:9677`), `Specimens · 1000 Default` (`114:11659`); also there from before: `Page · 1000 Default` (`64:6138`), `Cut · old page contents (2026-11-16)` (`100:9889`).
-- In the pilot: the old `Text column` master once the new one is approved; the old 5120 `Swap demo`; the loose `Text column` instance `103:24900` in Root, if it was not placed there on purpose. If you dragged it out to look at it, it stays.
-
-## Size check
-
-Root ≈ 48 + 3 × 1096 + 2 × 32 + 48 ≈ **3450 wide**, × 48 + 160 (title) + 32 + ~2800 + 48 ≈ **3100 tall**: about **1.1 : 1**, inside rule 12's 2:1-to-square band, with no column more than ~11% shorter than the tallest. Today it is 5376 × 7345 with a void right of everything above the Swap demo.
+`Res.1000 Default Set`, `Specimens · 1000 Default`, the loose `Text column` instance (`103:24900`, a copy of the old master) and the old 5120 `Swap demo`. Already there: `Page · 1000 Default`, `Cut · old page contents`.
 
 ## What you check to approve it
 
-1. At first glance the page reads 1000: one item width, the title on top.
-2. The Text column card lines up with its neighbours, and its text line is no wider than 720.
-3. The Card → section demo makes sense with its three overrides and nothing else.
-4. The preview at 2 × 484 still reads well (and on Index).
-5. Root is about square, with no void, and nothing sits outside it.
+1. Column 1 at a glance: does the preview read as "1000" (one card width, single column first)?
+2. Text column: the card lines up with its neighbours, and its text line stops at 720.
+3. Card → section: does swapping between `Card · Slot` and `Section · Slot` feel right?
+4. Root: about 1.7 : 1 with no big void. Is three columns the shape you want on every size page?
+5. When the new preview is approved, point the Index at it, then archive the old one.
 
-If it passes: the same shape goes to the other size pages one at a time, each at its own width.
+## Found on the way
 
-## Done today (the fix job, for reference)
-
-- **Everything inside Root, every page:** hidden `Archive` frames went into Root (360, 400, 600, 1000, 1600, 1920, 3440, Elements). The four kit folders went into Root on 1000 Default. On Index, the loose reference image `image 1` (`148:25853`, a screenshot of the old file's Index) went into a new hidden `Archive` (`231:1173`), because it would have doubled Root's width. New `Root` frames hold the pages that had none: AI `231:503`, Live `231:504`, Explore – Sizing `231:505`, Drag playground `231:506` (rows stay rows, the column stays a column). Showcase's `Click through` stays top-level (a flow start must be).
-- **Masonry names:** the `Columns` wrapper is now `Masonry` in 11 previews (Scale, 360, 400, 600, 1000, 1600, 1920, 2600, 3440, Elements, Text). Templates has `Row`s, not a masonry, so it is unchanged.
-- **Seagull crops:** all 10 preview photos are re-cropped with no distortion (a photo is never squashed). Each crop shows the full image width with a window the same shape as the box (`CROP`, `imageTransform [[1,0,0],[0,sy,ty]]`, sy = 480·h/w ÷ 639). The 512 × 200 boxes show the head and upper body (ty 0.175), with the feet cut off. Templates’ 16:9 box shows the whole bird (ty 0.155). All 10 were checked in one screenshot. The Media box cannot be resized on an instance, so a whole bird in the small cards needs a taller box in the `Card · with media` master; that is logged as an improvement and the master was not touched.
-- **Lint, 1000 Default:** 1 error, `Root Column 1` with a raw 64 gap (your frame, left alone), and 1 warning, `Layouts` 1920 wide on 1000 Default.
+- **Lint double-counted colour alpha:** a paint bound to `tint` (black 5%) stores the 5% as `paint.opacity`, and lint multiplied by the variable's 5% again. It made the tint look invisible, so lint reported same-on-same where there was none. Fixed in [lint.js](./lint.js).
+- **A text style id ends in a comma** (`S:…,`). Setting it without the comma fails silently and leaves the text at 12 px. Look styles up by name (`getLocalTextStylesAsync()`).
+- **Seagull photos (fix job):** all 10 preview photos are cropped with no distortion, head and upper body, using `CROP` with the full image width. The 512 × 200 Media box can't be resized on an instance; a taller box in `Card · with media` is logged in [improvements](../improvements.jsonl).
+- **Still open:**
+  - The `Section` master is 1200 wide on a 1000 page (rule 17). It needs a 1000 version or a label.
+  - The dark example sets Scheme Dark on the instance. That is a mode, not a content override, but it is worth a look under rule 22.
