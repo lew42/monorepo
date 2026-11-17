@@ -1,5 +1,7 @@
 # Layout library (Lew42 v2 size pages)
 
+**Being replaced (the owner, 2026-11-16):** this 8-step structure was rejected: too much content, too many words, and the step logic doesn't land. `mastermind-bench` now owns the size pages and is rebuilding them as simple test benches, one Specimen per core component, piloting on 360 XS and 1000 Default. Read what follows as the old structure until bench updates this doc.
+
 The size pages in [Lew42 v2](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2) (`360 XS` … `3440 Mega`) each hold one root frame, `Layouts · <mode>`, that shows which layouts work at that size. [3440 Mega](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=67-5) is the model; the other pages copy its structure.
 
 ## Structure of a size page
