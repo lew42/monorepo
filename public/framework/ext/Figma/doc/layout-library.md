@@ -30,6 +30,8 @@ Every step example (each `Example · …` frame, not each card) on the eight siz
 
 Trap: a paint whose colour is bound to a variable lost its paint opacity (back to 1) after a later write, so a 15% tint of `dark` came out solid. Use a variable that carries its own alpha (Scheme `muted` is black at 55%) instead of paint opacity.
 
+**Stat tiles below 600** (2026-11-16): `600 / Stat tiles` squeezes its three tiles to about 100 wide at 360 and 400, and an instance can't override a nested min width or the row's direction. So on 360 XS and 400 Mobile the row is detached into a layout frame `Tiles · 2 + 1`: wrap on, gap bound to `gap`, each Card instance FILL with min 150 (360) or 160 (400), so two tiles sit side by side and the third takes the full row.
+
 ## 2600 XL (2026-11-16)
 
 [2600 XL](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=100-1441) follows the 3440 steps. Its range is about 2200 to 3000. Step 7 drops the 1920 unit in beside one sidebar (with two sidebars it would be only 1144 wide). Interactive demos (Miller columns, sidebar toggle) sit at the bottom of step 6.
