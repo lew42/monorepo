@@ -21,6 +21,9 @@ Also at the top of the AI page's Index frame in Lew42 v2. The same fires kept re
 - **Every frame that sets a width also sets the Scale mode that matches that width.**
 - **Big doc frames (page containers, 5000 wide) stay on 1000 Default,** not the page's size mode. Presentation wrappers never take a small page mode; only specimen regions do.
 - **Long text gets a max width bound to `measure` (720).** A text layer can't bind max width (the API refuses it), so bind it on the text's frame. (Found: labels 1520 wide.)
+- **Default first:** use the default `pad-x`, `pad-y` and `gap` whenever appropriate. If a region looks too roomy, set its Scale mode one step down instead of swapping in other tokens.
+- **Columns:** put the Scale mode on the column, not on the cards (cards stay Auto). Column widths without typed numbers: either the row and every column are Fill (an even split), or each column's width is bound to Scale `width`, so the mode sets both width and spacing.
+- **List slots** (Notes, stacks): turn on the slot setting "By default, fill items on slot's counter-axis", so dropped items fill the width. "Display empty slot" only shows a pink indicator; default text inside a slot is real content, deleted on the instance.
 - **Less words, more essence.** Every example shows the simplest undeniable case. Names over sentences. No step sequences unless each step visibly builds on the last.
 
 ## Before building
