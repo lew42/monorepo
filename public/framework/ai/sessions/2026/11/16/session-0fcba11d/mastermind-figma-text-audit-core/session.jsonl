@@ -14,3 +14,5 @@
 {"log":{"at":"2026-11-16T16:25:37-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
 {"log":{"at":"2026-11-16T16:28:20-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-16T22:28:20.341Z"}
 {"pid_exit":30484,"ended":"2026-11-16T16:28:20-06:00","code":0,"signal":null,"by":"servex"}
+{"pid":33992,"cmd":"git.exe -c core.fsmonitor= -c core.hooksPath=\\\\.\\NUL -c core.askPass= -c protocol.ext.allow=never -c submodule.recurse=false -c log.showSignature=false -c gc.auto=0 -c maintenance.auto=false --no-optional-locks status --short --ignore-submodules=dirty","why":"child of claude.exe","agent":"mastermind-figma-text-audit-core","session":"e0cfdf8c-eeb7-4056-bfc3-73333e00bb8c","started":"2026-11-16T20:00:59-06:00","ppid":30484,"seen":"sample","by":"servex"}
+{"pid_exit":33992,"ended":"2026-11-16T20:01:10-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
