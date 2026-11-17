@@ -18,6 +18,8 @@ node public/framework/ext/Figma/track.mjs spec.json
 
 Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` maps Figma node ids to built pages (re-run after adding a page); `thumbs.mjs` makes the 480 px card thumbnails; `visibility.mjs` lists any page.js no parent declares (the merge gate runs it, exit 1 if any).
 
+**[Lint](./doc/lint.md)** (2026-11-16): [lint.js](./doc/lint.js), a read-only `use_figma` script that checks the build rules by code (same-on-same fills, token bindings, unstyled text, line length, child-driven widths, mode mismatches, hidden layers in masters). Every agent runs it on what it changed and reports with zero errors.
+
 **[Figma → CSS HTML twin](/framework/ext/Figma/layout-css/index.html)** (2026-11-16): plain HTML and CSS, no build step, showing Fixed/Hug/Fill width and height in a flex row and a flex column, same labels and order as the Lew42 v2 file's `Explore – Figma → CSS` page. [What the Plugin API can and can't read about layout version](./doc/layout-versions.md).
 
 **[Layout library](./doc/layout-library.md)** (2026-11-16, Lew42 v2): a size page is becoming a **test bench**: one `Specimen` per core component at that width, a Draft tag and its name, nothing else. Piloted on [360 XS](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=114-9406) and [1000 Default](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=114-11659), with the old step grid hidden in `Archive · old steps`. The other six pages still hold the old `Layouts · <mode>` step grid (3440 Mega was its model). The doc also covers the paused Templates pilot, the swap preview test, and the Specimen + Notes review masters (in-design notes instead of Figma comments; pilot on 3440).

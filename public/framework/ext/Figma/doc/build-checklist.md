@@ -13,6 +13,7 @@ Also at the top of the AI page's Index frame in Lew42 v2. The same fires kept re
 - **Text is never wider than `measure` (720).**
 - **Padding is `pad-x` and `pad-y`; the gap between blocks is `gap`.**
 - **Screenshot the whole thing and judge the contrast yourself** before you report.
+- **Run lint ([lint.js](./lint.js)) on what you changed; zero errors before reporting.** It checks most of this list by code, including what a screenshot misses (a light gray padded box on a light gray ground). How to run it and what each rule means: [lint.md](./lint.md).
 
 ## Token rules: check these first (owner, 2026-11-16)
 
