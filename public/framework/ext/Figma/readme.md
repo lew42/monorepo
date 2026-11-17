@@ -49,6 +49,8 @@ All of them are built from `Card` `16:364`, `Content · Stat`, `Card · with med
 
 **[Page audit](./doc/page-audit.md)** (2026-11-16, read-only): every page in Lew42 v2 screenshotted and checked against the build checklist. The one finding that matters everywhere: the Button's label fails WCAG contrast (2.6, needs 4.5) on every Scheme — confirmed by [Explore – Color permutations](./doc/page-audit.md#explore-color-permutations)' own computed numbers, so it's a token fix, not a per-page one.
 
+**[Systems](./doc/systems.md)** (2026-11-16): every system in v2 (Scale, Scheme, Colors, Surface, Text, Icons, Layout, Pages, Masters, Naming, Swapping, Previews, Review, Lint and more) with status, the orphans, the overlaps, and a 12-card Systems page proposal.
+
 **[Essence](./doc/essence.md)** (2026-11-16): one page of what the owner wants from v2, strongest first, the decisions already made, the contradictions with a resolution each, and the complaints agents keep ignoring (lint and AI-page rule candidates).
 
 **[Master pass](./doc/master-pass.md)** (2026-11-16): every master in the `<width> / Layouts` folders and the 8 `Res.<mode>` Sets checked and fixed on the master, one line each with before / after shots. 360 / App bar was rebuilt (40 px tap targets, 24 px icons, a title that fills and cuts with …); 600 / Stat tiles keeps "8.2k" on one line and wraps 2 + 1 by itself; sidebars on 2600 fill the height. The rule it found: a row whose children are all Fill height never grows, so one child must Hug.
@@ -335,7 +337,6 @@ Page `Page builder` (62:933) has exactly two top-level frames, both auto layout 
 - [doc/think-layouts.md](./doc/think-layouts.md) — the seven layouts to keep (page shell, four features, three cards, masonry, split, dark band, sidebar + main), the reference Page Set measured, which Scale tokens match it, one master shown at 400 / 1920 / 3440 (2026-11-16, recommendation)
 - [doc/component-inventory.md](./doc/component-inventory.md) — every component in Lew42 v2, near-duplicates, the `Elements` page (one `Button`, `Image`, text styles), the list of instances still depending on Big Sloppy, page-padding advice, and a proposed minimal level-one set
 - [doc/modes.md](./doc/modes.md) — what a mode switch moves (every variable in its collection, cascading), the four escape hatches, where to set a mode, the v2 Scale cut-down (2026-11-13)
-- [doc/drop-test.md](./doc/drop-test.md) — what happens when a Scale-Auto card, a menu or a big layout is dropped into containers set to Mobile, Default, Mega: Auto follows the container, any explicit mode (master or instance) wins, widths never adapt; frame `Lab · Drop test` 162:11407 (2026-11-16)
 - [doc/drop-test.md](./doc/drop-test.md) — what happens when a Scale-Auto card, a menu or a big layout is dropped into containers set to Mobile, Default, Mega: Auto follows the container, any explicit mode (master or instance) wins, widths never adapt; frame `Lab · Drop test` 162:11407 (2026-11-16)
 - [doc/animation-system.md](./doc/animation-system.md) — prototyping through the Plugin API: click-to-variant with Smart Animate works (snippet), exact errors for what does not, how to name layers across variants (2026-11-16)
 - [doc/capture.md](./doc/capture.md) — our page into Figma (`generate_figma_design`): works; flex survives as auto layout, one breakpoint per capture
