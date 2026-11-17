@@ -17,10 +17,10 @@ All on the `Scale` page (5:5), made in earlier sessions. `Page 1` (0:1) is empty
 | Explore – Color permutations | `Card Set` (7 variants) | 34:244 | `Card` on Scale |
 | Explore – Icon + title | `Heading Set` (52 variants) | 34:466 | none (new space) |
 | Explore – 2600 layouts | `Button` | 34:476 | **`Button` on Scale** |
-| | `Card` | 34:478 | **`Card` on Scale** |
+| | `Card` (deleted 2026-11-16, swapped to 16:364) | 34:478 | was **`Card` on Scale** |
 | | `Nav item` | 34:484 | none |
 | | `Sidebar` | 34:486 | none |
-| | `Page card` | 34:500 | near-`Card` |
+| | `Page card` (deleted 2026-11-16; its one instance became the frame `Page card` 106:127) | 34:500 | was near-`Card` |
 | | `Miller Set`, `Miller Mobile Set`, `Sidebar Layout Set`, `Two Columns Set`, `Three Columns Set`, `Scale Regions Set`, `Single Column Set` | 34:1513, 34:1572, 34:5646, 34:5795, 34:5822, 34:5871, 34:6349 | layout permutations (see below) |
 
 `Explore – Sizing`, `Layout examples`, `Figma → CSS` and `Legacy vs Latest` hold plain frames only, no components. The 2600 page's owner-placed `Connector · yes` (43:2638) is not a component.
@@ -28,7 +28,7 @@ All on the `Scale` page (5:5), made in earlier sessions. `Page 1` (0:1) is empty
 ## Near-duplicates
 
 - **`Button`**: Scale 23:506 and 2600 34:476. Keep Scale's.
-- **`Card`**: Scale 16:364, 2600 34:478, `Card Set` 34:244, and `Page card` 34:500. Four takes on one thing.
+- **`Card`**: Scale 16:364 is the only Card now (2600 `34:478` and `Page card` `34:500` deleted 2026-11-16). `Card Set` 34:244 is still an experiment to merge.
 - **Seven layout sets** on the 2600 page are permutations (columns, Miller, sidebar) and conflict with the lean toward a minimal set of building blocks ([design-system-notes.md](./design-system-notes.md), "Open question: layout components").
 - **Test masters** (`Master 1`-`6`, twice) are experiments, not system parts.
 
@@ -49,8 +49,7 @@ Text, icon, button, image, card, and one or two layouts, leaning on browser defa
 
 ## To delete (later, with the owner's OK, git-style: move aside first)
 
-- 2600 `Button` 34:476 and `Card` 34:478 (duplicates of Scale's).
-- `Page card` 34:500 (fold into `Card`).
+- 2600 `Button` 34:476 (duplicate of Scale's; `Card` 34:478 and `Page card` 34:500 are already gone).
 - The seven layout sets, after two are chosen.
 - The test masters, after the mode work is documented.
 

@@ -11,6 +11,7 @@
 ## While building
 
 - **Every container is auto layout.** A page's content sits in one vertical auto-layout frame: a page title, then one section per topic.
+- **Layout is parent-down (owner, 2026-11-16).** The container sets the width (fixed or Fill) and the Scale mode; content below it is Fill, so text reflows. Never make a hug-width card whose width comes from a fixed-width child: a child that is the source of the layout can't be found when it breaks. A master meant to be swapped into a slot is Fill width and carries no fixed width of its own, and a content master carries no explicit Scale mode (the container's mode applies). Why: the swap test card (`100:5846`) hugged while its content was fixed at 320, so swapping in `360 / App bar` pushed the layout wide; the App bar also had a fixed height and no mode, so it picked up the default 48 px padding. Check: swap the slot into every master at that master's own size (2026-11-16: 17 masters, no overflow).
 - **Sizing is Fill or Hug.** Fixed only where named in the layer (`Nav (fixed 320: rail)`).
 - **Never give a layout container a fixed height.** Height is Hug (content) or Fill (a full-height column).
 - **Sidebars are Fill height** inside any full-height layout; a sidebar never floats at content height. The parent row uses counter-axis stretch, and the sidebar is Hug × Fill (or a named fixed rail × Fill).
@@ -34,7 +35,7 @@
 One master, **`Layout.Sidebar Set`**, with variants `Side=Left | Right | Both` (and `State=Open | Closed` only if it is animated):
 
 - **Root:** a horizontal auto-layout row, Fill × Fill, counter axis stretched.
-- **Sidebar:** Hug × Fill (or a named fixed rail × Fill), Scheme surface white, Scale `SM`. Its width comes from a token or a named rail (280, 320, 480).
+- **Sidebar:** Hug × Fill (or a named fixed rail × Fill), Scheme fill white, Scale `SM`. Its width comes from a token or a named rail (280, 320, 480).
 - **Main:** Fill × Fill, Scale set by width (LG for regions wider than about 1200).
 - **Use:** drop an instance and put content in the main area. If an instance won't do, copy the structure exactly (row, stretch, Hug × Fill sidebar, Fill × Fill main).
 
@@ -57,7 +58,7 @@ Permutations (2, 3 or 4 columns; full-height vs. auto-height vs. card columns) a
 | 4 | Body text in the 3a page card spans about 1450 px, around 200 characters per line. | 34:1306 | Max width on the text column. |
 | 5 | Text doesn't scale: 16 px body and about 13 px nav in a 2600 frame look tiny at fit-to-screen zoom. | all | Narrow measure, or type per Scale mode (open). |
 | 6 | Mobile Miller at 400 puts two cards side by side, so "Card 1" wraps word by word. Children were Fixed where they should have been Fill (the owner fixed two by hand). | 34:1572 | One column at mobile; Fill children. |
-| 7 | New `Button`, `Card`, `Page card`, `Nav item` and `Sidebar` masters duplicate ones that already existed on Scale. | 34:476-34:500 | Reuse via `Index`. Button was deduplicated; the rest is pending. |
+| 7 | New `Button`, `Card`, `Page card`, `Nav item` and `Sidebar` masters duplicate ones that already existed on Scale. | 34:476-34:500 | Reuse via `Index`. Button and Card were deduplicated (Card `34:478` and `Page card` `34:500` deleted 2026-11-16); `Nav item` and `Sidebar` are pending. |
 | 8 | Masters are scattered far left (x −3000 to −13000) and labelled with long sentences. | page root | Place them near the organised frame with short labels. |
 | 9 | Section 5 rebuilds one layout four times by hand. | 5a-5d | Use four instances with different modes. |
 | 10 | The notes frame is small text in lines 2472 px wide, too long to read. | 36:1239 | Max width 720, or split into short cards. |

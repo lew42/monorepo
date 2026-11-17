@@ -7,7 +7,7 @@ The file now has **10 variable collections**, every name prefixed "Lew42 · " (i
 | Collection | Variables x modes | Role |
 |---|---|---|
 | Colors | 8 x 1 | The base palette; Scheme aliases it |
-| Scheme | 5 x 4 (White, Light gray, Prime, Dark) | text, muted, surface, accent, on-accent: every card, page and button reads it |
+| Scheme | 5 x 4 (White, Light gray, Prime, Dark) | text, muted, fill, accent, on-accent: every card, page and button reads it |
 | Scale | 12 x 7 (cards bind pad-x, pad-y, gap directly) | The size system; the owner's own, values unchanged |
 | Constants | 2 x 1 (round, icon-pad) | Values that never change with size |
 | Button | 3 x 9 | Every button and pill: fill, label, stroke |
