@@ -51,6 +51,8 @@ All of them are built from `Card` `16:364`, `Content · Stat`, `Card · with med
 
 **[Systems](./doc/systems.md)** (2026-11-16): every system in v2 (Scale, Scheme, Colors, Surface, Text, Icons, Layout, Pages, Masters, Naming, Swapping, Previews, Review, Lint and more) with status, the orphans, the overlaps, and a 12-card Systems page proposal.
 
+**[Process review](./doc/process-review.md)** (2026-11-16): why agents produced slop today (5 root causes with evidence), what worked, a 15-line builder prompt and a 7-rule AI page.
+
 **[Essence](./doc/essence.md)** (2026-11-16): one page of what the owner wants from v2, strongest first, the decisions already made, the contradictions with a resolution each, and the complaints agents keep ignoring (lint and AI-page rule candidates).
 
 **[Master pass](./doc/master-pass.md)** (2026-11-16): every master in the `<width> / Layouts` folders and the 8 `Res.<mode>` Sets checked and fixed on the master, one line each with before / after shots. 360 / App bar was rebuilt (40 px tap targets, 24 px icons, a title that fills and cuts with …); 600 / Stat tiles keeps "8.2k" on one line and wraps 2 + 1 by itself; sidebars on 2600 fill the height. The rule it found: a row whose children are all Fill height never grows, so one child must Hug.
