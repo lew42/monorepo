@@ -7,14 +7,17 @@
 
 ## Pages
 
-Index · Scale · Icons · Colors · 500 Mobile · 1000 Default · 1920 Desktop. There is no AI page yet; this doc stands in for it.
+Index · Scale · Proposal · Icons · Colors · 500 Mobile · 1000 Default · 1920 Desktop. There is no AI page yet; this doc stands in for it.
+
+- **Scale** holds the owner's own Card and Button masters and the 500 / 1000 / 1920 Wrappers.
+- **Proposal** shows one Card with two switches (Media, Footer), the layer names and the rhythm. It is only a proposal: [v3-card-proposal.md](./v3-card-proposal.md).
 
 ## Collections (variables)
 
 | Collection | Modes | What it holds |
 |---|---|---|
 | Lew42 v3 - Colors | one | prime, light, dark, error, ok, warn, master, tint |
-| Lew42 v3 - Color Mode | Light, Dark | text, muted, fill, accent, on-accent |
+| Lew42 v3 - Color Mode | Light, Dark | text, muted, fill, accent, on-accent, lighten, darken |
 | Lew42 v3 - Scale | 500 Mobile, 1000 Default, 1920 Desktop | width, column-min-width, size/0-5 … size/4, pad, gap, text-gap |
 | Lew42 v3 - Constants | one | squeeze (1600) |
 
@@ -24,9 +27,13 @@ Text styles: h1, h2, h3, h4, body, label, small (Montserrat, sizes bound to Scal
 
 - `size/1` is 1em: **14 on Mobile, 16 on Default, 20 on Desktop.**
 - Steps are multiples of it, rounded: 0.5, 0.75, 1, 1.5, 2, 3, 4 (Default: 8, 12, 16, 24, 32, 48, 64).
-- pad and gap = size/2 (28 / 32 / 40), text-gap = size/1. h1 = size/3, h2 = size/2, h3 = size/1-5, body and label = size/1, h4 and small = size/0-75.
+- The owner's aliases (edited by hand, 2026-11-18), Mobile / Default / Desktop: pad = size/3 / size/4 / size/4 (42 / 64 / 80); gap = size/2 / size/2 / size/3 (28 / 32 / 60); text-gap = size/1 / size/1 / size/1-5 (14 / 16 / 30). h1 = size/3, h2 = size/2, h3 = size/1-5, body and label = size/1, h4 and small = size/0-75.
 - **How to use:** set the Scale mode on the frame that decides the size (a page column, a section, or a single card). Everything inside inherits it, buttons and text included. Unset means inherit; set means locked for everything inside. Masters set no mode.
-- See it on the Scale page: frame `Scale · How it works` has the full table and one sample card shown at all three modes.
+- See it on the Scale page: the owner's Card shown inside the 500, 1000 and 1920 Wrappers, in Light and Dark.
+
+## Words (2026-11-18)
+
+Card, Body, Content, Media, Actions, Footer and Wrapper are defined in [v3-card-proposal.md](./v3-card-proposal.md). The owner dislikes "Container". His words: [owner-words-2026-11-18.md](./owner-words-2026-11-18.md).
 
 ## House habits (still hold)
 

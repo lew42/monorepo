@@ -35,6 +35,8 @@ Base (`size/1`): **14 on Mobile, 16 on Default, 20 on Desktop.** Each step is `r
 
 **Why these:** 14 / 16 / 20 is gentle (−12.5% / +25%) and leans larger on desktop because 1920 is much further from 1000 than 500 is. Default is a clean 4 px rhythm (8, 12, 16, 24, 32, 48, 64); desktop is mostly on it (20, 40, 60, 80). The aliases the owner had already set (pad, gap, text-gap, h1, h2, h3, body) were kept as they were; only the step values changed. **Alternatives:** Desktop 18 (9, 14, 18, 27, 36, 54, 72) if 20 reads too big; h4 at `size/1` (16) if 12 px kickers feel small; `code` bound to `size/0-75` if it should scale. Each is a one-value change.
 
+**Owner's edits after this (2026-11-18, by hand):** pad = size/3 / size/4 / size/4 (Mobile / Default / Desktop: 42 / 64 / 80), gap on Desktop = size/3 (60), text-gap on Desktop = size/1-5 (30). The table above is the delegated first pass; these aliases are his and now win. He also added `lighten` and `darken` to Color Mode.
+
 ## How to use it
 
 1. Set the Scale mode on the frame that decides the size: a page column, a section, or a single card.
@@ -43,9 +45,7 @@ Base (`size/1`): **14 on Mobile, 16 on Default, 20 on Desktop.** Each step is `r
 
 ## What is in the file (Scale page `1:6`)
 
-Frame `Scale · How it works` (`8:13`, right of the owner's Card and wrapper): a title, the how-to note, the token table above (static text computed from the variables), the master `Sample card` (`8:173`: pad, text-gap and every text bound to Scale, holds one Button instance, sets no mode), and three instances of it with the Scale mode set on each card: Mobile `8:185`, Default `8:193`, Desktop `8:201`.
-
-The table numbers are static text. If a value changes, rerun the table part of the build script (resolve each variable per mode through its alias chain; text styles through `boundVariables.fontSize`) or edit the row.
+The owner's Card (`2:110`) and Button (`2:130`), with his Wrappers at 500 (`2:104`), 1000 (`12:199`) and 1920 (`11:169`), in Light and Dark. A frame `Scale · How it works` (`8:13`: the table and a sample card at three modes) was built on 2026-11-18, and the owner removed it the same day while reworking the page; this doc keeps the table.
 
 ## Before (read 2026-11-18, before any change)
 
