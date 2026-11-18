@@ -51,7 +51,7 @@ The tree is 50 steps for 9 designs, about 5.6 each. Text is the bulk of the base
 6. **The stat band reads loosely at 1920:** the label sits well below its number, with a gap as big as the number itself. At 400, "5 min" breaks onto two lines in a three-up Stat.
 7. **Square corners don't show.** The radius is 4, so A2 looks almost the same as A.
 8. **"Dense" has no token.** C borrows the 600 SM mode for tighter gaps, and lint warns about it (12 mode-mismatch warnings; 0 errors on the page).
-$L9
+9. **Flush cards inside a layout still show the layout's gap.** In B, B1 and B2, the features and story layouts keep their 44 px gap, so grey bars sit between the flush cards, with grey notches under the shorter cards. Rule 22 allows no gap override on an instance; only a detach would close the gap (2 more steps per layout).
 
 Photos were fine: the seagull image uses FILL, the head is never cut, and nothing stretched.
 
