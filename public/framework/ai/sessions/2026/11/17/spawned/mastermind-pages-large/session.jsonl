@@ -74,3 +74,5 @@
 {"log":{"at":"2026-11-17T19:47:32-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-18T01:47:32.396Z"}
 {"pid_exit":3608,"ended":"2026-11-17T19:47:40-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"ts":"2026-11-18T01:48:08.663Z","by":"mastermind-pages-large","log":"Paused on 1600 LG at voice-app request (owner restructuring: no Masters column, no wrapper column, groups straight into Root). Nothing half-done; ids noted in rollout.md. Waiting for voice-app."}
+{"commit":{"hash":"13c7a164fcdfe6c0f7bf9561d77589daf7608ecc","what":"figma: 1600 LG paused for the owner's restructure; current ids noted (rollout.md)","files":["public/framework/ai/sessions/2026/11/17/spawned/mastermind-pages-large/session.jsonl","public/framework/ext/Figma/doc/naming/rollout.md"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-18T01:48:09.208Z"}
+{"ts":"2026-11-18T01:49:16.586Z","by":"mastermind-pages-large","log":"Stood down at voice-app request. 1600 LG and the other large pages handed to mastermind-structure-v5 (doc/naming/structure-v5.md). The handover is recorded in the rollout.md 1600 row."}
