@@ -1,6 +1,6 @@
 # Glossary (draft, 2026-11-17)
 
-The words used in Lew42 v2. This file is the source; the AI page's Glossary block (`322:70`) is a copy, so change this file first, then the page. Status: draft until the owner approves [naming/proposal.md](./naming/proposal.md). **Proposed replacement for the layout words (Page, Section, Container, Columns, Column, Card, Content, each named by where it sits):** [naming/vocabulary-v6.md](./naming/vocabulary-v6.md).
+The words used in Lew42 v2. This file is the source; the AI page's Glossary block (`322:70`) is a copy, so change this file first, then the page. Status: draft until the owner approves [naming/proposal.md](./naming/proposal.md). **Proposed replacement for the layout words (a frame, Page or Card, holding sections named Header, Body and Footer, with Content inside; radius needs room):** [naming/vocabulary-v6.md](./naming/vocabulary-v6.md).
 
 **Rule: padding comes only with a background.** Surfaces (a Default) pad and have fill; bare things (Content, Columns) have neither. A master is defined once; other pages show it only in their Preview.
 
