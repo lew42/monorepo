@@ -1,19 +1,59 @@
 # Figma — tracks Figma files as JSONL + saved screenshots, so the site can browse every page and rebuild designs without Figma
 
+## Rules
+
+Owner-approved (2026-11-16, updated 2026-11-17). Every agent follows these before touching Figma; they beat anything older in this readme or in doc/. The owner's own words behind them are in `doc/owner-words-*.md`; the glossary is [doc/glossary.md](./doc/glossary.md).
+
+1. **One editor per page.** Name the pages and node ids you will touch; stay off the rest. Never move or restyle the owner's hand-made nodes.
+2. **Padding ⇒ its own background.** A frame with padding is a *surface*: its fill differs from its parent's. A frame with no fill is a *layout frame*: 0 padding, only gap and columns.
+3. **Never double pad.** Text sits inside exactly one padded surface (a Card or a Section band).
+4. **Colour by Scheme.** Surfaces bind fill = Scheme `fill` and text = Scheme `text`; set the Scheme mode on the surface and it cascades. A surface's scheme differs from its parent surface's (White card on Light gray section). No darken/transparent tokens.
+5. **Size by Scale, on the frame that sets the width.** Cards stay Auto. If the cards should be a different size than the section's padding, split it: Section (padding, page size) > Container (0 padding, gap, card size).
+6. **Frame for a one-off; component for anything you reuse or swap.** Masters only: no variant sets (except small atoms like Button states), no instance-swap properties, no padding toggles. Swap = normal swap of a nested instance (`swapComponent`).
+7. **One tokenized `Root` per page, the same everywhere** (owner, 2026-11-17; spec in [root-spec.md](./doc/root-spec.md)). Not a component. Fill Colors `tint`, Scale mode 3440 Mega, padding `section-pad-x`/`-y`, gap `section-pad-x`, horizontal. Root holds only titled **Root columns** (each sets its own tier mode, 1920 wide unless it needs more, hug height). No `Archive` child: archived things live on the `Archive · Pages` page (rule 29). Nothing grows to 5000+ wide; no fixed giant widths. Auto layout all the way down. **Nothing ever sits outside Root:** anything new goes into Root, and after every change lint's page-root check must pass.
+8. **Responsive rows:** horizontal + wrap, children Fill with min width bound to `card-min`; no fixed child widths. Direction can't be overridden on instances.
+9. **Tokens and styles only:** padding `pad-x`/`pad-y`, gaps `gap`, `text-gap` only inside a text group, text max `measure` (720). Every text has a style; never Inter.
+10. **Done = lint 0 errors + a 1:1 screenshot per section + a different reviewer.** Never self-approve; the owner flips the Review tag.
+11. **Figma MCP budget:** about 10 calls/min and 200/day for everyone. Batch work into a few large `use_figma` calls; read docs from the repo, not from the canvas.
+12. **Compact pages** (owner, 2026-11-17): a page's Root reads roughly 2:1 to square (a bit taller is fine: zoom in and scroll). No extreme ratios either way, and no big voids where one column or row sprawls past the rest. White space only where it helps (title pages); otherwise use the space.
+13. **The Index is the design system, and it is minimal** (owner, 2026-11-17). To build a design, read the Index and use only approved things from it, as instances; override text, images and slot contents. It shows each category's system (a schematic), not a catalogue: e.g. icons = a few sizes, framings and text pairings, not every icon (the Icons page is the browser). One logical home per thing, no duplicates, no permutation grids. Atoms need no per-size previews; only layouts do. A level-2 system can come later.
+14. **Change safely** (owner, 2026-11-17): propose before you build; build the new version beside the old one (or on a copy), never in place; archive instead of delete; one page at a time; nothing rolls out across pages until the owner approves the pilot. If it might need reversing, choose the way that's cheap to reverse.
+15. **Card ↔ section by override** (owner, 2026-11-17, confirmed ~21:35): `X · Default` is a white card with corners. To make it a flush full-width section, override radius to 0 and drop the shadow (and clip if needed). No toggles, modes or variants for this.
+16. **Name every masonry layout `Masonry`** (owner, 2026-11-17). It is not a column grid: items are ordered to even out column heights.
+17. **A size page shows its width at first glance** (owner, 2026-11-17): page title on top, then stacks of sections and cards at that width (a 1000 section may hold two ~500 cards). Nothing on a size page is drawn at another width unless it is labelled.
+18. **Look before you report:** check the 1:1 screenshot for cropped photos (no cut-off heads), floating or off-centre items, misaligned edges, and anything outside Root.
+19. **Modes go in three places only** (proposed 2026-11-17, owner to confirm): Root (Mega), each Root column / specimen viewport (its tier), and a Container whose cards differ from its Section. Cards never get a Scale mode; no per-card overrides. Before changing a parent's mode, set each child's current resolved mode explicitly so nothing inside shifts.
+20. **Size-page previews show only that width** (owner, 2026-11-17): every layout in the 1000 preview is a 1000-wide mini viewport (cards inside can vary); 1-, 2- and 3-column layouts, mostly white cards on `light`, one dark example, image cards.
+21. **Every master has a description** (owner, 2026-11-17): set `node.description` on the COMPONENT when you create or change it: what it is, when to use it, what it nests (which masters it's built from), what may be overridden, what it swaps with. Keep it to 2-4 lines. **Notes beside masters on the canvas** (owner ~21:35): agents read the page, so a short note next to a master is read together with it. Keep notes only for what isn't obvious, and add usage lessons as they're learned. A base plus a couple of variants says more than notes do.
+22. **Clean instances** (owner, 2026-11-17): use an instance as it is. Allowed overrides: text, images, nested swaps, and radius/shadow/clip for card ↔ section (rule 15). Any other change means choose another master, or detach (rule 25). Overrides don't show in Figma's UI, so lint lists them (`instance.overrides`).
+23. **Layout exploration on every size page** (owner, 2026-11-17): single column first (most important), then two-column distributions (50/50, 1/3 + 2/3, sidebar + main), then three. Each example is its own card in a `Masonry`, with column heights evened out. Widths Fill, not fixed or bound to a width token, so stretching shows the wrapping. Cards keep default padding.
+24. **Swap within a kind, and Defaults swap to layouts** (updated 2026-11-17): Content swaps with Content, Cards with Cards, and an `X · Default` swaps to its own size's layouts (`X · 2 · Equal`, …). Folders are named by size (`X · Content`, `X · 2`, `X · 3`, `X · 4`), and the swap menu offers only that kind.
+25. **Compose by swapping, extend by detaching. No slots for now** (owner, 2026-11-17). Drag the nearest size's Default, then swap: the Default to a layout, each column to Content or a Card. Detach (`instance.detach()` through the API) only when you need structure that doesn't exist: an extra column, a different stack, or content of any length such as a page or a blog post. A detached frame stays linked through its tokens (gap, padding, fill, text styles); layout direction is the one thing tokens can't carry. When a new combination repeats, promote it to a master so others can swap to it. Masters suit uniform grids (same structure, equal heights). Content of open-ended length is a detached or plain frame, not a slot.
+26. **The Index is level 1; Explore pages are level 2** (owner ~21:35). Everything in the core system appears on the Index once, with notes beside it. Agents read these Rules first, then the Index. Explore pages hold domain-specific pieces that work acceptably, each page with its own preview, collected on an Explore index rather than the main Index. Don't pre-build permutations of the same container with different contents.
+27. **Colour is reviewed apart from size** (owner ~21:35): don't multiply schemes × sizes. One scheme strip per kind of item is enough; once the schemes are approved and wired, everything should read well everywhere. Lint checks contrast.
+28. **Photos never distort** (owner ~21:45): image fills use scale mode FILL, never CROP or STRETCH. CROP keeps a fixed transform, so it stretches as soon as the frame resizes (Fill width). To frame a subject (the seagull's head), bake the crop into a new landscape image and FILL with that.
+29. **Archived masters live on archive pages, not in hidden frames** (owner ~21:45): a hidden frame doesn't hide its components from the swap menu or Assets, and a `.` prefix only stops publishing. Retired masters go to pages after the `Archive ↓` divider, prefixed with `.`. Every page's old hidden `Archive` frame now sits on the `Archive · Pages` page as `Archive · <page>` ([assets-tidy](./doc/assets-tidy-2026-11-17.md)).
+30. **How Figma groups components** ([Figma help](https://help.figma.com/hc/en-us/articles/360038663994)). Assets mirrors file > page > frame. The swap menu groups by NAME (slash paths) and by "same frame or section". With one Root per page, frames can't make folders: a page's components show as one list (the owner saw this). So names do the grouping. Dotted names sort together (`1000 · 2 · …`). **Icons are the one exception:** they use slash names (`Arrows/Arrow up`) so they get real folders in the swap menu.
+
 ## Use
 
 **Before any Figma design work:** the `figma` skill (`.claude/skills/figma/SKILL.md`): the file, the page convention, the recipe ([doc/use-figma.md](./doc/use-figma.md)), and [doc/troubleshooting.md](./doc/troubleshooting.md) when something goes wrong.
 
-Spawning a Figma agent: pass `path: public/framework/ext/Figma/` so this readme loads into its system prompt. Every agent reads [doc/rules.md](./doc/rules.md) first.
+**New here?** Read [doc/start-here.md](./doc/start-here.md) first: how the work runs, the files, where things live, and the system in six lines. Then read the AI page of whichever Figma file you are about to touch.
+
+Spawning a Figma agent: pass `path: public/framework/ext/Figma/` so this readme loads into its system prompt. Every agent follows the [Rules](#rules) above.
+
+**The AI page is each file's CLAUDE.md** (owner, 2026-11-17: "always read the AI page on any document before working on it"). Lew42 v2's [AI page](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=60-360) (rebuilt 2026-11-17, 1,295 words) has five blocks: Start here, the 30 Rules one line each, the Glossary, Page structure (v5 and Root) and the Systems map. The Claude November 2026 file's first page, `AI`, points to it. The canvas is a copy: change this readme (and [doc/glossary.md](./doc/glossary.md)) first, then the AI page, in the same task.
 
 **Files** (current, 2026-11-17):
 
 | File | Key | Role |
 |---|---|---|
 | [Lew42 v2](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2) | `ADpu9u2V0BlEZfR3rrMfER` | the design system being built |
-| [Lew42 Design System](https://www.figma.com/design/hbolzQ3Xnc78rhxAPj8xK2) (was "November 2026") | `hbolzQ3Xnc78rhxAPj8xK2` | the published library: variables, text styles |
+| [Lew42 Design System](https://www.figma.com/design/hbolzQ3Xnc78rhxAPj8xK2) (was "November 2026") | `hbolzQ3Xnc78rhxAPj8xK2` | the old published library ("Big Sloppy"): variables, text styles; still the remote source of some icons and styles in v2 |
 | [Claude November 2026](https://www.figma.com/design/woCZQDoXKJW3GcJPZukW7f) | `woCZQDoXKJW3GcJPZukW7f` | consumer and scratch file for experiments; Live board; still has Figma's UI-kit libraries attached |
 | [Library test](https://www.figma.com/design/85fN2Vo4ZvuTUukvCc2zfu) | `85fN2Vo4ZvuTUukvCc2zfu` | earlier consumer test |
+| [Sept-2026](https://www.figma.com/design/QYN0G2URSBHYH5I06MOjxU) | `QYN0G2URSBHYH5I06MOjxU` | older design file: the site's Figma browser, the round-trip docs and `tokens/` come from it; leave the owner's pages as they are |
 
 [Figma guide](/framework/ext/Figma/guide/): how Claude draws in Figma, coded from the 3440 design it drew ([doc/use-figma.md](./doc/use-figma.md)).
 
@@ -31,7 +71,11 @@ Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` ma
 
 **[Index](./doc/index.md)** (2026-11-17): the Index page is the design system. Root v2 holds five tinted groups: `Index · Sizes` (the 8 size previews, each name a link to its page), `Index · Defaults` (400, 1000, 1600, 1920), `Index · Layouts` (1000 · 2 · Equal and · Sidebar, 1600 · 3 · Equal, 1920 · 2 and · 4 · Equal, and a card turned into a section), `Index · Content` (Text, Text + Media, Stat, 2 · Equal) and `Index · Playground`. Read the Rules, then the Index, then build by duplicating and swapping; doc/index.md is its text twin with every node id.
 
+*Superseded by Rule 7 and the "Root layout v2" box at the top of [root-spec.md](./doc/root-spec.md) (2026-11-17).* Size pages and the Index now use Root v2: no fill, padding 0, the page's own Scale, groups straight in Root.
+
 **[Root spec](./doc/root-spec.md)** (2026-11-17): every page's Root is the same. It has a `tint` fill, Scale mode 3440 Mega, `section-pad-x`/`-y` padding and a horizontal layout, and it holds titled `Root Column - <title>` frames. It is on every working page except Index (the reference) and 1000 Default (its own pilot). [root-audit.md](./doc/root-audit.md) has each page's size, empty share and a proposed split. 1920 Desktop is the split pilot: 8420 × 9845 and 52% empty before, 9068 × 4608 and 29% empty after.
+
+*Superseded by Rules 7, 24 and 30 (2026-11-17).* Groups sit straight in Root with no wrapper columns, folders are named by size (`1000 · 2`), and names keep the size prefix.
 
 **Every page is one `Root`** (owner, 2026-11-16, Lew42 v2; [report](/framework/ai/sessions/2026/11/16/spawned/mastermind-roots/report.md)). Each page has exactly one top-level frame, named `Root`, hugging its children, so nothing on the page overlaps. How Root itself is set up (fill, mode, padding, columns) changed on 2026-11-17 and is in the [Root spec](./doc/root-spec.md), above. Only two things may sit beside it: a prototype starting frame (Showcase's Click through) and nothing else; archived frames live on the `Archive · Pages` page (rule 29). Inside Root the order is (a) the master folders, (b) the page's best and simplest content, (c) everything else. Masters never sit loose. They live in a folder frame named plainly ("Layouts", "Masters", "Interactive"), with a 1 px inside stroke bound to Colors `master` (#8B5CF6), and the folder wraps at Root's width. Masters drop the size prefix ("1000 / Text column" → "Text column"), because the page already says the size. There are no connectors; archive them, don't draw them. Lint's page-root rule checks all of this.
 
@@ -41,7 +85,11 @@ Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` ma
 
 **[Live board](./doc/live-board.md)** (2026-11-16): the "Live" page in the Claude November 2026 file — a 2600-wide topics/cards/notes board, seeded with today's dictation, that updates through short `use_figma` calls instead of a rebuild.
 
+*Superseded by the rebuilt AI page, above (2026-11-17).* The old AI page blocks (rules, Systems map 101:13905) are archived in `Archive · AI` on the `Archive · Pages` page.
+
 **Lew42 v2 status board and AI page** (2026-11-16): the [Live page's board](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=85-1554) has four columns, In flight, Done today, Decided (veto if wrong) and Only you can, and is refreshed in place with `use_figma`. The [AI page](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=60-360) holds the agents' rules (core rules: nothing goes stale, name the system, decide don't wait, review tags) and the [Systems map](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=101-13905): one row per system (Scale, Colors, Scheme, Surface, text styles, …) saying what it is, where it lives and where it is documented.
+
+*Superseded by Rules 15 and 25 (2026-11-17).* Card to section is a plain override, not the Surface switch, and there are no slots for now.
 
 **[Showcase](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=109-15)** (2026-11-16, Lew42 v2, the page right after Live): the system working on one page, built from instances of the real masters with every value bound. It has ten blocks, simplest first: Scale across 8 modes, Scheme on four grounds, the Surface Card/Section switch, Text styles, Resolution cards (Card or Space), columns set by the parent's width, Composing (a 1000 region built from a 600 SM master and two cards holding a 400 Mobile master), swaps, Slots and swaps (the three demos of [slot vs swap](./doc/slot-vs-swap-demos.md)), and Review tags. Each block has a Draft tag, a System line linking where that system is documented, a "Try" line, and a red "Needs work" tag where something breaks. Approved blocks become the documentation. Two masters were added for it on the Elements page: `Icon.Title` (`110:1776`: a locked header with an Icon swap and a Title, plus Toolbar and Body slots) and `Card · Slot` (`112:7282`: Card's shell with a Content slot). **A slot property takes preferred values too** (`editComponentProperty(slotKey, {preferredValues})`, read back on `Card · Slot`); whether the slot menu shows them as thumbnails is still to check in the Figma UI.
 
@@ -51,9 +99,15 @@ Scripts (run from the repo root): `node public/framework/ext/Figma/built.mjs` ma
 
 **[Example · Button by scheme](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=108-3988)** (2026-11-16, Elements page, Draft): the Button in each Scheme mode on a white and on a light gray ground, to pick the default from. Instances only; the Button master is the owner's.
 
+*Superseded by Rule 15 (2026-11-17).* Card to section is a direct override (radius 0, no shadow); the Surface collection is an experiment.
+
 **[Card vs Section](./doc/card-vs-section.md)** (2026-11-16, Lew42 v2, experiment): one variable mode flips a layout from white cards on a ground to flush full-height columns. The `Lew42 v2 · Surface` collection has four variables (`surface-gap`, `layout-padding`, `surface-radius`, `surface-ground`); the Card master on the Scale page binds its radius to `surface-radius`, no other page is bound to it.
 
+*Superseded by Rules 6, 24 and 30 (2026-11-17).* No variant sets except small atoms; folders are named by size, not a purple `Layouts` folder.
+
 **Resolution cards** (2026-11-16, Lew42 v2): one component set per Scale mode, `Res.<width> <name> Set` (e.g. `Res.1600 LG Set`), on its size page, inside the purple `Layouts` folder (a `Masters` folder on 1920 Desktop and 3440 Mega), its two variants side by side. Each card is exactly as wide as its screen (width bound to Scale `width`, and the card sets its own Scale mode). It holds one centred label in the `h1` text style (the `display` style, Montserrat Black 128, was too big at 600 and was deleted on 2026-11-16). `Style=Card` (default) is white, hugs its height and is at least `card-min` tall. `Style=Space` is light gray at a typical screen height; set Fill height where you place it. The 3440 set is the owner's hand-built card, made into a component. Ids: 360 `100:8494`, 400 `100:8938`, 600 `100:9439`, 1000 `100:9677`, 1600 `100:9682`, 1920 `100:9888`, 2600 `100:10097`, 3440 `100:8489`.
+
+*Superseded by Rule 30 (2026-11-17).* Names keep the size (`600 · …`); the size prefixes are back.
 
 **Small size pages: [600 SM](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=100-5863), [400 Mobile](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=100-9684), [360 XS](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=100-10099)** (2026-11-16, Lew42 v2). Each page follows the 3440 Mega page's steps, scaled down. 400 and 360 keep steps 2 and 3, showing 600's side-by-side layouts next to the same content stacked. Measured ranges: 600 holds from about 480 to 800, 400 from about 340 to 560, 360 from about 320 to 400. **The bigger pages compose from these masters.** None of them sets a Scale mode, so set the mode on the region that holds the instance:
 - 600 SM, `Layouts` (`100:5115`): `Rail + main` `100:5116`, `Two small cards` `100:5139`, `Stat tiles` `100:5162`.
@@ -75,6 +129,8 @@ All of them are built from `Card` `16:364`, `Content · Stat`, `Card · with med
 **[Master pass](./doc/master-pass.md)** (2026-11-16): every master in the `<width> / Layouts` folders and the 8 `Res.<mode>` Sets checked and fixed on the master, one line each with before / after shots. 360 / App bar was rebuilt (40 px tap targets, 24 px icons, a title that fills and cuts with …); 600 / Stat tiles keeps "8.2k" on one line and wraps 2 + 1 by itself; sidebars on 2600 fill the height. The rule it found: a row whose children are all Fill height never grows, so one child must Hug.
 
 ## Component strategy (current, 2026-11-12)
+
+*Superseded by Rules 6, 15, 22, 24 and 25 (2026-11-17).* Kept as history. Where it disagrees with the Rules (slots for content areas, variant sets, the Card shell + content master, Padded/Unpadded), the Rules win.
 
 This is the current truth. Where an older line below contradicts it, that line is marked superseded.
 
@@ -133,6 +189,8 @@ This is the current truth. Where an older line below contradicts it, that line i
 - Screenshots over 600 KB are refused by `track.mjs`; the Figma screenshot URL is short-lived.
 
 ## The design system file's page structure (2026-11-09)
+
+*Old file (2026-11-17 note).* Everything from here down to **More** describes the old Lew42 Design System file (`hbolzQ3Xnc78rhxAPj8xK2`) and is kept as history. Lew42 v2 follows the [Rules](#rules); where these sections disagree (slots, variant sets, Padded/Unpadded cards, grids, Scale on cards), the Rules win.
 
 - **Pages:** look them up by name in the file (they get renamed and added); UI is the status page and the Map of the card system. There is no `Components` page any more (deleted 2026-11-10: every master lives on the page about it). This mastermind owns Page builder, Icons, Panels and any new page-builder pages; UI, Layouts and Images belong to the cloud-chat agent (`voice-app`), so ask before touching them.
 - **Cards page** (mine, owner 2026-11-10; **Padded/Unpadded modes superseded 2026-11-12**, see Component strategy): the basic card has modes Padded and Unpadded, no fill variable (Scheme `fill`), sized to content, sizes from Resolution `card-pad`/`card-gap` ([doc](./doc/use-figma.md#card-modes-label-style-the-_claude-frame-and-making-a-card-owner-2026-11-09)). A page grows sideways, one `Page · 1920` per topic: `Page · Cards` (basics), `Page · Card builder` (voice-app's, 2080; don't touch), `Page · Card types` (5400), `Page · Layout basics` (7480), `Page · Nesting` (9640), `Page · Media` (11800; [details](./doc/use-figma.md)). Drag sources must be direct children of a root GRID frame ([rule](./doc/use-figma.md#traps)).
