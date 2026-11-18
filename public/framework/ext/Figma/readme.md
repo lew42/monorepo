@@ -1,5 +1,7 @@
 # Figma — tracks Figma files as JSONL + saved screenshots, so the site can browse every page and rebuild designs without Figma
 
+> **Current file: Lew42 v3 → [doc/start-here-v3.md](./doc/start-here-v3.md)** (2026-11-18). v3 (`JYGQX0WaBO4HcGMZTkL2rx`) is a fresh, simple restart; the Rules and history below were written for v2 and are kept as history. Scale: [doc/v3-scale.md](./doc/v3-scale.md).
+
 ## Rules
 
 Owner-approved (2026-11-16, updated 2026-11-17). Every agent follows these before touching Figma; they beat anything older in this readme or in doc/. The owner's own words behind them are in `doc/owner-words-*.md`; the glossary is [doc/glossary.md](./doc/glossary.md).
