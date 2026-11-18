@@ -1,4 +1,6 @@
-# A Tokens page that looks like the variables panel (2026-11-17, proposal, nothing built)
+# A Tokens page that looks like the variables panel (2026-11-17, built the same night: see [Built](#built-2026-11-17))
+
+The table of values below was read during the proposal, while Scale held other values; the live values are on the page itself.
 
 File: Lew42 v2 (`ADpu9u2V0BlEZfR3rrMfER`). Read only: no edits were made in either file. Your words behind this are the last third of [owner-words-2026-11-17-sizes.md](./owner-words-2026-11-17-sizes.md): "it didn't mimic the look and feel of the actual variable collection system… I want to be able to see everything that's defined in our design system on the screen."
 
@@ -131,3 +133,37 @@ Re-run the script after adding or removing a variable, mode or style. Lint then 
 - **Calls:** about 5 `use_figma` calls (tables, strips, Root width, lint, screenshot).
 - **Estimated cost:** about $4. A different agent reviews it.
 - **The first call** tests binding a text layer to a number variable. If Figma refuses, the numbers become script-written labels like the hex codes, and `tokens.coverage` guards them.
+
+## Built (2026-11-17)
+
+[Open the Tokens page](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=359-2) (page `359:2`), right after Scale. Scale was not touched, and no value was typed: every number was read live from the variables.
+
+**Layout.** `Root` `359:3` has no fill, padding 0, gap `gap`, Scale mode 1920 Desktop, and runs horizontally with no wrap. It holds two equal Root columns, each 3844 wide (tint fill, `section-pad` padding, 1920 Desktop). The page is 7732 × 4882 (1.6 : 1).
+
+| Part | Node | What it shows |
+|---|---|---|
+| Column `Tokens · Variables` | `359:5` | the tables, the Scheme strip, the styles, the small stretch strips |
+| Scale · 13 × 8 | `359:8` | every Scale variable × 8 modes, in panel order (1000 Default first) |
+| Colors · 9 × 1 | `359:494` | a swatch and a hex code per colour |
+| Surface · 4 × 2 | `359:555` | Card and Section; arrows mark aliases |
+| Row · Scheme | `360:2` | Scheme · 5 × 4, then the Scheme strip `360:105`: one `1000 · Default` per scheme |
+| Row · Styles | `360:140` | Text styles · 8, Effect styles · 1, and "How to read this page" |
+| Stretch · 360 XS to 1000 Default | `360:201` | 360 XS `360:205`, 400 Mobile `360:248`, 600 SM `360:291` (320 / 480 / 700) and 1000 Default `360:334` (700 / 1000 / 1300) |
+| Column `Tokens · Stretch` | `360:377` | 1600 LG `360:381` and 1920 Desktop `360:424` (1300 / 1800 / 2400, low and mid side by side), 2600 XL `360:467` and 3440 Mega `360:510` (2400 / 3000 / 3440) |
+
+**How it is wired.**
+- Each table cell sets its collection's mode on itself, so its sample resolves in that column's mode. The samples are bound:
+  - padding (`pad-*`, `section-pad-*`, `button-pad-*`, `layout-padding`): a box with that padding;
+  - gaps (`gap`, `text-gap`, `surface-gap`): two dots that far apart;
+  - radius (`radius`, `surface-radius`): a square with that corner;
+  - colours: a swatch; Scheme: "Aa" on that scheme's own fill.
+- A box too big for its cell (padding over 54, a gap over 96) shows only its number. Its real size is in the strips.
+- **The numbers are written by the build script, not bound.** Figma refuses it: `variable of resolved type 'FLOAT' cannot be bound to 'characters'`. After a value changes, the samples follow on their own, but the numbers need a rebuild.
+- "same in every mode" is computed per row: today `measure` (720) in Scale and `on-accent` (→ ink) in Scheme.
+- Every strip holds the same master, `Defaults/1000 · Default` (`251:972`), at three fixed widths. The strip sets the Scale mode and the card inherits it (rule 32).
+
+**Checks.** Lint: 0 errors. The 8 mode-mismatch warnings are the strips being wider than their mode on purpose; the 2 padded-no-fill warnings are table rows named after `section-pad`. The screenshots were checked: nothing is cropped and nothing is outside Root.
+
+**Left as is, on purpose.** Column 1 ends about 660 above column 2, and the big strips leave about 260 empty on the right (3440 in a 3700 column). Moving whole strips only moves the gap to the other column.
+
+**What the page shows at a glance.** The card's text doesn't scale with the mode: at 3440 Mega the card's padding is 128, but its title is the same size as at 360. And `measure` never changes.
