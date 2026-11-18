@@ -229,6 +229,19 @@ The owner's three core sizes are now **500 SM, 1000 Default and 1920 Desktop**; 
 - **Root setup on the three core pages, as on the Index:** Root `tint`, columns are bare wrappers (no fill, no padding), and each titled group carries the gray panel (Scheme fill) and `section-pad`. Every group's title equals its frame name; masters sit in groups; columns are equal. Order: Preview, Sections, Defaults, Wrappers, Content, App. 1920 Desktop went to two equal columns (4344 × 2624).
 - **Index:** a Section preset in each group, a padding-zeroed Section and cards inside a dark Section at 1000, a dark Section at 500, and at 1920 a section capped at 1600 above a flush white band (the old 3-band stack moved to `Archive · Pages`). The groups end at 92 / 90 / 100 % of the tallest. The "blank" photo in Text + Media is a render-scale artifact: the image fill is there (scale mode FILL).
 
+### Page, and Sections that hold columns (the owner, 2026-11-18 ~00:20)
+
+The owner accepts two words, **Page** and **Section** ([owner-words-2026-11-17-naming.md](./owner-words-2026-11-17-naming.md), "Text (~00:20)"); Wrapper and Default are not renamed yet. On each core page, beside the `Sections/<w> · Section` preset:
+
+| Master | 500 SM | 1000 Default | 1920 Desktop |
+|---|---|---|---|
+| `Sections/<w> · Section · 2 Columns` (padded, horizontal, `gap`, two Content set to Fill) | `379:89` | `380:96` | `381:68` |
+| `Sections/<w> · Section · 3 Columns` | (none at 500) | `380:103` | `381:75` |
+| `Sections/<w> · Section · Flush` (no padding; holds that size's Default with radius 0, no shadow) | `379:96` | `380:113` | `381:85` |
+| `Pages/<w> · Page` (zero padding, zero gap: a Section, a columns Section in Scheme Dark, a Flush Section) | `379:102` | `380:119` | `381:91` |
+
+Each Sections group carries the note "Radius needs room: full bleed means zero radius. No rounded card touches an edge or another border." A new `Pages` group holds the Page. On 1920 the column Sections use `Content/1600 · Content · Text` and are not capped at 1600 (the plain Section is the capped one); its Page opens with that capped Section in Scheme Dark. Lint 0 on all three pages; roots 6664 × 4160, 5328 × 4397, 4344 × 4227.
+
 ### Pages
 
 | Step | Page | Node | What was done | Lint | Shots |
