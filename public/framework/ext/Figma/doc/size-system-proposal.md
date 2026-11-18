@@ -2,7 +2,21 @@
 
 Your words: [owner-words-2026-11-17-sizes.md](./owner-words-2026-11-17-sizes.md) (both sections). It builds on the [size ladder](./size-ladder.md) and the fixed card padding from the [card tokens test](./research/card-tokens-test.md). **See it:** page [Lab · Size system](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=332-2) in Lew42 v2 (after `Archive ↓`). Nothing outside that page has changed.
 
-## Conclusion
+## The plan now (2026-11-17 ~23:00; replaces every number below it)
+
+The owner rejected the new ladder ("Why do we have a 1056 default? It used to be 1000. Why are you changing numbers on me?"). Sections 1–9 below keep the old proposal as history; where they disagree with this box, this box wins.
+
+- **The owner's numbers, always.** The sizes are **600 SM, 1000 Default, 1920 Desktop and 3440 Mega**. The 512 / 1056 / 1600 / 3232 ladder is dropped. Never invent a new number or name: ask voice-app first.
+- **A size is a range.** SM ≈ 320–700 (around 600), Default ≈ 700–1300 (around 1000), Desktop ≈ 1300–2400 (around 1920), Mega ≈ 2400 and up (around 3440). A size's pieces should work anywhere in its range, so widths add up only roughly, and that is fine ("roughly the same ballpark").
+- **The Scale collection is exactly as it was before tonight:** all eight modes, the same names and values ([Scale restored to before](#scale-restored-to-before-2026-11-17-2300)). Padding, radius and gap scale with the mode.
+- **Which token does which job:** `pad-x/-y` for a Default and panels, `section-pad-x/-y` for sections and page-level groups, `gap` for wrappers, `text-gap` inside a Content, `button-pad-x/-y` for buttons, plus `radius`, `measure` and `width`. `squeeze` and `card-min` are kept and marked "unused" in their descriptions.
+- **Modes cascade. Unset means inherit. Set means locked for everything inside. Reset on a wrapper.** Masters set no Scale mode, so a Default dropped into a section takes that section's size. A specimen's stage sets its size's mode, so the master shows at its own size. To make children differ from their parent, set the mode once on the Wrapper around them (or on the selected children), never per master.
+- **Pages merge, keeping the owner's numbers:** 360, 400 and 600 become one `600 SM` page; `1000 Default` stays; 1600 and 1920 become one `1920 Desktop` page; 2600 and 3440 become one `3440 Mega` page. The old pages move after `Archive ↓` with a `.` prefix; nothing is deleted.
+- **A size page's Root** is equal-width columns, used as a masonry, holding in order: `<size> · Preview`, `Defaults`, `Wrappers`, `Content`, then `App` if the page has app pieces. A master stands on a stage inside its group; everywhere else it is an instance. Masters are named `<Group>/<Name>` (`Defaults/600 · Default`).
+- **A preview shows what the size can do with smaller pieces** (rows, inline columns, sections), each labelled with what it shows: no duplicates, no near-identical neighbours, at most one photo.
+- **The Index is a scale grid:** SM | Default | Desktop | Mega, smallest on the left, each column holding its preview at real width, then its key masters as instances, each once on the page. Its top item is a 4-step **Swap demo** at Default size: `Defaults/1000 · Default` → `Wrappers/1000 · 2 · Equal` → column 1 swapped to `Defaults/600 · Default` → its content swapped to `Content/600 · Content · Stat`.
+
+## Conclusion (old proposal; see the box above)
 
 - **4 size pages instead of 8:** 512 Small, 1056 Default, 1600 Desktop and 3232 Mega.
 - **4 Scale modes instead of 8:** Small, Default, Desktop and Mega.
@@ -194,14 +208,21 @@ About **35 `use_figma` calls**: one Sonnet builder for one to two days, plus a r
 
 One slash level, so the swap menu shows folders: `Defaults/`, `Wrappers/`, `Content/`, `App/`. The group word is the title of the group the specimen sits in on the canvas, the same words on every size page. A rename keeps every instance. The 512 Small page has a "Swap menu check" note at the top for the owner to confirm the folders show.
 
+### Scale restored to before (2026-11-17 ~23:00)
+
+Every mode name and value in `Lew42 v2 · Scale` is back to what it was before tonight, checked by script cell by cell: 13 variables × 8 modes = 104 cells, 0 differences. Names: `1000 Default`, `360 XS`, `400 Mobile`, `600 SM`, `1600 LG`, `1920 Desktop`, `2600 XL`, `3440 Mega`. Values: the table above, except `pad-x`, `pad-y` and `radius`, which are the per-mode values from [card-tokens-test.md](./research/card-tokens-test.md) "before" (pad 48, 16, 24/32, 32, 64, 68, 80, 128; radius 4, 3, 4, 4, 6, 8, 8, 6). The table above shows 32 and 4 because tonight's earlier fixed card padding was already in place when it was read. Also undone: Mega `section-pad` back to 256, Default `button-pad-x` back to 32. The only token edits left are two descriptions: `squeeze` and `card-min` say "Unused (2026-11-17): kept, not deleted."
+
 ### Pages
 
 | Step | Page | Node | What was done | Lint | Shots |
 |---|---|---|---|---|---|
-| 1 | Tokens | `VariableCollectionId:2:2` | Modes Small 512, Default 1056, Desktop 1600, Mega 3232 (section-pad 128); gap 32 in all four; the other four `.old · …` | — | — |
+| 1 | Tokens | `VariableCollectionId:2:2` | Changed to 4 modes (Small 512, Default 1056, Desktop 1600, Mega 3232), then **fully restored** (above). | — | — |
+| 2b | **600 SM** (renamed back from 512 Small, ~23:00) | page `345:2`, Root `345:3` (6664 × 3059, 2.2 : 1) | Numbers back to the owner's: masters `Defaults/360 · Default` (360 wide), `Defaults/400 · Default` (400), `Defaults/600 · Default` (600), `Wrappers/600 · 2 · Equal` (600, two 360 Defaults set to Fill), `Wrappers/600 · Stack` (600), `Content/400 · Content` ×4 (336, their original width), `Content/600 · Content` ×5 (536, original), `App/600 · …` ×3 (600); `.600 Preview` (664). Masters set no Scale mode (pins added at ~22:50 cleared at ~22:55); each stage sets `600 SM`. Root is 4 equal 1576 columns: Preview (with the swap-menu check) · Defaults + Wrappers · Content · App. The preview shows an app bar, two text columns inside one Default, a Stat, and two rails; no photo. 71 layer names and 74 texts renumbered; sums that no longer add up were reworded. | 0 errors, 0 warnings | Root at 0.36: nothing cut off, the photos whole, nothing outside Root. |
 | 2 | **512 Small** | page `345:2`, Root `345:3` (5520 × 3055, 1.8 : 1) | Three 1744 columns (Light gray, on a `tint` Root, Desktop). 17 masters moved here and renamed, each on a stage of its exact width set to Small: `Defaults/240 · Default` (was 360 · Default), `Defaults/376 · Default` (400), `Defaults/512 · Default` (600); `Wrappers/512 · 2 · Equal` (600 · 2 · Equal, now 240 + 32 + 240), `Wrappers/512 · Stack` (400 · Stack); `Content/376 · Content` ×4 (400 Content), `Content/512 · Content` ×5 (600 Content); `App/512 · App bar`, `· Navigation`, `· Profile` (the archived 360 pieces). New `.512 Preview` `346:48` (576 screen, instances only). Filler titles replaced by labels; each Default shows its own name as the title and "<width> wide · Small mode". The old 360 XS, 400 Mobile and 600 SM pages moved after `Archive ↓` with a `.` prefix. | 0 errors (4 same-on-same on the App masters fixed with Scheme White) | Root at 0.18, every column at 0.33–0.4, the preview and App row at 0.5–0.6: nothing cut off, nothing outside Root. Two photos remain, both inside the Text + Media masters themselves; the preview has none. |
 
 ### Paused (2026-11-17 ~22:40): padding scales with the mode again
+
+*Resolved ~23:00: everything below is undone; see [Scale restored to before](#scale-restored-to-before-2026-11-17-2300).*
 
 The owner (relayed by voice-app) wants padding that scales with the mode, not a fixed 32. Restored in `Lew42 v2 · Scale`, by mode id, from [card-tokens-test.md](./research/card-tokens-test.md) "before" and the table above:
 
