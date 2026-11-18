@@ -11,3 +11,4 @@
 {"pid_exit":29428,"ended":"2026-11-17T21:35:03-06:00","code":0,"signal":null,"by":"servex"}
 {"log":{"at":"2026-11-17T21:36:36-06:00","msg":"agent stopped with its task still open and no outcome logged; StaleClose will read it unclosed"},"by":"servex-close-loop"}
 {"log":{"at":"2026-11-17T21:42:34-06:00","heartbeat":"deliberate","msg":"reviewer-ai-page-review its agent is not running: it was stopped on purpose by in-process at 2026-11-17T21:36:36-06:00; not revived."}}
+{"stop":{"at":"2026-11-17T22:45:44-06:00","why":"dropped: owner reviewer-ai-page-review is stopped"}}
