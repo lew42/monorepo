@@ -200,3 +200,20 @@ One slash level, so the swap menu shows folders: `Defaults/`, `Wrappers/`, `Cont
 |---|---|---|---|---|---|
 | 1 | Tokens | `VariableCollectionId:2:2` | Modes Small 512, Default 1056, Desktop 1600, Mega 3232 (section-pad 128); gap 32 in all four; the other four `.old · …` | — | — |
 | 2 | **512 Small** | page `345:2`, Root `345:3` (5520 × 3055, 1.8 : 1) | Three 1744 columns (Light gray, on a `tint` Root, Desktop). 17 masters moved here and renamed, each on a stage of its exact width set to Small: `Defaults/240 · Default` (was 360 · Default), `Defaults/376 · Default` (400), `Defaults/512 · Default` (600); `Wrappers/512 · 2 · Equal` (600 · 2 · Equal, now 240 + 32 + 240), `Wrappers/512 · Stack` (400 · Stack); `Content/376 · Content` ×4 (400 Content), `Content/512 · Content` ×5 (600 Content); `App/512 · App bar`, `· Navigation`, `· Profile` (the archived 360 pieces). New `.512 Preview` `346:48` (576 screen, instances only). Filler titles replaced by labels; each Default shows its own name as the title and "<width> wide · Small mode". The old 360 XS, 400 Mobile and 600 SM pages moved after `Archive ↓` with a `.` prefix. | 0 errors (4 same-on-same on the App masters fixed with Scheme White) | Root at 0.18, every column at 0.33–0.4, the preview and App row at 0.5–0.6: nothing cut off, nothing outside Root. Two photos remain, both inside the Text + Media masters themselves; the preview has none. |
+
+### Paused (2026-11-17 ~22:40): padding scales with the mode again
+
+The owner (relayed by voice-app) wants padding that scales with the mode, not a fixed 32. Restored in `Lew42 v2 · Scale`, by mode id, from [card-tokens-test.md](./research/card-tokens-test.md) "before" and the table above:
+
+| Mode id (name now) | pad-x / pad-y | radius | gap |
+|---|---|---|---|
+| `2:0` (Default, was 1000) | 48 / 48 | 4 | 32 |
+| `2:5` (.old · 360 XS) | 16 / 16 | 3 | 12 |
+| `2:1` (.old · 400 Mobile) | 24 / 32 | 4 | 24 |
+| `2:3` (Small, was 600) | 32 / 32 | 4 | 22 |
+| `2:4` (.old · 1600 LG) | 64 / 64 | 6 | 40 |
+| `58:0` (Desktop, was 1920) | 68 / 68 | 8 | 44 |
+| `2:6` (.old · 2600 XL) | 80 / 80 | 8 | 48 |
+| `2:2` (Mega, was 3440) | 128 / 128 | 6 | 64 |
+
+**Still changed from step 1, not reverted (waiting for the confirmed plan):** the eight mode names; `width` Default 1056 (was 1000), Small 512 (600), Desktop 1600 (1920), Mega 3232 (3440); Mega `section-pad-x/-y` 128 (256); Default `button-pad-x` 24 (32). To undo, set those back from the table at the top of this section. The 512 Small page and its 17 renamed masters stay as built; the old 360/400/600 pages stay archived. With padding back on the mode, a `240 · Default` placed in a Desktop column gets 68 padding (104 of text), so the fixed-width Defaults only read right in their own mode. No further structural changes until voice-app confirms the plan.
