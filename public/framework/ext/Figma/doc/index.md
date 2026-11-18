@@ -88,7 +88,7 @@ Moved, never removed, into the hidden `Archive` `231:1173`, inside `Archive · o
 ## Checks (2026-11-17)
 
 - **Lint** on the page (`lint(['0:1'])`): 0 errors, page-root passes. Two warnings, both mode-mismatch: `Index · Sizes` is 7594 wide on 1920 Desktop (it is a shelf of previews that carry their own modes), and the hidden Archive.
-- **Screenshots** (rule 18), in [the session's shots](/framework/ai/sessions/2026/11/17/spawned/mastermind-index/shots/): Defaults, Layouts and Content at 1:1; Sizes (7594 wide) at 0.34 and the empty Playground at 0.34; the whole Root. No cropped heads, nothing floating, nothing outside Root. Empty space remains beside the 2600 and 3440 previews (about 1000 wide) and under the Defaults and Content groups.
+- **Screenshots** (rule 18), in the session folder's `shots/` (local only; `**/shots/` is gitignored): Defaults, Layouts and Content at 1:1; Sizes (7594 wide) at 0.34 and the empty Playground at 0.34; the whole Root. No cropped heads, nothing floating, nothing outside Root. Empty space remains beside the 2600 and 3440 previews (about 1000 wide) and under the Defaults and Content groups.
 
 ## Not done, and why
 
