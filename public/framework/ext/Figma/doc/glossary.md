@@ -6,7 +6,9 @@ The words used in Lew42 v2. This file is the source; the AI page's Glossary bloc
 
 - **Size / tier:** a design width. The main tiers are 400 Mobile, 1000 Default, 1920 Desktop and 3440 Mega. Interim tiers (360, 600, 1600, 2600) go by their number. A size page is named after its tier.
 - **Default:** `X · Default`, the starting point at a size: a white card with corners (`pad`, fill, radius, the card shadow) holding one swappable Content. Swap the Default itself for a layout (`X · 2 · Equal`). There is no separate Card master ([structure-v5](./naming/structure-v5.md), owner ~21:35).
-- **Section:** not a master: a Default laid out full width, with radius 0 and no shadow (rule 15). Sections stack in a plain frame.
+- **Section** (owner, 2026-11-17 ~23:40): a full-width band. Fill width, Hug height, padding `section-pad-x/-y` (zero it by override for a flush one), background optional (a Scheme mode), no radius, no shadow; sections stack at zero gap. A preset master per core size, `Sections/<w> · Section` (500, 1000, 1920), so there is a starting configuration even if it is later detached. A Default made full width with radius 0 and no shadow also reads as a section (rule 15).
+- **The four words, as presets on three axes** (hug/fill × pad/no pad × background/none; any axis can be flipped by override): **Section** = fill, `section-pad`, optional background, no radius. **Wrapper** = arranges children: no padding, no background, `gap`. **Default** = the card: white, `pad`, radius. **Content** = no padding, no background, `text-gap`.
+- **Max width** (owner, ~23:40): one, `max-width` = 1600 in the one-mode collection `Lew42 v2 · Constants`. Only the main content container on 1920 uses it (Fill, capped at 1600, centred); everything else fills. `measure` stays in Scale. No per-mode font sizes: Figma holds the rough structure, fine tuning happens on the web.
 - **Surface / layout frame:** a surface has padding and its own fill; a layout frame has neither, only gap (rule 2).
 - **Masonry:** items ordered to even out the column heights; not a column grid (rule 16).
 - **Detach:** turn an instance into a plain frame, for structure no master has (rule 25).

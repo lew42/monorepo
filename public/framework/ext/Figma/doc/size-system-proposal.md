@@ -221,6 +221,14 @@ The owner's three core sizes are now **500 SM, 1000 Default and 1920 Desktop**; 
 | before | 600 SM | 600 | 32 / 32 | 22 | 4 | 32 / 32 | 18 / 10 | 6 | 280 | 1600 | 720 |
 | after | 500 SM | 500 | same | same | same | same | same | same | same | same | same |
 
+### Sections, one max width, one Root setup (the owner, ~23:40)
+
+- **New collection `Lew42 v2 · Constants`** (`VariableCollectionId:372:2`, one mode `Value`): one variable, `max-width` = 1600 (`VariableID:372:3`, scope Width/Height). It did not exist before; nothing else moved, and `measure` stays in Scale. It is bound (Figma allows it) to the `maxWidth` of the Wrapper inside `Sections/1920 · Section`.
+- **Section presets:** `Sections/500 · Section` (`373:86`), `Sections/1000 · Section` (`373:187`), `Sections/1920 · Section` (`374:61`). Each: fixed at its width on its stage (Fill in use), padding `section-pad-x/-y`, radius 0, no shadow, sets no Scale mode. 500 and 1000 are White and hold their size's Content. 1920 is Light gray and holds a centred Wrapper capped at 1600 with (a) `Defaults/1600 · Default` and (b) `Content/1600 · Content`; 1920 has no Content of its own.
+- **1600 LG:** only its Default and Content masters were renamed (`Defaults/1600 · Default`, `Content/1600 · …` ×10); the page and the reference image were not touched.
+- **Root setup on the three core pages, as on the Index:** Root `tint`, columns are bare wrappers (no fill, no padding), and each titled group carries the gray panel (Scheme fill) and `section-pad`. Every group's title equals its frame name; masters sit in groups; columns are equal. Order: Preview, Sections, Defaults, Wrappers, Content, App. 1920 Desktop went to two equal columns (4344 × 2624).
+- **Index:** a Section preset in each group, a padding-zeroed Section and cards inside a dark Section at 1000, a dark Section at 500, and at 1920 a section capped at 1600 above a flush white band (the old 3-band stack moved to `Archive · Pages`). The groups end at 92 / 90 / 100 % of the tallest. The "blank" photo in Text + Media is a render-scale artifact: the image fill is there (scale mode FILL).
+
 ### Pages
 
 | Step | Page | Node | What was done | Lint | Shots |
