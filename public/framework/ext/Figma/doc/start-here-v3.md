@@ -7,11 +7,12 @@
 
 ## Pages
 
-Index · Scale · Proposal · Split squeeze · Icons · Colors · 500 Mobile · 1000 Default · 1920 Desktop. There is no AI page yet; this doc stands in for it.
+Index · Scale · Proposal · Split squeeze · Images · Icons · Colors · 500 Mobile · 1000 Default · 1920 Desktop. There is no AI page yet; this doc stands in for it.
 
 - **Scale** holds the owner's own Card and Button masters and the 500 / 1000 / 1920 Wrappers.
 - **Proposal** shows one Card with two switches (Media, Footer), the layer names and the rhythm. It is only a proposal: [v3-card-proposal.md](./v3-card-proposal.md).
 - **Split squeeze** lines up two Default half cards with a Desktop card above them, in three setups: [v3-split-squeeze.md](./v3-split-squeeze.md).
+- **Images** holds the Image placeholder master and an Image Set (placeholder plus grayscale fillers); masters are marked with a purple dashed frame: [v3-images.md](./v3-images.md).
 
 ## Collections (variables)
 

@@ -26,3 +26,16 @@ The owner dictated these by voice to the cloud voice agent (voice-app), which re
 4. Make no edits to his masters; only propose.
 
 The answer is the Proposal page, documented in [v3-card-proposal.md](./v3-card-proposal.md).
+
+## ~17:40 · Proposal feedback and Split squeeze (relayed)
+
+- He doesn't want every card instance carrying a hidden Media layer, which would also be exported to the web. He usually detaches cards and breaks them apart, so a master with hidden layers may be the wrong default. He asked for an alternative: a plain Card plus a Card · Media, or a detach recipe. → [v3-card-proposal.md](./v3-card-proposal.md)
+- **Split squeeze:** two Default cards split 50/50 under a Desktop card don't line up with it. His past fix: a max width of squeeze/2 minus the padding, with content aligned toward the centre. He wants the simplest exact setup, with few or no new tokens, and doesn't want any token created without asking. → [v3-split-squeeze.md](./v3-split-squeeze.md)
+
+## ~17:50 · Images (relayed)
+
+- **A placeholder:** a fill plus a small image icon. He is tweaking the Media placeholder himself (icon opacity lower, fill `tint` or `darken`, moved to the right layer). Don't fight his edits.
+- **A master Image that drives an Image Set,** where each variant nests the master. Variants: the placeholder, plus generic nature fillers, grayscale. Types to consider: avatar, cover, framed and filler.
+- Brief research on how kits handle image placeholders and swaps; recommend the simplest option that swaps well from Assets.
+- **Masters should be easy to spot** (labels, or a clearly named group).
+- Photos use Fill, never crop. Use free stock photos, desaturated, with the source noted. → [v3-images.md](./v3-images.md)
