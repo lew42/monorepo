@@ -238,9 +238,9 @@ The owner accepts two words, **Page** and **Section** ([owner-words-2026-11-17-n
 | `Sections/<w> · Section · 2 Columns` (padded, horizontal, `gap`, two Content set to Fill) | `379:89` | `380:96` | `381:68` |
 | `Sections/<w> · Section · 3 Columns` | (none at 500) | `380:103` | `381:75` |
 | `Sections/<w> · Section · Flush` (no padding; holds that size's Default with radius 0, no shadow) | `379:96` | `380:113` | `381:85` |
-| `Pages/<w> · Page` (zero padding, zero gap: a Section, a columns Section in Scheme Dark, a Flush Section) | `379:102` | `380:119` | `381:91` |
+| `Pages/<w> · Page` (zero padding, zero gap: a Section in Scheme Dark, a white columns Section, a Flush Section whose block is Scheme Dark, so the bands alternate and the flush one visibly runs edge to edge) | `379:102` | `380:119` | `381:91` |
 
-Each Sections group carries the note "Radius needs room: full bleed means zero radius. No rounded card touches an edge or another border." A new `Pages` group holds the Page. On 1920 the column Sections use `Content/1600 · Content · Text` and are not capped at 1600 (the plain Section is the capped one); its Page opens with that capped Section in Scheme Dark. Lint 0 on all three pages; roots 6664 × 4160, 5328 × 4397, 4344 × 4227.
+Each Sections group carries the note "Radius needs room: full bleed means zero radius. No rounded card touches an edge or another border." A new `Pages` group holds the Page. On 1920 the column Sections use `Content/1600 · Content · Text` and are not capped at 1600 (the plain Section is the capped one); its Page opens with that capped Section in Scheme Dark. 500's note says why it has no 3 Columns (three columns of about 140 are too narrow to read). Reviewer: the flush demo first looked like a plain white Section; fixed as above. Lint 0 on all three pages; roots 6664 × 4160, 5328 × 4397, 4344 × 4227.
 
 ### Pages
 
