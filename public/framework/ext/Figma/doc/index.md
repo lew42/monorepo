@@ -12,14 +12,14 @@ The [Index page](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?no
 
 ## Root
 
-Root `137:725` follows Root layout v2 ([root-spec.md](./root-spec.md)): padding 0, gap and row gap bound to `gap`, no fill, horizontal with wrap, Scale mode **1920 Desktop** (the Index has no size of its own; it sets only the groups' padding and gaps). Its width is fixed at **7594**, so the page is 7594 × 6777 (1.1 : 1). Each group is a tinted folder: Colors `tint`, `section-pad-x`/`-y`, a title equal to its name, then a note.
+Root `137:725` follows Root layout v2 ([root-spec.md](./root-spec.md)): padding 0, gap and row gap bound to `gap`, no fill, horizontal with wrap, Scale mode **1920 Desktop** (the Index has no size of its own; it sets only the groups' padding and gaps). Its width is fixed at **7594**, so the page is 7594 × 8438 (0.9 : 1, a little taller than square since the Layouts group grew on 2026-11-17). Each group is a tinted folder: Colors `tint`, `section-pad-x`/`-y`, a title equal to its name, then a note.
 
 | # | Group | Node | Holds |
 |---|---|---|---|
 | 1 | `Index · Sizes` | `294:875` | a "Open a page" line (each size name is a link to its page), then the 8 previews in a wrap frame `Previews` |
 | 2 | `Index · Defaults` | `294:1753` | one `X · Default` per main size |
-| 3 | `Index · Layouts` | `294:1777` | the basic column layouts, and one card → section example |
-| 4 | `Index · Content` | `294:1874` | four 1000 Content masters, in a white `Content card` |
+| 3 | `Index · Layouts` | `294:1777` | the basic column layouts, one card → section example, and `400 · Stack` |
+| 4 | `Index · Content` | `294:1874` | six 1000 Content masters in a white `Content card`, then the Button on its own white card |
 | 5 | `Index · Playground` | `294:1904` | an empty tinted area to try things in |
 | — | (no Archive) | | the old Index is `Archive · Index` `231:1173` on the `Archive · Pages` page (see the end) |
 
@@ -53,7 +53,7 @@ One `.X Preview` per size page, 360 to 3440, in size order. Each preview carries
 
 ## 3. Index · Layouts
 
-Bare columns, each holding a smaller Default.
+Bare columns, each holding a smaller Default. Every column in an `X · 2 / 3 / 4` master is Fill height (2026-11-17), so the cards in a row take the tallest card's height. The `Layouts` frame `294:1780` is a horizontal wrap, 1920 wide, gap `gap` both ways: each layout takes its own row, and the last row holds card → section beside the stack.
 
 | Instance | Master | Mode |
 |---|---|---|
@@ -61,8 +61,10 @@ Bare columns, each holding a smaller Default.
 | `294:1792` | `1000 · 2 · Sidebar` `260:1225` | 1000 Default |
 | `294:1803` | `1600 · 3 · Equal` `260:699` | 1600 LG |
 | `294:1819` | `1920 · 2 · Equal` `252:801` | 1920 Desktop |
+| `317:1096` | `1920 · 3 · Equal` `252:812` | 1920 Desktop |
 | `294:1830` | `1920 · 4 · Equal` `252:820` | 1920 Desktop |
 | `294:1869` | `1000 · Default` with radius 0 and no shadow, in the frame `Card → section` `294:1867` with its one-line note | 1000 Default |
+| `317:1112` | `400 · Stack` `316:1227` (on 400 Mobile, group `400 · Stack` `316:1225`): three `400 · Default`s named `Column 1`–`3`. Swap a wide layout to it at 400 and each column keeps its text; a fourth column has no place, so detach for it | 400 Mobile |
 
 The card → section example is rule 15: a flush section is the same Default with radius unbound and set to 0, and its effect style removed. No other override.
 
@@ -72,14 +74,20 @@ Inside `Content card` `294:1877` (white, Scheme White, Scale 1000 Default, `pad-
 
 | Instance | Master |
 |---|---|
+| `317:1140` | `1000 · Content · Hero` `316:1063` (kicker, h1 title, body, Button) |
 | `294:1878` | `1000 · Content · Text` `260:1188` |
+| `317:1149` | `1000 · Content · Text + Button` `316:1056` |
 | `294:1881` | `1000 · Content · Text + Media` `260:1192` |
 | `294:1887` | `1000 · Content · Stat` `260:1199` |
 | `294:1897` | `1000 · Content · 2 · Equal` `260:1210` |
 
+Under the card: a note `317:1157`, then `Button card` `318:1352` (white, because the light Button vanishes on the tint) holding a `Button` instance `317:1158` of the Elements master `23:506`.
+
+The 1600 twins live on 1600 LG, in the group `1600 · Content` `252:778`: `1600 · Content · Text + Button` `316:152`, `· Hero` `316:159` and `· Stat` `316:167`. Every Content master names its text layers `Kicker`, `Title` and `Body` (a Stat: `Number` and `Label`; the button: `Button`), so a swap carries the text across sizes.
+
 ## 5. Index · Playground
 
-`294:1904`: an empty tinted area with one line, "Drag anything here and try it; move it to its own page when it works." Its height matches the Layouts group (2369) and its width fills the rest of row 2 (2158), so the row has no gap on the right.
+`294:1904`: an empty tinted area with one line, "Drag anything here and try it; move it to its own page when it works." Its height matches the Layouts group (3438) and its width fills the rest of row 2 (2158), so the row has no gap on the right.
 
 ## The old Index, archived
 
