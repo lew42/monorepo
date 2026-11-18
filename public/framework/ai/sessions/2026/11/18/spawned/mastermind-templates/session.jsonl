@@ -98,3 +98,11 @@
 {"pid_exit":36720,"ended":"2026-11-18T01:01:48-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid":37160,"cmd":"C:\\Code\\lew42\\monorepo\\Servex\\node_modules\\@anthropic-ai\\claude-agent-sdk-win32-x64\\claude.exe --output-format stream-json --verbose --input-format stream-json --effort medium --model claude-sonnet-5 --disallowedTools mcp__servex__page_call,mcp__servex__page_add,mcp__servex__page_set,mcp__servex__it","why":"claude.exe","agent":"reviewer-templates-review-2","session":"ca2df7ad-22be-4fe4-a50c-02b6452e28b4","started":"2026-11-18T01:01:51-06:00","by":"servex"}
 {"log":{"at":"2026-11-18T01:05:23-06:00","msg":"review by reviewer-templates-review-2: confirmed the void can't be closed by moves alone, the 1600 Text + Media master is right, no overlap. Ruling on its 'fix first': 500 columns at 15.8% count as 'about 15%'; the last 21 px would take new content or mixing kinds in one column. Title gap differs by group because it is the gap token at each scale. No further change."}}
+{"commit":{"hash":"65e36fa2bf049dd1fc77948ff8bb037619242bb8","what":"figma: Lab · Templates review ruling logged","files":["public/framework/ai/sessions/2026/11/18/spawned/mastermind-templates/session.jsonl"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-18T07:05:24.980Z"}
+{"pid_exit":37160,"ended":"2026-11-18T01:05:40-06:00","code":null,"signal":"SIGKILL","by":"servex"}
+{"log":{"at":"2026-11-18T01:09:17-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-18T07:09:17.679Z"}
+{"log":{"at":"2026-11-18T01:19:18-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-18T07:19:18.286Z"}
+{"pid":21248,"cmd":"","why":"child of claude.exe","agent":"mastermind-templates","session":"35a7e86a-4727-490e-9245-c0fc48ea639b","started":"2026-11-18T01:19:30-06:00","ppid":5588,"seen":"sample","by":"servex"}
+{"pid":23852,"cmd":"","why":"child of claude.exe","agent":"mastermind-templates","session":"35a7e86a-4727-490e-9245-c0fc48ea639b","started":"2026-11-18T01:19:31-06:00","ppid":21248,"seen":"sample","by":"servex"}
+{"pid_exit":21248,"ended":"2026-11-18T01:19:41-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid_exit":23852,"ended":"2026-11-18T01:19:41-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
