@@ -18,3 +18,4 @@
 {"log":{"at":"2026-11-16T17:36:44-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
 {"log":{"at":"2026-11-16T17:36:50-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-16T23:36:50.380Z"}
 {"pid_exit":20188,"ended":"2026-11-16T17:36:50-06:00","code":0,"signal":null,"by":"servex"}
+{"pid_exit":11984,"ended":"2026-11-16T23:36:19.999Z","code":null,"signal":null,"seen":"boot","why":"gone at boot: no exit was logged","by":"servex"}

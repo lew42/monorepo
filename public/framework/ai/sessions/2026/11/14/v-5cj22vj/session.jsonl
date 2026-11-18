@@ -662,3 +662,4 @@
 {"log":{"at":"2026-11-16T21:50:21-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-16T22:50:21-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-16T23:50:21-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"unclosed":{"at":"2026-11-18T00:00:55-06:00","why":"unclosed: 664 log lines of work, never completed; last line 2026-11-16T23:50:21-06:00; closed by StaleClose 2026-11-18","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-18T06:00:55.893Z"}
