@@ -88,3 +88,6 @@
 {"pid_exit":27832,"ended":"2026-11-18T00:51:01-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid_exit":27640,"ended":"2026-11-18T00:51:01-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"pid_exit":22304,"ended":"2026-11-18T00:51:01-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"log":{"at":"2026-11-18T01:01:34-06:00","msg":"voice-app follow-up: Pages heading moved over the Long page in all three groups (Pages = [Pages · Long][Short + test]); column bottoms 500 2154-2559 (16%), 1000 2316-2541, 1920 2743-3010 (9%). Lint 0 errors / 18 known warnings; Root 7636 x 6103."}}
+{"decision":{"at":"2026-11-18T01:01:34-06:00","what":"Root void at top right not closed","why":"row 1 can't be shorter than its Long pages (~2700); at that height the 500+1000 content fills ~6400 of 7636. Extra columns (voice-app's suggestion) end 900-1600 short of the Long page, so the void moves into a group and breaks the 15% column rule","options":["new content in row 1 (~1270 wide, e.g. a second 1000 test page)","Root justify space-between (moves the void between the groups)"]}}
+{"log":{"at":"2026-11-18T01:01:34-06:00","msg":"Content/1600 · Content · Text + Media 252:784 is already equal halves with the photo set to Fill (778/778 in the 1600 Container); the visible gap is short text in its half. Master unchanged; doc corrected."}}

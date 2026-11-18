@@ -6,15 +6,17 @@
 
 ## The page
 
-`Root` `387:3` (setup B, as on Explorations: no fill, padding 0, gap `gap`, wrap, Scale 1920 Desktop; 7636 × 6288, 1.2 : 1, inside rule 12's "2:1 to square"). Three tinted groups, each setting its own Scale mode once:
+`Root` `387:3` (setup B, as on Explorations: no fill, padding 0, gap `gap`, wrap, Scale 1920 Desktop; 7636 × 6103, 1.25 : 1, inside rule 12's "2:1 to square"). Three tinted groups, each setting its own Scale mode once:
 
 | Group | Node | Holds |
 |---|---|---|
-| `500 · Small` | `387:4` | Sections, Cards + Card ↔ Section, Pages: a `Short + test` column (the Short page, then `Test · About at 500` `399:451`) beside the Long page |
+| `500 · Small` | `387:4` | four columns: Sections, Cards + Card ↔ Section, `Pages · Long` (the Pages heading, then the Long page), `Short + test` (the Short page, then `Test · About at 500` `399:451`) |
 | `1000 · Default` | `387:23` | the same; its test is `Test · About page` `394:412` (17 text overrides, the step count) |
 | `1920 · Desktop` | `387:42` | the same (test `399:520`); every section except Media holds a `Container` capped at `max-width` (1600) |
 
-Each test page sits under the Short page it was built from, which fills the space beside the taller Long page.
+Each test page sits under the Short page it was built from. The Pages heading sits over the Long page only, so the four columns end close together: 500 within 16% (2154 to 2559), 1000 and 1920 within 9%.
+
+**The void at the top right stays** (about 1270 × 2765). Row 1 (500 + 1000) is 6366 wide and the 1920 row is 7636. It can't be closed by moving things. Row 1 can't be shorter than its Long pages (about 2700 with headings), and at that height the 500 and 1000 templates fill only about 6400 of width. Adding columns (splitting Short | Long | Test, or giving Card ↔ Section its own column) makes row 1 wider, but each new column ends 900 to 1600 short of the Long page, so the void just moves inside a group. Closing it needs about 1270 of new content in row 1, for example a second 1000 test page beside the first.
 
 Each group's columns open with a title and a one-paragraph note; the Sections column ends with a nesting tree.
 
@@ -52,8 +54,7 @@ The test page: drag `Pages/1000 · Short`, detach, rename it About, drag in `Sec
 - **A card's Footer has no top padding** (the reviewer found two stacked paddings, 96 at 1000, reading as a void). The Body above already pads, so the Footer's top is 0 and its other sides bind `pad`. Page Footers keep `section-pad`, because their Dark fill differs from the section above.
 - **A swapped Content keeps its old height** (also seen on Explorations); set it to Hug after the swap. Every Content inside these masters is Hug.
 - **Lint: 0 errors, 18 warnings.** The warnings are `padded-no-fill` on the transparent Header and Body sections: the model puts the background on the frame, not the section (vocabulary caveat 3). Rule 2's wording and lint's check are proposed as an improvement in [improvements.jsonl](../improvements.jsonl), not changed here.
-- **1920 "Text beside a photo" leaves a wide gap:** `Content/1600 · Content · Text + Media` (on the 1600 page, not part of this pilot) keeps its photo at a fixed width, so in the 1600 Container the middle is empty. The fix belongs on that master (an equal two-column split, the photo set to Fill).
-- **Root void:** row 1 (500 + 1000) is about 1270 narrower than the 1920 row.
+- **1920 "Text beside a photo" looks like it has a gap in the middle, but the master is right.** `Content/1600 · Content · Text + Media` (`252:784` on 1600 LG) is already two equal halves with the photo set to Fill: 778 + 40 + 778 in the 1600 Container. The space comes from the text, which is shorter than its half: the body stops at the 720 measure and the title is short. To close the gap you would give the text more room (a wider measure or a ⅔ + ⅓ split), not change the halves. Checked 2026-11-18; the master was left unchanged.
 
 ## Alternatives
 
