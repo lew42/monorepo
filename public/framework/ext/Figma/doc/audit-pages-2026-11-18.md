@@ -2,7 +2,7 @@
 
 You asked an agent to look at a screenshot of every page and say whether it is clean: one Root, the same Root everywhere, equal columns, no voids, labels that match the frame names, tidy flow ([your words, "Voice (~23:20)"](./owner-words-2026-11-17-sizes.md)). This is the answer. Nothing in Figma was changed.
 
-**In short:** 2 pages are clean, 12 have minor problems and 8 are messy. The biggest problem is that the Roots are not the same: the file has **three different Root setups**, plus two one-off variants. The worst single defects are two stray screenshots pasted onto size pages and one broken item on the Index.
+**In short:** 3 pages are clean (AI, Columns, Lab · Card tokens), 9 have minor problems and 10 are messy. The biggest problem is that the Roots are not the same: the file has **three different Root setups**, plus two one-off variants. The worst single defects are two stray screenshots pasted onto size pages and one broken item on the Index.
 
 How it was done: one read-only `use_figma` call per page (22 calls, at most 3 a minute). Each call read the Root's properties and took `node.screenshot()` of the Root. I looked at every image myself. The images came back inline and were not saved to disk. File `ADpu9u2V0BlEZfR3rrMfER`. Pages marked **in progress** were being edited by `mastermind-size-system` during the audit (Index, 500 SM, 1000 Default, 1920 Desktop), so recheck them when that work lands.
 
