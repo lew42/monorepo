@@ -65,46 +65,50 @@ That leaves four modes: Mobile, Default, Desktop and Mega. **Caveat:** the 360, 
 
 ## Card padding adopted (2026-11-17, mastermind-card-pad)
 
-voice-app decided to adopt this test ([next-2026-11-17.md](../next-2026-11-17.md), last section). Cards now have one fixed padding of 32, and page spacing still scales.
+voice-app decided to adopt the test ([next-2026-11-17.md](../next-2026-11-17.md), last section). Cards now have one fixed padding of 32, while page spacing still scales. **It is done by value inside Scale, not with a second collection.** Michael didn't want a separate Card collection: "now you have to know which collection to use". A first pass that night bound the cards to `Lew42 v2 · Card`; it was rebound and that collection was deleted.
 
-**The tokens** (`Lew42 v2 · Card`, `VariableCollectionId:276:4062`, mode `Fixed`):
+**The change is in `Lew42 v2 · Scale`.** The same token names are kept, and only their values changed. To undo, put back the old values below:
 
-| Token | Before | After |
+| Token | 1000 Default | 360 XS | 400 Mobile | 600 SM | 1600 LG | 1920 Desktop | 2600 XL | 3440 Mega |
+|---|---|---|---|---|---|---|---|---|
+| `pad-x` before | 48 | 16 | 24 | 32 | 64 | 68 | 80 | 128 |
+| `pad-y` before | 48 | 16 | 32 | 32 | 64 | 68 | 80 | 128 |
+| `radius` before | 4 | 3 | 4 | 4 | 6 | 8 | 8 | 6 |
+| **`pad-x`, `pad-y` now** | 32 | 32 | 32 | 32 | 32 | 32 | 32 | 32 |
+| **`radius` now** | 4 | 4 | 4 | 4 | 4 | 4 | 4 | 4 |
+| `gap` (unchanged, still scales) | 32 | 12 | 24 | 22 | 40 | 44 | 48 | 64 |
+
+`section-pad-x/-y`, `gap`, `text-gap`, `width` and the rest still change with the mode. **Side effect:** every layer bound to `pad-x/-y` or `radius` follows, not just cards. That includes the `Image/radius` alias (Rounded) and everything else bound to `radius` (17,882 bindings on 2026-11-13).
+
+**Bound to Scale `pad-x`/`pad-y`/`gap`/`radius`:** the 8 Defaults (360 `268:452`, 400 `251:1730`, 600 `251:1290`, 1000 `251:972`, 1600 `251:544`, 1920 `252:797`, 2600 `263:1357`, 3440 `264:1170`), the 9 Content cards (1000 `260:1184` `282:52` `282:70`; 1600 `252:778` `286:115` `286:133`; 600 `264:897` `287:48`; 400 `265:543`) and `Card` `16:364` on Elements. Before, the Defaults' radius was Surface `surface-radius`, and three Content cards had a raw radius 6. The Defaults are now 220–228 tall in every tier from 1000 up (1000 · Default was 252, 3440 · Default 420), and 360 · Default went from 284 to 316 (padding 16 → 32). The lab clones on `Lab · Card tokens` (114 bindings) were moved back to their Scale twins too. That page's (a) and (b) columns now show the same padding, so it is only a record of the test.
+
+**`Lew42 v2 · Card` deleted** (`VariableCollectionId:276:4062`). A scan of all pages (15,986 bound nodes) found 0 bindings left, no alias from another variable and no style using it.
+
+**Still on the old `Lew42 v2 · Surface`** (modes Card / Section; not changed): **92 nodes, all masters' own layers, none inside instances**:
+- 37 on Card vs Section (all four variables);
+- 20 on Explore – Sizing (`Card · Slot` copies, `surface-radius`);
+- 7 on 1000 Default;
+- 3–4 on each other size page (`Card · Slot`, `Icon.Title`, `Icon + title`, `Sidebar`; most of these sit in the hidden Archives);
+- 3 on Showcase (Surface rows, `layout-padding`);
+- 2 on Elements (`Card · Slot` `112:7282`, `172:616`).
+
+Mostly it is `surface-radius`; `layout-padding`, `surface-gap` and `surface-ground` are used only on Card vs Section and Showcase.
+
+**Lint:** `card-pad-x/-y` are in `PAD_TOKENS` ([lint.js](../lint.js)), harmless now that the collection is gone. Result: **0 errors, 0 warnings on all 8 size pages and `Card` 16:364.**
+
+**Previews in two columns** (1000, 1600, 1920, 2600, 3440). Each `.X Preview` holds its Header (Fill) above a `Columns` row with `Column 1` and `Column 2`. Each column's width is bound to Scale `width`, so it is exactly X wide, and both gaps are bound to `gap`. Items are placed in order into the shorter column, and the Default stays first. Before the change, a copy of each preview was put in the page's hidden Archive (`<name> · before 2 columns (2026-11-17)`): 1000 `294:80`, 1600 `295:152`, 1920 `295:406`, 2600 `295:582`, 3440 `295:751`. Each Root's fixed width was then chosen by script as the most compact one between square and 2:1.
+
+| Page | Preview (tall before → after) | Root before v5-tighten → now |
 |---|---|---|
-| `card-pad-x`, `card-pad-y` | 48 | **32** |
-| `card-gap` | 32 | **24** (the test's own pairing with 32; 32 between items was as big as the padding) |
-| `card-radius` | 4 | 4 |
-| `card-text-gap`, `card-button-pad-x/-y` | 12, 32 / 12 | unchanged, still bound to nothing outside the lab |
+| 1000 Default | 1938 → 1163 | 3162 × 3211 → **4194 × 2212 (1.9 : 1)** |
+| 1600 LG | 2870 → 1651 | 5008 × 5075 → **5264 × 3431 (1.5 : 1)** |
+| 1920 Desktop | 2240 → 1285 | 8244 × 7037 → **7693 × 6307 (1.2 : 1)**: the Build demo and your `image 1` set the height |
+| 2600 XL | 2281 → 1397 | 5728 × 5298 → **5728 × 2943 (1.9 : 1)** |
+| 3440 Mega | 2684 → 1744 | 7968 × 6769 → **7968 × 3880 (2.05 : 1)** |
 
-**What was rebound** (padding, gap and all four corners → Card tokens; was Scale `pad-x/-y`, `gap`, and Surface `surface-radius` or Scale `radius`; three cards had a raw radius 6):
+360 (1510 × 1124), 400 (2130 × 1300) and 600 (3154 × 1994) kept their widths.
 
-| Node | Padding before → after | Size before → after |
-|---|---|---|
-| `360 · Default` `268:452` | 16 → 32 | 360 × 284 → 360 × 316 |
-| `400 · Default` `251:1730` | 32 / 24 → 32 | 400 × 320 (same) |
-| `600 · Default` `251:1290` | 32 → 32 | 600 × 237 (same) |
-| `1000 · Default` `251:972` | 48 → 32 | 1000 × 252 → 1000 × 220 |
-| `1600 · Default` `251:544` | 64 → 32 | 1600 × 280 → 1600 × 216 |
-| `1920 · Default` `252:797` | 68 → 32 | 1920 × 292 → 1920 × 220 |
-| `2600 · Default` `263:1357` | 80 → 32 | 2600 × 316 → 2600 × 220 |
-| `3440 · Default` `264:1170` | 128 → 32 | 3440 × 420 → 3440 × 228 |
-| Content cards: 1000 `260:1184`, `282:52`, `282:70`; 1600 `252:778`, `286:115`, `286:133`; 600 `264:897`, `287:48`; 400 `265:543` | 48 / 64 / 32 / 32·24 → 32 | e.g. `1600 · Content` 1600 × 958 → 1600 × 814 |
-| `Card` `16:364` (Elements) | 48 → 32 | 660 × 312 → 660 × 280 |
-
-The children already filled their parent, so nothing needed a sizing fix. Every instance follows its master. Page-level spacing (Root, `section-pad` on the previews and the `X · 2/3/4` folders) still uses Scale.
-
-**Lint:** `card-pad-x/-y` were added to `PAD_TOKENS` in [lint.js](../lint.js) (and to the pad-token row in [lint.md](../lint.md)). Lint does not check gap or radius token names, so `card-gap` and `card-radius` pass as they are. Result: **0 errors, 0 warnings on all 8 size pages and on `Card` 16:364.**
-
-**Previews in two columns** (1000, 1600, 1920, 2600, 3440). Each `.X Preview` now holds its Header (Fill) above a `Columns` row with `Column 1` and `Column 2`. Each column's width is bound to Scale `width`, so it is exactly X wide, and both gaps are bound to `gap`. The items are placed in order, each going into the shorter column, and the Default stays first. Before the change, a copy of each preview was put in that page's hidden Archive as `<name> · before 2 columns (2026-11-17)`: 1000 `294:80`, 1600 `295:152`, 1920 `295:406`, 2600 `295:582`, 3440 `295:751`. Each Root's fixed width was then chosen by script as the most compact one between square and 2:1.
-
-| Page | Preview before → after | Root before → after |
-|---|---|---|
-| 1000 Default | 1098 × 1938 → 2130 × 1163 | 3162 × 2947 → **4194 × 2172 (1.9 : 1)** |
-| 1600 LG | 1728 × 2870 → 3370 × 1651 | 5008 × 4306 → **5264 × 3351 (1.6 : 1)** |
-| 1920 Desktop | 2064 × 2240 → 4030 × 1285 | 8244 × 6380 → **7693 × 6307 (1.2 : 1)**: the Build demo and your `image 1` set the height |
-| 2600 XL | 2840 × 2281 → 5490 × 1397 | 5728 × 3827 → **5728 × 2943 (1.9 : 1)** |
-| 3440 Mega | 3952 × 2684 → 7458 × 1744 | 7968 × 4820 → **7968 × 3880 (2.05 : 1)** |
-
-"Before" here means after the rebind, which had already made every page shorter. The 360, 400 and 600 Roots kept their widths (1510 × 1124, 2130 × 1300, 3154 × 1994).
-
-**Rule 18 check** (a shot of each Root): no cropped heads, nothing outside Root, edges line up. **Still off:** the 360, 400 and 600 previews (a 3-column `Masonry` from before) leave an empty area beside their first Default. The Index's instances of `.1000 Preview` and `.400 Preview` now show the two-column `.1000 Preview`, so that one is about twice as wide. **To undo:** rebind the 18 nodes to Scale `pad-x/-y`/`gap` and Surface `surface-radius`, and swap each preview back to its archived copy.
+**Rule 18 check** (a shot of each Root): no cropped heads, nothing outside Root, edges line up. **Still off:**
+- The 360, 400 and 600 previews (a 3-column `Masonry` from before) leave an empty area beside their first Default.
+- The Index's `.1000 Preview` instance is now about twice as wide.
+- The 1920 page's `Archive` (`128:8859`) was found visible partway through, and the Root grew to 28441 × 27111. I didn't do it. I hid it again and re-checked: 0 errors.
