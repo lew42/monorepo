@@ -51,6 +51,7 @@ The tree is 50 steps for 9 designs, about 5.6 each. Text is the bulk of the base
 6. **The stat band reads loosely at 1920:** the label sits well below its number, with a gap as big as the number itself. At 400, "5 min" breaks onto two lines in a three-up Stat.
 7. **Square corners don't show.** The radius is 4, so A2 looks almost the same as A.
 8. **"Dense" has no token.** C borrows the 600 SM mode for tighter gaps, and lint warns about it (12 mode-mismatch warnings; 0 errors on the page).
+$L9
 
 Photos were fine: the seagull image uses FILL, the head is never cut, and nothing stretched.
 
@@ -58,19 +59,19 @@ What held up: swapping a layout for a layout (2 → Sidebar, 2 → 3, 3 → 4) k
 
 ## What looks good
 
-- **B · Flush sections with a dark hero**, and **B2** with the sidebar story: the strongest pages. The dark band anchors the top, and the white flush sections read as one page.
+- **B · Flush sections with a dark hero** is the strongest idea: the dark band anchors the top. But it isn't clean yet. Inside the features and story layouts, the 44 px layout gap and the uneven card heights show as grey bars between the flush cards (see "What broke", item 9). The top-level bands (hero, stats, CTA) do read as one page.
 - **C1 · Dark stats:** one dark band in the middle of a dense page breaks it up well.
 - **A1 · Prime bands** looks lively, but the body text on Prime is weak (white on orange, about 2.6 : 1).
 - **C2 · Four features** fits at 1920; four short cards are the most a row holds before titles wrap.
 
 ## Three Index improvements
 
-1. **Make card → section one switch.** Bind each Default's radius to Surface `surface-radius`, and its shadow (colour alpha, or the effect itself) to a Surface variable. Then Surface → Section on a page turns every card into a flush section: B drops from 19 steps to 4 (duplicate, Surface mode, page gap 0, dark hero). Fix the master descriptions in the same pass.
+1. **Make card → section one switch.** Bind each Default's radius to Surface `surface-radius`, and its shadow (colour alpha, or the effect itself) to a Surface variable, and bind each layout's gap to `surface-gap`, so the columns close up too. Then Surface → Section on a page turns every card into a flush section: B drops from 19 steps to 4 (duplicate, Surface mode, page gap 0, dark hero). Fix the master descriptions in the same pass.
 2. **Name every Content's text layers `Kicker` / `Title` / `Body`, the 1600 ones too.** Swaps then carry text across every size. The 400 version would have cost 33 steps, not 37, and a 1920 ↔ 400 round trip would keep all its text.
 3. **Add the missing pieces to the Index:** `1920 · 3 · Equal`, a `Content · Text + Button` and a hero Content (h1) at 1000 and 1600, a `1600 · Content · Stat`, and a `400 · Stack` whose layers are named `Column 1…N`, so a 1920 layout swaps down to a stack instead of being detached. Also give the layouts stretch-height columns so cards in a row match heights.
 
 ## Checks
 
 - **Lint** (`doc/lint.js` on the page): 0 errors, page-root passes. The 12 warnings are branch C's borrowed 600 SM mode.
-- **Screenshots** (rule 18): the 1920 base at 1:1, the 400 page at 1:1, each branch row at 0.33, and the whole Root. They are local only, in the session folder's `shots/`. No cropped heads, nothing floating, nothing outside Root.
+- **Screenshots** (rule 18): the 1920 base, the 400 page and B at 1:1; each branch row at 0.33; the whole Root (`root-before-fold.png` still shows the 400 page in its own group, before it was moved under the 1920 one). A different reviewer (`reviewer-explorations-review`) found the grey bars in B, which led to item 9. They are local only, in the session folder's `shots/`. No cropped heads, nothing floating, nothing outside Root.
 - **Left as is:** the 400 page sits under the 1920 one in the same group, so the group has empty space to its right (about 1600 × 2500). That is the price of keeping Root at 1.68 : 1 without a void beside the tree.
