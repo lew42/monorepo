@@ -1,5 +1,7 @@
 # Page audit: every page in Lew42 v2 (2026-11-16, read-only)
 
+> **Newer audit:** [audit-pages-2026-11-18.md](./audit-pages-2026-11-18.md) (2026-11-18) re-checks every live page: Root setups, voids, ratios, labels, and a proposed Root standard.
+
 Screenshot audit of every page in the Lew42 v2 file (`ADpu9u2V0BlEZfR3rrMfER`) except `AI` (read for its rules, not audited) and `Live` (owned by `mastermind-live`, skipped). Checked against [build-checklist.md](./build-checklist.md) and the AI page's `Rules` frame. Nothing in Figma was edited; every finding below is a proposal for whoever owns that page next. Screenshots: `page-audit/<page>-<n>.png` (new) and the `2600xl-*.png` files already on disk from Brief C's before/after passes, reused here instead of re-shooting a page that just landed.
 
 ## The two biggest problems, found once and true everywhere
