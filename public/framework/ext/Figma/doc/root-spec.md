@@ -38,4 +38,4 @@ Read from the Index page's `Root` (`137:725`), which the owner configured by han
 
 The same spec is on the AI page as the `Root` card (`246:2`).
 
-Index itself (reference, not changed by agents) holds today: `Root Column - Sizes` (two previews), `Icons Preview`, Big Sloppy's `Page Set` (not ours, to replace) and a visible `Archive` with the owner's screenshot `image 1`.
+Index was rebuilt on 2026-11-17 to Root layout v2 (Scale 1920 Desktop, five groups); its old content and old Root settings are in its hidden Archive. See [index.md](./index.md).
