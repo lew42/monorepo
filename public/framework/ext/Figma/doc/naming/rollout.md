@@ -86,3 +86,5 @@ The spec is [structure-v5.md](./structure-v5.md). Every size page now has its gr
 | 3440 Mega | 7968 × 6769, 1.2 : 1 | `.3440 · Preview` `264:1217`, `3440 · Default` `264:1170`, `3440 · 2/3/4` `264:1175/1176/1177`, Archive `128:9174` | none | Archived: `264:1215`, `264:1168`, the preview photo `264:1274`. |
 
 **Not done, and why:** the spec's `1000 · Content · List` was not built. The brief listed only the Content · 2 and · 3 masters to build, and the page already reads well without it. The voids under the short groups come from wrap: a row is as tall as its tallest item, and the tall preview comes first. Arranging the previews in two columns inside (a Masonry) would halve them; that changes how the Index shows them, so it is left as a proposal.
+
+**After v5 (2026-11-17, mastermind-card-pad):** cards now use the fixed card padding of 32, and the previews on 1000 to 3440 are in two columns, so the Root sizes above are out of date. The current sizes are in [card-tokens-test.md, "Card padding adopted"](../research/card-tokens-test.md#card-padding-adopted-2026-11-17-mastermind-card-pad).

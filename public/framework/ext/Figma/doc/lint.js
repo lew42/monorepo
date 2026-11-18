@@ -30,7 +30,7 @@
 // An instance and the layers inside it get only same-on-same (and mode-mismatch on the
 // instance itself), since every other finding there belongs to its master: lint the master.
 
-const PAD_TOKENS = ['pad-x', 'pad-y', 'section-pad-x', 'section-pad-y', 'layout-padding', 'button-pad-x', 'button-pad-y'];
+const PAD_TOKENS = ['pad-x', 'pad-y', 'card-pad-x', 'card-pad-y', 'section-pad-x', 'section-pad-y', 'layout-padding', 'button-pad-x', 'button-pad-y'];
 const MEASURE = 720;
 const SCALE_COLLECTION = 'Lew42 v2 · Scale';
 const MAX = 20;
