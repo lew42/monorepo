@@ -57,15 +57,15 @@ Today a Root wraps groups of random widths and heights, so rows leave voids: `im
 - **Inside a column:** groups are plain stacks (a title, a note, then the thing), with no fill and no padding (rule 2). Small things go side by side in a row that adds up to 1600: 3 × 512, 4 × 376, 512 + 1056.
 - **Width per page:**
   - 1744 on every page.
-  - On 3232 Mega, the columns are 3376 (3232 + 2 × 72).
-  - The Index adds one 3376 column for Mega and keeps everything else in 1744 columns.
+  - On 3232 Mega, the column is 3488 (3232 + 2 × 128, Mega's own section-pad).
+  - The Index adds one 3488 column for Mega and keeps everything else in 1744 columns.
   - **Alternative: 1920 columns.** That is the candidate you named, but 1920 leaves 176 that no size fills, and the padding would have to be 160, which isn't a token.
 
 **The lab page uses this shape:**
 - Column 1: Proposal and Sizes.
 - Column 2: Compose.
 - Column 3: Small vs Mobile, the specimen and the Index example.
-- The page is 5520 × 3068 (1.8 : 1).
+- The page is 5520 × 3158 (1.8 : 1).
 
 ## 4. The specimen card
 
@@ -84,7 +84,7 @@ Today a Root wraps groups of random widths and heights, so rows leave voids: `im
 ## 5. The Index after the change
 
 **Shape:**
-- The Index uses the same Root: three 1744 columns plus one 3376 Mega column.
+- The Index uses the same Root: three 1744 columns plus one 3488 Mega column.
 - There are 4 previews instead of 8, one per size page, each at its real width.
 - The reason for what goes where is the column it sits in:
 
@@ -93,7 +93,7 @@ Today a Root wraps groups of random widths and heights, so rows leave voids: `im
 | Small | the `.512 Preview`, then `512 · Default` and its Content, three across (3 × 512 = 1600) | everything single-column |
 | Default | the `.1056 Preview`, then the 1056 layouts, each with a 512 beside it (1056 + 32 + 512 = 1600) | everything at 1056 |
 | Desktop | the `.1600 Preview`, then the 1600 layouts (2 × 784, 3 × 512, 4 × 376) | everything at 1600 |
-| Mega (3376) | the `.3232 Preview` and the 2 × 1600 layout | the one place wider than 1600 |
+| Mega (3488) | the `.3232 Preview` and the 2 × 1600 layout | the one place wider than 1600 |
 
 - **Previews show one size at its real width.** Today `.1000 Preview` is two 1000 columns, about 2000 wide, so it never looks like 1000. A preview becomes one column of its own size; a long preview is just a taller stack.
 - **Labels instead of filler.** Every example's title says what it shows ("Sidebar 240 + main 784", "Two columns, 1/3 + 2/3"), and every placeholder body says what to notice. The Content masters keep `Kicker`, `Title` and `Body` as layer names, so swaps still carry text.
