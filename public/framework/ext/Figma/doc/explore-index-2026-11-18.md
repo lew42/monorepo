@@ -2,6 +2,8 @@
 
 The [Explore · Index page](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=414-451) of Lew42 v2 sits right after the Index. Every screen on it was built only from what the new Index (page `368:2`) shows, plus the Pages, Sections and Cards masters on [Lab · Templates](./templates-2026-11-18.md). The allowed steps: drag an instance, swap, override (text, radius, shadow, Scheme) or detach. Each counts as one step; so does a rename, a delete or a size fix. Your question behind it: [owner-words-2026-11-17-naming.md](./owner-words-2026-11-17-naming.md), "Text (~02:15)": "Hopefully we've done some explorations about what we can build with them". The old [Explorations page](./explorations-2026-11-17.md) was built from the old Index.
 
+**Stopped (2026-11-18):** you are starting over in a simpler v3 file, so this v2 exploration ends here. The page stays in v2 as built; nothing was deleted. The frictions worth carrying into v3 are in [Top 5 gaps and frictions](#top-5-gaps-and-frictions) below. In short: a Page loses its text when swapped to another size, there is no 1000 app (sidebar + main) layout, there are no form controls, lists or icons, card titles are too big, and there is only one photo.
+
 **The answer in one line:** a mobile screen takes 39 steps, an app page with a sidebar 48 and a 1920 landing page 36. Most of them are typing text. The landing needed only 5 shape steps, because `Pages/1920 · Long` already holds every section a landing page needs. The app page was the hard one.
 
 ## The three outcomes
