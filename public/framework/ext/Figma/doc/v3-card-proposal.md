@@ -2,7 +2,18 @@
 
 **Status:** a proposal. It is on the [Proposal page](https://www.figma.com/design/JYGQX0WaBO4HcGMZTkL2rx/Lew42-v3?node-id=16-3) (`16:2`, right after Scale). None of the owner's masters were changed. The cards on that page are a copy, `.Proposal/Card` (`16:48`), so he can click one and try its switches. The owner's words behind it: [owner-words-2026-11-18.md](./owner-words-2026-11-18.md).
 
-## The idea
+## Update (~17:40): two masters, nothing hidden (now the pick)
+
+The owner doesn't want every card carrying a hidden Media layer, which would also be exported to the web. He usually detaches cards anyway. So a 4th column on the Proposal page (`19:118`) shows the alternative:
+
+- **Card · Plain** (`.Proposal/Card · Plain`, `19:127`): the Card with Body only (Content + Actions). The Card has 0 padding; Body carries `pad` and `gap`.
+- **Card · Media** (`19:144`): a Media above a Card · Plain instance, so edits to Card · Plain reach it.
+- **Anything else** (a Footer, two Media, a list): drop a Card · Plain, detach it, and add the section above or below Body.
+- **In one line:** switches = one master, but every card carries hidden layers; two masters = nothing hidden, one extra master, and a Footer is a detach.
+
+The switches version below is kept for comparison.
+
+## The idea (first version: switches)
 
 Figma can't add a layer into an instance unless the instance has a slot. So Media and Footer already sit inside the Card master, hidden, and two on/off switches (boolean properties) show them. That gives one master, with no variants and no slots: 2 switches × 2 colour modes × 3 sizes = 24 looks from one Card.
 
