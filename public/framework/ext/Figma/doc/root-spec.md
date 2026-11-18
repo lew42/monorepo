@@ -14,7 +14,7 @@ Read from the Index page's `Root` (`137:725`), which the owner configured by han
 | Layout | horizontal, no wrap, align top-left | |
 | Sizing | Hug × Hug | |
 | Clip content | off | |
-| Children | Root columns only, plus a hidden `Archive` as the last child | |
+| Children | Root columns only. No `Archive` child: a hidden frame still feeds the swap menu, so archived things move to the `Archive · Pages` page after the `Archive ↓` divider (rule 29, 2026-11-17) | |
 
 ## Root column
 
@@ -33,9 +33,9 @@ Read from the Index page's `Root` (`137:725`), which the owner configured by han
 ## How a page moves onto it safely
 
 1. The page's old Root children go into one Root column, which takes the Scale (and Scheme) mode Root had before, and the old gap. Nothing inside shifts. (Freezing at the column, not on every child, keeps modes in the three places of rule 19; it is the same thing, since every child inherited Root's mode.)
-2. Root then gets the spec above. A hidden `Archive` stays Root's last child.
+2. Root then gets the spec above. Anything archived moves to the `Archive · Pages` page, never into Root.
 3. Split the column into titled Root columns of sensible widths, each set to its tier. First give every moved child the mode it was drawn in, so nothing shifts. The 1920 Desktop pilot did this; the proposals for the other pages are in [root-audit.md](./root-audit.md).
 
 The same spec is on the AI page as the `Root` card (`246:2`).
 
-Index was rebuilt on 2026-11-17 to Root layout v2 (Scale 1920 Desktop, five groups); its old content and old Root settings are in its hidden Archive. See [index.md](./index.md).
+Index was rebuilt on 2026-11-17 to Root layout v2 (Scale 1920 Desktop, five groups); its old content and old Root settings are in `Archive · Index` (`231:1173`) on the `Archive · Pages` page. See [index.md](./index.md).

@@ -25,7 +25,8 @@
 //   padded-no-fill   (warn) a padded frame with no fill of its own, on a page or doc frame
 //   stale-paint      a variable-bound paint whose cached colour differs from the live value
 //   page-root        a page holds one frame named "Root" (plus prototype starting
-//                    frames and hidden Archive frames), and no connector outside an Archive
+//                    frames), no Archive frame on a live page (archives live on the
+//                    pages after `Archive ↓`, rule 29), and no connector outside an archive
 //
 // An instance and the layers inside it get only same-on-same (and mode-mismatch on the
 // instance itself), since every other finding there belongs to its master: lint the master.
@@ -206,16 +207,24 @@ async function mode_mismatch(node) {
 
 // --- the page: one root, nothing loose, no connectors (owner, 2026-11-16) ------------
 const page_root_of = n => n.parent && n.parent.type === 'PAGE' && n.name === 'Root';
-const archived = n => { for (let p = n; p && p.type !== 'PAGE'; p = p.parent) if (/archive/i.test(p.name) && p.visible === false) return true; return false; };
+// An archive page sits after the `Archive ↓` divider (rule 29, 2026-11-17): a hidden Archive
+// frame on a live page still feeds the swap menu, so archived masters move to those pages.
+const archive_page = pg => { const all = figma.root.children, d = all.findIndex(p => p.name === 'Archive ↓'); return d >= 0 && all.indexOf(pg) > d; };
+const page_of = n => { let p = n; while (p && p.type !== 'PAGE') p = p.parent; return p; };
+const archived = n => { if (archive_page(page_of(n))) return true; for (let p = n; p && p.type !== 'PAGE'; p = p.parent) if (/archive/i.test(p.name) && p.visible === false) return true; return false; };
 function page_root(page) {
   const starts = (page.flowStartingPoints || []).map(f => f.nodeId);
   const roots = page.children.filter(page_root_of);
-  if (roots.length !== 1) report('error', page, 'page-root', `${roots.length} top-level frames named "Root"; a page has exactly one`);
-  for (const k of page.children)
-    if (!page_root_of(k) && !starts.includes(k.id) && !archived(k))
-      report('error', k, 'page-root', `loose at the top level (${k.type}); move it into Root`);
+  if (roots.length !== 1 && page.name !== 'Archive ↓') report('error', page, 'page-root', `${roots.length} top-level frames named "Root"; a page has exactly one`);
+  if (!archive_page(page)) {
+    for (const k of page.children)
+      if (!page_root_of(k) && !starts.includes(k.id))
+        report('error', k, 'page-root', `loose at the top level (${k.type}); move it into Root`);
+    for (const r of roots) for (const k of r.children)
+      if (/^archive/i.test(k.name)) report('error', k, 'page-root', 'an Archive frame on a live page still feeds the swap menu; move it to the Archive · Pages page (rule 29)');
+  }
   for (const c of page.findAllWithCriteria({ types: ['CONNECTOR'] }))
-    if (!archived(c)) report('error', c, 'page-root', 'connector outside a hidden Archive; delete it');
+    if (!archived(c)) report('error', c, 'page-root', 'connector outside an archive; delete it');
 }
 
 // --- the walk ---------------------------------------------------------------------

@@ -21,7 +21,7 @@ Root `137:725` follows Root layout v2 ([root-spec.md](./root-spec.md)): padding 
 | 3 | `Index · Layouts` | `294:1777` | the basic column layouts, and one card → section example |
 | 4 | `Index · Content` | `294:1874` | four 1000 Content masters, in a white `Content card` |
 | 5 | `Index · Playground` | `294:1904` | an empty tinted area to try things in |
-| — | `Archive` (hidden) | `231:1173` | the old Index (see the end) |
+| — | (no Archive) | | the old Index is `Archive · Index` `231:1173` on the `Archive · Pages` page (see the end) |
 
 ## 1. Index · Sizes
 
@@ -83,11 +83,11 @@ Inside `Content card` `294:1877` (white, Scheme White, Scale 1000 Default, `pad-
 
 ## The old Index, archived
 
-Moved, never removed, into the hidden `Archive` `231:1173`, inside `Archive · old Index (2026-11-17)` `294:873` with a note: the owner's `Root Column - Sizes` `162:11145` (the old `.1000` and `.400` preview instances), `Icons Preview` `43:7936` and Big Sloppy's `Page Set` `103:25367`. The owner's `image 1` `148:25853` stays where it was, the first child of Archive. The old Root settings, to switch back: fill Colors `tint`, Scale 3440 Mega, padding `section-pad-x`/`-y`, gap `section-pad-x`, horizontal, no wrap.
+Moved, never removed, into the Archive `231:1173` (since 2026-11-17 it is `Archive · Index` on the `Archive · Pages` page, visible, rule 29), inside `Archive · old Index (2026-11-17)` `294:873` with a note: the owner's `Root Column - Sizes` `162:11145` (the old `.1000` and `.400` preview instances), `Icons Preview` `43:7936` and Big Sloppy's `Page Set` `103:25367`. The owner's `image 1` `148:25853` stays where it was, the first child of Archive. The old Root settings, to switch back: fill Colors `tint`, Scale 3440 Mega, padding `section-pad-x`/`-y`, gap `section-pad-x`, horizontal, no wrap.
 
 ## Checks (2026-11-17)
 
-- **Lint** on the page (`lint(['0:1'])`): 0 errors, page-root passes. Two warnings, both mode-mismatch: `Index · Sizes` is 7594 wide on 1920 Desktop (it is a shelf of previews that carry their own modes), and the hidden Archive.
+- **Lint** on the page (`lint(['0:1'])`): 0 errors, page-root passes. Two warnings, both mode-mismatch: `Index · Sizes` is 7594 wide on 1920 Desktop (it is a shelf of previews that carry their own modes), and the hidden Archive (since moved off the page).
 - **Screenshots** (rule 18), in the session folder's `shots/` (local only; `**/shots/` is gitignored): Defaults, Layouts and Content at 1:1; Sizes (7594 wide) at 0.34 and the empty Playground at 0.34; the whole Root. No cropped heads, nothing floating, nothing outside Root. Empty space remains beside the 2600 and 3440 previews (about 1000 wide) and under the Defaults and Content groups.
 
 ## Not done, and why

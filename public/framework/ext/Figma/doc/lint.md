@@ -34,7 +34,7 @@ It changes nothing. It answers:
 | hidden-in-master | warn | A hidden layer or slot inside a master that no boolean property controls. | Delete it, or give it a boolean. |
 | padded-no-fill | warn | A padded page or doc frame with no fill. | Give it the wrapper shade or a Scheme fill. |
 | stale-paint | error | A variable-bound fill or stroke whose cached colour differs from the variable's live value (the canvas can draw the cache). | Set the paint's colour to the live value, then `setBoundVariableForPaint` with the same variable. Re-binding alone keeps the cache. |
-| page-root | error | Runs when you lint a page id or a top-level frame. A page holds exactly one frame named `Root`. Allowed beside it: a prototype starting frame (Showcase's Click through) and hidden `Archive` frames. No connector anywhere outside a hidden Archive. | Move the loose node into Root (master folders first); put connectors in a hidden Archive. |
+| page-root | error | Runs when you lint a page id or a top-level frame. A page holds exactly one frame named `Root`. Allowed beside it: a prototype starting frame (Showcase's Click through). No `Archive` child in Root on a live page: a hidden frame still feeds the swap menu (rule 29). Pages after the `Archive ↓` divider are exempt. No connector outside an archive page. | Move the loose node into Root (master folders first); move archived frames and connectors to the `Archive · Pages` page. |
 
 `Root` is exempt from child-drives: it is a shelf of independent things, so it hugs the widest one.
 
