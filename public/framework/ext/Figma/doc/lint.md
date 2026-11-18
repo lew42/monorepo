@@ -23,7 +23,7 @@ It changes nothing. It answers:
 | Rule | Level | What it catches | Fix |
 |---|---|---|---|
 | same-on-same | error | A padded frame whose fill, resolved in its own modes, looks the same as the ground under it (white on white, light gray on light gray, a card that took its ground's Scheme). | Wrappers are 5% black; cards set Scheme White (Light gray on a white ground). |
-| pad-token | error | Padding bound to anything but `pad-x`, `pad-y`, `card-pad-x`, `card-pad-y` (the fixed `Lew42 v2 · Card` collection, since 2026-11-17), `section-pad-x`, `section-pad-y`, `layout-padding` (or `button-pad-*`). | Rebind; `text-gap` and `radius` are never padding. |
+| pad-token | error | Padding bound to anything but `pad-x`, `pad-y`, `card-pad-x`, `card-pad-y` (kept for a future card collection; the 2026-11-17 one was deleted, cards use `pad-x/-y` fixed at 32), `section-pad-x`, `section-pad-y`, `layout-padding` (or `button-pad-*`). | Rebind; `text-gap` and `radius` are never padding. |
 | text-gap | error | A gap bound to `text-gap` between blocks. Allowed: a text stack (text, inline pieces up to 48 tall, frames of those) and a label or heading above the one thing it names. | Bind the gap to `gap`. |
 | raw-value | error | Padding or a gap above 0 that isn't bound. | Bind to the Scale token. |
 | raw-fill | error | A visible solid fill not bound to a colour variable. Black at 10% or less is allowed: it is the wrapper shade. | Bind to Scheme (`text`, `fill`, …). |
