@@ -1,0 +1,5 @@
+{"session":{"id":"78a0cc70-f221-4424-aa7a-7b7c22309df9","kind":"vscode-tab","at":"2026-11-18T02:42:26.483Z"},"by":"TaskDirs"}
+{"task":"/framework/ai/sessions/2026/11/17/session-78a0cc70/reviewer-assets-tidy-review/","by":"TaskDirs","ts":"2026-11-18T02:42:26.484Z"}
+{"messages":{"add":{"type":"Ref","url":"/framework/ai/sessions/2026/11/17/session-78a0cc70/reviewer-assets-tidy-review/","by":"servex","at":"2026-11-18T02:42:26.485Z"}},"by":"servex","ts":"2026-11-18T02:42:26.485Z"}
+{"log":{"at":"2026-11-17T20:50:38-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-17T20:55:39-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
