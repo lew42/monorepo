@@ -12,3 +12,4 @@
 {"log":{"at":"2026-11-17T23:15:44-06:00","msg":"task-loop status ask 1: mastermind-tokens-review was stopped on purpose; not woken","ask":1}}
 {"log":{"at":"2026-11-17T23:20:44-06:00","msg":"task-loop status ask 2: mastermind-tokens-review was stopped on purpose; not woken","ask":2}}
 {"log":{"at":"2026-11-17T23:25:44-06:00","msg":"task-loop status ask 3: mastermind-tokens-review was stopped on purpose; not woken","ask":3}}
+{"log":{"at":"2026-11-17T23:30:44-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
