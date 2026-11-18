@@ -1,132 +1,131 @@
-# Layout vocabulary v6: name a layer by where it sits (proposal, 2026-11-17/18)
+# Layout vocabulary v6: Page, Section, Card, Content, and the radius rule (proposal, 2026-11-18)
 
-**Status: a proposal. Nothing in Figma was renamed or changed** (rule 31). It answers the owner's asks: "I don't actually mind what the words are called. I just want to finalize the system" (~23:55), and the worry about a rename tax at ~00:05 ([naming words](../owner-words-2026-11-17-naming.md), last two sections; also [sizes ~23:40](../owner-words-2026-11-17-sizes.md#voice-2340-2026-11-17-sections-padding-max-width-1920-content-from-1600)). Once approved, it replaces the "four words" line in [glossary.md](../glossary.md).
+**Status: a proposal. Nothing in Figma was renamed or changed** (rule 31). It is built on the owner's words: "I just want to finalize the system" (~23:55), the rename-tax worry (~00:05), and the calls he made at ~00:20, all in [owner-words-2026-11-17-naming.md](../owner-words-2026-11-17-naming.md) (last three sections); also [sizes ~23:40](../owner-words-2026-11-17-sizes.md#voice-2340-2026-11-17-sections-padding-max-width-1920-content-from-1600). Once approved, it replaces the "four words" line in [glossary.md](../glossary.md).
 
-**The idea in one line:** a layer's name says *where it sits* (its level), not what it looks like. Its properties are only defaults you may change freely. A layer is renamed only when it moves to another level.
+**Settled by the owner (~00:20):**
+- **Page** is a word, one per size (`500 · Page`, `1000 · Page`, `1920 · Page`). It is the full container for a stack of sections.
+- **Sections are naturally full width.** A Page has no padding, so its Sections run edge to edge (full bleed).
+- **A Section can hold columns directly**, with the layout on the Section itself. An extra wrapper is allowed only as a drag-and-drop target.
+- **Presets matter:** start from a correctly configured Section, so drag and drop just works.
+- **A padded Section may hold Content or Cards directly; a flush Section should not.**
+- **Radius needs room; full bleed means zero radius.**
 
-```
-Page → Section → (Container) → (Columns → Column) → Card → Content
-```
+## The one rule: radius needs room
 
-## (a) The recommended words: seven
+**Anything with a corner radius sits inside padding or gap. It never touches a visible edge: its parent's painted edge, or another border.** Full bleed means radius 0. Remove a Card's radius and shadow, and it can become a full-bleed Section; give a Section a radius, and it needs room around it, so it becomes a Card.
 
-| Word | Where it sits (the rule) | What it holds | Defaults (change freely) |
-|---|---|---|---|
-| **Page** | the top of a design; one per screen at one size | Sections | the page background (`tint` or a Scheme mode), padding 0, gap 0, vertical, Fill. **This is where the design's Scale mode is set.** |
-| **Section** | a direct child of a Page | Container, Columns, Cards, Content | optional background, `section-pad-x/-y`, gap `gap`, no radius, no shadow, Fill width, Hug height |
-| **Container** | the only child of a Section that is wider than its content (1920) | Columns, Cards, Content | no background, padding 0, gap `gap`, Fill, max width `max-width` (1600, Constants), centred |
-| **Columns** | in a Section, Container or Card; it is only the direct wrapper around columns | 2 or more Column, nothing else | no background, padding 0, gap `gap` (0 = joined), horizontal, Fill, Hug |
-| **Column** | only inside Columns | Cards, Content, or another Columns | no background, padding 0, gap `gap`, vertical, Fill (its share) |
-| **Card** | in a Section, Container, Column, or Content (as a callout) | Content (usually one), Columns | a Scheme fill that differs from its parent, `pad-x/-y`, `radius` + the card shadow, Fill width, Hug height |
-| **Content** | inside a Card or a Section, never straight in a Page | text, images, buttons, icon items, rows, a Card as a callout | no background, padding 0, gap `text-gap`, vertical, Fill width, text max `measure` |
+This is why the two words differ: **a Card has a radius, so it needs room. A Section has none, so it may touch the edges.** Lint can check it: walk up from a rounded node to the nearest ancestor with a fill, and warn if no padding or gap separates them.
 
-**Three rules stay strict, because they catch real visual bugs.** Lint can check all three.
-1. The name follows the position. A Section's parent is a Page; a Card is never a Page's child; Content is never a Page's child; Columns holds only Columns' columns.
-2. Padding comes only with a background (rule 2).
-3. Text sits in exactly one padded surface (rule 3).
+## (a) The words: seven
 
-Everything else is a default.
+| Word | What it is | Sits in | Holds | Defaults (change freely) |
+|---|---|---|---|---|
+| **Page** | one screen at one size | the top of a design | Sections | page background, padding 0, gap 0, vertical, Fill. The design's Scale mode is set on the placed instance. |
+| **Section** | a full-bleed band, radius 0 | a Page, or a column of a flush Section | Content, Cards, a Container; its own columns | a background (a Scheme mode), `section-pad-x/-y` (the Flush preset has 0), gap `gap`, no radius, no shadow, Fill width, Hug height. Vertical, or horizontal + wrap when it holds columns |
+| **Container** | the centred 1600 cap | only a Section wider than its content (1920) | the Section's content, or its columns | no background, padding 0, gap `gap`, Fill, max width `max-width` (1600, Constants), centred |
+| **Card** | a rounded, padded surface | somewhere with room: a padded Section, a Container, a Column, Columns, Content | Content (usually one), its own columns | a Scheme fill that differs from its parent, `pad-x/-y`, `radius` + the card shadow, Fill width, Hug height |
+| **Content** | the text area: no box | a padded surface: a padded Section or a Card | text, images, buttons, icon items, rows, a Card as a callout | no background, padding 0, gap `text-gap`, vertical, Fill width, text max `measure` |
+| **Columns** | a bare row of columns, used only when the columns can't be the parent's own layout | beside a title in a Section; in place of a Card (the swap demo) | Cards (or columns of Content) | no background, padding 0, gap `gap` (0 = joined), horizontal + wrap |
+| **Column** | the name of one child of a columns layout (`Column 1`, `Column 2`) | a Section, Container, Card or Columns laid out as columns | one Card, Content, or a pile of Cards | Fill (its share), vertical, gap `gap` |
+
+**When is a Columns wrapper needed?** Only in two cases. One is a title above the columns, because a frame can't be vertical (title over) and horizontal (columns) at once. The other is a drag-and-drop target, such as the bare `Columns · 2 · Equal` you swap a Card for. Otherwise the Section, Container or Card carries the columns layout itself.
+
+**Section padding by default: padded.** The `Section` preset has `section-pad`, and the separate preset `Section · Flush` has none. Why: most sections hold text (his words: "a lot of them should have padding, especially if there's text"), and a padded Section accepts a dropped Card or Content at once without breaking the radius rule. Flush is the exception (photos, split bands), so it gets its own preset rather than being the default. Alternative: flush by default, with padding added each time. It would match "full bleed" literally, but every text section would need a manual step, and every dropped Card would touch the edges until someone fixed it.
 
 **Scaffolding words stay as they are:** Root, Root column, Specimen and Stage, Preview, Masonry, and the group titles. They organize the canvas; they are not part of a design.
 
-## Does "name by where it sits" hold? Yes, with three amendments
+## The words line up with the site's CSS
 
-Tested against each of the owner's examples:
+| Figma | Web (framework.css, core/Page) |
+|---|---|
+| Page | a `Page` ([core/Page](/framework/core/Page/readme.md)): its `background` word is the Page fill |
+| Section (padded) | a band with a ground class and `.pad` |
+| a Section, Container or Card holding columns | `.flex.auto.gap`: wrapping columns, each child's basis `--column` (Figma: horizontal + wrap, children Fill with a min width) |
+| `· 2 · Equal` / `· 2 · Sidebar` | `.cols.half` / `.cols.main-aside` (a ratio that stacks below a floor) |
+| Column | a child of `.flex.auto` or `.cols` |
+| Card | `.card`: surface fill, `--radius`, `--pad-card`, shadow |
+| Content | plain flow, or `.flex.v` with the text gap |
+| Container | the Page's `width: "wide"` word (`.page-w-wide`) |
 
-| His example | What happens under this proposal | Holds? |
-|---|---|---|
-| "what if you do want gap between your sections?" | It's a gap on the Page. The Sections are still the Page's children, so nothing is renamed. | ✅ |
-| "quickly add padding to the parent" | It's padding on the Page (it has a background, so rule 2 is fine). Still Sections. | ✅ |
-| a full-width card loses its radius and shadow and starts to look like a section | It keeps the name Card, because it still sits where a Card sits. His ~00:05 words: a card "presumably has padding and a background color, even though it might not anymore" | ✅ (this replaces rule 15's "rename it Section") |
-| "you would unlikely put a section inside of a card ... they're called content" | A Section can only be a Page child, so a padded block inside a Card is Content | ✅ |
-| moving, adding or removing cards and columns (what he does most) | They stay at the same level, so nothing is renamed | ✅ |
-| detaching a pre-built block keeps its layer names | The names describe the level, which a detach doesn't change | ✅ |
-| a card dragged up to be a Page child | It becomes a Section: rename it, or swap it to the Section preset | rename, but only on a move between levels |
-| "is every layer that gets padding called Card?" | No. A padded Section, a padded Page and a Content with padding added are all fine | ✅ |
+Two small mismatches (notes, not changes):
+- The web's `.card` adds a border (`--line`), which the Figma Card doesn't have.
+- The web has no "Section" class. A section there is just a band in the page.
 
-The three amendments to the candidate ladder:
-1. **A Card may also sit in Content** (his "a stack of text could have a card ... dropped into it") and in a Column. So the ladder is a default order, not a straight line.
-2. **Container** sits between a Section and its children, but only where the Section is wider than the content (1920 holding 1600). At 500 and 1000 it is left out.
-3. **Stack and List are not layer names.** Under this proposal each level already decides its own gap. A Page is the zero-gap stack of Sections, a Section or a Column is the spaced pile of Cards, and Content is the text stack. A list of rows with dividers is Content with gap 0 (the `Content · List` master stays). This also avoids the clash with outside systems, where a "Stack" has a gap (Every Layout, Braid, Chakra 8 px, Framer 10), the opposite of the owner's suggested default.
+## Presets per size: the minimal set
 
-**Card and Section are the same kind of thing, treated differently** (his ~00:05). Both are a padded block with a background and one Content inside. Their presets differ only in defaults: `section-pad`, no radius and no shadow for a Section; `pad`, radius and shadow for a Card. Both keep a child named `Content`, so swapping one preset for the other keeps the overrides. There are two presets, not one master with a toggle: no variants, no slots.
+**Names follow rule 30 (`<Group>/<size> · <Name>`). ✅ = exists today; ➕ = new.**
+
+| Preset | What it is | 500 | 1000 | 1920 |
+|---|---|---|---|---|
+| `Pages/X · Page` | a gap-0 stack holding a Section and a `Section · Flush` | ➕ | ➕ | ➕ |
+| `Sections/X · Section` | padded, holds the size's Content | ✅ | ✅ | ✅ (a Container inside) |
+| `Sections/X · Section · Flush` | padding 0, gap 0, horizontal: an Image beside a dark Section | ➕ | ➕ | ➕ |
+| `Sections/X · Section · 2` | padded, its own 2-column layout, a Card in each column | – (500 stacks) | ➕ | ➕ (in the Container) |
+| `Cards/X · Card` | the rounded card, holds one Content | ✅ 360, 400, 500 | ✅ | ✅ 1920 and the 1600 Card |
+| `Columns/X · N · Shape` | bare columns of Cards, swaps with a Card | ✅ 2 · Equal | ✅ 2 · Equal, 2 · Sidebar | ✅ 2 · Equal, 2 · Sidebar, 3, 4 |
+| `Content/X · Content · …` | text blocks | ✅ | ✅ | (uses 1600 Content) |
+
+**That makes 8 new masters:** 3 Pages, 3 Flush Sections, and 2 `Section · 2`. A `Section · 3` is left out: put `Columns/1920 · 3 · Equal` into a Section's Container instead. Everything else exists and is only renamed.
 
 ## How strict?
 
-- **Names are strict about position and loose about properties.** Change radius, shadow, padding, gap or background as much as you like: no rename. Rename only when the layer moves to another level.
-- **Lint checks positions, never properties.** It flags a Card that is a Page's child, Content straight in a Page, or a Columns holding something other than columns. Plus rules 2 and 3. A name never fails lint because of a tweak.
-- **The presets are the definitions.** "What is a Card?" is answered by `Cards/1000 · Card`'s starting properties, as the owner suggested: "the strict definition is more of like the starting point".
-- **The rename tax is close to zero.** A rename happens only on a move between levels, which he says is rare.
-
-## Page: harmonized with the code's Page class
-
-In code, a `Page` ([core/Page](/framework/core/Page/readme.md)) is one url's screen: its content plus "the six page words" ([doc/words.md](/framework/core/Page/doc/words.md)). Three of those words map straight onto Figma:
-- the code's `background` is the Page's fill;
-- `surface: "card"` is a Card's fill;
-- `width: "reading" | "wide" | "full"` does the Container's job (how much of the screen the content takes).
-
-So a Figma **Page** is what a code Page renders at one width: a stack of Sections. It is the one frame where a design sets its Scale mode.
-
-**Should there be Page masters per size? Yes, three, but they are a low priority.** `Pages/500 · Page`, `Pages/1000 · Page` and `Pages/1920 · Page` would each be a gap-0 stack holding two Section presets. They give every design the same top frame and name, and the obvious place to set the mode. Rule 32 still applies: the master sets no mode, and you set it on the instance you place (one click). Don't build Page templates per layout: compose those from Sections.
-
-## How few words?
-
-- **Seven** covers everything: Page, Section, Container, Columns, Column, Card, Content.
-- **Six** is possible by dropping Container: let the 1920 Section's own padding do the job (160 a side). The owner rejected that at ~23:40 ("you either need ... 160 pixels of padding or you need a max width"), so Container stays.
-- **Column** is already in use: every Columns master has layers `Column 1`…`Column 4`. It costs nothing to keep.
-- Words that aren't needed: Wrapper, Row, Stack and List (as layer names), and Default (see the open question below).
+- **Strict: where a word sits, and the radius rule.** A Section sits in a Page (or a flush Section's column). A Card always has room around it. Content always sits in a padded surface. Text sits in exactly one padded surface (rule 3), and padding comes with a background (rule 2).
+- **Defaults: everything else.** Padding, gap, background, shadow and hug/fill can all change without a rename.
+- **The only rename is the radius flip.** Card → radius 0 and no shadow, at full bleed, becomes a Section (rule 15, unchanged). A Section that gets a radius becomes a Card and needs room. Moving, adding or removing cards and columns (what you do most) renames nothing.
+- **The presets are the definitions.** "What is a Card?" is answered by `Cards/1000 · Card`'s starting properties, as you suggested: "the strict definition is more of like the starting point".
+- **Lint warns; it never blocks on a name.** It warns on a radius with no room, a Section that isn't a Page's child, and Content straight in a Page.
 
 ## (b) Alternatives
 
-- **Name by properties** (the first draft of this doc: a Card has a fill, pad and radius; a flush one is renamed Section; Stack = gap 0, List = gap). Not chosen: every tweak becomes a rename, which is exactly the tax he worried about at ~00:05.
-- **Section › Row › Column › Module** (Divi; Elementor before 2022). Not chosen: he found "rows within sections" confusing, and "row" means three things (a wrapper of columns, a flex direction, a table line).
-- **Keep today's words: Section, Wrapper, Default, Content.** Not chosen: "Wrapper" does three jobs today, the columns wrapper (`Wrappers/1000 · 2 · Equal`), the 1600 cap (`Wrapper · max 1600`) and a vertical pile (`Wrappers/400 · Stack`); and "Default" names the starting point, not the thing.
+- **Name by position only** (the previous draft of this doc: a flush card keeps the name Card). Not chosen now: it hides the radius difference you want documented, and lets a rounded card sit against an edge without a warning.
+- **Always wrap columns in a Columns frame.** Not chosen: you ruled it out at ~00:20 ("We wouldn't need an extra wrapper just for columns").
+- **Section › Row › Column › Module** (Divi). Not chosen: "rows within sections" confused you, and "row" means three things.
+- **Today's words: Section, Wrapper, Default, Content.** Not chosen: "Wrapper" does three jobs today (the columns wrapper, the 1600 cap, a vertical pile), and "Default" names the starting point, not the thing.
+- **Stack and List** as layer names (Stack = gap 0, List = gap, as you first suggested). Not needed: each word decides its own gap. Outside systems also mean the opposite (their Stack has a gap: Every Layout, Braid, Chakra 8 px, Framer 10). `Content · List` stays as a master name for rows with dividers.
 
 ## (c) Nesting pictures
 
 ```
-Page · 1920                          gap 0, Scale mode 1920 Desktop (set on the instance)
-├─ Section · Intro                   Light gray, section-pad
-│  └─ Container                      max-width 1600, centred
+1920 · Page                          padding 0, gap 0; Scale mode 1920 Desktop on the instance
+├─ Section · 2 (padded)              Light gray, section-pad
+│  └─ Container                      max-width 1600, centred, vertical
 │     ├─ Content                     kicker, h2, one line  ← the title above the columns
-│     └─ Columns · 3 · Equal         gap
-│        ├─ Column 1 → Card → Content
-│        ├─ Column 2 → Card → Content
-│        └─ Column 3 → Card → Content
-├─ Section · Split                   padding 0 by override; still a Section
-│  └─ Columns · 2 · Equal            gap 0
-│     ├─ Column 1 → Image            Fill both ways
-│     └─ Column 2 → Card             Dark, radius 0, no shadow; still a Card
-│                    └─ Content
-└─ Section · Dashboard               White, section-pad
-   └─ Container
-      └─ Columns · 2 · Sidebar
-         ├─ Column 1                 Scale mode 500 SM (the sidebar)
-         │  ├─ Card → Content · Stat
-         │  └─ Card → Content · Stat
-         └─ Column 2 → Card → Content · Text + Media
+│     └─ Columns · 3 · Equal         the one wrapper: needed because the title sits above
+│        ├─ Card → Content
+│        ├─ Card → Content
+│        └─ Card → Content
+├─ Section · Flush                   padding 0, gap 0, horizontal: full bleed
+│  ├─ Image                          Fill both ways, radius 0
+│  └─ Section                        Dark, section-pad, radius 0  ← a flush Section's column
+│     └─ Content
+└─ Section · 2 (padded)              White
+   └─ Container                      its own layout is 2 · Sidebar: no extra wrapper
+      ├─ Column 1                    Scale mode 500 SM (the sidebar)
+      │  ├─ Card → Content · Stat
+      │  └─ Card → Content · Stat
+      └─ Column 2 → Card → Content · Text + Media
 
-Page · 500                           gap 0, Scale mode 500 SM
-├─ Section · Header                  White, section-pad; no Container (500 is narrower than the cap)
+500 · Page                           padding 0, gap 0; Scale mode 500 SM
+├─ Section (padded)                  White
 │  └─ Content                        kicker, h1, line, Button
-├─ Section · Article                 White, section-pad
-│  └─ Content                        h2, paragraph, Card (a callout) → Content, paragraph
-├─ Section · Cards                   Light gray, section-pad, gap: the Section itself spaces them
+├─ Section (padded)                  White
+│  └─ Content                        h2, paragraph, Card (a callout, inside the padding) → Content, paragraph
+├─ Section (padded)                  Light gray, gap: Cards straight in, no wrapper
 │  ├─ Card → Content
 │  └─ Card → Content · Stat
-└─ Section · Settings                White, section-pad
-   └─ Content · List                 gap 0, dividers, Icon.Item rows
+└─ Section · Flush                   full bleed
+   └─ Image                          radius 0
 ```
 
-## Your seven questions (~23:55), answered
+## Your questions (~23:55), answered
 
-1. **Section, Row or Columns?** Columns is the direct wrapper around columns, as you leaned. There is no Row. The title above three columns sits in the Section (or its Container), above the Columns. Columns sit inside the Section's padding. For full width, zero the Section's padding: it is still a Section, because it is still a Page child.
-2. **What makes a card?** Where it sits: inside a Section, Container, Column or Content. Its preset has a fill, `pad`, radius and shadow, and it may lose any of them and keep the name. A transparent, unpadded block that holds text is Content.
-3. **Zero padding and zero background: is that Content?** Yes. It is a vertical stack with `text-gap`, and it may hold a Card. Every size page keeps its `Content` group: one block at the size, content inside at standard padding. 1920 uses the 1600 Content; there is no 1920 Content.
-4. **Stack or List?** Neither is needed as a layer name: each level decides its own gap (above).
-5. **One property changes and the layer no longer fits its word.** Under this proposal it still fits: the word is about position, so nothing is renamed. Only a move to another level renames it (or swaps it to that level's preset). No slots.
-6. **Strict rules or defaults?** Position is strict; properties are defaults (see "How strict?").
-7. **The Scale mode.** No master sets a mode (rule 32). The mode goes on a frame that decides the width: the Page, and when a part differs, a Section, a Container, a Columns or a Column. It never goes on a Card or on Content. When a layer's mode differs from its parent's, everything inside it takes the new padding, gap and radius, but its own width does not change, because the parent still decides that (Fill). For example, the sidebar Column above is 500 SM inside a 1920 Page, so its cards get small padding.
+1. **Section, Row or Columns?** A Section holds its columns directly. A Columns frame appears only when a title sits above the columns, or as a swap and drag target. There is no Row. Columns sit inside the Section's padding. For full bleed, use `Section · Flush`, which holds only radius-0 things.
+2. **What makes a card?** Its radius (with the shadow and `pad`). Because of the radius it needs room. Without a radius, at full bleed, it is a Section. A transparent, unpadded block that holds text is Content.
+3. **Zero padding and zero background: is that Content?** Yes. It is a vertical stack with `text-gap`, it may hold a Card as a callout, and it always sits in a padded surface. Every size page keeps its `Content` group; 1920 uses the 1600 Content.
+4. **Stack or List?** Neither is needed as a layer name (see Alternatives).
+5. **A property changes and the layer no longer fits its word?** Only the radius flip renames (Card ↔ Section). Everything else is a default. No slots, no variants.
+6. **Strict or defaults?** Placement and the radius rule are strict; properties are defaults.
+7. **The Scale mode.** No master sets a mode (rule 32). The mode goes on the placed Page, and when a part differs, on a Section, Container or Column, never on a Card or Content. When a layer's mode differs from its parent's, everything inside it takes the new padding, gap and radius, but its own width does not change: the parent still decides that (Fill). For example, the sidebar Column above is 500 SM inside a 1920 Page, so its cards get small padding.
 
 ## (d) Where "Wrapper" came from
 
@@ -146,12 +145,12 @@ These counts come from three read-only `use_figma` reads (2026-11-17), one each 
 |---|---|---|---|---|---|
 | `Defaults/X · Default` | `Cards/X · Card` | 3 (360, 400, 500) | 1 | 1 | 1 |
 | `Wrappers/X · N · Shape` | `Columns/X · N · Shape` | 1 (2 · Equal) | 2 (2 · Equal, 2 · Sidebar) | 4 (2 · Equal, 2 · Sidebar, 3 · Equal, 4 · Equal) | 0 |
-| `Wrappers/400 · Stack` (a vertical pile of cards) | `Columns/400 · 1` (the one-column case); or archive it and let the Section space the cards | 1 | – | – | – |
+| `Wrappers/400 · Stack` (a vertical pile of cards) | archive it: a padded Section spaces its Cards itself (or `Columns/400 · 1`, if it is in use) | 1 | – | – | – |
 | `Sections/…`, `Content/…`, `App/…`, `.X Preview` | unchanged | 1 + 9 + 3 + 1 | 1 + 10 + 1 | 1 | 10 Content |
-| new: `Pages/X · Page` (optional, low priority) | – | +1 | +1 | +1 | – |
-| **Masters renamed** | | **5** | **3** | **5** | **1** |
+| **Renamed** | | **5** | **3** | **5** | **1** |
+| **New** (Pages, `Section · Flush`, `Section · 2`) | | 2 | 3 | 3 | – |
 
-That makes 14 renames in total. Instances stay linked through a rename. The Index holds only instances. Its swap-demo note names `Defaults/500 · Default` and `Wrappers/500 · 2 · Equal`, so that text needs updating too.
+That makes 14 renames and 8 new masters. Instances stay linked through a rename. The Index holds only instances. Its swap-demo note names `Defaults/500 · Default` and `Wrappers/500 · 2 · Equal`, so that text needs updating too.
 
 **Layers and groups**
 
@@ -164,23 +163,24 @@ That makes 14 renames in total. Instances stay linked through a rename. The Inde
 | `Default · Hero`, `Default · two Content columns`, `Default · Text + Media`, `Item · … Default …` | `Card · …` | 2 | 3 | – |
 | `Column 1`–`Column 4`, `Content` | unchanged | 15 + 14 | 25 + 14 | 13 + 13 |
 
-**Docs** to update in the same task: readme rules 15 (a flush card keeps the name Card), 24 and 30 (they say Default and Wrappers), [glossary.md](../glossary.md), [start-here.md](../start-here.md), [index.md](../index.md), and the AI page's Glossary block `322:70`.
+**Docs** to update in the same task: readme rules 2 and 15 (add "radius needs room"), 24 and 30 (they say Default and Wrappers), [glossary.md](../glossary.md), [start-here.md](../start-here.md), [index.md](../index.md), and the AI page's Glossary block `322:70`.
 
 ## (f) Open questions (at most three)
 
-1. **Name by where it sits** (this proposal) rather than by properties. OK? It means a flush, shadowless card keeps the name Card, which reverses rule 15's "rename it Section".
+1. **Is a Section padded by default,** with `Section · Flush` as the exception (recommended), or flush by default?
 2. **Card or Default?** The proposal retires "Default" for `Cards/1000 · Card`. The alternative keeps your word inside the new group: `Cards/1000 · Default`.
-3. **Build the three Page masters** (500, 1000, 1920), or just name each design's top frame `Page · <size>` by hand?
+3. **May a Section sit inside a flush Section** (as the dark text half of a split band), or should that half have its own name?
 
 ## Sources
 
 - Divi: [Sections, rows and modules](https://dividuck.com/understanding-sections-rows-and-modules-in-the-divi-theme/), [Rows in Divi 5](https://www.elegantthemes.com/documentation/divi/rows/): Section › Row › Column › Module; a Row defines the columns.
-- Elementor: [Introducing flexbox Containers](https://elementor.com/blog/introducing-flexbox-containers/), [Container vs Section](https://happyaddons.com/elementor-container-vs-section/): Section › Column › Widget was replaced by one nestable Container.
+- Elementor: [Introducing flexbox Containers](https://elementor.com/blog/introducing-flexbox-containers/), [Container vs Section](https://happyaddons.com/elementor-container-vs-section/): Section › Column › Widget was replaced by one nestable Container that carries its own layout, the same move as "a Section holds its columns directly".
 - Webflow: [Section vs Container vs Div Block](https://university.webflow.com/videos/section-container-div), [Client-First core structure](https://finsweet.com/client-first/docs/core-structure-strategy): Section is full width, Container is the centred max width, Div is anything.
 - Framer: [Frames and Stacks](https://www.framer.com/academy/lessons/framer-fundamentals-stacks-and-relative-positioning), [default gap 10](https://www.framer.community/c/support/set-default-gap-for-stacks-and-grids).
 - Bootstrap: [Grid](https://getbootstrap.com/docs/5.3/layout/grid/) (container › row › col; "rows are wrappers for columns"), [Gutters](https://getbootstrap.com/docs/5.2/layout/gutters/) (`g-0` removes the gap). Tailwind has no layout words, only `container` (a max width) and `gap-*`/`space-y-*` utilities.
 - Every Layout: [Layouts](https://every-layout.dev/layouts/), [The Stack](https://every-layout.dev/layouts/stack/): its Stack puts space between children.
 - Braid (SEEK): [Layout foundation](https://seek-oss.github.io/braid-design-system/foundations/layout/), [Stack](https://seek-oss.github.io/braid-design-system/components/Stack/), [Columns](https://seek-oss.github.io/braid-design-system/components/Columns/): Stack, Columns and Inline each take a `space`, and Box is the low-level box.
 - Chakra: [Stack](https://www.chakra-ui.com/docs/components/stack): the default gap is 8 px.
-- Material 3: [Cards](https://m3.material.io/components/cards/specs) (elevated, filled, outlined: a card is a surface, with or without a shadow). M3 Lists are rows with dividers and no gap.
-- Untitled UI: [Section headers](https://www.untitledui.com/components/section-headers): the header is its own block above the content, as the title is above Columns here.
+- Material 3: [Cards](https://m3.material.io/components/cards/specs): elevated, filled, outlined; a card is a surface, with or without a shadow.
+- Untitled UI: [Section headers](https://www.untitledui.com/components/section-headers): the header is its own block above the content, as the title is above the columns here.
+- Our CSS: `public/framework/framework.css` (`.flex.auto` at line 951, `.cols` at 981, `.card` at 492 and 525).
