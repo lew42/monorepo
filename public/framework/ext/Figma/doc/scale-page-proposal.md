@@ -162,7 +162,7 @@ Re-run the script after adding or removing a variable, mode or style. Lint then 
 - "same in every mode" is computed per row: today `measure` (720) in Scale and `on-accent` (→ ink) in Scheme.
 - Every strip holds the same master, `Defaults/1000 · Default` (`251:972`), at three fixed widths. The strip sets the Scale mode and the card inherits it (rule 32).
 
-**Checks.** Lint: 0 errors. The 8 mode-mismatch warnings are the strips being wider than their mode on purpose; the 2 padded-no-fill warnings are table rows named after `section-pad`. The screenshots were checked: nothing is cropped and nothing is outside Root.
+**Checks.** Lint: 0 errors. The 8 mode-mismatch warnings are the strips being wider than their mode on purpose; the 2 padded-no-fill warnings are table rows named after `section-pad`. The screenshots were checked: nothing is cropped and nothing is outside Root. A fresh reviewer (mastermind-tokens-review) said PASS: every variable has a row, every mode a column, and the numbers match. Its one fix, a card caption that said "1000 wide · Default mode" everywhere, is applied: each of the 28 cards now names its own width and mode (a text override, rule 22).
 
 **Left as is, on purpose.** Column 1 ends about 660 above column 2, and the big strips leave about 260 empty on the right (3440 in a 3700 column). Moving whole strips only moves the gap to the other column.
 
