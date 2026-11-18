@@ -19,3 +19,6 @@ The words used in Lew42 v2. This file is the source; the AI page's Glossary bloc
 - **Swap:** replacing a nested instance with another master. It keeps the overrides when layer names match.
 - **Master:** a component. Every master has a description (rule 21).
 - **Scheme / Scale:** the colour modes and the size modes. Scale is set only on the frame that sets the width.
+- **Modes cascade** (owner, 2026-11-17 ~22:55): unset means inherit; set means locked for everything inside; reset on a wrapper. Masters set no Scale mode, so an instance takes the size of wherever it is dropped. A specimen stage sets its size's mode. To make a group of children differ from their parent, set the mode once on the wrapper around them (the Index's dashboards: 500 tiles inside a 1000 or 1920 area).
+- **Core sizes** (owner, ~23:20): **500 SM, 1000 Default, 1920 Desktop**, each a range: SM ≈ 320–700, Default ≈ 700–1300, Desktop ≈ 1300–2400 (Mega, 2400 and up, is parked). A size's pieces should work anywhere in its range; widths add up only roughly.
+- **Card layout / section layout:** a card layout is white Defaults on a gray ground with a gap. A section layout is full-width, flush Defaults: radius 0, no shadow, no gap, padding kept (the layer is renamed `Section`). Both are layouts, not components.
