@@ -2,18 +2,19 @@
 
 **What it is.** A test of [vocabulary v6](./naming/vocabulary-v6.md) in Lew42 v2: every Page and every Card is a frame holding a stack of full-width, zero-gap **sections** (Header, Body, Footer, Hero, Media). The frame carries the treatment (background, radius, shadow, width); the sections carry the padding. Built on a new page, [Lab · Templates](https://www.figma.com/design/ADpu9u2V0BlEZfR3rrMfER/Lew42-v2?node-id=387-2), right before `Archive ↓`. Nothing else in the file changed. Your words: the last three sections of [owner-words-2026-11-17-naming.md](./owner-words-2026-11-17-naming.md) ("Let's test it out… develop page templates, section templates, card templates").
 
-**The answer in one line:** the model holds. A new 1000 About page took **22 steps** from the templates (5 to shape it, 17 to type text); the Explorations landing took 34 from the Index.
+**The answer in one line:** the model holds. A new 1000 About page took **22 steps** from the templates (5 to shape it, 17 to type text). The Explorations landing took 34 from the Index, counted the same way (12 shape, 22 text), so the templates cut the shape steps from 12 to 5. About pages at 500 and 1920 took 4 and 3 shape steps.
 
 ## The page
 
-`Root` `387:3` (setup B, as on Explorations: no fill, padding 0, gap `gap`, wrap, Scale 1920 Desktop; 7636 × 6249, 1.2 : 1). Four tinted groups, each setting its own Scale mode once:
+`Root` `387:3` (setup B, as on Explorations: no fill, padding 0, gap `gap`, wrap, Scale 1920 Desktop; 7636 × 6288, 1.2 : 1, inside rule 12's "2:1 to square"). Three tinted groups, each setting its own Scale mode once:
 
 | Group | Node | Holds |
 |---|---|---|
-| `500 · Small` | `387:4` | Sections, Cards + Card ↔ Section, Pages (Short and Long side by side) |
-| `1000 · Default` | `387:23` | the same |
-| `Test · About page` | `394:412` | a page built from the 1000 templates, with its step count |
-| `1920 · Desktop` | `387:42` | the same as 500 and 1000; every section except Media holds a `Container` capped at `max-width` (1600) |
+| `500 · Small` | `387:4` | Sections, Cards + Card ↔ Section, Pages: a `Short + test` column (the Short page, then `Test · About at 500` `399:451`) beside the Long page |
+| `1000 · Default` | `387:23` | the same; its test is `Test · About page` `394:412` (17 text overrides, the step count) |
+| `1920 · Desktop` | `387:42` | the same (test `399:520`); every section except Media holds a `Container` capped at `max-width` (1600) |
+
+Each test page sits under the Short page it was built from, which fills the space beside the taller Long page.
 
 Each group's columns open with a title and a one-paragraph note; the Sections column ends with a nesting tree.
 
@@ -48,10 +49,11 @@ The test page: drag `Pages/1000 · Short`, detach, rename it About, drag in `Sec
 
 - **Card ↔ section is three overrides on the Card** (radius 0, shadow off, width Fill), plus parent padding 0. Shown per size in the `Card ↔ Section` column.
 - **Three cards with min width `card-min` do not fit at 1000** (3 × 320 + 2 gaps > 904), so the 1000 `Body · 3` drops the min width. At 500 the two cards of `Body · 2` stack, which is the wrap working.
-- **A card's Header and Footer pad with `pad` on all sides,** so the space between Body text and Footer buttons is two paddings (96 at 1000). It reads airy; a Footer with no top padding would need a raw 0.
-- **A swapped Content keeps its old height** (also seen on Explorations); set it to Hug after the swap.
-- **Lint: 0 errors, 16 warnings.** The warnings are `padded-no-fill` on the transparent Header and Body sections: the model puts the background on the frame, not the section (vocabulary caveat 3, rule 2 needs the new wording).
-- **One void:** the test group is about 1000 shorter than its row.
+- **A card's Footer has no top padding** (the reviewer found two stacked paddings, 96 at 1000, reading as a void). The Body above already pads, so the Footer's top is 0 and its other sides bind `pad`. Page Footers keep `section-pad`, because their Dark fill differs from the section above.
+- **A swapped Content keeps its old height** (also seen on Explorations); set it to Hug after the swap. Every Content inside these masters is Hug.
+- **Lint: 0 errors, 18 warnings.** The warnings are `padded-no-fill` on the transparent Header and Body sections: the model puts the background on the frame, not the section (vocabulary caveat 3). Rule 2's wording and lint's check are proposed as an improvement in [improvements.jsonl](../improvements.jsonl), not changed here.
+- **1920 "Text beside a photo" leaves a wide gap:** `Content/1600 · Content · Text + Media` (on the 1600 page, not part of this pilot) keeps its photo at a fixed width, so in the 1600 Container the middle is empty. The fix belongs on that master (an equal two-column split, the photo set to Fill).
+- **Root void:** row 1 (500 + 1000) is about 1270 narrower than the 1920 row.
 
 ## Alternatives
 
