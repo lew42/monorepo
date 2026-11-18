@@ -166,3 +166,37 @@ About **35 `use_figma` calls**: one Sonnet builder for one to two days, plus a r
 - **Known gaps:**
   - The half-size Mega row is a plain frame placed by hand: scaling an auto-layout row unbinds its gap.
   - Column 2 ends about 600 short of column 1. Its light ground still fills to the bottom.
+
+## Progress (migration, 2026-11-17, mastermind-size-system)
+
+### Token values before step 1 (to reverse it)
+
+`Lew42 v2 · Scale` (`VariableCollectionId:2:2`), read just before the change. Mode ids never change; only names and values do.
+
+| Variable | 1000 Default `2:0` | 360 XS `2:5` | 400 Mobile `2:1` | 600 SM `2:3` | 1600 LG `2:4` | 1920 Desktop `58:0` | 2600 XL `2:6` | 3440 Mega `2:2` |
+|---|---|---|---|---|---|---|---|---|
+| pad-x, pad-y | 32 | 32 | 32 | 32 | 32 | 32 | 32 | 32 |
+| gap | 32 | 12 | 24 | 22 | 40 | 44 | 48 | 64 |
+| radius | 4 | 4 | 4 | 4 | 4 | 4 | 4 | 4 |
+| squeeze | 1600 | 1600 | 1600 | 1600 | 1600 | 1600 | 1800 | 2400 |
+| section-pad-x | 48 | 16 | 16 | 32 | 64 | 72 | 120 | 256 |
+| section-pad-y | 48 | 16 | 32 | 32 | 64 | 72 | 120 | 256 |
+| button-pad-x | 32 | 12 | 14 | 18 | 24 | 24 | 28 | 36 |
+| button-pad-y | 12 | 6 | 8 | 10 | 14 | 16 | 16 | 20 |
+| text-gap | 12 | 4 | 6 | 6 | 10 | 12 | 12 | 16 |
+| card-min | 320 | 280 | 280 | 280 | 400 | 432 | 500 | 600 |
+| width | 1000 | 360 | 400 | 600 | 1600 | 1920 | 2600 | 3440 |
+| measure | 720 | 720 | 720 | 720 | 720 | 720 | 720 | 720 |
+
+**Decision:** the four kept modes are renamed and re-valued (`600 SM` → `Small`, `1000 Default` → `Default`, `1920 Desktop` → `Desktop`, `3440 Mega` → `Mega`); the other four are renamed `.old · <name>` and keep their old values, so frames still set to them (the archived pages) look as before. `gap` is 32 in the four kept modes only. `squeeze` and `card-min` stay for now (nothing new binds them). Alternative: also set `gap` 32 in the `.old` modes, as the plan says; it would shift the archived pages for no gain.
+
+### Masters are named `<Group>/<Name>` (voice-app, ~22:20)
+
+One slash level, so the swap menu shows folders: `Defaults/`, `Wrappers/`, `Content/`, `App/`. The group word is the title of the group the specimen sits in on the canvas, the same words on every size page. A rename keeps every instance. The 512 Small page has a "Swap menu check" note at the top for the owner to confirm the folders show.
+
+### Pages
+
+| Step | Page | Node | What was done | Lint | Shots |
+|---|---|---|---|---|---|
+| 1 | Tokens | `VariableCollectionId:2:2` | Modes Small 512, Default 1056, Desktop 1600, Mega 3232 (section-pad 128); gap 32 in all four; the other four `.old · …` | — | — |
+| 2 | **512 Small** | page `345:2`, Root `345:3` (5520 × 3055, 1.8 : 1) | Three 1744 columns (Light gray, on a `tint` Root, Desktop). 17 masters moved here and renamed, each on a stage of its exact width set to Small: `Defaults/240 · Default` (was 360 · Default), `Defaults/376 · Default` (400), `Defaults/512 · Default` (600); `Wrappers/512 · 2 · Equal` (600 · 2 · Equal, now 240 + 32 + 240), `Wrappers/512 · Stack` (400 · Stack); `Content/376 · Content` ×4 (400 Content), `Content/512 · Content` ×5 (600 Content); `App/512 · App bar`, `· Navigation`, `· Profile` (the archived 360 pieces). New `.512 Preview` `346:48` (576 screen, instances only). Filler titles replaced by labels; each Default shows its own name as the title and "<width> wide · Small mode". The old 360 XS, 400 Mobile and 600 SM pages moved after `Archive ↓` with a `.` prefix. | 0 errors (4 same-on-same on the App masters fixed with Scheme White) | Root at 0.18, every column at 0.33–0.4, the preview and App row at 0.5–0.6: nothing cut off, nothing outside Root. Two photos remain, both inside the Text + Media masters themselves; the preview has none. |

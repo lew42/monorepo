@@ -205,6 +205,27 @@ async function mode_mismatch(node) {
     report('warn', node, 'mode-mismatch', `${Math.round(node.width)} wide on ${scale.names[mode]}${explicit ? '' : ' (inherited)'}`);
 }
 
+// A row of fixed things must add up (size system, 2026-11-17): in a Fixed-width row with no
+// Fill child, the children plus the gaps plus the padding equal the row. Over is an error
+// (something sticks out); under is a warning (a void at the end).
+function row_sum(node) {
+  if (node.layoutMode !== 'HORIZONTAL' || node.layoutWrap === 'WRAP' || node.layoutSizingHorizontal !== 'FIXED') return;
+  const kids = node.children.filter(shown);
+  if (kids.length < 2 || kids.some(k => k.layoutSizingHorizontal === 'FILL') || node.primaryAxisAlignItems === 'SPACE_BETWEEN') return;
+  const sum = kids.reduce((s, k) => s + k.width, 0) + node.itemSpacing * (kids.length - 1) + node.paddingLeft + node.paddingRight;
+  if (sum > node.width + 1) report('error', node, 'row-sum', `children + gaps = ${Math.round(sum)}, row is ${Math.round(node.width)}`);
+  else if (sum < node.width - 1) report('warn', node, 'row-sum', `children + gaps = ${Math.round(sum)}, row is ${Math.round(node.width)} (a void of ${Math.round(node.width - sum)})`);
+}
+
+// A column Root (horizontal, no wrap) holds equal-width columns; one column may be exactly
+// twice as wide (the Mega column on the Index). Size system, 2026-11-17.
+function root_columns(root) {
+  if (root.layoutMode !== 'HORIZONTAL' || root.layoutWrap === 'WRAP') return;
+  const ws = [...new Set(root.children.filter(shown).map(k => Math.round(k.width)))].sort((a, b) => a - b);
+  if (ws.length > 2 || (ws.length === 2 && Math.abs(ws[1] - 2 * ws[0]) > 1))
+    report('error', root, 'root-columns', `Root columns are ${ws.join(', ')} wide; make them equal (one may be 2×)`);
+}
+
 // --- the page: one root, nothing loose, no connectors (owner, 2026-11-16) ------------
 const page_root_of = n => n.parent && n.parent.type === 'PAGE' && n.name === 'Root';
 // An archive page sits after the `Archive ↓` divider (rule 29, 2026-11-17): a hidden Archive
@@ -223,6 +244,7 @@ function page_root(page) {
     for (const r of roots) for (const k of r.children)
       if (/^archive/i.test(k.name)) report('error', k, 'page-root', 'an Archive frame on a live page still feeds the swap menu; move it to the Archive · Pages page (rule 29)');
   }
+  if (!archive_page(page)) for (const r of roots) root_columns(r);
   for (const c of page.findAllWithCriteria({ types: ['CONNECTOR'] }))
     if (!archived(c)) report('error', c, 'page-root', 'connector outside an archive; delete it');
 }
@@ -251,6 +273,7 @@ async function walk(node, under, master, allowed) {
       await raw_fill(node);
       await stale_paint(node);
       child_drives(node);
+      row_sum(node);
     }
     await mode_mismatch(node);
     // A layer hidden by a boolean property is how a master offers an option; not a leftover.
