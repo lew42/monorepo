@@ -5,3 +5,10 @@
 {"pid_exit":25060,"ended":"2026-11-17T23:00:01-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
 {"log":{"text":"review tokens page 359:2: PASS with 1 cosmetic FIX. All 13 Scale, 9 Colors, 5 Scheme and 4 Surface variables have a row and every mode a column; numbers match valuesByMode (2 Surface 32s are alias cells); one Root, two equal 3844 columns, nothing outside. FIX: the strip card (master 251:972, e.g. in 360:205) says '1000 wide · Default mode' while it is 320/480/700 wide in 360 XS mode, so it misleads, and at 320 the title wraps '1000 •' / 'Default'. Smallest fix: override that text per strip to its real width and mode."},"by":"mastermind-tokens-review","ts":"2026-11-18T05:00:20.234Z"}
 {"sessions":[{"id":"mastermind-tokens-review","task":"/framework/ai/sessions/2026/11/17/session-d00fec51/mastermind-tokens-review/"}],"by":"mastermind-tokens-review","ts":"2026-11-18T05:00:20.237Z"}
+{"log":{"at":"2026-11-17T23:00:53-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-18T05:00:53.923Z"}
+{"pid_exit":28668,"ended":"2026-11-17T23:00:54-06:00","code":0,"signal":null,"by":"servex"}
+{"log":{"at":"2026-11-17T23:01:35-06:00","msg":"agent stopped with its task still open and no outcome logged; StaleClose will read it unclosed"},"by":"servex-close-loop"}
+{"log":{"at":"2026-11-17T23:07:31-06:00","heartbeat":"deliberate","msg":"mastermind-tokens-review its agent is not running: it was stopped on purpose by in-process at 2026-11-17T23:01:35-06:00; not revived."}}
+{"log":{"at":"2026-11-17T23:15:44-06:00","msg":"task-loop status ask 1: mastermind-tokens-review was stopped on purpose; not woken","ask":1}}
+{"log":{"at":"2026-11-17T23:20:44-06:00","msg":"task-loop status ask 2: mastermind-tokens-review was stopped on purpose; not woken","ask":2}}
+{"log":{"at":"2026-11-17T23:25:44-06:00","msg":"task-loop status ask 3: mastermind-tokens-review was stopped on purpose; not woken","ask":3}}
