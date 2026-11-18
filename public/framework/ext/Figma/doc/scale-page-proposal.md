@@ -25,7 +25,7 @@ File: Lew42 v2 (`ADpu9u2V0BlEZfR3rrMfER`). Read only: no edits were made in eith
 
 ## What v2 defines today (read live, 2026-11-17)
 
-**`Lew42 v2 · Scale`**: 13 numbers × 8 modes. In panel order: 1000 Default, 360 XS, 400 Mobile, 600 SM, 1600 LG, 1920 Desktop, 2600 XL, 3440 Mega.
+**`Lew42 v2 · Scale`**: 13 numbers × 8 modes. In panel order: 1000 Default, 360 XS, 400 Mobile, 500 SM (was 600 SM), 1600 LG, 1920 Desktop, 2600 XL, 3440 Mega.
 
 | variable | 1000 | 360 | 400 | 600 | 1600 | 1920 | 2600 | 3440 | scope |
 |---|---|---|---|---|---|---|---|---|---|
@@ -142,13 +142,14 @@ Re-run the script after adding or removing a variable, mode or style. Lint then 
 
 | Part | Node | What it shows |
 |---|---|---|
-| Column `Tokens · Variables` | `359:5` | the tables, the Scheme strip, the styles, the small stretch strips |
+| Column `Tokens · Variables` | `359:5` | the tables, the Scheme strip, the styles, the small stretch strips; it fills Root's height, so both columns end level |
 | Scale · 13 × 8 | `359:8` | every Scale variable × 8 modes, in panel order (1000 Default first) |
 | Colors · 9 × 1 | `359:494` | a swatch and a hex code per colour |
 | Surface · 4 × 2 | `359:555` | Card and Section; arrows mark aliases |
+| Scale modes · 8 | `367:7112` | each mode's width (written from the live `width`), the low, middle and high end of its range, and which three are the core sizes (500 SM, 1000 Default, 1920 Desktop) |
 | Row · Scheme | `360:2` | Scheme · 5 × 4, then the Scheme strip `360:105`: one `1000 · Default` per scheme |
 | Row · Styles | `360:140` | Text styles · 8, Effect styles · 1, and "How to read this page" |
-| Stretch · 360 XS to 1000 Default | `360:201` | 360 XS `360:205`, 400 Mobile `360:248`, 600 SM `360:291` (320 / 480 / 700) and 1000 Default `360:334` (700 / 1000 / 1300) |
+| Stretch · 360 XS to 1000 Default | `360:201` | 360 XS `360:205`, 400 Mobile `360:248`, 500 SM `360:291` (320 / 480 / 700) and 1000 Default `360:334` (700 / 1000 / 1300) |
 | Column `Tokens · Stretch` | `360:377` | 1600 LG `360:381` and 1920 Desktop `360:424` (1300 / 1800 / 2400, low and mid side by side), 2600 XL `360:467` and 3440 Mega `360:510` (2400 / 3000 / 3440) |
 
 **How it is wired.**
@@ -164,6 +165,8 @@ Re-run the script after adding or removing a variable, mode or style. Lint then 
 
 **Checks.** Lint: 0 errors. The 8 mode-mismatch warnings are the strips being wider than their mode on purpose; the 2 padded-no-fill warnings are table rows named after `section-pad`. The screenshots were checked: nothing is cropped and nothing is outside Root. A fresh reviewer (mastermind-tokens-review) said PASS: every variable has a row, every mode a column, and the numbers match. Its one fix, a card caption that said "1000 wide · Default mode" everywhere, is applied: each of the 28 cards now names its own width and mode (a text override, rule 22).
 
-**Left as is, on purpose.** Column 1 ends about 660 above column 2, and the big strips leave about 260 empty on the right (3440 in a 3700 column). Moving whole strips only moves the gap to the other column.
+**Balanced (voice-app follow-up, ~23:20).** Column 1 used to end about 660 above column 2. Moving whole strips only moved the gap, so column 1 got the Scale modes table (above) and now fills Root's height; the two columns end level at 4882. Left on purpose: the big strips leave about 260 empty on the right (3440 in a 3700 column).
+
+**Rebuilt after 600 SM became 500 SM** (mode `2:3`, width 600 → 500, by mastermind-size-system). The script read the live mode name and rewrote every label and frame name, then recomputed every number in the Scale table from the live values in its cell's mode. One number changed: `width` in 500 SM. The SM strip keeps its 320 / 480 / 700 cards, because the range did not change. To redo it after any Scale edit, rerun that pass: rename by live mode names, then recompute each `number` text from `valuesByMode`.
 
 **What the page shows at a glance.** The card's text doesn't scale with the mode: at 3440 Mega the card's padding is 128, but its title is the same size as at 360. And `measure` never changes.
