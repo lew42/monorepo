@@ -1,1 +1,5 @@
 {"log":{"at":"2026-11-17T20:51:30-06:00","msg":"Explorations review (shots + doc, 0 Figma calls): landing 1920 yes, 400 yes, tree partly, report yes; verdict fix. Top fix: B/B1 'flush' rows show grey slivers between cards, doc says they read as one page."},"by":"reviewer-explorations-review","session":"f754b70e-86c1-4fe1-a9a3-184658b6fdd8"}
+{"log":{"at":"2026-11-17T21:00:38-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-17T21:05:38-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-17T21:10:38-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-17T21:15:38-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}

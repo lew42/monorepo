@@ -3,3 +3,5 @@
 {"messages":{"add":{"type":"Ref","url":"/framework/ai/sessions/2026/11/17/session-78a0cc70/reviewer-assets-tidy-review/","by":"servex","at":"2026-11-18T02:42:26.485Z"}},"by":"servex","ts":"2026-11-18T02:42:26.485Z"}
 {"log":{"at":"2026-11-17T20:50:38-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
 {"log":{"at":"2026-11-17T20:55:39-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-17T21:05:38-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-17T21:10:38-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
