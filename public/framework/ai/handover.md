@@ -27,43 +27,40 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-17 00:00 UTC, last 24 h)
+## NOW (computed 2026-11-18 00:00 UTC, last 24 h)
 
-**Pace:** Week: 22% used · 70% gone · 32% of pace (room to spend, 2 days 2 hours left)
+**Pace:** Week: 34% used · 84% gone · 41% of pace (room to spend, 1 day 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (20):**
-- [You are "size-small". You own three pages in Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER): "600 SM", "400 Mobile"](/framework/ai/sessions/2026/11/16/spawned/mastermind-size-small/) (mastermind-size-small)
-- [You are "size-1600-1000". You own two pages in Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER): "1600 LG", then "100](/framework/ai/sessions/2026/11/16/spawned/mastermind-size-1600-1000/) (mastermind-size-1600-1000)
-- [You are "res-cards". In Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER), make one default "resolution card" per Scal](/framework/ai/sessions/2026/11/16/spawned/mastermind-res-cards/) (mastermind-res-cards)
-- [You are "surface". In Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER), explore Michael's open question: CARD mode vs](/framework/ai/sessions/2026/11/16/spawned/mastermind-surface/) (mastermind-surface)
-- [You are "size-2600". You own the "2600 XL" page (34:475) in Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER). Michael](/framework/ai/sessions/2026/11/16/spawned/mastermind-size-2600/) (mastermind-size-2600)
-- [You are "text". In Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER), create and own a new page named "Text", placed r](/framework/ai/sessions/2026/11/16/spawned/mastermind-text/) (mastermind-text)
-- [You are the Figma page-audit agent (READ ONLY in Figma). Your brief is "Brief D" in public/framework/ai/sessio](/framework/ai/sessions/2026/11/16/session-0fcba11d/mastermind-figma-page-audit/) (mastermind-figma-page-audit)
-- [You are the 2600 XL page cleanup agent for the Figma file Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER; use Figma ](/framework/ai/sessions/2026/11/16/session-0fcba11d/mastermind-mastermind-figma-2600-xl/) (mastermind-mastermind-figma-2600-xl)
-- [You own Brief A2 in public/framework/ai/sessions/2026/11/16/spawned/mastermind-figma/batch3-briefs.md (read th](/framework/ai/sessions/2026/11/16/session-0fcba11d/mastermind-figma-text-audit-explore/) (mastermind-figma-text-audit-explore)
-- [You own Brief P in public/framework/ai/sessions/2026/11/16/spawned/mastermind-figma/batch3-briefs.md (read the](/framework/ai/sessions/2026/11/16/session-0fcba11d/mastermind-figma-size-pages/) (mastermind-figma-size-pages)
-- [You own Brief A1 in public/framework/ai/sessions/2026/11/16/spawned/mastermind-figma/batch3-briefs.md (read th](/framework/ai/sessions/2026/11/16/session-0fcba11d/mastermind-figma-text-audit-core/) (mastermind-figma-text-audit-core)
-- [Load the figma-use and figma-generate-design skills. Read public/framework/ai/sessions/2026/11/16/spawned/mast](/framework/ai/sessions/2026/11/16/session-0fcba11d/mastermind-figma-2600-fix/) (mastermind-figma-2600-fix)
-- …and 8 more (the [task list](/framework/ai/tasks/))
+**Landed (15):**
+- [Read-only audit of the AI page in Michael's file Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER) and of whether agen](/framework/ai/sessions/2026/11/17/spawned/mastermind-ai-page-audit/) (mastermind-ai-page-audit)
+- [Naming proposal for Michael's Figma design system (Lew42 v2). No Figma calls, no edits.](/framework/ai/sessions/2026/11/17/spawned/mastermind-naming-web/) (mastermind-naming-web)
+- [Naming proposal for Michael's Figma design system (Lew42 v2). No edits to Lew42 v2.](/framework/ai/sessions/2026/11/17/spawned/mastermind-naming-minimal/) (mastermind-naming-minimal)
+- [Naming proposal for Michael's Figma design system (Lew42 v2). No edits.](/framework/ai/sessions/2026/11/17/spawned/mastermind-naming-kits/) (mastermind-naming-kits)
+- [Root harmonization in Michael's file Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER). Michael is in the file right n](/framework/ai/sessions/2026/11/17/spawned/mastermind-roots-v2/) (mastermind-roots-v2)
+- [Write usage descriptions on the masters in Michael's file Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER). The only ](/framework/ai/sessions/2026/11/17/spawned/mastermind-descriptions/) (mastermind-descriptions)
+- [Publish-readiness audit of Michael's file Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER). Read-only, with ONE allow](/framework/ai/sessions/2026/11/17/spawned/mastermind-publish-audit/) (mastermind-publish-audit)
+- [Fix job in Michael's file Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER). Michael is in the file right now, looking](/framework/ai/sessions/2026/11/17/spawned/mastermind-page-1000/) (mastermind-page-1000)
+- [Synthesis job for Michael's Figma design system (Lew42 v2). No Figma calls, no Figma edits.](/framework/ai/sessions/2026/11/17/spawned/mastermind-research-synth/) (mastermind-research-synth)
+- [Research job for Michael's Figma design system (Lew42 v2). No Figma edits.](/framework/ai/sessions/2026/11/17/spawned/mastermind-research-kits/) (mastermind-research-kits)
+- [Read-only Figma inspection for Michael's design system (Lew42 v2). No edits anywhere.](/framework/ai/sessions/2026/11/17/spawned/mastermind-figma-kits/) (mastermind-figma-kits)
+- [Read-only audit + proposal for Michael's design system, file Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER). No edi](/framework/ai/sessions/2026/11/17/spawned/mastermind-index-audit/) (mastermind-index-audit)
+- …and 3 more (the [task list](/framework/ai/tasks/))
 
-**Open, touched in the window (4):**
-- [You're the Figma mastermind for a live voice session with Michael (the owner). The voice agent (cloud Claude) ](/framework/ai/sessions/2026/11/16/spawned/mastermind-figma/) (mastermind-figma)
-- [figma: layout library on the size pages (3440 Mega model, 1920 Desktop)](/framework/ai/sessions/2026/11/16/spawned/mastermind-layouts/) (mastermind-layouts)
-- [You are "live", Michael's live design partner in Figma. Michael talks by voice; the cloud voice agent (voice-a](/framework/ai/sessions/2026/11/16/spawned/mastermind-live/) (mastermind-live)
-- [You are the text-style audit agent for the size pages of the Figma file Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMf](/framework/ai/sessions/2026/11/16/session-0fcba11d/mastermind-figma-text-audit-sizes/) (mastermind-figma-text-audit-sizes)
+**Open, touched in the window (0):**
+- none
 
 **Latest commits on this branch:**
 ```
-3f97923eed servex: log sweep (20 files)
-7f14d9ff3b layouts: note the Systems used header line on 1920, 2600, 3440
-5c9451dae7 figma: Card vs Section names its system, adds a live token table and a name proposal
-a5e4906776 size-small: task closed
-edf7accb97 layouts: resolution cards and layout masters replace placeholders on 3440 and 1920; light grounds; Templates note
-9bd4c01da2 figma: 600 SM, 400 Mobile, 360 XS rebuilt on the 3440 model; small-width masters listed
-e417766783 figma: 1600 LG and 1000 Default size pages rebuilt to the 3440 model; layout masters composed from smaller ones
-d0ec8a2f25 figma: resolution card sets (Res.<width> Set, Card/Space) for all 8 Scale modes in Lew42 v2
+3459bb94c3 servex: log sweep (11 files)
+1d16098aa5 figma: AI page audit (doc/ai-page-audit.md): 3,264 words in 9 frames, rules.md not on the page, 5-block 1,300-word proposal; agents read rules only when the brief names it (31/31 vs 4/27)
+4afbc6cd57 figma: naming proposal, web vocabulary (doc/naming/proposal-web.md): X · default, X · N · shape, layouts gap-only
+ddb6bde093 figma: minimal naming proposal (doc/naming/proposal-minimal.md) with Lab · Naming swap/slot/override tests
+abbabd6b18 figma: index doc/naming/
+5d6b1be965 figma: naming proposal from real kits (doc/naming/proposal-kits.md): X · default + X · N · shape, text pads / layouts don't
+42c277fabc figma: read-only layer audit of the 8 size pages (doc/layer-audit-2026-11-17.md): wrappers, duplicates, proposed size·columns·name namespace
+da64e50029 servex: log sweep (2 files)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
