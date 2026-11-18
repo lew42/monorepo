@@ -25,7 +25,7 @@ A step overdue past 2x its estimate gets one nudge too, independent of the chase
 
 ## Chase
 
-Every **started** (`running`) task is chased: no opt-in, no date gate. Accepted (idle), proposed (waiting), paused, stopped and complete tasks are left alone.
+Every **started** (`running`) task is chased: no opt-in, no date gate. Accepted (idle), proposed (waiting), paused, stopped and complete tasks are left alone. "Complete" is the task's own stored state (`read_task`): a complete task with a still-open child session reads `running` on the item (`Task#state`) but is not chased, because the child has its own log and is chased there.
 
 A started task whose log has had no new line for 5 minutes gets ONE message to its agent: the task title and path, *"no line on your log for N min. Add a line with where you are, or complete or stop it."* An agent that is not live is woken the usual way (`agents.send`), unless it was stopped on purpose; and if Heartbeat already has a status check out for that agent, TaskLoop waits. Another ask every 5 minutes while it stays silent. Each ask is a `{"log": {"msg", "ask": n}}` line on the task's own log.
 

@@ -65,6 +65,17 @@ await fresh.tick();
 assert.equal(about("waiting-old").length, 2, "another reminder after 24 hours");
 assert.equal(followups(f).length, 2);
 
-try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}   // Windows may still hold the temp dir (TaskLoop-steps.test.mjs hits the same)
+// a complete task with an OPEN child session reads `running` on the item (Task#state) but is never chased: its child has its own log
+const { default: Task } = await import("../public/framework/core/Task/Task.js");
+Task.session_resolver = () => true;
+Task.resolver = ref => ref === "/kid/" ? [{ assign: { title: "kid" } }] : null;
+const parent = path.join(dir, "parent-with-open-child.jsonl");
+fs.writeFileSync(parent, [{ assign: { title: "p" } }, { task: "/kid/", type: "Session" }, { complete: { outcome: "done", evidence: ["x"] } }].map(l => JSON.stringify(l)).join("\n") + "\n");
+const pinfo = loop.read_task(parent);
+assert.equal(pinfo.task_state, "complete", "the loop reads the task's own state, not the child-reopened one");
+assert.equal(pinfo.landed, true);
+Task.session_resolver = Task.resolver = null;
+
+try { fs.rmSync(dir,{ recursive: true, force: true }); } catch {}   // Windows may still hold the temp dir (TaskLoop-steps.test.mjs hits the same)
 console.log("TaskLoop-state.test.mjs: all checks passed");
 process.exit(0);

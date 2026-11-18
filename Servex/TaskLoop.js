@@ -279,8 +279,11 @@ export default class TaskLoop {
         const state = { ...d, ...(cfg ? { agent: undefined } : {}), ...(d.session !== undefined ? { session_id: d.session } : {}) };
         const since = Date.parse(d.waiting_since) || 0;
         const mine = follow_ups.filter(f => (Date.parse(f.at) || 0) >= since);   // a later wait starts a fresh count
-        const landed = task.state === "complete", closed = task.state === "stopped";
-        return { state, task_state: task.state, waiting_on: d.waiting_on ?? null, waiting_since: d.waiting_since ?? null, waiting_what: d.waiting_what ?? null,
+        // The task's OWN stored state, not `task.state`: that getter reads a complete task as `running` while any child is open, which would
+        // chase a finished agent for a child it cannot close (an open child has its own log file, which this loop chases itself).
+        const own = task.get_one("state") ?? "idle", own_state = own === "finished" ? "complete" : own;
+        const landed = own_state === "complete", closed = own_state === "stopped";
+        return { state, task_state: own_state, waiting_on: d.waiting_on ?? null, waiting_since: d.waiting_since ?? null, waiting_what: d.waiting_what ?? null,
             parent_task: lines.find(l => l.assign)?.assign?.parent_task ?? null,
             agent_cfg: cfg, template: d.template ?? null, first_by: lines[0]?.by ?? null, approved_by: d.approved_by ?? lines.findLast(l => l.approve)?.by ?? null, spawned, queued,
             follow_ups: mine, asks, last_ask_at, last_flag_at, flagged, last_line_ours, blocked, landed, closed };
