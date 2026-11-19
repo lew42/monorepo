@@ -2,6 +2,14 @@
 
 Read from the Index page's `Root` (`137:725`), which the owner configured by hand. Every page in Lew42 v2 (`ADpu9u2V0BlEZfR3rrMfER`) uses the same Root. It is a plain frame, not a component. Rule 7 in [rules.md](./rules.md); plan in [root-plan-2026-11-17.md](./root-plan-2026-11-17.md).
 
+> **Root layout v2 (owner, 2026-11-17 ~20:00; supersedes the Root table below):**
+> - Root: padding 0, gap `gap`, NO fill, explicit Scale = the page's own size (v5; it was Mega), horizontal with wrap, fixed width so the page reads 2:1 to square. Groups sit straight in Root with no wrapper columns (v5). It always encloses everything.
+> - Each Root column is a visible group: fill Colors `tint`, padding `section-pad-x`/`-y`, hug width, explicit Scale mode = its tier. The children set the width (for example, `1600 · Default` is fixed at 1600), so the column hugs them.
+> - Scale modes are not pinned on Default masters; the mode comes from the Root column.
+> - Every Root column starts with a title, inside its tint, whose text is exactly the column's frame name (for example `1600 · Masters`). The names you see on the canvas match the names in the layer and component browser.
+> - The preview stays a 1920 sheet.
+> - Never `remove()` anything you didn't create in the same call. Clone, build, check, then move the old one to the `Archive · Pages` page (rule 29).
+
 ## Root
 
 | Property | Value | Token (id) |

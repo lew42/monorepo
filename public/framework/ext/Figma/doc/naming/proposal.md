@@ -55,6 +55,8 @@ The one-child limit: an instance takes no new children. For more stacked content
 
 ## Open
 
+- **Narrow sidebars (~300):** the smallest piece is 360/400, so a 300 sidebar column squeezes it too much. A sidebar may need its own Content of about 300 (owner's 300/700 example).
+
 - Card per size (`X · Card`) or just the Default? For now Card = Default + corners + shadow, defined at 1000 and below.
 - At 1920, `section-pad-x` is 72 (measured in the pilot), so the inner area is 1776, not 1600. The "1600" label is approximate until the token test.
 
