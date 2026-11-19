@@ -7,11 +7,14 @@
 
 ## Pages
 
-Index · Scale · Proposal · Split squeeze · Images · Icons · Colors · 500 Mobile · 1000 Default · 1920 Desktop. There is no AI page yet; this doc stands in for it.
+Index · Scale · Proposal · Split squeeze · Images · Icons · Colors · Content · 500 Mobile · 1000 Default · 1920 Desktop · Archive. There is no AI page yet; this doc stands in for it.
 
 - **Scale** holds the owner's own Card and Button masters and the 500 / 1000 / 1920 Wrappers.
-- **Proposal** shows one Card with two switches (Media, Footer), the layer names and the rhythm. It is only a proposal: [v3-card-proposal.md](./v3-card-proposal.md).
+- **Proposal** opens with the owner's verdict (18:30): his Default card stays, plus section vs card, nesting, and what is still open. The switches card to its right was declined: [v3-card-proposal.md](./v3-card-proposal.md).
 - **Split squeeze** lines up two Default half cards with a Desktop card above them, in three setups: [v3-split-squeeze.md](./v3-split-squeeze.md).
+- **Colors** is a live token sheet: every swatch is bound to its variable, with Colors (primitives) and Color Mode in Light and Dark side by side (the mode is set on each column). Color Mode's default (first column) is Light.
+- **Content** and the size pages are the owner's, built by hand.
+- **Archive** holds retired masters (`.Proposal/Media`).
 - **Images** holds the Image placeholder master and an Image Set (placeholder plus grayscale fillers); masters are marked with a purple dashed frame: [v3-images.md](./v3-images.md).
 
 ## Collections (variables)
@@ -19,7 +22,7 @@ Index · Scale · Proposal · Split squeeze · Images · Icons · Colors · 500 
 | Collection | Modes | What it holds |
 |---|---|---|
 | Lew42 v3 - Colors | one | prime, light, dark, error, ok, warn, master, tint |
-| Lew42 v3 - Color Mode | Light, Dark | text, muted, fill, accent, on-accent, lighten, darken |
+| Lew42 v3 - Color Mode | Light, Dark | text, muted, fill, lighten, darken (accent and on-accent removed by the owner, 2026-11-18) |
 | Lew42 v3 - Scale | 500 Mobile, 1000 Default, 1920 Desktop | width, column-min-width, size/0-5 … size/4, pad, gap, text-gap |
 | Lew42 v3 - Constants | one | squeeze (1600) |
 

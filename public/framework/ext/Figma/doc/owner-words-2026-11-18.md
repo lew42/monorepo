@@ -39,3 +39,11 @@ The answer is the Proposal page, documented in [v3-card-proposal.md](./v3-card-p
 - Brief research on how kits handle image placeholders and swaps; recommend the simplest option that swaps well from Assets.
 - **Masters should be easy to spot** (labels, or a clearly named group).
 - Photos use Fill, never crop. Use free stock photos, desaturated, with the source noted. → [v3-images.md](./v3-images.md)
+
+## ~18:30 · Quality first, cards verdict, Colors (relayed)
+
+- **Priority is quality:** "everything needs to be perfect this time, stop running away with our system." Put things in the right place, frame them properly and label them. Don't touch the Content and size pages he is building by hand.
+- **One image system:** fold the Proposal's Media into the Images master. Archive the old one, never delete it, and repoint its instances.
+- **The switches card is declined.** The Default card is a real card with the standard padding and maybe no radius, so it can also act as a section. A section is full width, radius 0, may have padding, and can fill another section. A card with a radius needs padding around it. He suggested a "needs padding" boolean property as an indicator for a later audit script. Nest cards in sections and cards in cards, with `lighten`/`darken` on coloured backgrounds. Add-on: show a Default card as the parent section with Mobile cards inside, using his card instances.
+- **Colors page:** a clean token sheet bound to the variables, with Light and Dark side by side. Check that Color Mode's default (first column) is Light, because in v2 Dark had become the default and caused wonky text colours.
+- **Images page feedback:** far too much text; it should explain itself. Show the master plainly, named "Image", ideally in Root. He is rearranging that page by hand, so hands off until he says so.
