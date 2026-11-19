@@ -67,3 +67,21 @@
 {"tool_call":{"at":"2026-11-19T22:15:21.232Z","tool":"updates","args_hash":"f245bd51a7b6","caller":"voice-app"}}
 {"log":{"at":"2026-11-19T16:21:35-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
 {"log":{"at":"2026-11-19T16:26:35-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-19T16:31:35-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"tool_call":{"at":"2026-11-19T22:34:17.524Z","tool":"shell","args_hash":"84e02052e7be","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-19T22:34:41.485Z","tool":"shell","args_hash":"c4910d7d1e46","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-19T22:34:42.847Z","tool":"updates","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-19T22:34:49.972Z","tool":"shell","args_hash":"3479ff4d10f7","caller":"voice-app"}}
+{"commit":{"hash":"7f854f648d97b0264480b8c5dcecad239cbae6d7","what":"figma: commit loose docs (approval strategy, brief, consolidation and gold plans, naming proposal, root spec)","files":["public/framework/ext/Figma/doc/approval-strategy.md","public/framework/ext/Figma/doc/brief-2026-11-17.md","public/framework/ext/Figma/doc/consolidation-plan.md","public/framework/ext/Figma/doc/gold-plan.md","public/framework/ext/Figma/doc/naming/proposal.md","public/framework/ext/Figma/doc/root-spec.md"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-19T22:34:50.636Z"}
+{"log":{"at":"2026-11-19T16:41:39-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"tool_call":{"at":"2026-11-19T22:51:22.004Z","tool":"list_dir","args_hash":"4f3165f982bb","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-19T22:51:22.668Z","tool":"glob","args_hash":"e547563a4d2b","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-19T22:52:02.957Z","tool":"glob","args_hash":"5b66ebc67133","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-19T22:52:04.411Z","tool":"glob","args_hash":"c7620f95a21d","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-19T22:52:08.134Z","tool":"glob","args_hash":"351d0567f68b","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-19T22:52:09.662Z","tool":"glob","args_hash":"4f4d23b8b453","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-19T22:52:13.999Z","tool":"read_file","args_hash":"b51222511258","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-19T22:52:14.415Z","tool":"read_file","args_hash":"d9590b3b64a1","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-19T22:52:14.882Z","tool":"read_file","args_hash":"a357ae65f3ed","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-19T22:52:31.860Z","tool":"read_file","args_hash":"28f1b717c2b4","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-19T22:53:31.334Z","tool":"shell","args_hash":"77e728a4abdf","caller":"voice-app"}}
