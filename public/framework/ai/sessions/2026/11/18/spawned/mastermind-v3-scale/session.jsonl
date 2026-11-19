@@ -224,3 +224,15 @@
 {"pid_exit":30776,"ended":"2026-11-18T19:16:11-06:00","code":0,"signal":null,"by":"servex"}
 {"pid":34084,"cmd":"","why":"child of claude.exe","agent":"mastermind-v3-scale","session":"7dce6891-0188-4eba-81df-4f3ec689370f","started":"2026-11-18T19:17:38-06:00","ppid":34340,"seen":"sample","by":"servex"}
 {"log":{"at":"2026-11-18T19:17:38-06:00","msg":"Review by mastermind-v3-index-review: pass, 2 small defects, both fixed. Features Content 40:55 now Fill width; its frame 1000 Content 40:53 is 1000 wide (Scale width) so it shows 2x2. Toggle 37:8 is carved out in v3-index.md as a control, not a content item."}}
+{"commit":{"hash":"213e4c3afd6ab4a40e8263795c28303ba821e71b","what":"figma: v3 review fixes (Features Fill width in a 1000 frame, Toggle carved out as a control)","files":["public/framework/ai/sessions/2026/11/18/spawned/mastermind-v3-scale/session.jsonl","public/framework/ext/Figma/doc/v3-index.md"],"branch":"compliance/dev","worktree":"C:/Code/lew42/monorepo"},"by":"git-hook","ts":"2026-11-19T01:17:38.909Z"}
+{"pid_exit":34084,"ended":"2026-11-18T19:17:50-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid":35760,"cmd":"node C:\\Code\\lew42\\monorepo/.claude/hooks/ledger.mjs stop","why":"child of claude.exe","agent":"mastermind-v3-scale","session":"7dce6891-0188-4eba-81df-4f3ec689370f","started":"2026-11-18T19:17:55-06:00","ppid":34340,"seen":"sample","by":"servex"}
+{"log":{"at":"2026-11-18T19:17:59-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-19T01:17:59.031Z"}
+{"pid_exit":34340,"ended":"2026-11-18T19:17:59-06:00","code":0,"signal":null,"by":"servex"}
+{"pid_exit":35760,"ended":"2026-11-18T19:18:08-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"pid":17568,"cmd":"C:\\Code\\lew42\\monorepo\\Servex\\node_modules\\@anthropic-ai\\claude-agent-sdk-win32-x64\\claude.exe --output-format stream-json --verbose --input-format stream-json --effort high --model claude-opus-5-5 --resume=7dce6891-0188-4eba-81df-4f3ec689370f --disallowedTools mcp__servex__page_call,mcp__servex__pa","why":"claude.exe","agent":"mastermind-v3-scale","session":"7dce6891-0188-4eba-81df-4f3ec689370f","started":"2026-11-18T19:18:34-06:00","by":"servex"}
+{"log":{"at":"2026-11-18T19:18:35-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-19T01:18:35.055Z"}
+{"pid":8504,"cmd":"node C:\\Code\\lew42\\monorepo/.claude/hooks/ledger.mjs session-end","why":"child of claude.exe","agent":"mastermind-v3-scale","session":"7dce6891-0188-4eba-81df-4f3ec689370f","started":"2026-11-18T19:22:39-06:00","ppid":17568,"seen":"sample","by":"servex"}
+{"log":{"at":"2026-11-18T19:22:43-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-19T01:22:43.049Z"}
+{"pid_exit":17568,"ended":"2026-11-18T19:22:50-06:00","code":0,"signal":null,"by":"servex"}
+{"pid_exit":8504,"ended":"2026-11-18T19:22:51-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
