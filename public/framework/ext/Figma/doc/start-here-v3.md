@@ -7,7 +7,7 @@
 
 ## Pages
 
-AI · Index · Scale · Proposal · Split squeeze · Images · Icons · Colors · Content · 500 Mobile · 1000 Default · 1920 Desktop · Archive. The **AI** page (first) shows the 8 rules below; change them here first, then on the page. The Index stays empty for now.
+AI · Index · Scale · Proposal · Split squeeze · Images · Icons · Colors · Content · 500 Mobile · 1000 Default · 1920 Desktop · Archive. The **AI** page (first) shows the 8 rules below; change them here first, then on the page. The **Index** holds the three size Previews (500, 1000, 1920) and is the design system: [v3-index.md](./v3-index.md). **500 Mobile, 1000 Default, 1920 Desktop** each have one Root: the size card, its Preview, then Layouts and Content.
 
 - **Scale** holds the owner's own Card and Button masters and the 500 / 1000 / 1920 Wrappers.
 - **Proposal** shows the accepted cards-and-sections examples (nesting with `darken`, a rounded card needing padding around it) and one open proposal, where content lives: [v3-content-map.md](./v3-content-map.md). The declined card proposals are on the Archive page: [v3-card-proposal.md](./v3-card-proposal.md).
@@ -46,13 +46,13 @@ Image paint styles, focal point, full-bleed media cards, and a proposed 8-rule A
 
 ## The 8 rules (the AI page shows these)
 
-1. **Hands off the owner's work.** Propose first, build beside, archive on the Archive page. Never delete.
-2. **Never change his numbers, names or tokens** without asking.
-3. **Tokens and styles only.** Colour from Color Mode and Colors, size from Scale, every text a text style.
-4. **Modes cascade.** A size master (500, 1000, 1920) sets its own Scale mode; content masters set none and take the size they sit in.
-5. **Auto layout all the way down.** Nothing loose on a page; a page reads about 2:1.
-6. **Show, don't tell.** Short plain names, little text on the canvas, a 2-line description on every master you make.
-7. **Photos:** a Photo/ style or image fill, scale mode Fill, set by script. Never Crop.
+1. **Read the Index page in its entirety.** The Index is the design system: all the main components in the right configuration ([v3-index.md](./v3-index.md)).
+2. **Hands off the owner's work.** Propose first, build beside, archive on the Archive page. Never delete. Never change his numbers, names or tokens without asking.
+3. **Tokens and styles only.** Colour from Color Mode and Colors, size from Scale, every text a text style. Photos: a Photo/ style, scale mode Fill, set by script, never Crop.
+4. **One Root per page:** the size card, its Preview, then Layouts and Content. A Preview holds instances or detached copies, never masters.
+5. **Content items:** zero padding, transparent, Fill width; drop them into cards. A content master lives on the page of the smallest width where it looks as intended.
+6. **Modes cascade.** A size master (500, 1000, 1920) sets its own Scale mode; content masters set none and take the size they sit in.
+7. **Masters only when useful:** every master shows in the swap menu. Short plain names, a 2-line description, little text on the canvas.
 8. **Done =** a 1:1 screenshot checked, a second agent reviewed it, about 10 Figma calls a minute.
 
 Layouts to port from Big Sloppy (shortlist, nothing ported yet): [v3-port-shortlist.md](./v3-port-shortlist.md).
