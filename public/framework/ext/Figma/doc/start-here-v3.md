@@ -40,6 +40,10 @@ Text styles: h1, h2, h3, h4, body, label, small (Montserrat, sizes bound to Scal
 
 Card, Body, Content, Media, Actions, Footer and Wrapper are defined in [v3-card-proposal.md](./v3-card-proposal.md). The owner dislikes "Container". His words: [owner-words-2026-11-18.md](./owner-words-2026-11-18.md).
 
+## Open recommendations
+
+Image paint styles, focal point, full-bleed media cards, and a proposed 8-rule AI page: [v3-recommendations.md](./v3-recommendations.md).
+
 ## House habits (still hold)
 
 - Short answers. Chat is read rarely; what matters goes in a file.

@@ -47,3 +47,10 @@ The answer is the Proposal page, documented in [v3-card-proposal.md](./v3-card-p
 - **The switches card is declined.** The Default card is a real card with the standard padding and maybe no radius, so it can also act as a section. A section is full width, radius 0, may have padding, and can fill another section. A card with a radius needs padding around it. He suggested a "needs padding" boolean property as an indicator for a later audit script. Nest cards in sections and cards in cards, with `lighten`/`darken` on coloured backgrounds. Add-on: show a Default card as the parent section with Mobile cards inside, using his card instances.
 - **Colors page:** a clean token sheet bound to the variables, with Light and Dark side by side. Check that Color Mode's default (first column) is Light, because in v2 Dark had become the default and caused wonky text colours.
 - **Images page feedback:** far too much text; it should explain itself. Show the master plainly, named "Image", ideally in Root. He is rearranging that page by hand, so hands off until he says so.
+
+## ~18:50 · Image styles, focal point, media cards, AI page (relayed)
+
+- **Image paint styles** (Photo/Mountains, Photo/Forest, scale mode Fill) that any card, section or hero can use as its fill, with text on top. No variants, so overlays need no workarounds. Compare with the Image Set.
+- **A focal point:** a frame that crops a positioned image. Weigh the control against the complexity, and against CSS background-position.
+- **Cards with images:** he prefers full-bleed media (no padding around the image) to an image inside padded content.
+- **An AI page for v3?** Review v2's ~32 rules and keep the few that still hold; he wants fewer rules. Hold off on editing the Images page. → [v3-recommendations.md](./v3-recommendations.md)
