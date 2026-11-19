@@ -40,3 +40,5 @@ The words that find this module's past work (counts: `sessions N files · M comm
 - `TunnelKeeper` (sessions 8 files · 13 commits)
 - `remote.fallback` (sessions 8 files · 9 commits)
 - `voice_hear` (sessions 8 files · 10 commits)
+
+- [doc/cloud-code-session.md](./doc/cloud-code-session.md) — a Claude Code cloud session on the monorepo: what works, what the hooks block, how to preview, and the tunnel security check (2026-11-19)

@@ -466,3 +466,23 @@ Page `Page builder` (62:933) has exactly two top-level frames, both auto layout 
 - **Naming:** every component set ends in `Set` (see Component pages above).
 - **Agents edit the master, never an instance** (owner, 2026-11-12). To change something you see in a preview, go to its main component and change it there, so every copy follows. Never edit an instance and then push it. Overriding and pushing is a human shortcut, and it causes the drift: slot content on an instance belongs to that instance, so a preview stops following its master. Pushing back has no merge, so one side always wins. Push always goes to the main component of whichever instance is selected, so a nested button pushed from the card only changes Card.
 - **Screenshot, then wait for approval** (owner, 2026-11-12): screenshot everything before calling it done; the owner approves. The Lew42 Design System page is the approved set. What's on it is pre-approved, and agents build only from it. An "Approved" tag for signed-off pages is an idea, not built yet.
+
+## More docs (indexed 2026-11-19; titles read from each file by script)
+
+- [doc/approval-strategy.md](./doc/approval-strategy.md) — Approval strategy: get something approved (2026-11-16, voice-app)
+- [doc/audit-pages-2026-11-18.md](./doc/audit-pages-2026-11-18.md) — Page audit: is every page in Lew42 v2 clean? (2026-11-18, read-only)
+- [doc/brief-2026-11-17.md](./doc/brief-2026-11-17.md) — Brief, 2026-11-17: what Michael wants (essence)
+- [doc/build-checklist.md](./doc/build-checklist.md) — Figma build checklist: every agent, every build (2026-11-16)
+- [doc/consolidation-plan.md](./doc/consolidation-plan.md) — Lew42 v2 consolidation plan (2026-11-16, voice-app, for Michael's OK)
+- [doc/owner-words-2026-11-17-root.md](./doc/owner-words-2026-11-17-root.md) — Owner's words, 2026-11-17, part 2: the Root system, size-page previews, mode cascade (text, ~15:15, verbatim)
+- [doc/owner-words-2026-11-18.md](./doc/owner-words-2026-11-18.md) — Owner's words, 2026-11-18 (Lew42 v3)
+- [doc/root-plan-2026-11-17.md](./doc/root-plan-2026-11-17.md) — Root system and size-page previews: plan (2026-11-17)
+- [doc/size-ladder.md](./doc/size-ladder.md) — A size ladder that lines up (proposal, 2026-11-17, nothing changed in Figma)
+- [doc/v3-card-proposal.md](./doc/v3-card-proposal.md) — Lew42 v3: cards — verdict, and the proposal it replaced (2026-11-18)
+- [doc/v3-content-map.md](./doc/v3-content-map.md) — Lew42 v3: where content lives (proposal, 2026-11-19)
+- [doc/v3-images.md](./doc/v3-images.md) — Lew42 v3: Images (proposal, 2026-11-18)
+- [doc/v3-index.md](./doc/v3-index.md) — Lew42 v3: the Index and the size pages (2026-11-19)
+- [doc/v3-port-shortlist.md](./doc/v3-port-shortlist.md) — Lew42 v3: layouts worth porting from Big Sloppy (shortlist, 2026-11-19)
+- [doc/v3-recommendations.md](./doc/v3-recommendations.md) — Lew42 v3: images, focal point, media cards, AI page (recommendations, 2026-11-18 ~18:50)
+- [doc/v3-split-squeeze.md](./doc/v3-split-squeeze.md) — Lew42 v3: Split squeeze (exploration, 2026-11-18)
+- [mastermind.md](./mastermind.md) — the Figma assistant's role readme; [doc/index.md](./doc/index.md) — the doc index
