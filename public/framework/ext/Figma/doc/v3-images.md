@@ -2,7 +2,22 @@
 
 **Where it is:** the [Images page](https://www.figma.com/design/JYGQX0WaBO4HcGMZTkL2rx/Lew42-v3?node-id=23-3) (`23:2`, right after Split squeeze). The owner's words: [owner-words-2026-11-18.md](./owner-words-2026-11-18.md) (~17:50).
 
-## What is there
+## Photo styles (decided by the owner, ~19:00)
+
+- **Paint styles** `Photo/Mountains` (his), `Photo/Fjord`, `Photo/Snow`, `Photo/Forest`: each is one image fill, scale mode Fill, grayscale. Any frame can use one as its fill. To swap the photo, pick another style.
+- **Master templates** (column `Column - Photo styles`, `30:32`, at the right of the Images root, inside a purple-dashed MASTERS frame). They are benchmarks for fast prototyping, not mainly for inheritance:
+  - `Photo Card` (`30:36`): a title over a photo.
+  - `Hero` (`30:40`): title, line and his Button.
+  - `Avatar` (`30:51`): round, radius half the size.
+  - Photo Card and Hero set Color Mode Dark (white text) and hold a `Scrim` layer (`darken`, absolute, stretched). Overlays can be edited freely.
+- **Three ways to show a photo**, compared on the page:
+  - (a) Image Set variant: a nested photo layer. Web: background-image, cover.
+  - (b) Frame + Photo style: overlays sit right inside. Web: background-image, cover.
+  - (c) A rectangle in a clipped frame with constraints: a focal point, at the cost of one extra layer. Web: an `<img>` with object-fit cover and object-position.
+- **Crop warning:** set the style by script with Fill. In the UI, confirming the crop dialog switches the fill to Crop, which stretches on resize.
+- **Seen:** on the bright Snow photo, the title over the 20% `darken` scrim reads weakly. Use a darker photo, or a stronger scrim (which would need a new token).
+
+## What is there (first pass)
 
 - **`Image`** (`24:25`), the placeholder master. Its fill is `darken` plus 20% black, with the image icon at 50% opacity. Both were copied from the owner's own edits to `.Proposal/Media`, which was left as he set it.
 - **`Image Set`** (`24:49`) has one property, `Image`, with five values: Placeholder, Mountains, Fjord, Snow, Forest. Every variant holds an instance of `Image`, so an edit to `Image` reaches every variant. Each photo variant overrides the instance's fill with a photo (scale mode Fill) and hides the icon.

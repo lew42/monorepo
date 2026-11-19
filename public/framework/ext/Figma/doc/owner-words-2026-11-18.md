@@ -54,3 +54,11 @@ The answer is the Proposal page, documented in [v3-card-proposal.md](./v3-card-p
 - **A focal point:** a frame that crops a positioned image. Weigh the control against the complexity, and against CSS background-position.
 - **Cards with images:** he prefers full-bleed media (no padding around the image) to an image inside padded content.
 - **An AI page for v3?** Review v2's ~32 rules and keep the few that still hold; he wants fewer rules. Hold off on editing the Images page. → [v3-recommendations.md](./v3-recommendations.md)
+
+## ~19:00 · Photo styles decided (relayed)
+
+- **Photo styles: do it.** He made `Photo/Mountains`. Make Fjord, Snow and Forest the same way: FILL, desaturated.
+- **Crop warning:** applying a photo style in the UI opens a crop dialog. Confirming it can switch the layer to CROP, which stretches. Agents set fills by script with FILL and never touch crop.
+- **Explore overlays:** a plain frame with a Photo fill plus a title, icon or button on top. Build 2–3 small master templates (Photo card, Hero, Avatar). Components here are benchmarks for fast prototyping, not mainly for inheritance.
+- **Compare in 3 lines:** Image Set variant vs frame + Photo style vs a rectangle with constraints (focal point), each with its web mapping.
+- **Keep the Images page minimal.** Place new work to the right and don't reorganize his. → [v3-images.md](./v3-images.md)

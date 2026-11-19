@@ -51,6 +51,7 @@ Image paint styles, focal point, full-bleed media cards, and a proposed 8-rule A
 - Keep the owner's words verbatim (`owner-words-*.md`); don't paraphrase a decision into something else.
 - Check a 1:1 screenshot of what you built before calling it done.
 - About 10 Figma calls a minute, shared by every agent. Batch work into a few large `use_figma` calls.
+- **Photos: set a `Photo/` style (or image fill) by script with scale mode Fill, and never touch crop.** In the UI, applying a photo style opens Figma's crop dialog; zooming and confirming there switches the layer to Crop, which stretches or squishes on resize.
 - Never change the owner's numbers, names or token values unless he has delegated them for that job. Record the old values first when he has.
 
 ## Stale docs (describe v2)
