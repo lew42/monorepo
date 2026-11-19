@@ -7,10 +7,10 @@
 
 ## Pages
 
-Index · Scale · Proposal · Split squeeze · Images · Icons · Colors · Content · 500 Mobile · 1000 Default · 1920 Desktop · Archive. There is no AI page yet; this doc stands in for it.
+AI · Index · Scale · Proposal · Split squeeze · Images · Icons · Colors · Content · 500 Mobile · 1000 Default · 1920 Desktop · Archive. The **AI** page (first) shows the 8 rules below; change them here first, then on the page. The Index stays empty for now.
 
 - **Scale** holds the owner's own Card and Button masters and the 500 / 1000 / 1920 Wrappers.
-- **Proposal** opens with the owner's verdict (18:30): his Default card stays, plus section vs card, nesting, and what is still open. The switches card to its right was declined: [v3-card-proposal.md](./v3-card-proposal.md).
+- **Proposal** shows the accepted cards-and-sections examples (nesting with `darken`, a rounded card needing padding around it) and one open proposal, where content lives: [v3-content-map.md](./v3-content-map.md). The declined card proposals are on the Archive page: [v3-card-proposal.md](./v3-card-proposal.md).
 - **Split squeeze** lines up two Default half cards with a Desktop card above them, in three setups: [v3-split-squeeze.md](./v3-split-squeeze.md).
 - **Colors** is a live token sheet: every swatch is bound to its variable, with Colors (primitives) and Color Mode in Light and Dark side by side (the mode is set on each column). Color Mode's default (first column) is Light.
 - **Content** and the size pages are the owner's, built by hand.
@@ -33,7 +33,7 @@ Text styles: h1, h2, h3, h4, body, label, small (Montserrat, sizes bound to Scal
 - `size/1` is 1em: **14 on Mobile, 16 on Default, 20 on Desktop.**
 - Steps are multiples of it, rounded: 0.5, 0.75, 1, 1.5, 2, 3, 4 (Default: 8, 12, 16, 24, 32, 48, 64).
 - The owner's aliases (edited by hand, 2026-11-18), Mobile / Default / Desktop: pad = size/3 / size/4 / size/4 (42 / 64 / 80); gap = size/2 / size/2 / size/3 (28 / 32 / 60); text-gap = size/1 / size/1 / size/1-5 (14 / 16 / 30). h1 = size/3, h2 = size/2, h3 = size/1-5, body and label = size/1, h4 and small = size/0-75.
-- **How to use:** set the Scale mode on the frame that decides the size (a page column, a section, or a single card). Everything inside inherits it, buttons and text included. Unset means inherit; set means locked for everything inside. Masters set no mode.
+- **How to use:** set the Scale mode on the frame that decides the size (a page column, a section, or a single card). Everything inside inherits it, buttons and text included. Unset means inherit; set means locked for everything inside. A size master (the owner's `500`) sets its own Scale mode; content masters set none.
 - See it on the Scale page: the owner's Card shown inside the 500, 1000 and 1920 Wrappers, in Light and Dark.
 
 ## Words (2026-11-18)
@@ -43,6 +43,19 @@ Card, Body, Content, Media, Actions, Footer and Wrapper are defined in [v3-card-
 ## Open recommendations
 
 Image paint styles, focal point, full-bleed media cards, and a proposed 8-rule AI page: [v3-recommendations.md](./v3-recommendations.md).
+
+## The 8 rules (the AI page shows these)
+
+1. **Hands off the owner's work.** Propose first, build beside, archive on the Archive page. Never delete.
+2. **Never change his numbers, names or tokens** without asking.
+3. **Tokens and styles only.** Colour from Color Mode and Colors, size from Scale, every text a text style.
+4. **Modes cascade.** A size master (500, 1000, 1920) sets its own Scale mode; content masters set none and take the size they sit in.
+5. **Auto layout all the way down.** Nothing loose on a page; a page reads about 2:1.
+6. **Show, don't tell.** Short plain names, little text on the canvas, a 2-line description on every master you make.
+7. **Photos:** a Photo/ style or image fill, scale mode Fill, set by script. Never Crop.
+8. **Done =** a 1:1 screenshot checked, a second agent reviewed it, about 10 Figma calls a minute.
+
+Layouts to port from Big Sloppy (shortlist, nothing ported yet): [v3-port-shortlist.md](./v3-port-shortlist.md).
 
 ## House habits (still hold)
 
