@@ -60,6 +60,7 @@ const chats = agent => fs.readFileSync(path.join(root, spawned.find(a => a.id ==
 const s1 = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
 const s2 = (await rpc({ id: 1, method: "initialize", params: {} })).sid;
 assert.ok(s1 && s2 && s1 !== s2, "initialize returns a distinct session id");
+{ const { default: R } = await import("./RemoteMCP.js"); assert.ok(/NO PUSH/.test(R.INSTRUCTIONS) && /Never block on an agent/.test(R.INSTRUCTIONS) && /`conversation` on every call/.test(R.INSTRUCTIONS), "cloud agents are told: no push, pull updates every turn, never block"); }
 { const { default: R } = await import("./RemoteMCP.js"); assert.ok(R.INSTRUCTIONS.includes("send_to_agent") && R.INSTRUCTIONS.includes("spawn_agent") && R.INSTRUCTIONS.includes("updates") && /ask_mastermind is deprecated/.test(R.INSTRUCTIONS), "voice-agent directives are in INSTRUCTIONS: hand off with spawn_agent/send_to_agent, read updates, ask_mastermind deprecated"); }
 
 const [a1, a2] = await Promise.all([ask("one", s1), ask("two", s1)]);   // simultaneous first asks: one agent

@@ -391,7 +391,11 @@ return [
 	tool("spawn_agent",
 		"Start a new Claude session inside Servex and give it a job. It stays alive and steerable"
 		+ " after it answers — talk to it again with `send_to_agent`. Returns the agent's card,"
-		+ " including the id you address it by and the session uuid a terminal can `claude --resume`.",
+		+ " including the id you address it by and the session uuid a terminal can `claude --resume`."
+		+ " HOW YOU HEAR WHEN IT ENDS: a Servex SDK agent (the local /mcp door) is woken by one message when the child ends its turn,"
+		+ " stops or errors, so keep working or end your turn. A CLOUD caller (claude.ai voice or text, /mcp/remote) is never pushed"
+		+ " anything: tell the owner it is running, keep talking, and call `updates` at the start of every turn; the child's final"
+		+ " message arrives there. Never block on it (`wait_for_agent`) for more than a few seconds.",
 		{
 			role: { type: "string", description: "What it is: `minion`, `mastermind`, `assistant`. Half of its id." },
 			name: { type: "string", description: "What it is working on, in a word or two. The other half of its id." },
@@ -475,7 +479,8 @@ return [
 		+ " POST {\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"wait_for_agent\","
 		+ "\"arguments\":{\"id\":\"<id>\"}}} to Servex's /mcp url with curl in a background shell, and you"
 		+ " are told when it answers. A Servex agent with a `parent` wakes that parent anyway; this is for"
-		+ " everyone else.",
+		+ " everyone else. A CLOUD voice agent should not use it for more than a few seconds (`timeout_s` 5-10): the app cuts the call"
+		+ " when the owner speaks, the owner hears silence meanwhile, and nothing wakes you later. Call `updates` every turn instead.",
 		{
 			id: ID,
 			timeout_s: { type: "number", description: "Give up after this many seconds and say `timed_out: true`. Default 600." }

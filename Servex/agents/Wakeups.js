@@ -90,7 +90,7 @@ export function wake_tools(agents){
 		tool("wake_me",
 			"Ask node to wake you later, instead of sleeping or keeping a background shell waiting (a Servex restart kills those,"
 			+ " and you would never wake). Node logs it, keeps it across restarts, and sends you `why` as a message when it is due,"
-			+ " reopening your session if it was asleep. Give in_min (minutes from now) or at (an ISO time). Returns the wake-up's id.",
+			+ " reopening your session if it was asleep. Give in_min (minutes from now; fractions work, 1 or 2 is fine) or at (an ISO time). Returns the wake-up's id. Servex SDK agents only: a cloud agent (claude.ai, /mcp/remote) cannot be woken, the message only lands in its inbox for `updates`.",
 			{ in_min: { type: "number", description: "Minutes from now." }, at: { type: "string", description: "An ISO time, instead of in_min." },
 				why: { type: "string", description: "What to check when you wake, in a few words. It is the message you get." },
 				agent: { type: "string", description: "Only from outside Servex (a VS Code tab): the agent id to wake. A Servex agent leaves it out." } },

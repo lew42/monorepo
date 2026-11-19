@@ -9,6 +9,29 @@ If you are reading this through `read_file`, you are probably a **cloud voice ag
 - The Servex MCP also serves local agents. A cloud voice agent is one kind of caller (`voice-app`), not the only kind.
 - You are **mostly a relay**: you pass the owner's asks to the right agent (`send_to_agent` to one already on the project, `spawn_agent` for a new one) and report back briefly. You are not a mastermind doing the work yourself.
 
+## You get no push: pull `updates` every turn (the owner, 2026-11-19)
+
+A cloud agent (you) has no message queue. Nothing wakes you when an agent you started finishes; the one thing you can do is ask. A local Servex SDK agent is different: its child's end arrives as a message and wakes it, so this section is for you only.
+
+- **Call `updates` at the start of nearly every turn**, before you answer, and pass your claude.ai conversation id as `conversation` on every call (your place is kept per conversation). The child's final message ("done: …") arrives there. Verified 2026-11-19 through `/mcp/remote`: a throwaway child's `done: pong3` reached `updates` 11 s after the spawn, then the next call returned nothing new.
+- **After `spawn_agent` or `send_to_agent`, tell the owner in one sentence that it is running, then keep talking.** Do not wait.
+- **Never block on an agent for more than a few seconds** (`wait_for_agent` with `timeout_s` 5–10 at most; no `ask_mastermind` wait). The app cuts a long call when the owner speaks, the owner hears silence meanwhile, and nothing wakes you afterwards. A `wake_me` does not help you either: for a cloud agent it only writes the inbox.
+- **A new `conversation` id starts at "now"** and its first call gets `missed`, a digest of the last 24 h, instead of every old line. `peek: true` on a brand-new id does not fix its place, so the next call is still "first". `updates` shows only each sender's latest line; pass `raw: true` for every line.
+- If a long job is running and the owner is quiet, a nothing-new answer is the normal outcome: say "still running" and move on.
+
+## Which kind of caller am I
+
+Servex tells callers apart by door, not by what they say about themselves:
+
+| Caller | Door | How Servex knows | How it hears about children |
+|---|---|---|---|
+| Servex SDK agent | local `/mcp?as=<agent id>` | `?as=` sets `ctx.caller` | a message on its queue (wakes it); `wake_me` for timers |
+| VS Code tab or outside Claude Code | local `/mcp`, no `as` | no caller | `wait_for_agent` in a background shell; `follow` |
+| Cloud voice agent | `/mcp/remote` (bearer token) | caller is `voice-app` | `updates` only |
+| Cloud text agent (claude.ai chat, Claude Code on the web) | the same `/mcp/remote` | **indistinguishable from voice today**, it is also `voice-app` | `updates` only |
+
+So everything on the remote door is treated as one pull-only caller, and the server instructions it receives are the pull-only ones, which is right for both cloud kinds. What is missing is a way for a cloud agent to say which of the two it is. Proposal, not built: `register_session` takes `kind: "voice" | "text"` and files `cloud-voice-` or `cloud-text-` sessions. Cheap (one argument), and it only matters once a cloud text agent needs different advice from a voice one; today the advice is the same.
+
 ## Start of every conversation
 
 1. Call `register_session` once with a short `title` (for example `live page`) and keep using the same title. You get back your session id and log file. A different title later starts a second session folder. **Also pass `conversation`: your claude.ai conversation id (for example `session_01SYB8YfVfcMoVGwYNF7rnPU`).** The record is then keyed by it, so no gap between calls ever splits your conversation, and a second conversation gets its own record. To keep an existing record, pass its title with it (`title: "app-20261106"` for `cloud-voice-app-20261106`).
@@ -66,7 +89,7 @@ What the check showed (session `cloud-voice-session-system-test`):
 ## Handing work to agents (2026-11-06)
 
 - `list_agents` shows who is running and on what. `send_to_agent({id, text, from: "voice-app"})` gives the agent already on that project the next ask, so it keeps its context; `spawn_agent({role: "mastermind", name, prompt})` starts one for a new project (`path: "<folder>"` makes it that folder's mastermind).
-- Agents answer by message, and every answer reaches you through `updates`. Say in one sentence what you handed to whom, keep talking, and read `updates` every turn.
+- Agents answer by message, and every answer reaches you through `updates` ([you get no push](#you-get-no-push-pull-updates-every-turn-the-owner-2026-11-19)). Say in one sentence what you handed to whom, keep talking, and read `updates` every turn.
 - **`ask_mastermind` is deprecated** (the owner, 2026-11-06): it starts a separate `voice-<id>` Opus session per voice session, with its own reply-file and ticket protocol, beside the agents already working. Its removal is queued; the old flow follows for reference.
 
 ## Asking without waiting (the old ask_mastermind bridge, 2026-11-01)
@@ -82,7 +105,7 @@ What the check showed (session `cloud-voice-session-system-test`):
 - Detection of "I am a cloud voice agent" is best effort: the server instructions carry one line pointing here, and it is up to you to follow it.
 - A decision worth keeping goes in the module's `doc/` as a decision and a link to your session folder. Never put a dictation transcript in a module doc.
 - **Claude Code Remote Control is interactive-only (tested 2026-10-20).** A headless session with `remoteControlAtStartup: true` ran its turn and ignored the setting: no bridge and no error. So Servex's SDK agents can't appear in the owner's connected sessions list. Next step for an always-on mastermind reachable from the phone: Servex keeps an interactive `claude --remote-control` process up and renews it daily, in place of an SDK agent. Resuming an existing session with `claude --resume <id> --remote-control` is untested. The experiment line is in the [voice mastermind's log](/framework/ai/sessions/2026/10/20/voice-20261020/).
-- **Reading only what's new:** today, `follow({path, agent: "<your id>"})` sends a log's new lines to your inbox (`logs/inbox/<your id>.jsonl`), and you read that inbox with `read_file`. An `updates` tool that returns only lines you haven't seen is being built (`mastermind-updates-tool`, 2026-10-20).
+- **Reading only what's new:** `updates` (landed 2026-10-20). `follow({path, agent: "<your id>"})` subscribes you to a log; its new lines are read by `updates`, not pushed.
 
 ## Options: reaching a mastermind from the phone (decided 2026-10-20)
 
