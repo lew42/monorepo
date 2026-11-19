@@ -9,3 +9,6 @@
 {"log":{"at":"2026-11-19T14:53:25-06:00","msg":"Scan of ~/.claude/projects: 16,741 files, 13.26 GB total (13,909 .jsonl = 12.48 GB). No file over 1 GB; largest 0.655 GB (c--Code-lew42-monorepo/4d27ca86, 96,131 lines, 1,501 compact_boundary). Top 20 listed in the reply. Nothing deleted or modified."},"by":"mastermind-big-transcripts","session":"79263bdf-0368-4022-9ff6-9687b932544c"}
 {"complete":{"outcome":"Scanned ~/.claude/projects: no transcript over 1 GB; total folder 13.26 GB; top 20 sized, line-counted and counted for compact_boundary.","evidence":["Total 13.26 GB across 16,741 files (13,909 .jsonl = 12.48 GB)","Largest file 0.655 GB, 96,131 lines, 1,501 compact_boundary","Counts from grep -c '\"subtype\":\"compact_boundary\"' on each top-20 file; nothing deleted or modified"],"at":"2026-11-19T14:53:26-06:00"}}
 {"assign":{"closed_by":"mastermind-big-transcripts","closed_at":"2026-11-19T14:53:26-06:00","closed_why":null}}
+{"log":{"at":"2026-11-19T14:53:37-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-19T20:53:37.963Z"}
+{"pid_exit":25352,"ended":"2026-11-19T14:53:38-06:00","code":0,"signal":null,"by":"servex"}
+{"log":{"at":"2026-11-19T14:53:55-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
