@@ -1,0 +1,6 @@
+{"session":{"id":"cloud-voice-app-20261119","kind":"cloud-voice-agent","caller":"voice-app","at":1795121424562}}
+{"tool_call":{"at":"2026-11-19T20:50:24.674Z","tool":"spawn_agent","args_hash":"b979a0207733","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-19T20:50:27.488Z","tool":"spawn_agent","args_hash":"5a6f30d295fc","caller":"voice-app"}}
+{"task":"/framework/ai/sessions/2026/11/19/spawned/mastermind-big-transcripts/","type":"Session","spawn":{"role":"mastermind","model":"claude-haiku-5-5","effort":"high","role_readme":"Servex/agents/roles/mastermind.md","session_id":"79263bdf-0368-4022-9ff6-9687b932544c","agent":"mastermind-big-transcripts","at":"2026-11-19T14:50:27-06:00","placed":"top"},"by":"Servex","ts":"2026-11-19T20:50:27.545Z"}
+{"messages":{"add":{"type":"Ref","url":"/framework/ai/sessions/2026/11/19/spawned/mastermind-big-transcripts/","by":"servex","at":"2026-11-19T20:50:27.563Z"}},"by":"servex","ts":"2026-11-19T20:50:27.563Z"}
+{"spawned":{"at":"2026-11-19T20:50:34.147Z","agent":"mastermind-big-transcripts","task_dir":null,"caller":"voice-app"}}
