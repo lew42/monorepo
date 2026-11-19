@@ -27,40 +27,31 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-18 00:00 UTC, last 24 h)
+## NOW (computed 2026-11-19 00:03 UTC, last 24 h)
 
-**Pace:** Week: 34% used · 84% gone · 41% of pace (room to spend, 1 day 2 hours left)
+**Pace:** Week: 44% used · 98% gone · 45% of pace (room to spend, 2 hours 56 minutes left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (15):**
-- [Read-only audit of the AI page in Michael's file Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER) and of whether agen](/framework/ai/sessions/2026/11/17/spawned/mastermind-ai-page-audit/) (mastermind-ai-page-audit)
-- [Naming proposal for Michael's Figma design system (Lew42 v2). No Figma calls, no edits.](/framework/ai/sessions/2026/11/17/spawned/mastermind-naming-web/) (mastermind-naming-web)
-- [Naming proposal for Michael's Figma design system (Lew42 v2). No edits to Lew42 v2.](/framework/ai/sessions/2026/11/17/spawned/mastermind-naming-minimal/) (mastermind-naming-minimal)
-- [Naming proposal for Michael's Figma design system (Lew42 v2). No edits.](/framework/ai/sessions/2026/11/17/spawned/mastermind-naming-kits/) (mastermind-naming-kits)
-- [Root harmonization in Michael's file Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER). Michael is in the file right n](/framework/ai/sessions/2026/11/17/spawned/mastermind-roots-v2/) (mastermind-roots-v2)
-- [Write usage descriptions on the masters in Michael's file Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER). The only ](/framework/ai/sessions/2026/11/17/spawned/mastermind-descriptions/) (mastermind-descriptions)
-- [Publish-readiness audit of Michael's file Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER). Read-only, with ONE allow](/framework/ai/sessions/2026/11/17/spawned/mastermind-publish-audit/) (mastermind-publish-audit)
-- [Fix job in Michael's file Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER). Michael is in the file right now, looking](/framework/ai/sessions/2026/11/17/spawned/mastermind-page-1000/) (mastermind-page-1000)
-- [Synthesis job for Michael's Figma design system (Lew42 v2). No Figma calls, no Figma edits.](/framework/ai/sessions/2026/11/17/spawned/mastermind-research-synth/) (mastermind-research-synth)
-- [Research job for Michael's Figma design system (Lew42 v2). No Figma edits.](/framework/ai/sessions/2026/11/17/spawned/mastermind-research-kits/) (mastermind-research-kits)
-- [Read-only Figma inspection for Michael's design system (Lew42 v2). No edits anywhere.](/framework/ai/sessions/2026/11/17/spawned/mastermind-figma-kits/) (mastermind-figma-kits)
-- [Read-only audit + proposal for Michael's design system, file Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER). No edi](/framework/ai/sessions/2026/11/17/spawned/mastermind-index-audit/) (mastermind-index-audit)
-- …and 3 more (the [task list](/framework/ai/tasks/))
+**Landed (4):**
+- [New job: Michael's fresh, simple Figma file **Lew42 v3** (fileKey JYGQX0WaBO4HcGMZTkL2rx, https://www.figma.co](/framework/ai/sessions/2026/11/18/spawned/mastermind-v3-scale/) (mastermind-v3-scale)
+- [Budget: $2. You are a fresh-eyes REVIEWER only, read-only: spawn nobody, edit no Figma node and no repo file e](/framework/ai/sessions/2026/11/18/session-7dce6891/mastermind-v3-scale-review/) (mastermind-v3-scale-review)
+- [Explore what the NEW Index can build in Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER). Michael is about to open th](/framework/ai/sessions/2026/11/18/spawned/mastermind-explore-index/) (mastermind-explore-index)
+- [Pilot build for Michael's Figma design system, Lew42 v2 (fileKey ADpu9u2V0BlEZfR3rrMfER): page, section and ca](/framework/ai/sessions/2026/11/18/spawned/mastermind-templates/) (mastermind-templates)
 
 **Open, touched in the window (0):**
 - none
 
 **Latest commits on this branch:**
 ```
-3459bb94c3 servex: log sweep (11 files)
-1d16098aa5 figma: AI page audit (doc/ai-page-audit.md): 3,264 words in 9 frames, rules.md not on the page, 5-block 1,300-word proposal; agents read rules only when the brief names it (31/31 vs 4/27)
-4afbc6cd57 figma: naming proposal, web vocabulary (doc/naming/proposal-web.md): X · default, X · N · shape, layouts gap-only
-ddb6bde093 figma: minimal naming proposal (doc/naming/proposal-minimal.md) with Lab · Naming swap/slot/override tests
-abbabd6b18 figma: index doc/naming/
-5d6b1be965 figma: naming proposal from real kits (doc/naming/proposal-kits.md): X · default + X · N · shape, text pads / layouts don't
-42c277fabc figma: read-only layer audit of the 8 size pages (doc/layer-audit-2026-11-17.md): wrappers, duplicates, proposed size·columns·name namespace
-da64e50029 servex: log sweep (2 files)
+f0c5d88dc0 servex: log sweep (6 files)
+b9aca27c75 figma: v3 session log
+e53a1b1a6d figma: v3 Images page (Image master + Image Set, grayscale Unsplash fillers), master markers; owner-words 17:40 and 17:50
+0172c4d9cf figma: v3 session log
+2253751751 figma: v3 Split squeeze page documented (three setups, measured edges)
+042f44b9d9 figma: v3 Proposal alternative (Card · Plain + Card · Media, detach recipe)
+d2db6ea949 figma: v3 Proposal session log
+41909d9e44 figma: v3 Proposal page (one Card, two switches) documented; owner-words 2026-11-18; start-here and scale docs follow the owner's hand edits
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
