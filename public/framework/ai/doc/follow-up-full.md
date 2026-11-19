@@ -4,22 +4,33 @@
 
 | task | group | session | model | started | last log | step | state bucket | outcome | branch | agent | flags |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| [v-5cj22vj](/framework/ai/sessions/2026/11/14/v-5cj22vj/) | - | - | - | 11-15 01:13 | 11-17 05:50 | 0/0 | stale | no | - | unknown | quiet |
-| [cloud-voice-app-20261114](/framework/ai/sessions/2026/11/14/cloud-voice-app-20261114/) | - | - | - | 11-14 21:26 | 11-17 05:35 | 0/0 | stale | no | - | unknown | quiet |
-| [mastermind-vocabulary](/framework/ai/sessions/2026/11/17/spawned/mastermind-vocabulary/) | - | 11608c38 | opus-5-5 | 11-18 05:50 | 11-18 05:59 | 0/0 | landed | yes | - | dormant | ok |
-| [mastermind-ai](/framework/ai/sessions/2026/11/17/spawned/mastermind-ai/) | - | 8d7c06b5 | sonnet-5-5 | 11-18 05:56 | 11-18 05:59 | 0/0 | in_flight | yes | - | working | ok |
-| [mastermind-tokens-page](/framework/ai/sessions/2026/11/17/spawned/mastermind-tokens-page/) | - | d00fec51 | opus-5-5 | 11-18 04:45 | 11-18 05:56 | 0/0 | landed | yes | - | idle | ok |
-| [cloud-voice-app-20261117](/framework/ai/sessions/2026/11/17/cloud-voice-app-20261117/) | - | - | - | 11-17 08:40 | 11-18 05:55 | 0/0 | stale | no | - | unknown | ok |
-| [mastermind-size-system](/framework/ai/sessions/2026/11/17/spawned/mastermind-size-system/) | - | 66ffdc43 | opus-5-5 | 11-18 04:11 | 11-18 05:51 | 0/0 | landed | yes | merged | dormant | ok |
-| [cloud-voice-app-20261116](/framework/ai/sessions/2026/11/16/cloud-voice-app-20261116/) | - | - | - | 11-16 20:33 | 11-18 05:50 | 0/0 | stale | no | - | unknown | ok |
-| [cloud-voice-app-20261115](/framework/ai/sessions/2026/11/15/cloud-voice-app-20261115/) | - | - | - | 11-15 23:22 | 11-18 05:45 | 0/0 | stale | no | - | unknown | ok |
-| [session-1e3c8da0](/framework/ai/sessions/2026/11/17/session-1e3c8da0/) | - | - | - | 11-18 03:21 | 11-18 05:45 | 0/0 | stale | no | - | unknown | ok |
-| [mastermind-tokens-review](/framework/ai/sessions/2026/11/17/session-d00fec51/mastermind-tokens-review/) | - | 191ae89c | sonnet-5-5 | 11-18 04:59 | 11-18 05:30 | 0/0 | stale | yes | - | stopped | ok |
+| [cloud-voice-app-20261115](/framework/ai/sessions/2026/11/15/cloud-voice-app-20261115/) | - | - | - | 11-15 23:22 | 11-18 05:45 | 0/0 | stale | no | - | unknown | quiet |
+| [cloud-voice-app-20261116](/framework/ai/sessions/2026/11/16/cloud-voice-app-20261116/) | - | - | - | 11-16 20:33 | 11-19 05:53 | 0/0 | stale | no | - | unknown | ok |
+| [session-603f9c8b](/framework/ai/sessions/2026/11/18/session-603f9c8b/) | - | - | - | 11-18 06:38 | 11-19 05:53 | 0/0 | stale | no | - | unknown | ok |
+| [session-1e3c8da0](/framework/ai/sessions/2026/11/17/session-1e3c8da0/) | - | - | - | 11-18 03:21 | 11-19 05:48 | 0/0 | stale | no | - | unknown | ok |
+| [cloud-voice-app-20261117](/framework/ai/sessions/2026/11/17/cloud-voice-app-20261117/) | - | - | - | 11-17 08:40 | 11-19 05:23 | 0/0 | stale | no | - | unknown | ok |
+| [session-f754b70e](/framework/ai/sessions/2026/11/17/session-f754b70e/) | - | - | - | 11-18 02:51 | 11-19 05:23 | 0/0 | stale | no | - | unknown | ok |
+| [reviewer-assets-tidy-review](/framework/ai/sessions/2026/11/17/session-78a0cc70/reviewer-assets-tidy-review/) | - | - | - | 11-18 02:50 | 11-19 05:13 | 0/0 | stale | no | - | unknown | ok |
+| [session-78a0cc70](/framework/ai/sessions/2026/11/17/session-78a0cc70/) | - | - | - | 11-18 02:42 | 11-19 05:13 | 0/0 | stale | no | - | unknown | ok |
+| [cloud-voice-app-20261118](/framework/ai/sessions/2026/11/18/cloud-voice-app-20261118/) | - | - | - | 11-18 21:26 | 11-19 05:03 | 0/0 | stale | no | - | unknown | ok |
+| [mastermind-v3-scale](/framework/ai/sessions/2026/11/18/spawned/mastermind-v3-scale/) | - | 7dce6891 | opus-5-5 | 11-18 22:50 | 11-19 01:22 | 0/0 | landed | yes | - | dormant | ok |
+| [mastermind-v3-index-review](/framework/ai/sessions/2026/11/18/session-7dce6891/mastermind-v3-index-review/) | - | 7d7ffe37 | sonnet-5 | 11-19 01:10 | 11-19 01:16 | 0/0 | landed | yes | - | stopped | ok |
+| [mastermind-v3-scale-review](/framework/ai/sessions/2026/11/18/session-7dce6891/mastermind-v3-scale-review/) | - | 5e2d0998 | sonnet-5 | 11-18 22:56 | 11-18 22:58 | 0/0 | landed | yes | - | stopped | ok |
+| [mastermind-explore-index](/framework/ai/sessions/2026/11/18/spawned/mastermind-explore-index/) | - | ee7f94d2 | opus-5-5 | 11-18 21:26 | 11-18 22:33 | 0/0 | landed | yes | - | dormant | ok |
+| [mastermind-templates](/framework/ai/sessions/2026/11/18/spawned/mastermind-templates/) | - | 35a7e86a | opus-5-5 | 11-18 06:10 | 11-18 07:32 | 0/0 | landed | yes | - | dormant | ok |
+| [mastermind-size-1600-1000](/framework/ai/sessions/2026/11/16/spawned/mastermind-size-1600-1000/) | - | f728c4d9 | opus-5-5 | 11-16 23:28 | 11-18 06:29 | 0/0 | landed | yes | - | dormant | ok |
+| [mastermind-size-small](/framework/ai/sessions/2026/11/16/spawned/mastermind-size-small/) | - | 2acdf9e5 | opus-5-5 | 11-16 23:28 | 11-18 06:29 | 0/0 | landed | yes | - | dormant | ok |
+| [mastermind-bench](/framework/ai/sessions/2026/11/16/spawned/mastermind-bench/) | - | 54dc0c18 | opus-5-5 | 11-17 00:25 | 11-18 06:29 | 0/0 | landed | yes | - | dormant | ok |
+| [mastermind-tokens-review](/framework/ai/sessions/2026/11/17/session-d00fec51/mastermind-tokens-review/) | - | 191ae89c | sonnet-5-5 | 11-18 04:59 | 11-18 06:29 | 0/0 | landed | yes | - | stopped | ok |
+| [mastermind-ai](/framework/ai/sessions/2026/11/17/spawned/mastermind-ai/) | - | 8d7c06b5 | sonnet-5-5 | 11-18 05:56 | 11-18 06:28 | 0/0 | landed | yes | - | dormant | ok |
+| [mastermind-masters](/framework/ai/sessions/2026/11/16/spawned/mastermind-masters/) | - | a9f85f12 | opus-5-5 | 11-17 00:18 | 11-18 06:28 | 0/0 | landed | yes | - | dormant | ok |
+| [mastermind-tokens-page](/framework/ai/sessions/2026/11/17/spawned/mastermind-tokens-page/) | - | d00fec51 | opus-5-5 | 11-18 04:45 | 11-18 06:25 | 0/0 | landed | yes | - | dormant | ok |
+| [mastermind-size-system](/framework/ai/sessions/2026/11/17/spawned/mastermind-size-system/) | - | 66ffdc43 | opus-5-5 | 11-18 04:11 | 11-18 06:16 | 0/0 | landed | yes | merged | dormant | ok |
+| [mastermind-vocabulary](/framework/ai/sessions/2026/11/17/spawned/mastermind-vocabulary/) | - | 11608c38 | opus-5-5 | 11-18 05:50 | 11-18 06:13 | 0/0 | landed | yes | - | dormant | ok |
+| [v-5cj22vj](/framework/ai/sessions/2026/11/14/v-5cj22vj/) | - | - | - | 11-15 01:13 | 11-18 06:00 | 0/0 | unclosed | no | - | unknown | ok |
+| [cloud-voice-app-20261114](/framework/ai/sessions/2026/11/14/cloud-voice-app-20261114/) | - | - | - | 11-14 21:26 | 11-18 06:00 | 0/0 | unclosed | no | - | unknown | ok |
 | [minion-size-review](/framework/ai/sessions/2026/11/17/session-66ffdc43/minion-size-review/) | - | e0202c7f | sonnet-5-5 | 11-18 05:08 | 11-18 05:20 | 0/0 | landed | yes | - | stopped | ok |
 | [mastermind-page-audit](/framework/ai/sessions/2026/11/17/spawned/mastermind-page-audit/) | - | 0ea85b3c | opus-5-5 | 11-18 05:06 | 11-18 05:16 | 0/0 | landed | yes | - | dormant | ok |
-| [session-f754b70e](/framework/ai/sessions/2026/11/17/session-f754b70e/) | - | - | - | 11-18 02:51 | 11-18 05:15 | 0/0 | stale | no | - | unknown | ok |
-| [reviewer-assets-tidy-review](/framework/ai/sessions/2026/11/17/session-78a0cc70/reviewer-assets-tidy-review/) | - | - | - | 11-18 02:50 | 11-18 05:10 | 0/0 | stale | no | - | unknown | ok |
-| [session-78a0cc70](/framework/ai/sessions/2026/11/17/session-78a0cc70/) | - | - | - | 11-18 02:42 | 11-18 05:10 | 0/0 | stale | no | - | unknown | ok |
 | [mastermind-ai-page](/framework/ai/sessions/2026/11/17/spawned/mastermind-ai-page/) | - | 5a11b519 | opus-5-5 | 11-18 03:22 | 11-18 04:46 | 0/0 | landed | yes | - | dormant | ok |
 | [mastermind-tiers](/framework/ai/sessions/2026/11/17/spawned/mastermind-tiers/) | - | 791ea88e | opus-5-5 | 11-18 03:50 | 11-18 04:14 | 0/0 | landed | yes | - | dormant | ok |
 | [mastermind-scale-audit](/framework/ai/sessions/2026/11/17/spawned/mastermind-scale-audit/) | - | 7f31caad | opus-5-5 | 11-18 03:50 | 11-18 03:58 | 0/0 | landed | yes | - | dormant | ok |
@@ -83,10 +94,6 @@
 | [mastermind-think-swap](/framework/ai/sessions/2026/11/16/spawned/mastermind-think-swap/) | - | e405f6dd | opus-5-5 | 11-17 01:19 | 11-17 01:21 | 0/0 | landed | yes | - | dormant | ok |
 | [mastermind-lint](/framework/ai/sessions/2026/11/16/spawned/mastermind-lint/) | - | 26477f5c | opus-5-5 | 11-17 00:38 | 11-17 00:58 | 0/0 | landed | yes | - | dormant | ok |
 | [mastermind-tour](/framework/ai/sessions/2026/11/16/spawned/mastermind-tour/) | - | 66cce91d | opus-5-5 | 11-17 00:10 | 11-17 00:57 | 0/0 | landed | yes | - | dormant | ok |
-| [mastermind-bench](/framework/ai/sessions/2026/11/16/spawned/mastermind-bench/) | - | 54dc0c18 | opus-5-5 | 11-17 00:25 | 11-17 00:57 | 0/0 | landed | yes | - | idle | ok |
-| [mastermind-masters](/framework/ai/sessions/2026/11/16/spawned/mastermind-masters/) | - | a9f85f12 | opus-5-5 | 11-17 00:18 | 11-17 00:56 | 0/0 | landed | yes | - | idle | ok |
-| [mastermind-size-1600-1000](/framework/ai/sessions/2026/11/16/spawned/mastermind-size-1600-1000/) | - | f728c4d9 | opus-5-5 | 11-16 23:28 | 11-17 00:03 | 0/0 | landed | yes | - | idle | ok |
-| [mastermind-size-small](/framework/ai/sessions/2026/11/16/spawned/mastermind-size-small/) | - | 2acdf9e5 | opus-5-5 | 11-16 23:28 | 11-16 23:54 | 0/0 | landed | yes | - | idle | ok |
 | [mastermind-surface](/framework/ai/sessions/2026/11/16/spawned/mastermind-surface/) | - | aaba2878 | opus-5-5 | 11-16 23:39 | 11-16 23:52 | 0/0 | landed | yes | - | dormant | ok |
 | [mastermind-res-cards](/framework/ai/sessions/2026/11/16/spawned/mastermind-res-cards/) | - | 4f122450 | opus-5-5 | 11-16 23:39 | 11-16 23:46 | 0/0 | landed | yes | - | dormant | ok |
 | [mastermind-size-2600](/framework/ai/sessions/2026/11/16/spawned/mastermind-size-2600/) | - | 0432cf45 | opus-5-5 | 11-16 23:28 | 11-16 23:44 | 0/0 | landed | yes | - | dormant | ok |
@@ -365,13 +372,6 @@
 | [slice3](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/audit-waiting/slice3/) | - | 831a779e | sonnet-5 | 11-09 07:35 | 11-09 07:44 | 0/0 | stopped | yes | - | stopped | ok |
 | [slice2](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/audit-waiting/slice2/) | - | fe8a6e53 | sonnet-5-5 | 11-09 06:53 | 11-09 07:11 | 0/0 | stopped | yes | - | stopped | ok |
 | [conv-key](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/conv-key/) | - | - | - | 11-09 06:04 | 11-09 06:04 | 0/0 | landed | yes | - | unknown | ok |
-| [one-refiner-plan](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/one-refiner-plan/) | - | 3a7f5c7b | sonnet-5-5 | 11-08 16:29 | 11-08 16:37 | 0/0 | landed | yes | - | dormant | ok |
-| [mentions-plan](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/mentions-plan/) | - | b0154993 | sonnet-5 | 11-08 15:48 | 11-08 15:58 | 0/0 | landed | yes | - | stopped | ok |
-| [readme-maps-dictate](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/readme-maps-dictate/) | - | 29bb827a | sonnet-5 | 11-08 15:05 | 11-08 15:32 | 0/0 | stopped | yes | - | stopped | ok |
-| [readme-maps-servex](/framework/ai/sessions/2026/11/06/spawned/mastermind-page-design/readme-maps-servex/) | - | 04470ab7 | sonnet-5 | 11-08 14:23 | 11-08 14:40 | 0/0 | landed | yes | - | stopped | ok |
-| [pid-accounting](/framework/ai/sessions/2026/11/06/spawned/mastermind-resources/pid-accounting/) | - | 7e828521 | sonnet-5 | 11-08 13:03 | 11-08 13:24 | 0/0 | landed | yes | - | stopped | ok |
-| [readme-maps-sessions](/framework/ai/sessions/2026/11/06/spawned/mastermind-session-truth/readme-maps-sessions/) | - | 1acd3902 | sonnet-5-5 | 11-08 12:21 | 11-08 12:30 | 0/0 | landed | yes | - | stopped | ok |
-| [mastermind-ai](/framework/ai/sessions/2026/11/08/spawned/mastermind-ai/) | - | a4b7ac13 | sonnet-5-5 | 11-08 11:41 | 11-08 11:42 | 0/0 | landed | yes | - | working | ok |
 
 ## Unworked tasks (open, untouched over 7 days)
 
