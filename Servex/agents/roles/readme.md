@@ -32,6 +32,7 @@ A **subject mastermind** owns one system end to end: it decides what changes the
 |---|---|---|
 | The AI system | `mastermind` at `public/framework/ai/` (word: `ai-system-mastermind`) | sessions, tasks, roles, skills, the SDK, spawning, processes |
 | The page system | `core-page-mastermind` (repeatable) | pages, routing, parts, `core/Item`, the JSONL streaming path |
+| Figma (the owner's hands in Figma) | `mastermind` at `public/framework/ext/Figma/` (its role text is that folder's [mastermind.md](/framework/ext/Figma/mastermind.md), loaded into the system prompt by the path spawn) | Figma files, the Lew42 v3 kit, the `figma` MCP; compaction proposal in [assistant-compaction.md](/framework/ext/Figma/doc/assistant-compaction.md) |
 
 Items, routing and JSONL streaming are part of the page system's mastermind until one of them needs its own role; add a row and a readme here then (a role row in `../roles.js` is what puts the text in the system prompt, so it survives compaction).
 
