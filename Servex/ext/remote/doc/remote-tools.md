@@ -1,12 +1,22 @@
 # Remote tools: file and shell access for the voice app
 
-Six tools live in the one Servex registry (`Servex/files.js`, class `FileTools`, registered in `Servex/agents/Global.js` next to `page_tools`). The voice app gets them through `POST /mcp/remote` like every other tool; local sessions get them too.
+Six file/shell tools (plus [`view_image`](#view_image-look-at-an-image-the-cloud-chat-cannot-fetch)) live in the one Servex registry (`Servex/files.js`, class `FileTools`, registered in `Servex/agents/Global.js` next to `page_tools`). The voice app gets them through `POST /mcp/remote` like every other tool; local sessions get them too.
 
 - `read_file`, `write_file`, `edit_file` (one exact string, unique unless `replace_all`), `list_dir`, `glob` (`**`, `*`, `?`), `shell` (`bash` by default, or `powershell`; returns stdout, stderr, exit code; 60 s timeout, max 600 s).
 - **Commits through `shell` land on the voice app's record.** `RemoteMCP.intercept` puts the day's record in the tool's context (`ctx.session`, never an argument, so a caller cannot name another record), and `FileTools.env_of` hands it to the command as `SERVEX_SESSION_ID` and `SERVEX_SESSION_RECORD`, which the git hooks read ([Server/git-hooks/readme.md](../../../../Server/git-hooks/readme.md)).
 - **Root:** every tool takes `root`: omit it for the monorepo, give a worktree name (`remote-tools` means `C:/Code/lew42/worktrees/remote-tools`) or a full path. Relative paths resolve against it.
 - **No lockdown.** The owner accepted the risk. The only gate is the bearer token on the remote path; the local `/mcp` loopback rule is untouched (see the dev-server RCE note).
 - **`.jsonl` is refused** by `write_file` and `edit_file` with a pointer to `.claude/hooks/append.mjs` (validated append), so live pages never see a rewrite. Use `shell` to run the hook, or `page_add` / `append_log`.
+
+## `view_image`: look at an image the cloud chat cannot fetch
+
+`Servex/ImageTool.js` (test `Servex/ImageTool.test.mjs`, door test in `RemoteMCP.test.mjs`). The cloud workspace's proxy blocks hosts like `fal.media`; the PC does not, so the PC fetches and the pixels come back **inline** as MCP `image` content blocks.
+
+- **Arguments:** `url` (https) or `urls` (up to 8) or `path` (an image file on the PC); `max_dim` (longest edge px; default the original, never upscaled); `save: true` (also keep the original in `C:\Users\mike\fal-images` as `YYYYMMDD-HHMMSS-<name>.<ext>`; default nothing is left on disk).
+- **Result:** per image one text entry (`source`, `width`, `height`, `bytes`, `content_type`, `saved`) followed by the image block. A failure is a text entry `{source, ok:false, why}` and no image.
+- **Limits:** 20 s and 30 MB per fetch; PNG, JPEG, GIF, WebP only, decided by the file's own bytes (not the URL, header or extension), so a text file or HTML page is refused and never echoed; https only, redirects re-checked, hosts resolving to loopback or private addresses refused. Returned as the original unless over 4096 px, over about 3.5 MB (less per image when a batch shares 12 MB), or `max_dim` is smaller; then it is scaled down (PNG, else JPEG q88 with alpha flattened to white) and the entry gains `returned: {width, height, bytes, content_type, note}`.
+- **No image library, on purpose** (no new npm dependency): sizes come from the file headers; the rare resize runs Windows' own `System.Drawing` through `powershell`. It cannot decode WebP, so an oversized WebP is refused with a message instead of resized.
+- **How a handler returns images:** `MCP.call` passes a handler's `{content: [...]}` through as is; any other return is still wrapped as one text block.
 
 ## Adding tools without the app asking again
 

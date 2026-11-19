@@ -38,6 +38,7 @@ Every file at the top level of `Servex/`, one line each. Subfolders are one row,
 | [WorktreeWatch.js](./WorktreeWatch.js) | watches a quick-fix slot's own dev server for the `changed` frame; after `DEBOUNCE_MS` quiet, runs the near tests and `Server/layout-check.mjs` on the pages that changed |
 | [Worktrees.js](./Worktrees.js) | `class Worktrees extends Events`: per-task worktrees; refuses to remove one until `Server/junction-check.mjs` passes (a `node_modules` junction into main would take main's `node_modules` with it) |
 | [files.js](./files.js) | `read_file`, `write_file`, `edit_file`, `list_dir`, `glob`, `shell`: no lockdown (the remote door is already behind its bearer token) |
+| [ImageTool.js](./ImageTool.js) | `view_image`: fetch an image by URL or path and return it inline as MCP image content ([ext/remote/doc/remote-tools.md](ext/remote/doc/remote-tools.md)); test `ImageTool.test.mjs` |
 | [home.js](./home.js) | `place(...parts)`, `stamp(at)`: the path and timestamp helpers most files here share |
 | [pages.js](./pages.js) | list, read and make pages without a shell: every write is one appended line or one targeted edit, never a rewrite ([core/Page/doc/jsonl.md](/framework/core/Page/doc/jsonl.md)) |
 | [gate.mjs](./gate.mjs) | THE GATE — `node Servex/gate.mjs [listen=80] [target=8079]`: port 80 never refuses, even while Servex itself is down |

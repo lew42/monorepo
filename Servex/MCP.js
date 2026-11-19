@@ -101,7 +101,8 @@ export default class MCP extends Events {
         if (!handler) throw Object.assign(new Error(`Unknown tool: ${name}`), { code: -32602 });
 
         try {
-            return this.text(await handler(args, ctx));
+            const value = await handler(args, ctx);
+            return Array.isArray(value?.content) ? value : this.text(value);   // a handler may return finished content blocks (view_image: images)
         } catch (e){
             this.on_error?.(e, name, ctx);   // Servex sets it: an {"error"} line in the caller's session log (Servex/ErrorLine.js)
             return { content: [{ type: "text", text: String(e.message || e) }], isError: true };

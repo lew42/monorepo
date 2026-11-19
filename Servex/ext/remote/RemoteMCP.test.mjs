@@ -9,6 +9,8 @@ import RemoteMCP from "./RemoteMCP.js";
 import MCP from "../../MCP.js";
 import { page_tools } from "../../agents/page_tools.js";
 import FileTools from "../../files.js";
+import ImageTool from "../../ImageTool.js";
+import zlib from "zlib";
 import External from "../../agents/External.js";
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "remote-test-"));
@@ -19,6 +21,7 @@ let slow_ms = 0;
 const mcp = new MCP({ router: express.Router() });   // the REAL registry class; the real page tools and one marker tool go in through its own seam
 for (const tool of page_tools()) mcp.tool(tool);
 for (const tool of FileTools.tools()) mcp.tool(tool);
+for (const tool of ImageTool.tools()) mcp.tool(tool);
 mcp.tool({ name: "spawn_agent", description: "t", handler: () => JSON.stringify({ id: "mastermind-x", state: "working" }) });
 mcp.tool({ name: "whoami_test", description: "test", handler: (a, ctx) => (seen.push(a), `caller=${ctx.caller}`) });
 const servex = {
@@ -592,6 +595,23 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     vm.queue.kinds.length = 0;
     console.log("bridge:", JSON.stringify({ ack_ms, first_ms, answer_ms }));
     srv2.close();
+}
+{   // view_image through the real door: an image content block comes back inline, a non-image is refused without being echoed
+    const crc = b => { let r = ~0; for (const x of b){ r ^= x; for (let k = 0; k < 8; k++) r = r & 1 ? 0xedb88320 ^ (r >>> 1) : r >>> 1; } return ~r >>> 0; };
+    const chunk = (type, data) => { const b = Buffer.concat([Buffer.from(type), data]); const o = Buffer.alloc(4); o.writeUInt32BE(data.length); const c = Buffer.alloc(4); c.writeUInt32BE(crc(b)); return Buffer.concat([o, b, c]); };
+    const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(8, 0); ihdr.writeUInt32BE(6, 4); ihdr[8] = 8; ihdr[9] = 2;
+    const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk("IHDR", ihdr), chunk("IDAT", zlib.deflateSync(Buffer.alloc(6 * (1 + 8 * 3)))), chunk("IEND", Buffer.alloc(0))]);
+    fs.writeFileSync(path.join(root, "pic.png"), png); fs.writeFileSync(path.join(root, "secret.txt"), "TOPSECRET");
+    const view = args => rpc({ id: 9, method: "tools/call", params: { name: "view_image", arguments: args } }).then(r => r.json.result);
+    const ok = await view({ path: path.join(root, "pic.png") });
+    assert.equal(ok.content[1].type, "image", "view_image returns an image content block");
+    assert.equal(ok.content[1].mimeType, "image/png"); assert.ok(Buffer.from(ok.content[1].data, "base64").equals(png), "the original bytes, base64");
+    const e = JSON.parse(ok.content[0].text);
+    assert.deepEqual([e.width, e.height, e.bytes], [8, 6, png.length]);
+    const via_call = await rpc({ id: 10, method: "tools/call", params: { name: "call", arguments: { tool: "view_image", args: { path: path.join(root, "pic.png") } } } }).then(r => r.json.result);
+    assert.equal(via_call.content[1].type, "image", "the generic call door returns images too");
+    const bad = await view({ path: path.join(root, "secret.txt") });
+    assert.ok(bad.isError && !JSON.stringify(bad).includes("TOPSECRET"), "a non-image file is refused and never echoed");
 }
 srv.close();
 fs.rmSync(root, { recursive: true, force: true });

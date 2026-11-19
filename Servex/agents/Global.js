@@ -7,6 +7,7 @@ import Registry from "./Registry.js";
 import { Claims } from "./claims.js";
 import { page_tools } from "../pages.js";
 import FileTools from "../files.js";
+import ImageTool from "../ImageTool.js";
 import ModuleInbox from "./ModuleInbox.js";
 import { brief, remember_focus } from "./Brief.js";
 import { model } from "./tiers.js";
@@ -527,6 +528,7 @@ export default class Global {
 		for (const tool of this.claims().tools()) this.servex.mcp.tool(tool.name === "claim_topic" ? this.logged(tool) : tool);
 		for (const tool of page_tools(id => { const a = this.servex.agents; const dir = id && a ? a.task_dir_for(a.reg().read()[id] ?? { id }) : null; return dir ? SessionRecord.log_or_old(dir) : null; })) this.servex.mcp.tool(tool);
 		for (const tool of FileTools.tools()) this.servex.mcp.tool(tool);   // read_file ... shell: ext/remote/doc/remote-tools.md
+		for (const tool of ImageTool.tools()) this.servex.mcp.tool(tool);   // view_image: ext/remote/doc/remote-tools.md
 		for (const tool of ModuleInbox.tools({ servex: this.servex })) this.servex.mcp.tool(tool);   // module_inbox: Servex/doc/module-inbox.md
 		this.servex.mcp.tool({
 			name: "set_focus",
