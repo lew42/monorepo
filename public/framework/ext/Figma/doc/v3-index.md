@@ -17,7 +17,9 @@ This follows the owner's sketch on 500 Mobile. Each page has one Root, in this o
 | 1000 Default | `1000 Root` `40:7` | `1000 Preview` `40:76`: 2 columns. Default, Image Split, Stats, Form · Dark, 2 Columns, List, Features | `2 Columns` `40:25`, `Image Split` `40:34` | `Features Content` `40:55` (4 tiles, wrapping 2 × 2); his scratch `Content` frame sits last |
 | 1920 Desktop | `1920 Root` `41:2` | `1920 Preview` `41:82`: 1 column of full-width layouts. Hero, 3 Columns, Stats band (Dark), Squeeze | `Hero` `41:20` (Photo/Mountains, Dark, scrim), `3 Columns` `41:35`, `Squeeze` `41:78` (content max width = `squeeze`) | none |
 
-**Shared content items** (one column, they work at every size) were added to the owner's `Content` frame on the Content page, after his three: `Icon Item` `37:2`, `Toggle` `37:8`, `Stats Content` `37:11`, `List Content` `37:22` and `Form Content` `37:39`. Each has zero padding, a transparent fill and Fill width, so it drops straight into a card.
+**Shared content items** (one column, they work at every size) were added to the owner's `Content` frame on the Content page, after his three: `Icon Item` `37:2`, `Stats Content` `37:11`, `List Content` `37:22` and `Form Content` `37:39`. Each has zero padding, a transparent fill and Fill width, so it drops straight into a card. **`Toggle` `37:8` is the exception:** it is a control (an atom), not a content item, so it keeps its track fill, its padding and a fixed 48 width. The Toggles card in the 500 Preview uses it in its rows.
+
+`Features Content` is Fill width like every content item; its home frame, `1000 Content` `40:53`, is 1000 wide (bound to Scale `width`), so the master shows at its real size: 2 × 2.
 
 ## Why these preview layouts
 
@@ -37,7 +39,7 @@ Card vs section stays parked, as the owner asked.
 ## The content rule, tested while building
 
 The rule "a content master lives on the page of the smallest width it works at" **held**:
-- Stats, List, Form, Icon Item and Toggle are one column, so they went to Content.
+- Stats, List, Form and Icon Item are one column, so they went to Content (Toggle too, as a control).
 - The two-column pieces (2 Columns, Image Split, Features) went to 1000.
 - The wide bands went to 1920.
 - 500 needed nothing new beyond his button row.
