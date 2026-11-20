@@ -78,3 +78,7 @@
 {"log":{"at":"2026-11-20T14:15:31-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-20T15:15:31-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-20T16:15:31-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-20T17:15:31-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"tool_call":{"at":"2026-11-20T23:27:49.142Z","tool":"updates","args_hash":"6ec308a53256","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-20T23:29:28.618Z","tool":"fal_usage","args_hash":"e0a7caa28669","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-20T23:29:32.660Z","tool":"updates","args_hash":"6ec308a53256","caller":"voice-app"}}
