@@ -9,7 +9,7 @@ A Servex agent has the **`figma` MCP** (the remote, official server; OAuth is al
 - `get_metadata`, `get_screenshot`, `get_design_context`, `get_variable_defs`, `search_design_system`, `get_libraries`, `create_new_file`, `upload_assets`: reads and file creation.
 - `figma-desktop` (Dev Mode at `127.0.0.1:3845`): only to read what the owner has selected right now. Everything else uses `figma`.
 
-Read calls (`whoami`, `create_session`, a read-only `use_figma`) were tested from a Servex agent on 2026-11-19 and ran with no approval. A write was not tested (the setup turn forbade changes); the first real write should confirm it and this line should be updated.
+Reads (`whoami`, `create_session`, a read-only `use_figma`) and a write (a text node on the Claude page, through the `figma` tool below) were tested on 2026-11-19 and ran with no approval.
 
 ## Approval clicks
 
@@ -44,3 +44,24 @@ Target file **"November 2026"** (was "Untitled"), key `3So7QCupj4U6ofjASX2ZxK` (
 - **An image from a URL (for example a fal.ai output):** `use_figma` has no `createImageAsync`. Make the frame, call `upload_assets({fileKey, nodeIds: [frameId], scaleMode: "FILL"})`, then POST the raw bytes to the returned `submitUrl` with `Content-Type: image/png` (`curl --data-binary @file`). Raw bytes keep the frame's name; a multipart upload renames the layer to the file name. The upload URL is single-use and lasts 10 minutes.
 - **Seeing what is in a file:** `get_screenshot` with `enableBase64Response: true` returns the image inline; `maxDimension` at the node's size gives it 1:1.
 - The cloud project's own map of these docs is its project doc `claude/figma.md`.
+
+## From live voice, call Figma through Servex `figma`
+
+In live voice the Claude app asks aloud before `use_figma` and a spoken yes often fails. Servex's own tool `figma` forwards the same Figma calls from the PC with no prompt: `call({tool: "figma", args: {...}})` from the chat (or `figma({...})` from a Servex agent). It returns Figma's content unchanged, images included. Full arguments and behaviour: [remote-tools.md](/Servex/ext/remote/doc/remote-tools.md#figma-call-figmas-own-mcp-through-servex-no-spoken-yes).
+
+```js
+call({tool: "figma", args: {list: "names"}})                                       // Figma's tools, writes marked
+call({tool: "figma", args: {tool: "get_metadata", args: {fileKey: "3So7QCupj4U6ofjASX2ZxK", nodeId: "16:1195"}}})
+call({tool: "figma", args: {tool: "create_session", args: {fileKey, description: "what I will do"}}})   // then use its sessionId:
+call({tool: "figma", args: {tool: "use_figma", args: {fileKey, sessionId, skillNames: "figma-use", description, code}}})
+call({tool: "figma", args: {resource: "skill://index.json"}})                      // read a skill or doc resource
+```
+
+**Two agents, one file: claim it first.** The tool checks claims, but only for calls that go through it, so everyone who writes to a Figma file follows the same convention:
+
+1. `list_claims`; if another agent holds `figma:<fileKey>` (or `figma:<fileKey>/<page id>`), ask it to pause rather than write.
+2. `claim_topic({thing: "figma:<fileKey>", change: "what you will do"})` before a multi-step edit (one `use_figma` call needs no claim).
+3. Re-read the nodes you are about to change right before writing: another agent may have moved them.
+4. `release_topic({thing: "figma:<fileKey>"})` when done.
+
+A write through `figma` to a file another live agent has claimed is refused with the holder and the time; pass `force: true` only when the owner says so. Reads are never blocked.

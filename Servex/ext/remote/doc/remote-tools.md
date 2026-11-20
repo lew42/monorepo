@@ -18,6 +18,27 @@ Six file/shell tools (plus [`view_image`](#view_image-look-at-an-image-the-cloud
 - **No image library, on purpose** (no new npm dependency): sizes come from the file headers; the rare resize runs Windows' own `System.Drawing` through `powershell`. It cannot decode WebP, so an oversized WebP is refused with a message instead of resized.
 - **How a handler returns images:** `MCP.call` passes a handler's `{content: [...]}` through as is; any other return is still wrapped as one text block.
 
+## `figma`: call Figma's own MCP through Servex (no spoken yes)
+
+`Servex/FigmaTool.js` (test `Servex/FigmaTool.test.mjs`, registered in `Servex/agents/Global.js`). In live voice the Claude app asks aloud before Figma's destructive `use_figma`, and a spoken yes often fails; a Servex tool is never asked about. So the chat calls Figma **through Servex**: from the cloud chat `call({tool: "figma", args: {...}})`, from a local agent `figma({...})`. It is synchronous (one call, one answer, no agent, no polling) and generic: it forwards `tools/call`, `tools/list`, `resources/*` and `prompts/*` to `https://mcp.figma.com/mcp` and returns Figma's own `content` unchanged (screenshots come back as image blocks). A Figma tool added tomorrow works with no change here.
+
+| Ask | Arguments | Gives |
+|---|---|---|
+| the tools | `{list: "names"}` (name, `[writes]` mark, first line) · `{list: "use_figma"}` (one full definition) · `{list: true}` (all, about 118 KB) | Figma's live `tools/list` |
+| a read | `{tool: "get_metadata", args: {fileKey, nodeId}}` | Figma's `content` as is |
+| a write | `{tool: "use_figma", args: {fileKey, sessionId, code, skillNames: "figma-use", description}}`, preceded by `{tool: "create_session", args: {fileKey, description}}` | Figma's `content` |
+| a resource | `{resources: true}` (list) · `{resource: "skill://index.json"}` (read) | text |
+| a prompt | `{prompts: true}` · `{prompt: "create_design_system_rules", args: {...}}` | text |
+| state | `{status: true}` | whether Figma was initialized, tools cached, calls in the last minute and today, the log path |
+| override | `force: true` beside `tool` | writes past another agent's claim (below) |
+
+- **Session.** Figma sends no `mcp-session-id` today, so Servex initializes once and reuses that; it initializes again only on a 401 or a lost-session answer. Figma's own `create_session` (a file working session for `use_figma`) is a separate thing and still goes first.
+- **Errors are readable text.** Figma's `isError` result is returned as it is; a JSON-RPC error is thrown as `Figma <method> error <code>: <message>`.
+- **The login** is read fresh from `%USERPROFILE%\.claude\.credentials.json` (the `mcpOAuth` entry whose `serverName` is `figma`); the file is **never written**, and the token is never logged, echoed or returned. After a 401 it re-reads the file once (Claude Code may have refreshed it), then answers one line: the Figma login on the PC expired, re-authenticate the `figma` MCP in Claude Code. Refreshing the token from Servex is deliberately not built: refresh tokens usually rotate, so using the stored one could invalidate Claude Code's copy and log it out.
+- **Claim check** (stops two agents editing one file): a **writing** call (any Figma tool not annotated `readOnlyHint`, so `use_figma`, `upload_assets`, `create_new_file`, ...; `create_session` is exempt) that names a file (`args.fileKey`, or a figma.com URL in `args.url`) is refused when another agent holds a claim whose thing is `figma:<fileKey>` or `figma:<fileKey>/<page id>` ([claims](/Servex/agents/claims.js)). Nothing is sent to Figma; the answer is `{blocked: true, why, holder, since, claim, card, options}`. The caller asks the holder to pause (`send_to_agent`) or repeats the call with `force: true` when the owner says so; the forced call's result ends with "(servex: forced past the claim held by X)". A stale claim (its holder is gone) does not block; a claim held by the voice app (never "live" in `list_agents`) counts for 4 hours. Reads are never blocked. `use_figma` is always a write here, even when its code only reads: for reads use `get_metadata`, `get_design_context` or `get_screenshot`. The convention for agents is in [assistant-access.md](/framework/ext/Figma/doc/assistant-access.md#from-live-voice-call-figma-through-servex-figma).
+- **Rate limit** (about 10 a minute and 200 a day for the whole account): every `tools/call` is counted in `%LOCALAPPDATA%\lew42\servex\logs\figma-calls.jsonl` (time, tool, caller, ms, status, blocked-by; never arguments or the login), the count survives a restart, and from 8 in a minute or 170 in a day a warning line is appended to the result.
+- **Timing** (2026-11-19, from the cloud door): a read about 0.6 to 1.2 s, a small `use_figma` write about 2 s.
+
 ## Adding tools without the app asking again
 
 What is **known**: the registry is built at Servex boot, so a new tool needs a Servex restart, and the Claude app caches the tool list per connection (see [tool-collapse](../../../../public/framework/ai/doc/tool-collapse.md)). What is **not known**: whether the app re-asks approval when `tools/list` changes; it could not be tested from here.
