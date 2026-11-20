@@ -51,3 +51,4 @@
 {"log":{"at":"2026-11-19T22:40:28-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
 {"log":{"at":"2026-11-19T22:45:28-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
 {"log":{"at":"2026-11-19T23:45:30-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"tool_call":{"at":"2026-11-20T06:21:22.112Z","tool":"updates","args_hash":"e6b432b42bfe","caller":"voice-app"}}
