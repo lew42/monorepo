@@ -36,3 +36,11 @@ Target file **"November 2026"** (was "Untitled"), key `3So7QCupj4U6ofjASX2ZxK` (
 - Page `7:68` holds the owner's own frame `7:69` "Frame 1" (heading text `7:70`): **leave it alone**. Also on the page: `7:71` Transparent Video Preview (component), `7:73` Frame 1, Ellipse `7:74`, two vectors `7:75`, `7:77`.
 - Frame `10:66` "Transparent Video" (1000 wide) was built by the voice agent from **Lew42 v3** (`JYGQX0WaBO4HcGMZTkL2rx`) component instances from the kit's Content page, v3 text styles and the v3 scale variables (width, pad, gap).
 - Open: (a) the frame's white fill and the code block's black text are hardcoded, because the v3 colour variables `fill` and `text` were hidden from publishing. All 11 are now unhidden in v3; the owner must republish v3 and accept the update in the target file before they can be bound. (b) v3 has no code-block component; the code block `10:134` is a plain frame using the `code` text style and the `darken` variable.
+
+## From a claude.ai cloud chat (checked 2026-11-19, project "Design (Figma + FAL)")
+
+- A cloud chat has the same `figma` MCP as a connector. Writes work from it: on 2026-11-19 it created the **Claude** page (`16:1195`) in "November 2026" (`3So7QCupj4U6ofjASX2ZxK`) with `use_figma`, and frame `16:1196` (1024 × 1024) there. That page is the cloud agents' test space.
+- Skills there are not in a plugin cache: read them with `get_figma_skill` (`skill://figma/figma-use/SKILL.md`, `skill://figma/figma-generate-design/SKILL.md`) and pass `skillNames: "resource:figma-use"`.
+- **An image from a URL (for example a fal.ai output):** `use_figma` has no `createImageAsync`. Make the frame, call `upload_assets({fileKey, nodeIds: [frameId], scaleMode: "FILL"})`, then POST the raw bytes to the returned `submitUrl` with `Content-Type: image/png` (`curl --data-binary @file`). Raw bytes keep the frame's name; a multipart upload renames the layer to the file name. The upload URL is single-use and lasts 10 minutes.
+- **Seeing what is in a file:** `get_screenshot` with `enableBase64Response: true` returns the image inline; `maxDimension` at the node's size gives it 1:1.
+- The cloud project's own map of these docs is its project doc `claude/figma.md`.
