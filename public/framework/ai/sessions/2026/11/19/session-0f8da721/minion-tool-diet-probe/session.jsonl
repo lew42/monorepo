@@ -15,3 +15,4 @@
 {"log":{"at":"2026-11-19T22:23:06-06:00","heartbeat":"revive-queued","msg":"minion-tool-diet-probe its agent is not running; a revive is queued"}}
 {"log":{"at":"2026-11-19T22:23:54-06:00","heartbeat":"escalated","msg":"minion-tool-diet-probe its agent is not running, and the revive failed: Agent minion-tool-diet-probe was not woken: its working directory C:/Code/lew42/worktrees/qf-2 no longer exists."}}
 {"log":{"at":"2026-11-19T22:30:27-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-19T23:30:31-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
