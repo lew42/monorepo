@@ -15,3 +15,4 @@
 {"log":{"at":"2026-11-19T20:02:52-06:00","heartbeat":"deliberate","msg":"minion-tool-diet-asks its agent is not running: it was stopped on purpose by mastermind-mcp at 2026-11-19T19:49:57-06:00; not revived."}}
 {"log":{"at":"2026-11-19T20:03:51-06:00","msg":"task-loop status ask 3: could not ask: Agent minion-tool-diet-asks was not woken: it was stopped on purpose by mastermind-mcp at 2026-11-19T19:49:57-06:00. Pass revive: true to wake it anyway.","ask":3}}
 {"log":{"at":"2026-11-19T20:08:51-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"stop":{"at":"2026-11-19T21:08:54-06:00","why":"dropped: owner minion-tool-diet-asks is stopped"}}
