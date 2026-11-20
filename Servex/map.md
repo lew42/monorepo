@@ -40,6 +40,7 @@ Every file at the top level of `Servex/`, one line each. Subfolders are one row,
 | [ImageTool.js](./ImageTool.js) | `view_image`: fetch an image by URL or path and return it inline as MCP image content ([doc](ext/remote/doc/remote-tools.md)) |
 | [files.js](./files.js) | `read_file`, `write_file`, `edit_file`, `list_dir`, `glob`, `shell`: no lockdown (the remote door is already behind its bearer token) |
 | [ImageTool.js](./ImageTool.js) | `view_image`: fetch an image by URL or path and return it inline as MCP image content ([ext/remote/doc/remote-tools.md](ext/remote/doc/remote-tools.md)); test `ImageTool.test.mjs` |
+| [FalUsage.js](./FalUsage.js), [FalKey.js](./FalKey.js) | `fal_usage`: what Fal really billed, per request, read-only; `FalKey.read()` is the one Fal key (file `%LOCALAPPDATA%\lew42\servex\fal.key`) ([ext/remote/doc/remote-tools.md](ext/remote/doc/remote-tools.md)); test `FalUsage.test.mjs` |
 | [FigmaTool.js](./FigmaTool.js) | `figma`: a generic pass-through to Figma's own MCP (list, read, write, resources, prompts), returns Figma's content unchanged; checks claims before a write, counts calls ([ext/remote/doc/remote-tools.md](ext/remote/doc/remote-tools.md)); test `FigmaTool.test.mjs` |
 | [home.js](./home.js) | `place(...parts)`, `stamp(at)`: the path and timestamp helpers most files here share |
 | [pages.js](./pages.js) | list, read and make pages without a shell: every write is one appended line or one targeted edit, never a rewrite ([core/Page/doc/jsonl.md](/framework/core/Page/doc/jsonl.md)) |

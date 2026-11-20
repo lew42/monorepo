@@ -39,6 +39,27 @@ Six file/shell tools (plus [`view_image`](#view_image-look-at-an-image-the-cloud
 - **Rate limit** (about 10 a minute and 200 a day for the whole account): every `tools/call` is counted in `%LOCALAPPDATA%\lew42\servex\logs\figma-calls.jsonl` (time, tool, caller, ms, status, blocked-by; never arguments or the login), the count survives a restart, and from 8 in a minute or 170 in a day a warning line is appended to the result.
 - **Timing** (2026-11-19, from the cloud door): a read about 0.6 to 1.2 s, a small `use_figma` write about 2 s.
 
+## `fal_usage`: what Fal really billed
+
+`Servex/FalUsage.js` (test `Servex/FalUsage.test.mjs`, registered in `Servex/agents/Global.js`). The Fal MCP connector signs in by OAuth and its pricing tool returns only a base unit price (9x to 14x low on video, 2026-11-19). This tool asks Fal's own **billing-events** feed instead, from the PC, so the cloud chat can read the real cost of a finished job: from the cloud chat `call({tool: "fal_usage", args: {...}})`.
+
+| Argument | Meaning |
+|---|---|
+| `hours` | window back from now (default 6, at most 2160); ignored when `start` is given |
+| `start`, `end` | ISO 8601; `end` is exclusive, default now |
+| `request_id` | one id or a list (up to 50); with no window given, searches the last 30 days |
+| `endpoint_id` | one endpoint id or a list (up to 50) |
+| `view` | `events` (default: one row per billed request) or `summary` (Fal's aggregate per endpoint and unit, no request ids) |
+| `max_events` | most rows returned (default 500, at most 2000) |
+
+**Returns** (numbers only): `{ok, view, source, window:{start,end}, currency, count, total_usd, by_endpoint:[{endpoint, requests, cost_usd}], lines:[{time, request_id, endpoint, unit, quantity, unit_price, cost_usd}]}`, `lines` oldest first. `cost_usd` is Fal's `cost_total` (after any discount). A capped result carries `truncated`; an empty one carries a `note` (billing rows can lag a finished job by a few minutes). A failure is `{ok:false, error}` in one plain line: a missing or empty key file names its path, a 401 says the key was rejected, a 403 says it lacks billing scope.
+
+- **The key: one file, `%LOCALAPPDATA%\lew42\servex\fal.key`** (`C:\Users\mike\AppData\Local\lew42\servex\fal.key`), outside the repo, the key as the file's only content. `Servex/FalKey.js` (`FalKey.read()`) reads it fresh on every call (so a new key needs no restart), strips a BOM, quotes, a pasted `Key ` prefix and whitespace, and throws a line naming the path if the file is missing or empty. It is the one Fal key on the PC: a future Fal module (image generation) should `import FalKey` and call `FalKey.read()`, never add a second key or an environment variable. The old `FAL_KEY` user environment variable (read by the dead `ext/Fal` lab in `C:\Code\frozen-helix`) is not used.
+- **The key is never returned, logged or echoed.** It goes only into the `Authorization: Key ...` header of a `GET` to `api.fal.ai` (host fixed in code, not an argument). The tool makes read calls only. The key may be a FULL-scope key, so treat the file as a spend secret.
+- **Scope needed:** the key must carry `billing:usage:read`, `auth:keys:read` and `account:users:read` (Fal's `BILLING` preset, or `FULL`).
+- **Grain:** `events` is per request (Fal's [Billing Events API](https://fal.ai/docs/platform-apis/v1/models/billing-events.md)); `summary` is Fal's [Usage API](https://fal.ai/docs/platform-apis/v1/models/usage.md), which is per endpoint and unit only. Fal's [Analytics](https://fal.ai/docs/platform-apis/v1/models/analytics.md) and [requests](https://fal.ai/docs/platform-apis/v1/models/requests/by-endpoint.md) endpoints carry no cost, so they are not used.
+- Takes effect at the next Servex restart.
+
 ## Adding tools without the app asking again
 
 What is **known**: the registry is built at Servex boot, so a new tool needs a Servex restart, and the Claude app caches the tool list per connection (see [tool-collapse](../../../../public/framework/ai/doc/tool-collapse.md)). What is **not known**: whether the app re-asks approval when `tools/list` changes; it could not be tested from here.
