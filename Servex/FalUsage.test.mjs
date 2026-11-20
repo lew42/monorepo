@@ -10,7 +10,7 @@ import FalUsage from "./FalUsage.js";
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fal-test-"));
 FalKey.FILE = path.join(dir, "fal.key");
 const SECRET = "00000000-1111-2222-3333-444444444444:" + "ab".repeat(16);
-const tool = FalUsage.tools()[0], call = a => tool.handler(a);
+const tool = FalUsage.tools()[0], call = async a => { const r = await tool.handler(a); const o = JSON.parse(r.content[0].text); assert.equal(!!r.isError, !o.ok, "isError mirrors ok"); return o; };
 
 // key file: missing, empty, BOM + newline, two lines
 assert.throws(() => FalKey.read(), e => e.message.includes(FalKey.FILE) && /does not exist/.test(e.message));

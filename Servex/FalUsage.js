@@ -110,8 +110,10 @@ export default class FalUsage {
 				max_events: { type: "number", description: "Most request rows returned (default 500, at most 2000)." },
 			} },
 			handler: async (a = {}) => {
-				try { return a.view === "summary" ? await FalUsage.summary(a) : await FalUsage.events(a); }
-				catch (e){ return { ok: false, error: String(e.message || e) }; }
+				let r;
+				try { r = a.view === "summary" ? await FalUsage.summary(a) : await FalUsage.events(a); }
+				catch (e){ r = { ok: false, error: String(e.message || e) }; }
+				return { content: [{ type: "text", text: JSON.stringify(r, null, 1) }], ...(r.ok ? {} : { isError: true }) };
 			},
 		}];
 	}
