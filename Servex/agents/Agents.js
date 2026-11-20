@@ -32,6 +32,7 @@ import { strip_marks } from "./mark-strip.js";
 const MAIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");   // Servex runs from the main tree
 import { page_tools, move_item, task_origin } from "./page_tools.js";
 import { handoff_note } from "./handoff-note.js";
+import Listed from "../Listed.js";
 
 /* The in-process caller is the agent itself: its own task.jsonl (its task dir), or null; the item tool files a reference there. */
 function agent_log(agent){
@@ -43,7 +44,7 @@ function agent_log(agent){
 
 /* The in-process page tools for one agent, and the names of their HTTP twins. */
 function local_page_tools(id, resolve_log){
-	const list = page_tools(resolve_log);
+	const list = page_tools(resolve_log).filter(t => Listed.all() || t.name === "item");   // the one item tool; page_set & co. stay reachable through call (Servex/Listed.js)
 	return { server: sdk_server(undefined, { caller: id }, list), twins: list.map(t => "mcp__servex__" + t.name) };
 }
 

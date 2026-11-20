@@ -93,14 +93,20 @@ assert.equal(sent.at(-1), "mastermind-fixed");
 const log = fs.readFileSync(path.join(root, "public/framework/ai/log.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l).remote_mcp);
 assert.ok(log.every(l => l.session && l.agent), "every log line names session and agent");
 assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
-// the remote route serves the whole registry plus ask_mastermind; calls are attributed to voice-app
+// the remote route LISTS a few tools (Servex/Listed.js REMOTE + cloud_voice_log) and answers every registered one; calls are attributed to voice-app
 {
-    const list = (await rpc({ id: 5, method: "tools/list" })).json.result.tools.map(t => t.name);
-    assert.equal(list[0], "ask_mastermind");
-    assert.ok(list.includes("page_add") && list.includes("whoami_test"), "page_add and the registry's own tools are listed");
-    assert.equal(list.length, mcp.tools.length + 4, "tool count = registry + ask_mastermind + voice_hear + call + cloud_voice_log");
+    const tools = (await rpc({ id: 5, method: "tools/list" })).json.result.tools, list = tools.map(t => t.name);
+    assert.ok(list.includes("call") && list.includes("cloud_voice_log") && list.includes("item"), "call, cloud_voice_log and item are listed");
+    assert.ok(!list.includes("ask_mastermind") && !list.includes("page_add") && !list.includes("whoami_test"), "deprecated and unlisted tools are hidden");
+    assert.ok(list.length <= 11, `about ten tools listed, got ${list.length}`);
     assert.equal(new Set(list).size, list.length, "no duplicates");
+    assert.match(tools.find(t => t.name === "call").description, /page_add.*whoami_test|whoami_test.*page_add/, "call's description names the hidden tools");
     const call = (name, args) => rpc({ id: 6, method: "tools/call", params: { name, arguments: args } });
+    const catalog = (await call("call", { tool: "list" })).json.result.content[0].text;
+    assert.ok(/^ask_mastermind: /m.test(catalog) && /^page_add: /m.test(catalog), "call list names every tool, one line each");
+    assert.match((await call("call", { tool: "list", args: { name: "page_add" } })).json.result.content[0].text, /"inputSchema"/, "call list with a name gives that schema");
+    const bad = (await call("call", { tool: "write_file", args: {} })).json.result;
+    assert.ok(bad.isError && /missing/.test(bad.content[0].text) && /Its schema:/.test(bad.content[0].text), "bad args through call answer with the schema: " + bad.content[0].text);
     assert.equal((await call("whoami_test", {})).json.result.content[0].text, "caller=voice-app");
     assert.equal((await call("nope_tool", {})).json.error.code, -32602, "unknown tool is an error");
     const text = r => r.json.result.content[0].text;

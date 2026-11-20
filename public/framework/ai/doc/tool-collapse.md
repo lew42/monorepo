@@ -1,6 +1,37 @@
-# Tool collapse: 81 Servex tools in every session, a plan to load only what is used
+# Tool collapse: from 105 listed Servex tools to about 9, the rest through `call`
 
-**Plan only, 2026-10-15. Nothing in Servex was changed and nothing restarted.** The numbers come from a script you can rerun: [`ToolCollapse.mjs`](../sessions/2026/10/15/voice-20261015/tool-collapse/ToolCollapse.mjs) (data in [`data/`](../sessions/2026/10/15/voice-20261015/tool-collapse/data/tools.json)).
+## What landed (2026-11-19)
+
+Every caller now **sees** only a few tools; every other tool is still registered and is reached by name through one dispatcher:
+
+```js
+call({tool: "take_worktree", args: {}})          // any Servex tool, listed or not
+call({tool: "list"})                             // every tool, one line each
+call({tool: "list", args: {name: "close_task"}}) // one tool's full schema
+```
+
+- **Listed on the local door** (`/mcp`, every Servex agent and VS Code tab): `item`, `call`, `send_to_agent`, `spawn_agent`, `list_agents`, `stop_agent`, `close_task`, `wake_me`, `log`. A voice seat adds its own two or three (`say`, `nothing`, `retract_say`; `session_line`, `session_summary`). An agent spawned with an `allowed_tools` whitelist keeps the Servex tools in it.
+- **Listed on the remote door** (`/mcp/remote`, the claude.ai connector): `item`, `call`, `updates`, `send_to_agent`, `spawn_agent`, `list_agents`, `shell`, `read_file`, `figma`, `cloud_voice_log`.
+- **In-process for Servex agents:** `mcp__local__item` only (was item plus five page tools). Pages are written with `item`; `page_set` & co. answer through `call`.
+- **`call` checks args** against the tool's own schema: a missing or wrong-typed field answers with the schema, a wrong name suggests near names. `call`'s description names every hidden tool.
+- **Nothing was deleted.** `SERVEX_LIST_ALL=1` lists everything again.
+- **Code:** [Servex/Listed.js](../../../../Servex/Listed.js) (who sees what), `dispatch` in [Servex/MCP.js](../../../../Servex/MCP.js), `tools()` in [RemoteMCP.js](../../../../Servex/ext/remote/RemoteMCP.js). Test: `node Servex/Listed.test.mjs` (also fails when a role text names an unlisted tool without saying `call`). Sizes: `node Servex/tool-count.mjs`.
+
+| | Before (2026-11-19) | After |
+|---|---|---|
+| `/mcp` tools listed | 105 tools, 86,324 chars (~24,700 tokens) | AFTER_LOCAL |
+| `/mcp/remote` tools listed | 109 tools, 88,308 chars (~25,200 tokens) | AFTER_REMOTE |
+| `spawn_agent` alone | 6,402 chars | 2,477 chars (long form: [Servex/doc/spawn-agent.md](../../../../Servex/doc/spawn-agent.md)) |
+
+**Calls, last 14 days** (509 transcripts, 4,642 Servex calls): 3 tools make 50% of calls, 7 make 80%, 16 make 95%; 51 listed tools were never called. Top: `item` 1,169 · `send_to_agent` 1,147 · `log` 418 · `close_task` 332 · `spawn_agent` 274 · `nothing` 262. Cloud calls (session logs, Oct–Nov): `updates` 747 · `send_to_agent` 618 · `shell` 544 · `item` 209 · `spawn_agent` 143 · `read_file` 107.
+
+**Why the earlier rounds never landed:** every round (2026-09-25, 10-15, 10-16, three on 10-20, 11-08) designed the end state, folding handlers into `item`, and stopped at a plan, so the cheap step waited behind it. The ask history: [plan.md](../sessions/2026/11/19/spawned/mastermind-mcp/plan.md).
+
+**Still open:** folding handlers into `item` (the 11-08 plan's eight merges) is a code cleanup, not a context saving, and is queued in [ai/todo.md](../todo.md).
+
+## The 2026-10-15 plan (kept for the reasoning)
+
+**Plan only, 2026-10-15.** The numbers come from a script you can rerun: [`ToolCollapse.mjs`](../sessions/2026/10/15/voice-20261015/tool-collapse/ToolCollapse.mjs) (data in [`data/`](../sessions/2026/10/15/voice-20261015/tool-collapse/data/tools.json)).
 
 ## The concern
 

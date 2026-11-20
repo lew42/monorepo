@@ -111,6 +111,10 @@ Proofs: `fork-proof.mjs` and `revive-proof.mjs`, beside `Agents.js`.
   reports `connected`, and the agent sees no tools at all. Use `z.looseObject({})` for a free-form object.
 - **In-process MCP tools are deferred behind ToolSearch by default.** A Haiku agent then
   says the tool is "not available". Pass `alwaysLoad: true` to `createSdkMcpServer`.
+- **An unlisted Servex tool is "not available" by its own name (2026-11-19).** `tools/list` shows
+  only `Servex/Listed.js`'s few per caller; a model that calls `mcp__servex__take_worktree` directly
+  gets "no such tool". The way in is `call({tool: "take_worktree", args})`, and `call`'s description
+  names every hidden tool. An agent whose spawn `allowed_tools` names a servex tool keeps it listed.
 - **`Agent.door()` used to drop `mcp_servers` when the host had no HTTP url.** A standalone
   host's in-process servers never reached the agent. Fixed.
 - **A resume without `fork` keeps the same session id.** The SDK appends to the same file.

@@ -2,7 +2,9 @@
 
 Read-only map; nothing here is built. The tools come from `tools(agents)` in `Servex/agents/tools.js` plus the files named in the last column; the site tools come from the `site` MCP server. Counts are of the backticked names below. Past work: [ai/doc/tool-collapse.md](/framework/ai/doc/tool-collapse.md) (81 tools = about 18,000 tokens; 65 used in 14 days, 16 never), [owner-2026-10-16-tools.md](owner-2026-10-16-tools.md) (the owner's direction), [item-tool.md](item-tool.md) (the one tool already built).
 
-**How an agent receives them.** A Servex-spawned agent gets the `servex` MCP over HTTP (all tools, names deferred behind ToolSearch) plus `mcp__local__*` in-process (the item and page tools; their HTTP twins are disallowed): `Agents.js` `door()`. A lean voice or page assistant gets none, or a short `allowed_tools` list (`Layers.js`, `Global.js`). A VS Code tab gets the `servex` MCP from `.mcp.json`, deferred. Roles and what each starts with: [ai/doc/agent-context.md](/framework/ai/doc/agent-context.md).
+**Listed vs reachable (2026-11-19).** Every tool below is registered and answers `tools/call`, but `tools/list` shows only a few per caller ([Servex/Listed.js](../Listed.js): `item`, `call`, `send_to_agent`, `spawn_agent`, `list_agents`, `stop_agent`, `close_task`, `wake_me`, `log`, plus a voice seat's own two or three; the remote door lists its own ten). The rest are reached by name through `call({tool, args})`; `call({tool: "list"})` lists them all. `SERVEX_LIST_ALL=1` lists everything again.
+
+**How an agent receives them.** A Servex-spawned agent gets the `servex` MCP over HTTP (the listed tools above) plus `mcp__local__item` in-process (its HTTP twin is disallowed; the page tools are reached through `call`): `Agents.js` `door()`. A lean voice or page assistant gets none, or a short `allowed_tools` list (`Layers.js`, `Global.js`). A VS Code tab gets the `servex` MCP from `.mcp.json`, deferred. Roles and what each starts with: [ai/doc/agent-context.md](/framework/ai/doc/agent-context.md).
 
 ## Servex tools (99 names below; the live list varies with the build)
 

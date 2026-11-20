@@ -13,7 +13,7 @@ Any folder may have `ai/log.jsonl`: a short index of the AI work done there — 
 
 ## Quick fixes: take, write, smoke-test, merge, return
 
-1. Call the Servex MCP tool `take_worktree()`; it gives `{id, path, branch, url}`.
+1. Call the Servex tool `take_worktree` through the dispatcher, `call({tool: "take_worktree"})`; it gives `{id, path, branch, url}`. (Only a few Servex tools are listed by name; every other one is reached through `call`, and `call({tool: "list"})` lists them.)
 2. Write into `path` and commit there.
 3. Run `node Server/merge.mjs <path> <pages you touched>`: the smoke test plus the serialized merge. On a failure, fix and rerun. A full-size branch is refused until `node Server/review.mjs <taskdir> <worktree>` has run, and that needs a `requirements.md` in the task dir. **Run `review.mjs` from the MAIN tree, or pass an absolute MAIN path as `<taskdir>`** — it resolves `<taskdir>` against your cwd, and the merge gate reads only MAIN's `public/framework/ai/`, so a review written into your worktree's copy of the task dir is invisible to it and the merge is refused after a real, paid review (two minions hit this on 2026-10-02). `<worktree>` is the only worktree argument. Before trusting your worktree's `task.jsonl`, check whether MAIN already holds a copy that has drifted from it, and append the missing lines there with `append.mjs`.
 4. Call `return_worktree(id)` when done or unused.

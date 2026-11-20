@@ -7,6 +7,8 @@ import TaskDirs from "../../../Server/TaskDirs.mjs";
 import DatedFiles from "../../../Server/DatedFiles.mjs";
 import Ask from "../../../Server/Ask.mjs";
 import TurnRefiner from "../../agents/TurnRefiner.js";
+import Listed from "../../Listed.js";
+import MCP from "../../MCP.js";
 
 /* The remote MCP endpoint (POST /mcp/remote), behind a bearer token. It serves the SAME tool registry every local Claude
  * session gets (`servex.mcp`, read live, never copied) plus `ask_mastermind` on top; calls run as caller "voice-app".
@@ -23,9 +25,10 @@ export default class RemoteMCP {
         "If you are a cloud voice agent (no CLAUDE.md on your machine, not running in the monorepo), read `Servex/ext/remote/doc/cloud-voice-agent.md` with read_file before anything else.",
         "You are the voice agent: the Claude app model talking with the owner by voice. You relay: the work is done by Servex agents on the owner's PC, and you have every Servex tool a local session has.",
         "Hand work to agents. list_agents shows who is running and on what; send_to_agent({id, text, from: \"voice-app\"}) gives a running agent the next ask (the one already on that project, so it keeps its context); spawn_agent({role: \"mastermind\", name, prompt}) starts one for a new project (add path: \"<folder>\" to make it that folder's mastermind). Say in a sentence what you handed to whom, then keep talking; never wait in silence.",
-        "Agents answer by message: their replies reach you through updates. Summarize a reply for the ear, do not read it back; agents are verbose on purpose, you keep replies short. Small, concrete things (a card, a page_set, a read_page) you do yourself.",
+        "Agents answer by message: their replies reach you through updates. Summarize a reply for the ear, do not read it back; agents are verbose on purpose, you keep replies short. Small, concrete things (a card, a page edit, reading a page) you do yourself with item.",
+        "A few tools are listed; every other Servex tool (check_usage, write_file, edit_file, glob, register_session, session_summary, take_worktree...) is reached by name through call({tool, args}). call({tool: \"list\"}) lists them all; call({tool: \"list\", args: {name}}) gives one tool's schema.",
         "ask_mastermind is deprecated: it starts a separate voice-<id> mastermind session with its own reply-file protocol. Do not call it; use spawn_agent and send_to_agent.",
-        "/live/ is your presentation screen: it shows only what you and the owner are discussing right now, the owner's current ask refined into structure, and you are its only author. When the topic changes, clear it first with page_set path \"/live/\" delta {\"content\":{\"clear\":true}}, then show the new topic with page_add path \"/live/\" and items such as {type: \"part-card\", title, text}. Never post heard or summary cards there.",
+        "/live/ is your presentation screen: it shows only what you and the owner are discussing right now, the owner's current ask refined into structure, and you are its only author. When the topic changes, clear it first with item({path: \"/live/\", delta: {\"content\":{\"clear\":true}}}), then show the new topic with item({path: \"/live/\", call: \"content.add\", args: {type: \"part-card\", title, text}}). Never post heard or summary cards there.",
         "The owner's standing rule (2026-10-16): when the owner asks a question, put the answer on /live/ as a card first, then say \"take a look\" and keep the spoken reply to one or two sentences. A status answer (\"what's running\") is a card listing each agent's id, state, what it is on and its cost (list_agents has them); it is shown, not spoken.",
         "Restarting Servex needs no question (the owner, 2026-11-06): it takes seconds and dev servers keep running. Do it between turns, never mid-sentence in a voice call, since it drops your own connection for a moment. Then check it came back (list_agents).",
         "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
@@ -39,11 +42,7 @@ export default class RemoteMCP {
         inputSchema: { type: "object", properties: { ticket: { type: "string" }, wait_s: { type: "number", description: "Default 8, at most 20." } } },
     };
     // One generic door that never changes: the app approves it once, and any tool added later is reachable through it (doc/remote-tools.md).
-    static CALL = {
-        name: "call",
-        description: "Call any Servex tool by name, including ones added after this connector was approved: call({tool: \"shell\", args: {command: \"git status\"}}). tool \"list\" returns every tool name with its description and input schema.",
-        inputSchema: { type: "object", properties: { tool: { type: "string" }, args: { type: "object" } }, required: ["tool"] },
-    };
+    static CALL = MCP.CALL;   // the shared dispatcher's definition (Servex/MCP.js)
     // The ONE cloud-only voice tool (owner, 2026-10-19): the owner's verbatim prompt goes to the session log. Only this remote route lists it; local SDK agents never see it.
     static LOG = {
         name: "cloud_voice_log",
@@ -134,9 +133,10 @@ export default class RemoteMCP {
             if (params.done) return ok(this.ride(params.done, header_sid));
             if (params?.name === RemoteMCP.CALL.name){
                 const { tool, args } = params.arguments ?? {};
-                if (tool === "list") return ok({ content: [{ type: "text", text: JSON.stringify(this.tools().map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }))) }] });
+                if (tool === "list" || !tool) return ok({ content: [{ type: "text", text: this.catalog(args?.name ?? args?.names) }] });
                 if (tool === RemoteMCP.TOOL.name || tool === RemoteMCP.HEAR.name) params = { name: tool, arguments: args };
-                else try { return ok(this.after(tool, header_sid, await this.servex.mcp.call(tool, args ?? {}, { caller: RemoteMCP.CALLER, session: params[RemoteMCP.SESSION] }), args)); }
+                // through the shared dispatcher (MCP.js dispatch), so bad args answer with the tool's own schema
+                else try { return ok(this.after(tool, header_sid, await this.servex.mcp.call(RemoteMCP.CALL.name, { tool, args: args ?? {} }, { caller: RemoteMCP.CALLER, session: params[RemoteMCP.SESSION] }), args)); }
                 catch (e) { return bad(e.code ?? -32603, String(e.message || e)); }
             }
             if (params?.name === RemoteMCP.HEAR.name){
@@ -166,10 +166,29 @@ export default class RemoteMCP {
         return bad(-32601, "method not found");
     }
 
-    // the one registry (servex.mcp, read at call time so late registrations show up) with ask_mastermind on top
+    /* What tools/list shows the claude.ai connector: Servex/Listed.js REMOTE plus cloud_voice_log (SERVEX_LIST_ALL=1: everything).
+     * Every other tool still answers tools/call by name, and `call` reaches it (its description names them all). */
     tools(){
+        const all = this.all_tools();
+        if (Listed.all()) return all;
+        const show = new Set([...Listed.remote(), RemoteMCP.LOG.name, RemoteMCP.CALL.name]), hidden = all.filter(t => !show.has(t.name)).map(t => t.name);
+        return all.filter(t => show.has(t.name)).map(t => t.name !== RemoteMCP.CALL.name ? t
+            : { ...t, description: `${t.description} Not listed here, reach them through call: ${hidden.join(", ")}.` });
+    }
+
+    // one line per tool, or the full definition of the named ones (call({tool: "list", args: {name}}))
+    catalog(name){
+        const all = this.all_tools().filter(t => t.name !== RemoteMCP.CALL.name);
+        if (!name) return all.map(t => `${t.name}: ${MCP.first(t.description)}`).join("\n");
+        const names = [].concat(name), found = all.filter(t => names.includes(t.name));
+        return found.length ? JSON.stringify(found.map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema })))
+            : `Unknown tool: ${names.join(", ")}. call({tool: "list"}) lists every tool.`;
+    }
+
+    // the one registry (servex.mcp, read at call time so late registrations show up) with the remote door's own tools on top
+    all_tools(){
         const own = [RemoteMCP.TOOL.name, RemoteMCP.CALL.name, RemoteMCP.LOG.name, RemoteMCP.HEAR.name], all = [RemoteMCP.TOOL, RemoteMCP.HEAR, RemoteMCP.CALL, RemoteMCP.LOG, ...(this.servex.mcp?.tools ?? []).filter(t => !own.includes(t.name))];
-        return all.map(t => t.name === "register_session" ? { ...t, description: RemoteMCP.REGISTER_DESCRIPTION, inputSchema: { type: "object", properties: { title: { type: "string", description: "A short name for this conversation, e.g. live page; the session is filed as cloud-voice-<name>." }, cost: { type: "number", description: "Your own cost so far in USD, if you know it (optional)." }, conversation: { type: "string", description: "Your claude.ai conversation id (e.g. session_01...), if you know it: the record is keyed by it, so a long gap never splits one conversation (optional)." } } } } : t);
+        return all.map(t => t.name === "register_session" ?{ ...t, description: RemoteMCP.REGISTER_DESCRIPTION, inputSchema: { type: "object", properties: { title: { type: "string", description: "A short name for this conversation, e.g. live page; the session is filed as cloud-voice-<name>." }, cost: { type: "number", description: "Your own cost so far in USD, if you know it (optional)." }, conversation: { type: "string", description: "Your claude.ai conversation id (e.g. session_01...), if you know it: the record is keyed by it, so a long gap never splits one conversation (optional)." } } } } : t);
     }
 
     /* Voice logging (doc/voice-logging.md): file cloud_voice_log words, log every call, and give a cloud
