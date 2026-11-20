@@ -9,3 +9,4 @@
 {"log":{"at":"2026-11-19T20:13:51-06:00","msg":"task-loop status ask 1: mastermind-tool-diet-mm-probe was stopped on purpose; not woken","ask":1}}
 {"log":{"at":"2026-11-19T20:18:51-06:00","msg":"task-loop status ask 2: mastermind-tool-diet-mm-probe was stopped on purpose; not woken","ask":2}}
 {"log":{"at":"2026-11-19T20:23:52-06:00","msg":"task-loop status ask 3: mastermind-tool-diet-mm-probe was stopped on purpose; not woken","ask":3}}
+{"log":{"at":"2026-11-19T20:28:54-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
