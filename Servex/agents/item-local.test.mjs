@@ -16,8 +16,13 @@ delete process.env.SERVEX_LOCAL_TOOLS;
 let d = door();
 ok(d.mcpServers.local?.type === "sdk", "local is an in-process sdk server");
 ok(d.mcpServers.servex?.type === "http", "HTTP servex entry stays");
-ok(NAMES.every(t => d.disallowedTools.includes("mcp__servex__" + t)), "six HTTP twins disallowed");
-ok(d.disallowedTools.length === 7 && d.disallowedTools.includes("mcp__claude_ai_Servex"), "the twins plus the claude.ai Servex connector (its calls would be labelled voice-app)");
+// the tool diet (Servex/Listed.js, 2026-11-19): only `item` is served in-process; the page tools answer through `call`
+ok(d.disallowedTools.includes("mcp__servex__item") && !d.disallowedTools.includes("mcp__servex__page_set"), "the item twin disallowed, the page tools not served in-process");
+ok(d.disallowedTools.length === 2 && d.disallowedTools.includes("mcp__claude_ai_Servex"), "the twin plus the claude.ai Servex connector (its calls would be labelled voice-app)");
+process.env.SERVEX_LIST_ALL = "1";
+d = door();
+ok(NAMES.every(t => d.disallowedTools.includes("mcp__servex__" + t)) && d.disallowedTools.length === 7, "SERVEX_LIST_ALL=1: the six page tools in-process again, six twins disallowed");
+delete process.env.SERVEX_LIST_ALL;
 
 process.env.SERVEX_LOCAL_TOOLS = "0";
 d = door();
