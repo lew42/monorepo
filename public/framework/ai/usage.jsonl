@@ -5048,3 +5048,5 @@
 {"log":{"at":"2026-11-20T12:45:31-06:00","session":null,"weekly_all":17,"weekly_scoped":31,"resets_at":null}}
 {"log":{"at":"2026-11-20T13:00:31-06:00","session":null,"weekly_all":17,"weekly_scoped":31,"resets_at":null}}
 {"log":{"at":"2026-11-20T13:15:31-06:00","session":null,"weekly_all":17,"weekly_scoped":31,"resets_at":null}}
+{"log":{"at":"2026-11-20T13:30:31-06:00","session":null,"weekly_all":17,"weekly_scoped":31,"resets_at":null}}
+{"log":{"at":"2026-11-20T13:45:30-06:00","session":null,"weekly_all":15,"weekly_scoped":0,"resets_at":null}}
