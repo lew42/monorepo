@@ -45,6 +45,9 @@ assert.ok(Listed.BASE.length <= 10 && Listed.REMOTE.length <= 10, "about 10 or f
 assert.ok(Listed.local("single-voice-assistant-v-abc").includes("say"));
 assert.ok(Listed.local("minion-x", "minion").includes("item") && !Listed.local("minion-x", "minion").includes("say"));
 assert.ok(Listed.local(null).includes("call"));
+const echo = { live: new Map([["echo-v-1", { role: "echo", allowed_tools: ["mcp__servex__refine_step", "Read"] }]]), reg: () => ({ read: () => ({}) }) };
+assert.ok(Listed.for_agent(echo, "echo-v-1").includes("refine_step"), "a spawn whitelist's servex tools stay listed for that agent");
+assert.ok(!Listed.for_agent(echo, "minion-y").includes("refine_step"));
 
 // 6. docs vs the live registry
 const ask = (body) => fetch("http://127.0.0.1:8090/mcp", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, ...body }) }).then(r => r.json());

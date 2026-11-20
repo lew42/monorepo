@@ -151,7 +151,7 @@ export default class Servex extends Events {
         this.dashboard = new this.constructor.Dashboard({ port: this.dashboard_port, servex: this });
         this.mcp = new MCP({ router: this.dashboard.router, instructions: INSTRUCTIONS, on_error: (e, tool, ctx) => ErrorLine.note(this.agents, ctx?.caller, e, { tool }),
             // a few tools listed per caller, the rest through `call` (Servex/Listed.js; SERVEX_LIST_ALL=1 lists everything again)
-            listed: ctx => Listed.all() ? null : Listed.local(ctx?.caller, ctx?.caller ? (this.agents?.live?.get(ctx.caller)?.role ?? this.agents?.reg?.().read?.()[ctx.caller]?.role ?? null) : null) });
+            listed: ctx => Listed.all() ? null : Listed.for_agent(this.agents, ctx?.caller) });
 
         /* `guard()` has to be the FIRST thing registered on the router — Express
          * walks a router's middleware/routes in REGISTRATION order, and a plain SSE

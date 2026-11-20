@@ -39,8 +39,21 @@ export default class Listed {
 		return Object.keys(Listed.ROLE).find(r => String(caller ?? "").startsWith(r + "-")) ?? role ?? null;
 	}
 
-	static local(caller = null, role = null){
-		return [...Listed.BASE, ...(Listed.ROLE[Listed.role_of(caller, role)] ?? [])];
+	/* `allowed`: the agent's own spawn whitelist (`allowed_tools`). A lean agent spawned with `mcp__servex__refine_step` in it
+	 * (Echo.js, Assistant.js, Global.js, Layers.js) must still SEE that tool, so every mcp__servex__ name there is listed too. */
+	static local(caller = null, role = null, allowed = []){
+		const own = (allowed ?? []).map(n => /^mcp__servex__(\w+)$/.exec(n)?.[1]).filter(Boolean);
+		return [...new Set([...Listed.BASE, ...(Listed.ROLE[Listed.role_of(caller, role)] ?? []), ...own])];
+	}
+
+	/* The local door's listing for one caller id, read from the agents host: its role and its allowed_tools. */
+	static for_agent(agents, caller){
+		if (!caller) return Listed.local();
+		const live = agents?.live?.get?.(caller);
+		let row = null; try { row = agents?.reg?.().read?.()[caller] ?? null; } catch {}
+		const role = live?.role ?? row?.role ?? null;
+		const allowed = live?.allowed_tools ?? row?.allowed_tools ?? row?.spec?.allowed_tools ?? row?.recipe?.allowed_tools ?? [];
+		return Listed.local(caller, role, allowed);
 	}
 
 	static remote(){ return [...Listed.REMOTE]; }
