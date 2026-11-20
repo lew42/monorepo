@@ -1,0 +1,601 @@
+diff --git a/Servex/Listed.js b/Servex/Listed.js
+new file mode 100644
+index 0000000000..83e81476dc
+--- /dev/null
++++ b/Servex/Listed.js
+@@ -0,0 +1,60 @@
++/* Listed — which Servex tools an agent SEES in tools/list. Every other tool is still registered, still answers
++ * tools/call by name, and is reached through the one dispatcher, `call({tool, args})`.
++ *
++ * Why (the owner, 2026-11-19, asked many times since 2026-09-25): "one item tool that can do anything ... I don't know why there's
++ * 107 tools. That's all injected into the descriptions on each prompt." Every listed tool's schema rides in the caller's context;
++ * an unlisted one costs one name in `call`'s description. History and numbers: public/framework/ai/doc/tool-collapse.md.
++ *
++ *   Listed.local(caller, role)   names for the local door (/mcp?as=<id>), by the caller's role
++ *   Listed.remote()              names for the claude.ai connector (/mcp/remote)
++ *   Listed.all()                 true when SERVEX_LIST_ALL=1: the old behaviour, everything listed (the one-line rollback)
++ *
++ * Changing a set needs a Servex restart (the list is read on each tools/list, but clients cache it per connection).
++ * The rule for adding a name: it carries a large share of calls for that role, or a small model cannot start without it. */
++export default class Listed {
++
++	/* Every local caller: Servex SDK agents (`?as=<id>`) and VS Code / CLI tabs (no `as`). `item` is served in-process to SDK
++	 * agents as mcp__local__item (Agents.js door()), so its HTTP twin is hidden from them there, and listed here for tabs. */
++	static BASE = ["item", "call", "send_to_agent", "spawn_agent", "list_agents", "stop_agent", "close_task", "wake_me", "log"];
++
++	/* A few roles carry one or two tools of their own: the ones their skill text tells them to call every turn. A small model
++	 * (the Haiku voice seats) should not have to find its main verb through `call`. */
++	static ROLE = {
++		"single-voice-assistant": ["say", "nothing", "retract_say"],
++		"voice-assistant": ["nothing"],
++		"session-smart": ["session_line", "session_summary"],
++		"voice-mastermind": ["session_line", "session_summary"],
++	};
++
++	/* The claude.ai connector: a cloud agent with no files of its own, so it keeps the file tools it calls most. Its own
++	 * voice tools (cloud_voice_log) are listed by RemoteMCP itself. */
++	static REMOTE = ["item", "call", "updates", "send_to_agent", "spawn_agent", "list_agents", "shell", "read_file", "figma"];
++
++	static all(){ return process.env.SERVEX_LIST_ALL === "1"; }
++
++	/* The role of a caller id. `role` (from the agents registry) wins; a voice seat's id names its role
++	 * (`single-voice-assistant-<session>`, `session-smart-<session>`), so the id is the fallback. */
++	static role_of(caller, role){
++		if (role && Listed.ROLE[role]) return role;
++		return Object.keys(Listed.ROLE).find(r => String(caller ?? "").startsWith(r + "-")) ?? role ?? null;
++	}
++
++	/* `allowed`: the agent's own spawn whitelist (`allowed_tools`). A lean agent spawned with `mcp__servex__refine_step` in it
++	 * (Echo.js, Assistant.js, Global.js, Layers.js) must still SEE that tool, so every mcp__servex__ name there is listed too. */
++	static local(caller = null, role = null, allowed = []){
++		const own = (allowed ?? []).map(n => /^mcp__servex__(\w+)$/.exec(n)?.[1]).filter(Boolean);
++		return [...new Set([...Listed.BASE, ...(Listed.ROLE[Listed.role_of(caller, role)] ?? []), ...own])];
++	}
++
++	/* The local door's listing for one caller id, read from the agents host: its role and its allowed_tools. */
++	static for_agent(agents, caller){
++		if (!caller) return Listed.local();
++		const live = agents?.live?.get?.(caller);
++		let row = null; try { row = agents?.reg?.().read?.()[caller] ?? null; } catch {}
++		const role = live?.role ?? row?.role ?? null;
++		const allowed = live?.allowed_tools ?? row?.allowed_tools ?? row?.spec?.allowed_tools ?? row?.recipe?.allowed_tools ?? [];
++		return Listed.local(caller, role, allowed);
++	}
++
++	static remote(){ return [...Listed.REMOTE]; }
++}
+diff --git a/Servex/Listed.test.mjs b/Servex/Listed.test.mjs
+new file mode 100644
+index 0000000000..a414b4abd8
+--- /dev/null
++++ b/Servex/Listed.test.mjs
+@@ -0,0 +1,66 @@
++// Listed + the `call` dispatcher (Servex/MCP.js): a few tools listed, every other one reached by name. node Servex/Listed.test.mjs
++// Part 2 checks the docs against the LIVE registry (Servex on :8090): every mcp__servex__X / mcp__local__X a role readme or a
++// skill names must still be a registered tool, so `call` can reach it. Fails, never skips, when a named tool is gone.
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import MCP from "./MCP.js";
++import Listed from "./Listed.js";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++const router = { post(){}, all(){} };
++
++// 1. one MCP, three tools, a listing that shows one of them
++const mcp = new MCP({ router, listed: () => ["shown"] });
++mcp.tool({ name: "shown", description: "A shown tool that does a thing. More text.", inputSchema: { type: "object", properties: {}, required: [] }, handler: () => "shown ok" });
++mcp.tool({ name: "close_task", description: "Close a task when it has landed. Long tail.", inputSchema: { type: "object", properties: { dir: { type: "string" }, evidence: { type: "array" } }, required: ["dir"] }, handler: a => `closed ${a.dir}` });
++mcp.tool({ name: "take_worktree", description: "Take a ready worktree from the pool.", inputSchema: { type: "object", properties: {} }, handler: (a, ctx) => `taken by ${ctx.caller}` });
++
++const list = (await mcp.result("tools/list", {}, { caller: "minion-x" })).tools;
++assert.deepEqual(list.map(t => t.name).sort(), ["call", "shown"]);
++const call = list.find(t => t.name === "call");
++assert.match(call.description, /close_task, take_worktree/, "call's description names every unlisted tool");
++
++// 2. the dispatcher reaches an unlisted tool, with the caller
++const via = (tool, args) => mcp.call("call", { tool, args }, { caller: "minion-x" }).then(r => ({ text: r.content[0].text, error: !!r.isError }));
++assert.deepEqual(await via("take_worktree", {}), { text: "taken by minion-x", error: false });
++assert.deepEqual(await via("close_task", { dir: "a/b" }), { text: "closed a/b", error: false });
++
++// 3. bad calls answer with the schema to use
++let r = await via("close_task", {});
++assert.ok(r.error && /missing dir/.test(r.text) && /"required":\["dir"\]/.test(r.text), r.text);
++r = await via("close_task", { dir: "a", evidence: "x" });
++assert.ok(r.error && /evidence should be array, got string/.test(r.text), r.text);
++r = await via("close", {});
++assert.ok(r.error && /Unknown tool: close\. Did you mean close_task/.test(r.text), r.text);
++
++// 4. list: one line each, or one tool in full
++assert.equal((await via("list", {})).text, "shown: A shown tool that does a thing.\nclose_task: Close a task when it has landed.\ntake_worktree: Take a ready worktree from the pool.");
++assert.match((await via("list", { name: "close_task" })).text, /"inputSchema":\{"type":"object"/);
++
++// 5. no listing = everything (SERVEX_LIST_ALL=1 path), and the role sets
++assert.equal((await new MCP({ router }).result("tools/list", {})).tools.length, 1, "a bare MCP lists only call");
++assert.ok(Listed.BASE.length <= 10 && Listed.REMOTE.length <= 10, "about 10 or fewer listed tools on each door");
++assert.ok(Listed.local("single-voice-assistant-v-abc").includes("say"));
++assert.ok(Listed.local("minion-x", "minion").includes("item") && !Listed.local("minion-x", "minion").includes("say"));
++assert.ok(Listed.local(null).includes("call"));
++const echo = { live: new Map([["echo-v-1", { role: "echo", allowed_tools: ["mcp__servex__refine_step", "Read"] }]]), reg: () => ({ read: () => ({}) }) };
++assert.ok(Listed.for_agent(echo, "echo-v-1").includes("refine_step"), "a spawn whitelist's servex tools stay listed for that agent");
++assert.ok(!Listed.for_agent(echo, "minion-y").includes("refine_step"));
++
++// 6. docs vs the live registry
++const ask = (body) => fetch("http://127.0.0.1:8090/mcp", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, ...body }) }).then(r => r.json());
++let names;
++try {
++	const all = await ask({ method: "tools/call", params: { name: "call", arguments: { tool: "list" } } });
++	names = all.result && !all.result.isError ? all.result.content[0].text.split("\n").map(l => l.split(":")[0]).concat("call")
++		: (await ask({ method: "tools/list" })).result.tools.map(t => t.name);   // a Servex from before this change: everything is listed
++} catch (e){ throw new Error(`Servex is not answering on :8090 (${e.message}); this test reads its live registry`); }
++const texts = [...fs.readdirSync(path.join(ROOT, "Servex/agents/roles")).filter(f => f.endsWith(".md")).map(f => `Servex/agents/roles/${f}`),
++	...fs.readdirSync(path.join(ROOT, ".claude/skills")).map(d => `.claude/skills/${d}/SKILL.md`).filter(f => fs.existsSync(path.join(ROOT, f)))];
++const known = new Set(names), missing = [];
++for (const f of texts) for (const m of fs.readFileSync(path.join(ROOT, f), "utf8").matchAll(/mcp__(?:servex|local)__(\w+)/g))
++	if (!known.has(m[1])) missing.push(`${f}: ${m[1]}`);
++assert.deepEqual([...new Set(missing)], [], "a role or skill names a Servex tool no longer registered");
++console.log(`Listed: ok (${names.length} registered, ${texts.length} role and skill texts checked)`);
+diff --git a/Servex/MCP.js b/Servex/MCP.js
+index 997a3b6e21..ba153b5b32 100644
+--- a/Servex/MCP.js
++++ b/Servex/MCP.js
+@@ -39,9 +39,74 @@ export default class MCP extends Events {
+         this.handlers = new Map();
+         this.info ??= { name: "servex", title: "Servex", version: "1.0.0" };
+         this.instructions ??= "";
++        this.listed ??= null;      // (ctx) => names to show in tools/list, or null for all (Servex sets it from Servex/Listed.js)
++        this.tool(MCP.CALL.name, { description: MCP.CALL.description, inputSchema: MCP.CALL.inputSchema }, (args, ctx) => this.dispatch(args, ctx));
+         this.route();
+     }
+ 
++    /* THE DISPATCHER. Every tool stays registered; only a few are listed (Servex/Listed.js). `call` reaches the rest by name,
++     * and checks `args` against that tool's own schema first, so a wrong name or a missing field answers with the schema to use. */
++    static CALL = {
++        name: "call",
++        description: "Call any Servex tool by name, listed or not: call({tool: \"take_worktree\", args: {}}). call({tool: \"list\"}) lists every tool with one line each;"
++            + " call({tool: \"list\", args: {name: \"close_task\"}}) returns that tool's full description and input schema. A wrong name or bad args answers with the right schema.",
++        inputSchema: { type: "object", properties: { tool: { type: "string", description: "A tool name, or \"list\"." }, args: { type: "object", description: "That tool's arguments." } }, required: ["tool"] },
++    };
++
++    async dispatch({ tool, args = {} } = {}, ctx = { caller: null }){
++        if (!tool || tool === "list") return this.catalog(args?.name ?? args?.names);
++        if (tool === MCP.CALL.name) throw new Error("call({tool: \"call\"}) is a loop; name the tool itself");
++        const def = this.tools.find(t => t.name === tool);
++        if (!def){
++            const words = String(tool).split(/[_\W]+/).filter(w => w.length > 3);
++            const near = this.tools.map(t => t.name).filter(n => n.includes(tool) || words.some(w => n.includes(w)));
++            throw new Error(`Unknown tool: ${tool}.${near.length ? ` Did you mean ${near.slice(0, 5).join(", ")}?` : ""} call({tool: "list"}) lists every tool.`);
++        }
++        const why = MCP.check(def.inputSchema, args ?? {});
++        if (why) throw new Error(`${tool}: ${why}. Its schema: ${JSON.stringify(def.inputSchema)}`);
++        return this.handlers.get(tool)(args ?? {}, ctx);
++    }
++
++    /* Required fields present, and top-level types right. The handler still does its own checks; this only makes a bad
++     * call through the dispatcher say which schema it missed. */
++    static check(schema, args){
++        if (typeof args !== "object" || Array.isArray(args) || args === null) return "args must be an object";
++        const missing = (schema?.required ?? []).filter(k => args[k] === undefined);
++        if (missing.length) return `missing ${missing.join(", ")}`;
++        for (const [k, v] of Object.entries(args)){
++            const type = schema?.properties?.[k]?.type;
++            if (!type || v === null) continue;
++            const is = Array.isArray(v) ? "array" : typeof v;
++            if (![].concat(type).some(t => t === is || (t === "integer" && Number.isInteger(v)))) return `${k} should be ${[].concat(type).join(" or ")}, got ${is}`;
++        }
++        return null;
++    }
++
++    // one line per tool, or the full definition of the named ones
++    catalog(name){
++        if (name){
++            const names = [].concat(name), found = this.tools.filter(t => names.includes(t.name));
++            if (!found.length) throw new Error(`Unknown tool: ${names.join(", ")}. call({tool: "list"}) lists every tool.`);
++            return JSON.stringify(found.map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema })));
++        }
++        return this.tools.filter(t => t.name !== MCP.CALL.name).map(t => `${t.name}: ${MCP.first(t.description)}`).join("\n");
++    }
++
++    static first(text){
++        const s = String(text ?? "").replace(/\s+/g, " ").trim(), m = /^(.{20,160}?[.;])(\s|$)/.exec(s);
++        return m ? m[1] : s.slice(0, 160);
++    }
++
++    /* What one caller sees. `call`'s description names every tool not listed for it, so a model that read a tool name in a skill
++     * finds the way to it in the list itself. */
++    visible(ctx = { caller: null }){
++        const names = this.listed?.(ctx);
++        if (!names) return this.tools;
++        const show = new Set([...names, MCP.CALL.name]), hidden = this.tools.filter(t => !show.has(t.name)).map(t => t.name);
++        return this.tools.filter(t => show.has(t.name)).map(t => t.name !== MCP.CALL.name ? t
++            : { ...t, description: `${t.description} Not listed here, reach them through call: ${hidden.join(", ")}.` });
++    }
++
+     tool(def, schema, handler){
+         if (typeof def === "string") def = { name: def, ...schema, handler: handler ?? schema?.handler };
+         else handler = def.handler ?? schema;
+@@ -91,7 +156,7 @@ export default class MCP extends Events {
+             instructions: this.instructions
+         };
+         if (method === "ping") return {};
+-        if (method === "tools/list") return { tools: this.tools };
++        if (method === "tools/list") return { tools: this.visible(ctx) };
+         if (method === "tools/call") return this.call(params.name, params.arguments ?? {}, ctx);
+         throw Object.assign(new Error(`Unknown method: ${method}`), { code: -32601 });
+     }
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index b1a4200c8b..fdf55e966b 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -68,6 +68,7 @@ import { LocalProxy } from "./ext/local/llama.js";
+ import { local_chat, local_model_slugs } from "./ext/local/chat.js";
+ import DatedFiles from "../Server/DatedFiles.mjs";
+ import ErrorLine from "./ErrorLine.js";
++import Listed from "./Listed.js";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const REPO = path.resolve(HERE, "..");
+@@ -83,7 +84,9 @@ const INSTRUCTIONS = `Servex is the always-on process on this machine. It superv
+     + ` stop_server and read server_logs. A project is any directory under the scan root with a`
+     + ` package.json; each one keeps a fixed port forever and is reachable through the proxy at`
+     + ` <name>.localhost:<proxy port>, which auto-starts it on the first request. append_log writes`
+-    + ` one JSON line into a named log through Servex, so two writers can never tear a line.`;
++    + ` one JSON line into a named log through Servex, so two writers can never tear a line.`
++    + ` Only a few tools are listed; every other Servex tool is reached by name through call({tool, args}),`
++    + ` and call({tool: "list"}) lists them all.`;
+ 
+ /* SERVEX — the one process that stays up.
+  *
+@@ -146,7 +149,9 @@ export default class Servex extends Events {
+         this.ports.pin("servex", this.dashboard_port);
+ 
+         this.dashboard = new this.constructor.Dashboard({ port: this.dashboard_port, servex: this });
+-        this.mcp = new MCP({ router: this.dashboard.router, instructions: INSTRUCTIONS, on_error: (e, tool, ctx) => ErrorLine.note(this.agents, ctx?.caller, e, { tool }) });
++        this.mcp = new MCP({ router: this.dashboard.router, instructions: INSTRUCTIONS, on_error: (e, tool, ctx) => ErrorLine.note(this.agents, ctx?.caller, e, { tool }),
++            // a few tools listed per caller, the rest through `call` (Servex/Listed.js; SERVEX_LIST_ALL=1 lists everything again)
++            listed: ctx => Listed.all() ? null : Listed.for_agent(this.agents, ctx?.caller) });
+ 
+         /* `guard()` has to be the FIRST thing registered on the router — Express
+          * walks a router's middleware/routes in REGISTRATION order, and a plain SSE
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index e24f38aa5e..6e01c56b68 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -32,6 +32,7 @@ import { strip_marks } from "./mark-strip.js";
+ const MAIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");   // Servex runs from the main tree
+ import { page_tools, move_item, task_origin } from "./page_tools.js";
+ import { handoff_note } from "./handoff-note.js";
++import Listed from "../Listed.js";
+ 
+ /* The in-process caller is the agent itself: its own task.jsonl (its task dir), or null; the item tool files a reference there. */
+ function agent_log(agent){
+@@ -43,7 +44,7 @@ function agent_log(agent){
+ 
+ /* The in-process page tools for one agent, and the names of their HTTP twins. */
+ function local_page_tools(id, resolve_log){
+-	const list = page_tools(resolve_log);
++	const list = page_tools(resolve_log).filter(t => Listed.all() || t.name === "item");   // the one item tool; page_set & co. stay reachable through call (Servex/Listed.js)
+ 	return { server: sdk_server(undefined, { caller: id }, list), twins: list.map(t => "mcp__servex__" + t.name) };
+ }
+ 
+diff --git a/Servex/agents/tools.js b/Servex/agents/tools.js
+index 3eab6a8375..0799ff6808 100644
+--- a/Servex/agents/tools.js
++++ b/Servex/agents/tools.js
+@@ -389,31 +389,27 @@ const policy = agents.policy ??= new Policy({ agents });
+ return [
+ 
+ 	tool("spawn_agent",
+-		"Start a new Claude session inside Servex and give it a job. It stays alive and steerable"
+-		+ " after it answers — talk to it again with `send_to_agent`. Returns the agent's card,"
+-		+ " including the id you address it by and the session uuid a terminal can `claude --resume`."
+-		+ " HOW YOU HEAR WHEN IT ENDS: a Servex SDK agent (the local /mcp door) is woken by one message when the child ends its turn,"
+-		+ " stops or errors, so keep working or end your turn. A CLOUD caller (claude.ai voice or text, /mcp/remote) is never pushed"
+-		+ " anything: tell the owner it is running, keep talking, and call `updates` at the start of every turn; the child's final"
+-		+ " message arrives there. Never block on it (`wait_for_agent`) for more than a few seconds.",
++		"Start a Claude session in Servex with a job; it stays steerable (send_to_agent). Returns its card: the id and session uuid."
++		+ " A Servex agent is woken by one message when the child ends its turn; a cloud caller reads it through `updates`. Never block on it."
++		+ " Every argument in full: Servex/doc/spawn-agent.md.",
+ 		{
+-			role: { type: "string", description: "What it is: `minion`, `mastermind`, `assistant`. Half of its id." },
+-			name: { type: "string", description: "What it is working on, in a word or two. The other half of its id." },
+-			prompt: { type: "string", description: "The job, as you would type it to a person. This is its first turn." },
+-			model: { type: "string", description: "Model id. Default `claude-sonnet-5-5`. Cheap scans: `claude-haiku-5-5`. An OpenRouter slug (anything with a `/`, e.g. `deepseek/deepseek-v4.1-flash`) runs through OpenRouter automatically — see `provider`." },
+-			provider: { type: "string", description: "`anthropic` (default) or `openrouter`. Usually leave it out: a `model` with a `/` in it already implies `openrouter`. Needs an OpenRouter key at %LOCALAPPDATA%\\lew42\\servex\\openrouter.key (Servex/ext/openrouter/readme.md) — missing key fails the spawn with one clear line." },
+-			effort: { type: "string", description: "`low` `medium` `high` `xhigh` `max`. Default `high`." },
+-			path: { type: "string", description: "A repo path or site path (e.g. `public/framework/ai/` or `/framework/ai/`). Loads that folder's readme chain, plus its `mastermind.md` (or `ai/mastermind.md`) if present, into the agent's SYSTEM prompt, so it survives compaction. Meant for the `mastermind` role (`ai-system-mastermind` is `mastermind` at `public/framework/ai`). The log line says which files were loaded." },
+-			cwd: { type: "string", description: "Directory it works in. Default the Servex process's own." },
+-			visibility: { type: "string", description: "Who the dashboard shows it to — `team` (default), `owner`, `private`. A label; nothing enforces it yet." },
+-			permission_mode: { type: "string", description: "`acceptEdits` (default) lets it edit files; `bypassPermissions` lets it do anything, including run commands; `plan` lets it do nothing." },
+-			allowed_tools: { type: "array", items: { type: "string" }, description: "Whitelist, e.g. [\"Bash\",\"Read\",\"Write\",\"Edit\"]. Omit for the CLI's own default set." },
+-			parent: { type: "string", description: "Your own agent id, if you are the one spawning this. When this child ends its turn, is stopped, or errors, it wakes YOU with one message — omit for a top-level agent with nobody to wake." },
+-			session_id: { type: "string", description: "FROM A VS CODE TAB (or any session Servex did not spawn): your own Claude session uuid (`$CLAUDE_CODE_SESSION_ID`). Servex records your tab as this child's parent (registering it as `vscode-<first 8 hex>` if it is not already), so the child's work rolls up under you and its news reaches your inbox. Leave out when `parent` is given or you are a Servex agent." },
+-			resume: { type: "string", description: "A session uuid to CONTINUE instead of starting blank — the agent opens with that whole conversation. No skill-load preamble is added, and with no `prompt` it just waits, idle, for a message. ⚠ Give the `cwd` the session originally ran in: sessions are stored per project directory, and a resume from anywhere else cannot find it." },
+-			fork: { type: "boolean", description: "With `resume`: continue as a NEW session (a copy), leaving the original untouched and still usable. It reuses the original's prompt cache when model, tools and settings match." },
+-			task: { type: ["object", "boolean"], description: "EVERY SPAWN HAS A TASK DIR: leave `task` out and Servex opens one anyway (ai/sessions/<today>/<your session folder, else `spawned`>/<agent id>/, line 1 with the session id, agent id, model and the first line of `prompt` as its title, then past-work.md), and tells the agent where its log is. Pass `task: false` ONLY for a throwaway probe that must leave no task dir. Or open the task yourself, before its first turn: `{dir, card, brief, home}`. `home` (optional) is the module the work belongs to, as a site path like `/framework/core/Page/`: it is written into line 1 so the task and its session are tagged by module from the start. `dir` is the task's directory (repo-relative or absolute; created if new) — line 1 (or the next line, if the dir already has a log) is written there with the session id, agent id, card, brief and model, so the agent never has to run new-task itself; its first turn is told where its log already is. Servex also writes `past-work.md` beside the brief (what already exists on the brief's title; `brief` = path of a requirements.md, or give `title`) and tells the agent to read it first. Nested tasks: `parent_task` (the parent's task dir; defaults to the calling agent's own task dir) and `after` (an array of the sibling task DIRS this one waits for, the series edges — full dirs like `dir`, never bare slugs; stored repo-relative like `parent_task` and matched exactly) are written into that line too. HANDOFF BY TASK: add `from` (the url of the record that holds the subtask, e.g. your session page) and `id` (the subtask's id) and that subtask MOVES into this agent's folder with its id and history (page_tools.js move_item); `dir` may then be left out." },
+-			budget_usd: { type: "number", description: "Dollar ceiling for the results-gated spend guard (Agents.js spend_gate) — overrides the task's `Budget: $N` brief line and the $20 default. The agent still starts with $2 and unlocks $3 per result up to this ceiling." },
++			role: { type: "string", description: "`minion`, `mastermind`, `reviewer`... Half of its id." },
++			name: { type: "string", description: "A word or two for the job. The other half of its id." },
++			prompt: { type: "string", description: "The job; its first turn." },
++			model: { type: "string", description: "Default `claude-sonnet-5-5`; `claude-haiku-5-5` for scans; a slug with `/` runs on OpenRouter." },
++			provider: { type: "string", description: "`anthropic` (default) or `openrouter`." },
++			effort: { type: "string", description: "`low` `medium` `high` (default) `xhigh` `max`." },
++			path: { type: "string", description: "A folder whose readme chain goes into the agent's system prompt (for a mastermind)." },
++			cwd: { type: "string", description: "Working directory." },
++			visibility: { type: "string", description: "`team` (default), `owner`, `private`." },
++			permission_mode: { type: "string", description: "`acceptEdits` (default), `bypassPermissions`, `plan`." },
++			allowed_tools: { type: "array", items: { type: "string" }, description: "Tool whitelist." },
++			parent: { type: "string", description: "Your agent id; the child wakes you when it ends a turn. Defaults to you." },
++			session_id: { type: "string", description: "From a VS Code tab only: your Claude session uuid, so the child rolls up under you." },
++			resume: { type: "string", description: "A session uuid to continue (give the `cwd` it ran in)." },
++			fork: { type: "boolean", description: "With `resume`: continue as a copy." },
++			task: { type: ["object", "boolean"], description: "Left out, Servex opens a task dir. `{dir, brief, card, home}` opens yours; `false` for a probe. See Servex/doc/spawn-agent.md." },
++			budget_usd: { type: "number", description: "Spend ceiling in dollars (default $20)." },
+ 			dormant_after: DORMANT_AFTER
+ 		},
+ 		[],
+diff --git a/Servex/doc/spawn-agent.md b/Servex/doc/spawn-agent.md
+new file mode 100644
+index 0000000000..92f956ec2c
+--- /dev/null
++++ b/Servex/doc/spawn-agent.md
+@@ -0,0 +1,40 @@
++# spawn_agent: every argument, in full
++
++The tool's own description is kept short, because every listed tool's schema rides in every caller's context ([Servex/Listed.js](../Listed.js), [tool-collapse.md](../../public/framework/ai/doc/tool-collapse.md)). This page holds the long form. Code: `tool("spawn_agent", ...)` in [agents/tools.js](../agents/tools.js).
++
++`spawn_agent` starts a new Claude session inside Servex and gives it a job. It stays alive and steerable after it answers: talk to it again with `send_to_agent`. It returns the agent's card, with the id you address it by and the session uuid a terminal can `claude --resume`.
++
++**How you hear when it ends.** A Servex SDK agent (the local `/mcp` door) is woken by one message when the child ends its turn, stops or errors, so keep working or end your turn. A cloud caller (claude.ai voice or text, `/mcp/remote`) is never pushed anything: tell the owner it is running, keep talking, and call `updates` at the start of every turn; the child's final message arrives there. Never block on it (`wait_for_agent`) for more than a few seconds.
++
++| Argument | What it does |
++|---|---|
++| `role` | What it is: `minion`, `mastermind`, `assistant`. Half of its id. Loads that role's readme. |
++| `name` | What it is working on, in a word or two. The other half of its id. |
++| `prompt` | The job, as you would type it to a person. Its first turn. |
++| `model` | Model id. Default `claude-sonnet-5-5`; cheap scans `claude-haiku-5-5`. An OpenRouter slug (anything with a `/`, e.g. `deepseek/deepseek-v4.1-flash`) runs through OpenRouter automatically. |
++| `provider` | `anthropic` (default) or `openrouter`. Usually left out: a `model` with a `/` already implies `openrouter`. Needs a key at `%LOCALAPPDATA%\lew42\servex\openrouter.key` ([ext/openrouter](../ext/openrouter/readme.md)); a missing key fails the spawn with one clear line. |
++| `effort` | `low` `medium` `high` `xhigh` `max`. Default `high`. |
++| `path` | A repo or site path (`public/framework/ai/` or `/framework/ai/`). Loads that folder's readme chain, plus its `mastermind.md` (or `ai/mastermind.md`), into the agent's SYSTEM prompt, so it survives compaction. Meant for the `mastermind` role. The log line says which files were loaded. |
++| `cwd` | Directory it works in. Default: the Servex process's own. |
++| `visibility` | `team` (default), `owner`, `private`. A dashboard label; nothing enforces it yet. |
++| `permission_mode` | `acceptEdits` (default) edits files; `bypassPermissions` does anything, commands included; `plan` does nothing. |
++| `allowed_tools` | Whitelist, e.g. `["Bash","Read","Write","Edit"]`. Omit for the CLI's default set. |
++| `parent` | Your own agent id, if you are the spawner. When the child ends its turn, stops or errors, it wakes you with one message. Defaults to the caller. |
++| `session_id` | From a VS Code tab (any session Servex did not spawn): your own Claude session uuid (`$CLAUDE_CODE_SESSION_ID`). Servex records your tab as the parent (registering it as `vscode-<first 8 hex>`), so the child's work rolls up under you and its news reaches your inbox. Leave out when `parent` is given or you are a Servex agent. |
++| `resume` | A session uuid to continue instead of starting blank; the agent opens with that whole conversation. No skill-load preamble; with no `prompt` it waits idle for a message. ⚠ Give the `cwd` the session ran in: sessions are stored per project directory. |
++| `fork` | With `resume`: continue as a NEW session (a copy), leaving the original usable. Reuses the original's prompt cache when model, tools and settings match. |
++| `task` | See below. |
++| `budget_usd` | Dollar ceiling for the results-gated spend guard (`Agents.js` `spend_gate`); overrides the brief's `Budget: $N` line and the $20 default. The agent starts with $2 and unlocks $3 per result up to the ceiling. |
++| `dormant_after` | Seconds idle before it sleeps to free RAM (it resumes in place on the next message), or `"session"` to never auto-sleep while it is a live session. Omit for the role's default (`Global.js` `default_after`). |
++
++## `task`
++
++Every spawn has a task dir. Leave `task` out and Servex opens one anyway (`ai/sessions/<today>/<your session folder, else spawned>/<agent id>/`, line 1 with the session id, agent id, model and the first line of `prompt` as its title, then `past-work.md`), and tells the agent where its log is. Pass `task: false` only for a throwaway probe that must leave no task dir.
++
++Or open the task yourself, before its first turn: `{dir, card, brief, home}`.
++
++- `home` (optional): the module the work belongs to, as a site path like `/framework/core/Page/`, written into line 1 so the task and its session are tagged by module from the start.
++- `dir`: the task's directory (repo-relative or absolute; created if new). Line 1 (or the next line, if the dir already has a log) is written there with the session id, agent id, card, brief and model, so the agent never runs `new-task` itself.
++- `brief`: path of a requirements.md (or give `title`). Servex writes `past-work.md` beside it and tells the agent to read it first.
++- Nested tasks: `parent_task` (the parent's task dir; defaults to the caller's own) and `after` (an array of sibling task DIRS this one waits for: full dirs like `dir`, never bare slugs; stored repo-relative and matched exactly).
++- Handoff by task: add `from` (the url of the record holding the subtask, e.g. your session page) and `id` (the subtask's id), and that subtask MOVES into this agent's folder with its id and history (`page_tools.js` `move_item`); `dir` may then be left out.
+diff --git a/Servex/doc/tools-map.md b/Servex/doc/tools-map.md
+index 6f0d9b83be..d72feb6329 100644
+--- a/Servex/doc/tools-map.md
++++ b/Servex/doc/tools-map.md
+@@ -2,7 +2,9 @@
+ 
+ Read-only map; nothing here is built. The tools come from `tools(agents)` in `Servex/agents/tools.js` plus the files named in the last column; the site tools come from the `site` MCP server. Counts are of the backticked names below. Past work: [ai/doc/tool-collapse.md](/framework/ai/doc/tool-collapse.md) (81 tools = about 18,000 tokens; 65 used in 14 days, 16 never), [owner-2026-10-16-tools.md](owner-2026-10-16-tools.md) (the owner's direction), [item-tool.md](item-tool.md) (the one tool already built).
+ 
+-**How an agent receives them.** A Servex-spawned agent gets the `servex` MCP over HTTP (all tools, names deferred behind ToolSearch) plus `mcp__local__*` in-process (the item and page tools; their HTTP twins are disallowed): `Agents.js` `door()`. A lean voice or page assistant gets none, or a short `allowed_tools` list (`Layers.js`, `Global.js`). A VS Code tab gets the `servex` MCP from `.mcp.json`, deferred. Roles and what each starts with: [ai/doc/agent-context.md](/framework/ai/doc/agent-context.md).
++**Listed vs reachable (2026-11-19).** Every tool below is registered and answers `tools/call`, but `tools/list` shows only a few per caller ([Servex/Listed.js](../Listed.js): `item`, `call`, `send_to_agent`, `spawn_agent`, `list_agents`, `stop_agent`, `close_task`, `wake_me`, `log`, plus a voice seat's own two or three; the remote door lists its own ten). The rest are reached by name through `call({tool, args})`; `call({tool: "list"})` lists them all. `SERVEX_LIST_ALL=1` lists everything again.
++
++**How an agent receives them.** A Servex-spawned agent gets the `servex` MCP over HTTP (the listed tools above) plus `mcp__local__item` in-process (its HTTP twin is disallowed; the page tools are reached through `call`): `Agents.js` `door()`. A lean voice or page assistant gets none, or a short `allowed_tools` list (`Layers.js`, `Global.js`). A VS Code tab gets the `servex` MCP from `.mcp.json`, deferred. Roles and what each starts with: [ai/doc/agent-context.md](/framework/ai/doc/agent-context.md).
+ 
+ ## Servex tools (99 names below; the live list varies with the build)
+ 
+diff --git a/Servex/ext/remote/RemoteMCP.js b/Servex/ext/remote/RemoteMCP.js
+index 2a827e1f92..f93349234f 100644
+--- a/Servex/ext/remote/RemoteMCP.js
++++ b/Servex/ext/remote/RemoteMCP.js
+@@ -7,6 +7,8 @@ import TaskDirs from "../../../Server/TaskDirs.mjs";
+ import DatedFiles from "../../../Server/DatedFiles.mjs";
+ import Ask from "../../../Server/Ask.mjs";
+ import TurnRefiner from "../../agents/TurnRefiner.js";
++import Listed from "../../Listed.js";
++import MCP from "../../MCP.js";
+ 
+ /* The remote MCP endpoint (POST /mcp/remote), behind a bearer token. It serves the SAME tool registry every local Claude
+  * session gets (`servex.mcp`, read live, never copied) plus `ask_mastermind` on top; calls run as caller "voice-app".
+@@ -23,9 +25,10 @@ export default class RemoteMCP {
+         "If you are a cloud voice agent (no CLAUDE.md on your machine, not running in the monorepo), read `Servex/ext/remote/doc/cloud-voice-agent.md` with read_file before anything else.",
+         "You are the voice agent: the Claude app model talking with the owner by voice. You relay: the work is done by Servex agents on the owner's PC, and you have every Servex tool a local session has.",
+         "Hand work to agents. list_agents shows who is running and on what; send_to_agent({id, text, from: \"voice-app\"}) gives a running agent the next ask (the one already on that project, so it keeps its context); spawn_agent({role: \"mastermind\", name, prompt}) starts one for a new project (add path: \"<folder>\" to make it that folder's mastermind). Say in a sentence what you handed to whom, then keep talking; never wait in silence.",
+-        "Agents answer by message: their replies reach you through updates. Summarize a reply for the ear, do not read it back; agents are verbose on purpose, you keep replies short. Small, concrete things (a card, a page_set, a read_page) you do yourself.",
++        "Agents answer by message: their replies reach you through updates. Summarize a reply for the ear, do not read it back; agents are verbose on purpose, you keep replies short. Small, concrete things (a card, a page edit, reading a page) you do yourself with item.",
++        "A few tools are listed; every other Servex tool (check_usage, write_file, edit_file, glob, register_session, session_summary, take_worktree...) is reached by name through call({tool, args}). call({tool: \"list\"}) lists them all; call({tool: \"list\", args: {name}}) gives one tool's schema.",
+         "ask_mastermind is deprecated: it starts a separate voice-<id> mastermind session with its own reply-file protocol. Do not call it; use spawn_agent and send_to_agent.",
+-        "/live/ is your presentation screen: it shows only what you and the owner are discussing right now, the owner's current ask refined into structure, and you are its only author. When the topic changes, clear it first with page_set path \"/live/\" delta {\"content\":{\"clear\":true}}, then show the new topic with page_add path \"/live/\" and items such as {type: \"part-card\", title, text}. Never post heard or summary cards there.",
++        "/live/ is your presentation screen: it shows only what you and the owner are discussing right now, the owner's current ask refined into structure, and you are its only author. When the topic changes, clear it first with item({path: \"/live/\", delta: {\"content\":{\"clear\":true}}}), then show the new topic with item({path: \"/live/\", call: \"content.add\", args: {type: \"part-card\", title, text}}). Never post heard or summary cards there.",
+         "The owner's standing rule (2026-10-16): when the owner asks a question, put the answer on /live/ as a card first, then say \"take a look\" and keep the spoken reply to one or two sentences. A status answer (\"what's running\") is a card listing each agent's id, state, what it is on and its cost (list_agents has them); it is shown, not spoken.",
+         "Restarting Servex needs no question (the owner, 2026-11-06): it takes seconds and dev servers keep running. Do it between turns, never mid-sentence in a voice call, since it drops your own connection for a moment. Then check it came back (list_agents).",
+         "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
+@@ -39,11 +42,7 @@ export default class RemoteMCP {
+         inputSchema: { type: "object", properties: { ticket: { type: "string" }, wait_s: { type: "number", description: "Default 8, at most 20." } } },
+     };
+     // One generic door that never changes: the app approves it once, and any tool added later is reachable through it (doc/remote-tools.md).
+-    static CALL = {
+-        name: "call",
+-        description: "Call any Servex tool by name, including ones added after this connector was approved: call({tool: \"shell\", args: {command: \"git status\"}}). tool \"list\" returns every tool name with its description and input schema.",
+-        inputSchema: { type: "object", properties: { tool: { type: "string" }, args: { type: "object" } }, required: ["tool"] },
+-    };
++    static CALL = MCP.CALL;   // the shared dispatcher's definition (Servex/MCP.js)
+     // The ONE cloud-only voice tool (owner, 2026-10-19): the owner's verbatim prompt goes to the session log. Only this remote route lists it; local SDK agents never see it.
+     static LOG = {
+         name: "cloud_voice_log",
+@@ -134,9 +133,10 @@ export default class RemoteMCP {
+             if (params.done) return ok(this.ride(params.done, header_sid));
+             if (params?.name === RemoteMCP.CALL.name){
+                 const { tool, args } = params.arguments ?? {};
+-                if (tool === "list") return ok({ content: [{ type: "text", text: JSON.stringify(this.tools().map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }))) }] });
++                if (tool === "list" || !tool) return ok({ content: [{ type: "text", text: this.catalog(args?.name ?? args?.names) }] });
+                 if (tool === RemoteMCP.TOOL.name || tool === RemoteMCP.HEAR.name) params = { name: tool, arguments: args };
+-                else try { return ok(this.after(tool, header_sid, await this.servex.mcp.call(tool, args ?? {}, { caller: RemoteMCP.CALLER, session: params[RemoteMCP.SESSION] }), args)); }
++                // through the shared dispatcher (MCP.js dispatch), so bad args answer with the tool's own schema
++                else try { return ok(this.after(tool, header_sid, await this.servex.mcp.call(RemoteMCP.CALL.name, { tool, args: args ?? {} }, { caller: RemoteMCP.CALLER, session: params[RemoteMCP.SESSION] }), args)); }
+                 catch (e) { return bad(e.code ?? -32603, String(e.message || e)); }
+             }
+             if (params?.name === RemoteMCP.HEAR.name){
+@@ -166,10 +166,29 @@ export default class RemoteMCP {
+         return bad(-32601, "method not found");
+     }
+ 
+-    // the one registry (servex.mcp, read at call time so late registrations show up) with ask_mastermind on top
++    /* What tools/list shows the claude.ai connector: Servex/Listed.js REMOTE plus cloud_voice_log (SERVEX_LIST_ALL=1: everything).
++     * Every other tool still answers tools/call by name, and `call` reaches it (its description names them all). */
+     tools(){
++        const all = this.all_tools();
++        if (Listed.all()) return all;
++        const show = new Set([...Listed.remote(), RemoteMCP.LOG.name, RemoteMCP.CALL.name]), hidden = all.filter(t => !show.has(t.name)).map(t => t.name);
++        return all.filter(t => show.has(t.name)).map(t => t.name !== RemoteMCP.CALL.name ? t
++            : { ...t, description: `${t.description} Not listed here, reach them through call: ${hidden.join(", ")}.` });
++    }
++
++    // one line per tool, or the full definition of the named ones (call({tool: "list", args: {name}}))
++    catalog(name){
++        const all = this.all_tools().filter(t => t.name !== RemoteMCP.CALL.name);
++        if (!name) return all.map(t => `${t.name}: ${MCP.first(t.description)}`).join("\n");
++        const names = [].concat(name), found = all.filter(t => names.includes(t.name));
++        return found.length ? JSON.stringify(found.map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema })))
++            : `Unknown tool: ${names.join(", ")}. call({tool: "list"}) lists every tool.`;
++    }
++
++    // the one registry (servex.mcp, read at call time so late registrations show up) with the remote door's own tools on top
++    all_tools(){
+         const own = [RemoteMCP.TOOL.name, RemoteMCP.CALL.name, RemoteMCP.LOG.name, RemoteMCP.HEAR.name], all = [RemoteMCP.TOOL, RemoteMCP.HEAR, RemoteMCP.CALL, RemoteMCP.LOG, ...(this.servex.mcp?.tools ?? []).filter(t => !own.includes(t.name))];
+-        return all.map(t => t.name === "register_session" ? { ...t, description: RemoteMCP.REGISTER_DESCRIPTION, inputSchema: { type: "object", properties: { title: { type: "string", description: "A short name for this conversation, e.g. live page; the session is filed as cloud-voice-<name>." }, cost: { type: "number", description: "Your own cost so far in USD, if you know it (optional)." }, conversation: { type: "string", description: "Your claude.ai conversation id (e.g. session_01...), if you know it: the record is keyed by it, so a long gap never splits one conversation (optional)." } } } } : t);
++        return all.map(t => t.name === "register_session" ?{ ...t, description: RemoteMCP.REGISTER_DESCRIPTION, inputSchema: { type: "object", properties: { title: { type: "string", description: "A short name for this conversation, e.g. live page; the session is filed as cloud-voice-<name>." }, cost: { type: "number", description: "Your own cost so far in USD, if you know it (optional)." }, conversation: { type: "string", description: "Your claude.ai conversation id (e.g. session_01...), if you know it: the record is keyed by it, so a long gap never splits one conversation (optional)." } } } } : t);
+     }
+ 
+     /* Voice logging (doc/voice-logging.md): file cloud_voice_log words, log every call, and give a cloud
+diff --git a/Servex/ext/remote/RemoteMCP.test.mjs b/Servex/ext/remote/RemoteMCP.test.mjs
+index 9f1673e5a2..ac8b1a9e35 100644
+--- a/Servex/ext/remote/RemoteMCP.test.mjs
++++ b/Servex/ext/remote/RemoteMCP.test.mjs
+@@ -93,14 +93,20 @@ assert.equal(sent.at(-1), "mastermind-fixed");
+ const log = fs.readFileSync(path.join(root, "public/framework/ai/log.jsonl"), "utf8").trim().split("\n").map(l => JSON.parse(l).remote_mcp);
+ assert.ok(log.every(l => l.session && l.agent), "every log line names session and agent");
+ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
+-// the remote route serves the whole registry plus ask_mastermind; calls are attributed to voice-app
++// the remote route LISTS a few tools (Servex/Listed.js REMOTE + cloud_voice_log) and answers every registered one; calls are attributed to voice-app
+ {
+-    const list = (await rpc({ id: 5, method: "tools/list" })).json.result.tools.map(t => t.name);
+-    assert.equal(list[0], "ask_mastermind");
+-    assert.ok(list.includes("page_add") && list.includes("whoami_test"), "page_add and the registry's own tools are listed");
+-    assert.equal(list.length, mcp.tools.length + 4, "tool count = registry + ask_mastermind + voice_hear + call + cloud_voice_log");
++    const tools = (await rpc({ id: 5, method: "tools/list" })).json.result.tools, list = tools.map(t => t.name);
++    assert.ok(list.includes("call") && list.includes("cloud_voice_log") && list.includes("item"), "call, cloud_voice_log and item are listed");
++    assert.ok(!list.includes("ask_mastermind") && !list.includes("page_add") && !list.includes("whoami_test"), "deprecated and unlisted tools are hidden");
++    assert.ok(list.length <= 11, `about ten tools listed, got ${list.length}`);
+     assert.equal(new Set(list).size, list.length, "no duplicates");
++    assert.match(tools.find(t => t.name === "call").description, /page_add.*whoami_test|whoami_test.*page_add/, "call's description names the hidden tools");
+     const call = (name, args) => rpc({ id: 6, method: "tools/call", params: { name, arguments: args } });
++    const catalog = (await call("call", { tool: "list" })).json.result.content[0].text;
++    assert.ok(/^ask_mastermind: /m.test(catalog) && /^page_add: /m.test(catalog), "call list names every tool, one line each");
++    assert.match((await call("call", { tool: "list", args: { name: "page_add" } })).json.result.content[0].text, /"inputSchema"/, "call list with a name gives that schema");
++    const bad = (await call("call", { tool: "write_file", args: {} })).json.result;
++    assert.ok(bad.isError && /missing/.test(bad.content[0].text) && /Its schema:/.test(bad.content[0].text), "bad args through call answer with the schema: " + bad.content[0].text);
+     assert.equal((await call("whoami_test", {})).json.result.content[0].text, "caller=voice-app");
+     assert.equal((await call("nope_tool", {})).json.error.code, -32602, "unknown tool is an error");
+     const text = r => r.json.result.content[0].text;
+diff --git a/Servex/ext/remote/doc/cloud-voice-agent.md b/Servex/ext/remote/doc/cloud-voice-agent.md
+index 2e5e8eb4af..f77762bcf2 100644
+--- a/Servex/ext/remote/doc/cloud-voice-agent.md
++++ b/Servex/ext/remote/doc/cloud-voice-agent.md
+@@ -7,6 +7,7 @@ If you are reading this through `read_file`, you are probably a **cloud voice ag
+ - The owner talks to you by voice in the **Claude app**. You run in Anthropic's cloud, not on the owner's computer.
+ - You reach the computer **only through the Servex MCP** (`/mcp/remote`). You have no local Claude Code session, no `CLAUDE.md` injected for you, and no SDK cost accounting. That is why nothing records your conversation unless you do it through this server.
+ - The Servex MCP also serves local agents. A cloud voice agent is one kind of caller (`voice-app`), not the only kind.
++- **Only ten tools are listed** (`item`, `call`, `updates`, `send_to_agent`, `spawn_agent`, `list_agents`, `shell`, `read_file`, `figma`, `cloud_voice_log`; since 2026-11-19, [Servex/Listed.js](../../../Listed.js)). Every other tool this guide names (`register_session`, `session_summary`, `session_line`, `check_usage`, `write_file`...) is reached through the dispatcher: `call({tool: "register_session", args: {title: "live page"}})`. `call({tool: "list"})` lists them all, `call({tool: "list", args: {name}})` gives one schema. Pages, `/live/` included, are written with `item`.
+ - You are **mostly a relay**: you pass the owner's asks to the right agent (`send_to_agent` to one already on the project, `spawn_agent` for a new one) and report back briefly. You are not a mastermind doing the work yourself.
+ 
+ ## You get no push: pull `updates` every turn (the owner, 2026-11-19)
+diff --git a/Servex/readme.md b/Servex/readme.md
+index c658bb0b62..d076f24c8b 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -46,6 +46,7 @@ class Servex {
+ | `agents/` | `Agents.js` (`spawn` → `open_task` → SDK `query()`), `tools.js` (the in-process tools incl. `spawn_agent`), `roles.js` (role → its readme in [`roles/`](agents/roles/readme.md), skills and posture), `Dispatcher.js`, `ChatWriter.js` (V1 `{chat}` lines to `session.messages`; tests `ChatWriter.move.test.mjs`, `ChatWriter.order.test.mjs`), `Sessions.js` (a voice session's fast and smart seats; the fast seat is the voice assistant by default, `session-assistant.txt` = `voice`/`fast`/`off`; both have `parent: "sessions"` so their turn-ends reach `Sessions.hire()`, and `nest_agents` in `page_tools.js` files the fast seat's cost under the smart seat of the same `parent_session`, test `seat-cost.test.mjs`), `ChatWriter.js` (mirrors each `{chat}` line `Sessions.write()` makes into the session's real chat list, `session.messages` and `session.sentences`, and, through the item tool, a `{place}` improve as that sentence's cleaned text, in place, and a new-topic `{place}` as one List `move` line; tests `chat-messages.test.mjs`, `ChatWriter.move.test.mjs`: [core/Session/Chat](/framework/core/Session/Chat/readme.md)), `WakePolicy.js` (when a voice session's smart seat is woken; test `WakePolicy.test.mjs`: [wake-policy](/framework/ux/Dictate/doc/wake-policy.md)), `page_tools.js` (item, page_set/page_add/page_call/page_read/page_log/page_note; `item` takes `get`/`set`/`call` beside `delta`/`read`, and also answers **queries** with no write, e.g. `item({path, delta:{"summary":{}}})` or `item({path, get:"summary"})`: [doc/item-tool.md](doc/item-tool.md)), `inbox.js`, `claims.js`, `directory.js` |
+ | `asks/`, `cards/` | the asks ledger (`Asks.js`), cards (`Cards.js`, writes `ai/cards.jsonl`) |
+ | `ext/` | `remote/` (voice-app door), `openrouter/` (non-Anthropic models), `refine/`, `local/`, `recite/` (recite-server, text to speech: [ext/recite/readme.md](ext/recite/readme.md)) |
++| `MCP.js`, `Listed.js` | the one tool registry and its door; `Listed.js` says which few tools each caller SEES in `tools/list` (about 9), and every other tool is reached through the dispatcher `call({tool, args})`, which checks args against that tool's schema (test `Listed.test.mjs`; sizes `node Servex/tool-count.mjs`; history [tool-collapse.md](../public/framework/ai/doc/tool-collapse.md); `SERVEX_LIST_ALL=1` lists everything) |
+ | `ErrorLine.js` | a tool call that throws writes `{"error","where":"file:line","tool","agent"}` into the calling agent's session log (test `ErrorLine.test.mjs`; [doc/tool-process.md](doc/tool-process.md)) |
+ | `ReverseProxy.js` | `<name>.localhost` to each project's port; a project's `package.json` `servex.routes` sends a path prefix (`/api`) to a second service process: [doc/prefix-routes.md](doc/prefix-routes.md) |
+ | `Relief.js` | at 70% memory commit, closes what is finished and puts idle agents to sleep; suggests closing the owner's own apps only in a note, only when they are away from the PC: [doc/processes.md](doc/processes.md#early-relief-at-70) · the page file is insurance, not the fix: [doc/processes.md](doc/processes.md#the-page-file-insurance-not-the-fix) |
+diff --git a/Servex/tool-count.mjs b/Servex/tool-count.mjs
+new file mode 100644
+index 0000000000..998ffada28
+--- /dev/null
++++ b/Servex/tool-count.mjs
+@@ -0,0 +1,59 @@
++// How big is the Servex tool list, on each door, and which tools are actually called?
++// Usage: node Servex/tool-count.mjs [days=14] [--json]
++// Reads the live tools/list on /mcp (local, as a minion and as a mastermind) and /mcp/remote (the claude.ai connector),
++// then counts tool_use names in the Claude transcripts under ~/.claude/projects (mcp__servex__X, mcp__local__X,
++// mcp__claude_ai_Servex__X, and call({tool: X}) through the dispatcher). No AI, no writes. Doc: public/framework/ai/doc/tool-collapse.md
++import fs from "node:fs"; import os from "node:os"; import path from "node:path"; import readline from "node:readline";
++
++const DAYS = Number(process.argv.find(a => /^\d+$/.test(a)) ?? 14), JSON_OUT = process.argv.includes("--json");
++const TOK = chars => Math.round(chars / 3.5);   // rough: JSON-ish English+code is ~3.5 chars per token
++const HOME = process.env.SERVEX_HOME ?? path.join(process.env.LOCALAPPDATA ?? os.homedir(), "lew42", "servex");
++
++async function list(url, headers = {}){
++	try {
++		const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json", accept: "application/json, text/event-stream", ...headers },
++			body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }) });
++		const tools = (await res.json()).result?.tools ?? [];
++		const chars = JSON.stringify(tools).length;
++		return { count: tools.length, chars, tokens: TOK(chars), names: tools.map(t => t.name) };
++	} catch (e){ return { error: String(e.message || e) }; }
++}
++
++let token = null; try { token = fs.readFileSync(path.join(HOME, "remote.token"), "utf8").trim(); } catch {}
++const doors = {
++	local: await list("http://127.0.0.1:8090/mcp"),
++	local_minion: await list("http://127.0.0.1:8090/mcp?as=minion-tool-count-probe&role=minion"),
++	remote: token ? await list("http://127.0.0.1:8090/mcp/remote", { authorization: `Bearer ${token}` }) : { error: "no remote.token" },
++};
++
++// call counts from every transcript touched in the last DAYS days
++const root = path.join(os.homedir(), ".claude", "projects"), since = Date.now() - DAYS * 864e5, files = [];
++for (const d of fs.readdirSync(root)) if (/^c--Code-lew42/i.test(d))
++	for (const f of fs.readdirSync(path.join(root, d))) if (f.endsWith(".jsonl")){
++		const p = path.join(root, d, f); if (fs.statSync(p).mtimeMs >= since) files.push(p);
++	}
++const calls = {};
++for (const p of files){
++	const rl = readline.createInterface({ input: fs.createReadStream(p), crlfDelay: Infinity });
++	for await (const line of rl){
++		if (!line.includes('"tool_use"')) continue;
++		for (const m of line.matchAll(/"name":"mcp__(?:servex|local|claude_ai_Servex)__(\w+)"(?:,"input":\{"tool":"(\w+)")?/g)){
++			const n = m[1] === "call" && m[2] ? m[2] : m[1];
++			calls[n] = (calls[n] ?? 0) + 1;
++		}
++	}
++}
++const ranked = Object.entries(calls).sort((a, b) => b[1] - a[1]);
++const total = ranked.reduce((a, [, n]) => a + n, 0);
++
++if (JSON_OUT) console.log(JSON.stringify({ at: new Date().toISOString(), days: DAYS, files: files.length, doors, total, calls: Object.fromEntries(ranked) }, null, 1));
++else {
++	for (const [door, v] of Object.entries(doors)) console.log(v.error ? `${door}: ${v.error}` : `${door}: ${v.count} tools listed, ${v.chars} chars (~${v.tokens} tokens)`);
++	console.log(`transcripts: ${files.length} files in the last ${DAYS} days, ${total} Servex tool calls`);
++	let run = 0; const at = p => ranked.findIndex(([, n]) => (run += n) >= p * total) + 1;
++	run = 0; const p50 = at(.5); run = 0; const p80 = at(.8); run = 0; const p95 = at(.95);
++	console.log(`tools that make 50% of calls: ${p50}, 80%: ${p80}, 95%: ${p95}`);
++	console.log("TOP:", ranked.slice(0, 30).map(([n, c]) => `${n}=${c}`).join(" "));
++	const listed = new Set(doors.local.names ?? []), never = [...listed].filter(n => !calls[n]);
++	console.log(`listed on /mcp but never called in ${DAYS} days (${never.length}):`, never.join(" "));
++}

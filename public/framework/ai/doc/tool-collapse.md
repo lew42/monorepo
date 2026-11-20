@@ -19,8 +19,8 @@ call({tool: "list", args: {name: "close_task"}}) // one tool's full schema
 
 | | Before (2026-11-19) | After |
 |---|---|---|
-| `/mcp` tools listed | 105 tools, 86,324 chars (~24,700 tokens) | AFTER_LOCAL |
-| `/mcp/remote` tools listed | 109 tools, 88,308 chars (~25,200 tokens) | AFTER_REMOTE |
+| `/mcp` tools listed | 105 tools, 86,324 chars (~24,700 tokens) | **9 tools, 13,760 chars (~3,900 tokens), -84%**; a Servex agent sees 8 (its `item` is in-process) |
+| `/mcp/remote` tools listed | 109 tools, 88,308 chars (~25,200 tokens) | **10 tools, 14,911 chars (~4,300 tokens), -83%** |
 | `spawn_agent` alone | 6,402 chars | 2,477 chars (long form: [Servex/doc/spawn-agent.md](../../../../Servex/doc/spawn-agent.md)) |
 
 **Calls, last 14 days** (509 transcripts, 4,642 Servex calls): 3 tools make 50% of calls, 7 make 80%, 16 make 95%; 51 listed tools were never called. Top: `item` 1,169 · `send_to_agent` 1,147 · `log` 418 · `close_task` 332 · `spawn_agent` 274 · `nothing` 262. Cloud calls (session logs, Oct–Nov): `updates` 747 · `send_to_agent` 618 · `shell` 544 · `item` 209 · `spawn_agent` 143 · `read_file` 107.

@@ -144,11 +144,11 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 
 ## 3. Proposed by agents, not requested
 
-- **Session pages, the next weight** (2026-11-10, [before/after](/live/plan/index/), [review](sessions/2026/11/09/spawned/mastermind-page-index/build/review.md)):
-  - **Problem:** a session page still loads about 27 MB: `directory.json` 5.6 MB (`AISessionDetail`), `ai/index.json` 4 MB, `asks/undone.json` 1.9 MB (`UndoneAsksPage`), each fetched by a page that needs a slice.
-  - **Page index on by default** (`?index=1` today, cuts page.js 161 → 47): fix `Server/PageNav.mjs`'s first-literal title read (anchor it to the page's own options) and carry `card` / `class_card` on the nav line (`Previews.js`), then flip `Page.from_index` and run `node Server/PageNav.mjs --apply`.
-  - **Small:** `Server/plugins/PageIndex.js` caches an empty folder answer by mtime; one shared `DashState` per tab.
-  - **Live only after a dev server restart:** `/api/index` and the nav-carrying list lines (port 3104 was held by a server Servex did not start, 2026-11-10).
+- **Session pages: make them lighter** (2026-11-10, [before/after](/live/plan/index/), [review](sessions/2026/11/09/spawned/mastermind-page-index/build/review.md)):
+  - **Problem:** one session page still downloads about 27 MB, because three big files load whole when a page needs a slice: `directory.json` 5.6 MB, `ai/index.json` 4 MB, `asks/undone.json` 1.9 MB.
+  - [ ] **Turn the page index on for every page.** Today it is opt-in with `?index=1` and cuts `page.js` loads from 161 to 47. Two fixes first: `Server/PageNav.mjs` sometimes reads the wrong title, and the index must carry each page's card. Then switch it on and run `node Server/PageNav.mjs --apply`.
+  - [ ] **Two small fixes:** the folder-answer cache in `Server/plugins/PageIndex.js` can keep an empty answer; each tab should share one `DashState`.
+  - [ ] **Restart the dev server.** The new `/api/index` stays dark until then (port 3104 was held by a server Servex did not start).
 
 - **The audit's top ten** half-finished tasks: two copies of the board, the health readout not
   in the dev bar, the dev bar's missing chat tab, ask-about-any-element, Make onto ux/Tree,
@@ -282,3 +282,4 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 - 2026-11-03 20:30 — Stored paragraphs (ask 6.4): paragraphs are derived from a 4 s pause gap (`ext/Chat/v3/placement.js`), so a "new paragraph" cannot be stored; proposal in `ux/Dictate/doc/placement-defaults.md` (Prompt `paragraphs` of sentence ids; migration + both views, over 150 lines).
 - 2026-11-03 20:30 — ChatV3 checkbox for `kind: "task"` (`ChatV3.js` `you()`) has no browser test yet; add one to `ChatV3.test.mjs` where node_modules exist.
 - 2026-11-09 — `/imagine/gallery/cards/` fails smoke's layout check on compliance/dev (h2 and .pad.wash text touching its box, 0px); unlinked from /framework/ui/card/ until fixed. Sonnet $1. (mastermind-ui-kit)
+- 2026-11-19 — Tool diet follow-ups (tool list cut landed, [tool-collapse.md](/framework/ai/doc/tool-collapse.md)): (1) fold record-only handlers into `item` (the 11-08 plan, /live/plan/item-tool/), a code cleanup; (2) RemoteMCP.tools()/catalog() reuse MCP.visible()/catalog() instead of a thin copy; (3) trim `item` (2.9k chars) and `send_to_agent` (1.9k) descriptions. Sonnet, ~$5 each. (mastermind-mcp)
