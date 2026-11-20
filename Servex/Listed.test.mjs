@@ -63,4 +63,12 @@ const known = new Set(names), missing = [];
 for (const f of texts) for (const m of fs.readFileSync(path.join(ROOT, f), "utf8").matchAll(/mcp__(?:servex|local)__(\w+)/g))
 	if (!known.has(m[1])) missing.push(`${f}: ${m[1]}`);
 assert.deepEqual([...new Set(missing)], [], "a role or skill names a Servex tool no longer registered");
+// a role readme that names a tool its role does not see listed must say how to reach it (through call)
+const unreached = [];
+for (const f of texts.filter(f => f.startsWith("Servex/agents/roles/") && !f.endsWith("readme.md"))){   // readme.md is the index, not a role
+	const text = fs.readFileSync(path.join(ROOT, f), "utf8"), role = path.basename(f, ".md"), shown = new Set(Listed.local(null, role));
+	const named = [...text.matchAll(/`(\w+)(?:\(\))?`/g)].map(m => m[1]).filter(n => known.has(n) && !shown.has(n));
+	if (named.length && !/call\(\{tool/.test(text)) unreached.push(`${f}: ${[...new Set(named)].join(", ")}`);
+}
+assert.deepEqual(unreached, [], "a role text names unlisted tools without saying call({tool, ...}) reaches them");
 console.log(`Listed: ok (${names.length} registered, ${texts.length} role and skill texts checked)`);

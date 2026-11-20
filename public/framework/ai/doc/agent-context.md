@@ -8,7 +8,7 @@ Columns: **CLAUDE.md** = the SDK loads it (`setting_sources` unset). **Chain** =
 
 | Start | Model | Role text | CLAUDE.md | Chain | Tools | How injected |
 |---|---|---|---|---|---|---|
-| `mastermind` | architect, high | skill `servex-mastermind` **(branch: `roles/servex-mastermind.md`)** | yes | yes (its task dir) | whole `servex` MCP (HTTP, names deferred) + `mcp__local__` item/page twins | `Agents.spawn`: `first_prompt(dir)` + `whoami` + `opening()` + the task line |
+| `mastermind` | architect, high | skill `servex-mastermind` **(branch: `roles/servex-mastermind.md`)** | yes | yes (its task dir) | the listed `servex` tools (HTTP: `call`, `send_to_agent`, `spawn_agent`, `list_agents`, `stop_agent`, `close_task`, `wake_me`, `log`; every other tool through `call`, [Servex/Listed.js](../../../../Servex/Listed.js), since 2026-11-19) + `mcp__local__item` in-process | `Agents.spawn`: `first_prompt(dir)` + `whoami` + `opening()` + the task line |
 | `page-mastermind` (the Dispatcher's one-task spawn; `task-mastermind` is now an alias of `mastermind`) | manager, medium | skill `page` **(branch: `roles/mastermind.md` + `page`)** | yes | yes | same | same |
 | `minion` | scan (Haiku), low | skill `minion` **(branch: `roles/minion.md`)** | yes | only if spawned with `task`/`page`; a bare minion gets a default task dir (since 2026-10-18), so usually yes | same | same |
 | `reviewer`, `checker`, `clarity` | manager, medium | skills `review` / `clarity` | yes | no (one-pass roles get no task dir) | same | `opening()` |
