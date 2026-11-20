@@ -1,4 +1,5 @@
-/* fal_usage: what Fal really billed. Read-only: only GET requests to api.fal.ai, with the key from FalKey (a file, never returned).
+/* fal_usage: what Fal really billed; fal_estimate: what a call should cost before it runs. Read-only: GET requests to api.fal.ai plus
+ * one POST to pricing/estimate (it computes a price, starts nothing), with the key from FalKey (a file, never returned).
  * Default view is Fal's billing-events feed (one row per billed request, with request_id); `view: "summary"` is the usage
  * aggregate per endpoint. Numbers only. Detail: ext/remote/doc/remote-tools.md, "fal_usage". */
 import FalKey from "./FalKey.js";
@@ -25,13 +26,16 @@ export default class FalUsage {
 		return d.toISOString();
 	}
 
-	// one GET; errors become one readable line, never carrying the key
-	static async get(route, params){
+	// one GET (or, with `send`, one POST: only used for /pricing/estimate, which computes a price and charges nothing);
+	// errors become one readable line, never carrying the key
+	static async get(route, params, send){
 		const key = FalKey.read();
 		const url = new URL(FalUsage.BASE + route);
 		for (const [k, v] of Object.entries(params)) for (const x of [].concat(v)) if (x != null) url.searchParams.append(k, String(x));
 		let res;
-		try { res = await fetch(url, { headers: { authorization: `Key ${key}`, accept: "application/json" }, signal: AbortSignal.timeout(FalUsage.TIMEOUT_MS) }); }
+		const init = send ? { method: "POST", body: JSON.stringify(send), headers: { authorization: `Key ${key}`, accept: "application/json", "content-type": "application/json" } }
+			: { headers: { authorization: `Key ${key}`, accept: "application/json" } };
+		try { res = await fetch(url, { ...init, signal: AbortSignal.timeout(FalUsage.TIMEOUT_MS) }); }
 		catch (e){ throw new Error(e.name === "TimeoutError" ? `Fal did not answer within ${FalUsage.TIMEOUT_MS / 1000} s` : `Could not reach Fal: ${e.cause?.code ?? e.message}`); }
 		const text = await res.text();
 		let body = null; try { body = JSON.parse(text); } catch {}
@@ -96,8 +100,46 @@ export default class FalUsage {
 		return { ok: true, view: "summary", source: "Fal usage (aggregate per endpoint and unit; no request ids)", window: w, count: lines.length, total_usd: FalUsage.round(lines.reduce((s, l) => s + l.cost_usd, 0)), lines };
 	}
 
+	// Fal's price list (base rate per unit) plus its two estimators. Nothing here is a charge: no generation is started.
+	static async estimate(a){
+		const ids = FalUsage.list(a.endpoint_id, "endpoint_id");
+		if (!ids.length) throw new Error("endpoint_id is required, e.g. minimax/h3-max/lip-sync/image-to-video");
+		if (ids.length > 10) throw new Error("endpoint_id: at most 10 values");
+		const calls = a.call_quantity == null ? 1 : Number(a.call_quantity), units = a.unit_quantity == null ? null : Number(a.unit_quantity);
+		if (!Number.isInteger(calls) || calls < 1) throw new Error("call_quantity must be a whole number, at least 1");
+		if (units !== null && !(units >= 0.000001)) throw new Error("unit_quantity must be a number, at least 0.000001");
+		const priced = await FalUsage.get("/pricing", { endpoint_id: ids });
+		const price = new Map((priced.prices ?? []).map(p => [p.endpoint_id, p]));
+		const missing = ids.filter(id => !price.has(id));
+		if (missing.length) throw new Error(`Fal has no price for ${missing.join(", ")}. Copy the endpoint id exactly as the model page shows it.`);
+		const ask = (id, type, q) => FalUsage.get("/pricing/estimate", {}, { estimate_type: type, endpoints: { [id]: q } }).then(b => FalUsage.round(b.total_cost));
+		const lines = await Promise.all(ids.map(async id => {
+			const p = price.get(id);
+			const l = { endpoint: id, unit: p.unit ?? null, unit_price: p.unit_price ?? null, model_page: `https://fal.ai/models/${id}`,
+				call_quantity: calls, typical_cost_usd: await ask(id, "historical_api_price", { call_quantity: calls }) };
+			if (units !== null){ l.unit_quantity = units; l.unit_cost_usd = await ask(id, "unit_price", { unit_quantity: units }); }
+			return l;
+		}));
+		return { ok: true, view: "estimate", source: "Fal pricing and pricing/estimate (an estimate, not a charge)", currency: "USD", lines,
+			note: "unit_price is Fal's BASE rate per unit. Resolution and duration multipliers are per model and are not in this API: unit_cost_usd is only right if unit_quantity is the BILLED units (fal_usage shows them as `quantity` on past requests). typical_cost_usd is Fal's average over past calls of that endpoint by all users, not your settings. Multipliers for known models: ext/remote/doc/remote-tools.md, fal_estimate." };
+	}
+
 	static tools(){
 		return [{
+			name: "fal_estimate",
+			description: "What a Fal call is expected to COST before you run it (an estimate; nothing is generated or charged). For each endpoint_id: Fal's base unit and unit_price, the typical cost of `call_quantity` calls (Fal's historical average), and, if you give `unit_quantity` (billed units, e.g. billed seconds), unit_quantity x price. The base rate is NOT the whole story: resolution and duration multipliers are per model, so compare with fal_usage `quantity` on past requests. The key is a file on the PC and is never returned.",
+			inputSchema: { type: "object", properties: {
+				endpoint_id: { anyOf: [{ type: "string" }, { type: "array", items: { type: "string" } }], description: "One endpoint id, or up to 10, e.g. heygen/avatar-6/turbo/image-to-video." },
+				unit_quantity: { type: "number", description: "Billed units to price (at least 0.000001). Use the model's real billed units, multipliers included." },
+				call_quantity: { type: "number", description: "Number of calls for the historical estimate (default 1)." },
+			}, required: ["endpoint_id"] },
+			handler: async (a = {}) => {
+				let r;
+				try { r = await FalUsage.estimate(a); }
+				catch (e){ r = { ok: false, error: String(e.message || e) }; }
+				return { content: [{ type: "text", text: JSON.stringify(r, null, 1) }], ...(r.ok ? {} : { isError: true }) };
+			},
+		}, {
 			name: "fal_usage",
 			description: "What Fal actually BILLED (not an estimate): one row per billed request with time, request_id, endpoint, unit, quantity, unit_price and cost_usd, plus a total and a per-endpoint split. Read-only; the key is a file on the PC and is never returned. Window: `hours` back from now (default 6), or `start`/`end` (ISO 8601). Narrow with `request_id` (one or a list; with no window given it searches the last 30 days) and/or `endpoint_id`. `view: \"summary\"` gives Fal's aggregate per endpoint and unit instead (no request ids). Billing rows can lag a finished job by a few minutes.",
 			inputSchema: { type: "object", properties: {

@@ -10,7 +10,9 @@ import FalUsage from "./FalUsage.js";
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fal-test-"));
 FalKey.FILE = path.join(dir, "fal.key");
 const SECRET = "00000000-1111-2222-3333-444444444444:" + "ab".repeat(16);
-const tool = FalUsage.tools()[0], call = async a => { const r = await tool.handler(a); const o = JSON.parse(r.content[0].text); assert.equal(!!r.isError, !o.ok, "isError mirrors ok"); return o; };
+const tools = Object.fromEntries(FalUsage.tools().map(t => [t.name, t])), tool = tools.fal_usage;
+const run = async (t, a) => { const r = await t.handler(a); const o = JSON.parse(r.content[0].text); assert.equal(!!r.isError, !o.ok, "isError mirrors ok"); return o; };
+const call = a => run(tool, a);
 
 // key file: missing, empty, BOM + newline, two lines
 assert.throws(() => FalKey.read(), e => e.message.includes(FalKey.FILE) && /does not exist/.test(e.message));
@@ -40,6 +42,12 @@ const server = http.createServer((q, r) => {
 	r.setHeader("content-type", "application/json");
 	if (mode === "401") return r.writeHead(401).end(JSON.stringify({ error: { type: "authorization_error", message: "bad key" } }));
 	if (mode === "403") return r.writeHead(403).end(JSON.stringify({ error: { type: "authorization_error", message: "missing scope" } }));
+	if (u.pathname.endsWith("/pricing")) return r.end(JSON.stringify({ has_more: false, prices: u.searchParams.getAll("endpoint_id").filter(id => id !== "no/such").map(id => ({ endpoint_id: id, unit_price: 0.05, unit: "seconds", currency: "USD" })) }));
+	if (u.pathname.endsWith("/pricing/estimate")){
+		let raw = ""; q.on("data", c => raw += c); q.on("end", () => { const b = JSON.parse(raw), [[, q1]] = Object.entries(b.endpoints); seen.at(-1).post = b;
+			r.end(JSON.stringify({ estimate_type: b.estimate_type, currency: "USD", total_cost: b.estimate_type === "unit_price" ? q1.unit_quantity * 0.05 : q1.call_quantity * 2.688 })); });
+		return;
+	}
 	if (u.pathname.endsWith("/usage")) return r.end(JSON.stringify({ has_more: false, summary: [{ endpoint_id: "a/b", unit: "second", quantity: 10, unit_price: 0.14, cost_total: 1.4, currency: "USD" }] }));
 	if (!u.searchParams.get("cursor")) return r.end(JSON.stringify({ has_more: true, next_cursor: "p2", billing_events: [ev("r2", "a/b", "2026-11-20T03:41:00Z", 0.7), ev("r1", "c/d", "2026-11-20T03:40:00Z", 0.225)] }));
 	r.end(JSON.stringify({ has_more: false, next_cursor: null, billing_events: [ev("r3", "a/b", "2026-11-20T03:42:00Z", 0.7)] }));
@@ -62,6 +70,20 @@ assert.equal(out.count, 2); assert.ok(out.truncated, "capped rows say so");
 
 out = await call({ view: "summary", hours: 1 });
 assert.equal(out.view, "summary"); assert.equal(out.total_usd, 1.4); assert.equal(out.lines[0].unit_price, 0.14);
+
+// fal_estimate: base price, historical estimate, unit estimate; bad input and unknown endpoint are readable
+const est = a => run(tools.fal_estimate, a);
+seen.length = 0;
+out = await est({ endpoint_id: "m/x", unit_quantity: 16, call_quantity: 2 });
+assert.equal(out.ok, true); assert.equal(out.lines.length, 1);
+assert.deepEqual(out.lines[0], { endpoint: "m/x", unit: "seconds", unit_price: 0.05, model_page: "https://fal.ai/models/m/x", call_quantity: 2, typical_cost_usd: 5.376, unit_quantity: 16, unit_cost_usd: 0.8 });
+assert.deepEqual(seen.filter(s => s.post).map(s => [s.post.estimate_type, s.auth]), [["historical_api_price", "Key " + SECRET], ["unit_price", "Key " + SECRET]], "estimates are POSTs with the key header");
+assert.match(out.note, /BASE rate/);
+out = await est({ endpoint_id: "m/x" }); assert.equal(out.lines[0].unit_cost_usd, undefined, "no unit_quantity, no unit estimate");
+assert.equal((await est({})).ok, false);
+assert.match((await est({ endpoint_id: "no/such" })).error, /no price for no\/such/);
+assert.match((await est({ endpoint_id: "m/x", unit_quantity: 0 })).error, /unit_quantity/);
+assert.match((await est({ endpoint_id: "m/x", call_quantity: 1.5 })).error, /whole number/);
 
 // errors are readable and never carry the key
 mode = "401"; out = await call({});
