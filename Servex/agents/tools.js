@@ -389,31 +389,27 @@ const policy = agents.policy ??= new Policy({ agents });
 return [
 
 	tool("spawn_agent",
-		"Start a new Claude session inside Servex and give it a job. It stays alive and steerable"
-		+ " after it answers — talk to it again with `send_to_agent`. Returns the agent's card,"
-		+ " including the id you address it by and the session uuid a terminal can `claude --resume`."
-		+ " HOW YOU HEAR WHEN IT ENDS: a Servex SDK agent (the local /mcp door) is woken by one message when the child ends its turn,"
-		+ " stops or errors, so keep working or end your turn. A CLOUD caller (claude.ai voice or text, /mcp/remote) is never pushed"
-		+ " anything: tell the owner it is running, keep talking, and call `updates` at the start of every turn; the child's final"
-		+ " message arrives there. Never block on it (`wait_for_agent`) for more than a few seconds.",
+		"Start a Claude session in Servex with a job; it stays steerable (send_to_agent). Returns its card: the id and session uuid."
+		+ " A Servex agent is woken by one message when the child ends its turn; a cloud caller reads it through `updates`. Never block on it."
+		+ " Every argument in full: Servex/doc/spawn-agent.md.",
 		{
-			role: { type: "string", description: "What it is: `minion`, `mastermind`, `assistant`. Half of its id." },
-			name: { type: "string", description: "What it is working on, in a word or two. The other half of its id." },
-			prompt: { type: "string", description: "The job, as you would type it to a person. This is its first turn." },
-			model: { type: "string", description: "Model id. Default `claude-sonnet-5-5`. Cheap scans: `claude-haiku-5-5`. An OpenRouter slug (anything with a `/`, e.g. `deepseek/deepseek-v4.1-flash`) runs through OpenRouter automatically — see `provider`." },
-			provider: { type: "string", description: "`anthropic` (default) or `openrouter`. Usually leave it out: a `model` with a `/` in it already implies `openrouter`. Needs an OpenRouter key at %LOCALAPPDATA%\\lew42\\servex\\openrouter.key (Servex/ext/openrouter/readme.md) — missing key fails the spawn with one clear line." },
-			effort: { type: "string", description: "`low` `medium` `high` `xhigh` `max`. Default `high`." },
-			path: { type: "string", description: "A repo path or site path (e.g. `public/framework/ai/` or `/framework/ai/`). Loads that folder's readme chain, plus its `mastermind.md` (or `ai/mastermind.md`) if present, into the agent's SYSTEM prompt, so it survives compaction. Meant for the `mastermind` role (`ai-system-mastermind` is `mastermind` at `public/framework/ai`). The log line says which files were loaded." },
-			cwd: { type: "string", description: "Directory it works in. Default the Servex process's own." },
-			visibility: { type: "string", description: "Who the dashboard shows it to — `team` (default), `owner`, `private`. A label; nothing enforces it yet." },
-			permission_mode: { type: "string", description: "`acceptEdits` (default) lets it edit files; `bypassPermissions` lets it do anything, including run commands; `plan` lets it do nothing." },
-			allowed_tools: { type: "array", items: { type: "string" }, description: "Whitelist, e.g. [\"Bash\",\"Read\",\"Write\",\"Edit\"]. Omit for the CLI's own default set." },
-			parent: { type: "string", description: "Your own agent id, if you are the one spawning this. When this child ends its turn, is stopped, or errors, it wakes YOU with one message — omit for a top-level agent with nobody to wake." },
-			session_id: { type: "string", description: "FROM A VS CODE TAB (or any session Servex did not spawn): your own Claude session uuid (`$CLAUDE_CODE_SESSION_ID`). Servex records your tab as this child's parent (registering it as `vscode-<first 8 hex>` if it is not already), so the child's work rolls up under you and its news reaches your inbox. Leave out when `parent` is given or you are a Servex agent." },
-			resume: { type: "string", description: "A session uuid to CONTINUE instead of starting blank — the agent opens with that whole conversation. No skill-load preamble is added, and with no `prompt` it just waits, idle, for a message. ⚠ Give the `cwd` the session originally ran in: sessions are stored per project directory, and a resume from anywhere else cannot find it." },
-			fork: { type: "boolean", description: "With `resume`: continue as a NEW session (a copy), leaving the original untouched and still usable. It reuses the original's prompt cache when model, tools and settings match." },
-			task: { type: ["object", "boolean"], description: "EVERY SPAWN HAS A TASK DIR: leave `task` out and Servex opens one anyway (ai/sessions/<today>/<your session folder, else `spawned`>/<agent id>/, line 1 with the session id, agent id, model and the first line of `prompt` as its title, then past-work.md), and tells the agent where its log is. Pass `task: false` ONLY for a throwaway probe that must leave no task dir. Or open the task yourself, before its first turn: `{dir, card, brief, home}`. `home` (optional) is the module the work belongs to, as a site path like `/framework/core/Page/`: it is written into line 1 so the task and its session are tagged by module from the start. `dir` is the task's directory (repo-relative or absolute; created if new) — line 1 (or the next line, if the dir already has a log) is written there with the session id, agent id, card, brief and model, so the agent never has to run new-task itself; its first turn is told where its log already is. Servex also writes `past-work.md` beside the brief (what already exists on the brief's title; `brief` = path of a requirements.md, or give `title`) and tells the agent to read it first. Nested tasks: `parent_task` (the parent's task dir; defaults to the calling agent's own task dir) and `after` (an array of the sibling task DIRS this one waits for, the series edges — full dirs like `dir`, never bare slugs; stored repo-relative like `parent_task` and matched exactly) are written into that line too. HANDOFF BY TASK: add `from` (the url of the record that holds the subtask, e.g. your session page) and `id` (the subtask's id) and that subtask MOVES into this agent's folder with its id and history (page_tools.js move_item); `dir` may then be left out." },
-			budget_usd: { type: "number", description: "Dollar ceiling for the results-gated spend guard (Agents.js spend_gate) — overrides the task's `Budget: $N` brief line and the $20 default. The agent still starts with $2 and unlocks $3 per result up to this ceiling." },
+			role: { type: "string", description: "`minion`, `mastermind`, `reviewer`... Half of its id." },
+			name: { type: "string", description: "A word or two for the job. The other half of its id." },
+			prompt: { type: "string", description: "The job; its first turn." },
+			model: { type: "string", description: "Default `claude-sonnet-5-5`; `claude-haiku-5-5` for scans; a slug with `/` runs on OpenRouter." },
+			provider: { type: "string", description: "`anthropic` (default) or `openrouter`." },
+			effort: { type: "string", description: "`low` `medium` `high` (default) `xhigh` `max`." },
+			path: { type: "string", description: "A folder whose readme chain goes into the agent's system prompt (for a mastermind)." },
+			cwd: { type: "string", description: "Working directory." },
+			visibility: { type: "string", description: "`team` (default), `owner`, `private`." },
+			permission_mode: { type: "string", description: "`acceptEdits` (default), `bypassPermissions`, `plan`." },
+			allowed_tools: { type: "array", items: { type: "string" }, description: "Tool whitelist." },
+			parent: { type: "string", description: "Your agent id; the child wakes you when it ends a turn. Defaults to you." },
+			session_id: { type: "string", description: "From a VS Code tab only: your Claude session uuid, so the child rolls up under you." },
+			resume: { type: "string", description: "A session uuid to continue (give the `cwd` it ran in)." },
+			fork: { type: "boolean", description: "With `resume`: continue as a copy." },
+			task: { type: ["object", "boolean"], description: "Left out, Servex opens a task dir. `{dir, brief, card, home}` opens yours; `false` for a probe. See Servex/doc/spawn-agent.md." },
+			budget_usd: { type: "number", description: "Spend ceiling in dollars (default $20)." },
 			dormant_after: DORMANT_AFTER
 		},
 		[],

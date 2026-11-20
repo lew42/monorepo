@@ -68,6 +68,7 @@ import { LocalProxy } from "./ext/local/llama.js";
 import { local_chat, local_model_slugs } from "./ext/local/chat.js";
 import DatedFiles from "../Server/DatedFiles.mjs";
 import ErrorLine from "./ErrorLine.js";
+import Listed from "./Listed.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, "..");
@@ -83,7 +84,9 @@ const INSTRUCTIONS = `Servex is the always-on process on this machine. It superv
     + ` stop_server and read server_logs. A project is any directory under the scan root with a`
     + ` package.json; each one keeps a fixed port forever and is reachable through the proxy at`
     + ` <name>.localhost:<proxy port>, which auto-starts it on the first request. append_log writes`
-    + ` one JSON line into a named log through Servex, so two writers can never tear a line.`;
+    + ` one JSON line into a named log through Servex, so two writers can never tear a line.`
+    + ` Only a few tools are listed; every other Servex tool is reached by name through call({tool, args}),`
+    + ` and call({tool: "list"}) lists them all.`;
 
 /* SERVEX — the one process that stays up.
  *
@@ -146,7 +149,9 @@ export default class Servex extends Events {
         this.ports.pin("servex", this.dashboard_port);
 
         this.dashboard = new this.constructor.Dashboard({ port: this.dashboard_port, servex: this });
-        this.mcp = new MCP({ router: this.dashboard.router, instructions: INSTRUCTIONS, on_error: (e, tool, ctx) => ErrorLine.note(this.agents, ctx?.caller, e, { tool }) });
+        this.mcp = new MCP({ router: this.dashboard.router, instructions: INSTRUCTIONS, on_error: (e, tool, ctx) => ErrorLine.note(this.agents, ctx?.caller, e, { tool }),
+            // a few tools listed per caller, the rest through `call` (Servex/Listed.js; SERVEX_LIST_ALL=1 lists everything again)
+            listed: ctx => Listed.all() ? null : Listed.local(ctx?.caller, ctx?.caller ? (this.agents?.live?.get(ctx.caller)?.role ?? this.agents?.reg?.().read?.()[ctx.caller]?.role ?? null) : null) });
 
         /* `guard()` has to be the FIRST thing registered on the router — Express
          * walks a router's middleware/routes in REGISTRATION order, and a plain SSE

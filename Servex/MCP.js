@@ -39,7 +39,72 @@ export default class MCP extends Events {
         this.handlers = new Map();
         this.info ??= { name: "servex", title: "Servex", version: "1.0.0" };
         this.instructions ??= "";
+        this.listed ??= null;      // (ctx) => names to show in tools/list, or null for all (Servex sets it from Servex/Listed.js)
+        this.tool(MCP.CALL.name, { description: MCP.CALL.description, inputSchema: MCP.CALL.inputSchema }, (args, ctx) => this.dispatch(args, ctx));
         this.route();
+    }
+
+    /* THE DISPATCHER. Every tool stays registered; only a few are listed (Servex/Listed.js). `call` reaches the rest by name,
+     * and checks `args` against that tool's own schema first, so a wrong name or a missing field answers with the schema to use. */
+    static CALL = {
+        name: "call",
+        description: "Call any Servex tool by name, listed or not: call({tool: \"take_worktree\", args: {}}). call({tool: \"list\"}) lists every tool with one line each;"
+            + " call({tool: \"list\", args: {name: \"close_task\"}}) returns that tool's full description and input schema. A wrong name or bad args answers with the right schema.",
+        inputSchema: { type: "object", properties: { tool: { type: "string", description: "A tool name, or \"list\"." }, args: { type: "object", description: "That tool's arguments." } }, required: ["tool"] },
+    };
+
+    async dispatch({ tool, args = {} } = {}, ctx = { caller: null }){
+        if (!tool || tool === "list") return this.catalog(args?.name ?? args?.names);
+        if (tool === MCP.CALL.name) throw new Error("call({tool: \"call\"}) is a loop; name the tool itself");
+        const def = this.tools.find(t => t.name === tool);
+        if (!def){
+            const words = String(tool).split(/[_\W]+/).filter(w => w.length > 3);
+            const near = this.tools.map(t => t.name).filter(n => n.includes(tool) || words.some(w => n.includes(w)));
+            throw new Error(`Unknown tool: ${tool}.${near.length ? ` Did you mean ${near.slice(0, 5).join(", ")}?` : ""} call({tool: "list"}) lists every tool.`);
+        }
+        const why = MCP.check(def.inputSchema, args ?? {});
+        if (why) throw new Error(`${tool}: ${why}. Its schema: ${JSON.stringify(def.inputSchema)}`);
+        return this.handlers.get(tool)(args ?? {}, ctx);
+    }
+
+    /* Required fields present, and top-level types right. The handler still does its own checks; this only makes a bad
+     * call through the dispatcher say which schema it missed. */
+    static check(schema, args){
+        if (typeof args !== "object" || Array.isArray(args) || args === null) return "args must be an object";
+        const missing = (schema?.required ?? []).filter(k => args[k] === undefined);
+        if (missing.length) return `missing ${missing.join(", ")}`;
+        for (const [k, v] of Object.entries(args)){
+            const type = schema?.properties?.[k]?.type;
+            if (!type || v === null) continue;
+            const is = Array.isArray(v) ? "array" : typeof v;
+            if (![].concat(type).some(t => t === is || (t === "integer" && Number.isInteger(v)))) return `${k} should be ${[].concat(type).join(" or ")}, got ${is}`;
+        }
+        return null;
+    }
+
+    // one line per tool, or the full definition of the named ones
+    catalog(name){
+        if (name){
+            const names = [].concat(name), found = this.tools.filter(t => names.includes(t.name));
+            if (!found.length) throw new Error(`Unknown tool: ${names.join(", ")}. call({tool: "list"}) lists every tool.`);
+            return JSON.stringify(found.map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema })));
+        }
+        return this.tools.filter(t => t.name !== MCP.CALL.name).map(t => `${t.name}: ${MCP.first(t.description)}`).join("\n");
+    }
+
+    static first(text){
+        const s = String(text ?? "").replace(/\s+/g, " ").trim(), m = /^(.{20,160}?[.;])(\s|$)/.exec(s);
+        return m ? m[1] : s.slice(0, 160);
+    }
+
+    /* What one caller sees. `call`'s description names every tool not listed for it, so a model that read a tool name in a skill
+     * finds the way to it in the list itself. */
+    visible(ctx = { caller: null }){
+        const names = this.listed?.(ctx);
+        if (!names) return this.tools;
+        const show = new Set([...names, MCP.CALL.name]), hidden = this.tools.filter(t => !show.has(t.name)).map(t => t.name);
+        return this.tools.filter(t => show.has(t.name)).map(t => t.name !== MCP.CALL.name ? t
+            : { ...t, description: `${t.description} Not listed here, reach them through call: ${hidden.join(", ")}.` });
     }
 
     tool(def, schema, handler){
@@ -91,7 +156,7 @@ export default class MCP extends Events {
             instructions: this.instructions
         };
         if (method === "ping") return {};
-        if (method === "tools/list") return { tools: this.tools };
+        if (method === "tools/list") return { tools: this.visible(ctx) };
         if (method === "tools/call") return this.call(params.name, params.arguments ?? {}, ctx);
         throw Object.assign(new Error(`Unknown method: ${method}`), { code: -32601 });
     }

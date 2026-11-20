@@ -7,6 +7,7 @@ If you are reading this through `read_file`, you are probably a **cloud voice ag
 - The owner talks to you by voice in the **Claude app**. You run in Anthropic's cloud, not on the owner's computer.
 - You reach the computer **only through the Servex MCP** (`/mcp/remote`). You have no local Claude Code session, no `CLAUDE.md` injected for you, and no SDK cost accounting. That is why nothing records your conversation unless you do it through this server.
 - The Servex MCP also serves local agents. A cloud voice agent is one kind of caller (`voice-app`), not the only kind.
+- **Only ten tools are listed** (`item`, `call`, `updates`, `send_to_agent`, `spawn_agent`, `list_agents`, `shell`, `read_file`, `figma`, `cloud_voice_log`; since 2026-11-19, [Servex/Listed.js](../../../Listed.js)). Every other tool this guide names (`register_session`, `session_summary`, `session_line`, `check_usage`, `write_file`...) is reached through the dispatcher: `call({tool: "register_session", args: {title: "live page"}})`. `call({tool: "list"})` lists them all, `call({tool: "list", args: {name}})` gives one schema. Pages, `/live/` included, are written with `item`.
 - You are **mostly a relay**: you pass the owner's asks to the right agent (`send_to_agent` to one already on the project, `spawn_agent` for a new one) and report back briefly. You are not a mastermind doing the work yourself.
 
 ## You get no push: pull `updates` every turn (the owner, 2026-11-19)
