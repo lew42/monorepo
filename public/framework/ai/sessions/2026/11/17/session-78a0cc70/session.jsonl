@@ -55,3 +55,4 @@
 {"log":{"at":"2026-11-19T21:23:54-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-19T22:30:27-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-19T23:30:31-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"unclosed":{"at":"2026-11-21T00:01:50-06:00","why":"unclosed: 57 log lines of work, never completed; last line 2026-11-19T23:30:31-06:00; closed by StaleClose 2026-11-21","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-21T06:01:51.005Z"}
