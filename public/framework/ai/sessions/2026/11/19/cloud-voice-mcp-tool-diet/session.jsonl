@@ -96,3 +96,9 @@
 {"log":{"at":"2026-11-20T18:01:33-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
 {"tool_call":{"at":"2026-11-21T00:01:57.832Z","tool":"updates","args_hash":"6ec308a53256","caller":"voice-app"}}
 {"log":{"at":"2026-11-20T18:11:33-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-20T18:16:35-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-20T18:21:35-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"tool_call":{"at":"2026-11-21T00:23:09.479Z","tool":"updates","args_hash":"6ec308a53256","caller":"voice-app"}}
+{"log":{"at":"2026-11-20T18:31:35-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-20T18:36:35-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"tool_call":{"at":"2026-11-21T00:38:41.256Z","tool":"fal_usage","args_hash":"e55e5cdeb0e3","caller":"voice-app"}}
