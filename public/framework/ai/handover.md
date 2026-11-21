@@ -27,32 +27,28 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-20 00:01 UTC, last 24 h)
+## NOW (computed 2026-11-21 00:01 UTC, last 24 h)
 
-**Pace:** Week: 5% used · 13% gone · 40% of pace (room to spend, 6 days 2 hours left)
+**Pace:** Week: 19% used · 27% gone · 71% of pace (room to spend, 5 days 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (5):**
-- [Build one new Servex MCP tool so a cloud Claude chat can look at an image by URL, then test it and make it liv](/framework/ai/sessions/2026/11/19/spawned/mastermind-fal-image-tool/) (mastermind-fal-image-tool)
-- [You are being set up as the Figma assistant for Michael (the owner). He works with a cloud voice agent (me) in](/framework/ai/sessions/2026/11/19/spawned/mastermind-figma/) (mastermind-figma)
-- [Forensics on a Claude Code session that compacted 1,501 times, plus a review of how our agent-spawning systems](/framework/ai/sessions/2026/11/19/spawned/mastermind-compaction-forensics/) (mastermind-compaction-forensics)
-- [You are working on the Servex MCP server's guidance for CLOUD voice agents (claude.ai live voice mode calling ](/framework/ai/sessions/2026/11/19/spawned/mastermind-voice-agent-docs/) (mastermind-voice-agent-docs)
-- [Find oversized Claude Code session transcripts on this machine. Scan ~/.claude/projects/ (on Windows, %USERPRO](/framework/ai/sessions/2026/11/19/spawned/mastermind-big-transcripts/) (mastermind-big-transcripts)
+**Landed (0):**
+- none
 
 **Open, touched in the window (0):**
 - none
 
 **Latest commits on this branch:**
 ```
-f7bc4440ff view_image: a cloud chat sees an image by URL or path, returned inline (no image library; PC fetches what the cloud proxy blocks)
-c4acdf7b80 Servex: view_image tool returns an image fetched by the PC as inline MCP image content
-3e2caba7d8 servex: log sweep (9 files)
-0168addee6 servex: log sweep (5 files)
-7f854f648d figma: commit loose docs (approval strategy, brief, consolidation and gold plans, naming proposal, root spec)
-64ce276dd4 servex: log sweep (8 files)
-1ff52c092c servex: log sweep (6 files)
-a05e1ded55 figma: assistant role readme (mastermind.md), access and compaction docs
+59d61845cf servex: fal_estimate, expected cost and billing formulas before a Fal run
+1bb39aeb4d servex: log sweep (6 files)
+48629c9560 servex: log sweep (1 files)
+b1b173e91d servex: log sweep (6 files)
+047e523400 servex: log sweep (1 files)
+0d2772d004 servex: log sweep (6 files)
+12ef2b0adb servex: log sweep (1 files)
+a65b741327 servex: log sweep (6 files)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
