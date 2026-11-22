@@ -128,3 +128,4 @@
 {"log":{"at":"2026-11-20T21:21:36-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-20T22:21:36-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-20T23:21:36-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"unclosed":{"at":"2026-11-22T00:01:57-06:00","why":"unclosed: 130 log lines of work, never completed; last line 2026-11-20T23:21:36-06:00; closed by StaleClose 2026-11-22","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-22T06:01:57.070Z"}
