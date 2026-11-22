@@ -323,3 +323,6 @@
 {"log":{"at":"2026-11-21T22:31:43-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
 {"log":{"at":"2026-11-21T23:31:43-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"tool_call":{"at":"2026-11-22T06:15:08.293Z","tool":"updates","args_hash":"2da0185db38e","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T06:18:09.418Z","tool":"fal_usage","args_hash":"25c2019932e9","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T06:24:15.353Z","tool":"fal_usage","args_hash":"a79ab376fc67","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T06:29:28.523Z","tool":"fal_usage","args_hash":"cfa9fcc04538","caller":"voice-app"}}

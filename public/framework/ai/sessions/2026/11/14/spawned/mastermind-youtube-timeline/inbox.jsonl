@@ -90,3 +90,4 @@
 {"read_upto":89,"at":"2026-11-15T00:22:17-06:00","by":"servex-task-loop"}
 {"at":"2026-11-15T00:22:55-06:00","from":"mastermind-yt-wvrk7h","kind":"stopped","text":"This is a session folder with no `task.jsonl` — there's nothing for `close_task` to close (it landed as a plain reviewer job, never opened as a formal task). The real fix for the loop is to stop the agent itself rather than keep appending status lines that `servex-task-loop` re-surfaces."}
 {"inbox_card":{"upto":92,"lines":1,"at":"2026-11-15T00:27:17-06:00"}}
+{"read_upto":92,"at":"2026-11-22T00:26:45-06:00","by":"servex-task-loop","note":"1 line(s) older than 7 days marked read, not delivered"}
