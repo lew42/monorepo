@@ -293,3 +293,19 @@
 {"log":{"at":"2026-11-21T21:06:43-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
 {"tool_call":{"at":"2026-11-22T03:11:03.124Z","tool":"updates","args_hash":"a6eb559ee967","caller":"voice-app"}}
 {"tool_call":{"at":"2026-11-22T03:15:27.956Z","tool":"fal_usage","args_hash":"86238d82abae","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T03:19:38.326Z","tool":"fal_usage","args_hash":"17ddfbe8df34","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T03:20:03.036Z","tool":"fal_usage","args_hash":"78bae3b2fcf8","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T03:20:16.372Z","tool":"fal_usage","args_hash":"b0e9240368ca","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T03:20:23.750Z","tool":"fal_usage","args_hash":"5be46521c99f","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T03:22:30.566Z","tool":"fal_usage","args_hash":"a426a05f3d2e","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T03:22:34.608Z","tool":"fal_usage","args_hash":"335bc6258222","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T03:24:54.109Z","tool":"fal_usage","args_hash":"157d210318b2","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T03:28:12.487Z","tool":"updates","args_hash":"2da0185db38e","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T03:31:40.619Z","tool":"fal_usage","args_hash":"61017e0e29cb","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T03:33:40.247Z","tool":"fal_usage","args_hash":"58901982aa16","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T03:33:46.870Z","tool":"fal_usage","args_hash":"3e9c50a0bafd","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T03:34:01.578Z","tool":"fal_usage","args_hash":"991a3eab1fab","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T03:34:12.683Z","tool":"fal_usage","args_hash":"75b77527f3d6","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T03:41:40.217Z","tool":"fal_usage","args_hash":"85c276c3d83f","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T03:43:06.822Z","tool":"fal_usage","args_hash":"0f32d2a1f8f0","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-22T03:43:08.716Z","tool":"fal_usage","args_hash":"4d2bbf038c85","caller":"voice-app"}}
