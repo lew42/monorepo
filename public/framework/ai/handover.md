@@ -27,9 +27,9 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-22 01:21 UTC, last 24 h)
+## NOW (computed 2026-11-23 00:01 UTC, last 24 h)
 
-**Pace:** Week: 28% used · 42% gone · 67% of pace (room to spend, 4 days 1 hour left)
+**Pace:** Week: 34% used · 55% gone · 61% of pace (room to spend, 3 days 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
@@ -41,14 +41,14 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 
 **Latest commits on this branch:**
 ```
-6c7a19a542 servex: log sweep (2 files)
-4afbb8c39a servex: log sweep (4 files)
-203e13ae38 servex: log sweep (2 files)
-edac405785 servex: log sweep (4 files)
-ef40793790 servex: log sweep (1 files)
-82c4e38026 servex: log sweep (4 files)
-1d2bed0017 servex: log sweep (1 files)
-af82c5b4ea servex: log sweep (4 files)
+8df527e22d servex: log sweep (2 files)
+90bcfe78f9 servex: log sweep (2 files)
+12929efcec servex: log sweep (1 files)
+213893183c servex: log sweep (2 files)
+ee2a8038e5 servex: log sweep (1 files)
+05f975cb0a servex: log sweep (2 files)
+2b42c86ae1 servex: log sweep (1 files)
+287d5ab98b servex: log sweep (2 files)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
