@@ -34,7 +34,7 @@ async function until(fn, ms = 15000) { const end = Date.now() + ms; while (Date.
 /* debris of an earlier run that died before its cleanup is removed first */
 for (const l of git("worktree", "list", "--porcelain").split("\n")) if (l.startsWith("worktree ") && /[\\/]closeout-test-/.test(l)) {
 	const p = l.slice(9), br = path.basename(p);
-	try { git("worktree", "remove", "--force", p); } catch {}
+	try { git("worktree", "remove", "--force", "--force", p); } catch {}   // twice: a worktree git left locked ("initializing", from a run killed mid-add) survives a single --force and pins its branch forever
 	try { fs.rmSync(p, { recursive: true, force: true }); git("worktree", "prune"); git("branch", "-D", br); } catch {}
 }
 
