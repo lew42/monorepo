@@ -159,11 +159,13 @@ export default class Pool extends Events {
         if (!slot) return null;
         Object.assign(slot, { state: "taken", taken_by: caller || "unknown", taken_at: stamp(), idle_since: null });
         this.save();
-        try { execFileSync("git", ["-C", slot.path, "merge", "--ff-only", this.base], { windowsHide: true, stdio: "ignore", timeout: 15000 }); }
+        try { execFileSync("git", ["-C", slot.path, "merge", "--ff-only", this.base], { windowsHide: true, stdio: ["ignore", "pipe", "pipe"], timeout: 15000 }); }
         catch (e){
+            const why = String(e.stderr || e.stdout || e.message || "").trim().split("\n").slice(0, 3).join(" | ").slice(0, 300);
             slot.state = "bad";
-            this.say(`pool: ${slot.id} would not fast-forward to ${this.base} (sync take) — dropped`, { id: slot.id });
+            this.say(`pool: ${slot.id} would not fast-forward to ${this.base} (sync take) — dropped: ${why}`, { id: slot.id });
             this.remove(slot, { force: true });
+            this.top_up();   // the slot is gone: make the next ready one now, not at the next 10-minute sweep
             return null;
         }
         try { this.servex?.lifecycle?.took(slot, slot.taken_by); } catch {}
