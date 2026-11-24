@@ -1,13 +1,13 @@
 # Follow-up: every task of the last 10 days
 
-167 tasks, flagged first. Summary: [follow-up.md](follow-up.md).
+157 tasks, flagged first. Summary: [follow-up.md](follow-up.md).
 
 | task | group | session | model | started | last log | step | state bucket | outcome | branch | agent | flags |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| [session-7f72bd88](/framework/ai/sessions/2026/11/19/session-7f72bd88/) | - | assistan | - | 11-19 22:37 | 11-22 05:26 | 0/0 | stale | no | - | unknown | quiet |
+| [session-98b0730a](/framework/ai/sessions/2026/11/21/session-98b0730a/) | - | - | - | 11-22 01:18 | 11-24 05:51 | 0/0 | stale | no | - | unknown | ok |
+| [session-7f72bd88](/framework/ai/sessions/2026/11/19/session-7f72bd88/) | - | assistan | - | 11-19 22:37 | 11-23 06:01 | 0/0 | unclosed | no | - | unknown | ok |
 | [cloud-voice-mcp-tool-diet](/framework/ai/sessions/2026/11/19/cloud-voice-mcp-tool-diet/) | - | - | - | 11-20 01:35 | 11-23 06:01 | 0/0 | unclosed | no | - | unknown | ok |
 | [cloud-voice-app-20261119](/framework/ai/sessions/2026/11/19/cloud-voice-app-20261119/) | - | - | - | 11-19 20:50 | 11-23 06:01 | 0/0 | unclosed | no | - | unknown | ok |
-| [session-98b0730a](/framework/ai/sessions/2026/11/21/session-98b0730a/) | - | - | - | 11-22 01:18 | 11-23 05:51 | 0/0 | stale | no | - | unknown | ok |
 | [session-603f9c8b](/framework/ai/sessions/2026/11/18/session-603f9c8b/) | - | - | - | 11-18 06:38 | 11-22 06:01 | 0/0 | unclosed | no | - | unknown | ok |
 | [cloud-voice-app-20261118](/framework/ai/sessions/2026/11/18/cloud-voice-app-20261118/) | - | - | - | 11-18 21:26 | 11-22 06:01 | 0/0 | unclosed | no | - | unknown | ok |
 | [session-f754b70e](/framework/ai/sessions/2026/11/17/session-f754b70e/) | - | - | - | 11-18 02:51 | 11-21 06:01 | 0/0 | unclosed | no | - | unknown | ok |
@@ -161,16 +161,6 @@
 | [mastermind-yt-lne9a6](/framework/ai/sessions/2026/11/14/session-72313578/mastermind-yt-lne9a6/) | - | a7a9bfa7 | sonnet-5-5 | 11-15 02:21 | 11-15 02:29 | 0/0 | landed | yes | - | stopped | ok |
 | [mastermind-youtube-transcripts](/framework/ai/sessions/2026/11/14/spawned/mastermind-youtube-transcripts/) | - | 93f17dec | sonnet-5-5 | 11-15 01:03 | 11-15 01:20 | 0/0 | landed | yes | - | dormant | ok |
 | [mastermind-auth-build](/framework/ai/sessions/2026/11/14/spawned/mastermind-auth-build/) | - | e040cc6b | sonnet-5-5 | 11-14 21:26 | 11-14 21:52 | 0/0 | landed | yes | merged | dormant | ok |
-| [cloud-voice-app-20261110](/framework/ai/sessions/2026/11/10/cloud-voice-app-20261110/) | - | - | - | 11-10 10:27 | 11-14 06:00 | 0/0 | unclosed | no | - | unknown | ok |
-| [mastermind-figma-docs](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-docs/) | - | 1cd0396f | sonnet-5-5 | 11-13 01:51 | 11-13 22:32 | 0/0 | landed | yes | - | dormant | ok |
-| [mastermind-figma-v2](/framework/ai/sessions/2026/11/13/spawned/mastermind-figma-v2/) | - | 307c22da | sonnet-5-5 | 11-13 20:16 | 11-13 22:21 | 0/0 | landed | yes | - | dormant | ok |
-| [mastermind-figma-image-cards](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-image-cards/) | - | 9e131e5c | sonnet-5-5 | 11-12 23:00 | 11-13 20:49 | 0/0 | landed | yes | - | dormant | ok |
-| [mastermind-figma-pages](/framework/ai/sessions/2026/11/13/spawned/mastermind-figma-pages/) | - | 64e0319c | sonnet-5-5 | 11-13 20:13 | 11-13 20:46 | 0/0 | landed | yes | - | dormant | ok |
-| [mastermind-figma-tokens](/framework/ai/sessions/2026/11/13/spawned/mastermind-figma-tokens/) | - | 43a4773f | sonnet-5-5 | 11-13 19:17 | 11-13 20:44 | 0/0 | landed | yes | - | dormant | ok |
-| [mastermind-figma-teach](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-teach/) | - | 461568ed | sonnet-5-5 | 11-13 02:01 | 11-13 20:36 | 0/0 | landed | yes | - | dormant | ok |
-| [mastermind-figma-grids](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-grids/) | - | 5a1c5726 | sonnet-5-5 | 11-13 00:41 | 11-13 20:05 | 0/0 | landed | yes | - | dormant | ok |
-| [mastermind-figma-resolutions](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-resolutions/) | - | be2bf417 | sonnet-5-5 | 11-12 23:08 | 11-13 19:58 | 0/0 | landed | yes | - | dormant | ok |
-| [mastermind-figma-live-page](/framework/ai/sessions/2026/11/12/spawned/mastermind-figma-live-page/) | - | aa789d13 | sonnet-5-5 | 11-12 23:28 | 11-13 09:16 | 0/0 | landed | yes | - | stopped | ok |
 
 ## Unworked tasks (open, untouched over 7 days)
 
