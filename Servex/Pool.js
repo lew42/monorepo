@@ -128,7 +128,7 @@ export default class Pool extends Events {
             // claimed synchronously, before any await, so two callers never get the same one
             Object.assign(slot, { state: "taken", taken_by: caller || "unknown", taken_at: stamp(), idle_since: null });
             this.save();
-            const ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
+            const ff = await this.freshen(slot);
             if (!ff.ok){
                 slot.state = "bad";
                 this.say(`pool: ${slot.id} would not fast-forward to ${this.base} — dropped: ${ff.out}`, { id: slot.id });
@@ -159,11 +159,10 @@ export default class Pool extends Events {
         if (!slot) return null;
         Object.assign(slot, { state: "taken", taken_by: caller || "unknown", taken_at: stamp(), idle_since: null });
         this.save();
-        try { execFileSync("git", ["-C", slot.path, "merge", "--ff-only", this.base], { windowsHide: true, stdio: ["ignore", "pipe", "pipe"], timeout: 15000 }); }
-        catch (e){
-            const why = String(e.stderr || e.stdout || e.message || "").trim().split("\n").slice(0, 3).join(" | ").slice(0, 300);
+        const ff = this.freshen_sync(slot);
+        if (!ff.ok){
             slot.state = "bad";
-            this.say(`pool: ${slot.id} would not fast-forward to ${this.base} (sync take) — dropped: ${why}`, { id: slot.id });
+            this.say(`pool: ${slot.id} would not fast-forward to ${this.base} (sync take) — dropped: ${ff.out}`, { id: slot.id });
             this.remove(slot, { force: true });
             this.top_up();   // the slot is gone: make the next ready one now, not at the next 10-minute sweep
             return null;
@@ -174,6 +173,61 @@ export default class Pool extends Events {
         this.say(`pool: ${slot.id} taken by ${slot.taken_by} (sync)`, { id: slot.id, taken_by: slot.taken_by });
         this.top_up();
         return { id: slot.id, path: slot.path, branch: slot.branch, url: slot.url };
+    }
+
+    /* KEEPING A READY SLOT CURRENT (2026-11-24). A ready slot's own dev server keeps rewriting ~160 tracked files.jsonl, and the
+     * "servex: log sweep" commits on the base change the same files, so `merge --ff-only` said "local changes would be overwritten"
+     * and the only ready slot was dropped at spawn (qf-1/qf-2, five times 11-17 to 11-24: "No pool worktree is ready"). These two
+     * do what give_back does: on that error, put the GENERATED dirt (Pool.generated: server logs, tracked *.jsonl edited in place)
+     * back to HEAD, its diff kept aside first, and fast-forward once more. Any other uncommitted file is someone's work: nothing
+     * is restored and the ff fails as before. Untracked files are not looked at (`-uno`: fast). freshen_sync is for take_sync,
+     * which cannot await: every git call has a timeout. freshen is the async twin for take() and the sweep. */
+    static LOCAL_CHANGES = /local changes|would be overwritten/i;
+
+    static noise_split(porcelain_z){   // `status --porcelain -z -uno` -> { generated: [paths], other: [paths] }
+        const out = { generated: [], other: [] };
+        for (const e of porcelain_z.split("\0").filter(Boolean)){
+            const code = e.slice(0, 2).trim(), file = e.slice(3);
+            (Pool.generated({ file, code }) ? out.generated : out.other).push(file);
+        }
+        return out;
+    }
+
+    freshen_sync(slot){
+        const run = (args, timeout = 15000) => execFileSync("git", ["-C", slot.path, ...args], { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout, maxBuffer: 256 << 20 });
+        const why = e => String(e.stderr || e.stdout || e.message || "").trim().split("\n").slice(0, 3).join(" | ").slice(0, 300);
+        try { run(["merge", "--ff-only", this.base]); return { ok: true }; }
+        catch (e){
+            if (!Pool.LOCAL_CHANGES.test(String(e.stderr || e.stdout || ""))) return { ok: false, out: why(e) };
+            try {
+                const { generated, other } = Pool.noise_split(run(["status", "--porcelain", "-z", "-uno"]));
+                if (other.length || !generated.length) return { ok: false, out: `${why(e)} (${other.length} file(s) of its own, not restored)` };
+                this.aside(slot, generated);
+                const list = path.join(os.tmpdir(), `lew42-pool-fresh-${slot.id}-${process.pid}-${Date.now()}`);
+                fs.writeFileSync(list, generated.join("\0") + "\0");
+                try { run(["--literal-pathspecs", "checkout", "HEAD", `--pathspec-from-file=${list}`, "--pathspec-file-nul"]); } finally { fs.rmSync(list, { force: true }); }
+                run(["merge", "--ff-only", this.base]);
+                this.say(`pool: ${slot.id} fast-forwarded after putting ${generated.length} generated log file(s) back (sync)`, { id: slot.id });
+                return { ok: true };
+            } catch (e2){ return { ok: false, out: why(e2) }; }
+        }
+    }
+
+    /* The async twin. `guard`: the sweep calls it on a READY slot; if an agent takes the slot while a git call is awaited, stop. */
+    async freshen(slot, { guard = false } = {}){
+        let ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
+        if (ff.ok || !Pool.LOCAL_CHANGES.test(ff.out)) return ff;
+        const status = await new Promise(resolve => execFile("git", ["-C", slot.path, "status", "--porcelain", "-z", "-uno"],   // not this.git(): it trims, and a leading space is part of the first entry
+            { windowsHide: true, encoding: "utf8", maxBuffer: 256 << 20, timeout: 30000 }, (e, out) => resolve(e ? "" : out)));
+        const { generated, other } = Pool.noise_split(status);
+        if (other.length || !generated.length) return { ok: false, out: `${ff.out} (${other.length} file(s) of its own, not restored)` };
+        if (guard && slot.state !== "ready") return { ok: true, skipped: true };
+        this.aside(slot, generated);
+        await this.restore(slot, generated);
+        if (guard && slot.state !== "ready") return { ok: true, skipped: true };
+        ff = await this.git(slot.path, ["merge", "--ff-only", this.base]);
+        if (ff.ok) this.say(`pool: ${slot.id} fast-forwarded after putting ${generated.length} generated log file(s) back`, { id: slot.id });
+        return ff;
     }
 
     /* HOLD (fixer, 2026-10-01): a standing holder — the fixer, or anything else that takes a
@@ -621,6 +675,10 @@ export default class Pool extends Events {
         const cutoff = Date.now() - this.N_hours * 3600 * 1000;
         for (const slot of ready.slice(1)){
             if (this.slots.length > this.K || Date.parse(slot.idle_since) < cutoff) this.remove(slot);
+        }
+        if (ready[0] && ready[0].state === "ready"){   // the newest ready slot stays current, so the next take is a plain fast-forward
+            const r = await this.freshen(ready[0], { guard: true }).catch(e => ({ ok: false, out: e.message }));
+            if (!r.ok) this.say(`pool: ${ready[0].id} (ready) could not fast-forward to ${this.base}: ${r.out}`, { id: ready[0].id });
         }
         await this.heal();
         this.top_up();

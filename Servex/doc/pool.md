@@ -39,6 +39,8 @@ head in `.merge-landed.json`. A worktree whose head is listed there counts as me
 it is removed instead of fast-forwarded, and a fresh one is prepared
 (proof: `ai/sessions/2026/09/25/quickfix-worktrees/landing/`).
 
+**A ready slot stays current (2026-11-24).** An idle slot's own dev server rewrites tracked `files.jsonl`/`page.jsonl`, and the "log sweep" commits change the same files, so a plain `merge --ff-only` failed ("local changes would be overwritten") and the only ready slot was dropped at spawn. `Pool.freshen_sync()` (used by `take_sync`) and `Pool.freshen()` (used by `take()` and the 10-minute `sweep()`, which now fast-forwards the newest ready slot) put the generated dirt back to HEAD (diff kept in `.worktree-logs/`) and retry once; any other uncommitted file is left alone and the ff fails as before, with git's reason in the pool log. Test: `node Servex/pool-freshen.test.mjs`.
+
 ## The numbers
 
 - **K = 6.** At most six worktrees exist, taken or not (was 3 until 2026-10-23, when two masterminds held all three and three minions queued for 5+ min; each slot costs about 50 MB of server).
