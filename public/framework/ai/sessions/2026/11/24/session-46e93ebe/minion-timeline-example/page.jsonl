@@ -1,2 +1,3 @@
 {"inbox":{"id":"n-cwge1a57","from":"servex-heartbeat","text":"minion-timeline-example its agent is not running: it was stopped on purpose by mastermind-timeline at 2026-11-24T17:54:04-06:00; not revived.","at":"2026-11-24T17:59:25.945-06:00"}}
 {"file":"session.jsonl"}
+{"inbox":{"id":"n-dnflf58i","from":"servex-task-loop","text":"minion-timeline-example is started but silent: 3 status asks went unanswered. Close it, or keep chasing?","at":"2026-11-24T18:20:24.627-06:00"}}
