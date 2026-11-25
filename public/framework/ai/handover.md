@@ -27,28 +27,30 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-24 23:30 UTC, last 24 h)
+## NOW (computed 2026-11-25 00:00 UTC, last 24 h)
 
-**Pace:** Week: 37% used · 84% gone · 44% of pace (room to spend, 1 day 3 hours left)
+**Pace:** Week: 38% used · 84% gone · 45% of pace (room to spend, 1 day 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (0):**
-- none
+**Landed (2):**
+- [You are the mastermind for Mike's new Timeline system: a vanilla-JS class architecture for playing back any we](/framework/ai/sessions/2026/11/24/spawned/mastermind-timeline/) (mastermind-timeline)
+- [Investigate the Servex worktree pool and worktree cleanup (Servex/Pool.js and the worktree scripts). Report fi](/framework/ai/sessions/2026/11/24/spawned/mastermind-worktree-pool/) (mastermind-worktree-pool)
 
-**Open, touched in the window (0):**
-- none
+**Open, touched in the window (2):**
+- [Your brief is at .scratch/timeline-research/check/brief.md. Load the minion skill, then follow it. Write only ](/framework/ai/sessions/2026/11/24/session-46e93ebe/minion-timeline-check/) (minion-timeline-check)
+- [Your brief is at .scratch/timeline-research/example/brief.md. Load the minion skill, then follow it. Write onl](/framework/ai/sessions/2026/11/24/session-46e93ebe/minion-timeline-example/) (minion-timeline-example)
 
 **Latest commits on this branch:**
 ```
+d89bfc2d26 servex: log sweep (14 files)
+cd96b5111c closeout.test: remove debris worktrees with --force --force so a locked one no longer leaks
+cb82eaaf0f Pool: keep a ready slot current (restore generated logs, retry the fast-forward) in take_sync, take and sweep
+545360aa16 Pool.take_sync: log why ff-only failed and top_up after dropping the slot
 b02b662371 servex: log sweep (6 files)
 0a6883dca6 servex: log sweep (2 files)
 a38466cb0f servex: log sweep (1 files)
 37d1156b38 servex: log sweep (2 files)
-c5e3bff663 servex: log sweep (1 files)
-bbf0687411 servex: log sweep (3 files)
-bc496e9fb5 servex: log sweep (4 files)
-785cbfdf6f servex: log sweep (1 files)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.

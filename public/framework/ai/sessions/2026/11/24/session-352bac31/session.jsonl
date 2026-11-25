@@ -4,3 +4,6 @@
 {"content":{"add":{"id":"d66n8bnf","type":"Reply","text":"ok"}},"by":"assistant","ts":"2026-11-24T23:35:51.553Z"}
 {"sessions":[{"id":"assistant","task":"/framework/ai/sessions/2026/11/24/session-352bac31/"}],"by":"assistant","ts":"2026-11-24T23:35:51.556Z"}
 {"log":{"at":"2026-11-24T17:45:22-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-24T17:50:24-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-24T17:55:24-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-24T18:00:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
