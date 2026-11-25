@@ -7,6 +7,9 @@ URL or port-forwarding feature ([cloud sessions](https://code.claude.com/docs/en
 [cloud environments](https://code.claude.com/docs/en/cloud-environments)).
 
 - **Only workaround:** an outbound tunnel from the container (`cloudflared` quick tunnel,
+  ngrok). With Full network access the container reaches api.trycloudflare.com and can
+  download cloudflared (checked 2026-11-25); actually opening the tunnel was blocked by
+  the auto-mode permission check, so it needs the owner's explicit approval. Earlier note:
   ngrok). Untested: the container's traffic goes through Anthropic's HTTPS proxy, and
   cloudflared normally needs port 7844. Also the dev server here is started by Servex
   (SERVER GUARD hook blocks `node server.js`), and Servex does not run in a cloud container.
