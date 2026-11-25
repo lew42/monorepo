@@ -57,3 +57,4 @@
 {"log":{"at":"2026-11-23T21:51:39-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-23T22:51:39-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-23T23:51:39-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"unclosed":{"at":"2026-11-25T00:00:39-06:00","why":"unclosed: 59 log lines of work, never completed; last line 2026-11-23T23:51:39-06:00; closed by StaleClose 2026-11-25","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-25T06:00:39.971Z"}
