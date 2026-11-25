@@ -11,3 +11,4 @@
 {"log":{"at":"2026-11-24T18:05:24-06:00","msg":"task-loop status ask 2: minion-timeline-check was stopped on purpose; not woken","ask":2}}
 {"log":{"at":"2026-11-24T18:10:24-06:00","msg":"task-loop status ask 3: minion-timeline-check was stopped on purpose; not woken","ask":3}}
 {"log":{"at":"2026-11-24T18:15:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"stop":{"at":"2026-11-24T19:15:25-06:00","why":"dropped: owner minion-timeline-check is stopped"}}
