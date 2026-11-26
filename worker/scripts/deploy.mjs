@@ -1,11 +1,12 @@
 // node worker/scripts/deploy.mjs <staging|production> [--seed] [--secret KEY=VALUE]...
 // Applies D1 migrations to that stage's own database, deploys the ONE config (worker/wrangler.jsonc, env <stage>), and makes sure
-// SESSION_SECRET exists. Deploy staging first, look at it, then production. Run from anywhere; wrangler runs at the repo root.
+// SESSION_SECRET exists (on staging also the web push keys and TEST_LOGIN_KEY, from worker/scripts/vapid.mjs). Deploy staging first, look at it, then production. Run from anywhere; wrangler runs at the repo root.
 import { appendFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { ensure_dev_vars } from "./vapid.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const CONFIG = ["-c", "worker/wrangler.jsonc"];
@@ -14,7 +15,7 @@ if (!["staging", "production"].includes(stage)) { console.error("usage: deploy.m
 
 const wr = (args, input) => {
 	console.log("\n$ wrangler", args.join(" "));
-	const r = spawnSync("npx", ["wrangler", ...args, ...CONFIG], { cwd: root, shell: true, input, encoding: "utf8", stdio: ["pipe", "pipe", "inherit"] });
+	const r = spawnSync("npx", ["wrangler", ...args, ...CONFIG], { cwd: root, shell: true, windowsHide: true, input, encoding: "utf8", stdio: ["pipe", "pipe", "inherit"] });
 	process.stdout.write(r.stdout || "");
 	if (r.status !== 0) { console.error("FAILED:", args.join(" ")); process.exit(r.status || 1); }
 	return r.stdout || "";
@@ -31,6 +32,13 @@ if (!have.includes("SESSION_SECRET")) {
 	if (stage === "staging") appendFileSync(join(root, "worker", ".dev.vars"), `
 STAGING_SESSION_SECRET=${secret}
 `);
+}
+// Web push keys (worker/push.js) for staging: made once by vapid.mjs into worker/.dev.vars, then set as secrets. TEST_LOGIN_KEY is the
+// secret-gated test sign-in (POST /api/auth/test): staging only, production never gets it.
+if (stage === "staging") {
+	const { vars } = await ensure_dev_vars();
+	for (const [name, value] of [["VAPID_PRIVATE_JWK", vars.VAPID_PRIVATE_JWK], ["VAPID_PUBLIC", vars.VAPID_PUBLIC], ["TEST_LOGIN_KEY", vars.STAGING_TEST_LOGIN_KEY]])
+		if (!have.includes(name)) wr(["secret", "put", name, "--env", stage], value);
 }
 wr(["deploy", "--env", stage]);
 

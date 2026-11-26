@@ -1,4 +1,4 @@
--- Local only (the dev script applies it after the migrations; safe to re-run). Six fake people for the dev login. Roles live in the
+-- Local only (the dev script applies it after the migrations; safe to re-run). Seven fake people for the dev login (zed exists to be deleted by api.test.mjs: DELETE /api/me). Roles live in the
 -- role column; eve is "banned" by worker/dev.js (a cookie flag here, the KV key in production). token_epoch and created_at are left out
 -- of the update on purpose: a restart must never revoke sessions.
 INSERT INTO users (id, provider, provider_id, handle, avatar_url, role, token_epoch, created_at, last_login) VALUES
@@ -7,7 +7,8 @@ INSERT INTO users (id, provider, provider_id, handle, avatar_url, role, token_ep
     (3, 'dev', 'carol', 'carol', NULL, 'member',    0, strftime('%s', 'now'), 0),
     (4, 'dev', 'dave',  'dave',  NULL, 'member',    0, strftime('%s', 'now'), 0),
     (5, 'dev', 'eve',   'eve',   NULL, 'member',    0, strftime('%s', 'now'), 0),
-    (6, 'dev', 'admin', 'admin', NULL, 'admin',     0, strftime('%s', 'now'), 0)
+    (6, 'dev', 'admin', 'admin', NULL, 'admin',     0, strftime('%s', 'now'), 0),
+    (7, 'dev', 'zed',   'zed',   NULL, 'member',    0, strftime('%s', 'now'), 0)
 ON CONFLICT (id) DO UPDATE SET provider = excluded.provider, provider_id = excluded.provider_id, handle = excluded.handle, role = excluded.role;
 
 -- Three page rows under /imagine/cms/d1/ (worker/pages.js's proof).

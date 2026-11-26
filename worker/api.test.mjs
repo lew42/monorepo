@@ -12,7 +12,7 @@ const origin = new URL(base).origin;
 
 // every ROUTES key and its declared action, parsed from the source: the test cannot drift from the table.
 const source = readFileSync(new URL("./index.js", import.meta.url), "utf8");
-const declared = Object.fromEntries([...source.matchAll(/^\s*"((?:GET|POST|PUT) \/api\/[^"]+)": \["(\w+)"/gm)].map(m => [m[1], m[2]]));
+const declared = Object.fromEntries([...source.matchAll(/^\s*"((?:GET|POST|PUT|DELETE) \/api\/[^"]+)": \["(\w+)"/gm)].map(m => [m[1], m[2]]));
 
 const call = (method, path, { cookie, body, headers = {} } = {}) => fetch(base + path, {
     method, redirect: "manual",
@@ -66,7 +66,7 @@ await check("GET /api/likes", null, 200, "/api/likes?url=/x/");
 const WRITE_BODIES = { "POST /api/docs": { title: "api test" }, "PUT /api/settings": { theme: "dark" }, "PUT /api/pages": { path: "/api-test/", json: {} } };
 for (const [key, action] of Object.entries(declared)) {
     if (action !== "write") continue;
-    if (key === "POST /api/auth/logout-all") continue;   // exercised below, it revokes carol
+    if (key === "POST /api/auth/logout-all" || key === "DELETE /api/me") continue;   // exercised below: they revoke or delete carol
     const body = WRITE_BODIES[key];
     const path = key.endsWith("/likes") ? "/api/likes?url=/x/" : null;
     await check(key, null, 401, path, { body });
@@ -106,6 +106,49 @@ assert.equal(forged.anonymous, true, "a tampered cookie is no cookie");
 const dave = await login("dave"), dave2 = await login("dave");
 await check("POST /api/auth/logout-all", dave, 200);
 assert.equal((await (await call("GET", "/api/me", { cookie: dave2.cookie })).json()).anonymous, true, "the other device's cookie is revoked");
+
+// ── sessions: /api/me names the session, logout ends only that one, and the ended cookie reads as signed out
+const sess = await login("dave"), sess2 = await login("dave");
+const me1 = await (await call("GET", "/api/me", { cookie: sess.cookie })).json();
+assert.match(me1.session_id, /^[0-9a-f]{32}$/, "/api/me carries the session id");
+assert.equal(me1.push, false, "no push subscription yet");
+assert.notEqual(me1.session_id, (await (await call("GET", "/api/me", { cookie: sess2.cookie })).json()).session_id, "two logins, two sessions");
+await check("POST /api/auth/logout", sess, 200);
+assert.equal((await (await call("GET", "/api/me", { cookie: sess.cookie })).json()).anonymous, true, "a logged-out cookie is signed out");
+assert.equal((await (await call("GET", "/api/me", { cookie: sess2.cookie })).json()).handle, "dave", "the other session lives");
+
+// ── the test sign-in does not exist here (no TEST_LOGIN_KEY on the local stage)
+await check("POST /api/auth/test", null, 404, null, { body: { key: "anything" } });
+await check("POST /api/auth/test", null, 404, null, { body: {} });
+
+// ── push: subscribe validates, /api/me shows it, test sends (or says it is not configured), unsubscribe removes
+const keys = { p256dh: Buffer.from([4, ...crypto.getRandomValues(new Uint8Array(64))]).toString("base64url"), auth: Buffer.from(crypto.getRandomValues(new Uint8Array(16))).toString("base64url") };
+const endpoint = "https://fcm.googleapis.com/fcm/send/api-test-" + Date.now();
+await check("POST /api/push/subscribe", null, 401, null, { body: { endpoint, keys } });
+await check("POST /api/push/subscribe", sess2, 400, null, { body: { endpoint: "http://fcm.googleapis.com/x", keys } });
+await check("POST /api/push/subscribe", sess2, 400, null, { body: { endpoint: "https://internal.example/x", keys } });
+await check("POST /api/push/subscribe", sess2, 400, null, { body: { endpoint, keys: { ...keys, auth: "short" } } });
+await check("POST /api/push/subscribe", sess2, 200, null, { body: { endpoint, keys } });
+await check("POST /api/push/subscribe", sess2, 200, null, { body: { endpoint, keys } });   // the same endpoint again is an update, not a second row
+assert.equal((await (await call("GET", "/api/me", { cookie: sess2.cookie })).json()).push, true, "/api/me shows the subscription");
+const configured = Boolean((await (await call("GET", "/api/config")).json()).vapid_public);
+const pushed = await check("POST /api/push/test", sess2, configured ? 200 : 503);
+if (configured) assert.equal((await pushed.json()).results.length, 1, "one subscription, one push attempted");
+const gone = await (await check("DELETE /api/push/subscribe", sess2, 200, null, { body: { endpoint } })).json();
+assert.equal(gone.removed, 1); assert.equal(gone.push, false);
+
+// ── DELETE /api/me wipes the account and its sessions; the cookie is signed out afterwards
+await check("DELETE /api/me", null, 401);
+// zed is seeded to be deleted once; a second run finds him gone until the dev script re-seeds
+if ((await call("POST", "/api/dev/login", { body: { handle: "zed" } })).status === 404) { console.log("zed was deleted by an earlier run; restart node dev.mjs to re-seed him"); covered.add("DELETE /api/me"); }
+else {
+    const zed = await login("zed"), zed2 = await login("zed");
+    await call("POST", "/api/push/subscribe", { cookie: zed.cookie, body: { endpoint: endpoint + "-zed", keys } });
+    const wiped = await (await check("DELETE /api/me", zed, 200)).json();
+    assert.equal(wiped.deleted, true); assert.equal(wiped.handle, "zed");
+    for (const who of [zed, zed2]) assert.equal((await (await call("GET", "/api/me", { cookie: who.cookie })).json()).anonymous, true, "a deleted account's cookies are signed out");
+    await check("POST /api/push/subscribe", zed2, 401, null, { body: { endpoint, keys } });
+}
 
 // ── a document's Room: two sockets, one lock
 const doc = (await (await call("POST", "/api/docs", { cookie: alice.cookie, body: { title: "lock test" } })).json()).doc;

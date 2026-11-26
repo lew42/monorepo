@@ -8,7 +8,7 @@
 // env.DEV_LOGIN === "1" and a localhost host check stay as the belt: they stop a tunnel or `wrangler dev --remote` publishing this
 // route. Production is safe because this file is never its `main`.
 
-import worker, { Room, UserDO, cookie_for, is_local } from "./index.js";
+import worker, { Room, UserDO, cookie_for, is_local, start_session } from "./index.js";
 import { clearCookie } from "./session.js";
 
 export { Room, UserDO };   // wrangler binds the Durable Object classes from THIS module's exports, since it is `main` here
@@ -36,7 +36,7 @@ async function dev_login(request, env, url) {
 
     const now = Math.floor(Date.now() / 1000);
     await env.DB.prepare("UPDATE users SET last_login = ? WHERE id = ?").bind(now, row.id).run();
-    const cookie = await cookie_for(row, env, BANNED.has(handle) ? { banned: true } : {});
+    const cookie = await cookie_for(row, env, { sid: await start_session(env, row.id, request), ...(BANNED.has(handle) ? { banned: true } : {}) });
     const { token_epoch, ...user } = { ...row, last_login: now };
     return redirect
         ? new Response(null, { status: 302, headers: { Location: to, "Set-Cookie": cookie } })
@@ -51,4 +51,5 @@ export default {
         if (url.pathname === "/api/dev/login" && env.DEV_LOGIN === "1" && is_local(url)) return dev_login(request, env, url);
         return worker.fetch(request, env, ctx);
     },
+    scheduled: (event, env, ctx) => worker.scheduled(event, env, ctx),
 };
