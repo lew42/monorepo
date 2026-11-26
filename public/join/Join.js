@@ -181,6 +181,7 @@ export class Join {
 				await backend.subscribe(sub.toJSON());
 			}
 			this.push = true;
+			this.funnel.send("subscribed");
 			this.render();
 		} catch (err){
 			this.say(`${copy.failed} ${err.message}`, true);
