@@ -1,0 +1,2025 @@
+{
+ "figma_file": "JYGQX0WaBO4HcGMZTkL2rx",
+ "web": {
+  "light400": {
+   "body": {
+    "fs": "14px",
+    "family": "system-ui, -apple-system, sans-serif",
+    "lh": "21px",
+    "weight": "400"
+   },
+   "tokens": {
+    "pad": {
+     "raw": "calc(clamp(1em, 2.6% - 1.1em,   4em)   * 1)",
+     "res": "14px"
+    },
+    "gap": {
+     "raw": "calc(clamp(1em, 1.5cqi - 0.3em, 2.4em) * 1)",
+     "res": "14px"
+    },
+    "flow": {
+     "raw": "calc(clamp(2em, 1.4cqi + 0.8em, 2.5em) * 1)",
+     "res": "28px"
+    },
+    "radius": {
+     "raw": "0.5em",
+     "res": "7px"
+    },
+    "prime": {
+     "raw": "#FF6157",
+     "res": "rgb(255, 97, 87)"
+    },
+    "ink": {
+     "raw": "light-dark(#1a1a1a, #e8e8ea)",
+     "res": "rgb(26, 26, 26)"
+    },
+    "subtle": {
+     "raw": "light-dark(rgba(0,0,0,0.55), rgba(255,255,255,0.55))",
+     "res": "rgba(0, 0, 0, 0.55)"
+    },
+    "surface": {
+     "raw": "light-dark(#fff, #17161a)",
+     "res": "rgb(255, 255, 255)"
+    },
+    "line": {
+     "raw": "light-dark(rgba(0,0,0,0.15), rgba(255,255,255,0.15))",
+     "res": "rgba(0, 0, 0, 0.15)"
+    },
+    "wash": {
+     "raw": "light-dark(rgba(0,0,0,0.08), rgba(255,255,255,0.08))",
+     "res": "rgba(0, 0, 0, 0.08)"
+    },
+    "light": {
+     "raw": "light-dark(color-mix(in srgb, #42404B 8%, #fff), color-mix(in srgb, #fff 6%, #17161a))",
+     "res": "color(srgb 0.940706 0.940078 0.943529)"
+    },
+    "dark": {
+     "raw": "#42404B",
+     "res": "rgb(66, 64, 75)"
+    },
+    "error": {
+     "raw": "light-dark(#c00, #ff7b72)",
+     "res": "rgb(204, 0, 0)"
+    },
+    "ok": {
+     "raw": "light-dark(#15803d, #4ade80)",
+     "res": "rgb(21, 128, 61)"
+    },
+    "warn": {
+     "raw": "light-dark(#a16207, #fbbf24)",
+     "res": "rgb(161, 98, 7)"
+    }
+   },
+   "type": {
+    "h1": {
+     "fs": "31.5px",
+     "weight": "700",
+     "ls": "-0.315px",
+     "tt": "none",
+     "lh": "39.375px",
+     "family": "Montserrat, system-ui, -apple-system, sa"
+    },
+    "h2": {
+     "fs": "31.5px",
+     "weight": "700",
+     "ls": "-0.315px",
+     "tt": "none",
+     "lh": "39.375px",
+     "family": "Montserrat, system-ui, -apple-system, sa"
+    },
+    "h3": null,
+    "h4": null,
+    "small": null,
+    "label": {
+     "fs": "12.8px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "19.2px",
+     "family": "Consolas, \"Courier New\", Monaco, monospa"
+    },
+    "code": {
+     "fs": "12.25px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "22.05px",
+     "family": "Consolas, \"Courier New\", Monaco, monospa"
+    }
+   },
+   "button": {
+    "tag": "BUTTON.sidebar-toggle",
+    "h": 28,
+    "prime": "#FF8F60",
+    "pad": "5.6px",
+    "radius": "2.8px",
+    "fs": "11.2px",
+    "bg": "rgba(0, 0, 0, 0)",
+    "color": "rgb(63, 63, 63)",
+    "border": "rgb(63, 63, 63)"
+   },
+   "input": {
+    "tag": "INPUT.",
+    "h": 33.59375,
+    "prime": "#FF8F60",
+    "pad": "2.8px 11.2px",
+    "radius": "3.5px",
+    "fs": "14px",
+    "bg": "rgba(0, 0, 0, 0.08)",
+    "color": "rgb(63, 63, 63)",
+    "border": "rgba(0, 0, 0, 0.32)"
+   },
+   "select": {
+    "tag": "SELECT.auto",
+    "h": 33.59375,
+    "prime": "#FF8F60",
+    "pad": "2.8px 30.8px 2.8px 11.2px",
+    "radius": "3.5px",
+    "fs": "14px",
+    "bg": "rgba(0, 0, 0, 0.08)",
+    "color": "rgb(63, 63, 63)",
+    "border": "rgba(0, 0, 0, 0.32)"
+   },
+   "prim": {
+    "tag": "BUTTON.prim",
+    "h": 33.59375,
+    "prime": "#FF8F60",
+    "pad": "2.8px 11.2px",
+    "radius": "3.5px",
+    "fs": "14px",
+    "bg": "rgb(255, 143, 96)",
+    "color": "rgb(26, 26, 26)",
+    "border": "rgb(255, 143, 96)"
+   },
+   "tokens2": {
+    "prime": "rgb(255, 97, 87)",
+    "ink": "rgb(26, 26, 26)",
+    "subtle": "rgba(0, 0, 0, 0.55)",
+    "surface": "rgb(255, 255, 255)",
+    "line": "rgba(0, 0, 0, 0.15)",
+    "wash": "rgba(0, 0, 0, 0.08)",
+    "light": "color(srgb 0.940706 0.940078 0.943529)",
+    "dark": "rgb(66, 64, 75)",
+    "error": "rgb(204, 0, 0)",
+    "ok": "rgb(21, 128, 61)",
+    "warn": "rgb(161, 98, 7)"
+   },
+   "type2": {
+    "h1": {
+     "fs": "26.6px",
+     "weight": "900",
+     "ls": "-0.399px",
+     "tt": "none",
+     "lh": "31.92px",
+     "family": "system-ui"
+    },
+    "h2": {
+     "fs": "19.6px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "25.48px",
+     "family": "system-ui"
+    },
+    "h3": {
+     "fs": "14px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "21px",
+     "family": "system-ui"
+    },
+    "h4": {
+     "fs": "11.2px",
+     "weight": "700",
+     "ls": "0.56px",
+     "tt": "uppercase",
+     "lh": "16.8px",
+     "family": "system-ui"
+    },
+    "small": {
+     "fs": "11.6667px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "17.5px",
+     "family": "system-ui"
+    },
+    "label": {
+     "fs": "14px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "21px",
+     "family": "system-ui"
+    },
+    "code": {
+     "fs": "14px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "21px",
+     "family": "Consolas"
+    }
+   },
+   "cscheme": "light",
+   "tokens3": {
+    "prime": "rgb(255, 143, 96)",
+    "ink": "rgb(63, 63, 63)",
+    "subtle": "rgb(106, 106, 106)",
+    "surface": "rgb(255, 255, 255)",
+    "line": "rgb(230, 230, 230)",
+    "wash": "rgb(242, 242, 242)",
+    "light": "color(srgb 0.940706 0.940078 0.943529)",
+    "dark": "rgb(63, 63, 63)",
+    "error": "rgb(204, 0, 0)",
+    "ok": "rgb(21, 128, 61)",
+    "warn": "rgb(161, 98, 7)"
+   },
+   "type3": {
+    "h1": {
+     "fs": "42px",
+     "weight": "900",
+     "ls": "-0.84px",
+     "tt": "none",
+     "lh": "46.2px",
+     "family": "Montserrat"
+    },
+    "h2": {
+     "fs": "31.5px",
+     "weight": "700",
+     "ls": "-0.315px",
+     "tt": "none",
+     "lh": "39.375px",
+     "family": "Montserrat"
+    },
+    "h3": {
+     "fs": "21px",
+     "weight": "600",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "29.4px",
+     "family": "Montserrat"
+    },
+    "h4": {
+     "fs": "12.25px",
+     "weight": "700",
+     "ls": "1.1025px",
+     "tt": "uppercase",
+     "lh": "17.15px",
+     "family": "Montserrat"
+    },
+    "small": {
+     "fs": "11.6667px",
+     "weight": "500",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "21px",
+     "family": "Montserrat"
+    },
+    "label": {
+     "fs": "14px",
+     "weight": "500",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "25.2px",
+     "family": "Montserrat"
+    },
+    "code": {
+     "fs": "12.25px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "22.05px",
+     "family": "Consolas"
+    }
+   }
+  },
+  "light1000": {
+   "body": {
+    "fs": "14.62px",
+    "family": "system-ui, -apple-system, sans-serif",
+    "lh": "21.93px",
+    "weight": "400"
+   },
+   "tokens": {
+    "pad": {
+     "raw": "calc(clamp(1em, 2.6% - 1.1em,   4em)   * 1)",
+     "res": "14.6094px"
+    },
+    "gap": {
+     "raw": "calc(clamp(1em, 1.5cqi - 0.3em, 2.4em) * 1)",
+     "res": "14.6094px"
+    },
+    "flow": {
+     "raw": "calc(clamp(2em, 1.4cqi + 0.8em, 2.5em) * 1)",
+     "res": "29.2344px"
+    },
+    "radius": {
+     "raw": "0.5em",
+     "res": "7.29688px"
+    },
+    "prime": {
+     "raw": "#FF6157",
+     "res": "rgb(255, 97, 87)"
+    },
+    "ink": {
+     "raw": "light-dark(#1a1a1a, #e8e8ea)",
+     "res": "rgb(26, 26, 26)"
+    },
+    "subtle": {
+     "raw": "light-dark(rgba(0,0,0,0.55), rgba(255,255,255,0.55))",
+     "res": "rgba(0, 0, 0, 0.55)"
+    },
+    "surface": {
+     "raw": "light-dark(#fff, #17161a)",
+     "res": "rgb(255, 255, 255)"
+    },
+    "line": {
+     "raw": "light-dark(rgba(0,0,0,0.15), rgba(255,255,255,0.15))",
+     "res": "rgba(0, 0, 0, 0.15)"
+    },
+    "wash": {
+     "raw": "light-dark(rgba(0,0,0,0.08), rgba(255,255,255,0.08))",
+     "res": "rgba(0, 0, 0, 0.08)"
+    },
+    "light": {
+     "raw": "light-dark(color-mix(in srgb, #42404B 8%, #fff), color-mix(in srgb, #fff 6%, #17161a))",
+     "res": "color(srgb 0.940706 0.940078 0.943529)"
+    },
+    "dark": {
+     "raw": "#42404B",
+     "res": "rgb(66, 64, 75)"
+    },
+    "error": {
+     "raw": "light-dark(#c00, #ff7b72)",
+     "res": "rgb(204, 0, 0)"
+    },
+    "ok": {
+     "raw": "light-dark(#15803d, #4ade80)",
+     "res": "rgb(21, 128, 61)"
+    },
+    "warn": {
+     "raw": "light-dark(#a16207, #fbbf24)",
+     "res": "rgb(161, 98, 7)"
+    }
+   },
+   "type": {
+    "h1": {
+     "fs": "32.895px",
+     "weight": "700",
+     "ls": "-0.32895px",
+     "tt": "none",
+     "lh": "41.1188px",
+     "family": "Montserrat, system-ui, -apple-system, sa"
+    },
+    "h2": {
+     "fs": "32.895px",
+     "weight": "700",
+     "ls": "-0.32895px",
+     "tt": "none",
+     "lh": "41.1188px",
+     "family": "Montserrat, system-ui, -apple-system, sa"
+    },
+    "h3": null,
+    "h4": null,
+    "small": null,
+    "label": {
+     "fs": "12.8px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "19.2px",
+     "family": "Consolas, \"Courier New\", Monaco, monospa"
+    },
+    "code": {
+     "fs": "12.7925px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "23.0265px",
+     "family": "Consolas, \"Courier New\", Monaco, monospa"
+    }
+   },
+   "button": {
+    "tag": "BUTTON.mode-btn",
+    "h": 22.21875,
+    "prime": "#FF8F60",
+    "pad": "0px",
+    "radius": "999px",
+    "fs": "11.696px",
+    "bg": "rgba(0, 0, 0, 0)",
+    "color": "color(srgb 0.247059 0.247059 0.247059 / 0.7)",
+    "border": "color(srgb 0.247059 0.247059 0.247059 / 0.25)"
+   },
+   "input": {
+    "tag": "INPUT.",
+    "h": 35.078125,
+    "prime": "#FF8F60",
+    "pad": "2.924px 11.696px",
+    "radius": "3.655px",
+    "fs": "14.62px",
+    "bg": "rgba(0, 0, 0, 0.08)",
+    "color": "rgb(63, 63, 63)",
+    "border": "rgba(0, 0, 0, 0.32)"
+   },
+   "select": {
+    "tag": "SELECT.auto",
+    "h": 35.078125,
+    "prime": "#FF8F60",
+    "pad": "2.924px 32.164px 2.924px 11.696px",
+    "radius": "3.655px",
+    "fs": "14.62px",
+    "bg": "rgba(0, 0, 0, 0.08)",
+    "color": "rgb(63, 63, 63)",
+    "border": "rgba(0, 0, 0, 0.32)"
+   },
+   "prim": {
+    "tag": "BUTTON.prim",
+    "h": 35.078125,
+    "prime": "#FF8F60",
+    "pad": "2.924px 11.696px",
+    "radius": "3.655px",
+    "fs": "14.62px",
+    "bg": "rgb(255, 143, 96)",
+    "color": "rgb(26, 26, 26)",
+    "border": "rgb(255, 143, 96)"
+   },
+   "tokens2": {
+    "prime": "rgb(255, 97, 87)",
+    "ink": "rgb(26, 26, 26)",
+    "subtle": "rgba(0, 0, 0, 0.55)",
+    "surface": "rgb(255, 255, 255)",
+    "line": "rgba(0, 0, 0, 0.15)",
+    "wash": "rgba(0, 0, 0, 0.08)",
+    "light": "color(srgb 0.940706 0.940078 0.943529)",
+    "dark": "rgb(66, 64, 75)",
+    "error": "rgb(204, 0, 0)",
+    "ok": "rgb(21, 128, 61)",
+    "warn": "rgb(161, 98, 7)"
+   },
+   "type2": {
+    "h1": {
+     "fs": "27.778px",
+     "weight": "900",
+     "ls": "-0.41667px",
+     "tt": "none",
+     "lh": "33.3336px",
+     "family": "system-ui"
+    },
+    "h2": {
+     "fs": "20.468px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "26.6084px",
+     "family": "system-ui"
+    },
+    "h3": {
+     "fs": "14.62px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "21.93px",
+     "family": "system-ui"
+    },
+    "h4": {
+     "fs": "11.696px",
+     "weight": "700",
+     "ls": "0.5848px",
+     "tt": "uppercase",
+     "lh": "17.544px",
+     "family": "system-ui"
+    },
+    "small": {
+     "fs": "12.1833px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "18.275px",
+     "family": "system-ui"
+    },
+    "label": {
+     "fs": "14.62px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "21.93px",
+     "family": "system-ui"
+    },
+    "code": {
+     "fs": "14.62px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "21.93px",
+     "family": "Consolas"
+    }
+   },
+   "cscheme": "light",
+   "tokens3": {
+    "prime": "rgb(255, 143, 96)",
+    "ink": "rgb(63, 63, 63)",
+    "subtle": "rgb(106, 106, 106)",
+    "surface": "rgb(255, 255, 255)",
+    "line": "rgb(230, 230, 230)",
+    "wash": "rgb(242, 242, 242)",
+    "light": "color(srgb 0.940706 0.940078 0.943529)",
+    "dark": "rgb(63, 63, 63)",
+    "error": "rgb(204, 0, 0)",
+    "ok": "rgb(21, 128, 61)",
+    "warn": "rgb(161, 98, 7)"
+   },
+   "type3": {
+    "h1": {
+     "fs": "43.86px",
+     "weight": "900",
+     "ls": "-0.8772px",
+     "tt": "none",
+     "lh": "48.246px",
+     "family": "Montserrat"
+    },
+    "h2": {
+     "fs": "32.895px",
+     "weight": "700",
+     "ls": "-0.32895px",
+     "tt": "none",
+     "lh": "41.1188px",
+     "family": "Montserrat"
+    },
+    "h3": {
+     "fs": "21.93px",
+     "weight": "600",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "30.702px",
+     "family": "Montserrat"
+    },
+    "h4": {
+     "fs": "12.7925px",
+     "weight": "700",
+     "ls": "1.15132px",
+     "tt": "uppercase",
+     "lh": "17.9095px",
+     "family": "Montserrat"
+    },
+    "small": {
+     "fs": "12.1833px",
+     "weight": "500",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "21.93px",
+     "family": "Montserrat"
+    },
+    "label": {
+     "fs": "14.62px",
+     "weight": "500",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "26.316px",
+     "family": "Montserrat"
+    },
+    "code": {
+     "fs": "12.7925px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "23.0265px",
+     "family": "Consolas"
+    }
+   }
+  },
+  "light1920": {
+   "body": {
+    "fs": "16px",
+    "family": "system-ui, -apple-system, sans-serif",
+    "lh": "24px",
+    "weight": "400"
+   },
+   "tokens": {
+    "pad": {
+     "raw": "calc(clamp(1em, 2.6% - 1.1em,   4em)   * 1)",
+     "res": "32.3125px"
+    },
+    "gap": {
+     "raw": "calc(clamp(1em, 1.5cqi - 0.3em, 2.4em) * 1)",
+     "res": "24px"
+    },
+    "flow": {
+     "raw": "calc(clamp(2em, 1.4cqi + 0.8em, 2.5em) * 1)",
+     "res": "39.6719px"
+    },
+    "radius": {
+     "raw": "0.5em",
+     "res": "8px"
+    },
+    "prime": {
+     "raw": "#FF6157",
+     "res": "rgb(255, 97, 87)"
+    },
+    "ink": {
+     "raw": "light-dark(#1a1a1a, #e8e8ea)",
+     "res": "rgb(26, 26, 26)"
+    },
+    "subtle": {
+     "raw": "light-dark(rgba(0,0,0,0.55), rgba(255,255,255,0.55))",
+     "res": "rgba(0, 0, 0, 0.55)"
+    },
+    "surface": {
+     "raw": "light-dark(#fff, #17161a)",
+     "res": "rgb(255, 255, 255)"
+    },
+    "line": {
+     "raw": "light-dark(rgba(0,0,0,0.15), rgba(255,255,255,0.15))",
+     "res": "rgba(0, 0, 0, 0.15)"
+    },
+    "wash": {
+     "raw": "light-dark(rgba(0,0,0,0.08), rgba(255,255,255,0.08))",
+     "res": "rgba(0, 0, 0, 0.08)"
+    },
+    "light": {
+     "raw": "light-dark(color-mix(in srgb, #42404B 8%, #fff), color-mix(in srgb, #fff 6%, #17161a))",
+     "res": "color(srgb 0.940706 0.940078 0.943529)"
+    },
+    "dark": {
+     "raw": "#42404B",
+     "res": "rgb(66, 64, 75)"
+    },
+    "error": {
+     "raw": "light-dark(#c00, #ff7b72)",
+     "res": "rgb(204, 0, 0)"
+    },
+    "ok": {
+     "raw": "light-dark(#15803d, #4ade80)",
+     "res": "rgb(21, 128, 61)"
+    },
+    "warn": {
+     "raw": "light-dark(#a16207, #fbbf24)",
+     "res": "rgb(161, 98, 7)"
+    }
+   },
+   "type": {
+    "h1": {
+     "fs": "36px",
+     "weight": "700",
+     "ls": "-0.36px",
+     "tt": "none",
+     "lh": "45px",
+     "family": "Montserrat, system-ui, -apple-system, sa"
+    },
+    "h2": {
+     "fs": "36px",
+     "weight": "700",
+     "ls": "-0.36px",
+     "tt": "none",
+     "lh": "45px",
+     "family": "Montserrat, system-ui, -apple-system, sa"
+    },
+    "h3": null,
+    "h4": null,
+    "small": {
+     "fs": "11.56px",
+     "weight": "500",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "20.808px",
+     "family": "Montserrat, system-ui, -apple-system, sa"
+    },
+    "label": {
+     "fs": "12.8px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "19.2px",
+     "family": "Consolas, \"Courier New\", Monaco, monospa"
+    },
+    "code": {
+     "fs": "14px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "25.2px",
+     "family": "Consolas, \"Courier New\", Monaco, monospa"
+    }
+   },
+   "button": {
+    "tag": "BUTTON.mode-btn",
+    "h": 24.3125,
+    "prime": "#FF8F60",
+    "pad": "0px",
+    "radius": "999px",
+    "fs": "12.8px",
+    "bg": "rgba(0, 0, 0, 0)",
+    "color": "color(srgb 0.247059 0.247059 0.247059 / 0.7)",
+    "border": "color(srgb 0.247059 0.247059 0.247059 / 0.25)"
+   },
+   "input": {
+    "tag": "INPUT.",
+    "h": 38.390625,
+    "prime": "#FF8F60",
+    "pad": "3.2px 12.8px",
+    "radius": "4px",
+    "fs": "16px",
+    "bg": "rgba(0, 0, 0, 0.08)",
+    "color": "rgb(63, 63, 63)",
+    "border": "rgba(0, 0, 0, 0.32)"
+   },
+   "select": {
+    "tag": "SELECT.auto",
+    "h": 38.390625,
+    "prime": "#FF8F60",
+    "pad": "3.2px 35.2px 3.2px 12.8px",
+    "radius": "4px",
+    "fs": "16px",
+    "bg": "rgba(0, 0, 0, 0.08)",
+    "color": "rgb(63, 63, 63)",
+    "border": "rgba(0, 0, 0, 0.32)"
+   },
+   "prim": {
+    "tag": "BUTTON.prim",
+    "h": 38.390625,
+    "prime": "#FF8F60",
+    "pad": "3.2px 12.8px",
+    "radius": "4px",
+    "fs": "16px",
+    "bg": "rgb(255, 143, 96)",
+    "color": "rgb(26, 26, 26)",
+    "border": "rgb(255, 143, 96)"
+   },
+   "tokens2": {
+    "prime": "rgb(255, 97, 87)",
+    "ink": "rgb(26, 26, 26)",
+    "subtle": "rgba(0, 0, 0, 0.55)",
+    "surface": "rgb(255, 255, 255)",
+    "line": "rgba(0, 0, 0, 0.15)",
+    "wash": "rgba(0, 0, 0, 0.08)",
+    "light": "color(srgb 0.940706 0.940078 0.943529)",
+    "dark": "rgb(66, 64, 75)",
+    "error": "rgb(204, 0, 0)",
+    "ok": "rgb(21, 128, 61)",
+    "warn": "rgb(161, 98, 7)"
+   },
+   "type2": {
+    "h1": {
+     "fs": "30.4px",
+     "weight": "900",
+     "ls": "-0.456px",
+     "tt": "none",
+     "lh": "36.48px",
+     "family": "system-ui"
+    },
+    "h2": {
+     "fs": "22.4px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "29.12px",
+     "family": "system-ui"
+    },
+    "h3": {
+     "fs": "16px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "24px",
+     "family": "system-ui"
+    },
+    "h4": {
+     "fs": "12.8px",
+     "weight": "700",
+     "ls": "0.64px",
+     "tt": "uppercase",
+     "lh": "19.2px",
+     "family": "system-ui"
+    },
+    "small": {
+     "fs": "13.3333px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "20px",
+     "family": "system-ui"
+    },
+    "label": {
+     "fs": "16px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "24px",
+     "family": "system-ui"
+    },
+    "code": {
+     "fs": "16px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "24px",
+     "family": "Consolas"
+    }
+   },
+   "cscheme": "light",
+   "tokens3": {
+    "prime": "rgb(255, 143, 96)",
+    "ink": "rgb(63, 63, 63)",
+    "subtle": "rgb(106, 106, 106)",
+    "surface": "rgb(255, 255, 255)",
+    "line": "rgb(230, 230, 230)",
+    "wash": "rgb(242, 242, 242)",
+    "light": "color(srgb 0.940706 0.940078 0.943529)",
+    "dark": "rgb(63, 63, 63)",
+    "error": "rgb(204, 0, 0)",
+    "ok": "rgb(21, 128, 61)",
+    "warn": "rgb(161, 98, 7)"
+   },
+   "type3": {
+    "h1": {
+     "fs": "48px",
+     "weight": "900",
+     "ls": "-0.96px",
+     "tt": "none",
+     "lh": "52.8px",
+     "family": "Montserrat"
+    },
+    "h2": {
+     "fs": "36px",
+     "weight": "700",
+     "ls": "-0.36px",
+     "tt": "none",
+     "lh": "45px",
+     "family": "Montserrat"
+    },
+    "h3": {
+     "fs": "24px",
+     "weight": "600",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "33.6px",
+     "family": "Montserrat"
+    },
+    "h4": {
+     "fs": "14px",
+     "weight": "700",
+     "ls": "1.26px",
+     "tt": "uppercase",
+     "lh": "19.6px",
+     "family": "Montserrat"
+    },
+    "small": {
+     "fs": "13.3333px",
+     "weight": "500",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "24px",
+     "family": "Montserrat"
+    },
+    "label": {
+     "fs": "16px",
+     "weight": "500",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "28.8px",
+     "family": "Montserrat"
+    },
+    "code": {
+     "fs": "14px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "25.2px",
+     "family": "Consolas"
+    }
+   }
+  },
+  "dark400": {
+   "body": {
+    "fs": "14px",
+    "family": "system-ui, -apple-system, sans-serif",
+    "lh": "21px",
+    "weight": "400"
+   },
+   "tokens": {
+    "pad": {
+     "raw": "calc(clamp(1em, 2.6% - 1.1em,   4em)   * 1)",
+     "res": "14px"
+    },
+    "gap": {
+     "raw": "calc(clamp(1em, 1.5cqi - 0.3em, 2.4em) * 1)",
+     "res": "14px"
+    },
+    "flow": {
+     "raw": "calc(clamp(2em, 1.4cqi + 0.8em, 2.5em) * 1)",
+     "res": "28px"
+    },
+    "radius": {
+     "raw": "0.5em",
+     "res": "7px"
+    },
+    "prime": {
+     "raw": "#FF6157",
+     "res": "rgb(255, 97, 87)"
+    },
+    "ink": {
+     "raw": "light-dark(#1a1a1a, #e8e8ea)",
+     "res": "rgb(26, 26, 26)"
+    },
+    "subtle": {
+     "raw": "light-dark(rgba(0,0,0,0.55), rgba(255,255,255,0.55))",
+     "res": "rgba(0, 0, 0, 0.55)"
+    },
+    "surface": {
+     "raw": "light-dark(#fff, #17161a)",
+     "res": "rgb(255, 255, 255)"
+    },
+    "line": {
+     "raw": "light-dark(rgba(0,0,0,0.15), rgba(255,255,255,0.15))",
+     "res": "rgba(0, 0, 0, 0.15)"
+    },
+    "wash": {
+     "raw": "light-dark(rgba(0,0,0,0.08), rgba(255,255,255,0.08))",
+     "res": "rgba(0, 0, 0, 0.08)"
+    },
+    "light": {
+     "raw": "light-dark(color-mix(in srgb, #42404B 8%, #fff), color-mix(in srgb, #fff 6%, #17161a))",
+     "res": "color(srgb 0.940706 0.940078 0.943529)"
+    },
+    "dark": {
+     "raw": "#42404B",
+     "res": "rgb(66, 64, 75)"
+    },
+    "error": {
+     "raw": "light-dark(#c00, #ff7b72)",
+     "res": "rgb(204, 0, 0)"
+    },
+    "ok": {
+     "raw": "light-dark(#15803d, #4ade80)",
+     "res": "rgb(21, 128, 61)"
+    },
+    "warn": {
+     "raw": "light-dark(#a16207, #fbbf24)",
+     "res": "rgb(161, 98, 7)"
+    }
+   },
+   "type": {
+    "h1": {
+     "fs": "31.5px",
+     "weight": "700",
+     "ls": "-0.315px",
+     "tt": "none",
+     "lh": "39.375px",
+     "family": "Montserrat, system-ui, -apple-system, sa"
+    },
+    "h2": {
+     "fs": "31.5px",
+     "weight": "700",
+     "ls": "-0.315px",
+     "tt": "none",
+     "lh": "39.375px",
+     "family": "Montserrat, system-ui, -apple-system, sa"
+    },
+    "h3": null,
+    "h4": null,
+    "small": null,
+    "label": {
+     "fs": "12.8px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "19.2px",
+     "family": "Consolas, \"Courier New\", Monaco, monospa"
+    },
+    "code": {
+     "fs": "12.25px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "22.05px",
+     "family": "Consolas, \"Courier New\", Monaco, monospa"
+    }
+   },
+   "button": {
+    "tag": "BUTTON.sidebar-toggle",
+    "h": 28,
+    "prime": "#FF8F60",
+    "pad": "5.6px",
+    "radius": "2.8px",
+    "fs": "11.2px",
+    "bg": "rgba(0, 0, 0, 0)",
+    "color": "rgb(230, 230, 230)",
+    "border": "rgb(230, 230, 230)"
+   },
+   "input": {
+    "tag": "INPUT.",
+    "h": 33.59375,
+    "prime": "#FF8F60",
+    "pad": "2.8px 11.2px",
+    "radius": "3.5px",
+    "fs": "14px",
+    "bg": "rgba(255, 255, 255, 0.08)",
+    "color": "rgb(230, 230, 230)",
+    "border": "rgba(255, 255, 255, 0.32)"
+   },
+   "select": {
+    "tag": "SELECT.auto",
+    "h": 33.59375,
+    "prime": "#FF8F60",
+    "pad": "2.8px 30.8px 2.8px 11.2px",
+    "radius": "3.5px",
+    "fs": "14px",
+    "bg": "rgba(255, 255, 255, 0.08)",
+    "color": "rgb(230, 230, 230)",
+    "border": "rgba(255, 255, 255, 0.32)"
+   },
+   "prim": {
+    "tag": "BUTTON.prim",
+    "h": 33.59375,
+    "prime": "#FF8F60",
+    "pad": "2.8px 11.2px",
+    "radius": "3.5px",
+    "fs": "14px",
+    "bg": "rgb(255, 143, 96)",
+    "color": "rgb(26, 26, 26)",
+    "border": "rgb(255, 143, 96)"
+   },
+   "tokens2": {
+    "prime": "rgb(255, 97, 87)",
+    "ink": "rgb(232, 232, 234)",
+    "subtle": "rgba(255, 255, 255, 0.55)",
+    "surface": "rgb(23, 22, 26)",
+    "line": "rgba(255, 255, 255, 0.15)",
+    "wash": "rgba(255, 255, 255, 0.08)",
+    "light": "color(srgb 0.144784 0.141098 0.155843)",
+    "dark": "rgb(66, 64, 75)",
+    "error": "rgb(255, 123, 114)",
+    "ok": "rgb(74, 222, 128)",
+    "warn": "rgb(251, 191, 36)"
+   },
+   "type2": {
+    "h1": {
+     "fs": "26.6px",
+     "weight": "900",
+     "ls": "-0.399px",
+     "tt": "none",
+     "lh": "31.92px",
+     "family": "system-ui"
+    },
+    "h2": {
+     "fs": "19.6px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "25.48px",
+     "family": "system-ui"
+    },
+    "h3": {
+     "fs": "14px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "21px",
+     "family": "system-ui"
+    },
+    "h4": {
+     "fs": "11.2px",
+     "weight": "700",
+     "ls": "0.56px",
+     "tt": "uppercase",
+     "lh": "16.8px",
+     "family": "system-ui"
+    },
+    "small": {
+     "fs": "11.6667px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "17.5px",
+     "family": "system-ui"
+    },
+    "label": {
+     "fs": "14px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "21px",
+     "family": "system-ui"
+    },
+    "code": {
+     "fs": "14px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "21px",
+     "family": "Consolas"
+    }
+   },
+   "cscheme": "dark",
+   "tokens3": {
+    "prime": "rgb(255, 143, 96)",
+    "ink": "rgb(230, 230, 230)",
+    "subtle": "rgb(168, 168, 168)",
+    "surface": "rgb(38, 38, 38)",
+    "line": "rgb(51, 51, 51)",
+    "wash": "rgb(23, 23, 23)",
+    "light": "color(srgb 0.144784 0.141098 0.155843)",
+    "dark": "rgb(74, 74, 74)",
+    "error": "rgb(255, 123, 114)",
+    "ok": "rgb(74, 222, 128)",
+    "warn": "rgb(251, 191, 36)"
+   },
+   "type3": {
+    "h1": {
+     "fs": "42px",
+     "weight": "900",
+     "ls": "-0.84px",
+     "tt": "none",
+     "lh": "46.2px",
+     "family": "Montserrat"
+    },
+    "h2": {
+     "fs": "31.5px",
+     "weight": "700",
+     "ls": "-0.315px",
+     "tt": "none",
+     "lh": "39.375px",
+     "family": "Montserrat"
+    },
+    "h3": {
+     "fs": "21px",
+     "weight": "600",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "29.4px",
+     "family": "Montserrat"
+    },
+    "h4": {
+     "fs": "12.25px",
+     "weight": "700",
+     "ls": "1.1025px",
+     "tt": "uppercase",
+     "lh": "17.15px",
+     "family": "Montserrat"
+    },
+    "small": {
+     "fs": "11.6667px",
+     "weight": "500",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "21px",
+     "family": "Montserrat"
+    },
+    "label": {
+     "fs": "14px",
+     "weight": "500",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "25.2px",
+     "family": "Montserrat"
+    },
+    "code": {
+     "fs": "12.25px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "22.05px",
+     "family": "Consolas"
+    }
+   }
+  },
+  "dark1000": {
+   "body": {
+    "fs": "14.62px",
+    "family": "system-ui, -apple-system, sans-serif",
+    "lh": "21.93px",
+    "weight": "400"
+   },
+   "tokens": {
+    "pad": {
+     "raw": "calc(clamp(1em, 2.6% - 1.1em,   4em)   * 1)",
+     "res": "14.6094px"
+    },
+    "gap": {
+     "raw": "calc(clamp(1em, 1.5cqi - 0.3em, 2.4em) * 1)",
+     "res": "14.6094px"
+    },
+    "flow": {
+     "raw": "calc(clamp(2em, 1.4cqi + 0.8em, 2.5em) * 1)",
+     "res": "29.2344px"
+    },
+    "radius": {
+     "raw": "0.5em",
+     "res": "7.29688px"
+    },
+    "prime": {
+     "raw": "#FF6157",
+     "res": "rgb(255, 97, 87)"
+    },
+    "ink": {
+     "raw": "light-dark(#1a1a1a, #e8e8ea)",
+     "res": "rgb(26, 26, 26)"
+    },
+    "subtle": {
+     "raw": "light-dark(rgba(0,0,0,0.55), rgba(255,255,255,0.55))",
+     "res": "rgba(0, 0, 0, 0.55)"
+    },
+    "surface": {
+     "raw": "light-dark(#fff, #17161a)",
+     "res": "rgb(255, 255, 255)"
+    },
+    "line": {
+     "raw": "light-dark(rgba(0,0,0,0.15), rgba(255,255,255,0.15))",
+     "res": "rgba(0, 0, 0, 0.15)"
+    },
+    "wash": {
+     "raw": "light-dark(rgba(0,0,0,0.08), rgba(255,255,255,0.08))",
+     "res": "rgba(0, 0, 0, 0.08)"
+    },
+    "light": {
+     "raw": "light-dark(color-mix(in srgb, #42404B 8%, #fff), color-mix(in srgb, #fff 6%, #17161a))",
+     "res": "color(srgb 0.940706 0.940078 0.943529)"
+    },
+    "dark": {
+     "raw": "#42404B",
+     "res": "rgb(66, 64, 75)"
+    },
+    "error": {
+     "raw": "light-dark(#c00, #ff7b72)",
+     "res": "rgb(204, 0, 0)"
+    },
+    "ok": {
+     "raw": "light-dark(#15803d, #4ade80)",
+     "res": "rgb(21, 128, 61)"
+    },
+    "warn": {
+     "raw": "light-dark(#a16207, #fbbf24)",
+     "res": "rgb(161, 98, 7)"
+    }
+   },
+   "type": {
+    "h1": {
+     "fs": "32.895px",
+     "weight": "700",
+     "ls": "-0.32895px",
+     "tt": "none",
+     "lh": "41.1188px",
+     "family": "Montserrat, system-ui, -apple-system, sa"
+    },
+    "h2": {
+     "fs": "32.895px",
+     "weight": "700",
+     "ls": "-0.32895px",
+     "tt": "none",
+     "lh": "41.1188px",
+     "family": "Montserrat, system-ui, -apple-system, sa"
+    },
+    "h3": null,
+    "h4": null,
+    "small": null,
+    "label": {
+     "fs": "12.8px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "19.2px",
+     "family": "Consolas, \"Courier New\", Monaco, monospa"
+    },
+    "code": {
+     "fs": "12.7925px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "23.0265px",
+     "family": "Consolas, \"Courier New\", Monaco, monospa"
+    }
+   },
+   "button": {
+    "tag": "BUTTON.mode-btn",
+    "h": 22.21875,
+    "prime": "#FF8F60",
+    "pad": "0px",
+    "radius": "999px",
+    "fs": "11.696px",
+    "bg": "rgba(0, 0, 0, 0)",
+    "color": "color(srgb 0.901961 0.901961 0.901961 / 0.7)",
+    "border": "color(srgb 0.901961 0.901961 0.901961 / 0.25)"
+   },
+   "input": {
+    "tag": "INPUT.",
+    "h": 35.078125,
+    "prime": "#FF8F60",
+    "pad": "2.924px 11.696px",
+    "radius": "3.655px",
+    "fs": "14.62px",
+    "bg": "rgba(255, 255, 255, 0.08)",
+    "color": "rgb(230, 230, 230)",
+    "border": "rgba(255, 255, 255, 0.32)"
+   },
+   "select": {
+    "tag": "SELECT.auto",
+    "h": 35.078125,
+    "prime": "#FF8F60",
+    "pad": "2.924px 32.164px 2.924px 11.696px",
+    "radius": "3.655px",
+    "fs": "14.62px",
+    "bg": "rgba(255, 255, 255, 0.08)",
+    "color": "rgb(230, 230, 230)",
+    "border": "rgba(255, 255, 255, 0.32)"
+   },
+   "prim": {
+    "tag": "BUTTON.prim",
+    "h": 35.078125,
+    "prime": "#FF8F60",
+    "pad": "2.924px 11.696px",
+    "radius": "3.655px",
+    "fs": "14.62px",
+    "bg": "rgb(255, 143, 96)",
+    "color": "rgb(26, 26, 26)",
+    "border": "rgb(255, 143, 96)"
+   },
+   "tokens2": {
+    "prime": "rgb(255, 97, 87)",
+    "ink": "rgb(232, 232, 234)",
+    "subtle": "rgba(255, 255, 255, 0.55)",
+    "surface": "rgb(23, 22, 26)",
+    "line": "rgba(255, 255, 255, 0.15)",
+    "wash": "rgba(255, 255, 255, 0.08)",
+    "light": "color(srgb 0.144784 0.141098 0.155843)",
+    "dark": "rgb(66, 64, 75)",
+    "error": "rgb(255, 123, 114)",
+    "ok": "rgb(74, 222, 128)",
+    "warn": "rgb(251, 191, 36)"
+   },
+   "type2": {
+    "h1": {
+     "fs": "27.778px",
+     "weight": "900",
+     "ls": "-0.41667px",
+     "tt": "none",
+     "lh": "33.3336px",
+     "family": "system-ui"
+    },
+    "h2": {
+     "fs": "20.468px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "26.6084px",
+     "family": "system-ui"
+    },
+    "h3": {
+     "fs": "14.62px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "21.93px",
+     "family": "system-ui"
+    },
+    "h4": {
+     "fs": "11.696px",
+     "weight": "700",
+     "ls": "0.5848px",
+     "tt": "uppercase",
+     "lh": "17.544px",
+     "family": "system-ui"
+    },
+    "small": {
+     "fs": "12.1833px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "18.275px",
+     "family": "system-ui"
+    },
+    "label": {
+     "fs": "14.62px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "21.93px",
+     "family": "system-ui"
+    },
+    "code": {
+     "fs": "14.62px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "21.93px",
+     "family": "Consolas"
+    }
+   },
+   "cscheme": "dark",
+   "tokens3": {
+    "prime": "rgb(255, 143, 96)",
+    "ink": "rgb(230, 230, 230)",
+    "subtle": "rgb(168, 168, 168)",
+    "surface": "rgb(38, 38, 38)",
+    "line": "rgb(51, 51, 51)",
+    "wash": "rgb(23, 23, 23)",
+    "light": "color(srgb 0.144784 0.141098 0.155843)",
+    "dark": "rgb(74, 74, 74)",
+    "error": "rgb(255, 123, 114)",
+    "ok": "rgb(74, 222, 128)",
+    "warn": "rgb(251, 191, 36)"
+   },
+   "type3": {
+    "h1": {
+     "fs": "43.86px",
+     "weight": "900",
+     "ls": "-0.8772px",
+     "tt": "none",
+     "lh": "48.246px",
+     "family": "Montserrat"
+    },
+    "h2": {
+     "fs": "32.895px",
+     "weight": "700",
+     "ls": "-0.32895px",
+     "tt": "none",
+     "lh": "41.1188px",
+     "family": "Montserrat"
+    },
+    "h3": {
+     "fs": "21.93px",
+     "weight": "600",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "30.702px",
+     "family": "Montserrat"
+    },
+    "h4": {
+     "fs": "12.7925px",
+     "weight": "700",
+     "ls": "1.15132px",
+     "tt": "uppercase",
+     "lh": "17.9095px",
+     "family": "Montserrat"
+    },
+    "small": {
+     "fs": "12.1833px",
+     "weight": "500",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "21.93px",
+     "family": "Montserrat"
+    },
+    "label": {
+     "fs": "14.62px",
+     "weight": "500",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "26.316px",
+     "family": "Montserrat"
+    },
+    "code": {
+     "fs": "12.7925px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "23.0265px",
+     "family": "Consolas"
+    }
+   }
+  },
+  "dark1920": {
+   "body": {
+    "fs": "16px",
+    "family": "system-ui, -apple-system, sans-serif",
+    "lh": "24px",
+    "weight": "400"
+   },
+   "tokens": {
+    "pad": {
+     "raw": "calc(clamp(1em, 2.6% - 1.1em,   4em)   * 1)",
+     "res": "32.3125px"
+    },
+    "gap": {
+     "raw": "calc(clamp(1em, 1.5cqi - 0.3em, 2.4em) * 1)",
+     "res": "24px"
+    },
+    "flow": {
+     "raw": "calc(clamp(2em, 1.4cqi + 0.8em, 2.5em) * 1)",
+     "res": "39.6719px"
+    },
+    "radius": {
+     "raw": "0.5em",
+     "res": "8px"
+    },
+    "prime": {
+     "raw": "#FF6157",
+     "res": "rgb(255, 97, 87)"
+    },
+    "ink": {
+     "raw": "light-dark(#1a1a1a, #e8e8ea)",
+     "res": "rgb(26, 26, 26)"
+    },
+    "subtle": {
+     "raw": "light-dark(rgba(0,0,0,0.55), rgba(255,255,255,0.55))",
+     "res": "rgba(0, 0, 0, 0.55)"
+    },
+    "surface": {
+     "raw": "light-dark(#fff, #17161a)",
+     "res": "rgb(255, 255, 255)"
+    },
+    "line": {
+     "raw": "light-dark(rgba(0,0,0,0.15), rgba(255,255,255,0.15))",
+     "res": "rgba(0, 0, 0, 0.15)"
+    },
+    "wash": {
+     "raw": "light-dark(rgba(0,0,0,0.08), rgba(255,255,255,0.08))",
+     "res": "rgba(0, 0, 0, 0.08)"
+    },
+    "light": {
+     "raw": "light-dark(color-mix(in srgb, #42404B 8%, #fff), color-mix(in srgb, #fff 6%, #17161a))",
+     "res": "color(srgb 0.940706 0.940078 0.943529)"
+    },
+    "dark": {
+     "raw": "#42404B",
+     "res": "rgb(66, 64, 75)"
+    },
+    "error": {
+     "raw": "light-dark(#c00, #ff7b72)",
+     "res": "rgb(204, 0, 0)"
+    },
+    "ok": {
+     "raw": "light-dark(#15803d, #4ade80)",
+     "res": "rgb(21, 128, 61)"
+    },
+    "warn": {
+     "raw": "light-dark(#a16207, #fbbf24)",
+     "res": "rgb(161, 98, 7)"
+    }
+   },
+   "type": {
+    "h1": {
+     "fs": "36px",
+     "weight": "700",
+     "ls": "-0.36px",
+     "tt": "none",
+     "lh": "45px",
+     "family": "Montserrat, system-ui, -apple-system, sa"
+    },
+    "h2": {
+     "fs": "36px",
+     "weight": "700",
+     "ls": "-0.36px",
+     "tt": "none",
+     "lh": "45px",
+     "family": "Montserrat, system-ui, -apple-system, sa"
+    },
+    "h3": null,
+    "h4": null,
+    "small": {
+     "fs": "11.56px",
+     "weight": "500",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "20.808px",
+     "family": "Montserrat, system-ui, -apple-system, sa"
+    },
+    "label": {
+     "fs": "12.8px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "19.2px",
+     "family": "Consolas, \"Courier New\", Monaco, monospa"
+    },
+    "code": {
+     "fs": "14px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "25.2px",
+     "family": "Consolas, \"Courier New\", Monaco, monospa"
+    }
+   },
+   "button": {
+    "tag": "BUTTON.mode-btn",
+    "h": 24.3125,
+    "prime": "#FF8F60",
+    "pad": "0px",
+    "radius": "999px",
+    "fs": "12.8px",
+    "bg": "rgba(0, 0, 0, 0)",
+    "color": "color(srgb 0.901961 0.901961 0.901961 / 0.7)",
+    "border": "color(srgb 0.901961 0.901961 0.901961 / 0.25)"
+   },
+   "input": {
+    "tag": "INPUT.",
+    "h": 38.390625,
+    "prime": "#FF8F60",
+    "pad": "3.2px 12.8px",
+    "radius": "4px",
+    "fs": "16px",
+    "bg": "rgba(255, 255, 255, 0.08)",
+    "color": "rgb(230, 230, 230)",
+    "border": "rgba(255, 255, 255, 0.32)"
+   },
+   "select": {
+    "tag": "SELECT.auto",
+    "h": 38.390625,
+    "prime": "#FF8F60",
+    "pad": "3.2px 35.2px 3.2px 12.8px",
+    "radius": "4px",
+    "fs": "16px",
+    "bg": "rgba(255, 255, 255, 0.08)",
+    "color": "rgb(230, 230, 230)",
+    "border": "rgba(255, 255, 255, 0.32)"
+   },
+   "prim": {
+    "tag": "BUTTON.prim",
+    "h": 38.390625,
+    "prime": "#FF8F60",
+    "pad": "3.2px 12.8px",
+    "radius": "4px",
+    "fs": "16px",
+    "bg": "rgb(255, 143, 96)",
+    "color": "rgb(26, 26, 26)",
+    "border": "rgb(255, 143, 96)"
+   },
+   "tokens2": {
+    "prime": "rgb(255, 97, 87)",
+    "ink": "rgb(232, 232, 234)",
+    "subtle": "rgba(255, 255, 255, 0.55)",
+    "surface": "rgb(23, 22, 26)",
+    "line": "rgba(255, 255, 255, 0.15)",
+    "wash": "rgba(255, 255, 255, 0.08)",
+    "light": "color(srgb 0.144784 0.141098 0.155843)",
+    "dark": "rgb(66, 64, 75)",
+    "error": "rgb(255, 123, 114)",
+    "ok": "rgb(74, 222, 128)",
+    "warn": "rgb(251, 191, 36)"
+   },
+   "type2": {
+    "h1": {
+     "fs": "30.4px",
+     "weight": "900",
+     "ls": "-0.456px",
+     "tt": "none",
+     "lh": "36.48px",
+     "family": "system-ui"
+    },
+    "h2": {
+     "fs": "22.4px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "29.12px",
+     "family": "system-ui"
+    },
+    "h3": {
+     "fs": "16px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "24px",
+     "family": "system-ui"
+    },
+    "h4": {
+     "fs": "12.8px",
+     "weight": "700",
+     "ls": "0.64px",
+     "tt": "uppercase",
+     "lh": "19.2px",
+     "family": "system-ui"
+    },
+    "small": {
+     "fs": "13.3333px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "20px",
+     "family": "system-ui"
+    },
+    "label": {
+     "fs": "16px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "24px",
+     "family": "system-ui"
+    },
+    "code": {
+     "fs": "16px",
+     "weight": "400",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "24px",
+     "family": "Consolas"
+    }
+   },
+   "cscheme": "dark",
+   "tokens3": {
+    "prime": "rgb(255, 143, 96)",
+    "ink": "rgb(230, 230, 230)",
+    "subtle": "rgb(168, 168, 168)",
+    "surface": "rgb(38, 38, 38)",
+    "line": "rgb(51, 51, 51)",
+    "wash": "rgb(23, 23, 23)",
+    "light": "color(srgb 0.144784 0.141098 0.155843)",
+    "dark": "rgb(74, 74, 74)",
+    "error": "rgb(255, 123, 114)",
+    "ok": "rgb(74, 222, 128)",
+    "warn": "rgb(251, 191, 36)"
+   },
+   "type3": {
+    "h1": {
+     "fs": "48px",
+     "weight": "900",
+     "ls": "-0.96px",
+     "tt": "none",
+     "lh": "52.8px",
+     "family": "Montserrat"
+    },
+    "h2": {
+     "fs": "36px",
+     "weight": "700",
+     "ls": "-0.36px",
+     "tt": "none",
+     "lh": "45px",
+     "family": "Montserrat"
+    },
+    "h3": {
+     "fs": "24px",
+     "weight": "600",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "33.6px",
+     "family": "Montserrat"
+    },
+    "h4": {
+     "fs": "14px",
+     "weight": "700",
+     "ls": "1.26px",
+     "tt": "uppercase",
+     "lh": "19.6px",
+     "family": "Montserrat"
+    },
+    "small": {
+     "fs": "13.3333px",
+     "weight": "500",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "24px",
+     "family": "Montserrat"
+    },
+    "label": {
+     "fs": "16px",
+     "weight": "500",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "28.8px",
+     "family": "Montserrat"
+    },
+    "code": {
+     "fs": "14px",
+     "weight": "700",
+     "ls": "normal",
+     "tt": "none",
+     "lh": "25.2px",
+     "family": "Consolas"
+    }
+   }
+  }
+ },
+ "rows": [
+  {
+   "fig": "Colors/prime",
+   "f": "#ff7950",
+   "web": "--prime",
+   "v": "L rgb(255, 143, 96) · D rgb(255, 143, 96)",
+   "match": "no",
+   "note": "web (lew42 theme) #FF8F60 in both modes; bare body #FF6157; Figma #ff7950 matches neither"
+  },
+  {
+   "fig": "Colors/light",
+   "f": "#f5f5f5",
+   "web": "--light",
+   "v": "L color(srgb 0.94 0.94 0.94) · D color(srgb 0.14 0.14 0.15)",
+   "match": "no",
+   "note": "web L ~#f0f0f1 (8% dark over white), D ~#252427; Figma #f5f5f5 has no dark"
+  },
+  {
+   "fig": "Colors/dark",
+   "f": "#433e37",
+   "web": "--dark",
+   "v": "L rgb(63, 63, 63) · D rgb(74, 74, 74)",
+   "match": "no",
+   "note": "theme L #3f3f3f, D #4a4a4a; bare body #42404B; Figma #433e37"
+  },
+  {
+   "fig": "Colors/error",
+   "f": "#cc0000",
+   "web": "--error",
+   "v": "L rgb(204, 0, 0) · D rgb(255, 123, 114)",
+   "match": "yes",
+   "note": "light same; web dark #ff7b72, Figma has one mode"
+  },
+  {
+   "fig": "Colors/ok",
+   "f": "#15803d",
+   "web": "--ok",
+   "v": "L rgb(21, 128, 61) · D rgb(74, 222, 128)",
+   "match": "yes",
+   "note": "light same; web dark #4ade80"
+  },
+  {
+   "fig": "Colors/warn",
+   "f": "#a16207",
+   "web": "--warn",
+   "v": "L rgb(161, 98, 7) · D rgb(251, 191, 36)",
+   "match": "yes",
+   "note": "light same; web dark #fbbf24"
+  },
+  {
+   "fig": "Colors/master",
+   "f": "#8b5cf6",
+   "web": "-",
+   "v": "-",
+   "match": "web lacks",
+   "note": "no web token"
+  },
+  {
+   "fig": "Colors/tint",
+   "f": "black a0.05",
+   "web": "--wash",
+   "v": "L rgb(242, 242, 242) · D rgb(23, 23, 23)",
+   "match": "no",
+   "note": "web wash is solid #f2f2f2 / #171717 (themed); Figma black .05"
+  },
+  {
+   "fig": "Color Mode/text",
+   "f": "L black a.8 · D #fff",
+   "web": "--ink",
+   "v": "L rgb(63, 63, 63) · D rgb(230, 230, 230)",
+   "match": "no",
+   "note": "themed web #3f3f3f / #e6e6e6; Figma black .8 reads ~#333"
+  },
+  {
+   "fig": "Color Mode/muted",
+   "f": "L black a.55 · D white a.7",
+   "web": "--subtle",
+   "v": "L rgb(106, 106, 106) · D rgb(168, 168, 168)",
+   "match": "partly",
+   "note": "web themed #6a6a6a / #a8a8a8 (solid); Figma .55 / .7 alpha"
+  },
+  {
+   "fig": "Color Mode/fill",
+   "f": "L #fff · D #433e37",
+   "web": "--surface",
+   "v": "L rgb(255, 255, 255) · D rgb(38, 38, 38)",
+   "match": "partly",
+   "note": "light same; web dark #262626, Figma #433e37"
+  },
+  {
+   "fig": "Color Mode/lighten",
+   "f": "L #fff · D #fff a.5",
+   "web": "--lighten-1..3",
+   "v": "(paper-a08/a16/a32, not measured)",
+   "match": "no",
+   "note": "different scale"
+  },
+  {
+   "fig": "Color Mode/darken",
+   "f": "L black a.05 · D black a.2",
+   "web": "--darken-1..3",
+   "v": "(shade-a08/a16/a32, not measured)",
+   "match": "no",
+   "note": "different scale"
+  },
+  {
+   "fig": "-",
+   "f": "-",
+   "web": "--line",
+   "v": "L rgb(230, 230, 230) · D rgb(51, 51, 51)",
+   "match": "web only",
+   "note": "no Figma token"
+  },
+  {
+   "fig": "Scale/width",
+   "f": "500 / 1000 / 1920",
+   "web": "viewport",
+   "v": "400 / 1000 / 1920",
+   "match": "note",
+   "note": "web 400 is the narrow test, not 500"
+  },
+  {
+   "fig": "Scale/size/1 = body",
+   "f": "14 / 16 / 20",
+   "web": "body font-size",
+   "v": "14px / 14.62px / 16px",
+   "match": "no",
+   "note": "web 14 / 14.62 / 16; Figma 20 at 1920"
+  },
+  {
+   "fig": "Scale/pad",
+   "f": "42 / 64 / 80",
+   "web": "--pad",
+   "v": "14px / 14.60px / 32.31px",
+   "match": "no",
+   "note": "web is a clamp, ~half of Figma"
+  },
+  {
+   "fig": "Scale/gap",
+   "f": "28 / 32 / 60",
+   "web": "--gap",
+   "v": "14px / 14.60px / 24px",
+   "match": "no",
+   "note": ""
+  },
+  {
+   "fig": "Scale/text-gap",
+   "f": "14 / 16 / 30",
+   "web": "--flow",
+   "v": "28px / 29.23px / 39.67px",
+   "match": "no",
+   "note": "closest analogue, not the same meaning"
+  },
+  {
+   "fig": "-",
+   "f": "-",
+   "web": "--radius",
+   "v": "7px / 7.29px / 8px",
+   "match": "web only",
+   "note": "0.5em; no Figma radius variable"
+  },
+  {
+   "fig": "h1 Montserrat Black",
+   "f": "48 / 48 / 60 (size/3), ls 0",
+   "web": "h1",
+   "v": "42px w900 ls -0.84px / 43.86px w900 ls -0.87px / 48px w900 ls -0.96px",
+   "match": "no",
+   "note": ""
+  },
+  {
+   "fig": "h2 Montserrat Bold",
+   "f": "32 / 32 / 40 (size/2), ls 0",
+   "web": "h2",
+   "v": "31.5px w700 ls -0.31px / 32.89px w700 ls -0.32px / 36px w700 ls -0.36px",
+   "match": "no",
+   "note": ""
+  },
+  {
+   "fig": "h3 Montserrat SemiBold",
+   "f": "24 / 24 / 30 (size/1-5), ls 0",
+   "web": "h3",
+   "v": "21px w600 ls normal / 21.93px w600 ls normal / 24px w600 ls normal",
+   "match": "no",
+   "note": ""
+  },
+  {
+   "fig": "h4 Montserrat Bold UPPER",
+   "f": "14 fixed, unbound, ls 7%",
+   "web": "h4",
+   "v": "12.25px w700 ls 1.10px / 12.79px w700 ls 1.15px / 14px w700 ls 1.26px",
+   "match": "no",
+   "note": ""
+  },
+  {
+   "fig": "small Montserrat SemiBold",
+   "f": "12 (size/0-75) / 11 / 15",
+   "web": "small",
+   "v": "11.66px w500 ls normal / 12.18px w500 ls normal / 13.33px w500 ls normal",
+   "match": "no",
+   "note": ""
+  },
+  {
+   "fig": "label Montserrat Bold",
+   "f": "16 (size/1) / 14 / 20",
+   "web": "label",
+   "v": "14px w500 ls normal / 14.62px w500 ls normal / 16px w500 ls normal",
+   "match": "no",
+   "note": ""
+  },
+  {
+   "fig": "code JetBrains Mono",
+   "f": "14 fixed",
+   "web": "code",
+   "v": "12.25px w700 ls normal / 12.79px w700 ls normal / 14px w700 ls normal",
+   "match": "no",
+   "note": ""
+  },
+  {
+   "fig": "body Montserrat Medium",
+   "f": "16 (size/1), lh 180%",
+   "web": "body font-family",
+   "v": "system-ui, -apple-system, sans w400",
+   "match": "no",
+   "note": "web body is system-ui, w400"
+  },
+  {
+   "fig": "-",
+   "f": "-",
+   "web": "input (height/pad/radius/fs)",
+   "v": "33.59h 2.8px 11.2px r3.5px 14px / 35.07h 2.92px 11.69px r3.65px 14.62px / 38.39h 3.2px 12.8px r4px 16px",
+   "match": "web only",
+   "note": "no Figma control"
+  },
+  {
+   "fig": "-",
+   "f": "-",
+   "web": "button.prim (h/pad/radius/fs)",
+   "v": "33.59h 2.8px 11.2px r3.5px 14px / 35.07h 2.92px 11.69px r3.65px 14.62px / 38.39h 3.2px 12.8px r4px 16px",
+   "match": "web only",
+   "note": "bg rgb(255, 143, 96) ink rgb(26, 26, 26)"
+  }
+ ]
+}

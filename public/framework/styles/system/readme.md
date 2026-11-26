@@ -32,6 +32,7 @@ box's own padding) · `--gap` (between things in a row) · and four rungs under 
 - [`studies/`](/framework/styles/system/studies/) — the ten studies behind every number here, one click down. Moved from `/imagine/design/` 2026-09-18; four sibling studies (controls, layout, navigation, journey) went to their own module instead.
 - [`doc/census.md`](./doc/census.md) why four rungs and not two — the 1,894-value census, the fit, the residue
 - [`doc/rest.md`](./doc/rest.md) the rest of the system — type, colour, layers, layouts, and every study behind them
+- How these names map to the Figma file Lew42 v3, and the three values where the two differ: [`ext/Figma/doc/v3-web-map.md`](/framework/ext/Figma/doc/v3-web-map.md)
 - The tokens themselves live in `/framework/framework.css` (`:where(*)`, and the `.pad` / `.gap` / `.gap-*` classes in `@layer util`). The long form of why they are shaped that way: [/framework/styles/system/studies/size/](/framework/styles/system/studies/size/).
 
 ## Notes from your asks
