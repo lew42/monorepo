@@ -21,3 +21,4 @@
 {"complete":{"outcome":"Users and auth research done: the Worker already has a user system (Google verify, cookie, D1 users, per-user UserDO); real Google never run; proposal = answers table in UserDO + GET/PUT /api/answers + form.bind(user). Reported to voice-app; nothing built.","evidence":["commit f3a3c6313e: auth/findings.md, auth/proposal.md, worker/readme.md link"],"at":"2026-11-25T18:09:49-06:00"}}
 {"assign":{"closed_by":"unknown caller","closed_at":"2026-11-25T18:09:49-06:00","closed_why":null}}
 {"log":{"at":"2026-11-25T18:10:42-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"action":{"at":"2026-11-25T19:04:41-06:00","did":"edit","files":["public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/auth/proposal.md"]},"by":"ledger","ts":"2026-11-26T01:04:41.106Z"}
