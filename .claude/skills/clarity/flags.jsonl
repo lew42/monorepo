@@ -2515,3 +2515,18 @@
 {"at":"2026-11-26T00:06:22.157Z","target":"public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/auth/requirements.md","verdict":"queued","kind":"proposal"}
 {"at":"2026-11-26T00:07:23.336Z","target":"public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/auth/requirements.md","verdict":"spawned","to":"clarity-auth"}
 {"at":"2026-11-26T00:07:35.000Z","target":"public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/auth/requirements.md","verdict":"clear","what":"agent brief, text-check clean; deliverables not yet written","to":"flags.jsonl"}
+{"at":"2026-11-26T00:30:58.713Z","target":"public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/inapp/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-26T00:31:04.883Z","target":"public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/figma15/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-26T00:31:59.900Z","target":"public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/inapp/requirements.md","verdict":"spawned","to":"clarity-inapp"}
+{"at":"2026-11-26T00:32:06.196Z","target":"public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/figma15/requirements.md","verdict":"spawned","to":"clarity-figma15"}
+{"at":"2026-11-26T00:32:19.000Z","target":"public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/figma15/requirements.md","verdict":"clear","what":"Agent brief: clear title, numbered six frames, done-when stated; text-check clean","to":"mastermind-forms"}
+{"at":"2026-11-25T12:00:00.000Z","target":"public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/inapp/requirements.md","verdict":"rewrote","what":"Split two 75-150 word ask paragraphs into labelled bullets","to":"requirements.md"}
+{"at":"2026-11-26T00:42:17.598Z","target":"public/framework/ai/todo.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-26T00:43:22.042Z","target":"public/framework/ai/todo.md","verdict":"spawned","to":"clarity-ai"}
+{"at":"2026-11-25T12:00:00.000Z","target":"public/framework/ai/todo.md","verdict":"clear","what":"Latest entries (forms picks, in-app card) pass text-check; links resolve, section 2 reference correct","to":"public/framework/ai/todo.md"}
+{"at":"2026-11-26T00:46:05.145Z","target":"public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/signin-demo/api/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-26T00:46:28.094Z","target":"public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/signin-demo/join/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-26T00:47:06.317Z","target":"public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/signin-demo/api/requirements.md","verdict":"spawned","to":"clarity-api"}
+{"at":"2026-11-26T00:47:29.278Z","target":"public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/signin-demo/join/requirements.md","verdict":"spawned","to":"clarity-join"}
+{"at":"2026-11-26T00:47:30.000Z","target":"public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/signin-demo/api/requirements.md","verdict":"rewrote","what":"text-check clean; Done-when turned into a checklist; steps are agent-facing and fit","to":"requirements.md"}
+{"at":"2026-11-26T00:47:42.000Z","target":"public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/signin-demo/join/requirements.md","verdict":"clear","what":"text-check clean; agent brief with numbered steps, checks and done-when","to":"requirements.md"}
