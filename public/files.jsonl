@@ -192,3 +192,4 @@
 {"file":"youtube/page.js","nav":{"title":"Videos","description":"The owner's live-stream videos, annotated and searchable."}}
 {"file":"public/"}
 {"file":"app/","nav":{"title":"/app/: the auth demo UI"}}
+{"file":"join/","nav":{"title":"/join/","description":"a video asks you to sign in and allow one notification a week"}}
