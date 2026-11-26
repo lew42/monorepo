@@ -1,0 +1,1701 @@
+diff --git a/dev.mjs b/dev.mjs
+index d180ddc0ef..d60bf71214 100644
+--- a/dev.mjs
++++ b/dev.mjs
+@@ -46,7 +46,7 @@ ${result.stderr}`); process.exit(1); }
+ console.log("[dev] applying worker/migrations + worker/seed/dev.sql to the local D1 …");
+ wr("d1 migrations apply DB --local -c worker/wrangler.jsonc");
+ wr("d1 execute DB --local -c worker/wrangler.jsonc --file=./worker/seed/dev.sql");
+-console.log("[dev] local D1 ready: six fake users (alice owner, bob moderator, carol member, dave member, eve banned, admin admin).");
++console.log("[dev] local D1 ready: seven fake users (alice owner, bob moderator, carol member, dave member, eve banned, admin admin, zed member: the account api.test.mjs deletes).");
+ 
+ if (await isListening(PORT)) {
+     console.log(`[dev] :${PORT} is already answering — assuming node server.js is running there; not starting a second one.`);
+diff --git a/public/framework/ux/Auth/GoogleButton.js b/public/framework/ux/Auth/GoogleButton.js
+index 2b93f7e899..178f00fd3a 100644
+--- a/public/framework/ux/Auth/GoogleButton.js
++++ b/public/framework/ux/Auth/GoogleButton.js
+@@ -93,7 +93,7 @@ export class GoogleButton extends View {
+ 			const res = await fetch("/api/auth/google", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ credential }) });
+ 			const data = await res.json().catch(() => ({}));
+ 			if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
+-			this.signed_in(data.user, false);
++			this.signed_in(data.user, false, GoogleButton.email_of(credential));
+ 		} catch (err){
+ 			this.say(err.message, true);
+ 		}
+@@ -101,10 +101,10 @@ export class GoogleButton extends View {
+ 
+ 	// ---- the event and the words on screen ------------------------------
+ 
+-	signed_in(user, mock){
++	signed_in(user, mock, email = user?.email){
+ 		this.user = user;
+ 		this.say(mock ? `Mock sign-in as ${user.name}: no Google client id is set, so no real account was used.` : `Signed in as ${user.name}.`);
+-		this.el.dispatchEvent(new CustomEvent("signin", { detail: { user, mock }, bubbles: true }));
++		this.el.dispatchEvent(new CustomEvent("signin", { detail: { user, mock, email }, bubbles: true }));
+ 	}
+ 
+ 	say(msg, bad = false){
+@@ -113,6 +113,11 @@ export class GoogleButton extends View {
+ 		if (bad) this.$note.ac("ux-auth-google-bad");
+ 	}
+ 
++	// The Worker keeps no email but Google's revoke() needs one: read it from the ID token payload (decoded, not verified; only handed to revoke on this device).
++	static email_of(credential){
++		try { return JSON.parse(atob(credential.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).email || ""; } catch { return ""; }
++	}
++
+ 	static async config_client_id(){
+ 		try {
+ 			const res = await fetch("/api/config");
+diff --git a/public/framework/ux/Auth/InAppBrowser.js b/public/framework/ux/Auth/InAppBrowser.js
+new file mode 100644
+index 0000000000..6279b90de0
+--- /dev/null
++++ b/public/framework/ux/Auth/InAppBrowser.js
+@@ -0,0 +1,52 @@
++/**
++ * InAppBrowser: says whether a page is open inside another app's own browser (Instagram, TikTok, ...),
++ * where Google refuses sign-in, and builds the ways out.
++ *
++ *   const b = new InAppBrowser();            // reads navigator.userAgent
++ *   b.in_app    // true inside one
++ *   b.app       // "instagram" | "facebook" | "tiktok" | "snapchat" | "linkedin" | "google-app" | "android-webview" | "ios-webview" | ""
++ *   b.ios, b.android
++ *   b.intent_url("https://x.com/join/")      // Android: an intent:// link that asks Chrome to open the page
++ *
++ * Apps change their user agents, so the patterns live in `InAppBrowser.apps`, in this one file. YouTube's
++ * in-app view has no documented user agent: log `navigator.userAgent` from a real tap, then add a row.
++ */
++export class InAppBrowser {
++
++	constructor(ua = globalThis.navigator?.userAgent ?? ""){
++		this.ua = ua;
++		this.ios = /iPhone|iPad|iPod/.test(ua);
++		this.android = /Android/.test(ua);
++		this.app = InAppBrowser.app_of(ua, this.ios, this.android);
++		this.in_app = !!this.app;
++	}
++
++	static app_of(ua, ios, android){
++		for (const [name, re] of InAppBrowser.apps) if (re.test(ua)) return name;
++		if (android && /; wv\)/.test(ua)) return "android-webview";
++		if (ios && !/Safari\//.test(ua)) return "ios-webview";   // WKWebView apps often leave "Safari/" out
++		return "";
++	}
++
++	// An intent:// URL: Android Chrome opens the page from inside another app, sometimes. Always keep the written steps visible too.
++	intent_url(url){
++		const u = new URL(url);
++		return `intent://${u.host}${u.pathname}${u.search}#Intent;scheme=${u.protocol.slice(0, -1)};package=com.android.chrome;end`;
++	}
++
++	// The page is running from the home screen (an installed app), on iOS or anywhere else.
++	static standalone(){
++		return globalThis.matchMedia?.("(display-mode: standalone)").matches || globalThis.navigator?.standalone === true;
++	}
++}
++
++InAppBrowser.apps = [
++	["facebook", /FBAN|FBAV|FB_IAB|FBIOS/],
++	["instagram", /Instagram/],
++	["tiktok", /musical_ly|BytedanceWebview|TikTok/i],
++	["snapchat", /Snapchat/],
++	["linkedin", /LinkedInApp/],
++	["google-app", /GSA\//],
++];
++
++export default InAppBrowser;
+diff --git a/public/framework/ux/Auth/InAppBrowser.test.mjs b/public/framework/ux/Auth/InAppBrowser.test.mjs
+new file mode 100644
+index 0000000000..5d3e98e6ab
+--- /dev/null
++++ b/public/framework/ux/Auth/InAppBrowser.test.mjs
+@@ -0,0 +1,43 @@
++// InAppBrowser: real user-agent strings from the apps and the browsers; no DOM needed.
++// Node: `node public/framework/ux/Auth/InAppBrowser.test.mjs`
++import { test } from "../../core/Test/Test.js";
++import { InAppBrowser } from "./InAppBrowser.js";
++
++const UA = {
++	instagram_ios: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/21F90 Instagram 345.0.0.28.109 (iPhone15,2; iOS 17_5; en_US; en; scale=3.00; 1170x2532; 640990340)",
++	instagram_android: "Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/UD1A.230803.041; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/125.0.6422.165 Mobile Safari/537.36 Instagram 345.0.0.34.101 Android (34/14; 420dpi; 1080x2400; Google/google; Pixel 8; shiba; shiba; en_US; 640990340)",
++	facebook_android: "Mozilla/5.0 (Linux; Android 13; SM-S918B Build/TP1A.220624.014; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.0.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/460.0.0.43.109;]",
++	tiktok_ios: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 musical_ly_34.1.0 BytedanceWebview/d8a21c6",
++	snapchat_ios: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Snapchat/12.90.0.38 (like Safari/8617.2.4.10.8)",
++	linkedin_android: "Mozilla/5.0 (Linux; Android 12; Pixel 6 Build/SD1A; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/120.0.0.0 Mobile Safari/537.36 LinkedInApp/9.30.1042",
++	webview_android: "Mozilla/5.0 (Linux; Android 11; moto g(9) play Build/RPXS31.Q4-15-26; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/119.0.6045.193 Mobile Safari/537.36",
++	webview_ios: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/21F90",
++	safari_ios: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1",
++	chrome_ios: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/125.0.6422.80 Mobile/15E148 Safari/604.1",
++	chrome_android: "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.6422.165 Mobile Safari/537.36",
++	chrome_desktop: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
++};
++
++test("the in-app browsers are named", t => {
++	const app = key => new InAppBrowser(UA[key]).app;
++	t.eq(app("instagram_ios"), "instagram", "Instagram on iPhone");
++	t.eq(app("instagram_android"), "instagram", "Instagram wins over the Android webview marker");
++	t.eq(app("facebook_android"), "facebook", "Facebook on Android");
++	t.eq(app("tiktok_ios"), "tiktok", "TikTok on iPhone");
++	t.eq(app("snapchat_ios"), "snapchat", "Snapchat on iPhone");
++	t.eq(app("linkedin_android"), "linkedin", "LinkedIn on Android");
++	t.eq(app("webview_android"), "android-webview", "an unnamed Android webview");
++	t.eq(app("webview_ios"), "ios-webview", "an iPhone app with no Safari/ in its user agent");
++});
++
++test("real browsers are not in-app, and platform is read", t => {
++	for (const key of ["safari_ios", "chrome_ios", "chrome_android", "chrome_desktop"]) t.eq(new InAppBrowser(UA[key]).in_app, false, key + " is a real browser");
++	t.ok(new InAppBrowser(UA.safari_ios).ios && !new InAppBrowser(UA.safari_ios).android, "iPhone is ios, not android");
++	t.ok(new InAppBrowser(UA.chrome_android).android, "Pixel is android");
++	t.ok(!new InAppBrowser(UA.chrome_desktop).ios && !new InAppBrowser(UA.chrome_desktop).android, "a desktop is neither");
++});
++
++test("intent_url asks Chrome to open the same page", t => {
++	const url = new InAppBrowser(UA.instagram_android).intent_url("https://staging.lew42.com/join/?x=1");
++	t.eq(url, "intent://staging.lew42.com/join/?x=1#Intent;scheme=https;package=com.android.chrome;end", "host, path and query kept; scheme and package named");
++});
+diff --git a/public/framework/ux/Auth/files.jsonl b/public/framework/ux/Auth/files.jsonl
+index c2448f544b..b848bdaaad 100644
+--- a/public/framework/ux/Auth/files.jsonl
++++ b/public/framework/ux/Auth/files.jsonl
+@@ -18,3 +18,5 @@
+ {"file":"VideoSignIn.js"}
+ {"file":"google/page.js","nav":{"title":"Sign in with Google","icon":"login","description":"A talking-head video with one Google button over it, the button's variants, and the quick sign-in view."}}
+ {"file":"GoogleButton.test.mjs"}
++{"file":"InAppBrowser.js"}
++{"file":"InAppBrowser.test.mjs"}
+diff --git a/public/framework/ux/Auth/readme.md b/public/framework/ux/Auth/readme.md
+index ac725c4a5a..1464a40491 100644
+--- a/public/framework/ux/Auth/readme.md
++++ b/public/framework/ux/Auth/readme.md
+@@ -39,6 +39,19 @@ new SignIn();                                               // Google, Apple, an
+ button and the ID token goes to `/api/auth/google`. A mock fires `signin` with a fake user and says so on screen.
+ It is `/app/`'s call, not a second auth system. Demo: [`/framework/ux/Auth/google/`](/framework/ux/Auth/google/).
+ 
++### In-app browsers
++
++```js
++import { InAppBrowser } from "/framework/ux/Auth/InAppBrowser.js";
++const env = new InAppBrowser();   // from navigator.userAgent, or pass a UA string
++env.in_app                        // true inside Instagram, Facebook, TikTok, Snapchat, LinkedIn, the Google app or a bare WebView
++env.app, env.ios, env.android     // "instagram", …
++env.intent_url(location.href)     // Android: intent://… that opens Chrome
++InAppBrowser.standalone()         // true when installed to the Home Screen
++```
++
++Google refuses sign-in inside these, so [`/join/`](/join/) swaps the Google button for an "open in your browser" card. The `GoogleButton` `signin` event also carries `email` (read from the ID token, for `google.accounts.id.revoke`) because the Worker keeps none.
++
+ ## Watch out
+ 
+ - **A `<form>` needs `novalidate`** or an invalid field never fires `submit` at all —
+@@ -56,5 +69,5 @@ It is `/app/`'s call, not a second auth system. Demo: [`/framework/ux/Auth/googl
+ - [Overview](/framework/ux/Auth/) · [`doc/decisions.md`](/framework/ux/Auth/doc/decisions/) — the
+   five layout questions answered, the CSS, the named-extension verdict
+ - Files: `Auth.js` (the class), `MagicAuth.js` (the named extension), `SignIn.js` (Google first, then Apple and a link),
+-  `GoogleButton.js` (+ `GoogleButton.test.mjs`), `VideoSignIn.js` (the video with one button), `google/` (the page and the two stills),
++  `GoogleButton.js` (+ `GoogleButton.test.mjs`), `InAppBrowser.js` (+ `InAppBrowser.test.mjs`: the in-app browser detector), `VideoSignIn.js` (the video with one button), `google/` (the page and the two stills),
+   `page.js` (the demo)
+diff --git a/public/join/Backend.js b/public/join/Backend.js
+new file mode 100644
+index 0000000000..66eabf3660
+--- /dev/null
++++ b/public/join/Backend.js
+@@ -0,0 +1,52 @@
++/**
++ * Backend: the Worker's /api, as the /join/ page calls it (the contract is in the sign-in demo plan).
++ *
++ *   const backend = await Backend.detect();   // a Backend where /api answers, a MockBackend where it does not
++ *   backend.mode                              // "google" | "test" | "mock"
++ *   await backend.me()                        // { user, push }
++ */
++export class Backend {
++
++	constructor(config, mode = "google", key = ""){
++		this.config = config;
++		this.mode = mode;
++		this.key = key;
++		this.mock = false;
++	}
++
++	// A static host (the dev server) answers /api/config with the page itself: not JSON, so there is no API and the page runs the mock.
++	static async detect(params = new URLSearchParams(location.search)){
++		if (!params.has("mock")){
++			try {
++				const config = await (await fetch("/api/config")).json();
++				if (config.env) return new Backend(config, params.has("test") ? "test" : "google", params.get("test") || "");
++			} catch {}
++		}
++		const { MockBackend } = await import("./MockBackend.js");
++		return new MockBackend();
++	}
++
++	async call(path, method = "GET", body){
++		const res = await fetch("/api" + path, body === undefined ? { method } : { method, headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
++		const data = await res.json().catch(() => ({}));
++		if (!res.ok) throw new Error(data.error || `${method} ${path}: HTTP ${res.status}`);
++		return data;
++	}
++
++	get client_id(){ return this.config.client_id || ""; }
++	get vapid_public(){ return this.config.vapid_public || ""; }
++
++	async me(){
++		const data = await this.call("/me");
++		return { user: data.user || null, push: !!data.push };
++	}
++
++	async login_test(){ return (await this.call("/auth/test", "POST", { key: this.key })).user; }
++	logout(){ return this.call("/auth/logout", "POST", {}); }
++	delete_me(){ return this.call("/me", "DELETE"); }
++	subscribe(subscription){ return this.call("/push/subscribe", "POST", subscription); }
++	unsubscribe(endpoint){ return this.call("/push/subscribe", "DELETE", endpoint ? { endpoint } : undefined); }
++	push_test(){ return this.call("/push/test", "POST", {}); }
++}
++
++export default Backend;
+diff --git a/public/join/Join.js b/public/join/Join.js
+new file mode 100644
+index 0000000000..6a3f039089
+--- /dev/null
++++ b/public/join/Join.js
+@@ -0,0 +1,294 @@
++import { GoogleButton } from "/framework/ux/Auth/GoogleButton.js";
++import { InAppBrowser } from "/framework/ux/Auth/InAppBrowser.js";
++
++const el = (tag, cls = "", ...kids) => {
++	const e = document.createElement(tag);
++	if (cls) e.className = cls;
++	for (const k of kids) if (k != null && k !== false) e.append(k);
++	return e;
++};
++const btn = (cls, text, fn) => Object.assign(el("button", cls, text), { type: "button", onclick: fn });
++const key_bytes = b64 => Uint8Array.from(atob(b64.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
++
++/**
++ * Join: the /join/ landing page. One portrait video that never stops, the host's caption, and ONE button at the bottom
++ * that changes: Continue with Google, then Allow one notification a week, then done. Words are in copy.js, the API is
++ * `backend` (Backend or MockBackend). Page: readme.md. Built from ux/Auth: GoogleButton and InAppBrowser.
++ *
++ *   const join = new Join(document.getElementById("join"), copy);   // draws the video and caption at once
++ *   join.start(await Backend.detect());                             // then signs in, reads /api/me, draws the button
++ *
++ * The state is derived, never stored: no user = "google" (or "inapp" inside another app's browser); a user without a
++ * subscription = "allow"; a user with one and permission granted = "done". A reload therefore lands on the right one.
++ */
++export class Join {
++
++	constructor(root, copy){
++		this.root = root;
++		this.copy = copy;
++		this.env = new InAppBrowser();
++		this.params = new URLSearchParams(location.search);
++		this.user = null;
++		this.push = false;
++		this.draw();
++	}
++
++	// ---- the parts that never change -----------------------------------------------------------------
++
++	draw(){
++		const { copy } = this;
++		this.$media = el("div", "media");
++		if (copy.video) this.draw_video(); else this.$media.append(Object.assign(el("img", "still"), { src: copy.still, alt: "" }));
++		this.$caption = el("p", "caption", copy.caption);
++		this.$act = el("div", "act");
++		this.$note = el("p", "note");
++		this.$badge = el("span", "badge", "mock");
++		this.$top = el("div", "top", this.$badge);
++		this.$debug = el("pre", "debug");
++		this.$sheet = el("div", "sheet-slot");
++		this.frame = el("div", "frame", this.$media, el("div", "scrim"), this.$top, this.$debug, el("div", "over", this.$act, this.$note, this.$caption), this.$sheet);
++		this.root.append(this.frame);
++		this.$badge.hidden = true;
++		this.$debug.hidden = !this.params.has("debug");
++	}
++
++	draw_video(){
++		const { copy } = this;
++		const video = this.$video = el("video", "video");
++		Object.assign(video, { muted: true, loop: true, autoplay: true, playsInline: true, poster: copy.poster, src: copy.video });
++		video.setAttribute("muted", ""); video.setAttribute("playsinline", "");
++		const track = Object.assign(el("track"), { kind: "captions", src: copy.captions, default: true });
++		video.append(track);
++		track.addEventListener("load", () => track.track.mode = "hidden");
++		track.track.mode = "hidden";   // our own caption box draws the cues
++		track.track.addEventListener("cuechange", () => {
++			const text = [...(track.track.activeCues || [])].map(c => c.text).join(" ");
++			if (text) this.$caption.textContent = text;
++		});
++		this.$sound = btn("pill sound", "Tap for sound", () => { video.muted = !video.muted; this.$sound.textContent = video.muted ? "Tap for sound" : "Sound on"; });
++		this.$media.append(video);
++		this.$sound_slot = this.$sound;
++		addEventListener("pointerdown", () => video.paused && video.play().catch(() => {}), { once: true });
++	}
++
++	// ---- start, and the state that follows -----------------------------------------------------------
++
++	async start(backend){
++		this.backend = backend;
++		this.$badge.hidden = !backend.mock;
++		if (this.$sound) this.$top.prepend(this.$sound);
++		this.sw = "serviceWorker" in navigator ? navigator.serviceWorker.register("/join/sw.js", { scope: "/join/" }).catch(err => this.say(copy_err(err), true)) : null;
++		this.google = new GoogleButton({ theme: "dark", on_video: true, client_id: backend.client_id, label: GoogleButton.labels[2] });
++		this.google.el.addEventListener("signin", e => this.signed_in(e.detail.user, e.detail.mock, e.detail.email));
++		await this.refresh();
++	}
++
++	async refresh(){
++		try { Object.assign(this, { push: false, user: null }, await this.backend.me()); }
++		catch (err){ this.say(this.copy.failed + " " + err.message, true); }
++		this.render();
++	}
++
++	get permission(){ return "Notification" in window ? Notification.permission : "unsupported"; }
++	get subscribed(){ return this.push && this.permission === "granted"; }
++	get state(){ return !this.user ? (this.env.in_app ? "inapp" : "google") : this.subscribed ? "done" : "allow"; }
++
++	render(){
++		const { copy } = this, state = this.state;
++		this.frame.dataset.state = state;
++		this.say("");
++		this.$act.replaceChildren(...this[`act_${state}`]());
++		this.$top.querySelector(".avatar")?.remove();
++		if (this.user) this.$top.append(this.avatar());
++		this.show_debug();
++	}
++
++	say(text, bad = false){
++		this.$note.textContent = text;
++		this.$note.classList.toggle("bad", bad);
++	}
++
++	// The Worker keeps no email, so the one Google gave us at sign-in is remembered on this device only, for revoke().
++	signed_in(user, mock, email){
++		if (email) localStorage.setItem("join-google-email", email);
++		if (mock) this.backend.login(user);
++		return this.refresh();
++	}
++
++	// ---- the four button states ----------------------------------------------------------------------
++
++	act_google(){
++		const { copy, backend } = this;
++		return [
++			this.google.el,
++			btn("link", copy.google_note, () => this.inapp_sheet()),
++			backend.mode === "test" && btn("pill test", copy.test_signin, () => this.test_signin()),
++		].filter(Boolean);
++	}
++
++	act_inapp(){
++		return [this.inapp_card(), this.backend.mode === "test" && btn("pill test", this.copy.test_signin, () => this.test_signin())].filter(Boolean);
++	}
++
++	act_allow(){
++		const { copy } = this;
++		return [btn("main", copy.allow_button, () => this.allow()), el("p", "small", copy.allow_note)];
++	}
++
++	act_done(){
++		const { copy } = this;
++		return [el("p", "title", copy.done_title), btn("main", copy.done_test, () => this.test_push())];
++	}
++
++	async test_signin(){
++		try { await this.backend.login_test(); await this.refresh(); }
++		catch (err){ this.say(`${this.copy.failed} ${err.message}`, true); }
++	}
++
++	// ---- allow notifications -------------------------------------------------------------------------
++
++	// iPhone only allows push from a page added to the Home Screen; any iOS browser in a tab is the same.
++	get needs_home_screen(){ return this.env.ios && !InAppBrowser.standalone(); }
++
++	async allow(){
++		const { copy, backend } = this;
++		if (this.needs_home_screen) return this.ios_sheet();
++		if (!("Notification" in window) || !("serviceWorker" in navigator) || (!backend.mock && !("PushManager" in window))) return this.say(copy.unsupported, true);
++		try {
++			const permission = await Notification.requestPermission();
++			if (permission !== "granted") return this.say(copy.blocked, true);
++			const reg = await navigator.serviceWorker.ready;
++			if (backend.mock) await backend.subscribe();
++			else {
++				if (!backend.vapid_public) throw new Error("the server has no push key yet");
++				const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key_bytes(backend.vapid_public) });
++				await backend.subscribe(sub.toJSON());
++			}
++			this.push = true;
++			this.render();
++		} catch (err){
++			this.say(`${copy.failed} ${err.message}`, true);
++		}
++	}
++
++	async test_push(){
++		this.say("…");
++		try {
++			const res = await this.backend.push_test();
++			const codes = (res.results || []).map(r => `${r.host} ${r.status}`).join(", ");
++			if (res.sent === 0) this.say(`${this.copy.failed} the push service refused it${codes ? ` (${codes})` : ""}.`, true);
++			else this.say(this.copy.done_sent + (codes ? ` (${codes})` : ""));
++		} catch (err){
++			this.say(`${this.copy.failed} ${err.message}`, true);
++		}
++	}
++
++	async browser_sub(){
++		const reg = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistration("/join/") : null;
++		return reg ? reg.pushManager.getSubscription() : null;
++	}
++
++	async unsubscribe(){
++		const sub = await this.browser_sub();
++		await sub?.unsubscribe();
++		await this.backend.unsubscribe(sub?.endpoint);
++	}
++
++	// ---- sheets: in-app card, add to Home Screen, settings -------------------------------------------
++
++	sheet(title, ...nodes){
++		const close = () => this.$sheet.replaceChildren();
++		this.$sheet.replaceChildren(el("div", "sheet-wrap",
++			Object.assign(el("div", "backdrop"), { onclick: close }),
++			el("div", "sheet", el("h2", "", title), ...nodes, btn("link dark", this.copy.close, close))));
++		return close;
++	}
++
++	inapp_card(){
++		const { copy, env } = this, url = location.href;
++		const steps = env.ios ? el("ol", "steps", ...copy.inapp_ios.map(s => el("li", "", s))) : null;
++		return el("div", "card",
++			el("h2", "", copy.inapp_title),
++			el("p", "", copy.inapp_why),
++			env.android && Object.assign(el("a", "main link-btn", copy.inapp_android), { href: env.intent_url(url) }),
++			steps,
++			el("p", "small", copy.inapp_other),
++			el("div", "row",
++				btn("pill dark", copy.copy_link, async e => { await navigator.clipboard?.writeText(url).catch(() => {}); e.target.textContent = copy.copied; }),
++				navigator.share && btn("pill dark", copy.share_link, () => navigator.share({ url, title: document.title }).catch(() => {}))));
++	}
++
++	inapp_sheet(){ this.sheet("", this.inapp_card()); }
++
++	ios_sheet(){
++		const { copy } = this;
++		this.sheet(copy.ios_title, el("p", "", copy.ios_why), el("ol", "steps", ...copy.ios_steps.map(s => el("li", "", s))));
++	}
++
++	avatar(){
++		const user = this.user, name = user.name || user.handle || "?";
++		return btn("avatar", user.avatar_url ? Object.assign(el("img"), { src: user.avatar_url, alt: "", referrerPolicy: "no-referrer" }) : name[0].toUpperCase(), () => this.settings_sheet());
++	}
++
++	settings_sheet(){
++		const { copy } = this, user = this.user;
++		const confirm = el("div", "confirm");
++		const ask = () => confirm.replaceChildren(el("p", "", copy.delete_confirm),
++			el("div", "row", btn("pill danger", copy.delete_yes, () => this.delete_account(close)), btn("pill dark", copy.cancel, () => confirm.replaceChildren())));
++		const close = this.sheet(copy.settings_title,
++			el("p", "who", `${copy.signed_in_as} `, el("b", "", user.name || user.handle)),
++			btn("wide", copy.sign_out, () => this.sign_out(close)),
++			this.subscribed && btn("wide", copy.notifications_off, () => this.notifications_off(close)),
++			btn("wide danger", copy.delete_account, ask),
++			confirm);
++	}
++
++	async sign_out(close){
++		try { await this.backend.logout(); } catch (err){ this.say(`${this.copy.failed} ${err.message}`, true); }
++		globalThis.google?.accounts?.id?.disableAutoSelect();
++		close(); await this.refresh();
++	}
++
++	async notifications_off(close){
++		try { await this.unsubscribe(); } catch (err){ this.say(`${this.copy.failed} ${err.message}`, true); }
++		close(); await this.refresh();
++	}
++
++	async delete_account(close){
++		try {
++			await this.unsubscribe().catch(() => {});
++			const email = localStorage.getItem("join-google-email");
++			await this.backend.delete_me();
++			localStorage.removeItem("join-google-email");
++			// Revoking needs the Google SDK initialised, which only a real client id does.
++			if (this.backend.client_id && email) globalThis.google?.accounts?.id?.revoke(email, () => {});
++		} catch (err){ this.say(`${this.copy.failed} ${err.message}`, true); }
++		close(); await this.refresh();
++	}
++
++	// ---- ?debug=1 ------------------------------------------------------------------------------------
++
++	async show_debug(){
++		if (!this.params.has("debug")) return;
++		const { env, backend } = this, sub = await this.browser_sub().catch(() => null);
++		const rows = {
++			mode: backend.mode, "in-app": env.in_app ? `yes (${env.app})` : "no", platform: env.ios ? "iOS" : env.android ? "Android" : "other",
++			standalone: InAppBrowser.standalone(), permission: this.permission, "push supported": "PushManager" in window,
++			"signed in": this.user ? `yes, id ${this.user.id ?? "?"}` : "no", "subscription (browser)": !!sub, "subscription (server)": this.push, state: this.state,
++		};
++		this.$debug.replaceChildren(Object.entries(rows).map(([k, v]) => `${k}: ${v}`).join("\n"), "\n", btn("pill danger", "Reset everything", () => this.reset()));
++	}
++
++	async reset(){
++		try { await this.backend.logout(); } catch {}
++		await this.unsubscribe().catch(() => {});
++		globalThis.google?.accounts?.id?.disableAutoSelect();
++		for (const reg of await navigator.serviceWorker?.getRegistrations?.() ?? []) await reg.unregister();
++		localStorage.clear(); sessionStorage.clear();
++		location.reload();
++	}
++}
++
++const copy_err = err => err.message;
++
++export default Join;
+diff --git a/public/join/MockBackend.js b/public/join/MockBackend.js
+new file mode 100644
+index 0000000000..6014d0d223
+--- /dev/null
++++ b/public/join/MockBackend.js
+@@ -0,0 +1,33 @@
++import { Backend } from "./Backend.js";
++
++/**
++ * MockBackend: the same calls with no Worker, kept in localStorage ("join-mock"), so the whole flow can be walked on the
++ * dev server. The sign-in is a fake user (GoogleButton's own mock), the subscribe is a flag, and the test notification is
++ * a local showNotification through the service worker. The page shows a "mock" badge whenever this is in use.
++ */
++export class MockBackend extends Backend {
++
++	constructor(){
++		super({ client_id: "", env: "mock", vapid_public: "" }, "mock");
++		this.mock = true;
++	}
++
++	get db(){ return JSON.parse(localStorage.getItem("join-mock") || "{}"); }
++	set db(v){ localStorage.setItem("join-mock", JSON.stringify(v)); }
++	patch(p){ this.db = { ...this.db, ...p }; }
++
++	async me(){ return { user: this.db.user || null, push: !!this.db.push }; }
++	login(user){ this.patch({ user }); }
++	async logout(){ this.patch({ user: null }); return { ok: true }; }
++	async delete_me(){ const email = this.db.user?.email; localStorage.removeItem("join-mock"); return { deleted: true, email }; }
++	async subscribe(){ this.patch({ push: true }); return { ok: true }; }
++	async unsubscribe(){ this.patch({ push: false }); return { ok: true }; }
++
++	async push_test(){
++		const reg = await navigator.serviceWorker.ready;
++		await reg.showNotification("Test notification (mock)", { body: "This one was shown locally, with no server.", icon: "/app/icons/icon-192.png", data: { url: "/join/" } });
++		return { results: [{ status: "local" }] };
++	}
++}
++
++export default MockBackend;
+diff --git a/public/join/MockBackend.test.mjs b/public/join/MockBackend.test.mjs
+new file mode 100644
+index 0000000000..d10733b280
+--- /dev/null
++++ b/public/join/MockBackend.test.mjs
+@@ -0,0 +1,22 @@
++import { test } from "../framework/core/Test/Test.js";
++
++const store = new Map();
++globalThis.localStorage = { getItem: k => store.get(k) ?? null, setItem: (k, v) => store.set(k, String(v)), removeItem: k => store.delete(k) };
++const { MockBackend } = await import("./MockBackend.js");
++
++test("MockBackend walks sign-in, subscribe, sign-out and delete with no server", async t => {
++	const b = new MockBackend();
++	t.ok(b.mock && b.mode === "mock" && b.client_id === "", "it is the mock, with no Google client id");
++	t.eq(await b.me(), { user: null, push: false }, "starts signed out");
++	b.login({ name: "Demo", email: "d@e.com" });
++	t.eq((await b.me()).user.name, "Demo", "login is remembered");
++	await b.subscribe();
++	t.eq((await b.me()).push, true, "subscribe sets push");
++	await b.unsubscribe();
++	t.eq((await b.me()).push, false, "unsubscribe clears it");
++	await b.logout();
++	t.eq((await b.me()).user, null, "logout signs out");
++	b.login({ name: "Demo", email: "d@e.com" });
++	t.eq((await b.delete_me()).email, "d@e.com", "delete answers the email, then forgets everything");
++	t.eq(await b.me(), { user: null, push: false }, "nothing is left after delete");
++});
+diff --git a/public/join/copy.js b/public/join/copy.js
+new file mode 100644
+index 0000000000..0b60cbbb04
+--- /dev/null
++++ b/public/join/copy.js
+@@ -0,0 +1,44 @@
++// Every word, the video and the poster on /join/, in one place. Edit here; nothing else holds text.
++export default {
++	video: "/join/media/join-talk-540.mp4",
++	poster: "/join/media/join-poster.jpg",
++	captions: "/join/media/captions.vtt",
++	// Used only when `video` is empty: a still with a slow zoom.
++	still: "https://v3b.fal.media/files/b/0ab3d0d3/dIs8KZNuIpEOApqDLn3oz_QWSUU3Vg.png",
++	// The caption until the video's first cue shows, and the whole caption when there is no video.
++	caption: "Hey! Quick favour. I'm building a way for anyone to have their own app, just like this one. Can you help me test it?",
++
++	google_note: "Not working?",
++	allow_button: "Allow one notification a week",
++	allow_note: "One notification, every week. Nothing else.",
++	done_title: "You're in. See you next week.",
++	done_test: "Send me a test notification now",
++	done_sent: "Sent. It should arrive in a moment.",
++	blocked: "Notifications are blocked for this site. Allow them in your browser's site settings, then tap again.",
++	unsupported: "This browser can't receive notifications. Try Chrome on Android, or Safari on iPhone (added to your Home Screen).",
++	failed: "That didn't work:",
++
++	inapp_title: "Open this in your own browser",
++	inapp_why: "Google won't let you sign in inside another app's browser. Your own browser already knows you.",
++	inapp_android: "Open in Chrome",
++	inapp_ios: ["Tap the ••• menu or the compass icon, at the top or bottom right.", "Choose Open in Safari (or Open in browser)."],
++	inapp_other: "Or copy the link and paste it into your browser.",
++	copy_link: "Copy link",
++	copied: "Copied",
++	share_link: "Share",
++	test_signin: "Test sign-in",
++
++	ios_title: "Add to your Home Screen first",
++	ios_why: "iPhone only allows notifications from an app on your Home Screen. It takes four taps.",
++	ios_steps: ["Tap the Share icon in Safari's toolbar.", "Scroll down and tap Add to Home Screen.", "Open lew42 from your Home Screen.", "Tap Allow one notification a week, then Allow."],
++
++	settings_title: "Settings",
++	signed_in_as: "Signed in as",
++	sign_out: "Sign out",
++	notifications_off: "Turn off notifications",
++	delete_account: "Delete account",
++	delete_confirm: "This deletes your account, your notification and Google's access to it. You can sign up again afterwards.",
++	delete_yes: "Yes, delete",
++	cancel: "Cancel",
++	close: "Close",
++};
+diff --git a/public/join/files.jsonl b/public/join/files.jsonl
+new file mode 100644
+index 0000000000..b21978dd05
+--- /dev/null
++++ b/public/join/files.jsonl
+@@ -0,0 +1,15 @@
++{"file":"media/"}
++{"file":"Backend.js"}
++{"file":"icons/"}
++{"file":"MockBackend.js"}
++{"file":"icons/","gone":true}
++{"file":"manifest.webmanifest"}
++{"file":"sw.js"}
++{"file":"copy.js"}
++{"file":"Join.js"}
++{"file":"index.html"}
++{"file":"main.js"}
++{"file":"join.css"}
++{"file":"shoot.mjs"}
++{"file":"MockBackend.test.mjs"}
++{"file":"readme.md"}
+diff --git a/public/join/index.html b/public/join/index.html
+new file mode 100644
+index 0000000000..c309e64ff7
+--- /dev/null
++++ b/public/join/index.html
+@@ -0,0 +1,20 @@
++<!doctype html>
++<html lang="en">
++<head>
++	<meta charset="utf-8">
++	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
++	<title>Help me test this</title>
++	<meta name="theme-color" content="#0b0b0d">
++	<meta name="robots" content="noindex">
++	<link rel="manifest" href="/join/manifest.webmanifest">
++	<link rel="icon" href="/app/icons/icon.svg" type="image/svg+xml">
++	<link rel="apple-touch-icon" href="/app/icons/icon-192.png">
++	<meta name="apple-mobile-web-app-capable" content="yes">
++	<meta name="mobile-web-app-capable" content="yes">
++	<link rel="stylesheet" href="/join/join.css">
++</head>
++<body>
++	<div id="join" class="join"></div>
++	<script type="module" src="/join/main.js"></script>
++</body>
++</html>
+diff --git a/public/join/join.css b/public/join/join.css
+new file mode 100644
+index 0000000000..69018a234f
+--- /dev/null
++++ b/public/join/join.css
+@@ -0,0 +1,61 @@
++/* /join/: one full-height 9:16 column. Phone: it fills the screen. Desktop: the same column, centred on a dark backdrop. */
++:root { color-scheme: dark; --join-bg: #0b0b0d; --join-ink: #fff; --join-accent: #fff; --join-bad: #ff8a80; }
++* { box-sizing: border-box; }
++html, body { margin: 0; height: 100%; background: var(--join-bg); color: var(--join-ink); font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-text-size-adjust: 100%; }
++body { overflow: hidden; display: grid; place-items: center; }
++button { font: inherit; color: inherit; cursor: pointer; }
++[hidden] { display: none !important; }
++
++.join { width: 100%; height: 100dvh; display: grid; place-items: center; }
++.frame { position: relative; height: 100dvh; width: min(100vw, calc(100dvh * 9 / 16)); overflow: hidden; background: #000; }
++
++.media, .media > .video, .media > .still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
++.still { animation: slow-zoom 24s ease-in-out infinite alternate; }
++@keyframes slow-zoom { to { transform: scale(1.08); } }
++.scrim { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 30%, rgba(0,0,0,0) 58%); }
++
++.top { position: absolute; top: max(12px, env(safe-area-inset-top)); left: 12px; right: 12px; display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
++.top .sound { margin-right: auto; }
++.badge { padding: 3px 9px; border-radius: 99px; background: #ffb300; color: #1b1300; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
++.avatar { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.5); background: rgba(0,0,0,0.5); display: grid; place-items: center; overflow: hidden; padding: 0; font-weight: 600; }
++.avatar img { width: 100%; height: 100%; object-fit: cover; }
++
++.over { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 20px max(20px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; }
++.act { display: flex; flex-direction: column; gap: 10px; align-items: stretch; text-align: center; }
++.caption { margin: 0; min-height: 4.2em; font-size: 18px; font-weight: 600; line-height: 1.35; text-align: center; text-shadow: 0 1px 6px rgba(0,0,0,0.8); }
++.note { margin: 0; min-height: 1.2em; font-size: 14px; text-align: center; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
++.note:empty { display: none; }
++.note.bad { color: var(--join-bad); }
++.small { margin: 0; font-size: 14px; opacity: 0.9; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
++.title { margin: 0; font-size: 22px; font-weight: 700; text-shadow: 0 1px 6px rgba(0,0,0,0.8); }
++
++/* The one button. Same height and pill shape as Google's, so the three states look like one control changing. */
++.main, .ux-auth-google-btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 52px; height: 52px; border-radius: 26px; font-size: 16px; font-weight: 600; }
++.main { background: var(--join-accent); color: #111; border: 0; text-decoration: none; }
++.link-btn { padding: 0 16px; }
++.ux-auth-google { width: 100%; }
++.link { background: none; border: 0; padding: 4px; color: #fff; text-decoration: underline; font-size: 14px; opacity: 0.85; }
++.link.dark { color: #333; }
++.pill { min-height: 36px; padding: 6px 14px; border-radius: 99px; border: 1px solid rgba(255,255,255,0.5); background: rgba(0,0,0,0.45); font-size: 14px; }
++.pill.dark { color: #222; background: #eee; border-color: #ccc; }
++.pill.danger, .wide.danger { color: #fff; background: #b3261e; border-color: #b3261e; }
++.pill.test { align-self: center; border-style: dashed; }
++
++.card, .sheet { background: #fff; color: #1b1b1b; border-radius: 16px; padding: 18px; text-align: left; }
++.card h2, .sheet h2 { margin: 0 0 6px; font-size: 18px; }
++.card p, .sheet p { margin: 6px 0; font-size: 15px; }
++.card .main { background: #1a73e8; color: #fff; margin: 8px 0; }
++.card .small { color: #555; text-shadow: none; }
++.steps { margin: 8px 0; padding-left: 20px; font-size: 15px; }
++.steps li { margin: 4px 0; }
++.row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
++
++.sheet-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; }
++.backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
++.sheet { position: relative; border-radius: 20px 20px 0 0; padding-bottom: max(18px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 8px; }
++.sheet .wide { width: 100%; min-height: 48px; border-radius: 12px; border: 1px solid #ccc; background: #f4f4f4; color: #1b1b1b; font-weight: 600; }
++.sheet .who { margin: 0 0 4px; }
++.confirm:empty { display: none; }
++
++.debug { position: absolute; top: 60px; left: 8px; right: 8px; margin: 0; padding: 8px 10px; border-radius: 8px; background: rgba(0,0,0,0.78); color: #9f9; font: 11px/1.45 ui-monospace, Consolas, monospace; white-space: pre-wrap; }
++.debug .pill { margin-top: 6px; font-family: system-ui, sans-serif; }
+diff --git a/public/join/main.js b/public/join/main.js
+new file mode 100644
+index 0000000000..78665227f7
+--- /dev/null
++++ b/public/join/main.js
+@@ -0,0 +1,6 @@
++import copy from "/join/copy.js";
++import { Join } from "/join/Join.js";
++import { Backend } from "/join/Backend.js";
++
++const join = new Join(document.getElementById("join"), copy);
++join.start(await Backend.detect());
+diff --git a/public/join/manifest.webmanifest b/public/join/manifest.webmanifest
+new file mode 100644
+index 0000000000..d0940f8863
+--- /dev/null
++++ b/public/join/manifest.webmanifest
+@@ -0,0 +1,14 @@
++{
++  "name": "lew42 weekly",
++  "short_name": "lew42",
++  "start_url": "/join/",
++  "scope": "/join/",
++  "display": "standalone",
++  "background_color": "#0b0b0d",
++  "theme_color": "#0b0b0d",
++  "icons": [
++    { "src": "/app/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
++    { "src": "/app/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
++    { "src": "/app/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
++  ]
++}
+diff --git a/public/join/media/captions.vtt b/public/join/media/captions.vtt
+new file mode 100644
+index 0000000000..80b1e5922e
+--- /dev/null
++++ b/public/join/media/captions.vtt
+@@ -0,0 +1,16 @@
++WEBVTT
++
++00:00.000 --> 00:01.600
++Hey! Quick favour.
++
++00:01.600 --> 00:05.600
++I'm building a way for anyone to have their own app, just like this one.
++
++00:05.600 --> 00:07.200
++Can you help me test it?
++
++00:07.200 --> 00:11.400
++Tap Continue with Google, and I'll send you one notification a week.
++
++00:11.400 --> 00:13.800
++That's it. See you next week!
+diff --git a/public/join/media/files.jsonl b/public/join/media/files.jsonl
+new file mode 100644
+index 0000000000..7308477a2b
+--- /dev/null
++++ b/public/join/media/files.jsonl
+@@ -0,0 +1,3 @@
++{"file":"join-talk-540.mp4"}
++{"file":"join-poster.jpg"}
++{"file":"captions.vtt"}
+diff --git a/public/join/media/join-poster.jpg b/public/join/media/join-poster.jpg
+new file mode 100644
+index 0000000000..3512ddc272
+Binary files /dev/null and b/public/join/media/join-poster.jpg differ
+diff --git a/public/join/media/join-talk-540.mp4 b/public/join/media/join-talk-540.mp4
+new file mode 100644
+index 0000000000..bd72be92b2
+Binary files /dev/null and b/public/join/media/join-talk-540.mp4 differ
+diff --git a/public/join/readme.md b/public/join/readme.md
+new file mode 100644
+index 0000000000..08ecfe08c3
+--- /dev/null
++++ b/public/join/readme.md
+@@ -0,0 +1,32 @@
++# /join/ — a video asks you to sign in and allow one notification a week
++
++A standalone page (not a framework `page.js`, so no sidebar): a full-height 9:16 video that never stops, her words as a caption, and ONE button at the bottom that changes. On a desktop the same column sits centred on a dark backdrop. Open it at [/join/](/join/); `?debug=1` adds a state strip with a "Reset everything" button.
++
++## The button's states (derived on every load, so a reload lands on the right one)
++
++| State | Shown when | Button |
++|---|---|---|
++| `google` | no user | Continue with Google (`ux/Auth/GoogleButton`), plus "Not working?" |
++| `inapp` | no user, inside Instagram/Facebook/… | the "open in your browser" card (Android `intent://`, iOS steps, Copy link, Share) instead of Google |
++| `allow` | user, no push subscription or permission | Allow one notification a week; on iPhone not added to the Home Screen it opens the add-to-home-screen sheet |
++| `done` | user, subscribed, permission granted | "You're in. See you next week." + Send me a test notification now |
++
++The gear is the avatar (top right, once signed in): Sign out, Turn off notifications, Delete account (confirm first).
++
++## Modes (`?debug=1` shows which)
++
++- **google**: the Worker's `/api` answers `/api/config`; Google's own button signs in.
++- **test**: `?test=<key>` adds a "Test sign-in" button that calls `POST /api/auth/test {key}` (staging only); everything after it is the real path. The key is never stored in a file.
++- **mock**: no `/api` (the dev server), or `?mock`. Fake sign-in, fake subscribe, a local `showNotification`, and a yellow MOCK badge. State lives in `localStorage["join-mock"]`.
++
++## Files
++
++`index.html`, `main.js` (boots it), `Join.js` (the page class), `join.css`, `copy.js` (**all** words and the video, poster and captions paths: edit text here), `Backend.js` (the Worker's `/api` calls; `Backend.detect()` picks real or mock), `MockBackend.js` (+ `MockBackend.test.mjs`), `sw.js` (service worker, scope `/join/`, shows the push payload, caches nothing), `manifest.webmanifest`, `media/` (the video, poster and `captions.vtt`), `shoot.mjs` (the check below). Built on `ux/Auth`: [GoogleButton](/framework/ux/Auth/readme.md) and `InAppBrowser`. The API: [worker/readme.md](/worker/readme.md), "Sign-in, sessions and push".
++
++## Re-run the flow
++
++`node public/join/shoot.mjs [base-url] [out-dir]` walks the whole first-visit path (sign in, allow, reload, test push, notifications off, sign out, delete), prints each check and any console error, and shoots every state at 400 and 1920 wide. Needs Playwright installed globally and Chromium (`channel: "chromium"`; the headless shell denies notifications). Shots from the first run: `public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/signin-demo/join/shots/`.
++
++## Not proven here
++
++Real Google sign-in needs the page's origin in the Google client's Authorized JavaScript origins. Real push on iOS needs a physical iPhone with the page on the Home Screen. Headless Chromium has no H.264, so the shots show the poster, not the playing video.
+diff --git a/public/join/shoot.mjs b/public/join/shoot.mjs
+new file mode 100644
+index 0000000000..8153b0bccb
+--- /dev/null
++++ b/public/join/shoot.mjs
+@@ -0,0 +1,80 @@
++// Walks /join/ headless and shoots every state at 400 and 1920 wide.
++//   node public/join/shoot.mjs [base-url] [out-dir]      e.g. node public/join/shoot.mjs https://staging.lew42.com/ shots
++// Needs Playwright installed globally. Also runs the whole mock flow and prints console errors and any failed check.
++import { pathToFileURL } from "node:url";
++import { execSync } from "node:child_process";
++import { mkdirSync } from "node:fs";
++import { join } from "node:path";
++
++const { chromium } = await import(pathToFileURL(join(execSync("npm root -g").toString().trim(), "playwright", "index.mjs")).href);
++const base = (process.argv[2] || "http://127.0.0.1:57506/").replace(/\/$/, "");
++const out = process.argv[3] || "public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/signin-demo/join/shots";
++mkdirSync(out, { recursive: true });
++
++const UA = {
++	ios: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1",
++	insta: "Mozilla/5.0 (Linux; Android 13; Pixel 7 Build/TQ3A.230901.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/120.0.0.0 Mobile Safari/537.36 Instagram 320.0.0.34.109 Android (33/13; 420dpi; 1080x2400; Google; Pixel 7; panther; tensor; en_US; 123456789)",
++};
++const SIZES = { 400: { width: 400, height: 800 }, 1920: { width: 1920, height: 1080 } };
++const SEED = { user: { id: 1, name: "Demo Person", handle: "demo", email: "demo@example.com", avatar_url: "" } };
++
++const browser = await chromium.launch({ channel: "chromium" });
++const errors = [], fails = [];
++const check = (name, ok) => { if (!ok) fails.push(name); console.log(ok ? "ok  " : "FAIL", name); };
++
++async function open({ w, ua, db, grant, query = "" }){
++	const ctx = await browser.newContext({ viewport: SIZES[w], userAgent: ua, hasTouch: !!ua, permissions: grant ? ["notifications"] : [], serviceWorkers: "allow" });
++	if (db) await ctx.addInitScript(d => { if (!localStorage.getItem("join-seeded")){ localStorage.setItem("join-mock", d); localStorage.setItem("join-seeded", "1"); } }, JSON.stringify(db));
++	const page = await ctx.newPage();
++	page.on("console", m => m.type() === "error" && errors.push(`${m.text()} (${page.url()})`));
++	page.on("pageerror", e => errors.push(String(e)));
++	await page.goto(`${base}/join/${query}`, { waitUntil: "networkidle" });
++	await page.waitForTimeout(500);
++	return { ctx, page };
++}
++const shot = async (page, name, w) => { await page.screenshot({ path: `${out}/${name}-${w}.png` }); };
++
++const states = {
++	"1-google": { open: {} },
++	"2-allow": { open: { db: SEED } },
++	"3-ios-sheet": { open: { db: SEED, ua: UA.ios }, then: p => p.click(".main") },
++	"4-done": { open: { db: { ...SEED, push: true }, grant: true } },
++	"5-settings": { open: { db: { ...SEED, push: true }, grant: true }, then: p => p.click(".avatar") },
++	"6-inapp": { open: { ua: UA.insta } },
++	"7-debug": { open: { db: SEED, query: "?debug=1" } },
++};
++for (const w of [400, 1920]) for (const [name, s] of Object.entries(states)){
++	const { ctx, page } = await open({ w, ...s.open });
++	if (s.then){ await s.then(page); await page.waitForTimeout(300); }
++	await shot(page, name, w);
++	await ctx.close();
++}
++
++// The whole flow, as a first-time visitor on the mock path: count the taps.
++{
++	const { ctx, page } = await open({ w: 400, grant: true });
++	const state = () => page.evaluate(() => document.querySelector(".frame").dataset.state);
++	let taps = 0;
++	check("starts on google", await state() === "google");
++	await page.click(".ux-auth-google-btn"); taps++; await page.waitForTimeout(300);
++	check("tap 1 signs in -> allow", await state() === "allow");
++	await page.click(".main"); taps++; await page.waitForTimeout(600);
++	check("tap 2 allows -> done", await state() === "done");
++	await page.reload({ waitUntil: "networkidle" }); await page.waitForTimeout(400);
++	check("reload stays done", await state() === "done");
++	await page.click(".main"); await page.waitForTimeout(500);
++	check("test notification reports sent", /Sent/.test(await page.textContent(".note")));
++	await page.click(".avatar"); await page.click(".sheet .wide:nth-of-type(2)"); await page.waitForTimeout(400);
++	check("turn off notifications -> allow", await state() === "allow");
++	await page.click(".avatar"); await page.click(".sheet .wide:nth-of-type(1)"); await page.waitForTimeout(400);
++	check("sign out -> google", await state() === "google");
++	await page.click(".ux-auth-google-btn"); await page.waitForTimeout(300);
++	await page.click(".avatar"); await page.click(".sheet .wide.danger"); await page.click(".confirm .danger"); await page.waitForTimeout(400);
++	check("delete account -> google, mock db cleared", await state() === "google" && !(await page.evaluate(() => localStorage.getItem("join-mock"))));
++	console.log("taps for a first-time visitor (after landing):", taps);
++	await ctx.close();
++}
++
++await browser.close();
++console.log(errors.length ? "CONSOLE ERRORS:\n" + errors.join("\n") : "no console errors");
++if (fails.length || errors.length) process.exitCode = 1;
+diff --git a/public/join/sw.js b/public/join/sw.js
+new file mode 100644
+index 0000000000..ccd8c5b164
+--- /dev/null
++++ b/public/join/sw.js
+@@ -0,0 +1,23 @@
++// Service worker (scope /join/): shows a push payload { title, body, url } and opens url on tap. It caches nothing, so /api/ is never cached.
++self.addEventListener("install", () => self.skipWaiting());
++self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
++
++self.addEventListener("push", e => {
++	let data = {};
++	try { data = e.data ? e.data.json() : {}; } catch { data = { body: e.data?.text() }; }
++	e.waitUntil(self.registration.showNotification(data.title || "lew42", {
++		body: data.body || "",
++		icon: "/app/icons/icon-192.png",
++		badge: "/app/icons/icon-192.png",
++		data: { url: data.url || "/join/" },
++	}));
++});
++
++self.addEventListener("notificationclick", e => {
++	e.notification.close();
++	const url = new URL(e.notification.data?.url || "/join/", self.location.origin).href;
++	e.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
++		const open = list.find(c => c.url.startsWith(self.location.origin + "/join/"));
++		return open ? open.focus().then(c => c.navigate?.(url) ?? c) : clients.openWindow(url);
++	}));
++});
+diff --git a/worker/api.test.mjs b/worker/api.test.mjs
+index eb5b0abd75..fbf9fccebf 100644
+--- a/worker/api.test.mjs
++++ b/worker/api.test.mjs
+@@ -12,7 +12,7 @@ const origin = new URL(base).origin;
+ 
+ // every ROUTES key and its declared action, parsed from the source: the test cannot drift from the table.
+ const source = readFileSync(new URL("./index.js", import.meta.url), "utf8");
+-const declared = Object.fromEntries([...source.matchAll(/^\s*"((?:GET|POST|PUT) \/api\/[^"]+)": \["(\w+)"/gm)].map(m => [m[1], m[2]]));
++const declared = Object.fromEntries([...source.matchAll(/^\s*"((?:GET|POST|PUT|DELETE) \/api\/[^"]+)": \["(\w+)"/gm)].map(m => [m[1], m[2]]));
+ 
+ const call = (method, path, { cookie, body, headers = {} } = {}) => fetch(base + path, {
+     method, redirect: "manual",
+@@ -66,7 +66,7 @@ await check("GET /api/likes", null, 200, "/api/likes?url=/x/");
+ const WRITE_BODIES = { "POST /api/docs": { title: "api test" }, "PUT /api/settings": { theme: "dark" }, "PUT /api/pages": { path: "/api-test/", json: {} } };
+ for (const [key, action] of Object.entries(declared)) {
+     if (action !== "write") continue;
+-    if (key === "POST /api/auth/logout-all") continue;   // exercised below, it revokes carol
++    if (key === "POST /api/auth/logout-all" || key === "DELETE /api/me") continue;   // exercised below: they revoke or delete carol
+     const body = WRITE_BODIES[key];
+     const path = key.endsWith("/likes") ? "/api/likes?url=/x/" : null;
+     await check(key, null, 401, path, { body });
+@@ -107,6 +107,49 @@ const dave = await login("dave"), dave2 = await login("dave");
+ await check("POST /api/auth/logout-all", dave, 200);
+ assert.equal((await (await call("GET", "/api/me", { cookie: dave2.cookie })).json()).anonymous, true, "the other device's cookie is revoked");
+ 
++// ── sessions: /api/me names the session, logout ends only that one, and the ended cookie reads as signed out
++const sess = await login("dave"), sess2 = await login("dave");
++const me1 = await (await call("GET", "/api/me", { cookie: sess.cookie })).json();
++assert.match(me1.session_id, /^[0-9a-f]{32}$/, "/api/me carries the session id");
++assert.equal(me1.push, false, "no push subscription yet");
++assert.notEqual(me1.session_id, (await (await call("GET", "/api/me", { cookie: sess2.cookie })).json()).session_id, "two logins, two sessions");
++await check("POST /api/auth/logout", sess, 200);
++assert.equal((await (await call("GET", "/api/me", { cookie: sess.cookie })).json()).anonymous, true, "a logged-out cookie is signed out");
++assert.equal((await (await call("GET", "/api/me", { cookie: sess2.cookie })).json()).handle, "dave", "the other session lives");
++
++// ── the test sign-in does not exist here (no TEST_LOGIN_KEY on the local stage)
++await check("POST /api/auth/test", null, 404, null, { body: { key: "anything" } });
++await check("POST /api/auth/test", null, 404, null, { body: {} });
++
++// ── push: subscribe validates, /api/me shows it, test sends (or says it is not configured), unsubscribe removes
++const keys = { p256dh: Buffer.from([4, ...crypto.getRandomValues(new Uint8Array(64))]).toString("base64url"), auth: Buffer.from(crypto.getRandomValues(new Uint8Array(16))).toString("base64url") };
++const endpoint = "https://fcm.googleapis.com/fcm/send/api-test-" + Date.now();
++await check("POST /api/push/subscribe", null, 401, null, { body: { endpoint, keys } });
++await check("POST /api/push/subscribe", sess2, 400, null, { body: { endpoint: "http://fcm.googleapis.com/x", keys } });
++await check("POST /api/push/subscribe", sess2, 400, null, { body: { endpoint: "https://internal.example/x", keys } });
++await check("POST /api/push/subscribe", sess2, 400, null, { body: { endpoint, keys: { ...keys, auth: "short" } } });
++await check("POST /api/push/subscribe", sess2, 200, null, { body: { endpoint, keys } });
++await check("POST /api/push/subscribe", sess2, 200, null, { body: { endpoint, keys } });   // the same endpoint again is an update, not a second row
++assert.equal((await (await call("GET", "/api/me", { cookie: sess2.cookie })).json()).push, true, "/api/me shows the subscription");
++const configured = Boolean((await (await call("GET", "/api/config")).json()).vapid_public);
++const pushed = await check("POST /api/push/test", sess2, configured ? 200 : 503);
++if (configured) assert.equal((await pushed.json()).results.length, 1, "one subscription, one push attempted");
++const gone = await (await check("DELETE /api/push/subscribe", sess2, 200, null, { body: { endpoint } })).json();
++assert.equal(gone.removed, 1); assert.equal(gone.push, false);
++
++// ── DELETE /api/me wipes the account and its sessions; the cookie is signed out afterwards
++await check("DELETE /api/me", null, 401);
++// zed is seeded to be deleted once; a second run finds him gone until the dev script re-seeds
++if ((await call("POST", "/api/dev/login", { body: { handle: "zed" } })).status === 404) { console.log("zed was deleted by an earlier run; restart node dev.mjs to re-seed him"); covered.add("DELETE /api/me"); }
++else {
++    const zed = await login("zed"), zed2 = await login("zed");
++    await call("POST", "/api/push/subscribe", { cookie: zed.cookie, body: { endpoint: endpoint + "-zed", keys } });
++    const wiped = await (await check("DELETE /api/me", zed, 200)).json();
++    assert.equal(wiped.deleted, true); assert.equal(wiped.handle, "zed");
++    for (const who of [zed, zed2]) assert.equal((await (await call("GET", "/api/me", { cookie: who.cookie })).json()).anonymous, true, "a deleted account's cookies are signed out");
++    await check("POST /api/push/subscribe", zed2, 401, null, { body: { endpoint, keys } });
++}
++
+ // ── a document's Room: two sockets, one lock
+ const doc = (await (await call("POST", "/api/docs", { cookie: alice.cookie, body: { title: "lock test" } })).json()).doc;
+ const ws_url = base.replace(/^http/, "ws") + `/api/doc/${doc.id}/ws`;
+diff --git a/worker/dev.js b/worker/dev.js
+index 237bdff865..67a14ff55c 100644
+--- a/worker/dev.js
++++ b/worker/dev.js
+@@ -8,7 +8,7 @@
+ // env.DEV_LOGIN === "1" and a localhost host check stay as the belt: they stop a tunnel or `wrangler dev --remote` publishing this
+ // route. Production is safe because this file is never its `main`.
+ 
+-import worker, { Room, UserDO, cookie_for, is_local } from "./index.js";
++import worker, { Room, UserDO, cookie_for, is_local, start_session } from "./index.js";
+ import { clearCookie } from "./session.js";
+ 
+ export { Room, UserDO };   // wrangler binds the Durable Object classes from THIS module's exports, since it is `main` here
+@@ -36,7 +36,7 @@ async function dev_login(request, env, url) {
+ 
+     const now = Math.floor(Date.now() / 1000);
+     await env.DB.prepare("UPDATE users SET last_login = ? WHERE id = ?").bind(now, row.id).run();
+-    const cookie = await cookie_for(row, env, BANNED.has(handle) ? { banned: true } : {});
++    const cookie = await cookie_for(row, env, { sid: await start_session(env, row.id, request), ...(BANNED.has(handle) ? { banned: true } : {}) });
+     const { token_epoch, ...user } = { ...row, last_login: now };
+     return redirect
+         ? new Response(null, { status: 302, headers: { Location: to, "Set-Cookie": cookie } })
+@@ -51,4 +51,5 @@ export default {
+         if (url.pathname === "/api/dev/login" && env.DEV_LOGIN === "1" && is_local(url)) return dev_login(request, env, url);
+         return worker.fetch(request, env, ctx);
+     },
++    scheduled: (event, env, ctx) => worker.scheduled(event, env, ctx),
+ };
+diff --git a/worker/index.js b/worker/index.js
+index 694b8f3b48..cac7d8d14f 100644
+--- a/worker/index.js
++++ b/worker/index.js
+@@ -5,11 +5,12 @@
+ // BEFORE the handler, so there is no call site to forget (identity.md ruling 4), and worker/api.test.mjs walks the table.
+ // A request that is not /api/* falls through to env.ASSETS (defensive: run_worker_first is ["/api/*"]).
+ 
+-import { verify, sign, readCookie, setCookie, clearCookie, MAX_AGE } from "./session.js";
++import { verify, sign, readCookie, setCookie, clearCookie, unb64u, MAX_AGE } from "./session.js";
+ import { can } from "./can.js";
+ import { verify_google_token } from "./google.js";
+ import { likes, toggle } from "./likes.js";
+ import { pages, upsert } from "./pages.js";
++import { send_all, weekly } from "./push.js";
+ export { Room } from "./room.js";          // re-exported so wrangler finds the Durable Object classes in `main`
+ export { UserDO } from "./settings.js";
+ 
+@@ -27,8 +28,10 @@ async function resolveUser(request, env) {
+     const row = await env.DB.prepare("SELECT id, provider, handle, avatar_url, role, token_epoch, created_at, last_login FROM users WHERE id = ?")
+         .bind(payload.uid).first();
+     if (!row || row.token_epoch !== payload.te) return null;   // token_epoch bumped since signing = revoked
++    // A cookie with a sid is one sign-in: its sessions row must exist and not be ended. A cookie with none (dev login, minted test cookies) stands on token_epoch alone.
++    if (payload.sid && !await env.DB.prepare("SELECT 1 FROM sessions WHERE id = ? AND user_id = ? AND ended_at IS NULL").bind(payload.sid, row.id).first()) return null;
+     const { token_epoch, ...user } = row;
+-    return { ...user, banned: !!payload.banned };
++    return { ...user, banned: !!payload.banned, sid: payload.sid ?? null };
+ }
+ 
+ export const new_id = () => [...crypto.getRandomValues(new Uint8Array(4))].map(b => b.toString(16).padStart(2, "0")).join("");
+@@ -39,6 +42,29 @@ export async function cookie_for(row, env, extra = {}) {
+     return setCookie(await sign(payload, env.SESSION_SECRET), MAX_AGE);
+ }
+ 
++// One sign-in = one sessions row; its id goes in the cookie as `sid`. Used by Google sign-in, the test sign-in and the dev login.
++export async function start_session(env, user_id, request) {
++    const sid = [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, "0")).join("");
++    await env.DB.prepare("INSERT INTO sessions (id, user_id, created_at, user_agent) VALUES (?, ?, ?, ?)")
++        .bind(sid, user_id, Math.floor(Date.now() / 1000), (request.headers.get("user-agent") || "").slice(0, 200)).run();
++    return sid;
++}
++
++// Both strings hashed first, then compared without stopping at the first difference.
++async function same(a, b) {
++    const hash = async s => new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(s))));
++    const [x, y] = await Promise.all([hash(a), hash(b)]);
++    let diff = 0;
++    for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
++    return diff === 0;
++}
++
++// A push endpoint is a URL we will POST to, so it must be https and one of the browsers' push services.
++const PUSH_HOSTS = /(^|\.)(googleapis\.com|push\.services\.mozilla\.com|push\.apple\.com|notify\.windows\.com)$/;
++const b64u_len = (s, n) => { try { return unb64u(s).length === n; } catch { return false; } };
++const push_ok = env => !!env.VAPID_PRIVATE_JWK && !!env.VAPID_PUBLIC;
++const has_push = async (env, user) => !!await env.DB.prepare("SELECT 1 FROM push_subs WHERE user_id = ?").bind(user.id).first();
++
+ const is_admin = (env, claims) => !!env.ADMIN_EMAIL && claims.email?.toLowerCase() === env.ADMIN_EMAIL.toLowerCase();
+ 
+ const FEED = [
+@@ -63,11 +89,22 @@ const ROUTES = {
+         { method: "GET", path: "/api/doc/<id>/ws", action: "write", who: WHO.write, note: "WebSocket: one document's Room" },
+     ] })],
+ 
+-    "GET /api/config": ["public", async (r, env, url) => json({ client_id: env.GOOGLE_CLIENT_ID || "", env: env.ENV_NAME || "local", dev_login: env.DEV_LOGIN === "1" && is_local(url) })],
++    "GET /api/config": ["public", async (r, env, url) => json({ client_id: env.GOOGLE_CLIENT_ID || "", env: env.ENV_NAME || "local", dev_login: env.DEV_LOGIN === "1" && is_local(url), vapid_public: env.VAPID_PUBLIC || "" })],
+ 
+-    "GET /api/me": ["read", async (r, env, url, user) => json(user
+-        ? { handle: user.handle, roles: [user.role], user }
+-        : { anonymous: true, user: null })],
++    "GET /api/me": ["read", async (r, env, url, user) => {
++        if (!user) return json({ anonymous: true, user: null, push: false, session_id: null });
++        const { sid, ...who } = user;
++        return json({ handle: who.handle, roles: [who.role], user: who, push: await has_push(env, who), session_id: sid });
++    }],
++
++    // Wipes the account: D1 rows (sessions, push subscriptions, likes, documents, the user) and the user's Durable Object storage.
++    // A document's Room keeps its own history, but the docs row is gone, so nothing can open it.
++    "DELETE /api/me": ["write", async (r, env, url, user) => {
++        await env.DB.batch(["sessions", "push_subs", "likes"].map(t => env.DB.prepare(`DELETE FROM ${t} WHERE user_id = ?`).bind(user.id))
++            .concat([env.DB.prepare("DELETE FROM docs WHERE owner_id = ?").bind(user.id), env.DB.prepare("DELETE FROM users WHERE id = ?").bind(user.id)]));
++        await settings_stub(env, user).fetch("https://do/settings", { method: "DELETE" });
++        return json({ deleted: true, handle: user.handle }, 200, { "set-cookie": clearCookie() });
++    }],
+ 
+     "POST /api/auth/google": ["public", async (request, env, url) => {
+         if (!env.SESSION_SECRET) return fail(500, "SESSION_SECRET is not configured");
+@@ -84,17 +121,66 @@ const ROUTES = {
+              RETURNING id, provider, handle, avatar_url, role, token_epoch, created_at, last_login`
+         ).bind(claims.sub, claims.name || claims.email.split("@")[0], claims.picture ?? null, is_admin(env, claims) ? "admin" : "member", now).first();
+         const { token_epoch, ...user } = row;
+-        return json({ user }, 200, { "set-cookie": await cookie_for(row, env) });
++        return json({ user }, 200, { "set-cookie": await cookie_for(row, env, { sid: await start_session(env, row.id, request) }) });
++    }],
++
++    // A secret-gated sign-in for testing a deployed stage before Google's origin list is ready. It exists only where the TEST_LOGIN_KEY
++    // secret is set (staging, never production) and answers 404 to everything else, so it is not an open login (identity.md ruling 3).
++    "POST /api/auth/test": ["public", async (request, env) => {
++        const { key, name } = await request.json().catch(() => ({}));
++        if (!env.TEST_LOGIN_KEY || !env.SESSION_SECRET || !await same(key ?? "", env.TEST_LOGIN_KEY)) return fail(404, "no such endpoint");
++        const handle = "test-" + (String(name || "visitor").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 24) || "visitor");
++        const now = Math.floor(Date.now() / 1000);
++        const row = await env.DB.prepare(
++            `INSERT INTO users (provider, provider_id, handle, role, created_at, last_login) VALUES ('test', ?1, ?1, 'member', ?2, ?2)
++             ON CONFLICT(provider, provider_id) DO UPDATE SET last_login = ?2
++             RETURNING id, provider, handle, avatar_url, role, token_epoch, created_at, last_login`
++        ).bind(handle, now).first();
++        const { token_epoch, ...user } = row;
++        return json({ user }, 200, { "set-cookie": await cookie_for(row, env, { sid: await start_session(env, row.id, request) }) });
+     }],
+ 
+-    "POST /api/auth/logout": ["public", async () => json({ ok: true }, 200, { "set-cookie": clearCookie() })],
++    // Ends this one session (its sessions row) and clears the cookie. Anyone may call it: signing out when already out is not an error.
++    "POST /api/auth/logout": ["public", async (request, env) => {
++        const payload = await verify(readCookie(request), env.SESSION_SECRET);
++        if (payload?.sid) await env.DB.prepare("UPDATE sessions SET ended_at = ? WHERE id = ? AND ended_at IS NULL").bind(Math.floor(Date.now() / 1000), payload.sid).run();
++        return json({ ok: true }, 200, { "set-cookie": clearCookie() });
++    }],
+ 
+     // Revoke every session of this user, on every device: one counter, no sessions table (/notes/auth/ §3).
+     "POST /api/auth/logout-all": ["write", async (r, env, url, user) => {
+         await env.DB.prepare("UPDATE users SET token_epoch = token_epoch + 1 WHERE id = ?").bind(user.id).run();
++        await env.DB.prepare("UPDATE sessions SET ended_at = ? WHERE user_id = ? AND ended_at IS NULL").bind(Math.floor(Date.now() / 1000), user.id).run();
+         return json({ ok: true }, 200, { "set-cookie": clearCookie() });
+     }],
+ 
++    // Web push (worker/push.js). The browser's PushSubscription.toJSON() is the body; one row per endpoint, in D1 so the weekly cron reads them all.
++    "POST /api/push/subscribe": ["write", async (request, env, url, user) => {
++        const { endpoint, keys } = await request.json().catch(() => ({}));
++        let host = "";
++        try { const u = new URL(endpoint); if (u.protocol === "https:") host = u.hostname; } catch {}
++        if (!PUSH_HOSTS.test(host)) return fail(400, "not a browser push endpoint");
++        if (!b64u_len(keys?.p256dh, 65) || !b64u_len(keys?.auth, 16)) return fail(400, "bad subscription keys");
++        await env.DB.prepare(
++            `INSERT INTO push_subs (endpoint, user_id, p256dh, auth, created_at) VALUES (?1, ?2, ?3, ?4, ?5)
++             ON CONFLICT(endpoint) DO UPDATE SET user_id = ?2, p256dh = ?3, auth = ?4`
++        ).bind(endpoint, user.id, keys.p256dh, keys.auth, Math.floor(Date.now() / 1000)).run();
++        return json({ ok: true, push: true });
++    }],
++    "DELETE /api/push/subscribe": ["write", async (request, env, url, user) => {
++        const { endpoint } = await request.json().catch(() => ({}));
++        const res = endpoint
++            ? await env.DB.prepare("DELETE FROM push_subs WHERE endpoint = ? AND user_id = ?").bind(endpoint, user.id).run()
++            : await env.DB.prepare("DELETE FROM push_subs WHERE user_id = ?").bind(user.id).run();
++        return json({ ok: true, removed: res.meta.changes, push: await has_push(env, user) });
++    }],
++    "POST /api/push/test": ["write", async (r, env, url, user) => {
++        if (!push_ok(env)) return fail(503, "push is not configured on this stage");
++        const { results: subs } = await env.DB.prepare("SELECT endpoint, p256dh, auth FROM push_subs WHERE user_id = ?").bind(user.id).all();
++        const { sent, failed, removed, results } = await send_all(subs, { title: "lew42", body: "Test notification: it works.", url: "/join/" }, env);
++        return json({ sent, failed, removed, results: results.map(({ endpoint, ...rest }) => ({ host: new URL(endpoint).hostname, ...rest })) });
++    }],
++
+     "GET /api/feed": ["write", async () => json({ items: FEED.map(([title, body], i) => ({ id: i + 1, title, body, at: Date.now() - i * 3600_000 })) })],
+ 
+     "GET /api/settings": ["write", async (r, env, url, user) => settings_stub(env, user).fetch("https://do/settings")],
+@@ -188,4 +274,5 @@ export async function route(request, env, ctx) {
+     catch (err) { return fail(err.status || 500, err.message); }
+ }
+ 
+-export default { fetch: route };
++// The Monday cron (wrangler.jsonc triggers.crons): the weekly note to every subscriber.
++export default { fetch: route, scheduled: (event, env, ctx) => { ctx.waitUntil(weekly(env)); } };
+diff --git a/worker/migrations/0002_sessions_push.sql b/worker/migrations/0002_sessions_push.sql
+new file mode 100644
+index 0000000000..b8830f86f9
+--- /dev/null
++++ b/worker/migrations/0002_sessions_push.sql
+@@ -0,0 +1,20 @@
++-- One row per sign-in. The cookie carries the row's id (`sid`); a row that is ended, or gone, reads as signed out.
++-- A cookie with no sid (the dev login before this migration, latency.mjs's minted ones) is still honoured: it fails only on token_epoch.
++CREATE TABLE sessions (
++    id          TEXT PRIMARY KEY,
++    user_id     INTEGER NOT NULL REFERENCES users(id),
++    created_at  INTEGER NOT NULL,
++    ended_at    INTEGER,
++    user_agent  TEXT
++);
++CREATE INDEX sessions_user ON sessions(user_id);
++
++-- One row per browser push subscription (PushSubscription.toJSON()). In D1, not UserDO, so the weekly cron reads every subscriber in one query.
++CREATE TABLE push_subs (
++    endpoint    TEXT PRIMARY KEY,
++    user_id     INTEGER NOT NULL REFERENCES users(id),
++    p256dh      TEXT NOT NULL,
++    auth        TEXT NOT NULL,
++    created_at  INTEGER NOT NULL
++);
++CREATE INDEX push_subs_user ON push_subs(user_id);
+diff --git a/worker/push.js b/worker/push.js
+new file mode 100644
+index 0000000000..8a745ec3c0
+--- /dev/null
++++ b/worker/push.js
+@@ -0,0 +1,74 @@
++// worker/push.js: Web Push with Web Crypto only (no package). Two standards:
++//   VAPID (RFC 8292): an ES256 JWT proves the push comes from this Worker; the push service takes `Authorization: vapid t=<jwt>, k=<public key>`.
++//   Message encryption (RFC 8291, aes128gcm): the body is encrypted to the browser's p256dh + auth, so the push service cannot read it.
++// Keys come from worker/scripts/vapid.mjs: env.VAPID_PRIVATE_JWK (secret, a JSON private JWK) and env.VAPID_PUBLIC (the 65-byte point, base64url).
++// worker/push.test.mjs encrypts here and decrypts the way a browser does.
++
++import { b64u, unb64u } from "./session.js";
++
++const enc = new TextEncoder();
++const cat = (...parts) => { const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0)); let at = 0; for (const p of parts) { out.set(p, at); at += p.length; } return out; };
++const hkdf = async (ikm, salt, info, bytes) => new Uint8Array(await crypto.subtle.deriveBits(
++    { name: "HKDF", hash: "SHA-256", salt, info }, await crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveBits"]), bytes * 8));
++
++export const SUBJECT = "https://staging.lew42.com";
++export const TTL = 86400;          // seconds the push service may hold a message for an offline phone
++
++// RFC 8291: the request body for one subscription. `sub` is {p256dh, auth}, both base64url as PushSubscription.toJSON() gives them.
++export async function encrypt(text, sub) {
++    const ua_public = unb64u(sub.p256dh), auth = unb64u(sub.auth);
++    const pair = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]);
++    const as_public = new Uint8Array(await crypto.subtle.exportKey("raw", pair.publicKey));
++    const ua_key = await crypto.subtle.importKey("raw", ua_public, { name: "ECDH", namedCurve: "P-256" }, false, []);
++    const secret = new Uint8Array(await crypto.subtle.deriveBits({ name: "ECDH", public: ua_key }, pair.privateKey, 256));
++    const ikm = await hkdf(secret, auth, cat(enc.encode("WebPush: info\0"), ua_public, as_public), 32);
++    const salt = crypto.getRandomValues(new Uint8Array(16));
++    const cek = await hkdf(ikm, salt, enc.encode("Content-Encoding: aes128gcm\0"), 16);
++    const nonce = await hkdf(ikm, salt, enc.encode("Content-Encoding: nonce\0"), 12);
++    const record = cat(enc.encode(text), new Uint8Array([2]));       // 0x02 = the last (only) record, no padding
++    const key = await crypto.subtle.importKey("raw", cek, "AES-GCM", false, ["encrypt"]);
++    const body = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, key, record));
++    return cat(salt, new Uint8Array([0, 0, 0x10, 0]), new Uint8Array([as_public.length]), as_public, body);   // header: salt, record size 4096, key id = our public key
++}
++
++// RFC 8292: `Authorization` for a push to this endpoint. The JWT's audience is the endpoint's origin, valid 12 hours.
++export async function vapid_header(endpoint, env, now = Date.now()) {
++    const part = o => b64u(enc.encode(JSON.stringify(o)));
++    const head = part({ typ: "JWT", alg: "ES256" });
++    const claims = part({ aud: new URL(endpoint).origin, exp: Math.floor(now / 1000) + 12 * 3600, sub: env.VAPID_SUBJECT || SUBJECT });
++    const key = await crypto.subtle.importKey("jwk", JSON.parse(env.VAPID_PRIVATE_JWK), { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]);
++    const sig = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, key, enc.encode(head + "." + claims));   // WebCrypto gives r||s, which is what a JWT wants
++    return `vapid t=${head}.${claims}.${b64u(sig)}, k=${env.VAPID_PUBLIC}`;
++}
++
++// Sends one payload to one subscription. Returns {status} (the push service's answer) or {status: 0, error}.
++export async function send_push(sub, payload, env, fetcher = fetch) {
++    try {
++        const res = await fetcher(sub.endpoint, {
++            method: "POST",
++            headers: { "content-encoding": "aes128gcm", "content-type": "application/octet-stream", ttl: String(TTL), urgency: "normal", authorization: await vapid_header(sub.endpoint, env) },
++            body: await encrypt(JSON.stringify(payload), sub),
++            signal: AbortSignal.timeout(10_000),
++        });
++        return { status: res.status };
++    } catch (err) { return { status: 0, error: err.message }; }
++}
++
++// Sends to many, deletes the ones the push service says are gone (404, 410), and returns the counts plus each endpoint's status.
++export async function send_all(subs, payload, env, fetcher = fetch) {
++    const results = await Promise.all(subs.map(async sub => ({ endpoint: sub.endpoint, ...await send_push(sub, payload, env, fetcher) })));
++    const gone = results.filter(r => r.status === 404 || r.status === 410).map(r => r.endpoint);
++    for (const endpoint of gone) await env.DB.prepare("DELETE FROM push_subs WHERE endpoint = ?").bind(endpoint).run();
++    const sent = results.filter(r => r.status >= 200 && r.status < 300).length;
++    return { sent, removed: gone.length, failed: results.length - sent - gone.length, results };
++}
++
++// The Monday cron: the same text to every subscriber. Text and link are vars, with defaults.
++export async function weekly(env, fetcher = fetch) {
++    if (!env.VAPID_PRIVATE_JWK || !env.VAPID_PUBLIC) { console.log("push weekly: no VAPID keys, nothing sent"); return { sent: 0, failed: 0, removed: 0 }; }
++    const { results: subs } = await env.DB.prepare("SELECT endpoint, p256dh, auth FROM push_subs").all();
++    const payload = { title: "lew42", body: env.PUSH_WEEKLY_TEXT || "New this week: watch part 2", url: env.PUSH_WEEKLY_URL || "/join/" };
++    const { sent, failed, removed } = await send_all(subs, payload, env, fetcher);
++    console.log(`push weekly: sent ${sent}, failed ${failed}, removed ${removed}`);
++    return { sent, failed, removed };
++}
+diff --git a/worker/push.test.mjs b/worker/push.test.mjs
+new file mode 100644
+index 0000000000..f89ba26783
+--- /dev/null
++++ b/worker/push.test.mjs
+@@ -0,0 +1,65 @@
++// node worker/push.test.mjs: encrypts a push the way push.js does, then decrypts it the way a browser does (RFC 8291 section 3.4),
++// checks the VAPID JWT with the public key, and runs the weekly cron against a fake database and a fake push service.
++import assert from "node:assert/strict";
++import { encrypt, vapid_header, send_all, weekly } from "./push.js";
++import { b64u, unb64u } from "./session.js";
++
++const enc = new TextEncoder();
++const hkdf = async (ikm, salt, info, bytes) => new Uint8Array(await crypto.subtle.deriveBits(
++    { name: "HKDF", hash: "SHA-256", salt, info }, await crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveBits"]), bytes * 8));
++const cat = (...p) => Uint8Array.from(p.flatMap(a => [...a]));
++
++// the subscriber: a browser makes a P-256 key pair and a 16-byte auth secret, and hands the public halves to the server
++const ua = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]);
++const ua_public = new Uint8Array(await crypto.subtle.exportKey("raw", ua.publicKey));
++const auth = crypto.getRandomValues(new Uint8Array(16));
++const sub = { p256dh: b64u(ua_public), auth: b64u(auth) };
++
++async function decrypt(body) {
++    const salt = body.slice(0, 16), rs = new DataView(body.buffer, body.byteOffset).getUint32(16), idlen = body[20];
++    const as_public = body.slice(21, 21 + idlen), cipher = body.slice(21 + idlen);
++    assert.equal(rs, 4096); assert.equal(idlen, 65);
++    const as_key = await crypto.subtle.importKey("raw", as_public, { name: "ECDH", namedCurve: "P-256" }, false, []);
++    const secret = new Uint8Array(await crypto.subtle.deriveBits({ name: "ECDH", public: as_key }, ua.privateKey, 256));
++    const ikm = await hkdf(secret, auth, cat(enc.encode("WebPush: info\0"), ua_public, as_public), 32);
++    const cek = await hkdf(ikm, salt, enc.encode("Content-Encoding: aes128gcm\0"), 16);
++    const nonce = await hkdf(ikm, salt, enc.encode("Content-Encoding: nonce\0"), 12);
++    const plain = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: nonce }, await crypto.subtle.importKey("raw", cek, "AES-GCM", false, ["decrypt"]), cipher));
++    assert.equal(plain.at(-1), 2, "the last record ends with 0x02");
++    return new TextDecoder().decode(plain.slice(0, -1));
++}
++
++const text = JSON.stringify({ title: "lew42", body: "New this week: watch part 2 — é✓", url: "/join/" });
++assert.equal(await decrypt(await encrypt(text, sub)), text);
++assert.notDeepEqual(await encrypt(text, sub), await encrypt(text, sub), "a fresh key and salt every time");
++await assert.rejects(decrypt(await encrypt(text, { ...sub, auth: b64u(crypto.getRandomValues(new Uint8Array(16))) })), "the wrong auth secret cannot read it");
++
++// VAPID: the JWT verifies with the public key, names the endpoint's origin, and expires within 24 hours
++const pair = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
++const env = { VAPID_PRIVATE_JWK: JSON.stringify(await crypto.subtle.exportKey("jwk", pair.privateKey)), VAPID_PUBLIC: b64u(await crypto.subtle.exportKey("raw", pair.publicKey)), PUSH_WEEKLY_URL: "/join/" };
++const header = await vapid_header("https://fcm.googleapis.com/fcm/send/abc", env);
++const [, jwt, k] = /^vapid t=(\S+), k=(\S+)$/.exec(header);
++assert.equal(k, env.VAPID_PUBLIC);
++const [h, c, s] = jwt.split(".");
++assert.ok(await crypto.subtle.verify({ name: "ECDSA", hash: "SHA-256" }, pair.publicKey, unb64u(s), enc.encode(h + "." + c)), "the JWT signature verifies");
++const claims = JSON.parse(new TextDecoder().decode(unb64u(c)));
++assert.equal(claims.aud, "https://fcm.googleapis.com");
++assert.ok(claims.exp - Date.now() / 1000 < 86400 && claims.sub.startsWith("https://"));
++
++// send_all and the cron: 201 sent, 410 removed, 500 failed; the 410 subscription's row is deleted
++const subs = ["a", "b", "c"].map(n => ({ endpoint: "https://fcm.googleapis.com/fcm/send/" + n, ...sub }));
++const deleted = [], seen = [];
++const db = { prepare: sql => ({ bind: (...args) => ({ run: async () => { deleted.push(args[0]); }, all: async () => ({ results: subs }) }), all: async () => ({ results: subs }) }) };
++const fake_push = async (endpoint, init) => {
++    seen.push(init.headers);
++    return new Response(null, { status: endpoint.endsWith("/a") ? 201 : endpoint.endsWith("/b") ? 410 : 500 });
++};
++const log = console.log; let logged = ""; console.log = line => { logged += line; };
++const counts = await weekly({ ...env, DB: db }, fake_push);
++console.log = log;
++assert.deepEqual(counts, { sent: 1, failed: 1, removed: 1 });
++assert.deepEqual(deleted, ["https://fcm.googleapis.com/fcm/send/b"]);
++assert.match(logged, /sent 1, failed 1, removed 1/);
++assert.ok(seen.every(h => h.ttl && h.urgency === "normal" && h["content-encoding"] === "aes128gcm" && h.authorization.startsWith("vapid t=")), "TTL, Urgency and VAPID on every push");
++assert.deepEqual(await weekly({ DB: db }, fake_push), { sent: 0, failed: 0, removed: 0 }, "no keys, nothing sent");
++console.log("push.test ok");
+diff --git a/worker/readme.md b/worker/readme.md
+index 67545c36b3..6ae26bdb99 100644
+--- a/worker/readme.md
++++ b/worker/readme.md
+@@ -19,17 +19,35 @@ Bindings are not inherited between wrangler environments, so each stage lists it
+ | File | What it does |
+ |---|---|
+ | [index.js](index.js) | The router. One table, `"METHOD /path": [action, handler]`; the router resolves the user, checks the host and the origin, then runs `can(user, action)` **before** the handler. `GET /api/` prints that table (method, path, action, who may call it), generated from it. |
+-| [session.js](session.js) | The stateless cookie `s`: HMAC-SHA256 over `{uid, te, exp}`. Role is never in it; `index.js` reads the role from D1 each request. `token_epoch` (`POST /api/auth/logout-all`) revokes every cookie of a user. |
++| [session.js](session.js) | The signed cookie `s`: HMAC-SHA256 over `{uid, te, exp, sid}`. Role is never in it; `index.js` reads the role from D1 each request. `sid` names a row of the `sessions` table: when that row is ended (or gone) the cookie reads as signed out. A cookie with no `sid` (made before migration 0002) is still honoured until it expires. `token_epoch` (`POST /api/auth/logout-all`) revokes every cookie of a user. |
++| [push.js](push.js) | Web push with WebCrypto only: the VAPID JWT (RFC 8292, ES256, `aud` = the push service's origin), payload encryption (RFC 8291 aes128gcm), `send_push`/`send_all` (a 404 or 410 deletes the subscription row) and `weekly()`, the cron's body. [push.test.mjs](push.test.mjs) encrypts, decrypts with the RFC's steps, verifies the JWT and runs the cron against fakes (under 1 s, no network). |
+ | [can.js](can.js) | `can(user, "read" \| "write" \| "admin")`, the six rows of identity ruling 4. |
+ | [google.js](google.js) | Verifies a Google ID token (RS256 against Google's keys, WebCrypto). |
+ | [room.js](room.js) | The `Room` Durable Object: one per url chat room, one per document (`doc:<id>`). A document has a single-editor lock ([lock.js](lock.js)), a JSONL history in its own SQLite and an R2 snapshot after 20 s of changes (only when an R2 bucket is bound). Wire protocol at the top of the file. |
+-| [settings.js](settings.js) | `UserDO`: one per user, their settings. |
++| [settings.js](settings.js) | `UserDO`: one per user, their settings. A `DELETE` wipes its storage (account deletion). |
+ | [likes.js](likes.js), [pages.js](pages.js) | The older likes and page-listing endpoints. |
+ | [dostorage.js](dostorage.js) | Lazy schema steps for a Durable Object's SQLite. |
+ | [dev.js](dev.js) | Local only: `POST /api/dev/login {handle}` and `GET /api/dev/login?as=alice`. |
+-| [migrations/](migrations/) | D1 schema (`wrangler d1 migrations apply`). Append a file; never edit one that shipped. |
+-| [seed/](seed/) | `dev.sql` (six people alice, bob, carol, dave, eve (banned), admin) and `staging.sql` (four fake people, never able to sign in). |
+-| [scripts/](scripts/) | `deploy.mjs`, `serve.mjs` (the local API as one process, started by Servex), `icons.mjs`, `live.test.mjs`, `ui.test.mjs`, `latency.mjs`. |
++| [migrations/](migrations/) | D1 schema (`wrangler d1 migrations apply`). Append a file; never edit one that shipped. `0001` users, likes, docs, pages; `0002` `sessions(id, user_id, created_at, ended_at, user_agent)` and `push_subs(endpoint PK, user_id, p256dh, auth, created_at)`. |
++| [seed/](seed/) | `dev.sql` (seven people alice, bob, carol, dave, eve (banned), admin, zed (the one `api.test.mjs` deletes)) and `staging.sql` (four fake people, never able to sign in). |
++| [scripts/](scripts/) | `deploy.mjs`, `vapid.mjs` (makes the push keys once), `serve.mjs` (the local API as one process, started by Servex), `icons.mjs`, `live.test.mjs`, `ui.test.mjs`, `latency.mjs`. |
++
++## Sign-in, sessions and push (the API the join page codes against)
++
++| Route | Who | What |
++|---|---|---|
++| `GET /api/config` | anyone | `{client_id, env, dev_login, vapid_public}` |
++| `GET /api/me` | anyone | signed out: `{anonymous:true, user:null, push:false, session_id:null}`; signed in: `{handle, roles, user, push, session_id}` (`push` = this user has a subscription) |
++| `POST /api/auth/google {credential}` | anyone | verifies the Google token, makes a `sessions` row, sets the cookie |
++| `POST /api/auth/test {key, name?}` | anyone, **staging only** | signs in a fake user `test-<name>` (provider `test`) with a real session. Answers 404 unless the secret `TEST_LOGIN_KEY` is set on that stage and `key` matches (constant-time compare). Production never gets the secret, so there it does not exist; this is the secret-gated stand-in for the dev login, which staging's bundle does not contain. |
++| `POST /api/auth/logout` | anyone | ends this cookie's `sessions` row, clears the cookie |
++| `POST /api/auth/logout-all` | member | ends every session of the user |
++| `DELETE /api/me` | member | wipes the account: sessions, push subscriptions, likes, documents, the user row and the `UserDO`; clears the cookie; answers `{deleted:true, handle}` (there is no email) |
++| `POST /api/push/subscribe {endpoint, keys:{p256dh, auth}}` | member | the browser's `PushSubscription.toJSON()`; the endpoint must be https on a known push service (Google, Mozilla, Apple, Windows), the keys 65 and 16 bytes; one row per endpoint |
++| `DELETE /api/push/subscribe {endpoint?}` | member | removes that endpoint, or all of the caller's; answers `{ok, removed, push}` |
++| `POST /api/push/test` | member | sends "Test notification" to the caller's subscriptions: `{sent, failed, removed, results:[{host, status}]}`; 503 where VAPID is not configured |
++
++**Push keys and the weekly push.** `node worker/scripts/vapid.mjs` makes the P-256 pair once and writes `VAPID_PRIVATE_JWK`, `VAPID_PUBLIC` (and `STAGING_TEST_LOGIN_KEY`) to `worker/.dev.vars` (gitignored; `wrangler dev` reads it, so local push works too). `deploy.mjs staging` puts them on staging as secrets `VAPID_PRIVATE_JWK`, `VAPID_PUBLIC`, `TEST_LOGIN_KEY`. Never regenerate the pair after people subscribe: every subscription is tied to the public key. Staging has a cron (`0 16 * * 1`, Monday 16:00 UTC) whose `scheduled()` sends `{title:"lew42", body: PUSH_WEEKLY_TEXT, url: PUSH_WEEKLY_URL}` to every `push_subs` row and logs `push weekly: sent X, failed Y, removed Z` (vars in [wrangler.jsonc](wrangler.jsonc): "New this week: watch part 2" and `/join/`; `wrangler tail` shows the line).
+ 
+ The user object is `{id, provider, handle, avatar_url, role, created_at, last_login}`. There is no email column ([identity ruling 7](../public/notes/auth/identity.md)): the Google name is the handle, and `ADMIN_EMAIL` is compared at sign-in only.
+ 
+@@ -45,7 +63,8 @@ Tests, with the stage running (pass `http://monorepo.localhost` to go through th
+ 
+ ```
+ node worker/google.test.mjs && node worker/session.test.mjs && node worker/can.test.mjs && node worker/lock.test.mjs   # pure, no server
+-node worker/api.test.mjs http://monorepo.localhost      # every route: who may call it, host guard, origin guard, revoke, the Room lock
++node worker/push.test.mjs                               # pure: push encryption round trip, VAPID, weekly cron
++node worker/api.test.mjs http://monorepo.localhost      # every route: who may call it, host guard, origin guard, sessions, push, account deletion, revoke, the Room lock (re-run after restarting the dev script: it deletes zed)
+ node worker/scripts/ui.test.mjs http://monorepo.localhost     # headless browser, needs PLAYWRIGHT_DIR (a path to the playwright package)
+ node worker/scripts/live.test.mjs http://monorepo.localhost   # two browsers on one document
+ ```
+@@ -58,7 +77,7 @@ Wrangler checks every file under `public/` before it starts: 25 MiB per file at
+ 
+ ## Deploy
+ 
+-`node worker/scripts/deploy.mjs staging [--seed]` applies the D1 migrations to that stage's own database, deploys `worker/wrangler.jsonc` for that environment and creates `SESSION_SECRET` once. Staging first. `--secret KEY=VALUE` sets another secret (`ADMIN_EMAIL`). Staging's session secret is also written to `worker/.dev.vars` (gitignored) so `node worker/scripts/latency.mjs` can sign cookies for its fake users and measure the real edit-to-other-phone time.
++`node worker/scripts/deploy.mjs staging [--seed]` applies the D1 migrations to that stage's own database, deploys `worker/wrangler.jsonc` for that environment and creates `SESSION_SECRET` once. Staging first. `--secret KEY=VALUE` sets another secret (`ADMIN_EMAIL`). On staging it also sets the push keys and `TEST_LOGIN_KEY` if missing. Staging's session secret is also written to `worker/.dev.vars` (gitignored) so `node worker/scripts/latency.mjs` can sign cookies for its fake users and measure the real edit-to-other-phone time.
+ 
+ ### Why a git push cannot ship an untested API
+ 
+@@ -76,7 +95,8 @@ Before step 2, finish the owner's list below.
+ 
+ ## Not built yet
+ 
+-- **Real Google sign-in has never run.** `GOOGLE_CLIENT_ID` is empty on every stage, so staging was verified with cookies minted by the test scripts; `google.js` rejects every token until the owner finishes step 1 and 2 below.
++- **Real Google sign-in has not yet been tried end to end.** `GOOGLE_CLIENT_ID` is set on local and staging (production stays empty until the cutover), and `google.js` is tested, but Google only accepts a sign-in from an origin the owner has listed in the OAuth client: `https://staging.lew42.com` is step 1 below. Until then staging is tested with `POST /api/auth/test`.
++- **Real push delivery to a phone has not been seen.** The encryption is proven against the RFC in `push.test.mjs`, and the live push service answered the staging test (Google's push service returned 410 for a made-up subscription, which the Worker removed as designed), but nobody has subscribed a real browser yet.
+ - **Banning a real user.** A ban is a flag in the dev login's cookie only (`dev.js`); no column or admin route sets it on staging or production, and `can.js` does not check it.
+ - **A page that lists live documents and their lock holders.**
+ - **Per-user form answers.** Proposed (2026-11-25, not built): an `answers` table in `UserDO` plus `GET`/`PUT /api/answers`, read by `ux/Form`'s `form.bind(user)`: [proposal.md](../public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/auth/proposal.md) · [what exists](../public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/auth/findings.md).
+@@ -89,7 +109,7 @@ Before step 2, finish the owner's list below.
+    - `https://staging.lew42.com`
+    - `https://lew42.com` (and `https://www.lew42.com` if it is used)
+    - optionally `http://localhost:<port>` for the :8787 direct run. Google rejects `*.localhost` origins, so `monorepo.localhost` cannot be listed: local sign-in uses the dev login, and real Google sign-in is tested on staging.
+-2. Put the client id in `GOOGLE_CLIENT_ID` for each stage in [wrangler.jsonc](wrangler.jsonc) (it is public, not a secret) and run the deploy script again.
++2. The client id is already in `GOOGLE_CLIENT_ID` for local and staging in [wrangler.jsonc](wrangler.jsonc) (it is public, not a secret); at the production cutover put it there too and run the deploy script again.
+ 3. Set `ADMIN_EMAIL` (secret) to your Google email; your first Google sign-in becomes admin: `node worker/scripts/deploy.mjs staging --secret ADMIN_EMAIL=you@example.com`.
+ 4. Enable R2 in the Cloudflare dashboard (Storage → R2), create buckets `monorepo-staging-docs` and `monorepo-production-docs`, and add an `r2_buckets` binding named `SNAPSHOTS` to each environment. Until then document history lives only in the Durable Object (fully working, no off-site copy).
+ 5. The Git-builds change at cutover (above).
+diff --git a/worker/scripts/deploy.mjs b/worker/scripts/deploy.mjs
+index b4969964bd..be5587fb13 100644
+--- a/worker/scripts/deploy.mjs
++++ b/worker/scripts/deploy.mjs
+@@ -1,11 +1,12 @@
+ // node worker/scripts/deploy.mjs <staging|production> [--seed] [--secret KEY=VALUE]...
+ // Applies D1 migrations to that stage's own database, deploys the ONE config (worker/wrangler.jsonc, env <stage>), and makes sure
+-// SESSION_SECRET exists. Deploy staging first, look at it, then production. Run from anywhere; wrangler runs at the repo root.
++// SESSION_SECRET exists (on staging also the web push keys and TEST_LOGIN_KEY, from worker/scripts/vapid.mjs). Deploy staging first, look at it, then production. Run from anywhere; wrangler runs at the repo root.
+ import { appendFileSync } from "node:fs";
+ import { spawnSync } from "node:child_process";
+ import { randomBytes } from "node:crypto";
+ import { dirname, join } from "node:path";
+ import { fileURLToPath } from "node:url";
++import { ensure_dev_vars } from "./vapid.mjs";
+ 
+ const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+ const CONFIG = ["-c", "worker/wrangler.jsonc"];
+@@ -14,7 +15,7 @@ if (!["staging", "production"].includes(stage)) { console.error("usage: deploy.m
+ 
+ const wr = (args, input) => {
+ 	console.log("\n$ wrangler", args.join(" "));
+-	const r = spawnSync("npx", ["wrangler", ...args, ...CONFIG], { cwd: root, shell: true, input, encoding: "utf8", stdio: ["pipe", "pipe", "inherit"] });
++	const r = spawnSync("npx", ["wrangler", ...args, ...CONFIG], { cwd: root, shell: true, windowsHide: true, input, encoding: "utf8", stdio: ["pipe", "pipe", "inherit"] });
+ 	process.stdout.write(r.stdout || "");
+ 	if (r.status !== 0) { console.error("FAILED:", args.join(" ")); process.exit(r.status || 1); }
+ 	return r.stdout || "";
+@@ -32,6 +33,13 @@ if (!have.includes("SESSION_SECRET")) {
+ STAGING_SESSION_SECRET=${secret}
+ `);
+ }
++// Web push keys (worker/push.js) for staging: made once by vapid.mjs into worker/.dev.vars, then set as secrets. TEST_LOGIN_KEY is the
++// secret-gated test sign-in (POST /api/auth/test): staging only, production never gets it.
++if (stage === "staging") {
++	const { vars } = await ensure_dev_vars();
++	for (const [name, value] of [["VAPID_PRIVATE_JWK", vars.VAPID_PRIVATE_JWK], ["VAPID_PUBLIC", vars.VAPID_PUBLIC], ["TEST_LOGIN_KEY", vars.STAGING_TEST_LOGIN_KEY]])
++		if (!have.includes(name)) wr(["secret", "put", name, "--env", stage], value);
++}
+ wr(["deploy", "--env", stage]);
+ 
+ flags.forEach((f, i) => { if (f === "--secret") { const [k, ...v] = flags[i + 1].split("="); wr(["secret", "put", k, "--env", stage], v.join("=")); } });
+diff --git a/worker/scripts/vapid.mjs b/worker/scripts/vapid.mjs
+new file mode 100644
+index 0000000000..317c39bfe2
+--- /dev/null
++++ b/worker/scripts/vapid.mjs
+@@ -0,0 +1,41 @@
++// node worker/scripts/vapid.mjs: makes the VAPID key pair (P-256) once and writes it to worker/.dev.vars (gitignored), where
++// `wrangler dev` reads it and deploy.mjs finds it to set the staging secrets. Run again and it does nothing (a new pair would
++// orphan every browser subscription). Never prints the private key. Exports ensure_dev_vars() for deploy.mjs.
++import { readFileSync, writeFileSync, existsSync } from "node:fs";
++import { randomBytes } from "node:crypto";
++import { dirname, join } from "node:path";
++import { fileURLToPath } from "node:url";
++
++export const DEV_VARS = join(dirname(fileURLToPath(import.meta.url)), "..", ".dev.vars");
++const b64u = bytes => Buffer.from(bytes).toString("base64url");
++
++export function read_dev_vars() {
++	const vars = {};
++	if (existsSync(DEV_VARS)) for (const line of readFileSync(DEV_VARS, "utf8").split(/\r?\n/)) {
++		const m = /^([A-Z0-9_]+)=(.*)$/.exec(line);
++		if (m) vars[m[1]] = m[2].replace(/^'(.*)'$/, "$1");
++	}
++	return vars;
++}
++
++// Adds whatever is missing: the VAPID pair and the staging test sign-in key. Returns the vars. Existing lines are never rewritten.
++export async function ensure_dev_vars() {
++	const vars = read_dev_vars(), add = [];
++	if (!vars.VAPID_PRIVATE_JWK || !vars.VAPID_PUBLIC) {
++		const pair = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
++		vars.VAPID_PRIVATE_JWK = JSON.stringify(await crypto.subtle.exportKey("jwk", pair.privateKey));
++		vars.VAPID_PUBLIC = b64u(await crypto.subtle.exportKey("raw", pair.publicKey));
++		add.push(`VAPID_PRIVATE_JWK='${vars.VAPID_PRIVATE_JWK}'`, `VAPID_PUBLIC=${vars.VAPID_PUBLIC}`);
++	}
++	if (!vars.STAGING_TEST_LOGIN_KEY) {
++		vars.STAGING_TEST_LOGIN_KEY = randomBytes(18).toString("base64url");
++		add.push(`STAGING_TEST_LOGIN_KEY=${vars.STAGING_TEST_LOGIN_KEY}`);
++	}
++	if (add.length) writeFileSync(DEV_VARS, (existsSync(DEV_VARS) && readFileSync(DEV_VARS, "utf8").trim() ? readFileSync(DEV_VARS, "utf8").trimEnd() + "\n" : "") + add.join("\n") + "\n");
++	return { vars, wrote: add.length };
++}
++
++if (process.argv[1]?.endsWith("vapid.mjs")) {
++	const { vars, wrote } = await ensure_dev_vars();
++	console.log(wrote ? `wrote ${wrote} line(s) to worker/.dev.vars` : "worker/.dev.vars already has the keys; nothing changed", "\nVAPID_PUBLIC =", vars.VAPID_PUBLIC);
++}
+diff --git a/worker/seed/dev.sql b/worker/seed/dev.sql
+index e08e518294..f127ccaf6a 100644
+--- a/worker/seed/dev.sql
++++ b/worker/seed/dev.sql
+@@ -1,4 +1,4 @@
+--- Local only (the dev script applies it after the migrations; safe to re-run). Six fake people for the dev login. Roles live in the
++-- Local only (the dev script applies it after the migrations; safe to re-run). Seven fake people for the dev login (zed exists to be deleted by api.test.mjs: DELETE /api/me). Roles live in the
+ -- role column; eve is "banned" by worker/dev.js (a cookie flag here, the KV key in production). token_epoch and created_at are left out
+ -- of the update on purpose: a restart must never revoke sessions.
+ INSERT INTO users (id, provider, provider_id, handle, avatar_url, role, token_epoch, created_at, last_login) VALUES
+@@ -7,7 +7,8 @@ INSERT INTO users (id, provider, provider_id, handle, avatar_url, role, token_ep
+     (3, 'dev', 'carol', 'carol', NULL, 'member',    0, strftime('%s', 'now'), 0),
+     (4, 'dev', 'dave',  'dave',  NULL, 'member',    0, strftime('%s', 'now'), 0),
+     (5, 'dev', 'eve',   'eve',   NULL, 'member',    0, strftime('%s', 'now'), 0),
+-    (6, 'dev', 'admin', 'admin', NULL, 'admin',     0, strftime('%s', 'now'), 0)
++    (6, 'dev', 'admin', 'admin', NULL, 'admin',     0, strftime('%s', 'now'), 0),
++    (7, 'dev', 'zed',   'zed',   NULL, 'member',    0, strftime('%s', 'now'), 0)
+ ON CONFLICT (id) DO UPDATE SET provider = excluded.provider, provider_id = excluded.provider_id, handle = excluded.handle, role = excluded.role;
+ 
+ -- Three page rows under /imagine/cms/d1/ (worker/pages.js's proof).
+diff --git a/worker/session.js b/worker/session.js
+index ae88b98f3e..d895a7afde 100644
+--- a/worker/session.js
++++ b/worker/session.js
+@@ -8,11 +8,11 @@
+ export const COOKIE = "s";
+ export const MAX_AGE = 30 * 86400;
+ 
+-function b64u(bytes) {
++export function b64u(bytes) {
+     return btoa(String.fromCharCode(...new Uint8Array(bytes)))
+         .replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+ }
+-function unb64u(str) {
++export function unb64u(str) {
+     const pad = str.length % 4 ? "=".repeat(4 - (str.length % 4)) : "";
+     const bin = atob(str.replaceAll("-", "+").replaceAll("_", "/") + pad);
+     return Uint8Array.from(bin, c => c.charCodeAt(0));
+diff --git a/worker/settings.js b/worker/settings.js
+index 1c5ce7f5d0..a38743e6cc 100644
+--- a/worker/settings.js
++++ b/worker/settings.js
+@@ -18,6 +18,12 @@ export class UserDO extends DurableObject {
+ 	all(){ return Object.fromEntries(this.sql.exec("SELECT key, value FROM settings").toArray().map(r => [r.key, JSON.parse(r.value)])); }
+ 
+ 	async fetch(request){
++		// Account deletion: drop everything this object holds. Its tables are gone until the next request, which re-creates them (a new user can be given the same id).
++		if (request.method === "DELETE"){
++			await this.ctx.storage.deleteAll();
++			return Response.json({ deleted: true });
++		}
++		migrate(this.sql, STEPS);
+ 		if (request.method === "PUT"){
+ 			const body = await request.json().catch(() => ({}));
+ 			for (const [key, value] of Object.entries(body)){
+diff --git a/worker/wrangler.jsonc b/worker/wrangler.jsonc
+index 93fc246c91..ec5b227a88 100644
+--- a/worker/wrangler.jsonc
++++ b/worker/wrangler.jsonc
+@@ -22,7 +22,7 @@
+   "durable_objects": { "bindings": [{ "name": "ROOM", "class_name": "Room" }, { "name": "USER_DO", "class_name": "UserDO" }] },
+   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }, { "tag": "v2", "new_sqlite_classes": ["UserDO"] }],
+   "r2_buckets": [{ "binding": "SNAPSHOTS", "bucket_name": "monorepo-local-docs" }],
+-  "vars": { "ENV_NAME": "local", "DEV_LOGIN": "1", "GOOGLE_CLIENT_ID": "", "API_HOSTS": "localhost,127.0.0.1,monorepo.localhost" },
++  "vars": { "ENV_NAME": "local", "DEV_LOGIN": "1", "GOOGLE_CLIENT_ID": "722949407087-g0kagkteln7gifhndpifetv5j2prn5a9.apps.googleusercontent.com", "API_HOSTS": "localhost,127.0.0.1,monorepo.localhost" },
+ 
+   // R2 snapshots: staging and production get "r2_buckets": [{ "binding": "SNAPSHOTS", "bucket_name": "monorepo-<stage>-docs" }] once R2 is
+   // enabled in the Cloudflare dashboard (creating a bucket fails with code 10042 until then). Room skips snapshots when there is no binding.
+@@ -35,7 +35,8 @@
+       "d1_databases": [{ "binding": "DB", "database_name": "monorepo-staging", "database_id": "2c9207d4-f993-42d8-b640-edbd67c15a0c", "migrations_dir": "migrations" }],
+       "durable_objects": { "bindings": [{ "name": "ROOM", "class_name": "Room" }, { "name": "USER_DO", "class_name": "UserDO" }] },
+       "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }, { "tag": "v2", "new_sqlite_classes": ["UserDO"] }],
+-      "vars": { "ENV_NAME": "staging", "GOOGLE_CLIENT_ID": "", "API_HOSTS": "staging.lew42.com" }
++      "vars": { "ENV_NAME": "staging", "GOOGLE_CLIENT_ID": "722949407087-g0kagkteln7gifhndpifetv5j2prn5a9.apps.googleusercontent.com", "API_HOSTS": "staging.lew42.com", "PUSH_WEEKLY_TEXT": "New this week: watch part 2", "PUSH_WEEKLY_URL": "/join/" },
++      "triggers": { "crons": ["0 16 * * 1"] }
+     },
+     "production": {
+       "name": "monorepo",
