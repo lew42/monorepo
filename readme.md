@@ -28,7 +28,7 @@ Servex holds port 80 and starts the site the first time you visit it (`Servex/re
 - **PageInbox** (a note left on a page reaches its owner): [PageInbox.js](public/framework/core/Page/PageInbox.js) · [inbox tab doc](public/framework/core/Page/doc/inbox-tab.md)
 - **UI library** (every ui and Figma item, three columns): [library](public/framework/library/readme.md) · **Layout catalog**: [layouts](public/layouts/readme.md)
 - **Step runner** (a task as ordered steps): [Servex/doc/steps.md](Servex/doc/steps.md)
-- **Auth demo + backend** (Google sign-in, PWA, live documents; one Worker serves `public/` and `/api/*`, staging at staging.lew42.com): [worker/readme.md](worker/readme.md) · the app at [public/app/](public/app/) · `node dev.mjs` runs it locally
+- **Auth demo + backend** (Google sign-in, PWA, live documents; one Worker serves `public/` and `/api/*`, staging at staging.lew42.com): [worker/readme.md](worker/readme.md) · the app at [public/app/](public/app/) · the sign-in demo (video, Google, weekly push) at [public/join/](public/join/readme.md) · `node dev.mjs` runs it locally
 - **Past-work skill** (look before you build): `.claude/skills/past-work/SKILL.md` · [past-work-index.md](public/framework/ai/past-work-index.md)
 
 ## Cloudflare Previews
