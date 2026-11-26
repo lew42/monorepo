@@ -1,0 +1,623 @@
+diff --git a/public/join/Funnel.js b/public/join/Funnel.js
+new file mode 100644
+index 0000000000..3c8a4bd56a
+--- /dev/null
++++ b/public/join/Funnel.js
+@@ -0,0 +1,60 @@
++/**
++ * Funnel: one event per step of /join/, sent to POST /api/join/event (worker/join.js). No personal data — only a
++ * random visitor id this device keeps in localStorage, and the utm_* values the ad link carried, kept in
++ * sessionStorage so they survive a reload or the trip through Google. In mock mode it logs to the console and
++ * sends nothing, so nobody needs a real Worker to see the calls it would make.
++ *
++ *   const funnel = new Funnel(backend, env);   // env = the page's InAppBrowser; reads/creates the visitor id
++ *   funnel.send("tap_allow");                   // never awaited, never throws: see() fires and forgets
++ *   Funnel.reset();                              // ?debug=1's Reset everything also drops the visitor id
++ */
++export class Funnel {
++
++	static VKEY = "join-visitor";
++	static UKEY = "join-utm";
++
++	constructor(backend, env, params = new URLSearchParams(location.search)){
++		this.backend = backend;
++		this.env = env;
++		this.utm = this.read_utm(params);
++	}
++
++	read_utm(params){
++		if (params.has("utm_source") || params.has("utm_campaign") || params.has("utm_content")){
++			const utm = { src: params.get("utm_source") || "", camp: params.get("utm_campaign") || "", content: params.get("utm_content") || "" };
++			sessionStorage.setItem(Funnel.UKEY, JSON.stringify(utm));
++			return utm;
++		}
++		try { return JSON.parse(sessionStorage.getItem(Funnel.UKEY) || "null") || { src: "", camp: "", content: "" }; }
++		catch { return { src: "", camp: "", content: "" }; }
++	}
++
++	get visitor(){
++		let v = localStorage.getItem(Funnel.VKEY);
++		if (!/^[0-9a-f]{16}$/.test(v || "")){
++			v = [...crypto.getRandomValues(new Uint8Array(8))].map(b => b.toString(16).padStart(2, "0")).join("");
++			localStorage.setItem(Funnel.VKEY, v);
++		}
++		return v;
++	}
++
++	get os(){ return this.env?.ios ? "ios" : this.env?.android ? "android" : "desktop"; }
++	get inapp(){ return this.env?.app || ""; }
++
++	send(event){
++		if (this.backend?.mock) return void console.log("[funnel]", event, { os: this.os, inapp: this.inapp, ...this.utm });
++		const body = JSON.stringify({ v: this.visitor, e: event, inapp: this.inapp, os: this.os, src: this.utm.src, camp: this.utm.camp, content: this.utm.content });
++		try {
++			const blob = new Blob([body], { type: "application/json" });
++			if (!navigator.sendBeacon?.("/api/join/event", blob))
++				fetch("/api/join/event", { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true }).catch(() => {});
++		} catch {}
++	}
++
++	static reset(){
++		localStorage.removeItem(Funnel.VKEY);
++		sessionStorage.removeItem(Funnel.UKEY);
++	}
++}
++
++export default Funnel;
+diff --git a/public/join/Funnel.test.mjs b/public/join/Funnel.test.mjs
+new file mode 100644
+index 0000000000..96e4a42e86
+--- /dev/null
++++ b/public/join/Funnel.test.mjs
+@@ -0,0 +1,46 @@
++// node, no DOM: stubs localStorage/sessionStorage and navigator/crypto the way they exist in a browser.
++import { test } from "../framework/core/Test/Test.js";
++import { Funnel } from "./Funnel.js";
++
++function store(){
++	const m = new Map();
++	return { getItem: k => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: k => m.delete(k) };
++}
++
++test("Funnel keeps a stable 16-hex visitor id, reads utm_* from the URL, and logs instead of sending in mock mode", t => {
++	globalThis.localStorage = store();
++	globalThis.sessionStorage = store();
++	globalThis.crypto.getRandomValues = a => { for (let i = 0; i < a.length; i++) a[i] = i; return a; };
++	Object.defineProperty(globalThis, "navigator", { value: { sendBeacon: () => true }, configurable: true });
++
++	const sent = [];
++	const log = console.log; console.log = (...a) => sent.push(a);
++
++	const f1 = new Funnel({ mock: true }, { ios: true, app: "" }, new URLSearchParams("utm_source=youtube&utm_campaign=t1"));
++	t.eq(f1.os, "ios", "os read from the InAppBrowser-shaped env");
++	t.eq(f1.utm.src, "youtube", "utm_source read from the URL");
++	const v1 = f1.visitor;
++	t.ok(/^[0-9a-f]{16}$/.test(v1), "visitor id is 16 hex chars");
++	t.eq(f1.visitor, v1, "the same id comes back on a second read");
++
++	f1.send("tap_allow");
++	t.eq(sent.length, 1, "mock mode logs instead of calling the API");
++	t.eq(sent[0][1], "tap_allow", "the logged event name is the one sent");
++
++	// a second instance with no utm_* in the URL still finds the ones sessionStorage kept
++	const f2 = new Funnel({ mock: true }, {}, new URLSearchParams(""));
++	t.eq(f2.utm.camp, "t1", "utm_campaign survived in sessionStorage across a reload");
++	t.eq(f2.visitor, v1, "the visitor id survives across instances (it is in localStorage)");
++
++	let beaconed = null;
++	navigator.sendBeacon = (url, blob) => { beaconed = url; return true; };
++	const f3 = new Funnel({ mock: false }, {}, new URLSearchParams(""));
++	f3.send("view");
++	t.eq(beaconed, "/api/join/event", "a real backend sends a beacon to the event route");
++
++	Funnel.reset();
++	t.eq(localStorage.getItem(Funnel.VKEY), null, "reset drops the visitor id");
++	t.eq(sessionStorage.getItem(Funnel.UKEY), null, "reset drops the remembered utm_*");
++
++	console.log = log;
++});
+diff --git a/public/join/Join.js b/public/join/Join.js
+index 7cc7ff1f14..3900e975af 100644
+--- a/public/join/Join.js
++++ b/public/join/Join.js
+@@ -1,6 +1,7 @@
+ import { GoogleButton } from "/framework/ux/Auth/GoogleButton.js";
+ import { InAppBrowser } from "/framework/ux/Auth/InAppBrowser.js";
+ import { JoinState } from "./JoinState.js";
++import { Funnel } from "./Funnel.js";
+ 
+ const el = (tag, cls = "", ...kids) => {
+ 	const e = document.createElement(tag);
+@@ -66,7 +67,11 @@ export class Join {
+ 			const text = [...(track.track.activeCues || [])].map(c => c.text).join(" ");
+ 			if (text) this.$caption.textContent = text;
+ 		});
+-		this.$sound = btn("pill sound", "Tap for sound", () => { video.muted = !video.muted; this.$sound.textContent = video.muted ? "Tap for sound" : "Sound on"; });
++		this.$sound = btn("pill sound", "Tap for sound", () => {
++			video.muted = !video.muted;
++			this.$sound.textContent = video.muted ? "Tap for sound" : "Sound on";
++			if (!video.muted) this.funnel.send("video_unmuted");
++		});
+ 		this.$media.append(video);
+ 		addEventListener("pointerdown", () => video.paused && video.play().catch(() => {}), { once: true });
+ 	}
+@@ -75,11 +80,16 @@ export class Join {
+ 
+ 	async start(backend){
+ 		this.backend = backend;
++		this.funnel = new Funnel(backend, this.env, this.params);
+ 		this.$badge.hidden = !backend.mock;
+ 		if (this.$sound) this.$top.prepend(this.$sound);
+ 		if ("serviceWorker" in navigator) navigator.serviceWorker.register("/join/sw.js", { scope: "/join/" }).catch(err => this.say(err.message, true));
+ 		this.google = new GoogleButton({ theme: "dark", on_video: true, client_id: backend.client_id, label: GoogleButton.labels[2] });
+ 		this.google.el.addEventListener("signin", e => this.signed_in(e.detail.user, e.detail.mock, e.detail.email));
++		// Google's own button lives in a cross-origin iframe, which never bubbles its own click — but a pointerdown that
++		// lands on the iframe's box still fires on this ancestor first, so this is the only tap we can see.
++		this.google.el.addEventListener("pointerdown", () => this.funnel.send("tap_google"), { capture: true });
++		this.funnel.send("view");
+ 		await this.refresh();
+ 	}
+ 
+@@ -116,6 +126,7 @@ export class Join {
+ 			if (!this.backend.mock) return this.say(this.copy.not_set_up, true);
+ 			this.backend.login(user);
+ 		}
++		this.funnel.send("signed_in");
+ 		return this.refresh();
+ 	}
+ 
+@@ -125,7 +136,7 @@ export class Join {
+ 		const { copy, backend } = this;
+ 		return [
+ 			this.google.el,
+-			btn("link", copy.google_note, () => this.inapp_sheet()),
++			btn("link", copy.google_note, () => { this.funnel.send("not_working"); this.inapp_sheet(); }),
+ 			backend.mode === "test" && btn("pill test", copy.test_signin, () => this.test_signin()),
+ 		].filter(Boolean);
+ 	}
+@@ -136,7 +147,7 @@ export class Join {
+ 
+ 	act_allow(){
+ 		const { copy } = this;
+-		return [btn("main", copy.allow_button, () => this.allow()), el("p", "small", copy.allow_note)];
++		return [btn("main", copy.allow_button, () => { this.funnel.send("tap_allow"); this.allow(); }), el("p", "small", copy.allow_note)];
+ 	}
+ 
+ 	act_done(){
+@@ -145,7 +156,7 @@ export class Join {
+ 	}
+ 
+ 	async test_signin(){
+-		try { await this.backend.login_test(); await this.refresh(); }
++		try { await this.backend.login_test(); this.funnel.send("signed_in"); await this.refresh(); }
+ 		catch (err){ this.say(`${this.copy.failed} ${err.message}`, true); }
+ 	}
+ 
+@@ -170,6 +181,7 @@ export class Join {
+ 				await backend.subscribe(sub.toJSON());
+ 			}
+ 			this.push = true;
++			this.funnel.send("subscribed");
+ 			this.render();
+ 		} catch (err){
+ 			this.say(`${copy.failed} ${err.message}`, true);
+@@ -177,6 +189,7 @@ export class Join {
+ 	}
+ 
+ 	async test_push(){
++		this.funnel.send("test_push");
+ 		this.say("…");
+ 		try {
+ 			const res = await this.backend.push_test();
+@@ -212,6 +225,7 @@ export class Join {
+ 	inapp_card(){
+ 		const { copy, env } = this, url = JoinState.share_url(location.href);
+ 		const steps = env.ios ? el("ol", "steps", ...copy.inapp_ios.map(s => el("li", "", s))) : null;
++		this.funnel.send("inapp_card_shown");
+ 		return el("div", "card",
+ 			el("h2", "", copy.inapp_title),
+ 			el("p", "", copy.inapp_why),
+@@ -219,14 +233,15 @@ export class Join {
+ 			steps,
+ 			el("p", "small", copy.inapp_other),
+ 			el("div", "row",
+-				btn("pill dark", copy.copy_link, async e => { await navigator.clipboard?.writeText(url).catch(() => {}); e.target.textContent = copy.copied; }),
+-				navigator.share && btn("pill dark", copy.share_link, () => navigator.share({ url, title: document.title }).catch(() => {}))));
++				btn("pill dark", copy.copy_link, async e => { this.funnel.send("copy_link"); await navigator.clipboard?.writeText(url).catch(() => {}); e.target.textContent = copy.copied; }),
++				navigator.share && btn("pill dark", copy.share_link, () => { this.funnel.send("share"); navigator.share({ url, title: document.title }).catch(() => {}); })));
+ 	}
+ 
+ 	inapp_sheet(){ this.sheet(null, this.inapp_card()); }
+ 
+ 	ios_sheet(){
+ 		const { copy } = this;
++		this.funnel.send("ios_sheet_shown");
+ 		this.sheet(copy.ios_title, el("p", "", copy.ios_why), el("ol", "steps", ...copy.ios_steps.map(s => el("li", "", s))));
+ 	}
+ 
+@@ -249,7 +264,7 @@ export class Join {
+ 	}
+ 
+ 	async sign_out(close){
+-		try { await this.backend.logout(); } catch (err){ this.say(`${this.copy.failed} ${err.message}`, true); }
++		try { await this.backend.logout(); this.funnel.send("signed_out"); } catch (err){ this.say(`${this.copy.failed} ${err.message}`, true); }
+ 		globalThis.google?.accounts?.id?.disableAutoSelect();
+ 		close(); await this.refresh();
+ 	}
+@@ -264,6 +279,7 @@ export class Join {
+ 			await this.unsubscribe().catch(() => {});
+ 			const email = localStorage.getItem("join-google-email");
+ 			await this.backend.delete_me();
++			this.funnel.send("deleted");
+ 			localStorage.removeItem("join-google-email");
+ 			// Revoking needs the Google SDK initialised, which only a real client id does.
+ 			if (this.backend.client_id && email) globalThis.google?.accounts?.id?.revoke(email, () => {});
+diff --git a/public/join/readme.md b/public/join/readme.md
+index 9d497fb622..ead8a6a7db 100644
+--- a/public/join/readme.md
++++ b/public/join/readme.md
+@@ -22,7 +22,13 @@ The gear is the avatar (top right, once signed in): Sign out, Turn off notificat
+ 
+ ## Files
+ 
+-`index.html`, `main.js` (boots it), `Join.js` (the page class), `join.css`, `copy.js` (**all** words and the video, poster and captions paths: edit text here), `Backend.js` (the Worker's `/api` calls; `Backend.detect()` picks real or mock), `MockBackend.js` (+ `MockBackend.test.mjs`), `JoinState.js` (+ `JoinState.test.mjs`: the button-state rule and the shared-link cleaner; `Join.js` needs a DOM, so its flow is covered by `shoot.mjs` instead), `sw.js` (service worker, scope `/join/`, shows the push payload, caches nothing), `manifest.webmanifest`, `media/` (the video, poster and `captions.vtt`), `shoot.mjs` (the check below). Built on `ux/Auth`: [GoogleButton](/framework/ux/Auth/readme.md) and `InAppBrowser`. The API: [worker/readme.md](/worker/readme.md), "Sign-in, sessions and push".
++`index.html`, `main.js` (boots it), `Join.js` (the page class), `join.css`, `copy.js` (**all** words and the video, poster and captions paths: edit text here), `Backend.js` (the Worker's `/api` calls; `Backend.detect()` picks real or mock), `MockBackend.js` (+ `MockBackend.test.mjs`), `JoinState.js` (+ `JoinState.test.mjs`: the button-state rule and the shared-link cleaner; `Join.js` needs a DOM, so its flow is covered by `shoot.mjs` instead), `Funnel.js` (+ `Funnel.test.mjs`: the ad funnel, below), `sw.js` (service worker, scope `/join/`, shows the push payload, caches nothing), `manifest.webmanifest`, `media/` (the video, poster and `captions.vtt`), `shoot.mjs` (the check below). Built on `ux/Auth`: [GoogleButton](/framework/ux/Auth/readme.md) and `InAppBrowser`. The API: [worker/readme.md](/worker/readme.md), "Sign-in, sessions and push".
++
++## The ad funnel: `Funnel.js` and `/join/stats/`
++
++`Join.js` fires one `Funnel` event at every step (view, the Google tap, signed in, the Allow tap, subscribed, a test push, the in-app card, copy/share link, "Not working?", signed out, deleted…), each a `POST /api/join/event` with no personal data — only a random visitor id this device keeps in `localStorage`, and the `utm_source`/`utm_campaign`/`utm_content` the first ad link carried (kept in `sessionStorage` for the visit). `?debug=1`'s Reset everything drops the visitor id too (it shares the `join-` prefix the reset already sweeps). In mock mode it logs to the console and sends nothing.
++
++[`/join/stats/`](stats/) (`Stats.js`) is a second standalone page, admin-only: the funnel in step order (today UTC, 7 days, all time), then split by ad and by in-app vs not, then the two totals (signed-up users, active push subscriptions). Not an admin: one line with a link to sign in. The route and table: [worker/readme.md](/worker/readme.md), "Sign-in, sessions and push".
+ 
+ ## Re-run the flow
+ 
+diff --git a/public/join/stats/Stats.js b/public/join/stats/Stats.js
+new file mode 100644
+index 0000000000..a8d3963aa0
+--- /dev/null
++++ b/public/join/stats/Stats.js
+@@ -0,0 +1,87 @@
++const el = (tag, cls = "", ...kids) => {
++	const e = document.createElement(tag);
++	if (cls) e.className = cls;
++	for (const k of kids) if (k != null && k !== false) e.append(k);
++	return e;
++};
++
++/**
++ * Stats: /join/stats/ — the admin-only numbers for the /join/ ad funnel (worker/join.js's GET /api/join/stats).
++ * Plain tables, no charts: the funnel in step order (today, 7 days, all time), then one table per split
++ * (utm_source, in-app vs not), then the two totals. Not an admin: one line, with a link to sign in. Any other
++ * failure: the real error, in words.
++ *
++ *   new Stats(document.getElementById("stats")).load();
++ */
++export class Stats {
++
++	constructor(root){
++		this.root = root;
++	}
++
++	async load(){
++		this.root.replaceChildren(el("p", "note", "Loading…"));
++		try {
++			const res = await fetch("/api/join/stats");
++			if (res.status === 401 || res.status === 403) return this.denied();
++			const data = await res.json().catch(() => ({}));
++			if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
++			this.draw(data);
++		} catch (err){
++			this.root.replaceChildren(el("p", "note bad", "That didn't work: " + err.message));
++		}
++	}
++
++	denied(){
++		this.root.replaceChildren(el("p", "note",
++			"Admins only. Sign in at ", Object.assign(el("a"), { href: "/join/", textContent: "/join/" }), " with the admin account."));
++	}
++
++	draw(data){
++		const { events, funnel, by_source, by_inapp, signed_up_users, active_push_subs } = data;
++		this.root.replaceChildren(
++			el("h1", "", "Funnel: /join/"),
++			this.funnel_table(events, funnel),
++			el("h2", "", "By ad (utm_source)"),
++			this.split_table(events, by_source, "source"),
++			el("h2", "", "In-app browser vs not"),
++			this.split_table(events, by_inapp, "in_app", v => v ? "in-app" : "not in-app"),
++			el("h2", "", "Totals"),
++			this.totals_table(signed_up_users, active_push_subs));
++	}
++
++	head(first){
++		return el("thead", "", el("tr", "", el("th", "", first), el("th", "", "Step"), el("th", "", "Today (UTC)"), el("th", "", "7 days"), el("th", "", "All time")));
++	}
++
++	funnel_table(events, funnel){
++		return el("table", "wrap",
++			this.head(""),
++			el("tbody", "", ...events.map(e => el("tr", "",
++				el("td", ""), el("td", "", e),
++				el("td", "", String(funnel.today[e] || 0)), el("td", "", String(funnel.week[e] || 0)), el("td", "", String(funnel.all[e] || 0))))));
++	}
++
++	// Groups every window's rows by the split key (utm_source, or in_app), then one row per event that split saw.
++	split_table(events, windows, key, label = v => v){
++		const groups = new Map();
++		for (const win of ["today", "week", "all"])
++			for (const row of windows[win] || [])
++				(groups.get(row[key]) ?? groups.set(row[key], { today: {}, week: {}, all: {} }).get(row[key]))[win][row.event] = row.n;
++
++		const rows = [...groups.entries()].flatMap(([name, g]) =>
++			events.filter(e => g.today[e] || g.week[e] || g.all[e]).map((e, i) => el("tr", "",
++				el("td", "group", i === 0 ? label(name) : ""), el("td", "", e),
++				el("td", "", String(g.today[e] || 0)), el("td", "", String(g.week[e] || 0)), el("td", "", String(g.all[e] || 0)))));
++		return el("table", "wrap", this.head(key === "source" ? "Source" : ""), el("tbody", "", ...(rows.length ? rows : [el("tr", "", el("td", "", "—"), el("td", ""), el("td", ""), el("td", ""), el("td", ""))])));
++	}
++
++	totals_table(signed_up_users, active_push_subs){
++		return el("table", "wrap", el("tbody", "",
++			el("tr", "", el("td", "", "Signed-up users (Google)"), el("td", "num", String(signed_up_users.google))),
++			el("tr", "", el("td", "", "Signed-up users (Google + test)"), el("td", "num", String(signed_up_users.with_test))),
++			el("tr", "", el("td", "", "Active push subscriptions"), el("td", "num", String(active_push_subs)))));
++	}
++}
++
++export default Stats;
+diff --git a/public/join/stats/index.html b/public/join/stats/index.html
+new file mode 100644
+index 0000000000..97ff1ed1b9
+--- /dev/null
++++ b/public/join/stats/index.html
+@@ -0,0 +1,14 @@
++<!doctype html>
++<html lang="en">
++<head>
++	<meta charset="utf-8">
++	<meta name="viewport" content="width=device-width, initial-scale=1">
++	<title>Funnel stats</title>
++	<meta name="robots" content="noindex">
++	<link rel="stylesheet" href="/join/stats/stats.css">
++</head>
++<body>
++	<main id="stats" class="stats"></main>
++	<script type="module" src="/join/stats/main.js"></script>
++</body>
++</html>
+diff --git a/public/join/stats/main.js b/public/join/stats/main.js
+new file mode 100644
+index 0000000000..216b276d29
+--- /dev/null
++++ b/public/join/stats/main.js
+@@ -0,0 +1,3 @@
++import { Stats } from "./Stats.js";
++
++new Stats(document.getElementById("stats")).load();
+diff --git a/public/join/stats/stats.css b/public/join/stats/stats.css
+new file mode 100644
+index 0000000000..e4a3942c2f
+--- /dev/null
++++ b/public/join/stats/stats.css
+@@ -0,0 +1,25 @@
++/* /join/stats/: plain tables, readable from 390 to 1920 wide. Not join.css's one-column video frame: this page scrolls. */
++:root { color-scheme: dark; }
++* { box-sizing: border-box; }
++html, body { margin: 0; background: #0b0b0d; color: #fff; font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
++body { padding: 16px max(16px, env(safe-area-inset-right)) 32px max(16px, env(safe-area-inset-left)); }
++
++.stats { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
++h1 { font-size: 20px; margin: 0 0 6px; }
++h2 { font-size: 16px; margin: 20px 0 2px; opacity: 0.9; }
++.note { opacity: 0.85; }
++.note.bad { color: #ff8a80; }
++.note a { color: #fff; }
++
++.wrap { width: 100%; overflow-x: auto; display: block; border-collapse: collapse; font-size: 14px; }
++table.wrap { display: table; }
++.wrap thead { position: sticky; top: 0; }
++.wrap th, .wrap td { padding: 6px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.12); white-space: nowrap; }
++.wrap th { opacity: 0.7; font-weight: 600; }
++.wrap td.group { font-weight: 600; opacity: 0.9; }
++.wrap td.num { text-align: right; font-variant-numeric: tabular-nums; }
++
++@media (min-width: 900px) {
++	.stats { gap: 14px; }
++	h1 { font-size: 24px; }
++}
+diff --git a/worker/api.test.mjs b/worker/api.test.mjs
+index fbf9fccebf..56b6afcfa3 100644
+--- a/worker/api.test.mjs
++++ b/worker/api.test.mjs
+@@ -121,6 +121,16 @@ assert.equal((await (await call("GET", "/api/me", { cookie: sess2.cookie })).jso
+ await check("POST /api/auth/test", null, 404, null, { body: { key: "anything" } });
+ await check("POST /api/auth/test", null, 404, null, { body: {} });
+ 
++// ── the ad funnel (worker/join.js): a bad event is refused, a good one recorded, stats is admin-only
++await check("POST /api/join/event", null, 400, null, { body: { v: "x".repeat(16), e: "view" } });               // not 16 hex chars
++await check("POST /api/join/event", null, 400, null, { body: { v: "0123456789abcdef", e: "not-a-real-event" } });
++await check("POST /api/join/event", null, 204, null, { body: { v: "0123456789abcdef", e: "view", os: "desktop", src: "api-test" } });
++await check("GET /api/join/stats", null, 401);
++await check("GET /api/join/stats", carol, 403);
++const funnel_stats = await (await check("GET /api/join/stats", alice, 200)).json();
++assert.ok(funnel_stats.funnel.all.view >= 1, "the recorded view shows up in the all-time funnel");
++assert.ok(funnel_stats.by_source.all.some(r => r.source === "api-test" && r.event === "view"), "the recorded view shows up split by utm_source");
++
+ // ── push: subscribe validates, /api/me shows it, test sends (or says it is not configured), unsubscribe removes
+ const keys = { p256dh: Buffer.from([4, ...crypto.getRandomValues(new Uint8Array(64))]).toString("base64url"), auth: Buffer.from(crypto.getRandomValues(new Uint8Array(16))).toString("base64url") };
+ const endpoint = "https://fcm.googleapis.com/fcm/send/api-test-" + Date.now();
+diff --git a/worker/index.js b/worker/index.js
+index f61fe7da83..44471d6dbb 100644
+--- a/worker/index.js
++++ b/worker/index.js
+@@ -11,6 +11,7 @@ import { verify_google_token } from "./google.js";
+ import { likes, toggle } from "./likes.js";
+ import { pages, upsert } from "./pages.js";
+ import { send_all, weekly } from "./push.js";
++import { record_event, stats as join_stats } from "./join.js";
+ export { Room } from "./room.js";          // re-exported so wrangler finds the Durable Object classes in `main`
+ export { UserDO } from "./settings.js";
+ 
+@@ -218,6 +219,14 @@ const ROUTES = {
+         return under ? json(await pages(under, env)) : fail(400, "missing ?under=");
+     }],
+     "PUT /api/pages": ["write", async (request, env) => json(await upsert(await request.json(), env))],
++
++    // The ad funnel (worker/join.js): one row per step, no personal data. A beacon fires this and never reads the answer.
++    "POST /api/join/event": ["public", async (request, env) => {
++        const body = await request.json().catch(() => ({}));
++        await record_event(body, request, env);
++        return new Response(null, { status: 204 });
++    }],
++    "GET /api/join/stats": ["admin", async (r, env) => json(await join_stats(env))],
+ };
+ export const ROUTE_KEYS = Object.keys(ROUTES);
+ export const ROUTE_ACTIONS = Object.fromEntries(ROUTE_KEYS.map(k => [k, ROUTES[k][0]]));
+diff --git a/worker/join.js b/worker/join.js
+new file mode 100644
+index 0000000000..43fb48b1f3
+--- /dev/null
++++ b/worker/join.js
+@@ -0,0 +1,79 @@
++// worker/join.js — the /join/ ad funnel: one D1 row per step, no personal data (worker/readme.md, "Sign-in, sessions
++// and push"). Pure functions, like likes.js: no HTTP here. record_event() throws an Error with a `.status` on a bad
++// or over-limit request; index.js's route() already turns that into the right response (its catch: `err.status || 500`),
++// the same way every other handler's thrown errors are handled — this file just adds the two new reasons to throw.
++
++const EVENTS = new Set([
++    "view", "video_unmuted", "tap_google", "signed_in", "tap_allow", "ios_sheet_shown", "subscribed",
++    "test_push", "inapp_card_shown", "copy_link", "share", "not_working", "signed_out", "deleted",
++]);
++const OS_VALUES = new Set(["ios", "android", "desktop"]);
++const DAY = 86400;
++
++const cut = s => String(s ?? "").slice(0, 64);
++const bad = (msg, status = 400) => Object.assign(new Error(msg), { status });
++
++// One event, one row. `v` is the page's own visitor id (16 hex chars, Funnel.js); `e` must be a known step.
++export async function record_event(body, request, env) {
++    const { v, e, inapp, os, src, camp, content } = body || {};
++    if (!/^[0-9a-f]{16}$/.test(v || "")) throw bad("bad visitor id");
++    if (!EVENTS.has(e)) throw bad("bad event");
++
++    if (env.JOIN_RL) {
++        const ip = request.headers.get("cf-connecting-ip") || "";
++        const { success } = await env.JOIN_RL.limit({ key: ip });
++        if (!success) throw bad("too many requests", 429);
++    }
++    const since = Math.floor(Date.now() / 1000) - DAY;
++    const { n } = await env.DB.prepare("SELECT count(*) AS n FROM join_events WHERE visitor = ? AND at > ?").bind(v, since).first();
++    if (n >= 300) throw bad("too many events from this visitor today", 429);
++
++    await env.DB.prepare(
++        `INSERT INTO join_events (at, visitor, event, inapp, os, utm_source, utm_campaign, utm_content) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
++    ).bind(Math.floor(Date.now() / 1000), v, e, cut(inapp), OS_VALUES.has(os) ? os : "", cut(src), cut(camp), cut(content)).run();
++}
++
++// GET /api/join/stats: distinct-visitor counts per event, today (UTC) / 7 days / all time, the same split by
++// utm_source and by in-app vs not, plus the two totals the owner wants at a glance.
++async function funnel_window(env, since) {
++    const { results } = await env.DB.prepare(
++        "SELECT event, count(DISTINCT visitor) AS n FROM join_events WHERE at >= ? GROUP BY event"
++    ).bind(since).all();
++    return Object.fromEntries(results.map(r => [r.event, r.n]));
++}
++async function by_source(env, since) {
++    const { results } = await env.DB.prepare(
++        `SELECT event, COALESCE(NULLIF(utm_source, ''), '(none)') AS source, count(DISTINCT visitor) AS n
++         FROM join_events WHERE at >= ? GROUP BY event, source`
++    ).bind(since).all();
++    return results;
++}
++async function by_inapp(env, since) {
++    const { results } = await env.DB.prepare(
++        `SELECT event, (inapp != '') AS in_app, count(DISTINCT visitor) AS n
++         FROM join_events WHERE at >= ? GROUP BY event, in_app`
++    ).bind(since).all();
++    return results.map(r => ({ ...r, in_app: !!r.in_app }));
++}
++
++export async function stats(env) {
++    const now = Math.floor(Date.now() / 1000);
++    const windows = { today: now - (now % DAY), week: now - 7 * DAY, all: 0 };
++
++    const entries = await Promise.all(Object.entries(windows).map(async ([label, since]) => [
++        label, { funnel: await funnel_window(env, since), by_source: await by_source(env, since), by_inapp: await by_inapp(env, since) },
++    ]));
++    const by_window = Object.fromEntries(entries);
++
++    const users_row = await env.DB.prepare("SELECT sum(provider = 'google') AS google, sum(provider IN ('google', 'test')) AS with_test FROM users").first();
++    const push_row = await env.DB.prepare("SELECT count(*) AS n FROM push_subs").first();
++
++    return {
++        events: [...EVENTS],
++        funnel: { today: by_window.today.funnel, week: by_window.week.funnel, all: by_window.all.funnel },
++        by_source: { today: by_window.today.by_source, week: by_window.week.by_source, all: by_window.all.by_source },
++        by_inapp: { today: by_window.today.by_inapp, week: by_window.week.by_inapp, all: by_window.all.by_inapp },
++        signed_up_users: { google: users_row.google || 0, with_test: users_row.with_test || 0 },
++        active_push_subs: push_row.n,
++    };
++}
+diff --git a/worker/migrations/0003_join_events.sql b/worker/migrations/0003_join_events.sql
+new file mode 100644
+index 0000000000..65afec2051
+--- /dev/null
++++ b/worker/migrations/0003_join_events.sql
+@@ -0,0 +1,13 @@
++-- The ad funnel: one row per step of /join/, keyed only by a random visitor id the browser keeps in localStorage.
++-- No user id, IP or user agent is stored, so deleting an account needs no change here (worker/join.js, worker/readme.md).
++CREATE TABLE join_events (
++    at           INTEGER NOT NULL,
++    visitor      TEXT    NOT NULL,
++    event        TEXT    NOT NULL,
++    inapp        TEXT    NOT NULL DEFAULT '',
++    os           TEXT    NOT NULL DEFAULT '',
++    utm_source   TEXT    NOT NULL DEFAULT '',
++    utm_campaign TEXT    NOT NULL DEFAULT '',
++    utm_content  TEXT    NOT NULL DEFAULT ''
++);
++CREATE INDEX join_events_event_at ON join_events(event, at);
+diff --git a/worker/readme.md b/worker/readme.md
+index 7c2af35a20..2a1d0c5fdb 100644
+--- a/worker/readme.md
++++ b/worker/readme.md
+@@ -28,7 +28,7 @@ Bindings are not inherited between wrangler environments, so each stage lists it
+ | [likes.js](likes.js), [pages.js](pages.js) | The older likes and page-listing endpoints. |
+ | [dostorage.js](dostorage.js) | Lazy schema steps for a Durable Object's SQLite. |
+ | [dev.js](dev.js) | Local only: `POST /api/dev/login {handle}` and `GET /api/dev/login?as=alice`. |
+-| [migrations/](migrations/) | D1 schema (`wrangler d1 migrations apply`). Append a file; never edit one that shipped. `0001` users, likes, docs, pages; `0002` `sessions(id, user_id, created_at, ended_at, user_agent)` and `push_subs(endpoint PK, user_id, p256dh, auth, created_at)`. |
++| [migrations/](migrations/) | D1 schema (`wrangler d1 migrations apply`). Append a file; never edit one that shipped. `0001` users, likes, docs, pages; `0002` `sessions(id, user_id, created_at, ended_at, user_agent)` and `push_subs(endpoint PK, user_id, p256dh, auth, created_at)`; `0003` `join_events` (the ad funnel, no personal data: [join.js](join.js)). |
+ | [seed/](seed/) | `dev.sql` (seven people alice, bob, carol, dave, eve (banned), admin, zed (the one `api.test.mjs` deletes)) and `staging.sql` (four fake people, never able to sign in). |
+ | [scripts/](scripts/) | `deploy.mjs`, `vapid.mjs` (makes the push keys once), `serve.mjs` (the local API as one process, started by Servex), `icons.mjs`, `live.test.mjs`, `ui.test.mjs`, `latency.mjs`. |
+ 
+@@ -46,6 +46,8 @@ Bindings are not inherited between wrangler environments, so each stage lists it
+ | `POST /api/push/subscribe {endpoint, keys:{p256dh, auth}}` | member | the browser's `PushSubscription.toJSON()`; the endpoint must be https on a known push service (Google: googleapis.com or google.com, Mozilla, Apple, Windows), the keys 65 and 16 bytes; one row per endpoint |
+ | `DELETE /api/push/subscribe {endpoint?}` | member | removes that endpoint, or all of the caller's; answers `{ok, removed, push}` |
+ | `POST /api/push/test` | member | sends "Test notification" to the caller's subscriptions: `{sent, failed, removed, results:[{host, status}]}`; 503 where VAPID is not configured |
++| `POST /api/join/event {v, e, inapp, os, src, camp, content}` | anyone | the ad funnel (`worker/join.js`): one `join_events` row per step of `/join/` (migration `0003`), no personal data — only a visitor id the page keeps in `localStorage`. `v` must be 16 hex chars, `e` one of Funnel.js's own list, or 400. Rate-limited by `cf-connecting-ip` (the `JOIN_RL` binding, ~60/min, skipped where the binding is absent) plus a 300-rows-per-visitor-per-day cap; either gives 429. Answers `204` |
++| `GET /api/join/stats` | admin | distinct-visitor counts per funnel step, today (UTC) / 7 days / all time, split by `utm_source` and by in-app vs not, plus `signed_up_users` and `active_push_subs`. Shown at [public/join/stats/](../public/join/readme.md) |
+ 
+ **Push keys and the weekly push.** `node worker/scripts/vapid.mjs` makes the P-256 pair once and writes `VAPID_PRIVATE_JWK`, `VAPID_PUBLIC` (and `STAGING_TEST_LOGIN_KEY`) to `worker/.dev.vars` (gitignored; `wrangler dev` reads it, so local push works too). `deploy.mjs staging` puts them on staging as secrets `VAPID_PRIVATE_JWK`, `VAPID_PUBLIC`, `TEST_LOGIN_KEY`. Never regenerate the pair after people subscribe: every subscription is tied to the public key. Staging has a cron (`0 16 * * 1`, Monday 16:00 UTC) whose `scheduled()` sends `{title:"lew42", body: PUSH_WEEKLY_TEXT, url: PUSH_WEEKLY_URL}` to every `push_subs` row and logs `push weekly: sent X, failed Y, removed Z` (vars in [wrangler.jsonc](wrangler.jsonc): "New this week: watch part 2" and `/join/`; `wrangler tail` shows the line).
+ 
+diff --git a/worker/wrangler.jsonc b/worker/wrangler.jsonc
+index ec5b227a88..4d871b6af9 100644
+--- a/worker/wrangler.jsonc
++++ b/worker/wrangler.jsonc
+@@ -23,6 +23,8 @@
+   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }, { "tag": "v2", "new_sqlite_classes": ["UserDO"] }],
+   "r2_buckets": [{ "binding": "SNAPSHOTS", "bucket_name": "monorepo-local-docs" }],
+   "vars": { "ENV_NAME": "local", "DEV_LOGIN": "1", "GOOGLE_CLIENT_ID": "722949407087-g0kagkteln7gifhndpifetv5j2prn5a9.apps.googleusercontent.com", "API_HOSTS": "localhost,127.0.0.1,monorepo.localhost" },
++  // JOIN_RL: /api/join/event, about 60 a minute per cf-connecting-ip (worker/join.js). Absent on production on purpose (not requested).
++  "ratelimits": [{ "name": "JOIN_RL", "namespace_id": "1001", "simple": { "limit": 60, "period": 60 } }],
+ 
+   // R2 snapshots: staging and production get "r2_buckets": [{ "binding": "SNAPSHOTS", "bucket_name": "monorepo-<stage>-docs" }] once R2 is
+   // enabled in the Cloudflare dashboard (creating a bucket fails with code 10042 until then). Room skips snapshots when there is no binding.
+@@ -36,7 +38,8 @@
+       "durable_objects": { "bindings": [{ "name": "ROOM", "class_name": "Room" }, { "name": "USER_DO", "class_name": "UserDO" }] },
+       "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }, { "tag": "v2", "new_sqlite_classes": ["UserDO"] }],
+       "vars": { "ENV_NAME": "staging", "GOOGLE_CLIENT_ID": "722949407087-g0kagkteln7gifhndpifetv5j2prn5a9.apps.googleusercontent.com", "API_HOSTS": "staging.lew42.com", "PUSH_WEEKLY_TEXT": "New this week: watch part 2", "PUSH_WEEKLY_URL": "/join/" },
+-      "triggers": { "crons": ["0 16 * * 1"] }
++      "triggers": { "crons": ["0 16 * * 1"] },
++      "ratelimits": [{ "name": "JOIN_RL", "namespace_id": "1002", "simple": { "limit": 60, "period": 60 } }]
+     },
+     "production": {
+       "name": "monorepo",
