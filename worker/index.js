@@ -11,6 +11,7 @@ import { verify_google_token } from "./google.js";
 import { likes, toggle } from "./likes.js";
 import { pages, upsert } from "./pages.js";
 import { send_all, weekly } from "./push.js";
+import { record_event, stats as join_stats } from "./join.js";
 export { Room } from "./room.js";          // re-exported so wrangler finds the Durable Object classes in `main`
 export { UserDO } from "./settings.js";
 
@@ -218,6 +219,14 @@ const ROUTES = {
         return under ? json(await pages(under, env)) : fail(400, "missing ?under=");
     }],
     "PUT /api/pages": ["write", async (request, env) => json(await upsert(await request.json(), env))],
+
+    // The ad funnel (worker/join.js): one row per step, no personal data. A beacon fires this and never reads the answer.
+    "POST /api/join/event": ["public", async (request, env) => {
+        const body = await request.json().catch(() => ({}));
+        await record_event(body, request, env);
+        return new Response(null, { status: 204 });
+    }],
+    "GET /api/join/stats": ["admin", async (r, env) => json(await join_stats(env))],
 };
 export const ROUTE_KEYS = Object.keys(ROUTES);
 export const ROUTE_ACTIONS = Object.fromEntries(ROUTE_KEYS.map(k => [k, ROUTES[k][0]]));
