@@ -1,0 +1,1 @@
+A label, an optional hint and one answer, drawn as a `<fieldset>` so a radio group is announced with its label. It knows whether it is required and still empty, and, when given a `correct` value, whether the answer is right and how to show the grade.
