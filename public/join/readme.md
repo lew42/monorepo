@@ -22,7 +22,13 @@ The gear is the avatar (top right, once signed in): Sign out, Turn off notificat
 
 ## Files
 
-`index.html`, `main.js` (boots it), `Join.js` (the page class), `join.css`, `copy.js` (**all** words and the video, poster and captions paths: edit text here), `Backend.js` (the Worker's `/api` calls; `Backend.detect()` picks real or mock), `MockBackend.js` (+ `MockBackend.test.mjs`), `JoinState.js` (+ `JoinState.test.mjs`: the button-state rule and the shared-link cleaner; `Join.js` needs a DOM, so its flow is covered by `shoot.mjs` instead), `sw.js` (service worker, scope `/join/`, shows the push payload, caches nothing), `manifest.webmanifest`, `media/` (the video, poster and `captions.vtt`), `shoot.mjs` (the check below). Built on `ux/Auth`: [GoogleButton](/framework/ux/Auth/readme.md) and `InAppBrowser`. The API: [worker/readme.md](/worker/readme.md), "Sign-in, sessions and push".
+`index.html`, `main.js` (boots it), `Join.js` (the page class), `join.css`, `copy.js` (**all** words and the video, poster and captions paths: edit text here), `Backend.js` (the Worker's `/api` calls; `Backend.detect()` picks real or mock), `MockBackend.js` (+ `MockBackend.test.mjs`), `JoinState.js` (+ `JoinState.test.mjs`: the button-state rule and the shared-link cleaner; `Join.js` needs a DOM, so its flow is covered by `shoot.mjs` instead), `Funnel.js` (+ `Funnel.test.mjs`: the ad funnel, below), `sw.js` (service worker, scope `/join/`, shows the push payload, caches nothing), `manifest.webmanifest`, `media/` (the video, poster and `captions.vtt`), `shoot.mjs` (the check below). Built on `ux/Auth`: [GoogleButton](/framework/ux/Auth/readme.md) and `InAppBrowser`. The API: [worker/readme.md](/worker/readme.md), "Sign-in, sessions and push".
+
+## The ad funnel: `Funnel.js` and `/join/stats/`
+
+`Join.js` fires one `Funnel` event at every step (view, the Google tap, signed in, the Allow tap, subscribed, a test push, the in-app card, copy/share link, "Not working?", signed out, deleted…), each a `POST /api/join/event` with no personal data — only a random visitor id this device keeps in `localStorage`, and the `utm_source`/`utm_campaign`/`utm_content` the first ad link carried (kept in `sessionStorage` for the visit). `?debug=1`'s Reset everything drops the visitor id too (it shares the `join-` prefix the reset already sweeps). In mock mode it logs to the console and sends nothing.
+
+[`/join/stats/`](stats/) (`Stats.js`) is a second standalone page, admin-only: the funnel in step order (today UTC, 7 days, all time), then split by ad and by in-app vs not, then the two totals (signed-up users, active push subscriptions). Not an admin: one line with a link to sign in. The route and table: [worker/readme.md](/worker/readme.md), "Sign-in, sessions and push".
 
 ## Re-run the flow
 
