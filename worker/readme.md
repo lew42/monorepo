@@ -43,7 +43,7 @@ Bindings are not inherited between wrangler environments, so each stage lists it
 | `POST /api/auth/logout` | anyone | ends this cookie's `sessions` row, clears the cookie |
 | `POST /api/auth/logout-all` | member | ends every session of the user |
 | `DELETE /api/me` | member | wipes the account: sessions, push subscriptions, likes, documents, the user row and the `UserDO`; clears the cookie; answers `{deleted:true, handle}` (there is no email) |
-| `POST /api/push/subscribe {endpoint, keys:{p256dh, auth}}` | member | the browser's `PushSubscription.toJSON()`; the endpoint must be https on a known push service (Google, Mozilla, Apple, Windows), the keys 65 and 16 bytes; one row per endpoint |
+| `POST /api/push/subscribe {endpoint, keys:{p256dh, auth}}` | member | the browser's `PushSubscription.toJSON()`; the endpoint must be https on a known push service (Google: googleapis.com or google.com, Mozilla, Apple, Windows), the keys 65 and 16 bytes; one row per endpoint |
 | `DELETE /api/push/subscribe {endpoint?}` | member | removes that endpoint, or all of the caller's; answers `{ok, removed, push}` |
 | `POST /api/push/test` | member | sends "Test notification" to the caller's subscriptions: `{sent, failed, removed, results:[{host, status}]}`; 503 where VAPID is not configured |
 

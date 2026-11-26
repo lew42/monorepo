@@ -60,7 +60,8 @@ async function same(a, b) {
 }
 
 // A push endpoint is a URL we will POST to, so it must be https and one of the browsers' push services.
-const PUSH_HOSTS = /(^|\.)(googleapis\.com|push\.services\.mozilla\.com|push\.apple\.com|notify\.windows\.com)$/;
+// google.com: Chromium builds without Google API keys (Playwright, headless) get a *.google.com/fcm endpoint; real Chrome gets fcm.googleapis.com.
+const PUSH_HOSTS = /(^|\.)(googleapis\.com|google\.com|push\.services\.mozilla\.com|push\.apple\.com|notify\.windows\.com)$/;
 const b64u_len = (s, n) => { try { return unb64u(s).length === n; } catch { return false; } };
 const push_ok = env => !!env.VAPID_PRIVATE_JWK && !!env.VAPID_PUBLIC;
 const has_push = async (env, user) => !!await env.DB.prepare("SELECT 1 FROM push_subs WHERE user_id = ?").bind(user.id).first();
