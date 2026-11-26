@@ -29,6 +29,10 @@ Instead of the Google button you see **"Open this in your own browser"**, with O
 - **Turn off notifications:** back to Allow.
 - **Delete account:** it asks first, then wipes your account and Google's access to it, and you're back at Continue with Google.
 
+## Ads: the link to use, and where to see what they did
+
+Give each ad its own link, for example **https://staging.lew42.com/join/?utm_source=youtube&utm_campaign=test1** (add `&utm_content=<which video>` to tell two ads in one campaign apart). Then open **https://staging.lew42.com/join/stats/**, signed in with your admin Google account: it counts each step (watched, tapped Google, signed in, allowed, subscribed…) for today, the last 7 days and all time, split by `utm_source` and by in-app browser or not.
+
 ## Debug
 
 Add `?debug=1` to the URL: a strip shows the in-app browser, iOS or Android, Home Screen, the notification permission, signed in or not, and the subscription, with a **Reset everything** button.
