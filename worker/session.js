@@ -8,11 +8,11 @@
 export const COOKIE = "s";
 export const MAX_AGE = 30 * 86400;
 
-function b64u(bytes) {
+export function b64u(bytes) {
     return btoa(String.fromCharCode(...new Uint8Array(bytes)))
         .replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
 }
-function unb64u(str) {
+export function unb64u(str) {
     const pad = str.length % 4 ? "=".repeat(4 - (str.length % 4)) : "";
     const bin = atob(str.replaceAll("-", "+").replaceAll("_", "/") + pad);
     return Uint8Array.from(bin, c => c.charCodeAt(0));

@@ -18,6 +18,12 @@ export class UserDO extends DurableObject {
 	all(){ return Object.fromEntries(this.sql.exec("SELECT key, value FROM settings").toArray().map(r => [r.key, JSON.parse(r.value)])); }
 
 	async fetch(request){
+		// Account deletion: drop everything this object holds. Its tables are gone until the next request, which re-creates them (a new user can be given the same id).
+		if (request.method === "DELETE"){
+			await this.ctx.storage.deleteAll();
+			return Response.json({ deleted: true });
+		}
+		migrate(this.sql, STEPS);
 		if (request.method === "PUT"){
 			const body = await request.json().catch(() => ({}));
 			for (const [key, value] of Object.entries(body)){

@@ -18,3 +18,6 @@
 {"file":"VideoSignIn.js"}
 {"file":"google/page.js","nav":{"title":"Sign in with Google","icon":"login","description":"A talking-head video with one Google button over it, the button's variants, and the quick sign-in view."}}
 {"file":"GoogleButton.test.mjs"}
+{"file":"failures.jsonl"}
+{"file":"InAppBrowser.js"}
+{"file":"InAppBrowser.test.mjs"}

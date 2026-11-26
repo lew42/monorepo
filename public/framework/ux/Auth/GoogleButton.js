@@ -16,6 +16,7 @@ css(`@layer site {
 	.ux-auth-google-btn:hover { box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
 	.ux-auth-google-g { display: inline-flex; width: 1.15em; height: 1.15em; flex: none; }
 	.ux-auth-google-g svg { width: 100%; height: 100%; display: block; }
+	.ux-auth-google-gsi { display: flex; justify-content: center; min-height: 44px; }
 	.ux-auth-google-note:empty { display: none; }
 	.ux-auth-google-note { margin: 0; text-align: center; font-size: 0.8em; }
 	.ux-auth-google-note.ux-auth-google-bad { color: var(--error); }
@@ -76,16 +77,28 @@ export class GoogleButton extends View {
 		try {
 			await GoogleButton.load_gsi();
 			google.accounts.id.initialize({ client_id, auto_select: false, use_fedcm_for_button: true, callback: res => this.credential(res.credential) });
-			const slot = document.createElement("div");
-			google.accounts.id.renderButton(slot, {
-				theme: this.theme === "dark" ? "filled_black" : "outline", size: "large", shape: "rectangular", logo_alignment: "left",
-				text: GoogleButton.gsi_text[this.label] ?? "continue_with", width: Math.min(400, Math.max(200, this.el.offsetWidth || 320))
-			});
-			this.$button.el.replaceWith(slot);
+			this.slot = document.createElement("div");
+			this.slot.className = "ux-auth-google-gsi";
+			this.$button.el.replaceWith(this.slot);
 			this.real = true;
+			this.render_gsi();
+			// Google draws the button at a fixed pixel width: draw it again when the column changes width.
+			new ResizeObserver(() => this.render_gsi()).observe(this.el);
 		} catch (err){
 			this.say(err.message, true);
 		}
+	}
+
+	// As wide as the column (Google allows 200 to 400 px), centred by .ux-auth-google-gsi.
+	render_gsi(){
+		const width = Math.round(Math.min(400, Math.max(200, this.el.clientWidth || 320)));
+		if (!this.slot || width === this.gsi_width) return;
+		this.gsi_width = width;
+		this.slot.replaceChildren();
+		google.accounts.id.renderButton(this.slot, {
+			theme: this.theme === "dark" ? "filled_black" : "outline", size: "large", shape: "rectangular", logo_alignment: "left",
+			text: GoogleButton.gsi_text[this.label] ?? "continue_with", width
+		});
 	}
 
 	async credential(credential){
@@ -93,7 +106,7 @@ export class GoogleButton extends View {
 			const res = await fetch("/api/auth/google", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ credential }) });
 			const data = await res.json().catch(() => ({}));
 			if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
-			this.signed_in(data.user, false);
+			this.signed_in(data.user, false, GoogleButton.email_of(credential));
 		} catch (err){
 			this.say(err.message, true);
 		}
@@ -101,16 +114,21 @@ export class GoogleButton extends View {
 
 	// ---- the event and the words on screen ------------------------------
 
-	signed_in(user, mock){
+	signed_in(user, mock, email = user?.email){
 		this.user = user;
 		this.say(mock ? `Mock sign-in as ${user.name}: no Google client id is set, so no real account was used.` : `Signed in as ${user.name}.`);
-		this.el.dispatchEvent(new CustomEvent("signin", { detail: { user, mock }, bubbles: true }));
+		this.el.dispatchEvent(new CustomEvent("signin", { detail: { user, mock, email }, bubbles: true }));
 	}
 
 	say(msg, bad = false){
 		this.$note.text(msg);
 		this.$note.rc("ux-auth-google-bad");
 		if (bad) this.$note.ac("ux-auth-google-bad");
+	}
+
+	// The Worker keeps no email but Google's revoke() needs one: read it from the ID token payload (decoded, not verified; only handed to revoke on this device).
+	static email_of(credential){
+		try { return JSON.parse(atob(credential.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).email || ""; } catch { return ""; }
 	}
 
 	static async config_client_id(){

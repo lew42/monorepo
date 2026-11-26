@@ -46,7 +46,7 @@ ${result.stderr}`); process.exit(1); }
 console.log("[dev] applying worker/migrations + worker/seed/dev.sql to the local D1 …");
 wr("d1 migrations apply DB --local -c worker/wrangler.jsonc");
 wr("d1 execute DB --local -c worker/wrangler.jsonc --file=./worker/seed/dev.sql");
-console.log("[dev] local D1 ready: six fake users (alice owner, bob moderator, carol member, dave member, eve banned, admin admin).");
+console.log("[dev] local D1 ready: seven fake users (alice owner, bob moderator, carol member, dave member, eve banned, admin admin, zed member: the account api.test.mjs deletes).");
 
 if (await isListening(PORT)) {
     console.log(`[dev] :${PORT} is already answering — assuming node server.js is running there; not starting a second one.`);

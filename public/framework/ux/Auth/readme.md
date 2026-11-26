@@ -39,6 +39,19 @@ new SignIn();                                               // Google, Apple, an
 button and the ID token goes to `/api/auth/google`. A mock fires `signin` with a fake user and says so on screen.
 It is `/app/`'s call, not a second auth system. Demo: [`/framework/ux/Auth/google/`](/framework/ux/Auth/google/).
 
+### In-app browsers
+
+```js
+import { InAppBrowser } from "/framework/ux/Auth/InAppBrowser.js";
+const env = new InAppBrowser();   // from navigator.userAgent, or pass a UA string
+env.in_app                        // true inside Instagram, Facebook, TikTok, Snapchat, LinkedIn, the Google app or a bare WebView
+env.app, env.ios, env.android     // "instagram", …
+env.intent_url(location.href)     // Android: intent://… that opens Chrome
+InAppBrowser.standalone()         // true when installed to the Home Screen
+```
+
+Google refuses sign-in inside these, so [`/join/`](/join/) swaps the Google button for an "open in your browser" card. The `GoogleButton` `signin` event also carries `email` (read from the ID token, for `google.accounts.id.revoke`) because the Worker keeps none.
+
 ## Watch out
 
 - **A `<form>` needs `novalidate`** or an invalid field never fires `submit` at all —
@@ -56,5 +69,5 @@ It is `/app/`'s call, not a second auth system. Demo: [`/framework/ux/Auth/googl
 - [Overview](/framework/ux/Auth/) · [`doc/decisions.md`](/framework/ux/Auth/doc/decisions/) — the
   five layout questions answered, the CSS, the named-extension verdict
 - Files: `Auth.js` (the class), `MagicAuth.js` (the named extension), `SignIn.js` (Google first, then Apple and a link),
-  `GoogleButton.js` (+ `GoogleButton.test.mjs`), `VideoSignIn.js` (the video with one button), `google/` (the page and the two stills),
+  `GoogleButton.js` (+ `GoogleButton.test.mjs`), `InAppBrowser.js` (+ `InAppBrowser.test.mjs`: the in-app browser detector), `VideoSignIn.js` (the video with one button), `google/` (the page and the two stills),
   `page.js` (the demo)

@@ -1,0 +1,61 @@
+/* /join/: one full-height 9:16 column. Phone: it fills the screen. Desktop: the same column, centred on a dark backdrop. */
+:root { color-scheme: dark; --join-bg: #0b0b0d; --join-ink: #fff; --join-accent: #fff; --join-bad: #ff8a80; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--join-bg); color: var(--join-ink); font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-text-size-adjust: 100%; }
+body { overflow: hidden; display: grid; place-items: center; }
+button { font: inherit; color: inherit; cursor: pointer; }
+[hidden] { display: none !important; }
+
+.join { width: 100%; height: 100dvh; display: grid; place-items: center; }
+.frame { position: relative; height: 100dvh; width: min(100vw, calc(100dvh * 9 / 16)); overflow: hidden; background: #000; }
+
+.media, .media > .video, .media > .still { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.still { animation: slow-zoom 24s ease-in-out infinite alternate; }
+@keyframes slow-zoom { to { transform: scale(1.08); } }
+.scrim { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 30%, rgba(0,0,0,0) 58%); }
+
+.top { position: absolute; top: max(12px, env(safe-area-inset-top)); left: 12px; right: 12px; display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.top .sound { margin-right: auto; }
+.badge { padding: 3px 9px; border-radius: 99px; background: #ffb300; color: #1b1300; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.5); background: rgba(0,0,0,0.5); display: grid; place-items: center; overflow: hidden; padding: 0; font-weight: 600; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.over { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 20px max(20px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; }
+.act { display: flex; flex-direction: column; gap: 10px; align-items: stretch; text-align: center; }
+.caption { margin: 0; min-height: 4.2em; font-size: 18px; font-weight: 600; line-height: 1.35; text-align: center; text-shadow: 0 1px 6px rgba(0,0,0,0.8); }
+.note { margin: 0; min-height: 1.2em; font-size: 14px; text-align: center; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+.note:empty { display: none; }
+.note.bad { color: var(--join-bad); }
+.small { margin: 0; font-size: 14px; opacity: 0.9; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+.title { margin: 0; font-size: 22px; font-weight: 700; text-shadow: 0 1px 6px rgba(0,0,0,0.8); }
+
+/* The one button. Same height and pill shape as Google's, so the three states look like one control changing. */
+.main, .ux-auth-google-btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 52px; height: 52px; border-radius: 26px; font-size: 16px; font-weight: 600; }
+.main { background: var(--join-accent); color: #111; border: 0; text-decoration: none; }
+.link-btn { padding: 0 16px; }
+.ux-auth-google { width: 100%; }
+.link { background: none; border: 0; padding: 4px; color: #fff; text-decoration: underline; font-size: 14px; opacity: 0.85; }
+.link.dark { color: #333; }
+.pill { min-height: 36px; padding: 6px 14px; border-radius: 99px; border: 1px solid rgba(255,255,255,0.5); background: rgba(0,0,0,0.45); font-size: 14px; }
+.pill.dark { color: #222; background: #eee; border-color: #ccc; }
+.pill.danger, .wide.danger { color: #fff; background: #b3261e; border-color: #b3261e; }
+.pill.test { align-self: center; border-style: dashed; }
+
+.card, .sheet { background: #fff; color: #1b1b1b; border-radius: 16px; padding: 18px; text-align: left; }
+.card h2, .sheet h2 { margin: 0 0 6px; font-size: 18px; }
+.card p, .sheet p { margin: 6px 0; font-size: 15px; }
+.card .main { background: #1a73e8; color: #fff; margin: 8px 0; }
+.card .small { color: #555; text-shadow: none; }
+.steps { margin: 8px 0; padding-left: 20px; font-size: 15px; }
+.steps li { margin: 4px 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+.sheet-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; }
+.backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+.sheet { position: relative; border-radius: 20px 20px 0 0; padding-bottom: max(18px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 8px; }
+.sheet .wide { width: 100%; min-height: 48px; border-radius: 12px; border: 1px solid #ccc; background: #f4f4f4; color: #1b1b1b; font-weight: 600; }
+.sheet .who { margin: 0 0 4px; }
+.confirm:empty { display: none; }
+
+.debug { position: absolute; top: 60px; left: 8px; right: 8px; margin: 0; padding: 8px 10px; border-radius: 8px; background: rgba(0,0,0,0.78); color: #9f9; font: 11px/1.45 ui-monospace, Consolas, monospace; white-space: pre-wrap; }
+.debug .pill { margin-top: 6px; font-family: system-ui, sans-serif; }
