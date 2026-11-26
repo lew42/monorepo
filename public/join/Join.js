@@ -77,7 +77,7 @@ export class Join {
 		this.backend = backend;
 		this.$badge.hidden = !backend.mock;
 		if (this.$sound) this.$top.prepend(this.$sound);
-		this.sw = "serviceWorker" in navigator ? navigator.serviceWorker.register("/join/sw.js", { scope: "/join/" }).catch(err => this.say(err.message, true)) : null;
+		if ("serviceWorker" in navigator) navigator.serviceWorker.register("/join/sw.js", { scope: "/join/" }).catch(err => this.say(err.message, true));
 		this.google = new GoogleButton({ theme: "dark", on_video: true, client_id: backend.client_id, label: GoogleButton.labels[2] });
 		this.google.el.addEventListener("signin", e => this.signed_in(e.detail.user, e.detail.mock, e.detail.email));
 		await this.refresh();
