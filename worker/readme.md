@@ -19,17 +19,35 @@ Bindings are not inherited between wrangler environments, so each stage lists it
 | File | What it does |
 |---|---|
 | [index.js](index.js) | The router. One table, `"METHOD /path": [action, handler]`; the router resolves the user, checks the host and the origin, then runs `can(user, action)` **before** the handler. `GET /api/` prints that table (method, path, action, who may call it), generated from it. |
-| [session.js](session.js) | The stateless cookie `s`: HMAC-SHA256 over `{uid, te, exp}`. Role is never in it; `index.js` reads the role from D1 each request. `token_epoch` (`POST /api/auth/logout-all`) revokes every cookie of a user. |
+| [session.js](session.js) | The signed cookie `s`: HMAC-SHA256 over `{uid, te, exp, sid}`. Role is never in it; `index.js` reads the role from D1 each request. `sid` names a row of the `sessions` table: when that row is ended (or gone) the cookie reads as signed out. A cookie with no `sid` (made before migration 0002) is still honoured until it expires. `token_epoch` (`POST /api/auth/logout-all`) revokes every cookie of a user. |
+| [push.js](push.js) | Web push with WebCrypto only: the VAPID JWT (RFC 8292, ES256, `aud` = the push service's origin), payload encryption (RFC 8291 aes128gcm), `send_push`/`send_all` (a 404 or 410 deletes the subscription row) and `weekly()`, the cron's body. [push.test.mjs](push.test.mjs) encrypts, decrypts with the RFC's steps, verifies the JWT and runs the cron against fakes (under 1 s, no network). |
 | [can.js](can.js) | `can(user, "read" \| "write" \| "admin")`, the six rows of identity ruling 4. |
 | [google.js](google.js) | Verifies a Google ID token (RS256 against Google's keys, WebCrypto). |
 | [room.js](room.js) | The `Room` Durable Object: one per url chat room, one per document (`doc:<id>`). A document has a single-editor lock ([lock.js](lock.js)), a JSONL history in its own SQLite and an R2 snapshot after 20 s of changes (only when an R2 bucket is bound). Wire protocol at the top of the file. |
-| [settings.js](settings.js) | `UserDO`: one per user, their settings. |
+| [settings.js](settings.js) | `UserDO`: one per user, their settings. A `DELETE` wipes its storage (account deletion). |
 | [likes.js](likes.js), [pages.js](pages.js) | The older likes and page-listing endpoints. |
 | [dostorage.js](dostorage.js) | Lazy schema steps for a Durable Object's SQLite. |
 | [dev.js](dev.js) | Local only: `POST /api/dev/login {handle}` and `GET /api/dev/login?as=alice`. |
-| [migrations/](migrations/) | D1 schema (`wrangler d1 migrations apply`). Append a file; never edit one that shipped. |
-| [seed/](seed/) | `dev.sql` (six people alice, bob, carol, dave, eve (banned), admin) and `staging.sql` (four fake people, never able to sign in). |
-| [scripts/](scripts/) | `deploy.mjs`, `serve.mjs` (the local API as one process, started by Servex), `icons.mjs`, `live.test.mjs`, `ui.test.mjs`, `latency.mjs`. |
+| [migrations/](migrations/) | D1 schema (`wrangler d1 migrations apply`). Append a file; never edit one that shipped. `0001` users, likes, docs, pages; `0002` `sessions(id, user_id, created_at, ended_at, user_agent)` and `push_subs(endpoint PK, user_id, p256dh, auth, created_at)`. |
+| [seed/](seed/) | `dev.sql` (seven people alice, bob, carol, dave, eve (banned), admin, zed (the one `api.test.mjs` deletes)) and `staging.sql` (four fake people, never able to sign in). |
+| [scripts/](scripts/) | `deploy.mjs`, `vapid.mjs` (makes the push keys once), `serve.mjs` (the local API as one process, started by Servex), `icons.mjs`, `live.test.mjs`, `ui.test.mjs`, `latency.mjs`. |
+
+## Sign-in, sessions and push (the API the join page codes against)
+
+| Route | Who | What |
+|---|---|---|
+| `GET /api/config` | anyone | `{client_id, env, dev_login, vapid_public}` |
+| `GET /api/me` | anyone | signed out: `{anonymous:true, user:null, push:false, session_id:null}`; signed in: `{handle, roles, user, push, session_id}` (`push` = this user has a subscription) |
+| `POST /api/auth/google {credential}` | anyone | verifies the Google token, makes a `sessions` row, sets the cookie |
+| `POST /api/auth/test {key, name?}` | anyone, **staging only** | signs in a fake user `test-<name>` (provider `test`) with a real session. Answers 404 unless the secret `TEST_LOGIN_KEY` is set on that stage and `key` matches (constant-time compare). Production never gets the secret, so there it does not exist; this is the secret-gated stand-in for the dev login, which staging's bundle does not contain. |
+| `POST /api/auth/logout` | anyone | ends this cookie's `sessions` row, clears the cookie |
+| `POST /api/auth/logout-all` | member | ends every session of the user |
+| `DELETE /api/me` | member | wipes the account: sessions, push subscriptions, likes, documents, the user row and the `UserDO`; clears the cookie; answers `{deleted:true, handle}` (there is no email) |
+| `POST /api/push/subscribe {endpoint, keys:{p256dh, auth}}` | member | the browser's `PushSubscription.toJSON()`; the endpoint must be https on a known push service (Google, Mozilla, Apple, Windows), the keys 65 and 16 bytes; one row per endpoint |
+| `DELETE /api/push/subscribe {endpoint?}` | member | removes that endpoint, or all of the caller's; answers `{ok, removed, push}` |
+| `POST /api/push/test` | member | sends "Test notification" to the caller's subscriptions: `{sent, failed, removed, results:[{host, status}]}`; 503 where VAPID is not configured |
+
+**Push keys and the weekly push.** `node worker/scripts/vapid.mjs` makes the P-256 pair once and writes `VAPID_PRIVATE_JWK`, `VAPID_PUBLIC` (and `STAGING_TEST_LOGIN_KEY`) to `worker/.dev.vars` (gitignored; `wrangler dev` reads it, so local push works too). `deploy.mjs staging` puts them on staging as secrets `VAPID_PRIVATE_JWK`, `VAPID_PUBLIC`, `TEST_LOGIN_KEY`. Never regenerate the pair after people subscribe: every subscription is tied to the public key. Staging has a cron (`0 16 * * 1`, Monday 16:00 UTC) whose `scheduled()` sends `{title:"lew42", body: PUSH_WEEKLY_TEXT, url: PUSH_WEEKLY_URL}` to every `push_subs` row and logs `push weekly: sent X, failed Y, removed Z` (vars in [wrangler.jsonc](wrangler.jsonc): "New this week: watch part 2" and `/join/`; `wrangler tail` shows the line).
 
 The user object is `{id, provider, handle, avatar_url, role, created_at, last_login}`. There is no email column ([identity ruling 7](../public/notes/auth/identity.md)): the Google name is the handle, and `ADMIN_EMAIL` is compared at sign-in only.
 
@@ -45,7 +63,8 @@ Tests, with the stage running (pass `http://monorepo.localhost` to go through th
 
 ```
 node worker/google.test.mjs && node worker/session.test.mjs && node worker/can.test.mjs && node worker/lock.test.mjs   # pure, no server
-node worker/api.test.mjs http://monorepo.localhost      # every route: who may call it, host guard, origin guard, revoke, the Room lock
+node worker/push.test.mjs                               # pure: push encryption round trip, VAPID, weekly cron
+node worker/api.test.mjs http://monorepo.localhost      # every route: who may call it, host guard, origin guard, sessions, push, account deletion, revoke, the Room lock (re-run after restarting the dev script: it deletes zed)
 node worker/scripts/ui.test.mjs http://monorepo.localhost     # headless browser, needs PLAYWRIGHT_DIR (a path to the playwright package)
 node worker/scripts/live.test.mjs http://monorepo.localhost   # two browsers on one document
 ```
@@ -58,7 +77,7 @@ Wrangler checks every file under `public/` before it starts: 25 MiB per file at 
 
 ## Deploy
 
-`node worker/scripts/deploy.mjs staging [--seed]` applies the D1 migrations to that stage's own database, deploys `worker/wrangler.jsonc` for that environment and creates `SESSION_SECRET` once. Staging first. `--secret KEY=VALUE` sets another secret (`ADMIN_EMAIL`). Staging's session secret is also written to `worker/.dev.vars` (gitignored) so `node worker/scripts/latency.mjs` can sign cookies for its fake users and measure the real edit-to-other-phone time.
+`node worker/scripts/deploy.mjs staging [--seed]` applies the D1 migrations to that stage's own database, deploys `worker/wrangler.jsonc` for that environment and creates `SESSION_SECRET` once. Staging first. `--secret KEY=VALUE` sets another secret (`ADMIN_EMAIL`). On staging it also sets the push keys and `TEST_LOGIN_KEY` if missing. Staging's session secret is also written to `worker/.dev.vars` (gitignored) so `node worker/scripts/latency.mjs` can sign cookies for its fake users and measure the real edit-to-other-phone time.
 
 ### Why a git push cannot ship an untested API
 
@@ -76,7 +95,8 @@ Before step 2, finish the owner's list below.
 
 ## Not built yet
 
-- **Real Google sign-in has never run.** `GOOGLE_CLIENT_ID` is empty on every stage, so staging was verified with cookies minted by the test scripts; `google.js` rejects every token until the owner finishes step 1 and 2 below.
+- **Real Google sign-in has not yet been tried end to end.** `GOOGLE_CLIENT_ID` is set on local and staging (production stays empty until the cutover), and `google.js` is tested, but Google only accepts a sign-in from an origin the owner has listed in the OAuth client: `https://staging.lew42.com` is step 1 below. Until then staging is tested with `POST /api/auth/test`.
+- **Real push delivery to a phone has not been seen.** The encryption is proven against the RFC in `push.test.mjs`, and the live push service answered the staging test (Google's push service returned 410 for a made-up subscription, which the Worker removed as designed), but nobody has subscribed a real browser yet.
 - **Banning a real user.** A ban is a flag in the dev login's cookie only (`dev.js`); no column or admin route sets it on staging or production, and `can.js` does not check it.
 - **A page that lists live documents and their lock holders.**
 - **Per-user form answers.** Proposed (2026-11-25, not built): an `answers` table in `UserDO` plus `GET`/`PUT /api/answers`, read by `ux/Form`'s `form.bind(user)`: [proposal.md](../public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/auth/proposal.md) · [what exists](../public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/auth/findings.md).
@@ -89,7 +109,7 @@ Before step 2, finish the owner's list below.
    - `https://staging.lew42.com`
    - `https://lew42.com` (and `https://www.lew42.com` if it is used)
    - optionally `http://localhost:<port>` for the :8787 direct run. Google rejects `*.localhost` origins, so `monorepo.localhost` cannot be listed: local sign-in uses the dev login, and real Google sign-in is tested on staging.
-2. Put the client id in `GOOGLE_CLIENT_ID` for each stage in [wrangler.jsonc](wrangler.jsonc) (it is public, not a secret) and run the deploy script again.
+2. The client id is already in `GOOGLE_CLIENT_ID` for local and staging in [wrangler.jsonc](wrangler.jsonc) (it is public, not a secret); at the production cutover put it there too and run the deploy script again.
 3. Set `ADMIN_EMAIL` (secret) to your Google email; your first Google sign-in becomes admin: `node worker/scripts/deploy.mjs staging --secret ADMIN_EMAIL=you@example.com`.
 4. Enable R2 in the Cloudflare dashboard (Storage → R2), create buckets `monorepo-staging-docs` and `monorepo-production-docs`, and add an `r2_buckets` binding named `SNAPSHOTS` to each environment. Until then document history lives only in the Durable Object (fully working, no off-site copy).
 5. The Git-builds change at cutover (above).
