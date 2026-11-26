@@ -13,10 +13,11 @@ export default new Doc({
 	description: "Login, signup, reset and a social row as one class — view switching is the behavior that earns it.",
 	icon: "lock",
 
-	files: "Auth.js MagicAuth.js page.js",
+	files: "Auth.js MagicAuth.js SignIn.js GoogleButton.js VideoSignIn.js page.js",
 	notes: "decisions",
 
 	children: [
+		"google",
 		demo.page("magic-auth", () => div.c("wash pad", () => new MagicAuth()), {
 			note: "The named extension. `password_field()` returns nothing, `login_title()`/`login_cta()` change two strings, and the confirmation copy is one key. Nothing else in `Auth.js` moves — signup, reset, switching, validation and the social row are still Auth's.",
 			file: new URL("MagicAuth.js", import.meta.url).pathname,
