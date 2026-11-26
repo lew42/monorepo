@@ -161,7 +161,8 @@ export class Join {
 			if (backend.mock) await backend.subscribe();
 			else {
 				if (!backend.vapid_public) throw new Error("the server has no push key yet");
-				const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key_bytes(backend.vapid_public) });
+				const timeout = new Promise((_, no) => setTimeout(() => no(new Error("the browser's push service did not answer in 15 s")), 15000));
+				const sub = await Promise.race([reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key_bytes(backend.vapid_public) }), timeout]);
 				await backend.subscribe(sub.toJSON());
 			}
 			this.push = true;
