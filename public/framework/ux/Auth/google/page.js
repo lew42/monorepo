@@ -1,12 +1,7 @@
 import { Doc, md, div, p } from "/app.js";
-import { css } from "../../../ui/parts.js";
 import { GoogleButton } from "../GoogleButton.js";
 import { VideoSignIn } from "../VideoSignIn.js";
 import { SignIn } from "../SignIn.js";
-
-css(`@layer site {
-	.ux-auth-ground-dark { background: #202124; border-radius: var(--radius); }
-}`);
 
 const still = name => new URL(name, import.meta.url).pathname;
 const host = () => new VideoSignIn({ poster: still("V01.jpg"), alt: "A woman talking to the camera in a bright kitchen", line: "Hi! Sign in with one tap and I will pick up where you left off." });
@@ -32,7 +27,7 @@ export default new Doc({
 			div.c("flex v gap", () => {
 				md("## The button");
 				md("Google's own branding: white or dark, the coloured G, one of three wordings. A mock until a client id is set (below).");
-				[["light", "wash"], ["dark", "ux-auth-ground-dark"]].forEach(([theme, ground]) => {
+				[["light", "wash"], ["dark", "bg-dark"]].forEach(([theme, ground]) => {
 					div.c(`flex v gap pad ${ground}`, () => {
 						GoogleButton.labels.forEach(label => new GoogleButton({ theme, label, client_id: "" }));
 					});
