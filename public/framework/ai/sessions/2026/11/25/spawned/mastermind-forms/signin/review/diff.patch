@@ -1,0 +1,482 @@
+diff --git a/public/framework/ux/Auth/GoogleButton.js b/public/framework/ux/Auth/GoogleButton.js
+new file mode 100644
+index 0000000000..2b93f7e899
+--- /dev/null
++++ b/public/framework/ux/Auth/GoogleButton.js
+@@ -0,0 +1,138 @@
++import View, { p, button, span } from "../../core/View/View.js";
++import { css } from "../../ui/parts.js";
++
++/* Google's own branding (developers.google.com/identity/branding-guidelines): light = white, #747775
++ * stroke, #1F1F1F text; dark = #131314, #8E918F stroke, #E3E3E3 text. The control grammar supplies the
++ * box (height, corner, size word); these rules recolour it and nothing else. Never an alpha fill: the
++ * coloured G is only allowed on a solid white or dark button. */
++css(`@layer site {
++	.ux-auth-google { display: flex; flex-direction: column; gap: 0.5em; align-items: stretch; }
++	.ux-auth-google-btn {
++		display: flex; align-items: center; justify-content: center; gap: 0.7em;
++		font-weight: 500; text-transform: none; letter-spacing: 0;
++		background-color: #fff; color: #1f1f1f; border: 1px solid #747775; box-shadow: none;
++	}
++	.ux-auth-google-dark .ux-auth-google-btn { background-color: #131314; color: #e3e3e3; border-color: #8e918f; }
++	.ux-auth-google-btn:hover { box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
++	.ux-auth-google-g { display: inline-flex; width: 1.15em; height: 1.15em; flex: none; }
++	.ux-auth-google-g svg { width: 100%; height: 100%; display: block; }
++	.ux-auth-google-note:empty { display: none; }
++	.ux-auth-google-note { margin: 0; text-align: center; font-size: 0.8em; }
++	.ux-auth-google-note.ux-auth-google-bad { color: var(--error); }
++	.ux-auth-google-on-video .ux-auth-google-note { color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
++}`);
++
++// Google's four-colour mark, as supplied in its sign-in docs. Never recoloured, never alone.
++const G_MARK = `<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`;
++
++let gsi;   // /app/app.js loads Google Identity Services the same way: one script, once
++
++/**
++ * GoogleButton: the Google sign-in button, in Google's own branding.
++ *
++ *   new GoogleButton()                                     // light; "Continue with Google"
++ *   new GoogleButton({ theme: "dark", label: "Sign in with Google", on_video: true })
++ *   new GoogleButton().on("signin", e => e.detail.user)    // detail: { user, mock }
++ *
++ * A client id decides what it is. Given one (`client_id: "…"`, or the one `/api/config` answers, as
++ * /app/ reads it), Google's own SDK draws the button and the ID token goes to `/api/auth/google`
++ * (verified by worker/google.js). With none, the button is a MOCK: it fires `signin` with a fake user
++ * and says so on screen. `client_id: ""` forces the mock; leave it out to look the id up.
++ * Real sign-in is /app/'s; this is the same call, not a second auth system. readme.md.
++ */
++export class GoogleButton extends View {
++
++	initialize(){
++		this.theme ??= "light";
++		this.label ??= GoogleButton.labels[2];
++		this.ac("ux-auth-google", `ux-auth-google-${this.theme}`);
++		if (this.on_video) this.ac("ux-auth-google-on-video");
++		this.append(() => this.draw());
++		if (this.client_id === undefined) this.look_up();
++		else if (this.client_id) this.go_real(this.client_id);
++	}
++
++	draw(){
++		this.$button = this.mock_button();
++		this.$note = p.c("ux-auth-google-note", "");
++	}
++
++	mock_button(){
++		return button.c("ux-auth-google-btn", () => {
++			span.c("ux-auth-google-g").html_unsafe(G_MARK);
++			span(this.label);
++		}).attr("type", "button").click(() => this.signed_in(GoogleButton.fake_user, true));
++	}
++
++	// ---- mock vs real ----------------------------------------------------
++
++	async look_up(){
++		const id = await GoogleButton.config_client_id();
++		if (id) this.go_real(id);
++	}
++
++	// The same two calls /app/app.js makes: initialize, then renderButton. Raw DOM after the awaits, no capturing.
++	async go_real(client_id){
++		try {
++			await GoogleButton.load_gsi();
++			google.accounts.id.initialize({ client_id, auto_select: false, use_fedcm_for_button: true, callback: res => this.credential(res.credential) });
++			const slot = document.createElement("div");
++			google.accounts.id.renderButton(slot, {
++				theme: this.theme === "dark" ? "filled_black" : "outline", size: "large", shape: "rectangular", logo_alignment: "left",
++				text: GoogleButton.gsi_text[this.label] ?? "continue_with", width: Math.min(400, Math.max(200, this.el.offsetWidth || 320))
++			});
++			this.$button.el.replaceWith(slot);
++			this.real = true;
++		} catch (err){
++			this.say(err.message, true);
++		}
++	}
++
++	async credential(credential){
++		try {
++			const res = await fetch("/api/auth/google", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ credential }) });
++			const data = await res.json().catch(() => ({}));
++			if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
++			this.signed_in(data.user, false);
++		} catch (err){
++			this.say(err.message, true);
++		}
++	}
++
++	// ---- the event and the words on screen ------------------------------
++
++	signed_in(user, mock){
++		this.user = user;
++		this.say(mock ? `Mock sign-in as ${user.name}: no Google client id is set, so no real account was used.` : `Signed in as ${user.name}.`);
++		this.el.dispatchEvent(new CustomEvent("signin", { detail: { user, mock }, bubbles: true }));
++	}
++
++	say(msg, bad = false){
++		this.$note.text(msg);
++		this.$note.rc("ux-auth-google-bad");
++		if (bad) this.$note.ac("ux-auth-google-bad");
++	}
++
++	static async config_client_id(){
++		try {
++			const res = await fetch("/api/config");
++			return (await res.json()).client_id || "";   // a static host answers with the page itself: not JSON, so no id
++		} catch { return ""; }
++	}
++
++	static load_gsi(){
++		return gsi ??= new Promise((ok, no) => {
++			const s = document.createElement("script");
++			s.src = "https://accounts.google.com/gsi/client";
++			s.onload = ok; s.onerror = () => { gsi = null; no(new Error("could not load Google sign-in (offline?)")); };
++			document.head.append(s);
++		});
++	}
++}
++
++// Google allows exactly these three wordings; the GIS `text` value for each.
++GoogleButton.labels = ["Sign in with Google", "Sign up with Google", "Continue with Google"];
++GoogleButton.gsi_text = { "Sign in with Google": "signin_with", "Sign up with Google": "signup_with", "Continue with Google": "continue_with" };
++GoogleButton.fake_user = { name: "Demo Person", handle: "demo", email: "demo@example.com", avatar_url: "" };
++
++export default GoogleButton;
+diff --git a/public/framework/ux/Auth/GoogleButton.test.mjs b/public/framework/ux/Auth/GoogleButton.test.mjs
+new file mode 100644
+index 0000000000..3a345116a4
+--- /dev/null
++++ b/public/framework/ux/Auth/GoogleButton.test.mjs
+@@ -0,0 +1,55 @@
++// GoogleButton: with no client id it is a mock that fires `signin` with a fake user and says so on screen.
++// Node: `node public/framework/ux/Auth/GoogleButton.test.mjs`. Node has no DOM, so a tiny stand-in `document` is made below.
++import { test } from "../../core/Test/Test.js";
++
++class FakeEl {
++	constructor(tag){ this.tag = tag; this.kids = []; this.parentNode = null; this._text = ""; this.style = {}; this.attrs = {}; this.handlers = {};
++		const set = new Set(); this.classList = { add: (...c) => c.forEach(x => set.add(x)), remove: c => set.delete(c), contains: c => set.has(c), toString: () => [...set].join(" ") }; }
++	get textContent(){ return this._text + this.kids.map(k => k.textContent).join(""); }
++	set textContent(v){ this._text = String(v); this.kids = []; }
++	appendChild(k){ k.parentNode = this; this.kids.push(k); return k; }
++	append(...a){ a.forEach(x => x instanceof FakeEl ? this.appendChild(x) : (this._text += String(x))); }
++	setAttribute(n, v){ this.attrs[n] = v; }
++	getAttribute(n){ return this.attrs[n] ?? null; }
++	addEventListener(type, fn){ (this.handlers[type] ??= []).push(fn); }
++	dispatchEvent(e){ (this.handlers[e.type] ?? []).forEach(fn => fn(e)); return true; }
++	set innerHTML(v){ this.kids = []; this._text = ""; }
++	get innerHTML(){ return this._text; }
++	get children(){ return this.kids; }
++	click(){ this.dispatchEvent({ type: "click" }); }
++	find(pred){ for (const k of this.kids){ if (pred(k)) return k; const hit = k.find?.(pred); if (hit) return hit; } return null; }
++}
++if (typeof document === "undefined") globalThis.document = { createElement: tag => new FakeEl(tag), head: new FakeEl("head") };
++
++const { GoogleButton } = await import("./GoogleButton.js");
++
++test("with client_id \"\" it is a mock: a press fires signin with the fake user and says so", t => {
++	const btn = new GoogleButton({ client_id: "" });
++	const seen = [];
++	btn.el.addEventListener("signin", e => seen.push(e));
++	t.ok(btn.el.classList.contains("ux-auth-google"), "it wears its class");
++	t.ok(btn.el.classList.contains("ux-auth-google-light"), "light is the default theme");
++	t.eq(btn.label, "Continue with Google", "the default wording is one Google allows");
++	t.eq(btn.$note.text(), "", "no note before a press");
++	btn.$button.el.click();
++	t.eq(seen.length, 1, "one signin event fired");
++	t.eq(seen[0].detail.mock, true, "it says the sign-in is a mock");
++	t.eq(seen[0].detail.user, GoogleButton.fake_user, "the fake user came with it");
++	t.ok(btn.$note.text().includes("no Google client id"), "the screen says why it is a mock");
++	t.ok(!btn.real, "it never became the real button");
++});
++
++test("the dark theme and the three wordings are Google's own", t => {
++	const btn = new GoogleButton({ client_id: "", theme: "dark", label: "Sign in with Google" });
++	t.ok(btn.el.classList.contains("ux-auth-google-dark"), "dark wears the dark class");
++	t.eq(GoogleButton.labels.length, 3, "exactly three wordings");
++	t.ok(GoogleButton.labels.every(l => GoogleButton.gsi_text[l]), "each wording maps to a Google text value");
++});
++
++test("a failure is shown in the error colour, and the next message clears it", t => {
++	const btn = new GoogleButton({ client_id: "" });
++	btn.say("could not load Google sign-in", true);
++	t.ok(btn.$note.el.classList.contains("ux-auth-google-bad"), "a failure wears the error class");
++	btn.say("Signed in.");
++	t.ok(!btn.$note.el.classList.contains("ux-auth-google-bad"), "a plain message drops it");
++});
+diff --git a/public/framework/ux/Auth/SignIn.js b/public/framework/ux/Auth/SignIn.js
+new file mode 100644
+index 0000000000..8c80252623
+--- /dev/null
++++ b/public/framework/ux/Auth/SignIn.js
+@@ -0,0 +1,56 @@
++import { div, p, h2, a, button, form } from "../../core/View/View.js";
++import { Auth } from "./Auth.js";
++import { GoogleButton } from "./GoogleButton.js";
++
++/**
++ * SignIn: the quick sign-in view. Google first, then Apple, then an email link, and "Use a
++ * password instead" one tap down. Auth's own login screen (the password one) is still here as
++ * `password()`; signup, reset, validation and the switching are all still Auth's.
++ *
++ *   new SignIn()
++ *   new SignIn({ client_id: "" })    // forces the Google mock; leave it out to use /api/config
++ *   new SignIn().on("signin", e => e.detail.user)
++ *
++ * Seams it overrides: `login()` (the first screen), `social_button()` (Google is a GoogleButton),
++ * `social()` (Apple is a mock), and the confirmation copy.
++ */
++export class SignIn extends Auth {
++
++	login(){
++		const $form = form.c("flex v gap", () => {
++			h2(this.login_title());
++			this.$error = div();
++			this.social_row();
++			p.c("muted", "or use your email");
++			this.field("Email", "email", "email");
++			button.c("prim", "Email me a link").attr("type", "submit");
++			div.c("flex gap wrap", () => a("Use a password instead").href("#").click(e => { e.preventDefault(); this.switch("password"); }));
++		}).attr("novalidate", "");
++
++		return $form.on("submit", this.on_submit($form, "link"));
++	}
++
++	// Auth's own login screen: email and password, the social row, the switcher.
++	password(){ return super.login(); }
++
++	social_row(){
++		return div.c("flex v gap", () => {
++			this.constructor.providers.forEach(provider => this.social_button(provider));
++		}).style("--gap", "0.5em");
++	}
++
++	social_button(provider){
++		if (provider !== "Google") return super.social_button(provider).ac(provider === "Apple" ? "bg" : "");
++		return new GoogleButton({ client_id: this.client_id, label: GoogleButton.labels[0] });
++	}
++
++	social(provider){
++		const name = provider[0].toUpperCase() + provider.slice(1);
++		this.done(`${name} sign-in is a mock here: no ${name} client is set.`);
++	}
++}
++
++SignIn.providers = ["Google", "Apple"];
++SignIn.confirmations = { ...Auth.confirmations, link: "Check your email for a link." };
++
++export default SignIn;
+diff --git a/public/framework/ux/Auth/VideoSignIn.js b/public/framework/ux/Auth/VideoSignIn.js
+new file mode 100644
+index 0000000000..abd5fe6886
+--- /dev/null
++++ b/public/framework/ux/Auth/VideoSignIn.js
+@@ -0,0 +1,55 @@
++import View, { div, p, video } from "../../core/View/View.js";
++import { css } from "../../ui/parts.js";
++import { GoogleButton } from "./GoogleButton.js";
++
++/* A portrait frame (9:16) that never stretches: on a phone it is the screen's width, on a desktop it is
++ * centred at a sensible height. The scrim is a soft bottom ramp so the white line and the button read on
++ * any still; the overlay sits at the bottom, where a thumb is. */
++css(`@layer site {
++	.ux-auth-video {
++		--h: min(82vh, 56rem);
++		position: relative; overflow: hidden; margin-inline: auto;
++		aspect-ratio: 9 / 16; width: min(100%, calc(var(--h) * 9 / 16));
++		background: #111; border-radius: var(--radius);
++	}
++	.ux-auth-video-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
++	.ux-auth-video-scrim { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to top, rgba(0,0,0,0.72), rgba(0,0,0,0.38) 28%, rgba(0,0,0,0) 55%); }
++	.ux-auth-video-over {
++		position: absolute; inset-inline: 0; bottom: 0; display: flex; flex-direction: column; gap: 0.9em;
++		padding: 1.25em 1.25em max(1.5em, env(safe-area-inset-bottom));
++	}
++	.ux-auth-video-line { margin: 0; color: #fff; font-size: 1.15em; font-weight: 600; line-height: 1.3; text-align: center; text-shadow: 0 1px 6px rgba(0,0,0,0.55); }
++}`);
++
++/**
++ * VideoSignIn: a talking-head video with ONE button over it, "Sign in with Google". The owner found whole
++ * forms over video distracting, so the overlay is a single button and (if it reads well) the host's one line.
++ *
++ *   new VideoSignIn({ poster: "/…/V01.jpg", line: "Sign in and I will save your place." })
++ *   new VideoSignIn({ poster, src: "/…/host.mp4" })    // a clip drops in later; the poster shows until it plays
++ *
++ * It is a real `<video>`: with no `src` it shows the poster, with one it plays muted and looped. The
++ * button is a GoogleButton (dark, mock unless a client id is set), and its `signin` event bubbles out of this view.
++ */
++export class VideoSignIn extends View {
++
++	initialize(){
++		this.label ??= GoogleButton.labels[0];
++		this.ac("ux-auth-video");
++		this.append(() => this.draw());
++	}
++
++	draw(){
++		this.$media = video.c("ux-auth-video-media").attr("poster", this.poster).attr("playsinline", "").attr("preload", this.src ? "auto" : "none").attr("aria-label", this.alt ?? "");
++		this.$media.el.muted = true;
++		this.$media.el.loop = true;
++		if (this.src) this.$media.attr("src", this.src).attr("autoplay", "");
++		div.c("ux-auth-video-scrim");
++		div.c("ux-auth-video-over size-large", () => {
++			if (this.line) p.c("ux-auth-video-line", this.line);
++			this.$button = new GoogleButton({ theme: "dark", on_video: true, client_id: this.client_id, label: this.label });
++		});
++	}
++}
++
++export default VideoSignIn;
+diff --git a/public/framework/ux/Auth/files.jsonl b/public/framework/ux/Auth/files.jsonl
+index eeea3e030d..c2448f544b 100644
+--- a/public/framework/ux/Auth/files.jsonl
++++ b/public/framework/ux/Auth/files.jsonl
+@@ -12,3 +12,9 @@
+ {"file":"doc/page.jsonl"}
+ {"file":"doc/"}
+ {"file":"tasks/"}
++{"file":"google/"}
++{"file":"GoogleButton.js"}
++{"file":"SignIn.js"}
++{"file":"VideoSignIn.js"}
++{"file":"google/page.js","nav":{"title":"Sign in with Google","icon":"login","description":"A talking-head video with one Google button over it, the button's variants, and the quick sign-in view."}}
++{"file":"GoogleButton.test.mjs"}
+diff --git a/public/framework/ux/Auth/google/V01.jpg b/public/framework/ux/Auth/google/V01.jpg
+new file mode 100644
+index 0000000000..586d1170e5
+Binary files /dev/null and b/public/framework/ux/Auth/google/V01.jpg differ
+diff --git a/public/framework/ux/Auth/google/V02.jpg b/public/framework/ux/Auth/google/V02.jpg
+new file mode 100644
+index 0000000000..837f481996
+Binary files /dev/null and b/public/framework/ux/Auth/google/V02.jpg differ
+diff --git a/public/framework/ux/Auth/google/files.jsonl b/public/framework/ux/Auth/google/files.jsonl
+new file mode 100644
+index 0000000000..1b83ba6e58
+--- /dev/null
++++ b/public/framework/ux/Auth/google/files.jsonl
+@@ -0,0 +1,7 @@
++{"file":"V01.png"}
++{"file":"V02.png"}
++{"file":"V01.jpg"}
++{"file":"V02.jpg"}
++{"file":"V01.png","gone":true}
++{"file":"V02.png","gone":true}
++{"file":"page.js"}
+diff --git a/public/framework/ux/Auth/google/page.js b/public/framework/ux/Auth/google/page.js
+new file mode 100644
+index 0000000000..f7dd0936c9
+--- /dev/null
++++ b/public/framework/ux/Auth/google/page.js
+@@ -0,0 +1,59 @@
++import { Doc, md, div, p } from "/app.js";
++import { css } from "../../../ui/parts.js";
++import { GoogleButton } from "../GoogleButton.js";
++import { VideoSignIn } from "../VideoSignIn.js";
++import { SignIn } from "../SignIn.js";
++
++css(`@layer site {
++	.ux-auth-ground-dark { background: #202124; border-radius: var(--radius); }
++}`);
++
++const still = name => new URL(name, import.meta.url).pathname;
++const host = () => new VideoSignIn({ poster: still("V01.jpg"), alt: "A woman talking to the camera in a bright kitchen", line: "Hi! Sign in with one tap and I will pick up where you left off." });
++
++export default new Doc({
++	meta: import.meta,
++	title: "Sign in with Google",
++	description: "A talking-head video with one Google button over it, the button's variants, and the quick sign-in view.",
++	icon: "login",
++
++	files: "page.js V01.jpg V02.jpg ../GoogleButton.js ../VideoSignIn.js ../SignIn.js",
++
++	content(){
++		let $last;
++
++		div.c("flex auto gap", () => {
++
++			div.c("flex v gap", () => {
++				host();
++				p.c("muted", "A real `<video>` with the still as its poster: a clip drops in with `src` and the button stays. One button over a soft bottom scrim, where a thumb is.");
++			});
++
++			div.c("flex v gap", () => {
++				md("## The button");
++				md("Google's own branding: white or dark, the coloured G, one of three wordings. A mock until a client id is set (below).");
++				[["light", "wash"], ["dark", "ux-auth-ground-dark"]].forEach(([theme, ground]) => {
++					div.c(`flex v gap pad ${ground}`, () => {
++						GoogleButton.labels.forEach(label => new GoogleButton({ theme, label, client_id: "" }));
++					});
++				});
++				$last = p.c("muted", "No sign-in event yet. Press a button.");
++			}).on("signin", e => $last.text(`signin event: ${e.detail.user.name} (${e.detail.mock ? "mock" : "real"})`));
++
++			div.c("flex v gap", () => {
++				md("## The sign-in view");
++				md("`SignIn extends Auth`: Google first, then Apple and an email link. \"Use a password instead\" is one tap down, and it is Auth's own login screen.");
++				div.c("wash pad", () => new SignIn({ client_id: "" }));
++			});
++
++		}).ac("bleed").style("--column", "22em");
++
++		md("## Mock or real");
++		md("With no Google client id the button is a **mock**: a press fires `signin` with a fake user and the page says so under the button. With one (`GOOGLE_CLIENT_ID` on the Worker, which `/api/config` hands to the page, exactly as [/app/](/app/) reads it) Google's own SDK draws the button and the ID token goes to `/api/auth/google`. It is the same call, not a second auth system.");
++		md("Back to [ux/Auth](/framework/ux/Auth/).");
++
++		md.details(import.meta, "../readme.md", "Readme");
++	},
++
++	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad wash", host)); },
++});
+diff --git a/public/framework/ux/Auth/page.js b/public/framework/ux/Auth/page.js
+index 6affe88d34..b926ed0997 100644
+--- a/public/framework/ux/Auth/page.js
++++ b/public/framework/ux/Auth/page.js
+@@ -13,10 +13,11 @@ export default new Doc({
+ 	description: "Login, signup, reset and a social row as one class — view switching is the behavior that earns it.",
+ 	icon: "lock",
+ 
+-	files: "Auth.js MagicAuth.js page.js",
++	files: "Auth.js MagicAuth.js SignIn.js GoogleButton.js VideoSignIn.js page.js",
+ 	notes: "decisions",
+ 
+ 	children: [
++		"google",
+ 		demo.page("magic-auth", () => div.c("wash pad", () => new MagicAuth()), {
+ 			note: "The named extension. `password_field()` returns nothing, `login_title()`/`login_cta()` change two strings, and the confirmation copy is one key. Nothing else in `Auth.js` moves — signup, reset, switching, validation and the social row are still Auth's.",
+ 			file: new URL("MagicAuth.js", import.meta.url).pathname,
+diff --git a/public/framework/ux/Auth/readme.md b/public/framework/ux/Auth/readme.md
+index 69223e8e8e..dfde25e70c 100644
+--- a/public/framework/ux/Auth/readme.md
++++ b/public/framework/ux/Auth/readme.md
+@@ -21,6 +21,24 @@ class MagicAuth extends Auth {
+ }
+ ```
+ 
++### Sign in with Google
++
++```js
++import { GoogleButton } from "/framework/ux/Auth/GoogleButton.js";
++import { VideoSignIn } from "/framework/ux/Auth/VideoSignIn.js";
++import { SignIn } from "/framework/ux/Auth/SignIn.js";
++
++new GoogleButton().on("signin", e => e.detail.user);        // detail: { user, mock }
++new GoogleButton({ theme: "dark", label: "Sign in with Google" });
++new VideoSignIn({ poster: "/…/V01.jpg", line: "Sign in with one tap." });   // a portrait video, ONE button over it
++new SignIn();                                               // Google, Apple, an email link; "use a password instead" one tap down
++```
++
++**Mock or real is decided by the client id.** `client_id: ""` is always a mock. Left out, the button asks
++`/api/config` (as `/app/` does); an empty answer is a mock. A real id makes Google's own SDK draw the
++button and the ID token goes to `/api/auth/google`. A mock fires `signin` with a fake user and says so on screen.
++It is `/app/`'s call, not a second auth system. Demo: [`/framework/ux/Auth/google/`](/framework/ux/Auth/google/).
++
+ ## Watch out
+ 
+ - **A `<form>` needs `novalidate`** or an invalid field never fires `submit` at all —
+@@ -36,4 +54,6 @@ class MagicAuth extends Auth {
+ 
+ - [Overview](/framework/ux/Auth/) · [`doc/decisions.md`](/framework/ux/Auth/doc/decisions/) — the
+   five layout questions answered, the CSS, the named-extension verdict
+-- Files: `Auth.js` (the class), `MagicAuth.js` (the named extension), `page.js` (the demo)
++- Files: `Auth.js` (the class), `MagicAuth.js` (the named extension), `SignIn.js` (Google first, then Apple and a link),
++  `GoogleButton.js` (+ `GoogleButton.test.mjs`), `VideoSignIn.js` (the video with one button), `google/` (the page and the two stills),
++  `page.js` (the demo)
