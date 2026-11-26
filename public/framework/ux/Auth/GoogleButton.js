@@ -93,7 +93,7 @@ export class GoogleButton extends View {
 			const res = await fetch("/api/auth/google", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ credential }) });
 			const data = await res.json().catch(() => ({}));
 			if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
-			this.signed_in(data.user, false);
+			this.signed_in(data.user, false, GoogleButton.email_of(credential));
 		} catch (err){
 			this.say(err.message, true);
 		}
@@ -101,16 +101,21 @@ export class GoogleButton extends View {
 
 	// ---- the event and the words on screen ------------------------------
 
-	signed_in(user, mock){
+	signed_in(user, mock, email = user?.email){
 		this.user = user;
 		this.say(mock ? `Mock sign-in as ${user.name}: no Google client id is set, so no real account was used.` : `Signed in as ${user.name}.`);
-		this.el.dispatchEvent(new CustomEvent("signin", { detail: { user, mock }, bubbles: true }));
+		this.el.dispatchEvent(new CustomEvent("signin", { detail: { user, mock, email }, bubbles: true }));
 	}
 
 	say(msg, bad = false){
 		this.$note.text(msg);
 		this.$note.rc("ux-auth-google-bad");
 		if (bad) this.$note.ac("ux-auth-google-bad");
+	}
+
+	// The Worker keeps no email but Google's revoke() needs one: read it from the ID token payload (decoded, not verified; only handed to revoke on this device).
+	static email_of(credential){
+		try { return JSON.parse(atob(credential.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))).email || ""; } catch { return ""; }
 	}
 
 	static async config_client_id(){
