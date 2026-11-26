@@ -18,10 +18,10 @@
 
 ## Decisions
 
-1. **URL `/join/`** (`public/join/`), a framework page built from `ux/Auth` pieces.
+1. **URL `/join/`** (`public/join/`), a standalone page: `index.html` plus plain modules, no framework `page.js`, so an ad lands fast. It is built from the `ux/Auth` pieces (`GoogleButton`, `InAppBrowser`). The builder switched to this during the build (2026-11-25); it was the alternative here first.
    - It has its own manifest and its own service worker, scope `/join/`.
    - Mobile first. On desktop it shows the same 9:16 video centred at full height on a dark backdrop.
-   - *Alternative:* a standalone HTML page with no framework, for a faster first paint. Switch to it if the ad's load time is the problem.
+   - *Alternative:* a framework `page.js`. Switch to it if the page must sit in the site's sidebar.
 2. **Sessions:** a D1 `sessions` table in a new migration.
    - The cookie carries the session id, and each Google sign-in makes one row.
    - Sign out ends that row; Delete account removes every row the user has.

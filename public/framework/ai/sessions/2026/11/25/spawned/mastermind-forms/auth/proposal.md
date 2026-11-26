@@ -36,6 +36,12 @@ It adds one table and two routes to code that already has authentication, author
 | Passkeys now | 25-39% first-try enrolment on Windows; additive later |
 | GitHub sign-in | Rulings name it, audience for forms is not developers; Google first as the brief says |
 
+## Later: a live connection per user (not built)
+
+**What exists:** the Worker already runs live WebSockets through the `Room` Durable Object ([worker/room.js](/worker/room.js)). There is one Room per page chat (`GET /api/room?url=`) and one per document (`GET /api/doc/<id>/ws`). Each document has a single-editor lock, its own JSONL history and an R2 snapshot. So the pattern is one Durable Object per shared thing, with one socket for each open thing.
+
+**How a user's own connection would attach:** through a route `GET /api/me/ws`, guarded `read` like `/api/me`. The cookie's user id picks that user's `UserDO` ([worker/settings.js](/worker/settings.js)), which accepts the socket with hibernation. That object pushes what belongs to the user and not to a document: settings changes, a new sign-in on another device, a sign-out (the sessions row ended), an invite to a document. Documents stay in their Rooms, so a tab holds one user socket plus one socket per open document. Merging both onto one socket is the alternative; it wins only if a phone ends up holding many documents open at once. Delete account already wipes `UserDO`, so it would close the socket too.
+
 ## Open (decided here, revisable)
 
 Single record per form per user (no history); overwrite on resubmit; 32 KB cap; `v` field versions the shape. The owner's Google console steps are the one thing agents cannot do.
