@@ -305,6 +305,7 @@ export class Join {
 		await this.unsubscribe().catch(() => {});
 		globalThis.google?.accounts?.id?.disableAutoSelect();
 		for (const reg of await navigator.serviceWorker?.getRegistrations?.() ?? []) await reg.unregister();
+		Funnel.reset();
 		for (const store of [localStorage, sessionStorage])
 			for (const key of Object.keys(store)) if (key.startsWith("join-")) store.removeItem(key);
 		location.reload();

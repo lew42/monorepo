@@ -50,16 +50,21 @@ export class Stats {
 			this.totals_table(signed_up_users, active_push_subs));
 	}
 
+	// Each table sits in a .scroll box, so a narrow phone scrolls the table, never the page.
+	table(...parts){ return el("div", "scroll", el("table", "wrap", ...parts)); }
+
+	// first = null leaves out the group column (the funnel table has none).
 	head(first){
-		return el("thead", "", el("tr", "", el("th", "", first), el("th", "", "Step"), el("th", "", "Today (UTC)"), el("th", "", "7 days"), el("th", "", "All time")));
+		const nums = ["Today (UTC)", "7 days", "All time"].map(t => el("th", "num", t));
+		return el("thead", "", el("tr", "", ...(first === null ? [] : [el("th", "", first)]), el("th", "", "Step"), ...nums));
 	}
 
+	counts(g, e){ return ["today", "week", "all"].map(w => el("td", "num", String(g[w][e] || 0))); }
+
 	funnel_table(events, funnel){
-		return el("table", "wrap",
-			this.head(""),
-			el("tbody", "", ...events.map(e => el("tr", "",
-				el("td", ""), el("td", "", e),
-				el("td", "", String(funnel.today[e] || 0)), el("td", "", String(funnel.week[e] || 0)), el("td", "", String(funnel.all[e] || 0))))));
+		return this.table(
+			this.head(null),
+			el("tbody", "", ...events.map(e => el("tr", "", el("td", "", e), ...this.counts(funnel, e)))));
 	}
 
 	// Groups every window's rows by the split key (utm_source, or in_app), then one row per event that split saw.
@@ -71,13 +76,12 @@ export class Stats {
 
 		const rows = [...groups.entries()].flatMap(([name, g]) =>
 			events.filter(e => g.today[e] || g.week[e] || g.all[e]).map((e, i) => el("tr", "",
-				el("td", "group", i === 0 ? label(name) : ""), el("td", "", e),
-				el("td", "", String(g.today[e] || 0)), el("td", "", String(g.week[e] || 0)), el("td", "", String(g.all[e] || 0)))));
-		return el("table", "wrap", this.head(key === "source" ? "Source" : ""), el("tbody", "", ...(rows.length ? rows : [el("tr", "", el("td", "", "—"), el("td", ""), el("td", ""), el("td", ""), el("td", ""))])));
+				el("td", "group", i === 0 ? label(name) : ""), el("td", "", e), ...this.counts(g, e))));
+		return this.table(this.head(key === "source" ? "Source" : ""), el("tbody", "", ...(rows.length ? rows : [el("tr", "", el("td", "", "—"), el("td", ""), el("td", ""), el("td", ""), el("td", ""))])));
 	}
 
 	totals_table(signed_up_users, active_push_subs){
-		return el("table", "wrap", el("tbody", "",
+		return this.table(el("tbody", "",
 			el("tr", "", el("td", "", "Signed-up users (Google)"), el("td", "num", String(signed_up_users.google))),
 			el("tr", "", el("td", "", "Signed-up users (Google + test)"), el("td", "num", String(signed_up_users.with_test))),
 			el("tr", "", el("td", "", "Active push subscriptions"), el("td", "num", String(active_push_subs)))));

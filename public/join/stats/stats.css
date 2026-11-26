@@ -11,13 +11,13 @@ h2 { font-size: 16px; margin: 20px 0 2px; opacity: 0.9; }
 .note.bad { color: #ff8a80; }
 .note a { color: #fff; }
 
-.wrap { width: 100%; overflow-x: auto; display: block; border-collapse: collapse; font-size: 14px; }
-table.wrap { display: table; }
-.wrap thead { position: sticky; top: 0; }
-.wrap th, .wrap td { padding: 6px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.12); white-space: nowrap; }
+/* The box scrolls, not the page; the table hugs its numbers (no 1100 px stretch) but keeps one width so the tables line up. */
+.scroll { width: 100%; overflow-x: auto; }
+.wrap { width: auto; min-width: min(100%, 560px); border-collapse: collapse; font-size: 14px; }
+.wrap th, .wrap td { padding: 6px 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.12); white-space: nowrap; }
 .wrap th { opacity: 0.7; font-weight: 600; }
 .wrap td.group { font-weight: 600; opacity: 0.9; }
-.wrap td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.wrap td.num, .wrap th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
 @media (min-width: 900px) {
 	.stats { gap: 14px; }

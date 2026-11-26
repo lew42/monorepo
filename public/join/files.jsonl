@@ -15,3 +15,6 @@
 {"file":"readme.md"}
 {"file":"JoinState.js"}
 {"file":"JoinState.test.mjs"}
+{"file":"Funnel.js"}
+{"file":"Funnel.test.mjs"}
+{"file":"stats/"}

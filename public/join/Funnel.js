@@ -6,7 +6,7 @@
  *
  *   const funnel = new Funnel(backend, env);   // env = the page's InAppBrowser; reads/creates the visitor id
  *   funnel.send("tap_allow");                   // never awaited, never throws: see() fires and forgets
- *   Funnel.reset();                              // ?debug=1's Reset everything also drops the visitor id
+ *   Funnel.reset();                              // Join.reset() (?debug=1's Reset everything) calls it
  */
 export class Funnel {
 
@@ -44,11 +44,9 @@ export class Funnel {
 	send(event){
 		if (this.backend?.mock) return void console.log("[funnel]", event, { os: this.os, inapp: this.inapp, ...this.utm });
 		const body = JSON.stringify({ v: this.visitor, e: event, inapp: this.inapp, os: this.os, src: this.utm.src, camp: this.utm.camp, content: this.utm.content });
-		try {
-			const blob = new Blob([body], { type: "application/json" });
-			if (!navigator.sendBeacon?.("/api/join/event", blob))
-				fetch("/api/join/event", { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true }).catch(() => {});
-		} catch {}
+		// text/plain is CORS-safelisted, so no browser refuses the beacon; the Worker's request.json() ignores the type.
+		try { if (navigator.sendBeacon?.("/api/join/event", new Blob([body], { type: "text/plain" }))) return; } catch {}
+		fetch("/api/join/event", { method: "POST", headers: { "content-type": "application/json" }, body, keepalive: true }).catch(() => {});
 	}
 
 	static reset(){
