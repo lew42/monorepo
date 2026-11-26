@@ -121,6 +121,16 @@ assert.equal((await (await call("GET", "/api/me", { cookie: sess2.cookie })).jso
 await check("POST /api/auth/test", null, 404, null, { body: { key: "anything" } });
 await check("POST /api/auth/test", null, 404, null, { body: {} });
 
+// ── the ad funnel (worker/join.js): a bad event is refused, a good one recorded, stats is admin-only
+await check("POST /api/join/event", null, 400, null, { body: { v: "x".repeat(16), e: "view" } });               // not 16 hex chars
+await check("POST /api/join/event", null, 400, null, { body: { v: "0123456789abcdef", e: "not-a-real-event" } });
+await check("POST /api/join/event", null, 204, null, { body: { v: "0123456789abcdef", e: "view", os: "desktop", src: "api-test" } });
+await check("GET /api/join/stats", null, 401);
+await check("GET /api/join/stats", carol, 403);
+const funnel_stats = await (await check("GET /api/join/stats", alice, 200)).json();
+assert.ok(funnel_stats.funnel.all.view >= 1, "the recorded view shows up in the all-time funnel");
+assert.ok(funnel_stats.by_source.all.some(r => r.source === "api-test" && r.event === "view"), "the recorded view shows up split by utm_source");
+
 // ── push: subscribe validates, /api/me shows it, test sends (or says it is not configured), unsubscribe removes
 const keys = { p256dh: Buffer.from([4, ...crypto.getRandomValues(new Uint8Array(64))]).toString("base64url"), auth: Buffer.from(crypto.getRandomValues(new Uint8Array(16))).toString("base64url") };
 const endpoint = "https://fcm.googleapis.com/fcm/send/api-test-" + Date.now();
