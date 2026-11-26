@@ -20,6 +20,21 @@ form.on("change", v => save(v));      // any answer changed
 form.on("submit", v => send(v));      // Submit pressed, no required question empty
 ```
 
+**Layouts.** `Form.from(json, { layout })`: `"list"` (default) shows every question; `"stepper"` shows one at a time with Back, Next and a progress bar (Next stays put on an empty required question, the last step is Submit); `"quiz"` is a stepper where a question may carry `correct`:
+
+```js
+Form.from({ questions: [
+	{ id: "sky", type: "chooseone", label: "Sky?", options: [["red", "Red"], ["blue", "Blue"]], correct: "blue" },
+	{ id: "odd", type: "choosemany", label: "Primes?", options: [["2", "2"], ["4", "4"], ["7", "7"]], correct: ["2", "7"] },
+] }, { layout: "quiz" });
+form.score();    // { right, total, results: { sky: true, odd: false } }, only over questions that have `correct`
+form.reset();    // clear every answer and start again
+```
+
+Finish shows every question again, green or red, with the right answer named under the wrong ones. A checkbox group matches in any order. Stepper, `values()` and `load()` are the same in every layout: all questions stay alive, so nothing is lost going Back.
+
+**`JsonPanel`** (`new JsonPanel({ form })`) shows `form.values()` as JSON, live, and loads pasted JSON back with a Load button.
+
 - `type` is a type id (`"T09"`) or an answer class name (`"Scale7"`, `"scale7"`, `"ShortText"`). `options` is `[[value, label], …]`; any extra `config` key goes to the answer (`config: { markers: "faces" }`).
 - A single answer works alone: `new Scale7({ markers: "faces", input: "slider", step: 0.5 })`, then `answer.value`, `answer.on("change", v => …)`, `answer.empty()`.
 - **Scale7 (−3 … +3) is swappable.** `markers: "numbers" | "faces" | "icons" | "bars"`, `input: "buttons" | "slider"`, `step: 0.5` for a slider, `skip: false` to drop the Skip button. Three distinct states: `null` (not answered), `0` (the middle, an answer) and `"skip"`.
@@ -64,18 +79,22 @@ form.on("submit", v => send(v));      // Submit pressed, no required question em
 - `Answer extends View`: `value` (get and set), `on("change")`, `empty()`, `static type/title/shape/native/use/example`, and the shared builders `one_of`, `many_of`, `field_of`, `range_of`.
 - `answers/<Name>.js`: one class per type, each `extends Answer` (`Chips extends ChooseMany`, `Slider7 extends Scale7`).
 - `Answers`: the registry, `Answers.list`, `.find(key)`, `.make(key, opts)`.
-- `Question extends View`: a `<fieldset>` with a legend, a hint, one answer, and the required flag.
-- `Form extends View`: the questions, `values()`, `load()`, `missing()`, `submit()`, and the `change` and `submit` events.
-- `AnswerCard`, `ScaleLab`: the docs page's live demos only.
+- `Question extends View`: a `<fieldset>` with a legend, a hint, one answer, the required flag, and an optional `correct` value (`right()`, `grade()`).
+- `Form extends View`: the questions, `values()`, `load()`, `missing()`, `submit()`, the `change` and `submit` events, and the layouts (`go()`, `advance()`, `score()`, `reveal()`, `reset()`).
+- `JsonPanel extends View`: the live values box and Load.
+- `AnswerCard`, `ScaleLab`: the docs page's live demos only (`JsonPanel` is a kit part, shown there too).
 
 ## On disk
 
 ```
 ux/Form/
   Answer.js  Answers.js  Question.js  Form.js  Form.css     the kit (all rules in @layer site)
+  JsonPanel.js                                                values as JSON, live, and Load
   answers/*.js                                                the twenty types
   AnswerCard.js  ScaleLab.js  page.js                         the docs page
-  Answer.test.mjs  Form.test.mjs  Scale7.test.mjs  fake-dom.mjs   node tests (node <file>)
+  Answer.test.mjs  Form.test.mjs  Scale7.test.mjs  Layouts.test.mjs  fake-dom.mjs   node tests (node <file>)
+  doc/file/*.md                                               one note per file in page.js's `files:` (the Files tab reads them)
+  doc/files.jsonl  doc/file/files.jsonl  answers/files.jsonl  files.jsonl   folder listings the dev server writes; do not edit
 ```
 
 Nothing is saved to disk by the kit: `values()` is yours to keep.
@@ -83,5 +102,5 @@ Nothing is saved to disk by the kit: `values()` is yours to keep.
 ## More
 
 - The control grammar the answers wear: [/framework/ui/](/framework/ui/).
-- The wizard engine a stepper layout will reuse: [ux/Wizard](/framework/ux/Wizard/).
-- Tests: `node public/framework/ux/Form/Form.test.mjs` (and `Answer`, `Scale7`).
+- The stepper is not built on [ux/Wizard](/framework/ux/Wizard/): a Wizard swaps its steps out, and a form must keep every Question alive (values, Back, a quiz's final review), so a one-line `fm-off` toggle was the simpler fit.
+- Tests: `node public/framework/ux/Form/Form.test.mjs` (and `Answer`, `Scale7`, `Layouts`).

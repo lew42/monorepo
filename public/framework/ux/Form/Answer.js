@@ -82,6 +82,29 @@ export default class Answer extends View {
 
 	same(a, b){ return a !== null && a !== undefined && String(a) === String(b); }
 
+	// Back to the unanswered start (a quiz's "try again").
+	reset(){
+		const start = this.constructor.initial;
+		this.value = Array.isArray(start) ? [...start] : start;
+	}
+
+	// Is `correct` the value? Lists compare in order, except a checkbox group, where order never matters.
+	matches(correct){
+		const v = this.value;
+		if (!Array.isArray(correct)) return this.same(v, correct);
+		if (!Array.isArray(v) || v.length !== correct.length) return false;
+		const a = v.map(String), b = correct.map(String);
+		if (this.many){ a.sort(); b.sort(); }
+		return a.every((x, i) => x === b[i]);
+	}
+
+	// A value as the reader saw it: the option's label when it has one ("+2", "Music"), else the value.
+	say(v){
+		if (Array.isArray(v)) return v.map(x => this.say(x)).join(", ");
+		const hit = (this.pairs ?? this.choices).find(p => this.same(p[0], v));
+		return String(hit ? hit[1] : v);
+	}
+
 	// [[value, label], …] from this.options, else the class's static options. Values keep their type.
 	get choices(){
 		const list = this.options ?? this.constructor.options ?? [];

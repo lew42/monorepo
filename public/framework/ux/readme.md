@@ -10,7 +10,7 @@ Every module here, and what you would use it for.
 - [Course](./Course/) — chapters of lessons with a side rail, a reading column and a next-up card.
 - [Dictate](./Dictate/) — a microphone button that always shows what is happening and what it heard; [every voice and chat surface on one page](./Dictate/surfaces/).
 - [Filter](./Filter/) — a segment row plus a search box that filters several regions at once.
-- [Form](./Form/) — a form from a list: twenty native answer types (a −3 … +3 scale with four looks, sliders, stars, dates, ranking), each storing one plain value; `form.values()` is `{ id: value }`.
+- [Form](./Form/) — a form from a list: twenty native answer types (a −3 … +3 scale with four looks, sliders, stars, dates, ranking), each storing one plain value; `form.values()` is `{ id: value }`; list, stepper and quiz layouts, and a JSON panel.
 - [Inbox](./Inbox/) — a rail of page previews beside the page you picked; it never jumps. The AI page's inbox.
 - [Browse](./Browse/) — one list-and-detail view (a resizable list, the clicked row beside it); `Inbox.Rail` extends it, Sessions and the catalog are next.
 - [Menu](./Menu/) — a dropdown menu that closes after a pick and on an outside click.
