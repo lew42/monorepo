@@ -53,31 +53,30 @@ export class Stats {
 	// Each table sits in a .scroll box, so a narrow phone scrolls the table, never the page.
 	table(...parts){ return el("div", "scroll", el("table", "wrap", ...parts)); }
 
-	// first = null leaves out the group column (the funnel table has none).
-	head(first){
-		const nums = ["Today (UTC)", "7 days", "All time"].map(t => el("th", "num", t));
-		return el("thead", "", el("tr", "", ...(first === null ? [] : [el("th", "", first)]), el("th", "", "Step"), ...nums));
+	head(){
+		return el("thead", "", el("tr", "", el("th", "", "Step"), ...["Today (UTC)", "7 days", "All time"].map(t => el("th", "num", t))));
 	}
 
 	counts(g, e){ return ["today", "week", "all"].map(w => el("td", "num", String(g[w][e] || 0))); }
 
 	funnel_table(events, funnel){
 		return this.table(
-			this.head(null),
+			this.head(),
 			el("tbody", "", ...events.map(e => el("tr", "", el("td", "", e), ...this.counts(funnel, e)))));
 	}
 
-	// Groups every window's rows by the split key (utm_source, or in_app), then one row per event that split saw.
+	// Groups every window's rows by the split key (utm_source, or in_app): a full-width row names the group, then one
+	// row per event it saw. No group column, so every table has the same four columns and fits a 390 screen.
 	split_table(events, windows, key, label = v => v){
 		const groups = new Map();
 		for (const win of ["today", "week", "all"])
 			for (const row of windows[win] || [])
 				(groups.get(row[key]) ?? groups.set(row[key], { today: {}, week: {}, all: {} }).get(row[key]))[win][row.event] = row.n;
 
-		const rows = [...groups.entries()].flatMap(([name, g]) =>
-			events.filter(e => g.today[e] || g.week[e] || g.all[e]).map((e, i) => el("tr", "",
-				el("td", "group", i === 0 ? label(name) : ""), el("td", "", e), ...this.counts(g, e))));
-		return this.table(this.head(key === "source" ? "Source" : ""), el("tbody", "", ...(rows.length ? rows : [el("tr", "", el("td", "", "—"), el("td", ""), el("td", ""), el("td", ""), el("td", ""))])));
+		const rows = [...groups.entries()].flatMap(([name, g]) => [
+			el("tr", "", Object.assign(el("td", "group", label(name)), { colSpan: 4 })),
+			...events.filter(e => g.today[e] || g.week[e] || g.all[e]).map(e => el("tr", "", el("td", "step", e), ...this.counts(g, e)))]);
+		return this.table(this.head(), el("tbody", "", ...(rows.length ? rows : [el("tr", "", Object.assign(el("td", "", "—"), { colSpan: 4 }))])));
 	}
 
 	totals_table(signed_up_users, active_push_subs){
