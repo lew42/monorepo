@@ -65,3 +65,4 @@
 {"file":"Tree/page.js","nav":{"title":"Tree","icon":"account_tree","description":"One tree — expandable, draggable, and it folds itself around what you select."}}
 {"file":"Understand/page.js","nav":{"title":"Understand","icon":"fact_check","description":"A ✓ or ? after every sentence the assistant read — green means clear, yellow opens a clarifying question right there in the flow."}}
 {"file":"Wizard/page.js","nav":{"title":"Name","icon":"checklist","description":"The generic multi-step engine - steps, next/back, a validation gate, keyboard, phone to 3440. Lessons, courses and signup all extend this."}}
+{"file":"Form/page.js","nav":{"title":"Check-in","icon":"fact_check","description":"A form from a list: twenty answer types, each a native control that stores one plain value, collected by id."}}
