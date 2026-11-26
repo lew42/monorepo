@@ -23,6 +23,8 @@
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }, { "tag": "v2", "new_sqlite_classes": ["UserDO"] }],
   "r2_buckets": [{ "binding": "SNAPSHOTS", "bucket_name": "monorepo-local-docs" }],
   "vars": { "ENV_NAME": "local", "DEV_LOGIN": "1", "GOOGLE_CLIENT_ID": "722949407087-g0kagkteln7gifhndpifetv5j2prn5a9.apps.googleusercontent.com", "API_HOSTS": "localhost,127.0.0.1,monorepo.localhost" },
+  // JOIN_RL: /api/join/event, about 60 a minute per cf-connecting-ip (worker/join.js). Absent on production on purpose (not requested).
+  "ratelimits": [{ "name": "JOIN_RL", "namespace_id": "1001", "simple": { "limit": 60, "period": 60 } }],
 
   // R2 snapshots: staging and production get "r2_buckets": [{ "binding": "SNAPSHOTS", "bucket_name": "monorepo-<stage>-docs" }] once R2 is
   // enabled in the Cloudflare dashboard (creating a bucket fails with code 10042 until then). Room skips snapshots when there is no binding.
@@ -36,7 +38,8 @@
       "durable_objects": { "bindings": [{ "name": "ROOM", "class_name": "Room" }, { "name": "USER_DO", "class_name": "UserDO" }] },
       "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }, { "tag": "v2", "new_sqlite_classes": ["UserDO"] }],
       "vars": { "ENV_NAME": "staging", "GOOGLE_CLIENT_ID": "722949407087-g0kagkteln7gifhndpifetv5j2prn5a9.apps.googleusercontent.com", "API_HOSTS": "staging.lew42.com", "PUSH_WEEKLY_TEXT": "New this week: watch part 2", "PUSH_WEEKLY_URL": "/join/" },
-      "triggers": { "crons": ["0 16 * * 1"] }
+      "triggers": { "crons": ["0 16 * * 1"] },
+      "ratelimits": [{ "name": "JOIN_RL", "namespace_id": "1002", "simple": { "limit": 60, "period": 60 } }]
     },
     "production": {
       "name": "monorepo",

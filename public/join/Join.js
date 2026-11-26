@@ -1,6 +1,7 @@
 import { GoogleButton } from "/framework/ux/Auth/GoogleButton.js";
 import { InAppBrowser } from "/framework/ux/Auth/InAppBrowser.js";
 import { JoinState } from "./JoinState.js";
+import { Funnel } from "./Funnel.js";
 
 const el = (tag, cls = "", ...kids) => {
 	const e = document.createElement(tag);
@@ -66,7 +67,11 @@ export class Join {
 			const text = [...(track.track.activeCues || [])].map(c => c.text).join(" ");
 			if (text) this.$caption.textContent = text;
 		});
-		this.$sound = btn("pill sound", "Tap for sound", () => { video.muted = !video.muted; this.$sound.textContent = video.muted ? "Tap for sound" : "Sound on"; });
+		this.$sound = btn("pill sound", "Tap for sound", () => {
+			video.muted = !video.muted;
+			this.$sound.textContent = video.muted ? "Tap for sound" : "Sound on";
+			if (!video.muted) this.funnel.send("video_unmuted");
+		});
 		this.$media.append(video);
 		addEventListener("pointerdown", () => video.paused && video.play().catch(() => {}), { once: true });
 	}
@@ -75,11 +80,16 @@ export class Join {
 
 	async start(backend){
 		this.backend = backend;
+		this.funnel = new Funnel(backend, this.env, this.params);
 		this.$badge.hidden = !backend.mock;
 		if (this.$sound) this.$top.prepend(this.$sound);
 		if ("serviceWorker" in navigator) navigator.serviceWorker.register("/join/sw.js", { scope: "/join/" }).catch(err => this.say(err.message, true));
 		this.google = new GoogleButton({ theme: "dark", on_video: true, client_id: backend.client_id, label: GoogleButton.labels[2] });
 		this.google.el.addEventListener("signin", e => this.signed_in(e.detail.user, e.detail.mock, e.detail.email));
+		// Google's own button lives in a cross-origin iframe, which never bubbles its own click — but a pointerdown that
+		// lands on the iframe's box still fires on this ancestor first, so this is the only tap we can see.
+		this.google.el.addEventListener("pointerdown", () => this.funnel.send("tap_google"), { capture: true });
+		this.funnel.send("view");
 		await this.refresh();
 	}
 
@@ -116,6 +126,7 @@ export class Join {
 			if (!this.backend.mock) return this.say(this.copy.not_set_up, true);
 			this.backend.login(user);
 		}
+		this.funnel.send("signed_in");
 		return this.refresh();
 	}
 
@@ -125,7 +136,7 @@ export class Join {
 		const { copy, backend } = this;
 		return [
 			this.google.el,
-			btn("link", copy.google_note, () => this.inapp_sheet()),
+			btn("link", copy.google_note, () => { this.funnel.send("not_working"); this.inapp_sheet(); }),
 			backend.mode === "test" && btn("pill test", copy.test_signin, () => this.test_signin()),
 		].filter(Boolean);
 	}
@@ -136,7 +147,7 @@ export class Join {
 
 	act_allow(){
 		const { copy } = this;
-		return [btn("main", copy.allow_button, () => this.allow()), el("p", "small", copy.allow_note)];
+		return [btn("main", copy.allow_button, () => { this.funnel.send("tap_allow"); this.allow(); }), el("p", "small", copy.allow_note)];
 	}
 
 	act_done(){
@@ -145,7 +156,7 @@ export class Join {
 	}
 
 	async test_signin(){
-		try { await this.backend.login_test(); await this.refresh(); }
+		try { await this.backend.login_test(); this.funnel.send("signed_in"); await this.refresh(); }
 		catch (err){ this.say(`${this.copy.failed} ${err.message}`, true); }
 	}
 
@@ -170,6 +181,7 @@ export class Join {
 				await backend.subscribe(sub.toJSON());
 			}
 			this.push = true;
+			this.funnel.send("subscribed");
 			this.render();
 		} catch (err){
 			this.say(`${copy.failed} ${err.message}`, true);
@@ -177,6 +189,7 @@ export class Join {
 	}
 
 	async test_push(){
+		this.funnel.send("test_push");
 		this.say("…");
 		try {
 			const res = await this.backend.push_test();
@@ -212,6 +225,7 @@ export class Join {
 	inapp_card(){
 		const { copy, env } = this, url = JoinState.share_url(location.href);
 		const steps = env.ios ? el("ol", "steps", ...copy.inapp_ios.map(s => el("li", "", s))) : null;
+		this.funnel.send("inapp_card_shown");
 		return el("div", "card",
 			el("h2", "", copy.inapp_title),
 			el("p", "", copy.inapp_why),
@@ -219,14 +233,15 @@ export class Join {
 			steps,
 			el("p", "small", copy.inapp_other),
 			el("div", "row",
-				btn("pill dark", copy.copy_link, async e => { await navigator.clipboard?.writeText(url).catch(() => {}); e.target.textContent = copy.copied; }),
-				navigator.share && btn("pill dark", copy.share_link, () => navigator.share({ url, title: document.title }).catch(() => {}))));
+				btn("pill dark", copy.copy_link, async e => { this.funnel.send("copy_link"); await navigator.clipboard?.writeText(url).catch(() => {}); e.target.textContent = copy.copied; }),
+				navigator.share && btn("pill dark", copy.share_link, () => { this.funnel.send("share"); navigator.share({ url, title: document.title }).catch(() => {}); })));
 	}
 
 	inapp_sheet(){ this.sheet(null, this.inapp_card()); }
 
 	ios_sheet(){
 		const { copy } = this;
+		this.funnel.send("ios_sheet_shown");
 		this.sheet(copy.ios_title, el("p", "", copy.ios_why), el("ol", "steps", ...copy.ios_steps.map(s => el("li", "", s))));
 	}
 
@@ -249,7 +264,7 @@ export class Join {
 	}
 
 	async sign_out(close){
-		try { await this.backend.logout(); } catch (err){ this.say(`${this.copy.failed} ${err.message}`, true); }
+		try { await this.backend.logout(); this.funnel.send("signed_out"); } catch (err){ this.say(`${this.copy.failed} ${err.message}`, true); }
 		globalThis.google?.accounts?.id?.disableAutoSelect();
 		close(); await this.refresh();
 	}
@@ -264,6 +279,7 @@ export class Join {
 			await this.unsubscribe().catch(() => {});
 			const email = localStorage.getItem("join-google-email");
 			await this.backend.delete_me();
+			this.funnel.send("deleted");
 			localStorage.removeItem("join-google-email");
 			// Revoking needs the Google SDK initialised, which only a real client id does.
 			if (this.backend.client_id && email) globalThis.google?.accounts?.id?.revoke(email, () => {});
@@ -289,6 +305,7 @@ export class Join {
 		await this.unsubscribe().catch(() => {});
 		globalThis.google?.accounts?.id?.disableAutoSelect();
 		for (const reg of await navigator.serviceWorker?.getRegistrations?.() ?? []) await reg.unregister();
+		Funnel.reset();
 		for (const store of [localStorage, sessionStorage])
 			for (const key of Object.keys(store)) if (key.startsWith("join-")) store.removeItem(key);
 		location.reload();
