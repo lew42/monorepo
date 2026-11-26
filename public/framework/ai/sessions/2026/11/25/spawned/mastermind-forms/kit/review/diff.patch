@@ -1,0 +1,2030 @@
+diff --git a/public/framework/ux/Form/Answer.js b/public/framework/ux/Form/Answer.js
+new file mode 100644
+index 0000000000..4349bb877e
+--- /dev/null
++++ b/public/framework/ux/Form/Answer.js
+@@ -0,0 +1,188 @@
++import View, { div, span, label, input, option } from "../../core/View/View.js";
++import { Property } from "../../core/Property/Property.js";
++
++View.stylesheet(import.meta, "Form.css");
++
++/**
++ * Answer: one native control that holds one typed value. The 20 answer types extend it.
++ *
++ *   const a = new Scale7({ value: -1 });
++ *   a.value                                  // -1
++ *   a.value = 2;                             // the control follows
++ *   a.on("change", (value, answer) => …);    // by the user or by code
++ *   a.empty()                                // true when nothing is answered yet
++ *
++ * A subclass sets `static type / title / shape / native / use / example`, builds its control in
++ * render(), and paints this.value into it in sync(). A touch ends in `this.value = …`, so a click,
++ * a load() and code all take the same road.
++ * ⚠ Options arrive through assign() (`new ChooseOne({ options })`), never class fields: a field
++ * would initialise AFTER render() already ran. Defaults live in statics and getters. doc: readme.md
++ */
++export default class Answer extends View {
++
++	static type = "T00";
++	static title = "Answer";
++	static shape = "any";
++	static native = "";
++	static use = "";
++	static initial = null;                  // the value before anyone answers
++	static example = { label: "A question" };   // what the demo page asks, plus any options
++	static seq = 0;
++
++	get prop(){
++		if (!this._prop){
++			const start = this.constructor.initial;
++			this._prop = new Property(Array.isArray(start) ? [...start] : start);
++		}
++		return this._prop;
++	}
++
++	get value(){ return this.prop.get(); }
++	set value(v){ this.prop.set(this.coerce(v)); }
++
++	coerce(v){ return v === undefined || v === "" ? null : v; }
++
++	empty(){
++		const v = this.value;
++		return v === null || (Array.isArray(v) && !v.some(x => x !== null && x !== undefined));
++	}
++
++	classify(){
++		super.classify();
++		this.ac("fm-answer");
++	}
++
++	initialize(){
++		this.group ??= "fm" + ++Answer.seq;
++		super.initialize();
++		this.prop.on("change", () => this.sync());
++		this.sync();
++	}
++
++	on(event, cb){
++		if (event !== "change") return super.on(event, cb);
++		this.prop.on("change", v => cb.call(this, v, this));
++		return this;
++	}
++
++	// Paint this.value into the control: a radio or checkbox group, or one native field.
++	sync(){
++		const v = this.value;
++		if (this.inputs){
++			this.inputs.forEach((inp, i) => {
++				const val = this.pairs[i][0];
++				inp.el.checked = this.many ? Array.isArray(v) && v.some(x => this.same(x, val)) : this.same(v, val);
++			});
++		}
++		if (this.field){
++			const text = v === null || v === undefined ? "" : String(v);
++			if (this.field.el.value !== text) this.field.el.value = text;
++		}
++	}
++
++	same(a, b){ return a !== null && a !== undefined && String(a) === String(b); }
++
++	// Back to the unanswered start (a quiz's "try again").
++	reset(){
++		const start = this.constructor.initial;
++		this.value = Array.isArray(start) ? [...start] : start;
++	}
++
++	// Is `correct` the value? Lists compare in order, except a checkbox group, where order never matters.
++	matches(correct){
++		const v = this.value;
++		if (!Array.isArray(correct)) return this.same(v, correct);
++		if (!Array.isArray(v) || v.length !== correct.length) return false;
++		const a = v.map(String), b = correct.map(String);
++		if (this.many){ a.sort(); b.sort(); }
++		return a.every((x, i) => x === b[i]);
++	}
++
++	// A value as the reader saw it: the option's label when it has one ("+2", "Music"), else the value.
++	say(v){
++		if (Array.isArray(v)) return v.map(x => this.say(x)).join(", ");
++		const hit = (this.pairs ?? this.choices).find(p => this.same(p[0], v));
++		return String(hit ? hit[1] : v);
++	}
++
++	// [[value, label], …] from this.options, else the class's static options. Values keep their type.
++	get choices(){
++		const list = this.options ?? this.constructor.options ?? [];
++		return list.map(o => Array.isArray(o) ? o : o && typeof o === "object" ? [o.value, o.label ?? o.value] : [o, o]);
++	}
++
++	// A radio group: one label per choice. `cls` is its look (fm-list, fm-seg, fm-chips …).
++	one_of(pairs, cls = "fm-list"){
++		this.many = false;
++		return this.group_of("radio", pairs, cls);
++	}
++
++	// A checkbox group: the value is the ticked values, in option order.
++	many_of(pairs, cls = "fm-list"){
++		this.many = true;
++		return this.group_of("checkbox", pairs, cls);
++	}
++
++	group_of(kind, pairs, cls){
++		this.pairs = pairs;
++		this.inputs = [];
++		return div.c("fm-group " + cls, () => {
++			pairs.forEach(([val, text], i) => {
++				label.c("fm-opt", () => {
++					const inp = input().attr("type", kind).attr("name", this.group).attr("value", String(val));
++					inp.on("change", () => this.touched(i));
++					this.inputs.push(inp);
++					this.face(val, text, i);
++				});
++			});
++		}).attr("role", kind === "radio" ? "radiogroup" : "group");
++	}
++
++	// What one choice looks like inside its label; a subclass overrides it (stars, faces, bars).
++	face(val, text){ return span.c("fm-text", text); }
++
++	touched(i){
++		if (!this.many){
++			if (this.inputs[i].el.checked) this.value = this.pairs[i][0];
++			return;
++		}
++		this.value = this.pairs.filter((_, k) => this.inputs[k].el.checked).map(p => p[0]);
++	}
++
++	// One native field (input or textarea) whose text is the value; coerce() types it.
++	field_of(view){
++		view.ac("fm-field");
++		const commit = () => { this.value = view.el.value; };
++		view.on("input", commit);
++		view.on("change", commit);
++		this.field = view;
++		return view;
++	}
++
++	// A native range with its readout. sync_range() paints it; null means "not touched yet".
++	range_of({ min, max, step = 1, ticks = false, fmt = v => String(v) }){
++		const id = this.group + "-range";
++		this.fmt = fmt;
++		this.readout = new View({ tag: "output" }).ac("fm-readout").attr("for", id).text("–");
++		this.range = input().ac("fm-range fm-untouched").attr("type", "range").attr("id", id)
++			.attr("min", min).attr("max", max).attr("step", step);
++		this.range.el.value = (min + max) / 2;   // the browser clamps its own default to a late-set max (3, not 0)
++		if (ticks){
++			this.range.attr("list", id + "-ticks");
++			new View({ tag: "datalist" }).attr("id", id + "-ticks").append(() => {
++				for (let v = min; v <= max; v += 1) option().attr("value", v);
++			});
++		}
++		const commit = () => { this.value = Number(this.range.el.value); };
++		["input", "change", "pointerup"].forEach(e => this.range.on(e, commit));
++		return this.range;
++	}
++
++	sync_range(){
++		if (!this.range) return;
++		const v = this.value, number = typeof v === "number";
++		if (number && Number(this.range.el.value) !== v) this.range.el.value = v;
++		if (number) this.range.rc("fm-untouched"); else this.range.ac("fm-untouched");
++		this.readout.text(number ? this.fmt(v) : v === "skip" ? "skipped" : "–");
++	}
++}
+diff --git a/public/framework/ux/Form/Answer.test.mjs b/public/framework/ux/Form/Answer.test.mjs
+new file mode 100644
+index 0000000000..ef8f372349
+--- /dev/null
++++ b/public/framework/ux/Form/Answer.test.mjs
+@@ -0,0 +1,56 @@
++// Answer core: value, change, empty, and the radio group road. Node: node public/framework/ux/Form/Answer.test.mjs
++import { install, choose, type } from "./fake-dom.mjs";
++install();
++const { test } = await import("../../core/Test/Test.js");
++const { default: Answer } = await import("./Answer.js");
++const { default: ChooseOne } = await import("./answers/ChooseOne.js");
++const { default: ChooseMany } = await import("./answers/ChooseMany.js");
++const { default: ShortText } = await import("./answers/ShortText.js");
++
++const radios = a => a.el.find(e => e.tag === "input");
++
++test("an Answer starts empty, holds a value, and says change once per change", t => {
++	const a = new Answer();
++	const seen = [];
++	a.on("change", v => seen.push(v));
++	t.ok(a.empty(), "nothing answered yet");
++	a.value = "x";
++	a.value = "x";
++	a.value = "y";
++	t.eq(seen, ["x", "y"], "the same value twice is one change");
++	t.ok(!a.empty(), "now answered");
++	a.value = "";
++	t.eq(a.value, null, "an empty string is not an answer: it is null");
++});
++
++test("ChooseOne: a click stores the option's value, code can set it, the radio follows", t => {
++	const a = new ChooseOne({ options: [["a", "Alpha"], ["b", "Beta"]] });
++	const [ra, rb] = radios(a);
++	choose(rb);
++	t.eq(a.value, "b", "click stores b");
++	a.value = "a";
++	t.ok(ra.checked && !rb.checked, "the radios follow a value set from code");
++	t.eq(new ChooseOne({ options: ["x", "y"], value: "y" }).value, "y", "a value can arrive in the constructor");
++});
++
++test("ChooseMany: the value is the ticked values in option order", t => {
++	const a = new ChooseMany({ options: [["m", "Music"], ["c", "Code"], ["t", "Talks"]] });
++	t.eq(a.value, [], "starts as an empty list, not null");
++	t.ok(a.empty(), "an empty list is empty");
++	const [m, c, tk] = radios(a);
++	choose(tk); choose(m);
++	t.eq(a.value, ["m", "t"], "option order, not click order");
++	choose(tk, false);
++	t.eq(a.value, ["m"], "unticking removes it");
++});
++
++test("ShortText: typing stores the string, empty is null", t => {
++	const a = new ShortText();
++	const [field] = radios(a);
++	type(field, "calm");
++	t.eq(a.value, "calm", "typed text is the value");
++	type(field, "");
++	t.eq(a.value, null, "cleared text is null, so required can see it");
++	a.value = "back";
++	t.eq(field.value, "back", "the field follows code");
++});
+diff --git a/public/framework/ux/Form/AnswerCard.js b/public/framework/ux/Form/AnswerCard.js
+new file mode 100644
+index 0000000000..e47fdfa52b
+--- /dev/null
++++ b/public/framework/ux/Form/AnswerCard.js
+@@ -0,0 +1,36 @@
++import View, { div, span, p, pre } from "../../core/View/View.js";
++import Question from "./Question.js";
++import "./Answer.js";
++
++/**
++ * AnswerCard: one answer type on the docs page: its id and name, a live question, the value it stores
++ * (as JSON, updating as you answer), and the native element behind it.
++ *   new AnswerCard({ answer: Scale7 })      // the class, not an instance
++ */
++export default class AnswerCard extends View {
++
++	classify(){
++		super.classify();
++		this.ac("fm-card");
++	}
++
++	render(){
++		const A = this.answer;
++		const ex = A.example ?? {};
++		div.c("fm-card-head", () => {
++			span.c("fm-card-id", A.type);
++			span.c("fm-card-name", A.title);
++		});
++		const q = new Question({ type: A.type, label: ex.label, hint: ex.hint, options: ex.options, config: ex.config });
++		const json = pre.c("fm-json", "");
++		const show = () => json.text(JSON.stringify(q.value));
++		q.answer.on("change", show);
++		show();
++		p.c("fm-card-meta", () => {
++			span(`stores ${A.shape}`);
++			span(` · native ${A.native}`);
++			if (A.use) span(` · ${A.use}`);
++		});
++		this.question = q;
++	}
++}
+diff --git a/public/framework/ux/Form/Answers.js b/public/framework/ux/Form/Answers.js
+new file mode 100644
+index 0000000000..ef434d2533
+--- /dev/null
++++ b/public/framework/ux/Form/Answers.js
+@@ -0,0 +1,47 @@
++import YesNo from "./answers/YesNo.js";
++import Toggle from "./answers/Toggle.js";
++import ChooseOne from "./answers/ChooseOne.js";
++import Dropdown from "./answers/Dropdown.js";
++import ChooseMany from "./answers/ChooseMany.js";
++import Chips from "./answers/Chips.js";
++import Frequency from "./answers/Frequency.js";
++import Agreement from "./answers/Agreement.js";
++import Scale7 from "./answers/Scale7.js";
++import Slider7 from "./answers/Slider7.js";
++import Slider100 from "./answers/Slider100.js";
++import Likelihood from "./answers/Likelihood.js";
++import Stars from "./answers/Stars.js";
++import NumberAnswer from "./answers/NumberAnswer.js";
++import DateAnswer from "./answers/DateAnswer.js";
++import TimeAnswer from "./answers/TimeAnswer.js";
++import ShortText from "./answers/ShortText.js";
++import LongText from "./answers/LongText.js";
++import RankTop3 from "./answers/RankTop3.js";
++import Emoji from "./answers/Emoji.js";
++
++/**
++ * The 20 answer classes in type order (T01 … T20), and how a question's `type` finds one.
++ *   Answers.find("T09") · find("scale7") · find("Scale7") · find("number")   // the class
++ *   Answers.make("stars", { value: 4 })                                       // an instance
++ * A key matches the type id or the class name, case and punctuation ignored, "Answer" suffix optional.
++ */
++export default class Answers {
++
++	static list = [YesNo, Toggle, ChooseOne, Dropdown, ChooseMany, Chips, Frequency, Agreement, Scale7, Slider7,
++		Slider100, Likelihood, Stars, NumberAnswer, DateAnswer, TimeAnswer, ShortText, LongText, RankTop3, Emoji];
++
++	static norm(key){
++		return String(key).toLowerCase().replace(/[^a-z0-9]/g, "").replace(/answer$/, "");
++	}
++
++	static find(key){
++		const k = Answers.norm(key);
++		return Answers.list.find(A => Answers.norm(A.type) === k || Answers.norm(A.name) === k);
++	}
++
++	static make(key, opts = {}){
++		const A = Answers.find(key);
++		if (!A) throw new Error(`Form: no answer type "${key}"`);
++		return new A(opts);
++	}
++}
+diff --git a/public/framework/ux/Form/Form.css b/public/framework/ux/Form/Form.css
+new file mode 100644
+index 0000000000..bdc7de65a6
+--- /dev/null
++++ b/public/framework/ux/Form/Form.css
+@@ -0,0 +1,152 @@
++/* ux/Form: every rule is in @layer site and reads the framework's own tokens (--prime, --line, --fill-*, --subtle, --ok, --error).
++   Bare button / select / input / textarea already wear the control grammar; this file only adds the shapes it has no word for.
++   Inputs are 16px or more (iOS zooms below that) and every tap target is 44px or more. Doc: readme.md. */
++@layer site {
++
++	/* The framework has no token for the ink on --prime: button.prim and .bg-prime both write the literal. One name here, same value. */
++	.fm-form, .fm-answer { --fm-on-prime: #1a1a1a; }
++	.fm-form { display: flex; flex-direction: column; gap: 1.5rem; }
++	.fm-title { margin: 0; }
++	.fm-questions { display: flex; flex-direction: column; gap: 1.5rem; }
++	.fm-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
++	.fm-actions button { min-height: 48px; padding-inline: 2rem; font-size: max(16px, 1em); }
++	.fm-status { margin: 0; color: var(--subtle); }
++
++	/* Question: a fieldset, so a radio group is announced with its label */
++	.fm-question { border: 0; margin: 0; padding: 0; min-width: 0; }
++	.fm-question.fm-missing { outline: 2px solid var(--error); outline-offset: 0.5rem; border-radius: var(--radius); }
++	.fm-label { padding: 0; margin-bottom: 0.5rem; font-weight: 700; font-size: max(16px, 1em); line-height: 1.4; }
++	.fm-req { color: var(--error); margin-inline-start: 0.25em; }
++	.fm-hint { margin: -0.25rem 0 0.5rem; font-size: 0.875rem; color: var(--subtle); }
++
++	.fm-answer { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
++	.fm-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
++
++	/* native text fields */
++	.fm-answer .fm-field { width: 100%; min-height: 48px; font-size: max(16px, 1em); }
++	.fm-answer textarea.fm-field { min-height: 7rem; resize: vertical; }
++
++	/* radio and checkbox groups: the real input is the first child of its label */
++	.fm-group { display: flex; gap: 0.5rem; }
++	.fm-opt { position: relative; display: flex; align-items: center; justify-content: center; min-height: 44px; cursor: pointer; box-sizing: border-box; }
++	.fm-opt > input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
++	.fm-opt:has(input:focus-visible) { outline: 2px solid var(--prime); outline-offset: 2px; }
++
++	/* list: a visible native radio or checkbox in a bordered row */
++	.fm-list { flex-direction: column; }
++	.fm-list .fm-opt { justify-content: flex-start; gap: 0.75rem; min-height: 52px; padding: 0.5rem 0.875rem; font-size: max(16px, 1em);
++		border: 1px solid var(--fill-a32); border-radius: var(--radius); background-color: var(--fill-a04); }
++	.fm-list .fm-opt > input { position: static; flex: none; width: 22px; height: 22px; opacity: 1; accent-color: var(--prime); }
++	.fm-list .fm-opt:has(input:checked) { border-color: var(--prime); background-color: color-mix(in srgb, var(--prime) 14%, transparent); }
++
++	/* seg: equal buttons in one row; selected = solid --prime */
++	.fm-seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0.25rem; }
++	.fm-seg .fm-opt { min-height: 48px; padding: 0.25rem 0.125rem; text-align: center; font-weight: 600; font-size: max(16px, 1em); line-height: 1.2;
++		border: 1px solid var(--fill-a32); border-radius: var(--radius); background-color: var(--fill-a08); }
++	.fm-seg .fm-opt:hover { border-color: var(--prime); }
++	.fm-seg .fm-opt:has(input:checked) { background-color: var(--prime); border-color: var(--prime); color: var(--fm-on-prime); }
++	.fm-words .fm-opt { font-size: 0.75rem; padding-inline: 0; overflow-wrap: normal; hyphens: none; }
++	.fm-wrap { grid-auto-flow: row; grid-template-columns: repeat(6, 1fr); }
++
++	/* chips */
++	.fm-chips { flex-wrap: wrap; }
++	.fm-chips .fm-opt { min-height: 44px; padding: 0 1rem; font-size: max(16px, 1em); border: 1px solid var(--fill-a32); border-radius: 999px; background-color: var(--fill-a08); }
++	.fm-chips .fm-opt:has(input:checked) { background-color: var(--prime); border-color: var(--prime); color: var(--fm-on-prime); font-weight: 600; }
++
++	/* Scale7: seven buttons, then one line of end words under -3, 0 and +3 */
++	.fm-scale { grid-template-columns: repeat(7, 1fr); grid-auto-flow: row; }
++	.fm-scale .fm-opt { padding: 0; }
++	.fm-ends { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0 0.25rem; font-size: 0.75rem; line-height: 1.3; color: var(--subtle); }
++	.fm-ends .fm-lo { grid-column: 1 / 3; text-align: start; }
++	.fm-ends .fm-mid { grid-column: 3 / 6; text-align: center; }
++	.fm-ends .fm-hi { grid-column: 6 / 8; text-align: end; }
++	.fm-ends.fm-two { grid-template-columns: 1fr 1fr; }
++	.fm-ends.fm-two .fm-lo { grid-column: 1; }
++	.fm-ends.fm-two .fm-hi { grid-column: 2; }
++	.fm-skip { align-self: flex-start; min-height: 44px; font-size: 0.875rem; }
++	.fm-skip.on { border-color: var(--prime); background-color: color-mix(in srgb, var(--prime) 14%, transparent); }
++
++	/* the four marker sets */
++	.fm-num { font-variant-numeric: tabular-nums; }
++	.fm-face { font-size: 1.625rem; line-height: 1; }
++	.fm-icon { font-size: calc(0.875rem + var(--k, 0) * 0.3rem); line-height: 1; }
++	.fm-flip { display: inline-block; transform: scaleY(-1); }
++	.fm-bar { display: block; width: 0.625rem; height: var(--h, 3px); border-radius: 2px; background: var(--subtle); }
++	.fm-bar.fm-bad { background: var(--error); }
++	.fm-bar.fm-good { background: var(--ok); }
++	.fm-bars .fm-opt:has(input:checked) { background-color: color-mix(in srgb, var(--prime) 14%, transparent); }
++
++	/* sliders: native range, a big readout above */
++	.fm-readout { font-size: 2rem; font-weight: 800; line-height: 1.1; text-align: center; font-variant-numeric: tabular-nums; }
++	.fm-range { width: 100%; min-height: 44px; margin: 0; accent-color: var(--prime); cursor: pointer; }
++	.fm-range.fm-untouched { opacity: 0.55; }
++
++	/* stars: the lit run is the checked star and every star before it */
++	.fm-stars { gap: 0.125rem; }
++	.fm-stars .fm-opt { min-width: 44px; }
++	.fm-star { font-size: 2rem; line-height: 1; color: var(--fill-a32); }
++	.fm-stars .fm-opt:has(input:checked) .fm-star,
++	.fm-stars .fm-opt:has(~ .fm-opt input:checked) .fm-star { color: var(--prime); }
++
++	/* emoji: selected gets a ring, not a solid fill, so the emoji stays visible */
++	.fm-emoji { font-size: 1.75rem; line-height: 1; }
++	.fm-emojis .fm-opt:has(input:checked) { background-color: color-mix(in srgb, var(--prime) 14%, transparent); border-color: var(--prime); color: inherit; }
++
++	/* switch */
++	.fm-switch { position: relative; display: flex; align-items: center; gap: 0.75rem; min-height: 44px; cursor: pointer; }
++	.fm-switch > input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
++	.fm-track { position: relative; flex: none; width: 52px; height: 32px; border-radius: 999px; background: var(--fill-a32); transition: background 0.15s; }
++	.fm-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 28px; height: 28px; border-radius: 50%; background: var(--surface); box-shadow: var(--shadow); transition: transform 0.15s; }
++	.fm-switch:has(input:checked) .fm-track { background: var(--prime); }
++	.fm-switch:has(input:checked) .fm-track::after { transform: translateX(20px); }
++	.fm-switch:has(input:focus-visible) .fm-track { outline: 2px solid var(--prime); outline-offset: 2px; }
++
++	/* number with - and + */
++	.fm-number { display: grid; grid-template-columns: 48px 1fr 48px; gap: 0.5rem; }
++	.fm-number .fm-field { text-align: center; }
++	.fm-step { min-height: 48px; padding: 0; font-size: 1.25rem; }
++
++	/* rank top 3 */
++	.fm-rank { display: flex; flex-direction: column; gap: 0.5rem; }
++	.fm-rank-row { display: grid; grid-template-columns: 3rem 1fr; align-items: center; gap: 0.5rem; }
++	.fm-rank-n { font-weight: 700; }
++
++	/* stepper and quiz */
++	.fm-nav { display: flex; flex-direction: column; gap: 0.75rem; }
++	.fm-count { font-size: 0.875rem; color: var(--subtle); font-variant-numeric: tabular-nums; }
++	.fm-nav progress { width: 100%; height: 0.5rem; accent-color: var(--prime); }
++	.fm-actions button:disabled { opacity: 0.4; cursor: default; }
++	.fm-question.fm-right { outline: 2px solid var(--ok); outline-offset: 0.5rem; border-radius: var(--radius); }
++	.fm-question.fm-wrong { outline: 2px solid var(--error); outline-offset: 0.5rem; border-radius: var(--radius); }
++	.fm-key { margin: 0.5rem 0 0; font-size: 0.875rem; font-weight: 600; }
++	.fm-right .fm-key { color: var(--ok); }
++	.fm-wrong .fm-key { color: var(--error); }
++	.fm-score { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; padding: 1rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--fill-a04); }
++	.fm-score-line { margin: 0; font-size: 1.25rem; font-weight: 800; }
++	.fm-score button { min-height: 48px; padding-inline: 2rem; font-size: max(16px, 1em); }
++
++	/* the JSON panel: values() live, paste JSON to load */
++	.fm-json-panel { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
++	.fm-json-panel h3 { margin: 0; font-size: 1rem; }
++	.fm-code { min-height: 12rem; font-family: var(--mono); font-size: max(16px, 0.875rem); white-space: pre; overflow: auto; resize: vertical; }
++	.fm-code.fm-bad { border-color: var(--error); }
++	.fm-json-panel .fm-status.fm-bad { color: var(--error); }
++	.fm-json-panel button { align-self: flex-start; min-height: 48px; padding-inline: 2rem; }
++
++	/* the demo page: a card per answer type */
++	.fm-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); gap: 1rem; }
++	.fm-card { display: flex; flex-direction: column; gap: 1rem; min-width: 0; padding: 1rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
++	.fm-card-head { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
++	.fm-card-id { font-family: var(--mono); font-size: 0.75rem; font-weight: 700; color: var(--prime-ink); }
++	.fm-card-name { font-weight: 700; }
++	.fm-json { margin: 0; padding: 0.5rem 0.75rem; overflow-x: auto; border-radius: var(--radius); background: var(--wash); color: var(--ink); font-family: var(--mono); font-size: 0.75rem; white-space: pre-wrap; overflow-wrap: anywhere; }
++	.fm-card-meta { margin: 0; font-size: 0.75rem; color: var(--subtle); }
++	.fm-lab { display: flex; flex-direction: column; gap: 1rem; max-width: 40rem; }
++	.fm-look { display: flex; gap: 0.75rem; flex-wrap: wrap; }
++	.fm-pick { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.75rem; color: var(--subtle); }
++	.fm-pick select { width: auto; min-height: 44px; font-size: max(16px, 1em); }
++	.fm-demo-split { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1.5rem; align-items: start; max-width: 60rem; }
++
++	/* last, so it beats every display: set above (the stepper's nav, the quiz's score box) */
++	.fm-off { display: none; }
++}
+diff --git a/public/framework/ux/Form/Form.js b/public/framework/ux/Form/Form.js
+new file mode 100644
+index 0000000000..8679d0231e
+--- /dev/null
++++ b/public/framework/ux/Form/Form.js
+@@ -0,0 +1,173 @@
++import View, { div, h3, p, span, button, progress } from "../../core/View/View.js";
++import { Property } from "../../core/Property/Property.js";
++import Question from "./Question.js";
++
++/**
++ * Form: a list of Questions that reads and writes one plain object.
++ *   const form = Form.from({ title: "Check-in", questions: [{ id: "intro", type: "T09", label: "How was the intro?" }] });
++ *   form.values()                      // { intro: null }   (-3..3, 0, "skip" or null for a Scale7)
++ *   form.load({ intro: 2 })            // sets answers by id; unknown ids are ignored
++ *   form.on("change", values => …)     // any answer changed
++ *   form.on("submit", values => …)     // Submit pressed and no required question is empty
++ * `layout`: "list" (default) shows every question in a column; "stepper" shows one at a time with Back, Next and a
++ * progress bar; "quiz" is a stepper whose questions may carry a `correct` value, ending in a score. Doc: readme.md.
++ */
++export default class Form extends View {
++
++	static layouts = ["list", "stepper", "quiz"];
++
++	// json: { title?, questions: [{ id, type, label, hint?, required?, options?, config? }] } or just the array.
++	static from(json, opts = {}){
++		const list = Array.isArray(json) ? json : json.questions;
++		return new Form({ title: Array.isArray(json) ? undefined : json.title, ...opts, questions: list });
++	}
++
++	get changes(){ return this._changes ??= new Property(0); }
++	get sent(){ return this._sent ??= new Property(null); }
++
++	on(event, cb){
++		if (event === "change") this.changes.on("change", () => cb.call(this, this.values(), this));
++		else if (event === "submit") this.sent.on("change", v => cb.call(this, v, this));
++		else return super.on(event, cb);
++		return this;
++	}
++
++	classify(){
++		super.classify();
++		this.ac("fm-form");
++	}
++
++	get stepping(){ return this.layout === "stepper" || this.layout === "quiz"; }
++	get quiz(){ return this.layout === "quiz"; }
++
++	initialize(){
++		this.items = [];
++		this.index = 0;
++		this.finished = false;
++		super.initialize();
++	}
++
++	render(){
++		if (this.title) h3.c("fm-title", this.title);
++		div.c("fm-questions", box => {
++			(this.questions ?? []).forEach(q => {
++				const item = q instanceof Question ? box.append(q) && q : new Question(q);
++				item.answer.on("change", () => this.changes.set(this.changes.get() + 1));
++				this.items.push(item);
++			});
++		});
++		if (this.stepping) this.nav(); else this.actions();
++		if (this.quiz) this.score_box = div.c("fm-score fm-off");
++		if (this.stepping) this.show();
++	}
++
++	actions(){
++		div.c("fm-actions", () => {
++			this.status = p.c("fm-status", "");
++			button.c("prim", this.submit_text ?? "Submit").attr("type", "button").click(() => this.submit());
++		});
++	}
++
++	// stepper and quiz: the progress line, the bar, Back and Next (Next is Submit on the last question)
++	nav(){
++		this.nav_box = div.c("fm-nav", () => {
++			this.count = span.c("fm-count", "");
++			this.bar = progress.c("fm-bar-progress").attr("max", this.items.length);
++			div.c("fm-actions", () => {
++				this.back_btn = button("Back").attr("type", "button").click(() => this.go(this.index - 1));
++				this.next_btn = button.c("prim", "").attr("type", "button").click(() => this.advance());
++				this.status = p.c("fm-status", "");
++			});
++		});
++	}
++
++	// Show question i and hide the rest; every Question stays alive, so no answer is lost on the way.
++	go(i){
++		this.index = Math.max(0, Math.min(this.items.length - 1, i));
++		return this.show();
++	}
++
++	show(){
++		this.items.forEach((q, i) => { if (this.finished || i === this.index) q.rc("fm-off"); else q.ac("fm-off"); });
++		const last = this.index === this.items.length - 1;
++		this.count.text(`Question ${this.index + 1} of ${this.items.length}`);
++		this.bar.attr("value", this.index + 1);
++		this.back_btn.el.disabled = this.index === 0;
++		this.next_btn.text(last ? (this.quiz ? "Finish" : this.submit_text ?? "Submit") : "Next");
++		return this;
++	}
++
++	// Next: stay on a required question that is still empty, else move on; on the last one, submit.
++	advance(){
++		const q = this.items[this.index];
++		if (q.missing()){
++			q.flag(true);
++			this.status.text("Please answer this one.");
++			return false;
++		}
++		this.status.text("");
++		if (this.index < this.items.length - 1){ this.go(this.index + 1); return true; }
++		return this.submit();
++	}
++
++	// { right, total, results: { id: true|false } } over the questions that have a `correct`.
++	score(){
++		const graded = this.items.filter(q => q.graded());
++		return { right: graded.filter(q => q.right()).length, total: graded.length, results: Object.fromEntries(graded.map(q => [q.id, q.right()])) };
++	}
++
++	// The quiz ends: every question is shown again, graded, under the score.
++	reveal(){
++		const { right, total } = this.score();
++		this.finished = true;
++		this.nav_box.ac("fm-off");
++		this.items.forEach(q => q.grade(true));
++		this.score_box.empty(() => {
++			p.c("fm-score-line", `You got ${right} of ${total} right.`);
++			button.c("prim", "Try again").attr("type", "button").click(() => this.reset());
++		}).rc("fm-off");
++		return this.show();
++	}
++
++	// Clear every answer and go back to the first question.
++	reset(){
++		this.finished = false;
++		this.items.forEach(q => { q.answer.reset(); q.flag(false); q.grade(false); });
++		this.nav_box?.rc("fm-off");
++		this.score_box?.ac("fm-off");
++		this.status?.text("");
++		return this.stepping ? this.go(0) : this;
++	}
++
++	question(id){ return this.items.find(q => q.id === id); }
++
++	values(){
++		return Object.fromEntries(this.items.map(q => [q.id, q.value]));
++	}
++
++	load(values = {}){
++		for (const [id, v] of Object.entries(values)){
++			const q = this.question(id);
++			if (q) q.value = v;
++		}
++		return this;
++	}
++
++	// The ids of the required questions still empty.
++	missing(){
++		return this.items.filter(q => q.missing()).map(q => q.id);
++	}
++
++	submit(){
++		const missing = this.missing();
++		this.items.forEach(q => q.flag(missing.includes(q.id)));
++		if (missing.length){
++			this.status.text(`Please answer: ${missing.length} required.`);
++			if (this.stepping) this.go(this.items.findIndex(q => missing.includes(q.id)));
++			return false;
++		}
++		if (this.quiz) this.reveal(); else this.status.text("Thanks, sent.");
++		this.sent.set({ ...this.values() });
++		return true;
++	}
++}
+diff --git a/public/framework/ux/Form/Form.test.mjs b/public/framework/ux/Form/Form.test.mjs
+new file mode 100644
+index 0000000000..325f7ffa69
+--- /dev/null
++++ b/public/framework/ux/Form/Form.test.mjs
+@@ -0,0 +1,57 @@
++// Form core: build from JSON, values(), load(), required, change and submit. Node: node public/framework/ux/Form/Form.test.mjs
++import { install, choose, type } from "./fake-dom.mjs";
++install();
++const { test } = await import("../../core/Test/Test.js");
++const { default: Form } = await import("./Form.js");
++const { default: Answers } = await import("./Answers.js");
++
++const json = {
++	title: "Check-in",
++	questions: [
++		{ id: "intro", type: "T09", label: "How was the intro?", required: true },
++		{ id: "how", type: "chooseone", label: "How?", options: [["a", "A"], ["b", "B"]] },
++		{ id: "word", type: "ShortText", label: "One word" },
++	],
++};
++
++test("Answers.find reads a type id or a class name", t => {
++	t.eq(Answers.find("T09").name, "Scale7", "by id");
++	t.eq(Answers.find("scale7").name, "Scale7", "by lower-case name");
++	t.eq(Answers.find("number").name, "NumberAnswer", "the Answer suffix is optional");
++	t.eq(Answers.list.length, 20, "twenty types");
++});
++
++test("Form.from builds the questions; values() starts all null, in question order", t => {
++	const form = Form.from(json);
++	t.eq(Object.keys(form.values()), ["intro", "how", "word"], "one key per question id");
++	t.eq(Object.values(form.values()), [null, null, null], "nothing answered");
++});
++
++test("load() sets answers by id and ignores unknown ids; values() reads them back", t => {
++	const form = Form.from(json);
++	form.load({ intro: -2, how: "b", word: "calm", nope: 1 });
++	t.eq(form.values(), { intro: -2, how: "b", word: "calm" }, "round trip");
++});
++
++test("a user's click lands in values() and fires change", t => {
++	const form = Form.from(json);
++	const seen = [];
++	form.on("change", v => seen.push(v.how));
++	const radios = form.question("how").el.find(e => e.tag === "input");
++	choose(radios[1]);
++	t.eq(form.values().how, "b", "the click is in values()");
++	t.eq(seen, ["b"], "change fired with the new values");
++});
++
++test("submit refuses while a required question is empty, then sends the values", t => {
++	const form = Form.from(json);
++	const sent = [];
++	form.on("submit", v => sent.push(v));
++	t.eq(form.missing(), ["intro"], "only the required one is missing");
++	t.ok(!form.submit(), "refused");
++	t.ok(form.question("intro").el.classList.contains("fm-missing"), "the question is flagged");
++	form.load({ intro: 0 });
++	t.eq(form.missing(), [], "0 is an answer, not empty");
++	t.ok(form.submit(), "accepted");
++	t.eq(sent[0].intro, 0, "submit carried the values");
++});
+diff --git a/public/framework/ux/Form/JsonPanel.js b/public/framework/ux/Form/JsonPanel.js
+new file mode 100644
+index 0000000000..a23d328c89
+--- /dev/null
++++ b/public/framework/ux/Form/JsonPanel.js
+@@ -0,0 +1,50 @@
++import View, { div, h3, p, button, textarea } from "../../core/View/View.js";
++
++View.stylesheet(import.meta, "Form.css");
++
++/**
++ * JsonPanel: a form's values as JSON, live, and a place to paste JSON back in.
++ *   new JsonPanel({ form })     // the box follows form.values(); Load puts the pasted object into the form
++ * Doc: readme.md.
++ */
++export default class JsonPanel extends View {
++
++	classify(){
++		super.classify();
++		this.ac("fm-json-panel");
++	}
++
++	render(){
++		h3(this.title ?? "form.values()");
++		this.box = textarea.c("fm-field fm-code", "").attr("spellcheck", "false").attr("aria-label", "The form's values as JSON");
++		button.c("prim", "Load").attr("type", "button").click(() => this.load());
++		this.status = p.c("fm-status", "");
++		this.form.on("change", () => this.show());
++		this.show();
++	}
++
++	show(){
++		this.box.el.value = JSON.stringify(this.form.values(), null, 2);
++		this.box.rc("fm-bad");
++		return this;
++	}
++
++	// Parse the box, put the object into the form, say what happened.
++	load(){
++		let data;
++		try { data = JSON.parse(this.box.el.value); }
++		catch (e){ return this.fail("Not valid JSON: " + e.message); }
++		if (!data || typeof data !== "object" || Array.isArray(data)) return this.fail('Expected an object like { "intro": 2 }.');
++		const ignored = Object.keys(data).filter(id => !this.form.question(id));
++		this.form.load(data);
++		this.show();
++		this.status.rc("fm-bad").text(ignored.length ? `Loaded. Ignored unknown ids: ${ignored.join(", ")}.` : "Loaded.");
++		return true;
++	}
++
++	fail(message){
++		this.box.ac("fm-bad");
++		this.status.ac("fm-bad").text(message);
++		return false;
++	}
++}
+diff --git a/public/framework/ux/Form/Layouts.test.mjs b/public/framework/ux/Form/Layouts.test.mjs
+new file mode 100644
+index 0000000000..e7b1a2a869
+--- /dev/null
++++ b/public/framework/ux/Form/Layouts.test.mjs
+@@ -0,0 +1,90 @@
++// Stepper, quiz and JsonPanel. Node: node public/framework/ux/Form/Layouts.test.mjs
++import { install, choose, type } from "./fake-dom.mjs";
++install();
++const { test } = await import("../../core/Test/Test.js");
++const { default: Form } = await import("./Form.js");
++const { default: JsonPanel } = await import("./JsonPanel.js");
++
++const questions = () => [
++	{ id: "a", type: "T09", label: "A", required: true },
++	{ id: "b", type: "chooseone", label: "B", options: [["x", "X"], ["y", "Y"]], correct: "y" },
++	{ id: "c", type: "choosemany", label: "C", options: [["1", "1"], ["2", "2"], ["3", "3"]], correct: ["3", "1"] },
++];
++const shown = form => form.items.filter(q => !q.el.classList.contains("fm-off")).map(q => q.id);
++
++test("a stepper shows one question and Next stops on an empty required one", t => {
++	const form = new Form({ layout: "stepper", questions: questions() });
++	t.eq(shown(form), ["a"], "only the first is shown");
++	t.eq(form.next_btn.el.textContent, "Next", "Next, not Submit");
++	t.ok(form.back_btn.el.disabled, "Back is off on the first");
++	t.ok(!form.advance(), "refused while a is empty");
++	t.eq(form.index, 0, "still on the first");
++	form.load({ a: 0 });
++	t.ok(form.advance(), "0 is an answer, so it moves on");
++	t.eq(shown(form), ["b"], "the second is shown");
++	t.ok(!form.back_btn.el.disabled, "Back is on");
++	form.go(0);
++	t.eq(form.values().a, 0, "going back keeps the answer");
++});
++
++test("the last stepper step is Submit; it sends the values and the form says thanks", t => {
++	const form = new Form({ layout: "stepper", questions: questions() });
++	const sent = [];
++	form.on("submit", v => sent.push(v));
++	form.load({ a: 1 });
++	form.go(2);
++	t.eq(form.next_btn.el.textContent, "Submit", "last step");
++	t.ok(form.advance(), "submitted");
++	t.eq(sent[0].a, 1, "values were sent");
++	t.eq(form.count.el.textContent, "Question 3 of 3", "progress line");
++});
++
++test("submit from a stepper jumps to the first missing required question", t => {
++	const form = new Form({ layout: "stepper", questions: questions() });
++	form.go(2);
++	t.ok(!form.submit(), "refused");
++	t.eq(form.index, 0, "back on the empty required one");
++});
++
++test("a quiz grades only the questions with a correct value, and scores them", t => {
++	const form = new Form({ layout: "quiz", questions: [...questions(), { id: "d", type: "shorttext", label: "D" }] });
++	form.load({ a: 0, b: "y", c: ["1", "3"] });
++	t.eq(form.score(), { right: 2, total: 2, results: { b: true, c: true } }, "d has no correct: not counted; checkbox order never matters");
++	form.load({ c: ["1"] });
++	t.eq(form.score().results.c, false, "a partial list is wrong");
++});
++
++test("finishing a quiz shows every question graded and a score; Try again clears it", t => {
++	const form = new Form({ layout: "quiz", questions: questions() });
++	form.load({ a: 0, b: "x", c: ["1", "3"] });
++	form.go(2);
++	t.eq(form.next_btn.el.textContent, "Finish", "the last step says Finish");
++	t.ok(form.advance(), "finished");
++	t.eq(shown(form), ["a", "b", "c"], "all shown again");
++	t.ok(form.question("b").el.classList.contains("fm-wrong"), "b is red");
++	t.ok(form.question("c").el.classList.contains("fm-right"), "c is green");
++	t.ok(form.question("b").key.el.textContent.includes("Correct answer: Y"), "the right answer is named by its label");
++	t.ok(form.score_box.el.textContent.includes("You got 1 of 2 right."), "the score line");
++	form.reset();
++	t.eq(Object.values(form.values()), [null, null, []], "answers cleared");
++	t.ok(!form.question("b").el.classList.contains("fm-wrong"), "grades gone");
++	t.eq(shown(form), ["a"], "back on the first question");
++});
++
++test("JsonPanel mirrors values() live and loads pasted JSON", t => {
++	const form = Form.from({ questions: questions() });
++	const panel = new JsonPanel({ form });
++	t.eq(JSON.parse(panel.box.el.value), { a: null, b: null, c: [] }, "starts as the values");
++	form.load({ a: 2 });
++	t.eq(JSON.parse(panel.box.el.value).a, 2, "follows a change");
++	type(panel.box.el, '{ "a": -1, "b": "x", "nope": 1 }');
++	t.ok(panel.load(), "good JSON loads");
++	t.eq(form.values().a, -1, "the form took it");
++	t.ok(panel.status.el.textContent.includes("nope"), "an unknown id is named");
++	type(panel.box.el, "{ not json");
++	t.ok(!panel.load(), "bad JSON is refused");
++	t.ok(panel.status.el.textContent.startsWith("Not valid JSON"), "with a message");
++	t.eq(form.values().a, -1, "and nothing changed");
++	type(panel.box.el, "[1]");
++	t.ok(!panel.load(), "an array is refused");
++});
+diff --git a/public/framework/ux/Form/Question.js b/public/framework/ux/Form/Question.js
+new file mode 100644
+index 0000000000..0b90f58c73
+--- /dev/null
++++ b/public/framework/ux/Form/Question.js
+@@ -0,0 +1,62 @@
++import View, { span, p, legend } from "../../core/View/View.js";
++import Answers from "./Answers.js";
++
++/**
++ * Question: a label, an optional hint, and one Answer.
++ *   new Question({ id: "intro", type: "T09", label: "How was the intro?", hint: "Be honest", required: true })
++ *   new Question({ id: "how", type: "chooseone", label: "How?", options: [["a", "A"], ["b", "B"]] })
++ *   q.value            // the answer's value, read and write
++ *   q.missing()        // true when it is required and still empty
++ * `correct` (any value the answer can hold) makes it gradable: q.right(), and the quiz layout's score.
++ * `type` is a type id ("T09") or an answer class name ("Scale7"). `options`, and any extra key in
++ * `config` ({ markers: "faces" }), go to the Answer. A ready `answer` instance can be passed instead.
++ */
++export default class Question extends View {
++
++	classify(){
++		super.classify();
++		this.ac("fm-question");
++	}
++
++	prerender(){
++		this.tag = "fieldset";
++		super.prerender();
++	}
++
++	get value(){ return this.answer.value; }
++	set value(v){ this.answer.value = v; }
++
++	missing(){ return !!this.required && this.answer.empty(); }
++
++	graded(){ return this.correct !== undefined; }
++	right(){ return this.graded() && this.answer.matches(this.correct); }
++
++	// Show the grade: a green or red outline and the correct answer. grade(false) takes it away.
++	grade(on = true){
++		this.rc("fm-right"); this.rc("fm-wrong");
++		this.key?.ac("fm-off");
++		if (!on || !this.graded()) return this;
++		this.ac(this.right() ? "fm-right" : "fm-wrong");
++		this.key.text(this.right() ? "Correct" : "Correct answer: " + this.answer.say(this.correct)).rc("fm-off");
++		return this;
++	}
++
++	// Mark or unmark "answer this one" (the form does it on submit).
++	flag(on){
++		if (on) this.ac("fm-missing"); else this.rc("fm-missing");
++		return this;
++	}
++
++	render(){
++		legend.c("fm-label", () => {
++			span(this.label ?? this.id ?? "");
++			if (this.required) span.c("fm-req", "*").attr("title", "required");
++		});
++		if (this.hint) p.c("fm-hint", this.hint);
++		this.answer ??= Answers.make(this.type, { ...this.config, options: this.options });
++		this.answer.parent = this;
++		if (!this.answer.el.parentNode) this.append(this.answer);
++		this.answer.on("change", () => this.flag(false));
++		this.key = p.c("fm-key fm-off", "");
++	}
++}
+diff --git a/public/framework/ux/Form/Scale7.test.mjs b/public/framework/ux/Form/Scale7.test.mjs
+new file mode 100644
+index 0000000000..0187261064
+--- /dev/null
++++ b/public/framework/ux/Form/Scale7.test.mjs
+@@ -0,0 +1,58 @@
++// Scale7: three distinct states, the two swappable looks, step 0.5. Node: node public/framework/ux/Form/Scale7.test.mjs
++import { install, choose, type } from "./fake-dom.mjs";
++install();
++const { test } = await import("../../core/Test/Test.js");
++const { default: Scale7 } = await import("./answers/Scale7.js");
++const { default: Slider7 } = await import("./answers/Slider7.js");
++
++const find = (a, tag) => a.el.find(e => e.tag === tag);
++const skip = a => find(a, "button")[0];
++
++test("Scale7 buttons: seven radios, 0 is an answer, null is not", t => {
++	const a = new Scale7();
++	const radios = find(a, "input");
++	t.eq(radios.length, 7, "seven buttons");
++	t.eq(a.value, null, "not answered");
++	t.ok(a.empty(), "so it is empty");
++	choose(radios[3]);
++	t.eq(a.value, 0, "the middle button stores 0");
++	t.ok(!a.empty(), "0 is an answer");
++	choose(radios[6]);
++	t.eq(a.value, 3, "the last stores +3");
++});
++
++test("Scale7 skip is its own state: the string skip, toggles back to null, and clears the radios", t => {
++	const a = new Scale7({ value: 2 });
++	skip(a).fire("click");
++	t.eq(a.value, "skip", "skip stores the word");
++	t.ok(find(a, "input").every(r => !r.checked), "no radio shows as chosen");
++	t.ok(!a.empty(), "a skip is an answer");
++	skip(a).fire("click");
++	t.eq(a.value, null, "pressing skip again un-skips");
++	t.eq(new Scale7({ skip: false }).el.find(e => e.tag === "button").length, 0, "skip: false removes the control");
++});
++
++test("Scale7 markers are one option: each set draws different content, same value", t => {
++	const shapes = ["numbers", "faces", "icons", "bars"].map(markers => {
++		const a = new Scale7({ markers });
++		const seen = a.el.find(e => e.classList.contains("fm-num") || e.classList.contains("fm-face") || e.classList.contains("fm-icon") || e.classList.contains("fm-bar")).length;
++		choose(find(a, "input")[0]);
++		t.eq(a.value, -3, markers + ": the first button is still -3");
++		return seen;
++	});
++	t.eq(shapes, [7, 7, 7, 7], "seven markers in every set");
++});
++
++test("Slider7: a native range that stays null until touched, step 0.5 keeps halves", t => {
++	const a = new Slider7({ step: 0.5 });
++	const range = find(a, "input")[0];
++	t.eq(range.attrs.type, "range", "native range");
++	t.eq(range.attrs.step, "0.5", "step passes through");
++	t.eq(a.value, null, "untouched is null");
++	type(range, 1.5);
++	t.eq(a.value, 1.5, "a drag stores the number");
++	a.value = 0;
++	t.eq(String(range.value), "0", "code moves the thumb");
++	t.ok(!a.empty(), "0 is an answer");
++	t.eq(find(a, "output")[0].textContent, "0", "the readout shows it");
++});
+diff --git a/public/framework/ux/Form/ScaleLab.js b/public/framework/ux/Form/ScaleLab.js
+new file mode 100644
+index 0000000000..45b0f2efd9
+--- /dev/null
++++ b/public/framework/ux/Form/ScaleLab.js
+@@ -0,0 +1,53 @@
++import View, { div, label, option, select, pre } from "../../core/View/View.js";
++import Question from "./Question.js";
++import "./Answer.js";
++
++/**
++ * ScaleLab: one Scale7 you can re-dress while you watch. Pick markers, input and step; the scale is
++ * rebuilt with the same value, so you see that only the look changed, never what is stored.
++ *   new ScaleLab()
++ */
++export default class ScaleLab extends View {
++
++	static markers = ["numbers", "faces", "icons", "bars"];
++	static inputs = ["buttons", "slider"];
++	static steps = ["1", "0.5"];
++
++	classify(){
++		super.classify();
++		this.ac("fm-lab");
++	}
++
++	render(){
++		this.look = { markers: "numbers", input: "buttons", step: "1" };
++		div.c("fm-look", () => {
++			this.pick("markers", this.constructor.markers);
++			this.pick("input", this.constructor.inputs);
++			this.pick("step", this.constructor.steps);
++		});
++		this.stage = div.c("fm-lab-stage");
++		this.json = pre.c("fm-json", "");
++		this.draw();
++	}
++
++	pick(key, list){
++		label.c("fm-pick", () => {
++			div.c("fm-pick-name", key);
++			select.c("fm-field", () => list.forEach(v => option(v).attr("value", v)))
++				.on("change", e => { this.look[key] = e.target.value; this.draw(); });
++		});
++	}
++
++	draw(){
++		const before = this.question?.value ?? null;
++		const { markers, input, step } = this.look;
++		this.question = new Question({
++			type: "T09", label: "How was the intro?", config: { markers, input, step: Number(step) },
++		});
++		this.stage.empty(this.question);
++		this.question.value = before;
++		const show = () => this.json.text(JSON.stringify(this.question.value));
++		this.question.answer.on("change", show);
++		show();
++	}
++}
+diff --git a/public/framework/ux/Form/answers/Agreement.js b/public/framework/ux/Form/answers/Agreement.js
+new file mode 100644
+index 0000000000..e32463971c
+--- /dev/null
++++ b/public/framework/ux/Form/answers/Agreement.js
+@@ -0,0 +1,18 @@
++import Answer from "../Answer.js";
++
++// T08: Strongly disagree … Strongly agree as a segmented row. Stored: int -2..2 (0 is neutral).
++export default class Agreement extends Answer {
++	static type = "T08";
++	static title = "Agreement";
++	static shape = "int -2..2 · null";
++	static native = "<input type=radio> group, segmented";
++	static use = "Strongly disagree … Strongly agree";
++	static options = [[-2, "Strongly disagree"], [-1, "Disagree"], [0, "Neutral"], [1, "Agree"], [2, "Strongly agree"]];
++	static example = { label: "“This was worth my time”" };
++
++	coerce(v){ return v === null || v === undefined || v === "" ? null : Number(v); }
++
++	render(){
++		this.one_of(this.choices, "fm-seg fm-words");
++	}
++}
+diff --git a/public/framework/ux/Form/answers/Chips.js b/public/framework/ux/Form/answers/Chips.js
+new file mode 100644
+index 0000000000..4b5e196f6b
+--- /dev/null
++++ b/public/framework/ux/Form/answers/Chips.js
+@@ -0,0 +1,11 @@
++import ChooseMany from "./ChooseMany.js";
++
++// T06: the same checkboxes, drawn as round chips. Stored like ChooseMany: ["space","ai"].
++export default class Chips extends ChooseMany {
++	static type = "T06";
++	static title = "Chips";
++	static native = "<input type=checkbox> styled as chips";
++	static use = "quick multi-select of short tags";
++	static look = "fm-chips";
++	static example = { label: "Pick topics", options: [["space", "Space"], ["ai", "AI"], ["food", "Food"], ["music", "Music"], ["film", "Film"], ["code", "Code"], ["travel", "Travel"]] };
++}
+diff --git a/public/framework/ux/Form/answers/ChooseMany.js b/public/framework/ux/Form/answers/ChooseMany.js
+new file mode 100644
+index 0000000000..53b813f91b
+--- /dev/null
++++ b/public/framework/ux/Form/answers/ChooseMany.js
+@@ -0,0 +1,19 @@
++import Answer from "../Answer.js";
++
++// T05: a checkbox group. Stored: the ticked option values, in option order, e.g. ["music","code"]; [] when none.
++export default class ChooseMany extends Answer {
++	static type = "T05";
++	static title = "Choose many";
++	static shape = "array of option values · []";
++	static native = "<input type=checkbox> group";
++	static use = "several can be true";
++	static initial = [];
++	static look = "fm-list";   // Chips changes only this
++	static example = { label: "What do you want more of?", options: [["music", "Music"], ["code", "Code"], ["talks", "Talks"], ["games", "Games"]] };
++
++	coerce(v){ return Array.isArray(v) ? [...v] : []; }
++
++	render(){
++		this.many_of(this.choices, this.constructor.look);
++	}
++}
+diff --git a/public/framework/ux/Form/answers/ChooseOne.js b/public/framework/ux/Form/answers/ChooseOne.js
+new file mode 100644
+index 0000000000..a3448bc12c
+--- /dev/null
++++ b/public/framework/ux/Form/answers/ChooseOne.js
+@@ -0,0 +1,15 @@
++import Answer from "../Answer.js";
++
++// T03: a radio group, every option visible. Stored: the chosen option's value, e.g. "friend".
++export default class ChooseOne extends Answer {
++	static type = "T03";
++	static title = "Choose one (list)";
++	static shape = 'string, the option value · null';
++	static native = "<input type=radio> group";
++	static use = "2–5 options, all visible";
++	static example = { label: "How did you find us?", options: [["friend", "A friend"], ["search", "Search"], ["video", "A video"], ["other", "Other"]] };
++
++	render(){
++		this.one_of(this.choices, "fm-list");
++	}
++}
+diff --git a/public/framework/ux/Form/answers/DateAnswer.js b/public/framework/ux/Form/answers/DateAnswer.js
+new file mode 100644
+index 0000000000..6aadcabe6d
+--- /dev/null
++++ b/public/framework/ux/Form/answers/DateAnswer.js
+@@ -0,0 +1,16 @@
++import Answer from "../Answer.js";
++import { input } from "../../../core/View/View.js";
++
++// T15: the phone's own date picker. Stored: "2026-12-03" · null. Options: min, max (same format).
++export default class DateAnswer extends Answer {
++	static type = "T15";
++	static title = "Date";
++	static shape = '"YYYY-MM-DD" · null';
++	static native = "<input type=date>";
++	static use = "birthdays, deadlines";
++	static example = { label: "Pick a day" };
++
++	render(){
++		this.field_of(input().attr("type", "date").attr("min", this.min).attr("max", this.max));
++	}
++}
+diff --git a/public/framework/ux/Form/answers/Dropdown.js b/public/framework/ux/Form/answers/Dropdown.js
+new file mode 100644
+index 0000000000..9326e077cb
+--- /dev/null
++++ b/public/framework/ux/Form/answers/Dropdown.js
+@@ -0,0 +1,19 @@
++import Answer from "../Answer.js";
++import { select, option } from "../../../core/View/View.js";
++
++// T04: a native <select>. Stored: the chosen option's value, e.g. "US" · null.
++export default class Dropdown extends Answer {
++	static type = "T04";
++	static title = "Choose one (dropdown)";
++	static shape = "string, the option value · null";
++	static native = "<select>";
++	static use = "6+ options, or a known long list";
++	static example = { label: "Country", options: [["US", "United States"], ["CA", "Canada"], ["GB", "United Kingdom"], ["DE", "Germany"], ["FR", "France"], ["JP", "Japan"], ["BR", "Brazil"]] };
++
++	render(){
++		this.field_of(select(() => {
++			option().attr("value", "").text(this.placeholder ?? "Choose…");
++			this.choices.forEach(([val, text]) => option().attr("value", String(val)).text(text));
++		}));
++	}
++}
+diff --git a/public/framework/ux/Form/answers/Emoji.js b/public/framework/ux/Form/answers/Emoji.js
+new file mode 100644
+index 0000000000..eac402e33b
+--- /dev/null
++++ b/public/framework/ux/Form/answers/Emoji.js
+@@ -0,0 +1,21 @@
++import Answer from "../Answer.js";
++import { span } from "../../../core/View/View.js";
++
++// T20: one emoji reaction. Stored: the emoji itself, e.g. "😮".
++export default class Emoji extends Answer {
++	static type = "T20";
++	static title = "Emoji reaction";
++	static shape = "string, one emoji · null";
++	static native = "<input type=radio> group of emoji";
++	static use = "instant mood, on video";
++	static options = ["😍", "😄", "😮", "😐", "😢", "😡"];
++	static example = { label: "How do you feel right now?" };
++
++	render(){
++		this.one_of(this.choices, "fm-seg fm-emojis");
++	}
++
++	face(val){
++		span.c("fm-emoji", val);
++	}
++}
+diff --git a/public/framework/ux/Form/answers/Frequency.js b/public/framework/ux/Form/answers/Frequency.js
+new file mode 100644
+index 0000000000..53a4f3b48e
+--- /dev/null
++++ b/public/framework/ux/Form/answers/Frequency.js
+@@ -0,0 +1,18 @@
++import Answer from "../Answer.js";
++
++// T07: Never … Always as a segmented row. Stored: int 0..4.
++export default class Frequency extends Answer {
++	static type = "T07";
++	static title = "Frequency";
++	static shape = "int 0..4 (0 Never … 4 Always) · null";
++	static native = "<input type=radio> group, segmented";
++	static use = "Never · Rarely · Sometimes · Often · Always";
++	static options = [[0, "Never"], [1, "Rarely"], [2, "Sometimes"], [3, "Often"], [4, "Always"]];
++	static example = { label: "How often do you cook?" };
++
++	coerce(v){ return v === null || v === undefined || v === "" ? null : Number(v); }
++
++	render(){
++		this.one_of(this.choices, "fm-seg fm-words");
++	}
++}
+diff --git a/public/framework/ux/Form/answers/Likelihood.js b/public/framework/ux/Form/answers/Likelihood.js
+new file mode 100644
+index 0000000000..f7fd66abf5
+--- /dev/null
++++ b/public/framework/ux/Form/answers/Likelihood.js
+@@ -0,0 +1,24 @@
++import Answer from "../Answer.js";
++import { div, span } from "../../../core/View/View.js";
++
++// T12: 0–10 (the recommendation score), eleven buttons that wrap to two rows on a phone. Stored: int 0..10.
++export default class Likelihood extends Answer {
++	static type = "T12";
++	static title = "0–10 likelihood";
++	static shape = "int 0..10 · null";
++	static native = "<input type=radio> ×11";
++	static use = "recommendation score";
++	static options = Array.from({ length: 11 }, (_, i) => [i, String(i)]);
++	static words = ["Not at all likely", "Extremely likely"];
++	static example = { label: "Would you recommend it?" };
++
++	coerce(v){ return v === null || v === undefined || v === "" ? null : Number(v); }
++
++	render(){
++		this.one_of(this.choices, "fm-seg fm-wrap");
++		div.c("fm-ends fm-two", () => {
++			span.c("fm-lo", (this.words ?? this.constructor.words)[0]);
++			span.c("fm-hi", (this.words ?? this.constructor.words)[1]);
++		});
++	}
++}
+diff --git a/public/framework/ux/Form/answers/LongText.js b/public/framework/ux/Form/answers/LongText.js
+new file mode 100644
+index 0000000000..b35143637e
+--- /dev/null
++++ b/public/framework/ux/Form/answers/LongText.js
+@@ -0,0 +1,17 @@
++import Answer from "../Answer.js";
++import { textarea } from "../../../core/View/View.js";
++
++// T18: open feedback that a cheap AI model tags later. Stored: the string · null. The tags
++// ({sentiment, themes}) are made by the reader of the answers and kept beside it, not in the control.
++export default class LongText extends Answer {
++	static type = "T18";
++	static title = "Long text, AI-read";
++	static shape = "string · null (AI tags are added later, beside it)";
++	static native = "<textarea>";
++	static use = "open feedback; a cheap model tags it";
++	static example = { label: "What would you change?" };
++
++	render(){
++		this.field_of(textarea().attr("rows", this.rows ?? 4).attr("maxlength", this.maxlength ?? 1000).attr("placeholder", this.placeholder));
++	}
++}
+diff --git a/public/framework/ux/Form/answers/NumberAnswer.js b/public/framework/ux/Form/answers/NumberAnswer.js
+new file mode 100644
+index 0000000000..ccc16efffd
+--- /dev/null
++++ b/public/framework/ux/Form/answers/NumberAnswer.js
+@@ -0,0 +1,35 @@
++import Answer from "../Answer.js";
++import { div, input, button } from "../../../core/View/View.js";
++
++// T14: a number field with − and + buttons. Options: min, max, step, start (where + begins from empty). Stored: a number · null.
++export default class NumberAnswer extends Answer {
++	static type = "T14";
++	static title = "Number";
++	static shape = "number · null";
++	static native = '<input type=number inputmode=numeric> + − / + buttons';
++	static use = "a count or age";
++	static example = { label: "How many people?", min: 1, max: 20, start: 1 };
++
++	coerce(v){
++		if (v === null || v === undefined || v === "") return null;
++		const n = Number(v);
++		return Number.isFinite(n) ? n : null;
++	}
++
++	render(){
++		div.c("fm-number", () => {
++			button.c("fm-step", "−").attr("type", "button").attr("aria-label", "less").click(() => this.nudge(-1));
++			this.field_of(input().attr("type", "number").attr("inputmode", "numeric")
++				.attr("min", this.min).attr("max", this.max).attr("step", this.step));
++			button.c("fm-step", "+").attr("type", "button").attr("aria-label", "more").click(() => this.nudge(1));
++		});
++	}
++
++	nudge(dir){
++		const by = Number(this.step) || 1;
++		let n = this.value === null ? (this.start ?? this.min ?? 0) : this.value + dir * by;
++		if (this.min !== undefined) n = Math.max(this.min, n);
++		if (this.max !== undefined) n = Math.min(this.max, n);
++		this.value = n;
++	}
++}
+diff --git a/public/framework/ux/Form/answers/RankTop3.js b/public/framework/ux/Form/answers/RankTop3.js
+new file mode 100644
+index 0000000000..1cfa98095b
+--- /dev/null
++++ b/public/framework/ux/Form/answers/RankTop3.js
+@@ -0,0 +1,54 @@
++import Answer from "../Answer.js";
++import { div, span, label, select, option } from "../../../core/View/View.js";
++
++// T19: three selects (1st, 2nd, 3rd), no drag UI. An item can hold one place only: picking it
++// again elsewhere empties its old place. Stored: three option values, null where unpicked, e.g. ["b","a",null].
++export default class RankTop3 extends Answer {
++	static type = "T19";
++	static title = "Rank top 3";
++	static shape = "array of 3 option values · null for an empty place";
++	static native = "<select> ×3";
++	static use = "a ranking without custom drag UI";
++	static initial = [null, null, null];
++	static example = { label: "Order these", options: [["a", "Short films"], ["b", "Live shows"], ["c", "Tutorials"], ["d", "Interviews"]] };
++
++	coerce(v){
++		const list = Array.isArray(v) ? v.slice(0, 3) : [];
++		while (list.length < 3) list.push(null);
++		return list.map(x => x === undefined || x === "" ? null : x);
++	}
++
++	render(){
++		this.selects = [];
++		div.c("fm-rank", () => {
++			["1st", "2nd", "3rd"].forEach((place, i) => {
++				label.c("fm-rank-row", () => {
++					span.c("fm-rank-n", place);
++					const sel = select(() => {
++						option().attr("value", "").text("Choose…");
++						this.choices.forEach(([val, text]) => option().attr("value", String(val)).text(text));
++					}).ac("fm-field");
++					sel.on("change", () => this.pick(i, sel.el.value));
++					this.selects.push(sel);
++				});
++			});
++		});
++	}
++
++	pick(i, raw){
++		const next = [...this.value];
++		const found = this.choices.find(([val]) => String(val) === raw);
++		const val = found ? found[0] : null;
++		if (val !== null) next.forEach((x, k) => { if (k !== i && this.same(x, val)) next[k] = null; });
++		next[i] = val;
++		this.value = next;
++	}
++
++	sync(){
++		this.selects?.forEach((sel, i) => {
++			const v = this.value[i];
++			const text = v === null ? "" : String(v);
++			if (sel.el.value !== text) sel.el.value = text;
++		});
++	}
++}
+diff --git a/public/framework/ux/Form/answers/Scale7.js b/public/framework/ux/Form/answers/Scale7.js
+new file mode 100644
+index 0000000000..4759c33096
+--- /dev/null
++++ b/public/framework/ux/Form/answers/Scale7.js
+@@ -0,0 +1,97 @@
++import Answer from "../Answer.js";
++import { div, span, button } from "../../../core/View/View.js";
++
++const MINUS = "−";
++const FACES = { "-3": "🤮", "-2": "😖", "-1": "🙁", "0": "😐", "1": "🙂", "2": "😄", "3": "🤩" };
++const signed = v => v > 0 ? "+" + v : v < 0 ? MINUS + Math.abs(v) : "0";
++
++/**
++ * T09, the signature scale: -3 … +3, 0 is typical. Its look is two options, so the owner's pick is a one-line swap:
++ *   markers: "numbers" | "faces" | "icons" | "bars"   (one method each below: numbers(v), faces(v), icons(v), bars(v))
++ *   input:   "buttons" | "slider"                      (slider = native <input type=range>; `step: 0.5` allowed)
++ *   skip:    true | false                              (a Skip control that stores "skip")
++ *   words:   ["(awful)", "(average)", "(amazing)"]     (the line under -3, 0 and +3)
++ * Three states, never confused: null (not answered), 0 (neutral), "skip" (declined).
++ */
++export default class Scale7 extends Answer {
++	static type = "T09";
++	static title = "Seven-point scale −3 … +3";
++	static shape = 'int -3..3 (a slider with step 0.5 stores a number) · "skip" · null';
++	static native = "<input type=radio> ×7, or <input type=range min=-3 max=3>";
++	static use = "symmetric, 0 is typical";
++	static markers = "numbers";
++	static input = "buttons";
++	static skip = true;
++	static words = ["(awful)", "(average)", "(amazing)"];
++	static example = { label: "How was the intro?" };
++
++	get look(){ return this.markers ?? this.constructor.markers; }
++	get kind(){ return this.input ?? this.constructor.input; }
++	get can_skip(){ return this.skip ?? this.constructor.skip; }
++	get ends(){ return this.words ?? this.constructor.words; }
++	get stride(){ return this.step ?? 1; }
++
++	coerce(v){
++		if (v === "skip") return "skip";
++		if (v === null || v === undefined || v === "") return null;
++		const n = Number(v);
++		return Number.isFinite(n) ? n : null;
++	}
++
++	render(){
++		if (this.kind === "slider"){
++			this.range_of({ min: -3, max: 3, step: this.stride, ticks: true, fmt: v => this.reading(v) });
++		} else {
++			this.one_of([-3, -2, -1, 0, 1, 2, 3].map(v => [v, signed(v)]), "fm-seg fm-scale fm-" + this.look);
++		}
++		div.c("fm-ends", () => {
++			span.c("fm-lo", this.ends[0]);
++			span.c("fm-mid", this.ends[1]);
++			span.c("fm-hi", this.ends[2]);
++		});
++		if (this.can_skip){
++			this.skipper = button.c("fm-skip", "Skip").attr("type", "button");
++			this.skipper.click(() => { this.value = this.value === "skip" ? null : "skip"; });
++		}
++	}
++
++	// A button's content is its marker; the marker set is chosen by `markers`.
++	face(val){
++		(this[this.look] ?? this.numbers).call(this, val);
++	}
++
++	numbers(v){ span.c("fm-num", signed(v)); }
++
++	faces(v){
++		span.c("fm-face", FACES[v]);
++		span.c("fm-vh", signed(v));
++	}
++
++	// The same thumb at growing size, flipped for bad: the size says how strong, the flip which way.
++	icons(v){
++		span.c("fm-icon" + (v < 0 ? " fm-flip" : ""), v === 0 ? "•" : "👍").style("--k", Math.abs(v));
++		span.c("fm-vh", signed(v));
++	}
++
++	// Diverging bars, red below zero and green above, height doubling with each step away from 0.
++	bars(v){
++		const h = v === 0 ? 3 : 6 * 2 ** (Math.abs(v) - 1);
++		span.c("fm-bar " + (v < 0 ? "fm-bad" : v > 0 ? "fm-good" : "fm-mid-bar")).style("--h", h + "px");
++		span.c("fm-vh", signed(v));
++	}
++
++	reading(v){
++		const face = this.look === "faces" ? FACES[Math.round(v)] : null;
++		return (face ? face + " " : "") + signed(v);
++	}
++
++	sync(){
++		super.sync();
++		this.sync_range();
++		if (this.skipper){
++			const on = this.value === "skip";
++			if (on) this.skipper.ac("on"); else this.skipper.rc("on");
++			this.skipper.attr("aria-pressed", String(on));
++		}
++	}
++}
+diff --git a/public/framework/ux/Form/answers/ShortText.js b/public/framework/ux/Form/answers/ShortText.js
+new file mode 100644
+index 0000000000..63beb61f18
+--- /dev/null
++++ b/public/framework/ux/Form/answers/ShortText.js
+@@ -0,0 +1,17 @@
++import Answer from "../Answer.js";
++import { input } from "../../../core/View/View.js";
++
++// T17: one line of text. Stored: the string · null when empty. Options: maxlength, autocomplete, placeholder.
++export default class ShortText extends Answer {
++	static type = "T17";
++	static title = "Short text";
++	static shape = "string · null";
++	static native = "<input type=text maxlength autocomplete>";
++	static use = "names, one-word answers";
++	static example = { label: "One word for it", placeholder: "calm" };
++
++	render(){
++		this.field_of(input().attr("type", "text").attr("maxlength", this.maxlength ?? 80)
++			.attr("autocomplete", this.autocomplete ?? "off").attr("placeholder", this.placeholder));
++	}
++}
+diff --git a/public/framework/ux/Form/answers/Slider100.js b/public/framework/ux/Form/answers/Slider100.js
+new file mode 100644
+index 0000000000..500295f7af
+--- /dev/null
++++ b/public/framework/ux/Form/answers/Slider100.js
+@@ -0,0 +1,21 @@
++import Answer from "../Answer.js";
++
++// T11: a continuous amount. Stored: int 0..100, null until touched.
++export default class Slider100 extends Answer {
++	static type = "T11";
++	static title = "Slider 0–100";
++	static shape = "int 0..100 · null";
++	static native = "<input type=range> + <output>";
++	static use = "continuous amount, percent";
++	static example = { label: "How much did you understand?" };
++
++	coerce(v){ return v === null || v === undefined || v === "" ? null : Number(v); }
++
++	render(){
++		this.range_of({ min: 0, max: 100, fmt: v => v + "%" });
++	}
++
++	sync(){
++		this.sync_range();
++	}
++}
+diff --git a/public/framework/ux/Form/answers/Slider7.js b/public/framework/ux/Form/answers/Slider7.js
+new file mode 100644
+index 0000000000..30e0d6bde7
+--- /dev/null
++++ b/public/framework/ux/Form/answers/Slider7.js
+@@ -0,0 +1,12 @@
++import Scale7 from "./Scale7.js";
++
++// T10: the same -3 … +3 answer as one native range slider. Unanswered (null) until touched.
++export default class Slider7 extends Scale7 {
++	static type = "T10";
++	static title = "Seven-point slider";
++	static native = "<input type=range min=-3 max=3 step=1> + <datalist> ticks";
++	static use = "one thumb drag, ticks visible";
++	static input = "slider";
++	static skip = false;
++	static example = { label: "How was the intro? (as a slider)" };
++}
+diff --git a/public/framework/ux/Form/answers/Stars.js b/public/framework/ux/Form/answers/Stars.js
+new file mode 100644
+index 0000000000..b03a4e9baf
+--- /dev/null
++++ b/public/framework/ux/Form/answers/Stars.js
+@@ -0,0 +1,24 @@
++import Answer from "../Answer.js";
++import { span } from "../../../core/View/View.js";
++
++// T13: one to five stars. The lit run is pure CSS (:has), so there is no paint code. Stored: int 1..5.
++export default class Stars extends Answer {
++	static type = "T13";
++	static title = "Stars";
++	static shape = "int 1..5 · null";
++	static native = "<input type=radio> ×5 styled as stars";
++	static use = "familiar 1–5 rating";
++	static options = [1, 2, 3, 4, 5];
++	static example = { label: "Rate it" };
++
++	coerce(v){ return v === null || v === undefined || v === "" ? null : Number(v); }
++
++	render(){
++		this.one_of(this.choices, "fm-stars");
++	}
++
++	face(val){
++		span.c("fm-star", "★");
++		span.c("fm-vh", val + (val === 1 ? " star" : " stars"));
++	}
++}
+diff --git a/public/framework/ux/Form/answers/TimeAnswer.js b/public/framework/ux/Form/answers/TimeAnswer.js
+new file mode 100644
+index 0000000000..6580eb70bb
+--- /dev/null
++++ b/public/framework/ux/Form/answers/TimeAnswer.js
+@@ -0,0 +1,16 @@
++import Answer from "../Answer.js";
++import { input } from "../../../core/View/View.js";
++
++// T16: a time, or with `mode: "datetime"` a date and time. Stored: "18:30" or "2026-12-03T18:30" · null.
++export default class TimeAnswer extends Answer {
++	static type = "T16";
++	static title = "Time / date and time";
++	static shape = '"HH:MM" (mode "datetime": "YYYY-MM-DDTHH:MM") · null';
++	static native = "<input type=time> · <input type=datetime-local>";
++	static use = "scheduling";
++	static example = { label: "Start time" };
++
++	render(){
++		this.field_of(input().attr("type", this.mode === "datetime" ? "datetime-local" : "time"));
++	}
++}
+diff --git a/public/framework/ux/Form/answers/Toggle.js b/public/framework/ux/Form/answers/Toggle.js
+new file mode 100644
+index 0000000000..44e6f41c34
+--- /dev/null
++++ b/public/framework/ux/Form/answers/Toggle.js
+@@ -0,0 +1,31 @@
++import Answer from "../Answer.js";
++import { input, label, span } from "../../../core/View/View.js";
++
++// T02: one checkbox that looks like a switch. Stored: true | false (never null: a switch is always answered).
++export default class Toggle extends Answer {
++	static type = "T02";
++	static title = "Toggle";
++	static shape = "true | false";
++	static native = '<input type=checkbox role=switch switch>';
++	static use = "a setting that takes effect at once";
++	static initial = false;
++	static example = { label: "Notify me when it goes live" };
++
++	coerce(v){ return !!v; }
++	empty(){ return false; }
++
++	render(){
++		label.c("fm-switch", () => {
++			this.box = input().attr("type", "checkbox").attr("role", "switch").attr("switch", "");
++			this.box.on("change", () => { this.value = this.box.el.checked; });
++			span.c("fm-track");
++			this.state = span.c("fm-text", "Off");
++		});
++	}
++
++	sync(){
++		if (!this.box) return;
++		this.box.el.checked = this.value;
++		this.state.text(this.value ? "On" : "Off");
++	}
++}
+diff --git a/public/framework/ux/Form/answers/YesNo.js b/public/framework/ux/Form/answers/YesNo.js
+new file mode 100644
+index 0000000000..ccddbaea30
+--- /dev/null
++++ b/public/framework/ux/Form/answers/YesNo.js
+@@ -0,0 +1,15 @@
++import Answer from "../Answer.js";
++
++// T01: two radios. Stored: true | false.
++export default class YesNo extends Answer {
++	static type = "T01";
++	static title = "Yes / No";
++	static shape = "true | false";
++	static native = "<input type=radio> ×2";
++	static use = "one binary fact";
++	static example = { label: "Did the video load?" };
++
++	render(){
++		this.one_of([[true, "Yes"], [false, "No"]], "fm-seg");
++	}
++}
+diff --git a/public/framework/ux/Form/doc/file/Answer.js.md b/public/framework/ux/Form/doc/file/Answer.js.md
+new file mode 100644
+index 0000000000..c93228466b
+--- /dev/null
++++ b/public/framework/ux/Form/doc/file/Answer.js.md
+@@ -0,0 +1 @@
++The base class every answer type extends: `value` (get and set), the `change` event, `empty()`, and the shared builders for radio groups, checkbox groups, fields and sliders. It is the only file that links `Form.css`. It can `reset()`, say whether it `matches(correct)`, and `say()` a value as its label (for a quiz's "Correct answer").
+diff --git a/public/framework/ux/Form/doc/file/Answers.js.md b/public/framework/ux/Form/doc/file/Answers.js.md
+new file mode 100644
+index 0000000000..66494eeafb
+--- /dev/null
++++ b/public/framework/ux/Form/doc/file/Answers.js.md
+@@ -0,0 +1 @@
++The registry of the twenty answer classes. `Answers.find("T09")` or `find("scale7")` returns the class; `make(key, opts)` builds one.
+diff --git a/public/framework/ux/Form/doc/file/Form.css.md b/public/framework/ux/Form/doc/file/Form.css.md
+new file mode 100644
+index 0000000000..973324eefd
+--- /dev/null
++++ b/public/framework/ux/Form/doc/file/Form.css.md
+@@ -0,0 +1 @@
++Every rule is in `@layer site` and reads framework tokens only. Selected state is `--prime`; inputs are 16 px or more and tap targets 44 px or more.
+diff --git a/public/framework/ux/Form/doc/file/Form.js.md b/public/framework/ux/Form/doc/file/Form.js.md
+new file mode 100644
+index 0000000000..b94d71e680
+--- /dev/null
++++ b/public/framework/ux/Form/doc/file/Form.js.md
+@@ -0,0 +1 @@
++The list of questions. `values()` returns `{ id: value }`, `load()` sets answers by id, `submit()` refuses while a required question is empty, and `on("change" | "submit")` fires. `layout: "stepper"` shows one question at a time with Back, Next and a progress bar; `layout: "quiz"` is a stepper that ends in a graded score (`score()`, `reset()`).
+diff --git a/public/framework/ux/Form/doc/file/JsonPanel.js.md b/public/framework/ux/Form/doc/file/JsonPanel.js.md
+new file mode 100644
+index 0000000000..a763c1de0b
+--- /dev/null
++++ b/public/framework/ux/Form/doc/file/JsonPanel.js.md
+@@ -0,0 +1 @@
++A form's values as JSON in a text box, live, with a Load button that puts pasted JSON back into the form. Bad JSON or a non-object is refused with a message; unknown ids are named and ignored.
+diff --git a/public/framework/ux/Form/doc/file/Question.js.md b/public/framework/ux/Form/doc/file/Question.js.md
+new file mode 100644
+index 0000000000..8e4b17c8e5
+--- /dev/null
++++ b/public/framework/ux/Form/doc/file/Question.js.md
+@@ -0,0 +1 @@
++A label, an optional hint and one answer, drawn as a `<fieldset>` so a radio group is announced with its label. It knows whether it is required and still empty, and, when given a `correct` value, whether the answer is right and how to show the grade.
+diff --git a/public/framework/ux/Form/doc/file/answers.md b/public/framework/ux/Form/doc/file/answers.md
+new file mode 100644
+index 0000000000..940b0568ee
+--- /dev/null
++++ b/public/framework/ux/Form/doc/file/answers.md
+@@ -0,0 +1 @@
++One class per answer type, T01 to T20, each producing exactly the value the readme table lists.
+diff --git a/public/framework/ux/Form/doc/file/page.js.md b/public/framework/ux/Form/doc/file/page.js.md
+new file mode 100644
+index 0000000000..eac0e3739b
+--- /dev/null
++++ b/public/framework/ux/Form/doc/file/page.js.md
+@@ -0,0 +1 @@
++The docs page: the −3 … +3 scale you can re-dress, a short form you can fill, and a card for every answer type showing its live stored value.
+diff --git a/public/framework/ux/Form/doc/file/readme.md.md b/public/framework/ux/Form/doc/file/readme.md.md
+new file mode 100644
+index 0000000000..af8533b1f0
+--- /dev/null
++++ b/public/framework/ux/Form/doc/file/readme.md.md
+@@ -0,0 +1 @@
++What the kit is, how to use it, the twenty types, what to watch out for, and its on-disk structure.
+diff --git a/public/framework/ux/Form/fake-dom.mjs b/public/framework/ux/Form/fake-dom.mjs
+new file mode 100644
+index 0000000000..cdb8179d32
+--- /dev/null
++++ b/public/framework/ux/Form/fake-dom.mjs
+@@ -0,0 +1,42 @@
++// A tiny stand-in `document` so the Form classes run under node (the pattern of core/View/bind.test.mjs).
++// It is only what View needs: elements with children, attributes, classes, listeners that tests can fire.
++class FakeEl {
++	constructor(tag){
++		this.tag = tag; this.kids = []; this.parentNode = null; this.attrs = {}; this.listeners = {};
++		this._text = ""; this.value = ""; this.checked = false;
++		const set = new Set();
++		this.classList = { add: c => set.add(c), remove: c => set.delete(c), contains: c => set.has(c), toString: () => [...set].join(" ") };
++		const css = {};
++		this.style = new Proxy(css, { get: (o, k) => k === "setProperty" ? (n, v) => { o[n] = v; } : k === "getPropertyValue" ? n => o[n] ?? "" : o[k], set: (o, k, v) => { o[k] = v; return true; } });
++	}
++	get textContent(){ return this._text + this.kids.map(k => k.textContent).join(""); }
++	set textContent(v){ this._text = String(v); this.kids.forEach(k => { k.parentNode = null; }); this.kids = []; }
++	get innerHTML(){ return this.textContent; }
++	set innerHTML(v){ this.textContent = ""; }
++	appendChild(k){ if (k.parentNode) k.parentNode.removeChild(k); k.parentNode = this; this.kids.push(k); return k; }
++	append(...a){ a.forEach(x => x instanceof FakeEl ? this.appendChild(x) : (this._text += String(x))); }
++	removeChild(k){ this.kids = this.kids.filter(x => x !== k); k.parentNode = null; }
++	setAttribute(n, v){ this.attrs[n] = String(v); }
++	getAttribute(n){ return this.attrs[n] ?? null; }
++	addEventListener(type, fn){ (this.listeners[type] ??= []).push(fn); }
++	fire(type){ (this.listeners[type] ?? []).forEach(fn => fn({ target: this })); }
++	find(pred, out = []){ if (pred(this)) out.push(this); this.kids.forEach(k => k.find(pred, out)); return out; }
++}
++
++export function install(){
++	if (typeof document === "undefined") globalThis.document = { createElement: tag => new FakeEl(tag), head: new FakeEl("head") };
++}
++
++// A user's click on a radio or checkbox: set it, then fire change.
++export function choose(inputEl, checked = true){
++	inputEl.checked = checked;
++	inputEl.fire("change");
++}
++
++// A user typing into a field, or dragging a range.
++export function type(el, text){
++	el.value = String(text);
++	el.fire("input");
++}
++
++export { FakeEl };
+diff --git a/public/framework/ux/Form/page.js b/public/framework/ux/Form/page.js
+new file mode 100644
+index 0000000000..7304bd328f
+--- /dev/null
++++ b/public/framework/ux/Form/page.js
+@@ -0,0 +1,75 @@
++import { Doc, md, div } from "/app.js";
++import Form from "./Form.js";
++import Answers from "./Answers.js";
++import AnswerCard from "./AnswerCard.js";
++import ScaleLab from "./ScaleLab.js";
++import JsonPanel from "./JsonPanel.js";
++
++const short = () => Form.from({
++	title: "Check-in",
++	questions: [
++		{ id: "intro", type: "T09", label: "How was the intro?", required: true },
++		{ id: "again", type: "yesno", label: "Would you watch the next one?" },
++		{ id: "topics", type: "chips", label: "What should we cover?", options: [["css", "CSS"], ["js", "JavaScript"], ["design", "Design"]] },
++		{ id: "note", type: "longtext", label: "Anything else?" },
++	],
++});
++
++const split = make => div.c("fm-demo-split wide", () => new JsonPanel({ form: make() }));
++
++const steps = () => Form.from({
++	title: "Three quick questions",
++	questions: [
++		{ id: "intro", type: "T09", label: "How was the intro?", required: true },
++		{ id: "again", type: "yesno", label: "Would you watch the next one?" },
++		{ id: "note", type: "longtext", label: "Anything else?" },
++	],
++}, { layout: "stepper" });
++
++const quiz = () => Form.from({
++	title: "Quick quiz",
++	questions: [
++		{ id: "sky", type: "chooseone", label: "What colour is a clear daytime sky?", options: [["red", "Red"], ["blue", "Blue"], ["green", "Green"]], correct: "blue" },
++		{ id: "true", type: "yesno", label: "A spider has eight legs.", correct: true },
++		{ id: "primes", type: "choosemany", label: "Which of these are prime?", options: [["2", "2"], ["4", "4"], ["7", "7"], ["9", "9"]], correct: ["2", "7"] },
++		{ id: "ten", type: "number", label: "What is 6 + 4?", correct: 10 },
++	],
++}, { layout: "quiz" });
++
++export default new Doc({
++	meta: import.meta,
++	title: "Form",
++	description: "A form from a list: twenty answer types, each a native control that stores one plain value, collected by id.",
++	icon: "fact_check",
++
++	files: "Answer.js Answers.js Question.js Form.js JsonPanel.js Form.css answers/ page.js readme.md",
++
++	content(){
++
++		md("## The −3 … +3 scale, in four looks");
++		md("One question, one stored value. **Change the markers or the input and the answer you gave stays.** `null` means not answered, `0` is a real answer (the middle), and `\"skip\"` is a third thing: you looked and chose not to.");
++		new ScaleLab();
++
++		md("## A short form you can fill");
++		md("`Form.from(json)` builds the questions; `form.values()` is the plain object below, and `form.on(\"change\", …)` fires on every answer. Submit refuses until the starred question has an answer.");
++		split(short);
++
++		md("The box beside the form is `JsonPanel`. It shows `form.values()` live; **edit it and press Load** and the form takes the values (try `{ \"intro\": 2, \"topics\": [\"css\"] }`). Bad JSON is refused with a message and nothing changes.");
++
++		md("## One question at a time: `layout: \"stepper\"`");
++		md("Same questions, same `values()`; Back and Next move through them, the bar shows where you are, and Next refuses to leave a required question empty. Nothing you answered is lost on the way back.");
++		split(steps);
++
++		md("## A quiz: `layout: \"quiz\"` and `correct`");
++		md("Give a question a `correct` value and the quiz grades it. Finish shows every question again, green or red, with the right answer under the wrong ones, and `form.score()` is `{ right, total, results }`. A question with no `correct` is never graded.");
++		split(quiz);
++
++		md("## All twenty answer types");
++		md("Each card is a live question. Answer it and the value it stores appears under it, exactly as `answer.value` would give it to your code.");
++		div.c("fm-cards wide", () => Answers.list.forEach(answer => new AnswerCard({ answer })));
++
++		md.details(import.meta, "readme.md", "Readme");
++	},
++
++	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", () => new Form({ questions: [{ id: "intro", type: "T09", label: "How was the intro?" }] }))); },
++});
+diff --git a/public/framework/ux/Form/readme.md b/public/framework/ux/Form/readme.md
+new file mode 100644
+index 0000000000..fdc8c2400d
+--- /dev/null
++++ b/public/framework/ux/Form/readme.md
+@@ -0,0 +1,106 @@
++# Form: a form from a list, twenty native answer types, one plain object out
++
++A form is a list of questions. Each question holds one **answer**, a real HTML control (radio, checkbox, range, select, input, textarea) that stores one plain JSON value. `form.values()` hands you `{ id: value }` and nothing else.
++
++## Use
++
++```js
++import Form from "/framework/ux/Form/Form.js";
++
++const form = Form.from({
++	title: "Check-in",
++	questions: [
++		{ id: "intro", type: "T09", label: "How was the intro?", required: true },
++		{ id: "how", type: "chooseone", label: "How?", options: [["a", "A"], ["b", "B"]] },
++	],
++});
++form.values();                        // { intro: null, how: null }
++form.load({ intro: 2 });              // set answers by id; unknown ids are ignored
++form.on("change", v => save(v));      // any answer changed
++form.on("submit", v => send(v));      // Submit pressed, no required question empty
++```
++
++**Layouts.** `Form.from(json, { layout })`: `"list"` (default) shows every question; `"stepper"` shows one at a time with Back, Next and a progress bar (Next stays put on an empty required question, the last step is Submit); `"quiz"` is a stepper where a question may carry `correct`:
++
++```js
++Form.from({ questions: [
++	{ id: "sky", type: "chooseone", label: "Sky?", options: [["red", "Red"], ["blue", "Blue"]], correct: "blue" },
++	{ id: "odd", type: "choosemany", label: "Primes?", options: [["2", "2"], ["4", "4"], ["7", "7"]], correct: ["2", "7"] },
++] }, { layout: "quiz" });
++form.score();    // { right, total, results: { sky: true, odd: false } }, only over questions that have `correct`
++form.reset();    // clear every answer and start again
++```
++
++Finish shows every question again, green or red, with the right answer named under the wrong ones. A checkbox group matches in any order. Stepper, `values()` and `load()` are the same in every layout: all questions stay alive, so nothing is lost going Back.
++
++**`JsonPanel`** (`new JsonPanel({ form })`) shows `form.values()` as JSON, live, and loads pasted JSON back with a Load button.
++
++- `type` is a type id (`"T09"`) or an answer class name (`"Scale7"`, `"scale7"`, `"ShortText"`). `options` is `[[value, label], …]`; any extra `config` key goes to the answer (`config: { markers: "faces" }`).
++- A single answer works alone: `new Scale7({ markers: "faces", input: "slider", step: 0.5 })`, then `answer.value`, `answer.on("change", v => …)`, `answer.empty()`.
++- **Scale7 (−3 … +3) is swappable.** `markers: "numbers" | "faces" | "icons" | "bars"`, `input: "buttons" | "slider"`, `step: 0.5` for a slider, `skip: false` to drop the Skip button. Three distinct states: `null` (not answered), `0` (the middle, an answer) and `"skip"`.
++- Live page, every type as a card with its stored value: [/framework/ux/Form/](/framework/ux/Form/).
++
++## The twenty types
++
++| id | class | stores |
++|---|---|---|
++| T01 | `YesNo` | `true` / `false` / `null` |
++| T02 | `Toggle` | `true` / `false` (never `null`) |
++| T03 | `ChooseOne` | the option value / `null` |
++| T04 | `Dropdown` | the option value / `null` |
++| T05 | `ChooseMany` | array of option values, option order (`[]` when none) |
++| T06 | `Chips` | as T05, drawn as chips |
++| T07 | `Frequency` | 0 … 4 / `null` |
++| T08 | `Agreement` | −2 … 2 / `null` |
++| T09 | `Scale7` | −3 … 3, `"skip"`, `null` |
++| T10 | `Slider7` | −3 … 3 (halves with `step: 0.5`) / `null` |
++| T11 | `Slider100` | 0 … 100 / `null` |
++| T12 | `Likelihood` | 0 … 10 / `null` |
++| T13 | `Stars` | 1 … 5 / `null` |
++| T14 | `NumberAnswer` | a number / `null` |
++| T15 | `DateAnswer` | `"YYYY-MM-DD"` / `null` |
++| T16 | `TimeAnswer` | `"HH:MM"`, or `"YYYY-MM-DDTHH:MM"` with `mode: "datetime"` |
++| T17 | `ShortText` | string / `null` |
++| T18 | `LongText` | string / `null` |
++| T19 | `RankTop3` | `[first, second, third]`, each an option value or `null` |
++| T20 | `Emoji` | the emoji string / `null` |
++
++## Watch out
++
++- **`null` means not answered; `0` is an answer.** Required checks use `answer.empty()`, which is true only for `null`, an empty string, or a list with nothing in it.
++- **Class fields in a subclass start after `render()`.** Defaults live in statics and getters (`static initial`, `get choices`), and options arrive through the constructor arguments. A field written `x = 1` would be undefined while the control is built.
++- **Selected state is `--prime`; its ink is `#1a1a1a`**, the same ink the framework's own `button.prim` uses. There are no new colours and no scheme here.
++- **Inputs are 16 px or more** (a smaller one makes iOS zoom the page) and every tap target is 44 px or more.
++- **A slider reads `null` until you touch it**, drawn faint with a dash. It commits on `input`, `change` and `pointerup`.
++- **`LongText` stores a plain string.** AI tags and summaries will sit beside the string, never inside it.
++
++## Architecture
++
++- `Answer extends View`: `value` (get and set), `on("change")`, `empty()`, `static type/title/shape/native/use/example`, and the shared builders `one_of`, `many_of`, `field_of`, `range_of`.
++- `answers/<Name>.js`: one class per type, each `extends Answer` (`Chips extends ChooseMany`, `Slider7 extends Scale7`).
++- `Answers`: the registry, `Answers.list`, `.find(key)`, `.make(key, opts)`.
++- `Question extends View`: a `<fieldset>` with a legend, a hint, one answer, the required flag, and an optional `correct` value (`right()`, `grade()`).
++- `Form extends View`: the questions, `values()`, `load()`, `missing()`, `submit()`, the `change` and `submit` events, and the layouts (`go()`, `advance()`, `score()`, `reveal()`, `reset()`).
++- `JsonPanel extends View`: the live values box and Load.
++- `AnswerCard`, `ScaleLab`: the docs page's live demos only (`JsonPanel` is a kit part, shown there too).
++
++## On disk
++
++```
++ux/Form/
++  Answer.js  Answers.js  Question.js  Form.js  Form.css     the kit (all rules in @layer site)
++  JsonPanel.js                                                values as JSON, live, and Load
++  answers/*.js                                                the twenty types
++  AnswerCard.js  ScaleLab.js  page.js                         the docs page
++  Answer.test.mjs  Form.test.mjs  Scale7.test.mjs  Layouts.test.mjs  fake-dom.mjs   node tests (node <file>)
++  doc/file/*.md                                               one note per file in page.js's `files:` (the Files tab reads them)
++  doc/files.jsonl  doc/file/files.jsonl  answers/files.jsonl  files.jsonl   folder listings the dev server writes; do not edit
++```
++
++Nothing is saved to disk by the kit: `values()` is yours to keep.
++
++## More
++
++- The control grammar the answers wear: [/framework/ui/](/framework/ui/).
++- The stepper is not built on [ux/Wizard](/framework/ux/Wizard/): a Wizard swaps its steps out, and a form must keep every Question alive (values, Back, a quiz's final review), so a one-line `fm-off` toggle was the simpler fit.
++- Tests: `node public/framework/ux/Form/Form.test.mjs` (and `Answer`, `Scale7`, `Layouts`).
+diff --git a/public/framework/ux/readme.md b/public/framework/ux/readme.md
+index c77970a1ec..5c0714aec0 100644
+--- a/public/framework/ux/readme.md
++++ b/public/framework/ux/readme.md
+@@ -10,6 +10,7 @@ Every module here, and what you would use it for.
+ - [Course](./Course/) — chapters of lessons with a side rail, a reading column and a next-up card.
+ - [Dictate](./Dictate/) — a microphone button that always shows what is happening and what it heard; [every voice and chat surface on one page](./Dictate/surfaces/).
+ - [Filter](./Filter/) — a segment row plus a search box that filters several regions at once.
++- [Form](./Form/) — a form from a list: twenty native answer types (a −3 … +3 scale with four looks, sliders, stars, dates, ranking), each storing one plain value; `form.values()` is `{ id: value }`; list, stepper and quiz layouts, and a JSON panel.
+ - [Inbox](./Inbox/) — a rail of page previews beside the page you picked; it never jumps. The AI page's inbox.
+ - [Browse](./Browse/) — one list-and-detail view (a resizable list, the clicked row beside it); `Inbox.Rail` extends it, Sessions and the catalog are next.
+ - [Menu](./Menu/) — a dropdown menu that closes after a pick and on an outside click.
