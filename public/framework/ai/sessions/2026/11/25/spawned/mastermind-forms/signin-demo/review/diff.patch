@@ -12,10 +12,53 @@ index d180ddc0ef..d60bf71214 100644
  if (await isListening(PORT)) {
      console.log(`[dev] :${PORT} is already answering — assuming node server.js is running there; not starting a second one.`);
 diff --git a/public/framework/ux/Auth/GoogleButton.js b/public/framework/ux/Auth/GoogleButton.js
-index 2b93f7e899..178f00fd3a 100644
+index 2b93f7e899..bc0aedd2cf 100644
 --- a/public/framework/ux/Auth/GoogleButton.js
 +++ b/public/framework/ux/Auth/GoogleButton.js
-@@ -93,7 +93,7 @@ export class GoogleButton extends View {
+@@ -16,6 +16,7 @@ css(`@layer site {
+ 	.ux-auth-google-btn:hover { box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+ 	.ux-auth-google-g { display: inline-flex; width: 1.15em; height: 1.15em; flex: none; }
+ 	.ux-auth-google-g svg { width: 100%; height: 100%; display: block; }
++	.ux-auth-google-gsi { display: flex; justify-content: center; min-height: 44px; }
+ 	.ux-auth-google-note:empty { display: none; }
+ 	.ux-auth-google-note { margin: 0; text-align: center; font-size: 0.8em; }
+ 	.ux-auth-google-note.ux-auth-google-bad { color: var(--error); }
+@@ -76,24 +77,36 @@ export class GoogleButton extends View {
+ 		try {
+ 			await GoogleButton.load_gsi();
+ 			google.accounts.id.initialize({ client_id, auto_select: false, use_fedcm_for_button: true, callback: res => this.credential(res.credential) });
+-			const slot = document.createElement("div");
+-			google.accounts.id.renderButton(slot, {
+-				theme: this.theme === "dark" ? "filled_black" : "outline", size: "large", shape: "rectangular", logo_alignment: "left",
+-				text: GoogleButton.gsi_text[this.label] ?? "continue_with", width: Math.min(400, Math.max(200, this.el.offsetWidth || 320))
+-			});
+-			this.$button.el.replaceWith(slot);
++			this.slot = document.createElement("div");
++			this.slot.className = "ux-auth-google-gsi";
++			this.$button.el.replaceWith(this.slot);
+ 			this.real = true;
++			this.render_gsi();
++			// Google draws the button at a fixed pixel width: draw it again when the column changes width.
++			new ResizeObserver(() => this.render_gsi()).observe(this.el);
+ 		} catch (err){
+ 			this.say(err.message, true);
+ 		}
+ 	}
+ 
++	// As wide as the column (Google allows 200 to 400 px), centred by .ux-auth-google-gsi.
++	render_gsi(){
++		const width = Math.round(Math.min(400, Math.max(200, this.el.clientWidth || 320)));
++		if (!this.slot || width === this.gsi_width) return;
++		this.gsi_width = width;
++		this.slot.replaceChildren();
++		google.accounts.id.renderButton(this.slot, {
++			theme: this.theme === "dark" ? "filled_black" : "outline", size: "large", shape: "rectangular", logo_alignment: "left",
++			text: GoogleButton.gsi_text[this.label] ?? "continue_with", width
++		});
++	}
++
+ 	async credential(credential){
+ 		try {
  			const res = await fetch("/api/auth/google", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ credential }) });
  			const data = await res.json().catch(() => ({}));
  			if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
@@ -24,7 +67,7 @@ index 2b93f7e899..178f00fd3a 100644
  		} catch (err){
  			this.say(err.message, true);
  		}
-@@ -101,10 +101,10 @@ export class GoogleButton extends View {
+@@ -101,10 +114,10 @@ export class GoogleButton extends View {
  
  	// ---- the event and the words on screen ------------------------------
  
@@ -37,7 +80,7 @@ index 2b93f7e899..178f00fd3a 100644
  	}
  
  	say(msg, bad = false){
-@@ -113,6 +113,11 @@ export class GoogleButton extends View {
+@@ -113,6 +126,11 @@ export class GoogleButton extends View {
  		if (bad) this.$note.ac("ux-auth-google-bad");
  	}
  
@@ -257,12 +300,13 @@ index 0000000000..66eabf3660
 +export default Backend;
 diff --git a/public/join/Join.js b/public/join/Join.js
 new file mode 100644
-index 0000000000..6a3f039089
+index 0000000000..9f9d970e5f
 --- /dev/null
 +++ b/public/join/Join.js
-@@ -0,0 +1,294 @@
+@@ -0,0 +1,298 @@
 +import { GoogleButton } from "/framework/ux/Auth/GoogleButton.js";
 +import { InAppBrowser } from "/framework/ux/Auth/InAppBrowser.js";
++import { JoinState } from "./JoinState.js";
 +
 +const el = (tag, cls = "", ...kids) => {
 +	const e = document.createElement(tag);
@@ -330,7 +374,6 @@ index 0000000000..6a3f039089
 +		});
 +		this.$sound = btn("pill sound", "Tap for sound", () => { video.muted = !video.muted; this.$sound.textContent = video.muted ? "Tap for sound" : "Sound on"; });
 +		this.$media.append(video);
-+		this.$sound_slot = this.$sound;
 +		addEventListener("pointerdown", () => video.paused && video.play().catch(() => {}), { once: true });
 +	}
 +
@@ -340,7 +383,7 @@ index 0000000000..6a3f039089
 +		this.backend = backend;
 +		this.$badge.hidden = !backend.mock;
 +		if (this.$sound) this.$top.prepend(this.$sound);
-+		this.sw = "serviceWorker" in navigator ? navigator.serviceWorker.register("/join/sw.js", { scope: "/join/" }).catch(err => this.say(copy_err(err), true)) : null;
++		this.sw = "serviceWorker" in navigator ? navigator.serviceWorker.register("/join/sw.js", { scope: "/join/" }).catch(err => this.say(err.message, true)) : null;
 +		this.google = new GoogleButton({ theme: "dark", on_video: true, client_id: backend.client_id, label: GoogleButton.labels[2] });
 +		this.google.el.addEventListener("signin", e => this.signed_in(e.detail.user, e.detail.mock, e.detail.email));
 +		await this.refresh();
@@ -354,10 +397,10 @@ index 0000000000..6a3f039089
 +
 +	get permission(){ return "Notification" in window ? Notification.permission : "unsupported"; }
 +	get subscribed(){ return this.push && this.permission === "granted"; }
-+	get state(){ return !this.user ? (this.env.in_app ? "inapp" : "google") : this.subscribed ? "done" : "allow"; }
++	get state(){ return JoinState.of({ user: this.user, in_app: this.env.in_app, push: this.push, permission: this.permission }); }
 +
 +	render(){
-+		const { copy } = this, state = this.state;
++		const state = this.state;
 +		this.frame.dataset.state = state;
 +		this.say("");
 +		this.$act.replaceChildren(...this[`act_${state}`]());
@@ -374,7 +417,11 @@ index 0000000000..6a3f039089
 +	// The Worker keeps no email, so the one Google gave us at sign-in is remembered on this device only, for revoke().
 +	signed_in(user, mock, email){
 +		if (email) localStorage.setItem("join-google-email", email);
-+		if (mock) this.backend.login(user);
++		if (mock){
++			// A real Worker with no Google client id (production today) has no fake sign-in to fall back on.
++			if (!this.backend.mock) return this.say(this.copy.not_set_up, true);
++			this.backend.login(user);
++		}
 +		return this.refresh();
 +	}
 +
@@ -424,7 +471,8 @@ index 0000000000..6a3f039089
 +			if (backend.mock) await backend.subscribe();
 +			else {
 +				if (!backend.vapid_public) throw new Error("the server has no push key yet");
-+				const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key_bytes(backend.vapid_public) });
++				const timeout = new Promise((_, no) => setTimeout(() => no(new Error("the browser's push service did not answer in 15 s")), 15000));
++				const sub = await Promise.race([reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key_bytes(backend.vapid_public) }), timeout]);
 +				await backend.subscribe(sub.toJSON());
 +			}
 +			this.push = true;
@@ -463,12 +511,12 @@ index 0000000000..6a3f039089
 +		const close = () => this.$sheet.replaceChildren();
 +		this.$sheet.replaceChildren(el("div", "sheet-wrap",
 +			Object.assign(el("div", "backdrop"), { onclick: close }),
-+			el("div", "sheet", el("h2", "", title), ...nodes, btn("link dark", this.copy.close, close))));
++			el("div", "sheet", title && el("h2", "", title), ...nodes, btn("link dark", this.copy.close, close))));
 +		return close;
 +	}
 +
 +	inapp_card(){
-+		const { copy, env } = this, url = location.href;
++		const { copy, env } = this, url = JoinState.share_url(location.href);
 +		const steps = env.ios ? el("ol", "steps", ...copy.inapp_ios.map(s => el("li", "", s))) : null;
 +		return el("div", "card",
 +			el("h2", "", copy.inapp_title),
@@ -481,7 +529,7 @@ index 0000000000..6a3f039089
 +				navigator.share && btn("pill dark", copy.share_link, () => navigator.share({ url, title: document.title }).catch(() => {}))));
 +	}
 +
-+	inapp_sheet(){ this.sheet("", this.inapp_card()); }
++	inapp_sheet(){ this.sheet(null, this.inapp_card()); }
 +
 +	ios_sheet(){
 +		const { copy } = this;
@@ -547,14 +595,58 @@ index 0000000000..6a3f039089
 +		await this.unsubscribe().catch(() => {});
 +		globalThis.google?.accounts?.id?.disableAutoSelect();
 +		for (const reg of await navigator.serviceWorker?.getRegistrations?.() ?? []) await reg.unregister();
-+		localStorage.clear(); sessionStorage.clear();
++		for (const store of [localStorage, sessionStorage])
++			for (const key of Object.keys(store)) if (key.startsWith("join-")) store.removeItem(key);
 +		location.reload();
 +	}
 +}
 +
-+const copy_err = err => err.message;
-+
 +export default Join;
+diff --git a/public/join/JoinState.js b/public/join/JoinState.js
+new file mode 100644
+index 0000000000..1f7520e11e
+--- /dev/null
++++ b/public/join/JoinState.js
+@@ -0,0 +1,21 @@
++/**
++ * JoinState: the page's two pure decisions, kept out of Join.js so node can test them (Join.js needs a DOM).
++ *
++ *   JoinState.of({ user, in_app, push, permission })   // "google" | "inapp" | "allow" | "done"
++ *   JoinState.share_url(location.href)                 // the page's url without ?test= and ?debug=
++ */
++export class JoinState {
++
++	static of({ user, in_app, push, permission }){
++		return !user ? (in_app ? "inapp" : "google") : push && permission === "granted" ? "done" : "allow";
++	}
++
++	static share_url(href){
++		const url = new URL(href);
++		url.searchParams.delete("test");
++		url.searchParams.delete("debug");
++		return url.href;
++	}
++}
++
++export default JoinState;
+diff --git a/public/join/JoinState.test.mjs b/public/join/JoinState.test.mjs
+new file mode 100644
+index 0000000000..9736439a9f
+--- /dev/null
++++ b/public/join/JoinState.test.mjs
+@@ -0,0 +1,12 @@
++import { test } from "../framework/core/Test/Test.js";
++import { JoinState } from "./JoinState.js";
++
++test("JoinState derives the button state and strips secrets from shared links", t => {
++	t.eq(JoinState.of({ user: null, in_app: false }), "google", "no user: google");
++	t.eq(JoinState.of({ user: null, in_app: true }), "inapp", "no user in another app's browser: inapp");
++	t.eq(JoinState.of({ user: {}, push: false, permission: "granted" }), "allow", "user without a subscription: allow");
++	t.eq(JoinState.of({ user: {}, push: true, permission: "default" }), "allow", "subscription but no permission: allow");
++	t.eq(JoinState.of({ user: {}, push: true, permission: "granted" }), "done", "user, subscription, permission: done");
++	t.eq(JoinState.share_url("https://x.com/join/?test=KEY&debug=1&ref=a#top"), "https://x.com/join/?ref=a#top", "test and debug are dropped, the rest stays");
++	t.eq(JoinState.share_url("https://x.com/join/?test=KEY"), "https://x.com/join/", "no empty ?");
++});
 diff --git a/public/join/MockBackend.js b/public/join/MockBackend.js
 new file mode 100644
 index 0000000000..6014d0d223
@@ -624,10 +716,10 @@ index 0000000000..d10733b280
 +});
 diff --git a/public/join/copy.js b/public/join/copy.js
 new file mode 100644
-index 0000000000..0b60cbbb04
+index 0000000000..2a1a9f172b
 --- /dev/null
 +++ b/public/join/copy.js
-@@ -0,0 +1,44 @@
+@@ -0,0 +1,45 @@
 +// Every word, the video and the poster on /join/, in one place. Edit here; nothing else holds text.
 +export default {
 +	video: "/join/media/join-talk-540.mp4",
@@ -646,6 +738,7 @@ index 0000000000..0b60cbbb04
 +	done_sent: "Sent. It should arrive in a moment.",
 +	blocked: "Notifications are blocked for this site. Allow them in your browser's site settings, then tap again.",
 +	unsupported: "This browser can't receive notifications. Try Chrome on Android, or Safari on iPhone (added to your Home Screen).",
++	not_set_up: "Sign-in isn't set up here yet.",
 +	failed: "That didn't work:",
 +
 +	inapp_title: "Open this in your own browser",
@@ -659,8 +752,8 @@ index 0000000000..0b60cbbb04
 +	test_signin: "Test sign-in",
 +
 +	ios_title: "Add to your Home Screen first",
-+	ios_why: "iPhone only allows notifications from an app on your Home Screen. It takes four taps.",
-+	ios_steps: ["Tap the Share icon in Safari's toolbar.", "Scroll down and tap Add to Home Screen.", "Open lew42 from your Home Screen.", "Tap Allow one notification a week, then Allow."],
++	ios_why: "iPhone only allows notifications from an app on your Home Screen.",
++	ios_steps: ["Tap the Share icon in Safari's toolbar.", "Scroll down and tap Add to Home Screen.", "Open lew42 from your Home Screen. It does not share Safari's sign-in, so sign in again.", "Tap Allow one notification a week, then Allow."],
 +
 +	settings_title: "Settings",
 +	signed_in_as: "Signed in as",
@@ -859,13 +952,13 @@ index 0000000000..bd72be92b2
 Binary files /dev/null and b/public/join/media/join-talk-540.mp4 differ
 diff --git a/public/join/readme.md b/public/join/readme.md
 new file mode 100644
-index 0000000000..08ecfe08c3
+index 0000000000..9d497fb622
 --- /dev/null
 +++ b/public/join/readme.md
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,33 @@
 +# /join/ — a video asks you to sign in and allow one notification a week
 +
-+A standalone page (not a framework `page.js`, so no sidebar): a full-height 9:16 video that never stops, her words as a caption, and ONE button at the bottom that changes. On a desktop the same column sits centred on a dark backdrop. Open it at [/join/](/join/); `?debug=1` adds a state strip with a "Reset everything" button.
++A standalone page (not a framework `page.js`, so no sidebar): a full-height 9:16 video that never stops, the host's words as a caption, and ONE button at the bottom that changes. On a desktop the same column sits centred on a dark backdrop. Open it at [/join/](/join/); `?debug=1` adds a state strip with a "Reset everything" button.
 +
 +## The button's states (derived on every load, so a reload lands on the right one)
 +
@@ -882,19 +975,20 @@ index 0000000000..08ecfe08c3
 +
 +- **google**: the Worker's `/api` answers `/api/config`; Google's own button signs in.
 +- **test**: `?test=<key>` adds a "Test sign-in" button that calls `POST /api/auth/test {key}` (staging only); everything after it is the real path. The key is never stored in a file.
++- **No Google client id** (a Worker whose `GOOGLE_CLIENT_ID` is empty, production today): the Google button's fake sign-in shows "Sign-in isn't set up here yet." instead of signing in; the "Not working?" link stays under the button, and in test mode so does Test sign-in.
 +- **mock**: no `/api` (the dev server), or `?mock`. Fake sign-in, fake subscribe, a local `showNotification`, and a yellow MOCK badge. State lives in `localStorage["join-mock"]`.
 +
 +## Files
 +
-+`index.html`, `main.js` (boots it), `Join.js` (the page class), `join.css`, `copy.js` (**all** words and the video, poster and captions paths: edit text here), `Backend.js` (the Worker's `/api` calls; `Backend.detect()` picks real or mock), `MockBackend.js` (+ `MockBackend.test.mjs`), `sw.js` (service worker, scope `/join/`, shows the push payload, caches nothing), `manifest.webmanifest`, `media/` (the video, poster and `captions.vtt`), `shoot.mjs` (the check below). Built on `ux/Auth`: [GoogleButton](/framework/ux/Auth/readme.md) and `InAppBrowser`. The API: [worker/readme.md](/worker/readme.md), "Sign-in, sessions and push".
++`index.html`, `main.js` (boots it), `Join.js` (the page class), `join.css`, `copy.js` (**all** words and the video, poster and captions paths: edit text here), `Backend.js` (the Worker's `/api` calls; `Backend.detect()` picks real or mock), `MockBackend.js` (+ `MockBackend.test.mjs`), `JoinState.js` (+ `JoinState.test.mjs`: the button-state rule and the shared-link cleaner; `Join.js` needs a DOM, so its flow is covered by `shoot.mjs` instead), `sw.js` (service worker, scope `/join/`, shows the push payload, caches nothing), `manifest.webmanifest`, `media/` (the video, poster and `captions.vtt`), `shoot.mjs` (the check below). Built on `ux/Auth`: [GoogleButton](/framework/ux/Auth/readme.md) and `InAppBrowser`. The API: [worker/readme.md](/worker/readme.md), "Sign-in, sessions and push".
 +
 +## Re-run the flow
 +
-+`node public/join/shoot.mjs [base-url] [out-dir]` walks the whole first-visit path (sign in, allow, reload, test push, notifications off, sign out, delete), prints each check and any console error, and shoots every state at 400 and 1920 wide. Needs Playwright installed globally and Chromium (`channel: "chromium"`; the headless shell denies notifications). Shots from the first run: `public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/signin-demo/join/shots/`.
++`node public/join/shoot.mjs [base-url] [out-dir]` walks the whole first-visit path (sign in, allow, reload, test push, notifications off, sign out, delete), prints each check and any console error, and shoots every state at 400 and 1920 wide. Needs Playwright installed globally and Chromium (`channel: "chromium"`; the headless shell denies notifications). The shots go to the out-dir you pass; the shots folder in the task is gitignored, so they are not committed.
 +
 +## Not proven here
 +
-+Real Google sign-in needs the page's origin in the Google client's Authorized JavaScript origins. Real push on iOS needs a physical iPhone with the page on the Home Screen. Headless Chromium has no H.264, so the shots show the poster, not the playing video.
++Real Google sign-in needs the page's origin in the Google client's Authorized JavaScript origins. Added to the Home Screen, the iPhone app has its own cookies, so the person signs in again there (the sheet says so). Real push on iOS needs a physical iPhone with the page on the Home Screen. Headless Chromium has no H.264, so the shots show the poster, not the playing video.
 diff --git a/public/join/shoot.mjs b/public/join/shoot.mjs
 new file mode 100644
 index 0000000000..8153b0bccb
@@ -1111,7 +1205,7 @@ index 237bdff865..67a14ff55c 100644
 +    scheduled: (event, env, ctx) => worker.scheduled(event, env, ctx),
  };
 diff --git a/worker/index.js b/worker/index.js
-index 694b8f3b48..cac7d8d14f 100644
+index 694b8f3b48..e5f9d3aa56 100644
 --- a/worker/index.js
 +++ b/worker/index.js
 @@ -5,11 +5,12 @@
@@ -1229,7 +1323,8 @@ index 694b8f3b48..cac7d8d14f 100644
 +        return json({ ok: true }, 200, { "set-cookie": clearCookie() });
 +    }],
  
-     // Revoke every session of this user, on every device: one counter, no sessions table (/notes/auth/ §3).
+-    // Revoke every session of this user, on every device: one counter, no sessions table (/notes/auth/ §3).
++    // Revoke every session of this user, on every device: bump the token epoch (/notes/auth/ §3) and end every sessions row.
      "POST /api/auth/logout-all": ["write", async (r, env, url, user) => {
          await env.DB.prepare("UPDATE users SET token_epoch = token_epoch + 1 WHERE id = ?").bind(user.id).run();
 +        await env.DB.prepare("UPDATE sessions SET ended_at = ? WHERE user_id = ? AND ended_at IS NULL").bind(Math.floor(Date.now() / 1000), user.id).run();

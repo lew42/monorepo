@@ -54,9 +54,9 @@ Card: /framework/ai/2026/11/25/sign-in-demo-video-landing-google-weekly/
 
 ## Done when
 
-- The commits are on `worktree/qf-1` and staging answers the new routes.
-- Each step's result is a `log` line in this folder's task log.
-- You send mastermind-forms 5 lines: what is live, the test results, and what is unproven (real delivery to a phone).
+- [ ] The commits are on `worktree/qf-1` and staging answers the new routes.
+- [ ] Each step's result is a `log` line in this folder's task log.
+- [ ] You send mastermind-forms 5 lines: what is live, the test results, and what is unproven (real delivery to a phone).
 
 ## Never
 
