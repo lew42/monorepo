@@ -139,10 +139,18 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 - Say "prune" for the 739 dead files, **after** the five imports above are moved.
 - Keep git stash@{0} until that prune lands.
 - health.mjs lock is global (Temp/lew42-health.lock): make it per-base.
+- **Forms and sign-in: your picks** (2026-11-25, [in-app proposal](sessions/2026/11/25/spawned/mastermind-forms/inapp/proposal.md), [Figma section 15](https://www.figma.com/design/woCZQDoXKJW3GcJPZukW7f/Claude-November-2026?node-id=154-2261)):
+  - **The −3…+3 scale's default look:** numbers, faces, icons or bars; buttons or a slider ([try them](/framework/ux/Form/)).
+  - **Saving answers per user:** say go for the answers routes ([proposal](sessions/2026/11/25/spawned/mastermind-forms/auth/proposal.md)).
+  - **Google sign-in:** a Google OAuth client id.
+  - **The "send me a link" sign-in:** an email sender and its DNS records (email also needs Cloudflare's paid Workers plan); text messages yes or no (about 6 cents each).
+  - **One real-phone test:** does Google sign-in work inside YouTube's in-app browser?
 
 [Where these came from](2026-09-24/loose-ends/)
 
 ## 3. Proposed by agents, not requested
+
+- **Sign-in: spot in-app browsers and show an "open in your browser" card** (2026-11-25, [proposal](sessions/2026/11/25/spawned/mastermind-forms/inapp/proposal.md), [Figma section 15](https://www.figma.com/design/woCZQDoXKJW3GcJPZukW7f/Claude-November-2026?node-id=154-2261)): the first version, with no backend. It goes in `ux/Auth`: a detector plus the card, with "Open in Chrome" on Android. About $3 on Sonnet. The "send me a link" part waits on the email and text-message picks in section 2.
 
 - **Session pages: make them lighter** (2026-11-10, [before/after](/live/plan/index/), [review](sessions/2026/11/09/spawned/mastermind-page-index/build/review.md)):
   - **Problem:** one session page still downloads about 27 MB, because three big files load whole when a page needs a slice: `directory.json` 5.6 MB, `ai/index.json` 4 MB, `asks/undone.json` 1.9 MB.
