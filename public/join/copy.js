@@ -16,6 +16,7 @@ export default {
 	done_sent: "Sent. It should arrive in a moment.",
 	blocked: "Notifications are blocked for this site. Allow them in your browser's site settings, then tap again.",
 	unsupported: "This browser can't receive notifications. Try Chrome on Android, or Safari on iPhone (added to your Home Screen).",
+	not_set_up: "Sign-in isn't set up here yet.",
 	failed: "That didn't work:",
 
 	inapp_title: "Open this in your own browser",
@@ -29,8 +30,8 @@ export default {
 	test_signin: "Test sign-in",
 
 	ios_title: "Add to your Home Screen first",
-	ios_why: "iPhone only allows notifications from an app on your Home Screen. It takes four taps.",
-	ios_steps: ["Tap the Share icon in Safari's toolbar.", "Scroll down and tap Add to Home Screen.", "Open lew42 from your Home Screen.", "Tap Allow one notification a week, then Allow."],
+	ios_why: "iPhone only allows notifications from an app on your Home Screen.",
+	ios_steps: ["Tap the Share icon in Safari's toolbar.", "Scroll down and tap Add to Home Screen.", "Open lew42 from your Home Screen. It does not share Safari's sign-in, so sign in again.", "Tap Allow one notification a week, then Allow."],
 
 	settings_title: "Settings",
 	signed_in_as: "Signed in as",

@@ -1,5 +1,6 @@
 import { GoogleButton } from "/framework/ux/Auth/GoogleButton.js";
 import { InAppBrowser } from "/framework/ux/Auth/InAppBrowser.js";
+import { JoinState } from "./JoinState.js";
 
 const el = (tag, cls = "", ...kids) => {
 	const e = document.createElement(tag);
@@ -67,7 +68,6 @@ export class Join {
 		});
 		this.$sound = btn("pill sound", "Tap for sound", () => { video.muted = !video.muted; this.$sound.textContent = video.muted ? "Tap for sound" : "Sound on"; });
 		this.$media.append(video);
-		this.$sound_slot = this.$sound;
 		addEventListener("pointerdown", () => video.paused && video.play().catch(() => {}), { once: true });
 	}
 
@@ -77,7 +77,7 @@ export class Join {
 		this.backend = backend;
 		this.$badge.hidden = !backend.mock;
 		if (this.$sound) this.$top.prepend(this.$sound);
-		this.sw = "serviceWorker" in navigator ? navigator.serviceWorker.register("/join/sw.js", { scope: "/join/" }).catch(err => this.say(copy_err(err), true)) : null;
+		this.sw = "serviceWorker" in navigator ? navigator.serviceWorker.register("/join/sw.js", { scope: "/join/" }).catch(err => this.say(err.message, true)) : null;
 		this.google = new GoogleButton({ theme: "dark", on_video: true, client_id: backend.client_id, label: GoogleButton.labels[2] });
 		this.google.el.addEventListener("signin", e => this.signed_in(e.detail.user, e.detail.mock, e.detail.email));
 		await this.refresh();
@@ -91,10 +91,10 @@ export class Join {
 
 	get permission(){ return "Notification" in window ? Notification.permission : "unsupported"; }
 	get subscribed(){ return this.push && this.permission === "granted"; }
-	get state(){ return !this.user ? (this.env.in_app ? "inapp" : "google") : this.subscribed ? "done" : "allow"; }
+	get state(){ return JoinState.of({ user: this.user, in_app: this.env.in_app, push: this.push, permission: this.permission }); }
 
 	render(){
-		const { copy } = this, state = this.state;
+		const state = this.state;
 		this.frame.dataset.state = state;
 		this.say("");
 		this.$act.replaceChildren(...this[`act_${state}`]());
@@ -111,7 +111,11 @@ export class Join {
 	// The Worker keeps no email, so the one Google gave us at sign-in is remembered on this device only, for revoke().
 	signed_in(user, mock, email){
 		if (email) localStorage.setItem("join-google-email", email);
-		if (mock) this.backend.login(user);
+		if (mock){
+			// A real Worker with no Google client id (production today) has no fake sign-in to fall back on.
+			if (!this.backend.mock) return this.say(this.copy.not_set_up, true);
+			this.backend.login(user);
+		}
 		return this.refresh();
 	}
 
@@ -201,12 +205,12 @@ export class Join {
 		const close = () => this.$sheet.replaceChildren();
 		this.$sheet.replaceChildren(el("div", "sheet-wrap",
 			Object.assign(el("div", "backdrop"), { onclick: close }),
-			el("div", "sheet", el("h2", "", title), ...nodes, btn("link dark", this.copy.close, close))));
+			el("div", "sheet", title && el("h2", "", title), ...nodes, btn("link dark", this.copy.close, close))));
 		return close;
 	}
 
 	inapp_card(){
-		const { copy, env } = this, url = location.href;
+		const { copy, env } = this, url = JoinState.share_url(location.href);
 		const steps = env.ios ? el("ol", "steps", ...copy.inapp_ios.map(s => el("li", "", s))) : null;
 		return el("div", "card",
 			el("h2", "", copy.inapp_title),
@@ -219,7 +223,7 @@ export class Join {
 				navigator.share && btn("pill dark", copy.share_link, () => navigator.share({ url, title: document.title }).catch(() => {}))));
 	}
 
-	inapp_sheet(){ this.sheet("", this.inapp_card()); }
+	inapp_sheet(){ this.sheet(null, this.inapp_card()); }
 
 	ios_sheet(){
 		const { copy } = this;
@@ -285,11 +289,10 @@ export class Join {
 		await this.unsubscribe().catch(() => {});
 		globalThis.google?.accounts?.id?.disableAutoSelect();
 		for (const reg of await navigator.serviceWorker?.getRegistrations?.() ?? []) await reg.unregister();
-		localStorage.clear(); sessionStorage.clear();
+		for (const store of [localStorage, sessionStorage])
+			for (const key of Object.keys(store)) if (key.startsWith("join-")) store.removeItem(key);
 		location.reload();
 	}
 }
-
-const copy_err = err => err.message;
 
 export default Join;
