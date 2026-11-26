@@ -18,3 +18,6 @@
 {"pid":30540,"cmd":"node C:\\Code\\lew42\\worktrees\\qf-3/.claude/hooks/ledger.mjs stop","why":"child of claude.exe","agent":"minion-forms-auth","session":"7e424ecb-6693-4f55-892d-637fb2d5a9ef","started":"2026-11-25T18:08:08-06:00","ppid":25704,"seen":"sample","by":"servex"}
 {"pid_exit":25704,"ended":"2026-11-25T18:08:18-06:00","code":0,"signal":null,"by":"servex"}
 {"pid_exit":30540,"ended":"2026-11-25T18:08:19-06:00","code":null,"signal":null,"seen":"sample","by":"servex"}
+{"complete":{"outcome":"Users and auth research done: the Worker already has a user system (Google verify, cookie, D1 users, per-user UserDO); real Google never run; proposal = answers table in UserDO + GET/PUT /api/answers + form.bind(user). Reported to voice-app; nothing built.","evidence":["commit f3a3c6313e: auth/findings.md, auth/proposal.md, worker/readme.md link"],"at":"2026-11-25T18:09:49-06:00"}}
+{"assign":{"closed_by":"unknown caller","closed_at":"2026-11-25T18:09:49-06:00","closed_why":null}}
+{"log":{"at":"2026-11-25T18:10:42-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}

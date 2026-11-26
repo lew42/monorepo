@@ -27,30 +27,28 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-25 00:00 UTC, last 24 h)
+## NOW (computed 2026-11-26 00:00 UTC, last 24 h)
 
-**Pace:** Week: 38% used · 84% gone · 45% of pace (room to spend, 1 day 2 hours left)
+**Pace:** Week: 43% used · 98% gone · 44% of pace (room to spend, 2 hours 59 minutes left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (2):**
-- [You are the mastermind for Mike's new Timeline system: a vanilla-JS class architecture for playing back any we](/framework/ai/sessions/2026/11/24/spawned/mastermind-timeline/) (mastermind-timeline)
-- [Investigate the Servex worktree pool and worktree cleanup (Servex/Pool.js and the worktree scripts). Report fi](/framework/ai/sessions/2026/11/24/spawned/mastermind-worktree-pool/) (mastermind-worktree-pool)
+**Landed (0):**
+- none
 
-**Open, touched in the window (2):**
-- [Your brief is at .scratch/timeline-research/check/brief.md. Load the minion skill, then follow it. Write only ](/framework/ai/sessions/2026/11/24/session-46e93ebe/minion-timeline-check/) (minion-timeline-check)
-- [Your brief is at .scratch/timeline-research/example/brief.md. Load the minion skill, then follow it. Write onl](/framework/ai/sessions/2026/11/24/session-46e93ebe/minion-timeline-example/) (minion-timeline-example)
+**Open, touched in the window (1):**
+- [You are the mastermind for the forms system in the monorepo. Read your brief first: `.scratch/forms/brief-2026](/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/) (mastermind-forms)
 
 **Latest commits on this branch:**
 ```
-d89bfc2d26 servex: log sweep (14 files)
-cd96b5111c closeout.test: remove debris worktrees with --force --force so a locked one no longer leaks
-cb82eaaf0f Pool: keep a ready slot current (restore generated logs, retry the fast-forward) in take_sync, take and sweep
-545360aa16 Pool.take_sync: log why ff-only failed and top_up after dropping the slot
-b02b662371 servex: log sweep (6 files)
-0a6883dca6 servex: log sweep (2 files)
-a38466cb0f servex: log sweep (1 files)
-37d1156b38 servex: log sweep (2 files)
+b1718a2a07 servex: log sweep (2 files)
+8cef9c1566 servex: log sweep (3 files)
+aac116ad16 servex: log sweep (2 files)
+50eac29ee6 servex: log sweep (3 files)
+bd1d11856f servex: log sweep (2 files)
+f3fe3ce77b servex: log sweep (3 files)
+fc7a3227c0 servex: log sweep (2 files)
+8d87fafe40 servex: log sweep (3 files)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
