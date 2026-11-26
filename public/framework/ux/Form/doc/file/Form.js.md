@@ -1,0 +1,1 @@
+The list of questions. `values()` returns `{ id: value }`, `load()` sets answers by id, `submit()` refuses while a required question is empty, and `on("change" | "submit")` fires.

@@ -1,0 +1,1 @@
+The base class every answer type extends: `value` (get and set), the `change` event, `empty()`, and the shared builders for radio groups, checkbox groups, fields and sliders. It is the only file that links `Form.css`.

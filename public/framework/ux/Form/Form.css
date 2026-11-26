@@ -1,0 +1,127 @@
+/* ux/Form: every rule is in @layer site and reads the framework's own tokens (--prime, --line, --fill-*, --subtle, --ok, --error).
+   Bare button / select / input / textarea already wear the control grammar; this file only adds the shapes it has no word for.
+   Inputs are 16px or more (iOS zooms below that) and every tap target is 44px or more. Doc: readme.md. */
+@layer site {
+
+	.fm-form { display: flex; flex-direction: column; gap: 1.5rem; }
+	.fm-title { margin: 0; }
+	.fm-questions { display: flex; flex-direction: column; gap: 1.5rem; }
+	.fm-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+	.fm-actions button { min-height: 48px; padding-inline: 2rem; font-size: max(16px, 1em); }
+	.fm-status { margin: 0; color: var(--subtle); }
+
+	/* Question: a fieldset, so a radio group is announced with its label */
+	.fm-question { border: 0; margin: 0; padding: 0; min-width: 0; }
+	.fm-question.fm-missing { outline: 2px solid var(--error); outline-offset: 0.5rem; border-radius: var(--radius); }
+	.fm-label { padding: 0; margin-bottom: 0.5rem; font-weight: 700; font-size: max(16px, 1em); line-height: 1.4; }
+	.fm-req { color: var(--error); margin-inline-start: 0.25em; }
+	.fm-hint { margin: -0.25rem 0 0.5rem; font-size: 0.875rem; color: var(--subtle); }
+
+	.fm-answer { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
+	.fm-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+	/* native text fields */
+	.fm-answer .fm-field { width: 100%; min-height: 48px; font-size: max(16px, 1em); }
+	.fm-answer textarea.fm-field { min-height: 7rem; resize: vertical; }
+
+	/* radio and checkbox groups: the real input is the first child of its label */
+	.fm-group { display: flex; gap: 0.5rem; }
+	.fm-opt { position: relative; display: flex; align-items: center; justify-content: center; min-height: 44px; cursor: pointer; box-sizing: border-box; }
+	.fm-opt > input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+	.fm-opt:has(input:focus-visible) { outline: 2px solid var(--prime); outline-offset: 2px; }
+
+	/* list: a visible native radio or checkbox in a bordered row */
+	.fm-list { flex-direction: column; }
+	.fm-list .fm-opt { justify-content: flex-start; gap: 0.75rem; min-height: 52px; padding: 0.5rem 0.875rem; font-size: max(16px, 1em);
+		border: 1px solid var(--fill-a32); border-radius: var(--radius); background-color: var(--fill-a04); }
+	.fm-list .fm-opt > input { position: static; flex: none; width: 22px; height: 22px; opacity: 1; accent-color: var(--prime); }
+	.fm-list .fm-opt:has(input:checked) { border-color: var(--prime); background-color: color-mix(in srgb, var(--prime) 14%, transparent); }
+
+	/* seg: equal buttons in one row; selected = solid --prime */
+	.fm-seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0.25rem; }
+	.fm-seg .fm-opt { min-height: 48px; padding: 0.25rem 0.125rem; text-align: center; font-weight: 600; font-size: max(16px, 1em); line-height: 1.2;
+		border: 1px solid var(--fill-a32); border-radius: var(--radius); background-color: var(--fill-a08); }
+	.fm-seg .fm-opt:hover { border-color: var(--prime); }
+	.fm-seg .fm-opt:has(input:checked) { background-color: var(--prime); border-color: var(--prime); color: #1a1a1a; }
+	.fm-words .fm-opt { font-size: 0.75rem; padding-inline: 0; overflow-wrap: normal; hyphens: none; }
+	.fm-wrap { grid-auto-flow: row; grid-template-columns: repeat(6, 1fr); }
+
+	/* chips */
+	.fm-chips { flex-wrap: wrap; }
+	.fm-chips .fm-opt { min-height: 44px; padding: 0 1rem; font-size: max(16px, 1em); border: 1px solid var(--fill-a32); border-radius: 999px; background-color: var(--fill-a08); }
+	.fm-chips .fm-opt:has(input:checked) { background-color: var(--prime); border-color: var(--prime); color: #1a1a1a; font-weight: 600; }
+
+	/* Scale7: seven buttons, then one line of end words under -3, 0 and +3 */
+	.fm-scale { grid-template-columns: repeat(7, 1fr); grid-auto-flow: row; }
+	.fm-scale .fm-opt { padding: 0; }
+	.fm-ends { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0 0.25rem; font-size: 0.75rem; line-height: 1.3; color: var(--subtle); }
+	.fm-ends .fm-lo { grid-column: 1 / 3; text-align: start; }
+	.fm-ends .fm-mid { grid-column: 3 / 6; text-align: center; }
+	.fm-ends .fm-hi { grid-column: 6 / 8; text-align: end; }
+	.fm-ends.fm-two { grid-template-columns: 1fr 1fr; }
+	.fm-ends.fm-two .fm-lo { grid-column: 1; }
+	.fm-ends.fm-two .fm-hi { grid-column: 2; }
+	.fm-skip { align-self: flex-start; min-height: 44px; font-size: 0.875rem; }
+	.fm-skip.on { border-color: var(--prime); background-color: color-mix(in srgb, var(--prime) 14%, transparent); }
+
+	/* the four marker sets */
+	.fm-num { font-variant-numeric: tabular-nums; }
+	.fm-face { font-size: 1.625rem; line-height: 1; }
+	.fm-icon { font-size: calc(0.875rem + var(--k, 0) * 0.3rem); line-height: 1; }
+	.fm-flip { display: inline-block; transform: scaleY(-1); }
+	.fm-bar { display: block; width: 0.625rem; height: var(--h, 3px); border-radius: 2px; background: var(--subtle); }
+	.fm-bar.fm-bad { background: var(--error); }
+	.fm-bar.fm-good { background: var(--ok); }
+	.fm-bars .fm-opt:has(input:checked) { background-color: color-mix(in srgb, var(--prime) 14%, transparent); }
+
+	/* sliders: native range, a big readout above */
+	.fm-readout { font-size: 2rem; font-weight: 800; line-height: 1.1; text-align: center; font-variant-numeric: tabular-nums; }
+	.fm-range { width: 100%; min-height: 44px; margin: 0; accent-color: var(--prime); cursor: pointer; }
+	.fm-range.fm-untouched { opacity: 0.55; }
+
+	/* stars: the lit run is the checked star and every star before it */
+	.fm-stars { gap: 0.125rem; }
+	.fm-stars .fm-opt { min-width: 44px; }
+	.fm-star { font-size: 2rem; line-height: 1; color: var(--fill-a32); }
+	.fm-stars .fm-opt:has(input:checked) .fm-star,
+	.fm-stars .fm-opt:has(~ .fm-opt input:checked) .fm-star { color: var(--prime); }
+
+	/* emoji: selected gets a ring, not a solid fill, so the emoji stays visible */
+	.fm-emoji { font-size: 1.75rem; line-height: 1; }
+	.fm-emojis .fm-opt:has(input:checked) { background-color: color-mix(in srgb, var(--prime) 14%, transparent); border-color: var(--prime); color: inherit; }
+
+	/* switch */
+	.fm-switch { position: relative; display: flex; align-items: center; gap: 0.75rem; min-height: 44px; cursor: pointer; }
+	.fm-switch > input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+	.fm-track { position: relative; flex: none; width: 52px; height: 32px; border-radius: 999px; background: var(--fill-a32); transition: background 0.15s; }
+	.fm-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 28px; height: 28px; border-radius: 50%; background: var(--surface); box-shadow: var(--shadow); transition: transform 0.15s; }
+	.fm-switch:has(input:checked) .fm-track { background: var(--prime); }
+	.fm-switch:has(input:checked) .fm-track::after { transform: translateX(20px); }
+	.fm-switch:has(input:focus-visible) .fm-track { outline: 2px solid var(--prime); outline-offset: 2px; }
+
+	/* number with - and + */
+	.fm-number { display: grid; grid-template-columns: 48px 1fr 48px; gap: 0.5rem; }
+	.fm-number .fm-field { text-align: center; }
+	.fm-step { min-height: 48px; padding: 0; font-size: 1.25rem; }
+
+	/* rank top 3 */
+	.fm-rank { display: flex; flex-direction: column; gap: 0.5rem; }
+	.fm-rank-row { display: grid; grid-template-columns: 3rem 1fr; align-items: center; gap: 0.5rem; }
+	.fm-rank-n { font-weight: 700; }
+
+	/* the demo page: a card per answer type */
+	.fm-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); gap: 1rem; }
+	.fm-card { display: flex; flex-direction: column; gap: 1rem; min-width: 0; padding: 1rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+	.fm-card-head { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+	.fm-card-id { font-family: var(--mono); font-size: 0.75rem; font-weight: 700; color: var(--prime-ink); }
+	.fm-card-name { font-weight: 700; }
+	.fm-json { margin: 0; padding: 0.5rem 0.75rem; overflow-x: auto; border-radius: var(--radius); background: var(--wash); color: var(--ink); font-family: var(--mono); font-size: 0.75rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+	.fm-card-meta { margin: 0; font-size: 0.75rem; color: var(--subtle); }
+	.fm-lab { display: flex; flex-direction: column; gap: 1rem; max-width: 40rem; }
+	.fm-look { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+	.fm-pick { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.75rem; color: var(--subtle); }
+	.fm-pick select { width: auto; min-height: 44px; font-size: max(16px, 1em); }
+	.fm-demo-split { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1.5rem; align-items: start; max-width: 60rem; }
+	.fm-json-box { display: flex; flex-direction: column; gap: 0.5rem; }
+	.fm-json-box h3 { margin: 0; font-size: 1rem; }
+}
