@@ -80,6 +80,7 @@ Before step 2, finish the owner's list below.
 - **Banning a real user.** A ban is a flag in the dev login's cookie only (`dev.js`); no column or admin route sets it on staging or production, and `can.js` does not check it.
 - **A page that lists live documents and their lock holders.**
 - **Per-user form answers.** Proposed (2026-11-25, not built): an `answers` table in `UserDO` plus `GET`/`PUT /api/answers`, read by `ux/Form`'s `form.bind(user)`: [proposal.md](../public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/auth/proposal.md) · [what exists](../public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/auth/findings.md).
+- **People arriving in in-app browsers** (YouTube, Instagram, TikTok): Google sign-in is blocked there. Proposed (2026-11-25, not built): detect it, show an "open in your browser" card, and a one-use handoff link by email or text: [proposal.md](../public/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/inapp/proposal.md).
 - The old app's `ADMIN_GOOGLE_SUB` option (admin by Google subject id) was dropped: the admin is `ADMIN_EMAIL`, compared at sign-in.
 
 ## What the owner must do
