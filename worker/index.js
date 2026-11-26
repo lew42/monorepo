@@ -147,7 +147,7 @@ const ROUTES = {
         return json({ ok: true }, 200, { "set-cookie": clearCookie() });
     }],
 
-    // Revoke every session of this user, on every device: one counter, no sessions table (/notes/auth/ §3).
+    // Revoke every session of this user, on every device: bump the token epoch (/notes/auth/ §3) and end every sessions row.
     "POST /api/auth/logout-all": ["write", async (r, env, url, user) => {
         await env.DB.prepare("UPDATE users SET token_epoch = token_epoch + 1 WHERE id = ?").bind(user.id).run();
         await env.DB.prepare("UPDATE sessions SET ended_at = ? WHERE user_id = ? AND ended_at IS NULL").bind(Math.floor(Date.now() / 1000), user.id).run();

@@ -16,6 +16,7 @@ css(`@layer site {
 	.ux-auth-google-btn:hover { box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
 	.ux-auth-google-g { display: inline-flex; width: 1.15em; height: 1.15em; flex: none; }
 	.ux-auth-google-g svg { width: 100%; height: 100%; display: block; }
+	.ux-auth-google-gsi { display: flex; justify-content: center; min-height: 44px; }
 	.ux-auth-google-note:empty { display: none; }
 	.ux-auth-google-note { margin: 0; text-align: center; font-size: 0.8em; }
 	.ux-auth-google-note.ux-auth-google-bad { color: var(--error); }
@@ -76,16 +77,28 @@ export class GoogleButton extends View {
 		try {
 			await GoogleButton.load_gsi();
 			google.accounts.id.initialize({ client_id, auto_select: false, use_fedcm_for_button: true, callback: res => this.credential(res.credential) });
-			const slot = document.createElement("div");
-			google.accounts.id.renderButton(slot, {
-				theme: this.theme === "dark" ? "filled_black" : "outline", size: "large", shape: "rectangular", logo_alignment: "left",
-				text: GoogleButton.gsi_text[this.label] ?? "continue_with", width: Math.min(400, Math.max(200, this.el.offsetWidth || 320))
-			});
-			this.$button.el.replaceWith(slot);
+			this.slot = document.createElement("div");
+			this.slot.className = "ux-auth-google-gsi";
+			this.$button.el.replaceWith(this.slot);
 			this.real = true;
+			this.render_gsi();
+			// Google draws the button at a fixed pixel width: draw it again when the column changes width.
+			new ResizeObserver(() => this.render_gsi()).observe(this.el);
 		} catch (err){
 			this.say(err.message, true);
 		}
+	}
+
+	// As wide as the column (Google allows 200 to 400 px), centred by .ux-auth-google-gsi.
+	render_gsi(){
+		const width = Math.round(Math.min(400, Math.max(200, this.el.clientWidth || 320)));
+		if (!this.slot || width === this.gsi_width) return;
+		this.gsi_width = width;
+		this.slot.replaceChildren();
+		google.accounts.id.renderButton(this.slot, {
+			theme: this.theme === "dark" ? "filled_black" : "outline", size: "large", shape: "rectangular", logo_alignment: "left",
+			text: GoogleButton.gsi_text[this.label] ?? "continue_with", width
+		});
 	}
 
 	async credential(credential){
