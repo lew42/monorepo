@@ -16,7 +16,7 @@ h2 { font-size: 16px; margin: 20px 0 2px; opacity: 0.9; }
 .wrap { width: auto; min-width: min(100%, 560px); border-collapse: collapse; font-size: 14px; }
 .wrap th, .wrap td { padding: 6px 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.12); white-space: nowrap; }
 .wrap th { opacity: 0.7; font-weight: 600; }
-.wrap td.group { font-weight: 600; opacity: 0.9; }
+.wrap td.group { font-weight: 600; opacity: 0.9; white-space: normal; overflow-wrap: anywhere; max-width: 9em; }
 .wrap td.num, .wrap th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
 @media (min-width: 900px) {
