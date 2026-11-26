@@ -64,6 +64,12 @@ input it exists to handle. `:invalid`/`:user-invalid` still compute with
 screenshot, but the interaction proof (task screenshots) is what confirms the
 message actually renders in `ui/alert` instead of the browser's own tooltip.
 
+## Google first, one button over video (2026-11-25)
+
+- **Google first** (`SignIn extends Auth`): the forms brief names it first; Apple and an email link follow, a password one tap down. Passkeys later ([the per-user forms proposal](/framework/ai/sessions/2026/11/25/spawned/mastermind-forms/auth/proposal.md)).
+- **One button over a talking-head video** (`VideoSignIn`): the owner found whole forms over video distracting. Alternative: the full `SignIn` view in a sheet over the video; it wins only if more than one provider must show there.
+- **Mock vs real is the client id, not a flag:** `GoogleButton` mirrors `/app/`'s Google Identity Services call and posts to the Worker's `/api/auth/google`, so there is one auth system. With no id it is a mock that says so on screen. Real sign-in waits on the owner's OAuth client ([worker/readme.md](/worker/readme.md), "What the owner must do").
+
 ## Cut
 
 The `layout`/`css` skills' full five-question pass on the *words-proof* band was

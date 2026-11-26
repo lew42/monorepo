@@ -17,7 +17,7 @@ export default new Doc({
 	description: "A talking-head video with one Google button over it, the button's variants, and the quick sign-in view.",
 	icon: "login",
 
-	files: "page.js V01.jpg V02.jpg ../GoogleButton.js ../VideoSignIn.js ../SignIn.js",
+	files: "page.js V01.jpg ../GoogleButton.js ../VideoSignIn.js ../SignIn.js",
 
 	content(){
 		let $last;

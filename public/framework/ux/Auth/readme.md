@@ -47,6 +47,7 @@ It is `/app/`'s call, not a second auth system. Demo: [`/framework/ux/Auth/googl
 - **A composed method is a seam per thing it composes**, not one seam for the whole
   method — `login()` calls `password_field()` rather than building the field inline,
   which is the one line that let `MagicAuth` skip it instead of forking `login()`.
+- **`GoogleButton` with no `client_id` asks `/api/config`** (the Worker's answer, as `/app/` reads it); on a static host that is not JSON, so it stays a mock. `client_id: ""` skips the request. With an id it loads Google's script (`accounts.google.com/gsi/client`) once per page and swaps the mock for Google's own button — [`doc/decisions.md`](/framework/ux/Auth/doc/decisions/).
 - **A ux never ships its own compact/contrast mode** — the words-proof band on
   [`page.js`](/framework/ux/Auth/) is the config-word contract, not an Auth option.
 
